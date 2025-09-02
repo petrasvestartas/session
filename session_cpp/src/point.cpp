@@ -1,6 +1,6 @@
-// #include "point.hpp"
+#include "point.hpp"
 
-// namespace geo {
+namespace session_cpp {
 // Point::Point() : _xyz{0.0, 0.0, 0.0} {}
 
 // Point::Point(double x, double y, double z) : _xyz{x, y, z} {}
@@ -271,4 +271,4 @@
 // std::ostream& geo::operator<<(std::ostream& os, const geo::Point& point) {
 //     os << "Point: " << point.x() << " " << point.y() << " " << point.z();
 //     return os;
-// }
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace geo {
+namespace session_cpp {
 
 struct GLOBALS {
    public:
@@ -31,5 +31,14 @@ struct GLOBALS {
 
     static constexpr double TOLERANCE = 1e-3;
 };
+
+    /**
+     * @brief Generate a UUID v4 string using UUIDv4 library
+     */
+    static std::string generate_uuid() {
+        UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
+        UUIDv4::UUID uuid = uuidGenerator.getUUID();
+        return uuid.str();
+    }
 
 }  // namespace geo

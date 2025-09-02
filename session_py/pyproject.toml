@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "session_py"
+version = "0.1.0"
+description = "A minimal Python geometry library"
+authors = [{name = "Petras Vestartas", email = "petrasvestartas@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/petrasvestartas/session"
+Repository = "https://github.com/petrasvestartas/session"
+
+[tool.hatch.build.targets.wheel]
+
+[tool.hatch.build]
+src-layout = true
