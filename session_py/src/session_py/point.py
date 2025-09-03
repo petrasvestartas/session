@@ -24,14 +24,14 @@ class Point:
         The width of the point.
     """
     
-    def __init__(self, x, y, z):
+    def __init__(self, x=0.0, y=0.0, z=0.0):
+        self.guid = uuid.uuid4()
+        self.name = "my_point"
         self.x = x
         self.y = y
         self.z = z
-        self.guid = uuid.uuid4()
-        self.name = "Point"
-        self.pointcolor = Color.white()
         self.width = 1.0
+        self.pointcolor = Color.white()
 
     def __str__(self):
         return f"Point({self.x}, {self.y}, {self.z}, {self.guid}, {self.name}, {self.pointcolor}, {self.width})"
@@ -43,32 +43,30 @@ class Point:
     def to_json_data(self):
         """Convert to JSON-serializable dictionary."""
         return {
-            "dtype": "Point",
+            "type": "Point",
+            "guid": str(self.guid),
+            "name": self.name,
             "x": self.x,
             "y": self.y,
             "z": self.z,
-            "guid": str(self.guid),
-            "name": self.name,
-            "pointcolor": self.pointcolor.to_float_array(),
-            "width": self.width
+            "width": self.width,
+            "pointcolor": self.pointcolor.to_json_data(),
         }
 
     @classmethod
     def from_json_data(cls, data):
         """Create point from JSON data."""
-        return cls(
-            data["x"], 
-            data["y"], 
-            data["z"], 
-            data["guid"],
-            data["name"],
-            Color.from_float(*data["pointcolor"]),
-            data["width"])
+        point = cls(data["x"], data["y"], data["z"])
+        point.guid = uuid.UUID(data["guid"])
+        point.name = data["name"]
+        point.width = data["width"]
+        point.pointcolor = Color.from_json_data(data["pointcolor"])
+        return point
 
     def to_json(self, filepath):
         """Serialize to JSON string."""
         with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f)
+            json.dump(self.to_json_data(), f, indent=4)
 
     @classmethod
     def from_json(cls, filepath):

@@ -1,9 +1,7 @@
 use std::fmt;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, ser::Serialize as SerTrait};
 use uuid::Uuid;
 use crate::Color;
-use serde_json::Value;
-use std::fs;
 
 /// A point with XYZ coordinates and display properties.
 ///
@@ -16,15 +14,18 @@ use std::fs;
 /// * `pointcolor` - Point color
 /// * `width` - Point width
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename = "Point")]
 pub struct Point {
+    pub guid: Uuid,
+    pub name: String,
     pub x: f32,
     pub y: f32,
     pub z: f32,
-    pub guid: Uuid,
-    pub name: String,
-    pub pointcolor: Color,
     pub width: f32,
+    pub pointcolor: Color,
+    
 }
+
 
 impl Point {
     /// Create new point.
@@ -34,52 +35,46 @@ impl Point {
             y,
             z,
             guid: Uuid::new_v4(),
-            name: "Point".to_string(),
+            name: "my_point".to_string(),
             pointcolor: Color::white(),
             width: 1.0,
         }
     }
-}
 
-// JSON
-impl Point {
-    /// Convert to JSON data.
-    pub fn to_json_data(&self, minimal: bool) -> Value {
-        if minimal {
-            serde_json::json!({"dtype": "Point", "x": self.x, "y": self.y, "z": self.z})
-        } else {
-            serde_json::json!({
-                "dtype": "Point", "x": self.x, "y": self.y, "z": self.z,
-                "guid": self.guid.to_string(), "name": self.name,
-                "pointcolor": self.pointcolor.to_json_data(false), "width": self.width
-            })
-        }
+    /// Serialize to JSON string (for cross-language compatibility)
+    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+        let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+        let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
+        SerTrait::serialize(self, &mut ser)?;
+        Ok(String::from_utf8(buf)?)
     }
 
-    /// Create from JSON data.
-    pub fn from_json_data(data: &Value) -> Self {
-        Point {
-            x: data["x"].as_f32().unwrap(),
-            y: data["y"].as_f32().unwrap(),
-            z: data["z"].as_f32().unwrap(),
-            guid: data.get("guid").and_then(|g| g.as_str()).and_then(|s| Uuid::parse_str(s).ok()).unwrap_or_else(Uuid::new_v4),
-            name: data.get("name").and_then(|n| n.as_str()).unwrap_or("Point").to_string(),
-            pointcolor: data.get("pointcolor").map(Color::from_json_data).unwrap_or_else(Color::white),
-            width: data.get("width").and_then(|w| w.as_f32()).unwrap_or(1.0),
-        }
+    /// Deserialize from JSON string (for cross-language compatibility)
+    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(serde_json::from_str(json_data)?)
     }
 
-    /// Serialize to JSON string.
-    pub fn to_json(&self, minimal: bool) -> String {
-        serde_json::to_string(&self.to_json_data(minimal)).unwrap()
+    /// Serialize to JSON file
+    pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let json = self.to_json_data()?;
+        std::fs::write(filepath, json)?;
+        Ok(())
     }
 
-    /// Deserialize from JSON string.
-    pub fn from_json(json_str: &str) -> Self {
-        let data: Value = serde_json::from_str(json_str).unwrap();
-        Self::from_json_data(&data)
+    /// Deserialize from JSON file
+    pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let json = std::fs::read_to_string(filepath)?;
+        Self::from_json_data(&json)
     }
 }
+
+impl Default for Point {
+    fn default() -> Self {
+        Self::new(0.0, 0.0, 0.0)
+    }
+}
+
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

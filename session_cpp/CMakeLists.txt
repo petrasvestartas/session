@@ -15,10 +15,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Add compiler warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
+    # Enable AVX2 for uuid_v4.h library
+    add_compile_options(-mavx2)
     # Uncomment to enable more aggressive warnings
     # add_compile_options(-Werror)
 elseif(MSVC)
     add_compile_options(/W4)
+    # Enable AVX2 for uuid_v4.h library
+    add_compile_options(/arch:AVX2)
     # Uncomment to treat warnings as errors
     # add_compile_options(/WX)
 endif()

@@ -1,25 +1,29 @@
 #pragma once
 #include <array>
+#include <string>
+#include "json.hpp"
 
-namespace session {
+namespace geo {
 
 /**
  * @class Color
- * @brief A color is defined by RGBA coordinates from 0 to 255 and alpha from 0 to 100.
+ * @brief A color is defined by RGBA coordinates from 0 to 255.
  * 
  * @var Color::r Red component (0-255)
  * @var Color::g Green component (0-255)
  * @var Color::b Blue component (0-255)
- * @var Color::a Alpha component (0-100)
+ * @var Color::a Alpha component (0-255)
+ * @var Color::guid Unique identifier
  */
 class Color {
 public:
-    int r, g, b, a;
+    unsigned char r, g, b, a;
+    std::string guid;
     
     /**
      * @brief Constructor with RGBA values.
      */
-    Color(int r = 255, int g = 255, int b = 255, int a = 100);
+    Color(unsigned char r = 255, unsigned char g = 255, unsigned char b = 255, unsigned char a = 255, const std::string& guid = "");
     
     /**
      * @brief Create a white color.
@@ -40,6 +44,16 @@ public:
      * @brief Create color from normalized float values [0-1].
      */
     static Color from_float(double r, double g, double b, double a);
+    
+    /**
+     * @brief Convert to JSON-serializable object.
+     */
+    nlohmann::ordered_json to_json_data() const;
+    
+    /**
+     * @brief Create color from JSON data.
+     */
+    static Color from_json_data(const nlohmann::json& data);
 };
 
-} // namespace session
+} // namespace geo

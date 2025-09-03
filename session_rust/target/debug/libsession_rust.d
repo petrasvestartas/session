@@ -1,0 +1,1 @@
+/home/pv/brg/code_rust/session/session_rust/target/debug/libsession_rust.rlib: /home/pv/brg/code_rust/session/session_rust/src/color.rs /home/pv/brg/code_rust/session/session_rust/src/lib.rs /home/pv/brg/code_rust/session/session_rust/src/point.rs

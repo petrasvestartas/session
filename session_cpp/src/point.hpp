@@ -1,13 +1,14 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <color.hpp>
-#include <format>
+#include <sstream>
+#include <fstream>
+#include "color.hpp"
 #include "json.hpp"
 #include "globals.hpp"
 
 
-namespace session_cpp {
+namespace geo {
 /**
  * @class Point
  * @brief A point defined by XYZ coordinates with display properties.
@@ -26,8 +27,8 @@ class Point {
     double y = 0.0;
     double z = 0.0;
     std::string guid = generate_uuid();
-    std::string name = "Point";
-    Color pointcolor = Color.white();
+    std::string name = "my_point";
+    Color pointcolor = Color::white();
     double width = 1.0;
 
 
@@ -45,8 +46,12 @@ public:
      * @brief Convert point to string representation
      */
     std::string to_string() const {
-        return std::format("Point({}, {}, {}, {}, {}, {}, {})", 
-                          x(), y(), z(), guid, name, pointcolor, width);
+        std::ostringstream oss;
+        oss << "Point(" << x << ", " << y << ", " << z << ", " 
+            << guid << ", " << name << ", " << pointcolor.r << "," 
+            << pointcolor.g << "," << pointcolor.b << "," << pointcolor.a 
+            << ", " << width << ")";
+        return oss.str();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -56,16 +61,16 @@ public:
     /**
      * @brief Convert to JSON-serializable object
      */
-    nlohmann::json to_json_data() const {
-        return nlohmann::json{
-            {"dtype", "Point"},
+    nlohmann::ordered_json to_json_data() const {
+        return nlohmann::ordered_json{
+            {"type", "Point"},
+            {"guid", guid},
+            {"name", name},
             {"x", x},
             {"y", y},
             {"z", z},
-            {"guid", guid},
-            {"name", name},
-            {"pointcolor", pointcolor.to_float_array()},
-            {"width", width}
+            {"width", width},
+            {"pointcolor", pointcolor.to_json_data()}
         };
     }
 
@@ -73,16 +78,12 @@ public:
      * @brief Create point from JSON data
      */
     static Point from_json_data(const nlohmann::json& data) {
-        auto color_array = data["pointcolor"];
-        return Point(
-            data["x"], 
-            data["y"], 
-            data["z"], 
-            data["guid"],
-            data["name"],
-            Color::from_float(color_array[0], color_array[1], color_array[2], color_array[3]),
-            data["width"]
-        );
+        Point point(data["x"], data["y"], data["z"]);
+        point.guid = data["guid"];
+        point.name = data["name"];
+        point.pointcolor = Color::from_json_data(data["pointcolor"]);
+        point.width = data["width"];
+        return point;
     }
 
     /**
@@ -118,4 +119,4 @@ public:
         return os << point.to_string();
     }
 
-} // namespace session_cpp
+} // namespace geo

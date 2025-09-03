@@ -1,0 +1,18 @@
+{
+    "dtype": "Point",
+    "guid": "bfe60aae-d9ab-4b28-8ab4-155db1510f09",
+    "name": "Point",
+    "x": 1.5,
+    "y": 2.5,
+    "z": 3.5,
+    "width": 1.0,
+    "pointcolor": {
+        "dtype": "Color",
+        "guid": "fdc77850-9969-4b54-bcdf-9e8af7a68242",
+        "name": "White",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+    }
+}
