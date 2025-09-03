@@ -1,26 +1,26 @@
 [
 {
-  "directory": "/home/pv/brg/code_rust/session/session_cpp/build",
-  "command": "/usr/bin/c++ -I/home/pv/brg/code_rust/session/session_cpp/src -std=gnu++17 -Wall -Wextra -Wpedantic -mavx2 -o CMakeFiles/myproject_lib.dir/src/color.cpp.o -c /home/pv/brg/code_rust/session/session_cpp/src/color.cpp",
-  "file": "/home/pv/brg/code_rust/session/session_cpp/src/color.cpp",
+  "directory": "/Users/petras/brg/code_rust/session/session_cpp/build",
+  "command": "/usr/bin/c++  -I/Users/petras/brg/code_rust/session/session_cpp/src -std=gnu++17 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/myproject_lib.dir/src/color.cpp.o -c /Users/petras/brg/code_rust/session/session_cpp/src/color.cpp",
+  "file": "/Users/petras/brg/code_rust/session/session_cpp/src/color.cpp",
   "output": "CMakeFiles/myproject_lib.dir/src/color.cpp.o"
 },
 {
-  "directory": "/home/pv/brg/code_rust/session/session_cpp/build",
-  "command": "/usr/bin/c++ -I/home/pv/brg/code_rust/session/session_cpp/src -std=gnu++17 -Wall -Wextra -Wpedantic -mavx2 -o CMakeFiles/myproject_lib.dir/src/globals.cpp.o -c /home/pv/brg/code_rust/session/session_cpp/src/globals.cpp",
-  "file": "/home/pv/brg/code_rust/session/session_cpp/src/globals.cpp",
+  "directory": "/Users/petras/brg/code_rust/session/session_cpp/build",
+  "command": "/usr/bin/c++  -I/Users/petras/brg/code_rust/session/session_cpp/src -std=gnu++17 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/myproject_lib.dir/src/globals.cpp.o -c /Users/petras/brg/code_rust/session/session_cpp/src/globals.cpp",
+  "file": "/Users/petras/brg/code_rust/session/session_cpp/src/globals.cpp",
   "output": "CMakeFiles/myproject_lib.dir/src/globals.cpp.o"
 },
 {
-  "directory": "/home/pv/brg/code_rust/session/session_cpp/build",
-  "command": "/usr/bin/c++ -I/home/pv/brg/code_rust/session/session_cpp/src -std=gnu++17 -Wall -Wextra -Wpedantic -mavx2 -o CMakeFiles/myproject_lib.dir/src/point.cpp.o -c /home/pv/brg/code_rust/session/session_cpp/src/point.cpp",
-  "file": "/home/pv/brg/code_rust/session/session_cpp/src/point.cpp",
+  "directory": "/Users/petras/brg/code_rust/session/session_cpp/build",
+  "command": "/usr/bin/c++  -I/Users/petras/brg/code_rust/session/session_cpp/src -std=gnu++17 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/myproject_lib.dir/src/point.cpp.o -c /Users/petras/brg/code_rust/session/session_cpp/src/point.cpp",
+  "file": "/Users/petras/brg/code_rust/session/session_cpp/src/point.cpp",
   "output": "CMakeFiles/myproject_lib.dir/src/point.cpp.o"
 },
 {
-  "directory": "/home/pv/brg/code_rust/session/session_cpp/build",
-  "command": "/usr/bin/c++ -I/home/pv/brg/code_rust/session/session_cpp/src -std=gnu++17 -Wall -Wextra -Wpedantic -mavx2 -o CMakeFiles/MyProject.dir/main.cpp.o -c /home/pv/brg/code_rust/session/session_cpp/main.cpp",
-  "file": "/home/pv/brg/code_rust/session/session_cpp/main.cpp",
+  "directory": "/Users/petras/brg/code_rust/session/session_cpp/build",
+  "command": "/usr/bin/c++  -I/Users/petras/brg/code_rust/session/session_cpp/src -std=gnu++17 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/MyProject.dir/main.cpp.o -c /Users/petras/brg/code_rust/session/session_cpp/main.cpp",
+  "file": "/Users/petras/brg/code_rust/session/session_cpp/main.cpp",
   "output": "CMakeFiles/MyProject.dir/main.cpp.o"
 }
 ]

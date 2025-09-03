@@ -3,9 +3,9 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-#include "color.hpp"
-#include "json.hpp"
-#include "globals.hpp"
+#include "color.h"
+#include "json.h"
+#include "guid.h"
 
 
 namespace geo {
@@ -13,24 +13,23 @@ namespace geo {
  * @class Point
  * @brief A point defined by XYZ coordinates with display properties.
  * 
+ * @var Point::name Point identifier
  * @var Point::x X coordinate
  * @var Point::y Y coordinate  
  * @var Point::z Z coordinate
- * @var Point::name Point identifier
- * @var Point::pointcolor Visual color
- * @var Point::width Display width
+ * @var Point::width point diameter in pixels
+ * @var Point::pointcolor color of point
  */
 class Point {
    public:
-
+    std::string guid = ::guid();
+    std::string name = "my_point";
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-    std::string guid = generate_uuid();
-    std::string name = "my_point";
-    Color pointcolor = Color::white();
     double width = 1.0;
-
+    Color pointcolor = Color::white();
+    
 
 public:
 

@@ -3,7 +3,7 @@
 #include <random>
 #include <sstream>
 #include <iomanip>
-#include "uuid_v4.h"
+#include "guid.h"
 
 namespace geo {
 
@@ -36,10 +36,5 @@ struct GLOBALS {
 
     static constexpr double TOLERANCE = 1e-3;
 };
-
-/**
- * @brief Generate a UUID using the UUIDv4 library
- */
-std::string generate_uuid();
 
 }  // namespace geo

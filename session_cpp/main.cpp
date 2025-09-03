@@ -1,5 +1,5 @@
 #include <iostream>
-#include "src/point.hpp"
+#include "src/point.h"
 
 using namespace geo;
 
