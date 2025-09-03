@@ -1,4 +1,0 @@
-/Users/petras/brg/code_rust/session/session_cpp/build/CMakeFiles/myproject_lib.dir
-/Users/petras/brg/code_rust/session/session_cpp/build/CMakeFiles/MyProject.dir
-/Users/petras/brg/code_rust/session/session_cpp/build/CMakeFiles/edit_cache.dir
-/Users/petras/brg/code_rust/session/session_cpp/build/CMakeFiles/rebuild_cache.dir
