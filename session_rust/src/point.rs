@@ -1,7 +1,7 @@
-use std::fmt;
-use serde::{Deserialize, Serialize, ser::Serialize as SerTrait};
-use uuid::Uuid;
 use crate::Color;
+use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
+use std::fmt;
+use uuid::Uuid;
 
 /// A 3D point with visual properties and cross-language JSON serialization support.
 ///
@@ -39,9 +39,7 @@ pub struct Point {
     pub z: f32,
     pub width: f32,
     pub pointcolor: Color,
-    
 }
-
 
 impl Point {
     /// Creates a new Point with specified coordinates.
@@ -59,7 +57,7 @@ impl Point {
     ///
     /// ```rust
     /// use session_rust::Point;
-    /// 
+    ///
     /// let point = Point::new(10.5, 20.0, -5.3);
     /// assert_eq!(point.x, 10.5);
     /// assert_eq!(point.y, 20.0);
@@ -91,7 +89,7 @@ impl Point {
     ///
     /// ```rust
     /// use session_rust::Point;
-    /// 
+    ///
     /// let point = Point::new(1.0, 2.0, 3.0);
     /// let json = point.to_json_data().unwrap();
     /// println!("JSON: {}", json);
@@ -122,7 +120,7 @@ impl Point {
     ///
     /// ```rust,no_run
     /// use session_rust::Point;
-    /// 
+    ///
     /// let json = r#"{"type":"Point","x":1.0,"y":2.0,"z":3.0}"#;
     /// let point = Point::from_json_data(json).unwrap();
     /// assert_eq!(point.x, 1.0);
@@ -149,7 +147,7 @@ impl Point {
     ///
     /// ```rust,no_run
     /// use session_rust::Point;
-    /// 
+    ///
     /// let point = Point::new(1.0, 2.0, 3.0);
     /// point.to_json("point.json").unwrap();
     /// ```
@@ -177,7 +175,7 @@ impl Point {
     ///
     /// ```rust,no_run
     /// use session_rust::Point;
-    /// 
+    ///
     /// let point = Point::from_json("point.json").unwrap();
     /// println!("Loaded point: {}", point);
     /// ```
@@ -193,12 +191,11 @@ impl Default for Point {
     }
 }
 
-
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
-            f, 
-            "Point({}, {}, {}, {}, {}, {}, {})", 
+            f,
+            "Point({}, {}, {}, {}, {}, {}, {})",
             self.x, self.y, self.z, self.guid, self.name, self.pointcolor, self.width
         )
     }

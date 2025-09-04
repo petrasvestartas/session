@@ -1,5 +1,5 @@
+use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
 use std::fmt;
-use serde::{Deserialize, Serialize, ser::Serialize as SerTrait};
 use uuid::Uuid;
 
 /// A color with RGBA values for cross-language compatibility.
@@ -40,13 +40,13 @@ pub struct Color {
 impl Color {
     /// Create new color.
     pub fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
-        Color { 
+        Color {
             guid: Uuid::new_v4(),
             name: "Color".to_string(),
-            r, 
-            g, 
-            b, 
-            a 
+            r,
+            g,
+            b,
+            a,
         }
     }
 
@@ -66,7 +66,12 @@ impl Color {
 
     /// Convert to float array [0-1].
     pub fn to_float_array(&self) -> [f32; 4] {
-        [self.r as f32 / 255.0, self.g as f32 / 255.0, self.b as f32 / 255.0, self.a as f32 / 255.0]
+        [
+            self.r as f32 / 255.0,
+            self.g as f32 / 255.0,
+            self.b as f32 / 255.0,
+            self.a as f32 / 255.0,
+        ]
     }
 
     /// Create from float values [0-1].
@@ -115,7 +120,10 @@ impl Default for Color {
 
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Color(r={}, g={}, b={}, a={}, name={})", self.r, self.g, self.b, self.a, self.name)
+        write!(
+            f,
+            "Color(r={}, g={}, b={}, a={}, name={})",
+            self.r, self.g, self.b, self.a, self.name
+        )
     }
 }
-

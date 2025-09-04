@@ -30,6 +30,7 @@ jobs:
 
     - name: Run tests
       working-directory: ./session_py
+      shell: bash
       run: |
         if [ -d "tests" ]; then
           python -m pytest tests/ -v

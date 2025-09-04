@@ -31,11 +31,11 @@ pub mod point;
 pub mod color;
 
 /// A 3D point with visual properties.
-/// 
+///
 /// Re-exported from the point module for convenience.
 pub use point::Point;
 
 /// An RGBA color representation.
-/// 
+///
 /// Re-exported from the color module for convenience.
 pub use color::Color;

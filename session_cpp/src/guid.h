@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <random>
 #include <string>
 #include <sstream>
@@ -29,11 +33,11 @@ public:
     static UUID generate() {
         std::random_device rd;
         std::mt19937_64 gen(rd());
-        std::uniform_int_distribution<uint8_t> dis(0, 255);
+        std::uniform_int_distribution<int> dis(0, 255);
         
         UUID uuid;
         for (int i = 0; i < 16; ++i) {
-            uuid.data[i] = dis(gen);
+            uuid.data[i] = static_cast<uint8_t>(dis(gen));
         }
         
         // Set version (4) and variant bits according to RFC 4122
