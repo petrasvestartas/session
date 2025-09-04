@@ -3,10 +3,8 @@ name: Build Session Rust
 on:
   push:
     branches: [ main, develop ]
-    paths: [ 'session_rust/**' ]
   pull_request:
     branches: [ main ]
-    paths: [ 'session_rust/**' ]
 
 jobs:
   build:

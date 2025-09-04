@@ -3,10 +3,8 @@ name: Build Session C++
 on:
   push:
     branches: [ main, develop ]
-    paths: [ 'session_cpp/**' ]
   pull_request:
     branches: [ main ]
-    paths: [ 'session_cpp/**' ]
 
 jobs:
   build:
