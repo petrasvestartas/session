@@ -17,14 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Graphviz
-      uses: ts-graphviz/setup-graphviz@v2
-
-    - name: Setup Doxygen
-      uses: ssciwr/doxygen-install@v1
-      with:
-        version: "1.9.4"
-
     - name: Configure CMake
       working-directory: ./session_cpp
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -39,18 +31,8 @@ jobs:
         cd build
         ctest --output-on-failure
 
-    - name: Build documentation
-      if: matrix.build_type == 'Release'
-      working-directory: ./session_cpp
-      shell: bash
-      run: |
-        chmod +x doc.sh
-        ./doc.sh
-
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: cpp-build-${{ matrix.os }}-${{ matrix.build_type }}
-        path: |
-          session_cpp/build/
-          session_cpp/docs_output/
+        path: session_cpp/build/

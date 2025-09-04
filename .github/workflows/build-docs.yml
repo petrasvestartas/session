@@ -1,0 +1,132 @@
+name: Build Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Graphviz
+      uses: ts-graphviz/setup-graphviz@v2
+
+    - name: Setup Doxygen
+      uses: ssciwr/doxygen-install@v1
+      with:
+        version: "1.9.4"
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Build C++ Documentation
+    - name: Build C++ Documentation
+      working-directory: ./session_cpp
+      run: |
+        chmod +x doc.sh
+        ./doc.sh
+
+    # Build Python Documentation  
+    - name: Install Python documentation dependencies
+      working-directory: ./session_py
+      run: |
+        pip install sphinx sphinx-rtd-theme myst-parser
+        
+    - name: Build Python Documentation
+      working-directory: ./session_py
+      run: |
+        chmod +x doc.sh
+        ./doc.sh
+
+    # Build Rust Documentation
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Build Rust Documentation
+      working-directory: ./session_rust
+      run: |
+        cargo doc --no-deps --document-private-items
+        # Copy to standard docs_output location for consistency
+        mkdir -p docs_output
+        cp -r target/doc docs_output/html
+
+    # Upload all documentation artifacts
+    - name: Upload C++ Documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-docs
+        path: session_cpp/docs_output/
+
+    - name: Upload Python Documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-docs  
+        path: session_py/docs_output/
+
+    - name: Upload Rust Documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-docs
+        path: session_rust/docs_output/
+
+    # Combine all docs into one artifact
+    - name: Combine Documentation
+      run: |
+        mkdir -p combined_docs
+        cp -r session_cpp/docs_output combined_docs/cpp || echo "C++ docs not found"
+        cp -r session_py/docs_output combined_docs/python || echo "Python docs not found" 
+        cp -r session_rust/docs_output combined_docs/rust || echo "Rust docs not found"
+        
+        # Create index page
+        cat > combined_docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Session Library Documentation</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .language { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+                .language h2 { color: #333; }
+                .language a { display: inline-block; margin: 10px 0; padding: 10px 15px; background: #007acc; color: white; text-decoration: none; border-radius: 3px; }
+                .language a:hover { background: #005a9e; }
+            </style>
+        </head>
+        <body>
+            <h1>Session Library Documentation</h1>
+            <p>Multi-language library for 3D points and colors with JSON serialization.</p>
+            
+            <div class="language">
+                <h2>🦀 Rust Documentation</h2>
+                <p>Rust implementation with full type safety and performance.</p>
+                <a href="rust/html/index.html">View Rust Docs</a>
+            </div>
+            
+            <div class="language">
+                <h2>⚡ C++ Documentation</h2>
+                <p>High-performance C++ implementation with Doxygen-generated API docs.</p>
+                <a href="cpp/html/index.html">View C++ Docs</a>
+            </div>
+            
+            <div class="language">
+                <h2>🐍 Python Documentation</h2>
+                <p>Python implementation with Sphinx-generated documentation.</p>
+                <a href="python/html/index.html">View Python Docs</a>
+            </div>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload Combined Documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: all-documentation
+        path: combined_docs/
