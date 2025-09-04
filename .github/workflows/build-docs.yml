@@ -81,58 +81,18 @@ jobs:
         name: rust-docs
         path: session_rust/docs_output/
 
-    # Combine all docs into one artifact
-    - name: Combine Documentation
+    # Build combined documentation using session_docs
+    - name: Build Combined Documentation
+      working-directory: ./session_docs
       run: |
-        mkdir -p combined_docs
-        cp -r session_cpp/docs_output combined_docs/cpp || echo "C++ docs not found"
-        cp -r session_py/docs_output combined_docs/python || echo "Python docs not found" 
-        cp -r session_rust/docs_output combined_docs/rust || echo "Rust docs not found"
-        
-        # Create index page
-        cat > combined_docs/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Session Library Documentation</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                .language { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
-                .language h2 { color: #333; }
-                .language a { display: inline-block; margin: 10px 0; padding: 10px 15px; background: #007acc; color: white; text-decoration: none; border-radius: 3px; }
-                .language a:hover { background: #005a9e; }
-            </style>
-        </head>
-        <body>
-            <h1>Session Library Documentation</h1>
-            <p>Multi-language library for 3D points and colors with JSON serialization.</p>
-            
-            <div class="language">
-                <h2>🦀 Rust Documentation</h2>
-                <p>Rust implementation with full type safety and performance.</p>
-                <a href="rust/html/session_rust/index.html">View Rust Docs</a>
-            </div>
-            
-            <div class="language">
-                <h2>⚡ C++ Documentation</h2>
-                <p>High-performance C++ implementation with modern Doxygen documentation (doxygen-awesome theme).</p>
-                <a href="cpp/html/index.html">View C++ Docs</a>
-            </div>
-            
-            <div class="language">
-                <h2>🐍 Python Documentation</h2>
-                <p>Python implementation with Sphinx-generated documentation.</p>
-                <a href="python/html/index.html">View Python Docs</a>
-            </div>
-        </body>
-        </html>
-        EOF
+        chmod +x build_docs.sh
+        ./build_docs.sh
 
     - name: Upload Combined Documentation
       uses: actions/upload-artifact@v4
       with:
         name: all-documentation
-        path: combined_docs/
+        path: session_docs/combined_docs/
         
     # Deploy to GitHub Pages (only on main branch)
     - name: Deploy to GitHub Pages
@@ -140,7 +100,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./combined_docs
+        publish_dir: ./session_docs/combined_docs
         publish_branch: docs
         force_orphan: true
         user_name: 'github-actions[bot]'
