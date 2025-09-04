@@ -1,4 +1,4 @@
-name: Build Documentation
+name: Build and Deploy Documentation
 
 on:
   push:
@@ -132,3 +132,12 @@ jobs:
       with:
         name: all-documentation
         path: combined_docs/
+        
+    # Deploy to GitHub Pages (only on main branch)
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./combined_docs
+        publish_branch: docs
