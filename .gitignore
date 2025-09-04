@@ -36,8 +36,10 @@ venv.bak/
 .env
 
 # Rust
-/target/
+target/
+**/target/
 Cargo.lock
+**/*.rs.bk
 
 # IDE files
 .vscode/
@@ -63,13 +65,18 @@ html/
 # Logs
 *.log
 
-# Session subfolders
-/session/session_rust/*.json
-/session/session_rust/docs_output/
+# Project-specific build outputs
+session_rust/target/
+session_rust/*.json
+session_rust/docs_output/
 
-/session/session_py/*.json
-/session/session_py/docs_output/
+session_py/__pycache__/
+session_py/*.json
+session_py/docs_output/
+session_py/build/
+session_py/dist/
+session_py/*.egg-info/
 
-/session/session_cpp/*.json
-/session/session_cpp/docs_output/
-/session/session_cpp/build/
+session_cpp/build/
+session_cpp/*.json
+session_cpp/docs_output/
