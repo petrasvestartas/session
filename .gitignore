@@ -9,7 +9,9 @@ CMakeCache.txt
 CMakeFiles/
 CMakeScripts/
 cmake_install.cmake
-Makefile
+# CMake generated Makefiles (but not Sphinx Makefiles)
+session_cpp/Makefile
+session_cpp/build/Makefile
 *.cmake
 
 # C++ build artifacts
