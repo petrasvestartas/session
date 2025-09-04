@@ -19,9 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Graphviz
-      uses: ts-graphviz/setup-graphviz@v2
-
     - name: Setup Doxygen
       uses: ssciwr/doxygen-install@v1
       with:
@@ -32,7 +29,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    # Build C++ Documentation
+    # Build C++ Documentation with doxygen-awesome theme
     - name: Build C++ Documentation
       working-directory: ./session_cpp
       run: |
@@ -118,7 +115,7 @@ jobs:
             
             <div class="language">
                 <h2>⚡ C++ Documentation</h2>
-                <p>High-performance C++ implementation with Doxygen-generated API docs.</p>
+                <p>High-performance C++ implementation with modern Doxygen documentation (doxygen-awesome theme).</p>
                 <a href="cpp/html/index.html">View C++ Docs</a>
             </div>
             

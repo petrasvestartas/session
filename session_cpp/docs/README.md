@@ -1,63 +1,65 @@
-# Documentation
+# Session C++ Documentation
 
-## Ubuntu
+Modern C++ API documentation using **[doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css)** theme.
 
-**Install:**
+## ✨ Features
+- 🌘 **Dark mode toggle**
+- 📋 **Copy buttons** for code snippets  
+- 📑 **Interactive table of contents**
+- 🌲 **Tree-view navigation**
+- 📱 **Mobile responsive design**
+
+## 🚀 Quick Start
+
+### Ubuntu
+**Install:** (Graphviz no longer needed!)
 ```bash
 sudo apt update
-sudo apt install -y doxygen graphviz
+sudo apt install -y doxygen
 ```
 
-**Generate:**
-```bash
-# From project root
-./docs.sh
-```
-
-**Output:** `docs_output/html/index.html`
-
-**Troubleshooting:**
-- "dot: not found": `sudo apt install graphviz`
-- No output: `rm -rf docs_output && ./docs.sh`
-
----
-
-## macOS
-
+### macOS
 **Install:**
 ```bash
-brew install doxygen graphviz
+brew install doxygen
 ```
 
-**Generate:**
-```bash
-# From project root
-./docs.sh
-```
-
-**Output:** `docs_output/html/index.html`
-
-**Troubleshooting:**
-- "dot: not found": `brew install graphviz`
-- No output: `rm -rf docs_output && ./docs.sh`
-
----
-
-## Windows
-
+### Windows
 **Install:**
 1. Download and install [Doxygen](https://www.doxygen.nl/download.html)
-2. Download and install [Graphviz](https://graphviz.org/download/)
-3. Add both to system PATH
+2. Add to system PATH
 
-**Generate:**
-```cmd
-REM From project root
-docs.sh
+## 📖 Generate Documentation
+
+**Option 1: Modern build script (Recommended)**
+```bash
+# From session_cpp directory
+./build_docs.sh           # Build docs
+./build_docs.sh --open    # Build and open in browser
+```
+
+**Option 2: Traditional script**
+```bash
+# From session_cpp directory  
+./doc.sh
 ```
 
 **Output:** `docs_output/html/index.html`
 
-**Troubleshooting:**
-- "dot: not found": Install Graphviz and add to PATH
-- No output: `rmdir /s docs_output && docs.sh`
+## 🛠️ Troubleshooting
+- **No output:** `rm -rf docs_output && ./build_docs.sh`
+- **Permission denied:** `chmod +x build_docs.sh doc.sh`
+- **Doxygen not found:** Ensure Doxygen is installed and in PATH
+
+## 📁 Structure
+```
+docs/
+├── Doxyfile              # Main configuration
+├── header.html           # Custom header with JS extensions
+├── doxygen-awesome/      # Theme files
+│   ├── doxygen-awesome.css
+│   └── *.js             # Interactive extensions
+└── README.md            # This file
+```
+
+**Note:** Graphviz is no longer required since we use doxygen-awesome-css theme instead of generated diagrams.

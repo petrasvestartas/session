@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Simple script to generate C++ API documentation
+# Now uses doxygen-awesome theme for modern, beautiful docs
 
-echo "🔄 Generating C++ API documentation..."
+echo "🔄 Generating C++ API documentation with doxygen-awesome theme..."
 
 # Check if Doxygen is available
 if ! command -v doxygen &> /dev/null; then
@@ -23,9 +24,10 @@ echo "📋 Doxygen version: $(doxygen --version)"
 cd docs && doxygen Doxyfile && cd ..
 
 if [ $? -eq 0 ]; then
-    echo "✅ Documentation generated successfully!"
+    echo "✅ Documentation generated successfully with doxygen-awesome theme!"
     echo "📚 Location: docs_output/html/"
     echo "🌐 Open docs_output/html/index.html in your browser"
+    echo "✨ Features: Dark mode toggle, modern design, copy buttons, interactive TOC"
     echo ""
     echo "Quick view (if available):"
     
