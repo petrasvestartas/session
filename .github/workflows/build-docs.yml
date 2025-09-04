@@ -29,65 +29,18 @@ jobs:
       with:
         python-version: '3.11'
 
-    # Build C++ Documentation with doxygen-awesome theme
-    - name: Build C++ Documentation
-      working-directory: ./session_cpp
-      run: |
-        chmod +x doc.sh
-        ./doc.sh
-
-    # Build Python Documentation  
-    - name: Install Python documentation dependencies
-      working-directory: ./session_py
-      run: |
-        pip install sphinx sphinx-rtd-theme myst-parser
-        # Also install the package itself so autodoc can import it
-        pip install -e .
-        
-    - name: Build Python Documentation
-      working-directory: ./session_py
-      run: |
-        chmod +x doc.sh
-        ./doc.sh
-
-    # Build Rust Documentation
+    # Install Rust (needed by session_docs build script)
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
-      
-    - name: Build Rust Documentation
-      working-directory: ./session_rust
-      run: |
-        cargo doc --no-deps --document-private-items
-        # Copy to standard docs_output location for consistency
-        mkdir -p docs_output
-        cp -r target/doc docs_output/html
 
-    # Upload all documentation artifacts
-    - name: Upload C++ Documentation
-      uses: actions/upload-artifact@v4
-      with:
-        name: cpp-docs
-        path: session_cpp/docs_output/
-
-    - name: Upload Python Documentation
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-docs  
-        path: session_py/docs_output/
-
-    - name: Upload Rust Documentation
-      uses: actions/upload-artifact@v4
-      with:
-        name: rust-docs
-        path: session_rust/docs_output/
-
-    # Build combined documentation using session_docs
+    # Build all documentation using unified session_docs system
     - name: Build Combined Documentation
       working-directory: ./session_docs
       run: |
         chmod +x build_docs.sh
         ./build_docs.sh
 
+    # Upload combined documentation artifact
     - name: Upload Combined Documentation
       uses: actions/upload-artifact@v4
       with:
