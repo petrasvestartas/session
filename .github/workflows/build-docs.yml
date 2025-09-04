@@ -40,6 +40,8 @@ jobs:
       working-directory: ./session_py
       run: |
         pip install sphinx sphinx-rtd-theme myst-parser
+        # Also install the package itself so autodoc can import it
+        pip install -e .
         
     - name: Build Python Documentation
       working-directory: ./session_py
