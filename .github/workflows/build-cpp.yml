@@ -21,18 +21,18 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential doxygen
+        sudo apt-get install -y cmake build-essential doxygen graphviz
 
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         brew uninstall --ignore-dependencies cmake || true
-        brew install cmake doxygen
+        brew install cmake doxygen graphviz
 
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        choco install cmake doxygen.install
+        choco install cmake doxygen.install graphviz
 
     - name: Configure CMake
       working-directory: ./session_cpp
