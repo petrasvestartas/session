@@ -26,6 +26,7 @@ jobs:
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
+        brew uninstall --ignore-dependencies cmake || true
         brew install cmake doxygen
 
     - name: Install dependencies (Windows)

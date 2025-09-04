@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        rust: [stable, beta, nightly]
+        toolchain: [stable]
 
     steps:
     - uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ matrix.rust }}
+        toolchain: ${{ matrix.toolchain }}
 
     - name: Cache cargo registry
       uses: actions/cache@v4
@@ -59,7 +59,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: rust-binary-${{ matrix.os }}-${{ matrix.rust }}
+        name: rust-binary-${{ matrix.os }}-${{ matrix.toolchain }}
         path: |
           session_rust/target/release/session_rust*
           session_rust/target/release/deps/
