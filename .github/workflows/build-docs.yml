@@ -113,7 +113,7 @@ jobs:
             <div class="language">
                 <h2>🦀 Rust Documentation</h2>
                 <p>Rust implementation with full type safety and performance.</p>
-                <a href="rust/html/index.html">View Rust Docs</a>
+                <a href="rust/html/session_rust/index.html">View Rust Docs</a>
             </div>
             
             <div class="language">
