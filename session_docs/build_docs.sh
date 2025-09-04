@@ -100,7 +100,7 @@ if [ -d "$SESSION_ROOT/session_py" ]; then
         
         # Install documentation dependencies
         echo "📦 Installing Python documentation dependencies..."
-        pip3 install sphinx sphinx-rtd-theme myst-parser || echo "Warning: Could not install some dependencies"
+        pip3 install sphinx sphinxawesome-theme myst-parser || echo "Warning: Could not install some dependencies"
         
         # Install the package itself for autodoc
         pip3 install -e . || echo "Warning: Could not install package in development mode"

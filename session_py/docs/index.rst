@@ -1,10 +1,9 @@
-API Reference
-=============
+session_py
+==========
 
-.. autoclass:: session_py.color.Color
-   :members:
-   :exclude-members: __dict__, __module__, __weakref__
+Welcome to the session_py API.
 
-.. autoclass:: session_py.point.Point
-   :members:
-   :exclude-members: __dict__, __module__, __weakref__
+.. toctree::
+   :maxdepth: 2
+
+   api

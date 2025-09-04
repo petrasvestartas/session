@@ -12,7 +12,7 @@ import sys
 project = 'session_py'
 copyright = '2024, Petras Vestartas'
 author = 'Petras Vestartas'
-release = '0.1.0'
+release = ''
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -32,15 +32,26 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinxawesome_theme'
 html_static_path = ['_static']
 
 # Custom build directory
 html_build_dir = '../docs_output'
 
+# Custom HTML title without "documentation" word
+html_title = 'session_py'
+
 # Disable some navigation elements
 html_show_sphinx = False
 html_show_copyright = False
+
+# Use default Sphinx Awesome theme options
+html_theme_options = {}
+
+# Simple CSS to hide paragraph symbols
+html_css_files = [
+    'hide-paragraphs.css',
+]
 
 # -- Extension configuration -------------------------------------------------
 
@@ -51,11 +62,6 @@ autodoc_default_options = {
     'special-members': '__init__',
     'undoc-members': False,  # Hide undocumented members
     'exclude-members': '__weakref__, __dict__, __module__'
-}
-
-# Don't add class names to toctree to avoid duplication
-html_theme_options = {
-    'navigation_depth': 2,
 }
 
 # Napoleon settings for Google/NumPy style docstrings - concise

@@ -124,7 +124,7 @@ if exist "%SESSION_ROOT%\session_py" (
         
         REM Install documentation dependencies
         echo 📦 Installing Python documentation dependencies...
-        !PYTHON_CMD! -m pip install sphinx sphinx-rtd-theme myst-parser 2>nul || echo Warning: Could not install some dependencies
+        !PYTHON_CMD! -m pip install sphinx sphinxawesome-theme myst-parser 2>nul || echo Warning: Could not install some dependencies
         
         REM Install the package itself for autodoc
         !PYTHON_CMD! -m pip install -e . 2>nul || echo Warning: Could not install package in development mode
