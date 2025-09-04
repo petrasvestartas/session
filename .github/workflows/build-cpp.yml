@@ -17,22 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake build-essential doxygen graphviz
+    - name: Setup Graphviz
+      uses: ts-graphviz/setup-graphviz@v2
 
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew uninstall --ignore-dependencies cmake || true
-        brew install cmake doxygen graphviz
-
-    - name: Install dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install cmake doxygen.install graphviz
+    - name: Setup Doxygen
+      uses: ssciwr/doxygen-install@v1
+      with:
+        version: "1.9.4"
 
     - name: Configure CMake
       working-directory: ./session_cpp
@@ -49,6 +40,7 @@ jobs:
         ctest --output-on-failure
 
     - name: Build documentation
+      if: matrix.build_type == 'Release'
       working-directory: ./session_cpp
       shell: bash
       run: |

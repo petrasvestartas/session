@@ -4,6 +4,21 @@
 
 echo "🔄 Generating C++ API documentation..."
 
+# Check if Doxygen is available
+if ! command -v doxygen &> /dev/null; then
+    echo "❌ Doxygen command not found!"
+    echo "💡 Please ensure Doxygen is installed and available in PATH."
+    if [ -n "$CI" ]; then
+        echo "🔍 This is expected on some CI environments where PATH may not be updated after package installation."
+        echo "🛠️  The workflow is configured to continue-on-error for documentation builds."
+    fi
+    echo "🔍 Current PATH: $PATH"
+    exit 1
+fi
+
+echo "✅ Doxygen found: $(which doxygen)"
+echo "📋 Doxygen version: $(doxygen --version)"
+
 # Change to docs folder and generate documentation
 cd docs && doxygen Doxyfile && cd ..
 
