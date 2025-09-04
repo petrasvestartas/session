@@ -47,7 +47,7 @@ jobs:
         python -c "from src.session_py import Point, Color; print('Import successful')"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-dist-${{ matrix.os }}-${{ matrix.python-version }}
         path: session_py/dist/
