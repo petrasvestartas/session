@@ -14,16 +14,21 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "Quick view (if available):"
     
-    # Try to open in browser (Linux)
-    if command -v xdg-open &> /dev/null; then
-        echo "🚀 Opening in default browser..."
-        xdg-open docs_output/html/index.html
-    elif command -v open &> /dev/null; then
-        # macOS
-        echo "🚀 Opening in default browser..."
-        open docs_output/html/index.html
+    # Skip auto-opening in CI environments; attempt locally only
+    if [ -n "$CI" ]; then
+        echo "CI environment detected; skipping auto-opening the docs."
     else
-        echo "💡 Manually open docs_output/html/index.html in your browser"
+        # Try to open in browser (Linux)
+        if command -v xdg-open &> /dev/null; then
+            echo "🚀 Opening in default browser..."
+            xdg-open docs_output/html/index.html
+        elif command -v open &> /dev/null; then
+            # macOS
+            echo "🚀 Opening in default browser..."
+            open docs_output/html/index.html
+        else
+            echo "💡 Manually open docs_output/html/index.html in your browser"
+        fi
     fi
 else
     echo "❌ Documentation generation failed!"

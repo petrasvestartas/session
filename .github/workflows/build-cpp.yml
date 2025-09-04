@@ -50,6 +50,7 @@ jobs:
 
     - name: Build documentation
       working-directory: ./session_cpp
+      shell: bash
       run: |
         chmod +x doc.sh
         ./doc.sh

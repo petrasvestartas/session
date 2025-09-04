@@ -16,6 +16,10 @@ echo "Building HTML documentation..."
 make html
 
 if [ $? -eq 0 ]; then
+    # Copy built HTML to a stable output directory used by CI deployment
+    rm -rf ../docs_output/html
+    mkdir -p ../docs_output
+    cp -r _build/html ../docs_output/
     echo ""
     echo "Documentation built successfully!"
     echo "Open docs_output/html/index.html in your browser to view the documentation."

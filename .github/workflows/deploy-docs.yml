@@ -14,7 +14,7 @@ jobs:
 
     # Setup Python for session_py docs
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -26,22 +26,21 @@ jobs:
     - name: Install C++ dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential doxygen
+        sudo apt-get install -y cmake build-essential doxygen graphviz
 
     # Build Python documentation
     - name: Build Python docs
       working-directory: ./session_py
       run: |
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx_rtd_theme
         chmod +x doc.sh
         ./doc.sh
 
     # Build Rust documentation
     - name: Build Rust docs
       working-directory: ./session_rust
-      run: |
-        chmod +x doc.sh
-        ./doc.sh
+      run: cargo doc --no-deps --all-features
 
     # Build C++ documentation
     - name: Build C++ docs
@@ -56,8 +55,9 @@ jobs:
         mkdir -p docs_unified
         
         # Copy Python docs
-        if [ -d "session_py/docs_output" ]; then
-          cp -r session_py/docs_output docs_unified/session_py
+        if [ -d "session_py/docs_output/html" ]; then
+          mkdir -p docs_unified/session_py
+          cp -r session_py/docs_output/html docs_unified/session_py/html
         fi
         
         # Copy Rust docs
@@ -66,8 +66,9 @@ jobs:
         fi
         
         # Copy C++ docs
-        if [ -d "session_cpp/docs_output" ]; then
-          cp -r session_cpp/docs_output docs_unified/session_cpp
+        if [ -d "session_cpp/docs_output/html" ]; then
+          mkdir -p docs_unified/session_cpp
+          cp -r session_cpp/docs_output/html docs_unified/session_cpp/html
         fi
 
     # Create index.html
