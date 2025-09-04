@@ -1,7 +1,7 @@
 #include <iostream>
 #include "src/point.h"
 
-using namespace geo;
+using namespace session_cpp;
 
 int main() {
     std::cout << "=== C++ Point JSON Demo ===" << std::endl;

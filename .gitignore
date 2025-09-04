@@ -55,5 +55,21 @@ Cargo.lock
 ehthumbs.db
 Thumbs.db
 
+# Documentation output directories
+docs_output/
+_build/
+html/
+
 # Logs
 *.log
+
+# Session subfolders
+/session/session_rust/*.json
+/session/session_rust/docs_output/
+
+/session/session_py/*.json
+/session/session_py/docs_output/
+
+/session/session_cpp/*.json
+/session/session_cpp/docs_output/
+/session/session_cpp/build/

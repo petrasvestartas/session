@@ -8,27 +8,20 @@
 #include "guid.h"
 
 
-namespace geo {
+namespace session_cpp {
 /**
  * @class Point
  * @brief A point defined by XYZ coordinates with display properties.
- * 
- * @var Point::name Point identifier
- * @var Point::x X coordinate
- * @var Point::y Y coordinate  
- * @var Point::z Z coordinate
- * @var Point::width point diameter in pixels
- * @var Point::pointcolor color of point
  */
 class Point {
    public:
-    std::string guid = ::guid();
-    std::string name = "my_point";
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-    double width = 1.0;
-    Color pointcolor = Color::white();
+    std::string guid = ::guid();        ///< Unique identifier for the point
+    std::string name = "my_point";      ///< Point identifier/name
+    double x = 0.0;                     ///< X coordinate
+    double y = 0.0;                     ///< Y coordinate  
+    double z = 0.0;                     ///< Z coordinate
+    double width = 1.0;                 ///< Point diameter in pixels
+    Color pointcolor = Color::white();  ///< Color of the point
     
 
 public:
@@ -41,9 +34,7 @@ public:
      */
     Point(double x, double y, double z) : x(x), y(y), z(z) {}
 
-    /**
-     * @brief Convert point to string representation
-     */
+    /// Convert point to string representation
     std::string to_string() const {
         std::ostringstream oss;
         oss << "Point(" << x << ", " << y << ", " << z << ", " 
@@ -57,9 +48,7 @@ public:
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Convert to JSON-serializable object
-     */
+    /// Convert to JSON-serializable object
     nlohmann::ordered_json to_json_data() const {
         return nlohmann::ordered_json{
             {"type", "Point"},
@@ -73,9 +62,7 @@ public:
         };
     }
 
-    /**
-     * @brief Create point from JSON data
-     */
+    /// Create point from JSON data
     static Point from_json_data(const nlohmann::json& data) {
         Point point(data["x"], data["y"], data["z"]);
         point.guid = data["guid"];
@@ -85,17 +72,13 @@ public:
         return point;
     }
 
-    /**
-     * @brief Serialize to JSON file
-     */
+    /// Serialize to JSON file
     void to_json(const std::string& filepath) const {
         std::ofstream file(filepath);
         file << to_json_data().dump(4);
     }
 
-    /**
-     * @brief Deserialize from JSON file
-     */
+    /// Deserialize from JSON file
     static Point from_json(const std::string& filepath) {
         std::ifstream file(filepath);
         nlohmann::json data;
@@ -118,4 +101,4 @@ public:
         return os << point.to_string();
     }
 
-} // namespace geo
+} // namespace session_cpp

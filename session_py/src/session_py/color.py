@@ -4,24 +4,27 @@ import uuid
 
 
 class Color:
-    """A color is defined by RGBA coordinates from 0 to 255.
-
-    Parameters
-    ----------
-    r : int
-        The red component of the color (0-255).
-    g : int
-        The green component of the color (0-255).
-    b : int
-        The blue component of the color (0-255).
-    a : int
-        The alpha component of the color (0-255).
-    name : str, optional
-        The name of the color. Defaults to "Color".
-    guid : str, optional
-        Unique identifier. If None, a new UUID is generated.
+    """A color with RGBA values for cross-language compatibility.
+    
+    This class represents a color with red, green, blue, and alpha components.
+    It provides JSON serialization/deserialization for interoperability
+    between Rust, Python, and C++ implementations.
+    
+    Attributes:
+        r (int): The red component of the color (0-255).
+        g (int): The green component of the color (0-255).
+        b (int): The blue component of the color (0-255).
+        a (int): The alpha component of the color (0-255).
+        name (str): The name of the color.
+        guid (str): Unique identifier.
+    
+    Example:
+        >>> red = Color(255, 0, 0, 255, "red")
+        >>> white = Color.white()
+        >>> print(red.r)
+        255
     """
-    def __init__(self, r, g, b, a, name="Color"):
+    def __init__(self, r: int, g: int, b: int, a: int, name: str = "Color"):
         self.guid = str(uuid.uuid4())
         self.name = name
         self.r = int(r)
@@ -30,20 +33,20 @@ class Color:
         self.a = int(a)
 
     @classmethod
-    def white(cls):
+    def white(cls) -> 'Color':
         """Create a white color."""
         color = cls(255, 255, 255, 255)
         color.name = "white"
         return color
 
     @classmethod
-    def black(cls):
+    def black(cls) -> 'Color':
         """Create a black color."""
         color = cls(0, 0, 0, 255)
         color.name = "black"
         return color
 
-    def to_float_array(self):
+    def to_float_array(self) -> list[float]:
         """Convert to normalized float array [0-1] (matches Rust implementation)."""
         return [self.r / 255.0, self.g / 255.0, self.b / 255.0, self.a / 255.0]
 
@@ -52,7 +55,7 @@ class Color:
         """Create color from normalized float values [0-1]."""
         return cls(r * 255.0, g * 255.0, b * 255.0, a * 255.0)
 
-    def to_json_data(self):
+    def to_json_data(self) -> dict:
         """Convert to JSON-serializable dictionary."""
         return {
             "type": "Color",

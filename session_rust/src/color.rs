@@ -2,15 +2,30 @@ use std::fmt;
 use serde::{Deserialize, Serialize, ser::Serialize as SerTrait};
 use uuid::Uuid;
 
-/// A color with RGBA values.
+/// A color with RGBA values for cross-language compatibility.
+///
+/// This structure represents a color with red, green, blue, and alpha components.
+/// It provides JSON serialization/deserialization for interoperability
+/// between Rust, Python, and C++ implementations.
 ///
 /// # Fields
+///
 /// * `r` - Red component (0-255)
 /// * `g` - Green component (0-255)
 /// * `b` - Blue component (0-255)
 /// * `a` - Alpha component (0-255)
 /// * `guid` - Unique identifier
 /// * `name` - Color name
+///
+/// # Examples
+///
+/// ```rust
+/// use session_rust::Color;
+///
+/// let red = Color::new(255, 0, 0, 255);
+/// let white = Color::white();
+/// println!("Red: {}", red);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename = "Color")]
 pub struct Color {

@@ -1,0 +1,40 @@
+/**
+ * @mainpage Session C++ API Documentation
+ *
+ * @section intro_sec Introduction
+ * 
+ * This is the C++ implementation of the Session library, providing geometric
+ * data structures with cross-language JSON serialization compatibility.
+ *
+ * @section features_sec Key Features
+ * 
+ * - **Point**: 3D geometric points with visual properties
+ * - **Color**: RGBA color representation with utility methods
+ * - **JSON Serialization**: Cross-language data exchange with Python and Rust
+ * - **Modern C++**: Uses contemporary C++ features and best practices
+ *
+ * @section usage_sec Quick Start
+ * 
+ * @code{.cpp}
+ * #include "point.h"
+ * #include "color.h"
+ * 
+ * using namespace session_cpp;
+ * 
+ * // Create a point
+ * Point point(1.0, 2.0, 3.0);
+ * point.name = "my_point";
+ * point.pointcolor = Color::red();
+ * 
+ * // Save to JSON for cross-language usage
+ * point.to_json("my_point.json");
+ * 
+ * // Load from JSON created by Python or Rust
+ * Point loaded = Point::from_json("external_point.json");
+ * @endcode
+ *
+ * @section classes_sec Main Classes
+ * 
+ * - session_cpp::Point - 3D point with visual properties
+ * - session_cpp::Color - RGBA color with utility methods
+ */
