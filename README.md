@@ -2,79 +2,36 @@
 
 Simple 3D Point and Color library with **JSON compatibility** between Rust, Python, and C++.
 
-## Quick Examples
-
-### Python
-```python
-from session_py.point import Point
-point = Point(10.0, 20.0, 30.0)
-point.to_json("point.json")
-```
-
-### Rust  
-```rust
-use session_rust::Point;
-let point = Point::new(10.0, 20.0, 30.0);
-point.to_json("point.json").unwrap();
-```
-
-### C++
-```cpp
-#include "point.h"
-using namespace session_cpp;
-Point point(10.0, 20.0, 30.0);
-point.to_json("point.json");
-```
-
 ## Project Structure
 
 ```
 session/
 ├── session_py/     # Python implementation
 ├── session_rust/   # Rust implementation  
-├── session_cpp/    # C++ implementation
-└── docs/           # Documentation
+└── session_cpp/    # C++ implementation
 ```
 
-## Documentation
+## Alias
 
-View the complete documentation:
+### Directory shortcuts
 
 ```bash
-pip install mkdocs mkdocs-material mkdocstrings[python]
-mkdocs serve
+alias ls_session='cd /home/pv/brg/code_rust/session/'
 ```
 
-Then visit http://localhost:8000
+### Build
 
-## Key Features
-
-- ✅ **Cross-Language** - Same data format across all three languages
-- ✅ **JSON Compatible** - Save/load data between languages
-- ✅ **Simple API** - Easy to use Point and Color classes
-- ✅ **Well Documented** - Comprehensive documentation with examples
-
-## Building
-
-### Python
 ```bash
-cd session_py
-python main.py
+alias r='(cd /home/pv/brg/code_rust/session/session_rust && cargo run)'
+alias p='(cd /home/pv/brg/code_rust/session/session_py && conda activate session && python main.py)'
+alias c='(cd /home/pv/brg/code_rust/session/session_cpp && ./build.sh)'
 ```
 
-### Rust
+### Doc
+
 ```bash
-cd session_rust  
-cargo run
+alias rdoc='(cd /home/pv/brg/code_rust/session/session_rust && cargo doc)'
+alias pdoc='(cd /home/pv/brg/code_rust/session/session_py && ./doc.sh)'
+alias cdoc='(cd /home/pv/brg/code_rust/session/session_cpp && ./doc.sh)'
 ```
 
-### C++
-```bash
-cd session_cpp
-mkdir build && cd build
-cmake ..
-make
-./MyProject
-```
-
-All three will create compatible JSON files that can be used by any implementation!
