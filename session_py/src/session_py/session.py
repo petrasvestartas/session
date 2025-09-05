@@ -41,10 +41,10 @@ class Session:
     >>> point2 = Point(4.0, 5.0, 6.0)
     >>> session.add_point(point1)
     >>> session.add_point(point2)
-    >>> session.graph.add_node(point1.guid, "first_node")
-    >>> session.graph.add_node(point2.guid, "second_node")
-    >>> session.graph.add_edge(point1.guid, point2.guid, "connection")
-    >>> retrieved_point = session.get_geometry_by_guid(point1.guid)
+    >>> _ = session.graph.add_node(point1.guid, "first_node")
+    >>> _ = session.graph.add_node(point2.guid, "second_node")
+    >>> _ = session.graph.add_edge(point1.guid, point2.guid, "connection")
+    >>> retrieved_point = session.get_object(point1.guid)
     >>> session.to_json("Session.json")
     """
     
@@ -55,6 +55,8 @@ class Session:
         self.lookup: dict[uuid.UUID, Point] = {}
         self.tree = Tree(name=f"{name}_tree")
         self.graph = Graph(name=f"{name}_graph")
+        # ToDo:s
+        # - BVH Boundary Volume Hierarchy
 
     def __str__(self) -> str:
         return f"Session(name='{self.name}')"
@@ -86,8 +88,8 @@ class Session:
         >>> assert data["name"] == "my_session"
         >>> assert "guid" in data
         >>> assert len(data["objects"]["points"]) == 2
-        >>> assert len(data["graph"]["node"]) == 2
-        >>> assert len(data["graph"]["adjacency"]) == 2
+        >>> assert len(data["graph"]["vertices"]) == 2
+        >>> assert len(data["graph"]["edges"]) == 1
         """
         return {
             "type": "Session",
@@ -125,7 +127,7 @@ class Session:
         >>> session2 = Session.from_json_data(data)
         >>> assert session2.name == "my_session"
         >>> assert len(session2.lookup) == 2
-        >>> assert len(session2.graph.node) == 2
+        >>> assert len(list(session2.graph.vertices())) == 2
         """
         session = cls(name=data.get("name", "my_session"))
         
@@ -242,7 +244,7 @@ class Session:
     # Details - Lookup
     ###########################################################################################
 
-    def get_geometry_by_guid(self, guid: str) -> Optional[Point]:
+    def get_object(self, guid: str) -> Optional[Point]:
         """Get a geometry object by its GUID.
         
         Parameters
@@ -257,7 +259,7 @@ class Session:
         """
         return self.lookup.get(guid)
 
-    def remove_geometry_by_guid(self, guid: uuid.UUID) -> bool:
+    def remove_object(self, guid: uuid.UUID) -> bool:
         """Remove a geometry object by its GUID.
         
         Args:
@@ -280,8 +282,9 @@ class Session:
         # Remove from tree - tree should handle GUID lookup
         self.tree.remove_node_by_guid(guid)
         
-        # Remove from graph - graph should handle GUID lookup  
-        self.graph.remove_node_by_guid(guid)
+        # Remove from graph using string GUID
+        if self.graph.has_node(str(guid)):
+            self.graph.remove_node(str(guid))
         
         return True
 
@@ -289,7 +292,7 @@ class Session:
     # Details - Tree
     ###########################################################################################
 
-    def add_hierarchy_relationship(self, parent_guid: uuid.UUID, child_guid: uuid.UUID) -> bool:
+    def add_hierarchy(self, parent_guid: uuid.UUID, child_guid: uuid.UUID) -> bool:
         """Add a parent-child relationship in the tree structure.
         
         Parameters
@@ -306,7 +309,7 @@ class Session:
         """
         return self.tree.add_child_by_guid(parent_guid, child_guid)
     
-    def get_children_guids(self, guid: str) -> list[uuid.UUID]:
+    def get_children(self, guid: str) -> list[uuid.UUID]:
         """Get all children GUIDs of a geometry object in the tree.
         
         Parameters
@@ -319,15 +322,14 @@ class Session:
         list[UUID]
             List of children GUIDs.
         """
-        return self.tree.get_children_guids(uuid.UUID(guid))
-        return self.tree.get_children_guids(guid)
+        return self.tree.get_children(uuid.UUID(guid))
 
     ###########################################################################################
     # Details - Graph
     ###########################################################################################
 
-    def add_graph_relationship(self, from_guid: uuid.UUID, to_guid: uuid.UUID, 
-                             relationship_type: str = "default") -> bool:
+    def add_relationship(self, from_guid: uuid.UUID, to_guid: uuid.UUID, 
+                             relationship_type: str = "default") -> None:
         """Add a relationship edge in the graph structure.
         
         Parameters
@@ -338,15 +340,10 @@ class Session:
             The GUID of the target geometry object.
         relationship_type : str, optional
             The type of relationship. Defaults to "default".
-            
-        Returns
-        -------
-        bool
-            True if the relationship was added successfully.
         """
-        return self.graph.add_edge_by_guid(from_guid, to_guid, relationship_type)
+        self.graph.add_edge(str(from_guid), str(to_guid), relationship_type)
     
-    def get_connected_guids(self, guid: uuid.UUID) -> list[uuid.UUID]:
+    def get_neighbours(self, guid: uuid.UUID) -> list[str]:
         """Get all GUIDs connected to the given GUID in the graph.
         
         Parameters
@@ -356,8 +353,8 @@ class Session:
             
         Returns
         -------
-        list[UUID]
-            List of connected geometry GUIDs.
+        list[str]
+            List of connected geometry GUIDs as strings.
         """
-        return self.graph.get_connected_guids(guid)
+        return list(self.graph.neighbors(str(guid)))
     

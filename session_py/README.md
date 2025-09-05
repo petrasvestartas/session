@@ -10,5 +10,5 @@ conda create --name session -c conda-forge compas python=3.13
 ### Test
 
 ```bash
-pytest --doctest-modules src/session_py/point.py -v 
+pytest --doctest-modules src/session_py/ -v 
 ```

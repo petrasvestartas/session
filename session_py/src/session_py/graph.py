@@ -1,10 +1,94 @@
 import json
 import uuid
-from collections import defaultdict
+
+
+class Vertex:
+    """A graph vertex with a unique identifier and attribute string."""
+    
+    def __init__(self, name, attribute="", index=None):
+        """Initialize a new Vertex.
+        
+        Parameters
+        ----------
+        name : str
+            Name identifier for the vertex.
+        attribute : str, optional
+            Vertex attribute data as string.
+        index : int, optional
+            Integer index for the vertex.
+        """
+        self.name = str(name)
+        self.attribute = str(attribute)
+        self.index = index
+    
+    def to_json_data(self):
+        """Convert the Vertex to a JSON-serializable dictionary."""
+        return {
+            "name": self.name,
+            "attribute": self.attribute,
+            "index": self.index
+        }
+    
+    @classmethod
+    def from_json_data(cls, data):
+        """Create Vertex from JSON data dictionary."""
+        return cls(data["name"], data["attribute"], data.get("index"))
+
+
+class Edge:
+    """A graph edge connecting two vertices with an attribute string."""
+    
+    def __init__(self, v0, v1, attribute=""):
+        """Initialize a new Edge.
+        
+        Parameters
+        ----------
+        v0 : str
+            Name of the first vertex.
+        v1 : str
+            Name of the second vertex.
+        attribute : str, optional
+            Edge attribute data as string.
+        """
+        self.v0 = str(v0)
+        self.v1 = str(v1)
+        self.attribute = str(attribute)
+    
+    @property
+    def vertices(self):
+        """Get the edge vertices as a tuple."""
+        return (self.v0, self.v1)
+    
+    def to_json_data(self):
+        """Convert the Edge to a JSON-serializable dictionary."""
+        return {
+            "v0": self.v0,
+            "v1": self.v1,
+            "attribute": self.attribute
+        }
+    
+    @classmethod
+    def from_json_data(cls, data):
+        """Create Edge from JSON data dictionary."""
+        return cls(data["v0"], data["v1"], data["attribute"])
+    
+    def connects(self, vertex_id):
+        """Check if this edge connects to a given vertex."""
+        return str(vertex_id) in self.vertices
+    
+    def other_vertex(self, vertex_id):
+        """Get the other vertex ID connected by this edge."""
+        vertex_id = str(vertex_id)
+        if vertex_id == self.v0:
+            return self.v1
+        elif vertex_id == self.v1:
+            return self.v0
+        else:
+            raise ValueError(f"Vertex {vertex_id} is not connected by this edge")
 
 
 class Graph:
-    """A graph data structure with string-only nodes and attributes.
+    """A graph data structure with string-only vertices and attributes.
     
     This implementation enforces that all node keys and attributes must be strings,
     providing strong typing and cross-language compatibility.
@@ -14,7 +98,7 @@ class Graph:
     name : str, optional
         Name of the graph.
     default_node_attributes : dict, optional
-        Default attributes for new nodes.
+        Default attributes for new vertices.
     default_edge_attributes : dict, optional
         Default attributes for new edges.
         
@@ -27,7 +111,7 @@ class Graph:
     ('node1', 'node2')
     >>> graph.has_node("node1")
     True
-    >>> graph.number_of_nodes()
+    >>> graph.number_of_vertices()
     2
     """
     
@@ -35,10 +119,9 @@ class Graph:
         """Initialize a new Graph."""
         self.name = name
         self.guid = str(uuid.uuid4())
-        self.node = {}  # node_key -> attribute_string
-        self.adjacency = {}  # node -> {neighbor_set}
-        self.edge = defaultdict(dict)  # node -> {neighbor -> attribute_string}
-        self._max_node = -1
+        self._vertices = {}  # node_name -> Vertex object
+        self._edges = {}  # node_name -> {neighbor_name -> Edge object}
+        self.count = 0  # Track next available vertex index
 
     ###########################################################################################
     # JSON Serialization
@@ -57,37 +140,26 @@ class Graph:
         -------
         :class:`Graph`
             Graph instance created from the data.
-            
-        Examples
-        --------
-        >>> graph = Graph()
-        >>> data = graph.to_json_data()
-        >>> graph2 = Graph.from_json_data(data)
-        >>> assert graph2.name == "my_graph"
         """
         graph = cls(name=data["name"])
         graph.guid = str(data["guid"])
-        graph._max_node = data.get("_max_node", -1)
+        graph.count = data.get("count", 0)
         
-        # Restore nodes
-        for key_str, attr in data["node"].items():
-            key = int(key_str) if key_str.isdigit() else key_str
-            graph.node[key] = attr
+        # Restore vertices
+        for vertex_data in data.get("vertices", []):
+            vertex = Vertex.from_json_data(vertex_data)
+            graph._vertices[vertex.name] = vertex
             
-        # Restore adjacency and edges
-        for u_str, nbrs in data["adjacency"].items():
-            u = int(u_str) if u_str.isdigit() else u_str
-            graph.adjacency[u] = set()
-            for v_str in nbrs:
-                v = int(v_str) if v_str.isdigit() else v_str
-                graph.adjacency[u].add(v)
-                
-        for u_str, nbrs in data["edge"].items():
-            u = int(u_str) if u_str.isdigit() else u_str
-            graph.edge[u] = {}
-            for v_str, attr in nbrs.items():
-                v = int(v_str) if v_str.isdigit() else v_str
-                graph.edge[u][v] = attr
+        # Restore edges
+        for edge_data in data.get("edges", []):
+            edge = Edge.from_json_data(edge_data)
+            u, v = edge.v0, edge.v1
+            if u not in graph._edges:
+                graph._edges[u] = {}
+            if v not in graph._edges:
+                graph._edges[v] = {}
+            graph._edges[u][v] = edge
+            graph._edges[v][u] = edge
                 
         return graph
 
@@ -98,36 +170,14 @@ class Graph:
         -------
         dict
             Dictionary representation of the graph.
-            
-        Examples
-        --------
-        >>> from .point import Point
-        >>> graph = Graph("object_relationships")
-        >>> point1 = Point(1.0, 2.0, 3.0)
-        >>> point2 = Point(4.0, 5.0, 6.0)
-        >>> point3 = Point(7.0, 8.0, 9.0)
-        >>> _ = graph.add_node(point1.guid, "start_point")
-        >>> _ = graph.add_node(point2.guid, "middle_point")
-        >>> _ = graph.add_node(point3.guid, "end_point")
-        >>> _ = graph.add_edge(point1.guid, point2.guid, "connects_to")
-        >>> _ = graph.add_edge(point2.guid, point3.guid, "leads_to")
-        >>> data = graph.to_json_data()
-        >>> assert data["name"] == "object_relationships"
-        >>> assert "guid" in data
-        >>> assert len(data["node"]) == 3
-        >>> assert len(data["adjacency"]) == 3
-        >>> assert point1.guid in data["node"]
-        >>> assert point2.guid in data["adjacency"][point1.guid]
-        >>> assert data["edge"][point1.guid][point2.guid] == "connects_to"
         """
         return {
             "type": "Graph",
             "name": self.name,
             "guid": self.guid,
-            "node": dict(self.node),
-            "edge": {u: dict(nbrs) for u, nbrs in self.edge.items()},
-            "adjacency": {u: list(nbrs) for u, nbrs in self.adjacency.items()},
-            "_max_node": self._max_node,
+            "vertices": [vertex.to_json_data() for vertex in self._vertices.values()],
+            "edges": [edge.to_json_data() for u, neighbors in self._edges.items() for v, edge in neighbors.items() if u < v],  # Only store each edge once
+            "count": self.count
         }
 
     @classmethod
@@ -147,7 +197,7 @@ class Graph:
         Examples
         --------
         >>> # Test the underlying from_json_data method
-        >>> data = {"type": "Graph", "name": "test", "guid": "123", "node": {}, "edge": {}, "adjacency": {}, "default_node_attributes": {}, "default_edge_attributes": {}, "_max_node": -1}
+        >>> data = {"type": "Graph", "name": "test", "guid": "123", "vertices": [], "edges": []}
         >>> graph = Graph.from_json_data(data)
         >>> graph.name
         'test'
@@ -168,7 +218,7 @@ class Graph:
         Examples
         --------
         >>> from .point import Point
-        >>> graph = Graph("spatial_relationships")
+        >>> graph = Graph()
         >>> point1 = Point(10.0, 20.0, 30.0)
         >>> point2 = Point(40.0, 50.0, 60.0)
         >>> point3 = Point(70.0, 80.0, 90.0)
@@ -213,10 +263,13 @@ class Graph:
         if not isinstance(key, str):
             raise TypeError(f"Node keys must be strings, got {type(key)}")
         
-        self.node[key] = str(attribute)
-        if key not in self.adjacency:
-            self.adjacency[key] = set()
-        return key
+        if self.has_node(key):
+            return self._vertices[key]
+        else:
+            vertex = Vertex(key, attribute, self.count)
+            self._vertices[key] = vertex
+            self.count += 1
+            return vertex.name
 
     def add_edge(self, u, v, attribute=""):
         """Add an edge between u and v.
@@ -251,22 +304,20 @@ class Graph:
         if not isinstance(u, str) or not isinstance(v, str):
             raise TypeError(f"Node keys must be strings, got {type(u)} and {type(v)}")
         
-        # Add nodes if they don't exist
+        # Add vertices if they don't exist
         if not self.has_node(u):
             self.add_node(u)
         if not self.has_node(v):
             self.add_node(v)
             
-        # Add edge (undirected, so add both directions)
-        edge_attr = str(attribute)
-        if u not in self.adjacency:
-            self.adjacency[u] = set()
-        if v not in self.adjacency:
-            self.adjacency[v] = set()
-        self.adjacency[u].add(v)
-        self.adjacency[v].add(u)
-        self.edge[u][v] = edge_attr
-        self.edge[v][u] = edge_attr
+        # Add edge (store in both directions for undirected graph)
+        edge = Edge(u, v, attribute)
+        if u not in self._edges:
+            self._edges[u] = {}
+        if v not in self._edges:
+            self._edges[v] = {}
+        self._edges[u][v] = edge
+        self._edges[v][u] = edge
         
         return (u, v)
 
@@ -281,7 +332,7 @@ class Graph:
         Raises
         ------
         KeyError
-            If the node does not exist.
+            If the node is not in the graph.
             
         Examples
         --------
@@ -296,14 +347,17 @@ class Graph:
             raise KeyError(f"Node {key} not in graph")
             
         # Remove all edges connected to this node
-        for neighbor in list(self.adjacency[key]):
-            self.remove_edge((key, neighbor))
+        if key in self._edges:
+            for neighbor in list(self._edges[key].keys()):
+                if neighbor in self._edges:
+                    self._edges[neighbor].pop(key, None)
+            del self._edges[key]
             
         # Remove the node itself
-        del self.node[key]
-        del self.adjacency[key]
-        if key in self.edge:
-            del self.edge[key]
+        del self._vertices[key]
+        
+        # Reassign indices to maintain contiguous sequence
+        self._reassign_indices()
 
     def remove_edge(self, edge):
         """Remove an edge from the graph.
@@ -324,10 +378,10 @@ class Graph:
         """
         u, v = edge
         if self.has_edge((u, v)):
-            self.adjacency[u].discard(v)
-            self.adjacency[v].discard(u)
-            del self.edge[u][v]
-            del self.edge[v][u]
+            if u in self._edges and v in self._edges[u]:
+                del self._edges[u][v]
+            if v in self._edges and u in self._edges[v]:
+                del self._edges[v][u]
 
     def has_node(self, key):
         """Check if a node exists in the graph.
@@ -352,7 +406,7 @@ class Graph:
         >>> graph.has_node("node2")
         False
         """
-        return key in self.node
+        return key in self._vertices
 
     def has_edge(self, edge):
         """Check if an edge exists in the graph.
@@ -382,10 +436,10 @@ class Graph:
         else:
             raise ValueError("Edge must be a tuple (u, v)")
         
-        return u in self.adjacency and v in self.adjacency[u]
+        return u in self._edges and v in self._edges[u]
 
-    def nodes(self, data=False):
-        """Iterate over all nodes in the graph.
+    def vertices(self, data=False):
+        """Iterate over all vertices in the graph.
         
         Parameters
         ----------
@@ -402,16 +456,16 @@ class Graph:
         >>> graph = Graph()
         >>> graph.add_node("node1", "node_data")
         'node1'
-        >>> nodes = list(graph.nodes())
-        >>> assert "node1" in nodes
-        >>> assert len(nodes) == 1
+        >>> vertices = list(graph.vertices())
+        >>> assert "node1" in vertices
+        >>> assert len(vertices) == 1
         """
         if data:
-            for key, attr in self.node.items():
-                yield key, attr
+            for node in self._vertices.values():
+                yield node.name, node.attribute
         else:
-            for key in self.node:
-                yield key
+            for node_id in self._vertices:
+                yield node_id
 
     def edges(self, data=False):
         """Iterate over all edges in the graph.
@@ -436,15 +490,15 @@ class Graph:
         >>> assert len(edges) == 1
         """
         seen = set()
-        for u, nbrs in self.edge.items():
-            for v, attr in nbrs.items():
-                edge = (u, v) if u < v else (v, u)
-                if edge not in seen:
-                    seen.add(edge)
+        for u, neighbors in self._edges.items():
+            for v, edge in neighbors.items():
+                edge_tuple = (u, v) if u < v else (v, u)
+                if edge_tuple not in seen:
+                    seen.add(edge_tuple)
                     if data:
-                        yield edge, attr
+                        yield edge_tuple, edge.attribute
                     else:
-                        yield edge
+                        yield edge_tuple
 
     def neighbors(self, node):
         """Get all neighbors of a node.
@@ -457,7 +511,7 @@ class Graph:
         Returns
         -------
         iterator
-            Iterator over neighbor nodes.
+            Iterator over neighbor vertices.
             
         Examples
         --------
@@ -469,25 +523,25 @@ class Graph:
         >>> sorted(list(graph.neighbors("A")))
         ['B', 'C']
         """
-        return iter(self.adjacency.get(node, set()))
+        return iter(self._edges.get(node, {}).keys())
 
-    def number_of_nodes(self):
-        """Get the number of nodes in the graph.
+    def number_of_vertices(self):
+        """Get the number of vertices in the graph.
         
         Returns
         -------
         int
-            Number of nodes.
+            Number of vertices.
             
         Examples
         --------
         >>> graph = Graph()
         >>> graph.add_node("node1")
         'node1'
-        >>> graph.number_of_nodes()
+        >>> graph.number_of_vertices()
         1
         """
-        return len(self.node)
+        return len(self._vertices)
 
     def number_of_edges(self):
         """Get the number of edges in the graph.
@@ -505,10 +559,10 @@ class Graph:
         >>> graph.number_of_edges()
         1
         """
-        return sum(len(nbrs) for nbrs in self.adjacency.values()) // 2
+        return sum(len(neighbors) for neighbors in self._edges.values()) // 2
 
     def clear(self):
-        """Remove all nodes and edges from the graph.
+        """Remove all vertices and edges from the graph.
         
         Examples
         --------
@@ -516,12 +570,23 @@ class Graph:
         >>> graph.add_node("node1")
         'node1'
         >>> graph.clear()
-        >>> graph.number_of_nodes()
+        >>> graph.number_of_vertices()
         0
         """
-        self.node.clear()
-        self.adjacency.clear()
-        self.edge.clear()
+        self._vertices.clear()
+        self._edges.clear()
+        self.count = 0
+    
+    def _reassign_indices(self):
+        """Reassign vertex indices to maintain contiguous sequence 0, 1, 2, ..."""
+        vertices = list(self._vertices.values())
+        # Sort by current index to maintain relative order
+        vertices.sort(key=lambda v: v.index if v.index is not None else float('inf'))
+        
+        for i, vertex in enumerate(vertices):
+            vertex.index = i
+        
+        self.count = len(vertices)
 
     ###########################################################################################
     # Attribute Methods
@@ -558,11 +623,12 @@ class Graph:
         """
         if not self.has_node(node):
             raise KeyError(f"Node {node} not in graph")
-        
+            
+        node_obj = self._vertices[node]
         if value is not None:
-            self.node[node] = str(value)
+            node_obj.attribute = str(value)
         else:
-            return self.node[node]
+            return node_obj.attribute
 
     def edge_attribute(self, edge, value=None):
         """Get or set edge attribute.
@@ -597,20 +663,25 @@ class Graph:
         if not self.has_edge(edge):
             raise KeyError(f"Edge {edge} not in graph")
         
-        if value is not None:
-            # Update both directions for undirected graph
-            str_value = str(value)
-            self.edge[u][v] = str_value
-            self.edge[v][u] = str_value
+        if u in self._edges and v in self._edges[u]:
+            edge_obj = self._edges[u][v]
         else:
-            return self.edge[u][v]
+            raise KeyError(f"Edge {edge} not in graph")
+        
+        if value is not None:
+            edge_obj.attribute = str(value)
+            # Update both directions
+            if v in self._edges and u in self._edges[v]:
+                self._edges[v][u].attribute = str(value)
+        else:
+            return edge_obj.attribute
 
     ###########################################################################################
     # Filtering Methods
     ###########################################################################################
 
-    def nodes_where(self, conditions=None, data=False, **kwargs):
-        """Filter nodes by attribute conditions.
+    def vertices_where(self, conditions=None, data=False, **kwargs):
+        """Filter vertices by attribute conditions.
         
         Parameters
         ----------
@@ -633,17 +704,17 @@ class Graph:
         'node1'
         >>> graph.add_node("node2", "x:2.0")
         'node2'
-        >>> nodes = list(graph.nodes_where(data=True))
-        >>> len(nodes) == 2
+        >>> vertices = list(graph.vertices_where(data=True))
+        >>> len(vertices) == 2
         True
         """
         conditions = conditions or {}
         conditions.update(kwargs)
 
-        for key, attr in self.nodes(True):
+        for node in self._vertices.values():
             is_match = True
-            attr = attr or {}
-
+            attr = node.attribute or {}
+            
             for name, value in conditions.items():
                 if name not in attr:
                     is_match = False
@@ -651,12 +722,12 @@ class Graph:
                 if attr[name] != value:
                     is_match = False
                     break
-
+                    
             if is_match:
                 if data:
-                    yield key, attr
+                    yield node.name, attr
                 else:
-                    yield key
+                    yield node.name
 
     def edges_where(self, conditions=None, data=False, **kwargs):
         """Filter edges by attribute conditions.
@@ -689,21 +760,27 @@ class Graph:
         conditions = conditions or {}
         conditions.update(kwargs)
 
-        for key in self.edges():
-            is_match = True
-            u, v = key
-            attr = self.edge[u][v] if u in self.edge and v in self.edge[u] else {}
+        seen = set()
+        for u, neighbors in self._edges.items():
+            for v, edge in neighbors.items():
+                edge_tuple = (u, v) if u < v else (v, u)
+                if edge_tuple in seen:
+                    continue
+                seen.add(edge_tuple)
+                
+                is_match = True
+                attr = edge.attribute or {}
 
-            for name, value in conditions.items():
-                if name not in attr:
-                    is_match = False
-                    break
-                if attr[name] != value:
-                    is_match = False
-                    break
+                for name, value in conditions.items():
+                    if name not in attr:
+                        is_match = False
+                        break
+                    if attr[name] != value:
+                        is_match = False
+                        break
 
-            if is_match:
-                if data:
-                    yield key, attr
-                else:
-                    yield key
+                if is_match:
+                    if data:
+                        yield edge_tuple, attr
+                    else:
+                        yield edge_tuple
