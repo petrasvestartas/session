@@ -1,6 +1,6 @@
 # Session Multi-Language Project
 
-Simple 3D Point and Color library with **JSON compatibility** between Rust, Python, and C++.
+Multi-language project for vizualization.
 
 ## Project Structure
 
