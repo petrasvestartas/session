@@ -2,6 +2,14 @@
 
 Multi-language project for vizualization.
 
+## Plan
+
+- [ ] Convert python to C++ and Rust: point, vector, color, tree, objects, graph, session
+- [ ] Python: Finish the python point, vector structures
+- [ ] Convert python to C++ and Rust: point, vector
+- [ ] Python: Line
+
+
 ## Project Structure
 
 ```
@@ -17,6 +25,12 @@ session/
 
 ```bash
 alias ls_session='cd /home/pv/brg/code_rust/session/'
+alias ls_session_py='cd /home/pv/brg/code_rust/session/session_py/'
+alias ls_session_py_src='cd /home/pv/brg/code_rust/session/session_py/src/session_py/'
+alias ls_session_cpp='cd /home/pv/brg/code_rust/session/session_cpp/'
+alias ls_session_cpp_src='cd /home/pv/brg/code_rust/session/session_cpp/src/'
+alias ls_session_rust='cd /home/pv/brg/code_rust/session/session_rust'
+alias ls_session_rust_src='cd /home/pv/brg/code_rust/session/session_rust/src/'
 ```
 
 ### Build

@@ -20,6 +20,24 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
+dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pre-commit",
+    "build",
+    { include-group = "tests" },
+    { include-group = "docs" },
+]
+tests = []
+docs = [
+    "sphinx",
+    "sphinx-compas-theme",
+]
 
 [project.urls]
 Homepage = "https://github.com/petrasvestartas/session"
@@ -29,3 +47,14 @@ Repository = "https://github.com/petrasvestartas/session"
 
 [tool.hatch.build]
 src-layout = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
