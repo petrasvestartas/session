@@ -54,10 +54,10 @@ class Color:
 
     def __str__(self):
         """String representation."""
-        return f"Color(r={self.r}, g={self.g}, b={self.b}, a={self.a})"
+        return f"Color({self.r}, {self.g}, {self.b}, {self.a})"
 
     def __repr__(self):
-        return f"Color(r={self.r}, g={self.g}, b={self.b}, a={self.a})"
+        return f"Color({self.guid}, {self.name}, {self.r}, {self.g}, {self.b}, {self.a})"
 
     def __eq__(self, other):
         if not isinstance(other, Color):

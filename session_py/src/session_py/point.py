@@ -54,7 +54,7 @@ class Point:
         self.pointcolor = Color.white()
 
     def __str__(self):
-        return f"Point({self.x}, {self.y}, {self.z}, {self.guid}, {self.name}, {self.pointcolor}, {self.width})"
+        return f"Point({self.x}, {self.y}, {self.z})"
 
     def __repr__(self):
         return f"Point({self.x}, {self.y}, {self.z}, {self.guid}, {self.name}, {self.pointcolor}, {self.width})"
@@ -188,3 +188,7 @@ class Point:
         with open(filepath, "r") as f:
             data = json.load(f)
             return cls.from_json_data(data)
+
+    ###########################################################################################
+    # Details
+    ###########################################################################################

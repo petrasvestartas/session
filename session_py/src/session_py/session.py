@@ -59,10 +59,10 @@ class Session:
         # - BVH Boundary Volume Hierarchy
 
     def __str__(self) -> str:
-        return f"Session(name='{self.name}')"
+        return f"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})"
 
     def __repr__(self) -> str:
-        return f"Session(name='{self.name}')"
+        return f"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})"
 
     ###########################################################################################
     # JSON

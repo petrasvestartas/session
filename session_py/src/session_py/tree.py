@@ -37,10 +37,11 @@ class TreeNode:
         self._tree = None
 
     def __str__(self):
-        return "TreeNode({})".format(self.name)
+        """String representation."""
+        return f"TreeNode({self.name}"
 
     def __repr__(self):
-        return "<TreeNode {}>".format(self.name)
+        return f"TreeNode({self.name}), {len(self.children)} children)"
 
     ###########################################################################################
     # JSON

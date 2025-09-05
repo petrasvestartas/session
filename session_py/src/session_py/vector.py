@@ -45,10 +45,10 @@ class Vector:
         self.z = z
 
     def __str__(self):
-        return f"Vector({self.x}, {self.y}, {self.z}, {self.guid}, {self.name})"
+        return f"Vector({self.x}, {self.y}, {self.z})"
 
     def __repr__(self):
-        return f"Vector({self.x}, {self.y}, {self.z}, {self.guid}, {self.name})"
+        return f"Vector({self.guid}, {self.name}, {self.x}, {self.y}, {self.z})"
 
     def __eq__(self, other):
         return (
@@ -162,3 +162,8 @@ class Vector:
         with open(filepath, "r") as f:
             data = json.load(f)
             return cls.from_json_data(data)
+
+
+    ###########################################################################################
+    # Details
+    ###########################################################################################

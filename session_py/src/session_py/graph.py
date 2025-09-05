@@ -123,6 +123,13 @@ class Graph:
         self._edges = {}  # node_name -> {neighbor_name -> Edge object}
         self.count = 0  # Track next available vertex index
 
+    def __str__(self):
+        """String representation."""
+        return f"Graph({self.name}, {len(self._vertices)} vertices, {len(self._edges)} edges)"
+
+    def __repr__(self):
+        return f"Graph({self.name}, {len(self._vertices)} vertices, {len(self._edges)} edges)"
+
     ###########################################################################################
     # JSON Serialization
     ###########################################################################################
@@ -234,7 +241,7 @@ class Graph:
 
 
     ###########################################################################################
-    # Essential Graph Methods
+    # Details: Essential Graph Methods
     ###########################################################################################
 
     def add_node(self, key, attribute=""):

@@ -33,22 +33,10 @@ class Objects:
         self.points: list[Point] = points or []
 
     def __str__(self):
-        return f"Objects({self.name}, points={len(self.points)})"
+        return f"Objects(points={len(self.points)})"
 
     def __repr__(self):
-        return f"Objects({self.name}, points={len(self.points)})"
-
-    def __eq__(self, other):
-        same_name = self.name == other.name
-
-        if len(self.name) != len(other.name):
-            return False
-
-        for i in range(len(self.points)):
-            if self.points[i] != other.points[i]:
-                return False
-
-        return same_name
+        return f"Objects({self.guid}, {self.name}, points={len(self.points)})"
 
     ###########################################################################################
     # JSON Serialization
@@ -166,4 +154,6 @@ class Objects:
             data = json.load(f)
             return cls.from_json_data(data)
         
-    
+    ###########################################################################################
+    # Details
+    ###########################################################################################
