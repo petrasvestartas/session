@@ -1,0 +1,45 @@
+/* 
+ * Custom CSS to change syntax highlighting from red to green
+ * This affects class names, parameters, attributes, etc. in code blocks
+ */
+
+/* Python syntax highlighting - change red elements to green */
+.highlight .nc { color: #28a745 !important; }  /* Name.Class */
+.highlight .nf { color: #28a745 !important; }  /* Name.Function */
+.highlight .na { color: #28a745 !important; }  /* Name.Attribute */
+.highlight .nd { color: #28a745 !important; }  /* Name.Decorator */
+.highlight .ne { color: #28a745 !important; }  /* Name.Exception */
+.highlight .nn { color: #28a745 !important; }  /* Name.Namespace */
+.highlight .nt { color: #28a745 !important; }  /* Name.Tag */
+.highlight .nv { color: #28a745 !important; }  /* Name.Variable */
+
+/* API documentation - change red class/function names to green */
+.sig-name { color: #28a745 !important; }
+.sig-param { color: #28a745 !important; }
+dt .sig .sig-name { color: #28a745 !important; }
+dt .sig .sig-param .n { color: #28a745 !important; }
+
+/* Property/attribute names in API docs */
+.py.attribute .sig-name { color: #28a745 !important; }
+.py.method .sig-name { color: #28a745 !important; }
+.py.class .sig-name { color: #28a745 !important; }
+.py.function .sig-name { color: #28a745 !important; }
+
+/* Parameter names in function signatures */
+.sig-param-name { color: #28a745 !important; }
+.sig-param .n { color: #28a745 !important; }
+
+/* Type annotations */
+.sig-param .n + .p + .n { color: #218838 !important; }  /* Type hints - darker green */
+
+/* Module and package names */
+.py.module .sig-name { color: #28a745 !important; }
+
+/* Override any remaining red syntax elements */
+.highlight .err { color: #28a745 !important; }  /* Error - sometimes used for class names */
+
+/* Cross-references to classes/functions */
+.xref.py.py-class { color: #28a745 !important; }
+.xref.py.py-func { color: #28a745 !important; }
+.xref.py.py-meth { color: #28a745 !important; }
+.xref.py.py-attr { color: #28a745 !important; }

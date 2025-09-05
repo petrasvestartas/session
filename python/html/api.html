@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html :class="{'dark': darkMode === 'dark' || (darkMode === 'system' &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches)}" class="scroll-smooth" data-content_root="./" lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') || localStorage.setItem('darkMode', 'system'), activeSection: '' }" x-init="$watch('darkMode', val =&gt; localStorage.setItem('darkMode', val))">
+<head>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>API Reference | session_py</title>
+<meta content="API Reference | session_py" property="og:title"/>
+<meta content="API Reference | session_py" name="twitter:title"/>
+<link href="_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
+<link href="_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
+<link href="_static/hide-paragraphs.css?v=42f8cb04" rel="stylesheet" type="text/css"/>
+<link href="search.html" rel="search" title="Search"/>
+<link href="genindex.html" rel="index" title="Index"/>
+<link href="index.html" rel="prev" title="session_py"/>
+<script>
+    <!-- Prevent Flash of wrong theme -->
+      const userPreference = localStorage.getItem('darkMode');
+      let mode;
+      if (userPreference === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        mode = 'dark';
+        document.documentElement.classList.add('dark');
+      } else {
+        mode = 'light';
+      }
+      if (!userPreference) {localStorage.setItem('darkMode', mode)}
+    </script>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">session_py</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 space-x-2 sm:space-x-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center space-x-1">
+<button @click="darkMode = darkMode === 'light' ? 'dark' : 'light'" aria-label="Color theme switcher" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="!justify-start text-sm md:!hidden bg-background" href="index.html"><span class="font-bold text-clip whitespace-nowrap">session_py</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="index.html">
+<span class="hidden md:inline">session_py</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">API Reference</span>
+</nav>
+<div id="content" role="main">
+<section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
+<p>This page contains the API reference for the Session PY library.</p>
+<section id="module-session_py.color">
+<span id="color-module"></span><h2>Color Module<a class="headerlink" href="#module-session_py.color" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#module-session_py.color'">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="session_py.color.Color">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">session_py.color.</span></span><span class="sig-name descname"><span class="pre">Color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'my_color'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color'">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A color with RGBA values for cross-language compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>int</em><em>, </em><em>optional</em>) – Red component (0-255). Defaults to 255.</p></li>
+<li><p><strong>g</strong> (<em>int</em><em>, </em><em>optional</em>) – Green component (0-255). Defaults to 255.</p></li>
+<li><p><strong>b</strong> (<em>int</em><em>, </em><em>optional</em>) – Blue component (0-255). Defaults to 255.</p></li>
+<li><p><strong>a</strong> (<em>int</em><em>, </em><em>optional</em>) – Alpha component (0-255). Defaults to 255.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the color. Defaults to “white”.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#session_py.color.Color.name" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.name'">¶</a></dt>
+<dd><p>The name of the color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.guid">
+<span class="sig-name descname"><span class="pre">guid</span></span><a class="headerlink" href="#session_py.color.Color.guid" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.guid'">¶</a></dt>
+<dd><p>The unique identifier of the color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.r">
+<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#session_py.color.Color.r" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.r'">¶</a></dt>
+<dd><p>The red component of the color (0-255).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.g">
+<span class="sig-name descname"><span class="pre">g</span></span><a class="headerlink" href="#session_py.color.Color.g" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.g'">¶</a></dt>
+<dd><p>The green component of the color (0-255).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.b">
+<span class="sig-name descname"><span class="pre">b</span></span><a class="headerlink" href="#session_py.color.Color.b" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.b'">¶</a></dt>
+<dd><p>The blue component of the color (0-255).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.color.Color.a">
+<span class="sig-name descname"><span class="pre">a</span></span><a class="headerlink" href="#session_py.color.Color.a" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.a'">¶</a></dt>
+<dd><p>The alpha component of the color (0-255).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">red</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"red"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"red"</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">guid</span> <span class="o">!=</span> <span class="s2">""</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="mi">255</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">g</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">red</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">255</span>
+</span></code></pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'my_color'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.__init__" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.__init__'">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.to_json_data">
+<span class="sig-name descname"><span class="pre">to_json_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minimal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/session_py/color.html#Color.to_json_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.to_json_data" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.to_json_data'">¶</a></dt>
+<dd><p>Convert to JSON-serializable dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>minimal</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, return minimal representation without None values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary representation of the color.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"purple"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">to_json_data</span><span class="p">()</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'Color'</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'purple'</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'r'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'g'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">64</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'b'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">192</span>
+</span><span id="line-8"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'a'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">255</span>
+</span><span id="line-9"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s1">'guid'</span> <span class="ow">in</span> <span class="n">data</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.from_json_data">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color.from_json_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.from_json_data" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.from_json_data'">¶</a></dt>
+<dd><p>Create color from JSON data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary containing color data from JSON.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Color instance created from the JSON data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#session_py.color.Color" title="session_py.color.Color"><code class="xref py py-class docutils literal notranslate"><span class="pre">Color</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">original_color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"bronze"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">original_color</span><span class="o">.</span><span class="n">to_json_data</span><span class="p">()</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">restored_color</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">from_json_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="mi">200</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">g</span> <span class="o">==</span> <span class="mi">150</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">b</span> <span class="o">==</span> <span class="mi">100</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">255</span>
+</span><span id="line-8"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"bronze"</span>
+</span><span id="line-9"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_color</span><span class="o">.</span><span class="n">guid</span> <span class="o">==</span> <span class="n">original_color</span><span class="o">.</span><span class="n">guid</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color.to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.to_json" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.to_json'">¶</a></dt>
+<dd><p>Save the Color to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – Path where to save the JSON file.</p></li>
+<li><p><strong>minimal</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save minimal representation.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"sunset_orange"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">color</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"my_color.json"</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.from_json">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color.from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.from_json" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.from_json'">¶</a></dt>
+<dd><p>Load Color from a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) – Path to the JSON file to load.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Color instance loaded from the file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#session_py.color.Color" title="session_py.color.Color"><code class="xref py py-class docutils literal notranslate"><span class="pre">Color</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="s2">"orange"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">to_json_data</span><span class="p">()</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">color2</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">from_json_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">color2</span><span class="o">.</span><span class="n">name</span>
+</span><span id="line-5"><span class="go">'orange'</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.white">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">white</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#session_py.color.Color" title="session_py.color.Color"><span class="pre">Color</span></a></span></span><a class="reference internal" href="_modules/session_py/color.html#Color.white"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.white" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.white'">¶</a></dt>
+<dd><p>Create a white color.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.black">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">black</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#session_py.color.Color" title="session_py.color.Color"><span class="pre">Color</span></a></span></span><a class="reference internal" href="_modules/session_py/color.html#Color.black"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.black" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.black'">¶</a></dt>
+<dd><p>Create a black color.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.to_float_array">
+<span class="sig-name descname"><span class="pre">to_float_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/session_py/color.html#Color.to_float_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.to_float_array" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.to_float_array'">¶</a></dt>
+<dd><p>Convert to normalized float array [0-1] (matches Rust implementation).</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.color.Color.from_float">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/color.html#Color.from_float"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.color.Color.from_float" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.color.Color.from_float'">¶</a></dt>
+<dd><p>Create color from normalized float values [0-1].</p>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-session_py.point">
+<span id="point-module"></span><h2>Point Module<a class="headerlink" href="#module-session_py.point" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#module-session_py.point'">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="session_py.point.Point">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">session_py.point.</span></span><span class="sig-name descname"><span class="pre">Point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/point.html#Point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point'">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A 3D point with visual properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – X coordinate. Defaults to 0.0.</p></li>
+<li><p><strong>y</strong> (<em>float</em><em>, </em><em>optional</em>) – Y coordinate. Defaults to 0.0.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Z coordinate. Defaults to 0.0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#session_py.point.Point.name" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.name'">¶</a></dt>
+<dd><p>The name of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.guid">
+<span class="sig-name descname"><span class="pre">guid</span></span><a class="headerlink" href="#session_py.point.Point.guid" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.guid'">¶</a></dt>
+<dd><p>The unique identifier of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#session_py.point.Point.x" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.x'">¶</a></dt>
+<dd><p>The X coordinate of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#session_py.point.Point.y" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.y'">¶</a></dt>
+<dd><p>The Y coordinate of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.z">
+<span class="sig-name descname"><span class="pre">z</span></span><a class="headerlink" href="#session_py.point.Point.z" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.z'">¶</a></dt>
+<dd><p>The Z coordinate of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.pointcolor">
+<span class="sig-name descname"><span class="pre">pointcolor</span></span><a class="headerlink" href="#session_py.point.Point.pointcolor" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.pointcolor'">¶</a></dt>
+<dd><p>The color of the point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Color</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="session_py.point.Point.width">
+<span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#session_py.point.Point.width" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.width'">¶</a></dt>
+<dd><p>The width of the point for display.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"my_point"</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">guid</span> <span class="o">!=</span> <span class="s2">""</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mf">1.0</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mf">2.0</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">z</span> <span class="o">==</span> <span class="mf">3.0</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">width</span> <span class="o">==</span> <span class="mf">1.0</span>
+</span><span id="line-8"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">point</span><span class="o">.</span><span class="n">pointcolor</span> <span class="o">==</span> <span class="n">Color</span><span class="o">.</span><span class="n">white</span><span class="p">()</span>
+</span></code></pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.point.Point.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/session_py/point.html#Point.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point.__init__" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.__init__'">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.point.Point.to_json_data">
+<span class="sig-name descname"><span class="pre">to_json_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/session_py/point.html#Point.to_json_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point.to_json_data" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.to_json_data'">¶</a></dt>
+<dd><p>Convert the Point to a JSON-serializable dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the Point data in JSON format.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">15.5</span><span class="p">,</span> <span class="mf">25.7</span><span class="p">,</span> <span class="mf">35.9</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"survey_point_A"</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mf">2.5</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">pointcolor</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">to_json_data</span><span class="p">()</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'Point'</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'survey_point_A'</span>
+</span><span id="line-8"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]</span> <span class="o">==</span> <span class="mf">15.5</span>
+</span><span id="line-9"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'y'</span><span class="p">]</span> <span class="o">==</span> <span class="mf">25.7</span>
+</span><span id="line-10"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'z'</span><span class="p">]</span> <span class="o">==</span> <span class="mf">35.9</span>
+</span><span id="line-11"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'width'</span><span class="p">]</span> <span class="o">==</span> <span class="mf">2.5</span>
+</span><span id="line-12"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'pointcolor'</span><span class="p">][</span><span class="s1">'r'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">255</span>
+</span><span id="line-13"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s1">'pointcolor'</span><span class="p">][</span><span class="s1">'g'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.point.Point.from_json_data">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#session_py.point.Point" title="session_py.point.Point"><span class="pre">Point</span></a></span></span><a class="reference internal" href="_modules/session_py/point.html#Point.from_json_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point.from_json_data" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.from_json_data'">¶</a></dt>
+<dd><p>Create a Point from JSON data dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary containing point data from JSON.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Point instance created from the JSON data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#session_py.point.Point" title="session_py.point.Point"><code class="xref py py-class docutils literal notranslate"><span class="pre">Point</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">original_point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">42.1</span><span class="p">,</span> <span class="mf">84.2</span><span class="p">,</span> <span class="mf">126.3</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">original_point</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"control_point_B"</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">original_point</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mf">3.0</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">original_point</span><span class="o">.</span><span class="n">pointcolor</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">original_point</span><span class="o">.</span><span class="n">to_json_data</span><span class="p">()</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="n">restored_point</span> <span class="o">=</span> <span class="n">Point</span><span class="o">.</span><span class="n">from_json_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="line-7"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mf">42.1</span>
+</span><span id="line-8"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mf">84.2</span>
+</span><span id="line-9"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">z</span> <span class="o">==</span> <span class="mf">126.3</span>
+</span><span id="line-10"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"control_point_B"</span>
+</span><span id="line-11"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">width</span> <span class="o">==</span> <span class="mf">3.0</span>
+</span><span id="line-12"><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">restored_point</span><span class="o">.</span><span class="n">pointcolor</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="mi">200</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.point.Point.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/session_py/point.html#Point.to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point.to_json" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.to_json'">¶</a></dt>
+<dd><p>Serialize the Point to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) – Path to the output JSON file.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">123.45</span><span class="p">,</span> <span class="mf">678.90</span><span class="p">,</span> <span class="mf">999.11</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mf">4.5</span>
+</span><span id="line-3"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">pointcolor</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="line-4"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"my_point.json"</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="session_py.point.Point.from_json">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#session_py.point.Point" title="session_py.point.Point"><span class="pre">Point</span></a></span></span><a class="reference internal" href="_modules/session_py/point.html#Point.from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#session_py.point.Point.from_json" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#session_py.point.Point.from_json'">¶</a></dt>
+<dd><p>Deserialize a Point from a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) – Path to the JSON file to load.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Point instance loaded from the file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#session_py.point.Point" title="session_py.point.Point"><code class="xref py py-class docutils literal notranslate"><span class="pre">Point</span></code></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">'w'</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">'.json'</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="line-3"><span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'{"type": "Point", "guid": "123", "name": "test", "x": 1.0, "y": 2.0, "z": 3.0, "width": 1.0, "pointcolor": {"type": "Color", "r": 255, "g": 255, "b": 255, "a": 255}}'</span><span class="p">)</span>
+</span><span id="line-4"><span class="gp">... </span>    <span class="n">temp_file</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+</span><span id="line-5"><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">temp_file</span><span class="p">)</span>
+</span><span id="line-6"><span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">temp_file</span><span class="p">)</span>  <span class="c1"># cleanup</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+</dd></dl>
+</section>
+</section>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#module-session_py.color'" class="reference internal" href="#module-session_py.color">Color Module</a><ul>
+<li><a :data-current="activeSection === '#session_py.color.Color'" class="reference internal" href="#session_py.color.Color"><code class="docutils literal notranslate"><span class="pre">Color</span></code></a><ul>
+<li><a :data-current="activeSection === '#session_py.color.Color.name'" class="reference internal" href="#session_py.color.Color.name"><code class="docutils literal notranslate"><span class="pre">Color.name</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.guid'" class="reference internal" href="#session_py.color.Color.guid"><code class="docutils literal notranslate"><span class="pre">Color.guid</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.r'" class="reference internal" href="#session_py.color.Color.r"><code class="docutils literal notranslate"><span class="pre">Color.r</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.g'" class="reference internal" href="#session_py.color.Color.g"><code class="docutils literal notranslate"><span class="pre">Color.g</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.b'" class="reference internal" href="#session_py.color.Color.b"><code class="docutils literal notranslate"><span class="pre">Color.b</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.a'" class="reference internal" href="#session_py.color.Color.a"><code class="docutils literal notranslate"><span class="pre">Color.a</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.__init__'" class="reference internal" href="#session_py.color.Color.__init__"><code class="docutils literal notranslate"><span class="pre">Color.__init__()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.to_json_data'" class="reference internal" href="#session_py.color.Color.to_json_data"><code class="docutils literal notranslate"><span class="pre">Color.to_json_data()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.from_json_data'" class="reference internal" href="#session_py.color.Color.from_json_data"><code class="docutils literal notranslate"><span class="pre">Color.from_json_data()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.to_json'" class="reference internal" href="#session_py.color.Color.to_json"><code class="docutils literal notranslate"><span class="pre">Color.to_json()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.from_json'" class="reference internal" href="#session_py.color.Color.from_json"><code class="docutils literal notranslate"><span class="pre">Color.from_json()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.white'" class="reference internal" href="#session_py.color.Color.white"><code class="docutils literal notranslate"><span class="pre">Color.white()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.black'" class="reference internal" href="#session_py.color.Color.black"><code class="docutils literal notranslate"><span class="pre">Color.black()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.to_float_array'" class="reference internal" href="#session_py.color.Color.to_float_array"><code class="docutils literal notranslate"><span class="pre">Color.to_float_array()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.color.Color.from_float'" class="reference internal" href="#session_py.color.Color.from_float"><code class="docutils literal notranslate"><span class="pre">Color.from_float()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#module-session_py.point'" class="reference internal" href="#module-session_py.point">Point Module</a><ul>
+<li><a :data-current="activeSection === '#session_py.point.Point'" class="reference internal" href="#session_py.point.Point"><code class="docutils literal notranslate"><span class="pre">Point</span></code></a><ul>
+<li><a :data-current="activeSection === '#session_py.point.Point.name'" class="reference internal" href="#session_py.point.Point.name"><code class="docutils literal notranslate"><span class="pre">Point.name</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.guid'" class="reference internal" href="#session_py.point.Point.guid"><code class="docutils literal notranslate"><span class="pre">Point.guid</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.x'" class="reference internal" href="#session_py.point.Point.x"><code class="docutils literal notranslate"><span class="pre">Point.x</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.y'" class="reference internal" href="#session_py.point.Point.y"><code class="docutils literal notranslate"><span class="pre">Point.y</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.z'" class="reference internal" href="#session_py.point.Point.z"><code class="docutils literal notranslate"><span class="pre">Point.z</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.pointcolor'" class="reference internal" href="#session_py.point.Point.pointcolor"><code class="docutils literal notranslate"><span class="pre">Point.pointcolor</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.width'" class="reference internal" href="#session_py.point.Point.width"><code class="docutils literal notranslate"><span class="pre">Point.width</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.__init__'" class="reference internal" href="#session_py.point.Point.__init__"><code class="docutils literal notranslate"><span class="pre">Point.__init__()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.to_json_data'" class="reference internal" href="#session_py.point.Point.to_json_data"><code class="docutils literal notranslate"><span class="pre">Point.to_json_data()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.from_json_data'" class="reference internal" href="#session_py.point.Point.from_json_data"><code class="docutils literal notranslate"><span class="pre">Point.from_json_data()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.to_json'" class="reference internal" href="#session_py.point.Point.to_json"><code class="docutils literal notranslate"><span class="pre">Point.to_json()</span></code></a></li>
+<li><a :data-current="activeSection === '#session_py.point.Point.from_json'" class="reference internal" href="#session_py.point.Point.from_json"><code class="docutils literal notranslate"><span class="pre">Point.from_json()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left"></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="_static/documentation_options.js?v=5929fcd5"></script>
+<script src="_static/doctools.js?v=9bcbadda"></script>
+<script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+<script defer="defer" src="_static/theme.js?v=073f68d9"></script>
+</body>
+</html>

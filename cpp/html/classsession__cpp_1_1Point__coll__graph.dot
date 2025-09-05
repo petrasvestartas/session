@@ -1,0 +1,9 @@
+digraph "session_cpp::Point"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="session_cpp::Point",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="A point defined by XYZ coordinates with display properties."];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" pointcolor" ,fontname="Helvetica"];
+  Node2 [label="session_cpp::Color",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classsession__cpp_1_1Color.html",tooltip="A color is defined by RGBA coordinates from 0 to 255."];
+}
