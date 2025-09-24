@@ -1,0 +1,100 @@
+/* Hide all paragraph signs and pilcrow marks */
+.headerlink {
+    display: none !important;
+}
+
+/* Hide any pilcrow symbols */
+.pilcrow {
+    display: none !important;
+}
+
+/* Hide permalink symbols */
+.permalink {
+    display: none !important;
+}
+
+/* Hide any ¶ symbols that might appear */
+*:after {
+    content: none !important;
+}
+
+/* Make sure no pseudo-elements add paragraph symbols */
+h1:after, h2:after, h3:after, h4:after, h5:after, h6:after {
+    content: none !important;
+}
+
+/* Hide any anchor links that show symbols */
+.anchor-link {
+    display: none !important;
+}
+
+/* Hide header link symbols */
+.header-link {
+    display: none !important;
+}
+
+/* Remove any content that might be adding symbols */
+.section:after,
+.document:after,
+p:after,
+div:after {
+    content: none !important;
+}
+
+/* Hide right sidebar table of contents - comprehensive selectors */
+.toc-drawer,
+.contents-drawer,
+.page-toc,
+.right-sidebar,
+.sidebar-right,
+.toc-sidebar,
+.secondary-sidebar,
+.page-toc-drawer,
+.toc,
+.sphinxsidebar,
+.sphinxsidebarwrapper,
+.sidebar-secondary,
+.contents,
+aside {
+    display: none !important;
+}
+
+/* Hide "Contents" section in right sidebar */
+.toctree-wrapper {
+    display: none !important;
+}
+
+/* Force main content to full width */
+main,
+.main-content,
+.document,
+.body {
+    width: 100% !important;
+    max-width: none !important;
+    margin-right: 0 !important;
+}
+
+/* Hide any floating table of contents */
+.float-toc,
+.floating-toc {
+    display: none !important;
+}
+
+/* Nuclear approach - hide anything that might be a right sidebar */
+[class*="toc"],
+[class*="sidebar"][class*="right"],
+[class*="contents"],
+[id*="toc"],
+[id*="contents"] {
+    display: none !important;
+}
+
+/* Hide elements positioned on the right */
+* {
+    position: relative !important;
+}
+
+*[style*="position: fixed"],
+*[style*="position: absolute"][style*="right:"] {
+    display: none !important;
+}

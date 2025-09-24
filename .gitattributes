@@ -1,0 +1,31 @@
+# Exclude third-party libraries from GitHub language detection
+session_cpp/src/catch/** linguist-vendored
+session_cpp/src/fmt/** linguist-vendored
+session_cpp/src/guid/** linguist-vendored
+session_cpp/src/json/** linguist-vendored
+
+# Exclude build directories
+session_cpp/build/** linguist-generated
+session_cpp/docs_output/** linguist-generated
+session_py/docs/** linguist-generated
+session_rust/target/** linguist-generated
+
+# Exclude documentation files from language stats
+*.md linguist-documentation
+
+# Hide other languages - only show Rust, C++, and Python
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
+*.json linguist-vendored
+*.xml linguist-vendored
+*.yml linguist-vendored
+*.yaml linguist-vendored
+*.toml linguist-documentation
+*.txt linguist-documentation
+*.bat linguist-vendored
+*.sh linguist-vendored
+*.cmake linguist-vendored
+*.make linguist-vendored
+Makefile linguist-vendored
+CMakeLists.txt linguist-vendored

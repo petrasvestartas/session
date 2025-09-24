@@ -1,0 +1,96 @@
+#pragma once
+#include "fmt/core.h"
+#include "guid.h"
+#include "json.h"
+#include <array>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+namespace session_cpp {
+
+/**
+ * @class Color
+ * @brief A color is defined by RGBA coordinates from 0 to 255.
+ */
+class Color {
+public:
+  std::string name = "my_color"; ///< Name of the color
+  std::string guid = ::guid();   ///< Unique identifier
+  unsigned int r;                ///< Red component (0-255)
+  unsigned int g;                ///< Green component (0-255)
+  unsigned int b;                ///< Blue component (0-255)
+  unsigned int a;                ///< Alpha component (0-255)
+
+  /// Constructor with RGBA values.
+  Color(unsigned int r = 255, unsigned int g = 255, unsigned int b = 255,
+        unsigned int a = 255, std::string name = "my_color")
+      : name(name), r(r), g(g), b(b), a(a) {}
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Operators
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /// Convert point to string representation
+  std::string to_string() const;
+
+  /// Equality operator
+  bool operator==(const Color &other) const;
+
+  /// Inequality operator
+  bool operator!=(const Color &other) const;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // JSON
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /// Convert to JSON-serializable object.
+  nlohmann::ordered_json to_json_data() const;
+
+  /// Create color from JSON data.
+  static Color from_json_data(const nlohmann::json &data);
+
+  /// Serialize to JSON file
+  void to_json(const std::string &filepath) const;
+
+  /// Deserialize from JSON file
+  static Color from_json(const std::string &filepath);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Details
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /// Create a white color.
+  static Color white();
+
+  /// Create a black color.
+  static Color black();
+
+  /// Convert to normalized float array [0-1].
+  std::array<double, 4> to_float_array() const;
+
+  /// Create color from normalized float values [0-1].
+  static Color from_float(double r, double g, double b, double a);
+};
+
+/**
+ * @brief  To use this operator, you can do:
+ *         Point point(1.5, 2.5, 3.5);
+ *         std::cout << "Created point: " << point << std::endl;
+ * @param os The output stream.
+ * @param point The Point to insert into the stream.
+ * @return A reference to the output stream.
+ */
+std::ostream &operator<<(std::ostream &os, const Color &color);
+
+} // namespace session_cpp
+
+// fmt formatter specialization for Color - enables direct fmt::print(color)
+template <> struct fmt::formatter<session_cpp::Color> {
+  constexpr auto parse(fmt::format_parse_context &ctx) { return ctx.begin(); }
+
+  auto format(const session_cpp::Color &o, fmt::format_context &ctx) const {
+    return fmt::format_to(ctx.out(), "{}", o.to_string());
+  }
+};

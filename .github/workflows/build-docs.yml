@@ -1,0 +1,60 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Doxygen
+      uses: ssciwr/doxygen-install@v1
+      with:
+        version: "1.9.4"
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Install Rust (needed by session_docs build script)
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    # Build all documentation using unified session_docs system
+    - name: Build Combined Documentation
+      working-directory: ./session_docs
+      run: |
+        chmod +x build_docs.sh
+        ./build_docs.sh
+
+    # Upload combined documentation artifact
+    - name: Upload Combined Documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: all-documentation
+        path: session_docs/combined_docs/
+        
+    # Deploy to GitHub Pages (only on main branch)
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./session_docs/combined_docs
+        publish_branch: docs
+        force_orphan: true
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'

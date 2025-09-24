@@ -1,0 +1,84 @@
+# Build directories
+build/
+target/
+dist/
+out/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+# CMake generated Makefiles (but not Sphinx Makefiles)
+session_cpp/Makefile
+session_cpp/build/Makefile
+*.cmake
+
+# C++ build artifacts
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# Rust
+target/
+**/target/
+Cargo.lock
+**/*.rs.bk
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation output directories
+docs_output/
+_build/
+html/
+
+# Logs
+*.log
+
+# Project-specific build outputs
+session_rust/target/
+session_rust/*.json
+session_rust/docs_output/
+
+session_py/__pycache__/
+session_py/*.json
+session_py/docs_output/
+session_py/build/
+session_py/dist/
+session_py/*.egg-info/
+
+session_cpp/build/
+session_cpp/*.json
+session_cpp/docs_output/

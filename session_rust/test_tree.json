@@ -1,0 +1,31 @@
+{
+    "type": "Tree",
+    "guid": "22ca98e7-a04d-4005-a4c9-846d34136336",
+    "name": "my_tree",
+    "root": {
+        "type": "TreeNode",
+        "guid": "20c80ae1-c35c-4fef-b033-a5794d2e11e2",
+        "name": "f19d09f0-6a73-4c33-a59d-11264a051028",
+        "children": [
+            {
+                "type": "TreeNode",
+                "guid": "ae9d703b-1475-4014-b415-975f892e226f",
+                "name": "f4f89488-ab02-4671-9bf8-7ef40746de96",
+                "children": [
+                    {
+                        "type": "TreeNode",
+                        "guid": "21f87ef2-810a-4413-bbcb-d8cb4b936605",
+                        "name": "7c143268-67f1-4602-9a24-b49ba4af8857",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "type": "TreeNode",
+                "guid": "6955f7fe-b06b-483d-9f60-e57177d65eeb",
+                "name": "f942d913-2795-429a-b338-937329145f6f",
+                "children": []
+            }
+        ]
+    }
+}
