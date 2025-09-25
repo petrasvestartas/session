@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector.h>
 
 namespace session_cpp {
 /**
@@ -60,6 +61,34 @@ public:
 
   /// Deserialize from JSON file
   static Point from_json(const std::string &filepath);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // No-copy Operators
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  double &operator[](int index);
+
+  const double &operator[](int index) const;
+
+  Point &operator*=(double factor);
+  
+  Point &operator/=(double factor);
+
+  Point &operator+=(const Point &other);
+
+  Point &operator-=(const Point &other);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Copy Operators
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  Point operator*(double factor) const;
+
+  Point operator/(double factor) const;
+
+  Point operator+(const Vector& other) const;
+
+  Point operator-(const Vector& other) const;
 
 }; // End of Point class
 
