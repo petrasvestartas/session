@@ -1,4 +1,3 @@
-import os
 from .point import Point
 from .color import Color
 
@@ -27,6 +26,9 @@ def test_point_equality():
     assert not (p3 == p4)
     assert p3 != p4
 
+###########################################################################################
+# JSON
+###########################################################################################
 
 def test_point_to_json_data():
     """Test Point to_json_data method."""
@@ -85,3 +87,132 @@ def test_point_to_json_from_json():
     assert loaded.width == original.width
     assert loaded.pointcolor == original.pointcolor
     assert loaded.guid == original.guid
+
+###########################################################################################
+# No-copy Operators
+###########################################################################################
+
+def test_point_getitem():
+    """Test Point getitem method."""
+    point = Point(1.0, 2.0, 3.0)
+    assert point[0] == 1.0
+    assert point[1] == 2.0
+    assert point[2] == 3.0
+
+def test_point_setitem():
+    """Test Point setitem method."""
+    point = Point(1.0, 2.0, 3.0)
+    point[0] = 4.0
+    point[1] = 5.0
+    point[2] = 6.0
+    assert point.x == 4.0
+    assert point.y == 5.0
+    assert point.z == 6.0
+
+def test_point_imul():
+    """Test Point imul method."""
+    point = Point(1.0, 2.0, 3.0)
+    point *= 2.0
+    assert point.x == 2.0
+    assert point.y == 4.0
+    assert point.z == 6.0
+
+def test_point_itruediv():
+    """Test Point itruediv method."""
+    point = Point(2.0, 4.0, 6.0)
+    point /= 2.0
+    assert point.x == 1.0
+    assert point.y == 2.0
+    assert point.z == 3.0
+
+def test_point_iadd():
+    """Test Point iadd method."""
+    point = Point(1.0, 2.0, 3.0)
+    point += Point(4.0, 5.0, 6.0)
+    assert point.x == 5.0
+    assert point.y == 7.0
+    assert point.z == 9.0
+
+def test_point_isub():
+    """Test Point isub method."""
+    point = Point(5.0, 7.0, 9.0)
+    point -= Point(4.0, 5.0, 6.0)
+    assert point.x == 1.0
+    assert point.y == 2.0
+    assert point.z == 3.0
+
+###########################################################################################
+# Copy Operators
+###########################################################################################
+
+def test_point_mul():
+    """Test Point mul method."""
+    point = Point(1.0, 2.0, 3.0)
+    result = point * 2.0
+    assert result.x == 2.0
+    assert result.y == 4.0
+    assert result.z == 6.0
+
+def test_point_truediv():
+    """Test Point truediv method."""
+    point = Point(2.0, 4.0, 6.0)
+    result = point / 2.0
+    assert result.x == 1.0
+    assert result.y == 2.0
+    assert result.z == 3.0
+
+def test_point_add():
+    """Test Point add method."""
+    point = Point(1.0, 2.0, 3.0)
+    result = point + Point(4.0, 5.0, 6.0)
+    assert result.x == 5.0
+    assert result.y == 7.0
+    assert result.z == 9.0
+
+def test_point_sub():
+    """Test Point sub method."""
+    point = Point(5.0, 7.0, 9.0)
+    result = point - Point(4.0, 5.0, 6.0)
+    assert result.x == 1.0
+    assert result.y == 2.0
+    assert result.z == 3.0
+
+###########################################################################################
+# Details
+###########################################################################################
+
+def test_point_ccw():
+    """Test Point ccw method."""
+    a = Point(0.0, 0.0, 0.0)
+    b = Point(1.0, 0.0, 0.0)
+    c = Point(0.0, 1.0, 0.0)
+    assert Point.ccw(a, b, c)
+    assert not Point.ccw(b, a, c)
+
+def test_point_mid_point():
+    """Test Point mid_point method."""
+    p1 = Point(0.0, 0.0, 0.0)
+    p2 = Point(1.0, 0.0, 0.0)
+    mid = p1.mid_point(p2)
+    assert round(mid.x, 6) == 0.5
+    assert round(mid.y, 6) == 0.0
+    assert round(mid.z, 6) == 0.0
+    
+def test_point_distance():
+    """Test Point distance method."""
+    p1 = Point(0.0, 0.0, 0.0)
+    p2 = Point(1.0, 0.0, 0.0)
+    assert round(p1.distance(p2), 6) == 1.0
+    
+def test_point_area():
+    """Test Point area method."""
+    points = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]
+    assert Point.area(points) == 0.5
+
+def test_point_centroid_quad():
+    """Test Point centroid_quad method."""
+    vertices = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)]
+    centroid = Point.centroid_quad(vertices)
+    assert round(centroid.x, 6) == 0.5
+    assert round(centroid.y, 6) == 0.5
+    assert round(centroid.z, 6) == 0.0
