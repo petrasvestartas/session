@@ -1,6 +1,7 @@
 #include "catch_amalgamated.hpp"
 #include "color.h"
 #include "point.h"
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 
@@ -80,6 +81,135 @@ TEST_CASE("Point to_json from_json") {
   REQUIRE(loaded.width == original.width);
   REQUIRE(loaded.pointcolor == original.pointcolor);
   REQUIRE(loaded.guid == original.guid);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// No-copy Operators
+///////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Point getitem") {
+  Point point(1.0, 2.0, 3.0);
+  REQUIRE(point[0] == 1.0);
+  REQUIRE(point[1] == 2.0);
+  REQUIRE(point[2] == 3.0);
+}
+
+TEST_CASE("Point setitem") {
+  Point point(1.0, 2.0, 3.0);
+  point[0] = 4.0;
+  point[1] = 5.0;
+  point[2] = 6.0;
+  REQUIRE(point.x == 4.0);
+  REQUIRE(point.y == 5.0);
+  REQUIRE(point.z == 6.0);
+}
+
+TEST_CASE("Point imul") {
+  Point point(1.0, 2.0, 3.0);
+  point *= 2.0;
+  REQUIRE(point.x == 2.0);
+  REQUIRE(point.y == 4.0);
+  REQUIRE(point.z == 6.0);
+}
+
+TEST_CASE("Point itruediv") {
+  Point point(2.0, 4.0, 6.0);
+  point /= 2.0;
+  REQUIRE(point.x == 1.0);
+  REQUIRE(point.y == 2.0);
+  REQUIRE(point.z == 3.0);
+}
+
+TEST_CASE("Point iadd") {
+  Point point(1.0, 2.0, 3.0);
+  point += Point(4.0, 5.0, 6.0);
+  REQUIRE(point.x == 5.0);
+  REQUIRE(point.y == 7.0);
+  REQUIRE(point.z == 9.0);
+}
+
+TEST_CASE("Point isub") {
+  Point point(5.0, 7.0, 9.0);
+  point -= Point(4.0, 5.0, 6.0);
+  REQUIRE(point.x == 1.0);
+  REQUIRE(point.y == 2.0);
+  REQUIRE(point.z == 3.0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Copy Operators
+///////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Point mul") {
+  Point point(1.0, 2.0, 3.0);
+  Point result = point * 2.0;
+  REQUIRE(result.x == 2.0);
+  REQUIRE(result.y == 4.0);
+  REQUIRE(result.z == 6.0);
+}
+
+TEST_CASE("Point truediv") {
+  Point point(2.0, 4.0, 6.0);
+  Point result = point / 2.0;
+  REQUIRE(result.x == 1.0);
+  REQUIRE(result.y == 2.0);
+  REQUIRE(result.z == 3.0);
+}
+
+TEST_CASE("Point add") {
+  Point point(1.0, 2.0, 3.0);
+  Point result = point + Point(4.0, 5.0, 6.0);
+  REQUIRE(result.x == 5.0);
+  REQUIRE(result.y == 7.0);
+  REQUIRE(result.z == 9.0);
+}
+
+TEST_CASE("Point sub") {
+  Point point(5.0, 7.0, 9.0);
+  Point result = point - Point(4.0, 5.0, 6.0);
+  REQUIRE(result.x == 1.0);
+  REQUIRE(result.y == 2.0);
+  REQUIRE(result.z == 3.0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Details
+///////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Point ccw") {
+  Point a(0.0, 0.0, 0.0);
+  Point b(1.0, 0.0, 0.0);
+  Point c(0.0, 1.0, 0.0);
+  REQUIRE(Point::ccw(a, b, c));
+  REQUIRE_FALSE(Point::ccw(b, a, c));
+}
+
+TEST_CASE("Point mid_point") {
+  Point p1(0.0, 0.0, 0.0);
+  Point p2(1.0, 0.0, 0.0);
+  Point mid = p1.mid_point(p2);
+  REQUIRE(std::round(mid.x * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(mid.y * 1000000) / 1000000 == 0.0);
+  REQUIRE(std::round(mid.z * 1000000) / 1000000 == 0.0);
+}
+
+TEST_CASE("Point distance") {
+  Point p1(0.0, 0.0, 0.0);
+  Point p2(1.0, 0.0, 0.0);
+  REQUIRE(std::round(p1.distance(p2) * 1000000) / 1000000 == 1.0);
+}
+
+TEST_CASE("Point area") {
+  std::vector<Point> points = {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)};
+  REQUIRE(Point::area(points) == 0.5);
+}
+
+TEST_CASE("Point centroid_quad") {
+  std::vector<Point> vertices = {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)};
+  Point centroid = Point::centroid_quad(vertices);
+  REQUIRE(std::round(centroid.x * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(centroid.y * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(centroid.z * 1000000) / 1000000 == 0.0);
 }
 
 } // namespace session_cpp

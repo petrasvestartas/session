@@ -3,9 +3,11 @@
 #include "fmt/core.h"
 #include "guid.h"
 #include "json.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector.h>
 
@@ -89,6 +91,57 @@ public:
   Point operator+(const Vector& other) const;
 
   Point operator-(const Vector& other) const;
+
+  Point operator+(const Point& other) const;
+
+  Point operator-(const Point& other) const;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Details
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Check if the points are in counter-clockwise order.
+   * 
+   * @param a First point.
+   * @param b Second point.
+   * @param c Third point.
+   * @return True if the points are in counter-clockwise order, False otherwise.
+   */
+  static bool ccw(const Point& a, const Point& b, const Point& c);
+
+  /**
+   * @brief Calculate the mid point between this point and another point.
+   * 
+   * @param p The other point.
+   * @return The mid point between this point and the other point.
+   */
+  Point mid_point(const Point& p) const;
+
+  /**
+   * @brief Calculate the distance between this point and another point.
+   * 
+   * @param p The other point.
+   * @param double_min The minimum value for the distance. Defaults to 1e-12.
+   * @return The distance between this point and the other point.
+   */
+  double distance(const Point& p, double double_min = 1e-12) const;
+
+  /**
+   * @brief Calculate the area of a polygon.
+   * 
+   * @param points The points of the polygon.
+   * @return The area of the polygon.
+   */
+  static double area(const std::vector<Point>& points);
+
+  /**
+   * @brief Calculate the centroid of a quadrilateral.
+   * 
+   * @param vertices The vertices of the quadrilateral.
+   * @return The centroid of the quadrilateral.
+   */
+  static Point centroid_quad(const std::vector<Point>& vertices);
 
 }; // End of Point class
 
