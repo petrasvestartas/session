@@ -3,7 +3,7 @@
   "edges": [
     {
       "attribute": "edge_AB",
-      "guid": "321d912d-d136-49cd-b40f-70087d948d6c",
+      "guid": "93fdbffe-4d86-4d99-842d-33dea7a75161",
       "index": 0,
       "name": "my_edge",
       "type": "Edge",
@@ -12,7 +12,7 @@
     },
     {
       "attribute": "edge_BC",
-      "guid": "88461e92-a863-4d63-a95c-5edd03805adb",
+      "guid": "9fdc2f70-2fad-4afe-aab1-fae8190b8fc0",
       "index": 1,
       "name": "my_edge",
       "type": "Edge",
@@ -21,7 +21,7 @@
     },
     {
       "attribute": "edge_CD",
-      "guid": "a983dfff-0218-486f-ac52-b0f24ef381d7",
+      "guid": "f244845d-a743-4b3b-af48-e885a8092875",
       "index": 2,
       "name": "my_edge",
       "type": "Edge",
@@ -29,35 +29,35 @@
       "v1": "D"
     }
   ],
-  "guid": "d98bf79f-fe82-406e-99eb-c2a7d314e1d9",
+  "guid": "076172a7-63c1-46ad-9744-8334642181be",
   "name": "my_graph",
   "type": "Graph",
   "vertex_count": 4,
   "vertices": [
     {
       "attribute": "vertex_A",
-      "guid": "5161bebe-749a-4c75-a981-042b9522690e",
+      "guid": "67cb07a3-140b-47d6-8b2b-0065c991310b",
       "index": 0,
       "name": "A",
       "type": "Vertex"
     },
     {
       "attribute": "vertex_B",
-      "guid": "823d1b28-5bbf-4a19-a67c-fef0afd63cfa",
+      "guid": "58a0f773-bd61-4e54-bd47-6578656039f2",
       "index": 1,
       "name": "B",
       "type": "Vertex"
     },
     {
       "attribute": "vertex_C",
-      "guid": "ca831b7f-dc15-410f-a75f-22b137185363",
+      "guid": "e588debb-f205-492d-83c5-3586a7588223",
       "index": 2,
       "name": "C",
       "type": "Vertex"
     },
     {
       "attribute": "vertex_D",
-      "guid": "0685054b-2ee2-4d64-a27e-38ca501b7a72",
+      "guid": "153de3ab-de20-4022-9a39-696904f5aa03",
       "index": 3,
       "name": "D",
       "type": "Vertex"

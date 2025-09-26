@@ -21,15 +21,13 @@ mod tests {
     fn test_point_equality() {
         let p1 = Point::new(1.0, 2.0, 3.0);
         let p2 = Point::new(1.0, 2.0, 3.0);
-        // Points have different GUIDs, so they won't be equal by default
-        // We'll compare the coordinate values instead
-        assert_eq!(p1.x, p2.x);
-        assert_eq!(p1.y, p2.y);
-        assert_eq!(p1.z, p2.z);
+        assert_eq!(p1, p2);
+        assert!(!(p1 != p2));
 
         let p3 = Point::new(1.0, 2.0, 3.0);
         let p4 = Point::new(1.1, 2.0, 3.0);
-        assert_ne!(p3.x, p4.x);
+        assert!(!(p3 == p4));
+        assert_ne!(p3, p4);
     }
 
     #[test]
@@ -98,5 +96,158 @@ mod tests {
         assert_eq!(loaded.pointcolor.b, original.pointcolor.b);
         assert_eq!(loaded.pointcolor.a, original.pointcolor.a);
         assert_eq!(loaded.guid, original.guid);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // No-copy Operators
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    #[test]
+    fn test_point_getitem() {
+        let point = Point::new(1.0, 2.0, 3.0);
+        assert_eq!(point[0], 1.0);
+        assert_eq!(point[1], 2.0);
+        assert_eq!(point[2], 3.0);
+    }
+
+    #[test]
+    fn test_point_setitem() {
+        let mut point = Point::new(1.0, 2.0, 3.0);
+        point[0] = 4.0;
+        point[1] = 5.0;
+        point[2] = 6.0;
+        assert_eq!(point.x, 4.0);
+        assert_eq!(point.y, 5.0);
+        assert_eq!(point.z, 6.0);
+    }
+
+    #[test]
+    fn test_point_imul() {
+        let mut point = Point::new(1.0, 2.0, 3.0);
+        point *= 2.0;
+        assert_eq!(point.x, 2.0);
+        assert_eq!(point.y, 4.0);
+        assert_eq!(point.z, 6.0);
+    }
+
+    #[test]
+    fn test_point_itruediv() {
+        let mut point = Point::new(2.0, 4.0, 6.0);
+        point /= 2.0;
+        assert_eq!(point.x, 1.0);
+        assert_eq!(point.y, 2.0);
+        assert_eq!(point.z, 3.0);
+    }
+
+    #[test]
+    fn test_point_iadd() {
+        let mut point = Point::new(1.0, 2.0, 3.0);
+        point += Point::new(4.0, 5.0, 6.0);
+        assert_eq!(point.x, 5.0);
+        assert_eq!(point.y, 7.0);
+        assert_eq!(point.z, 9.0);
+    }
+
+    #[test]
+    fn test_point_isub() {
+        let mut point = Point::new(5.0, 7.0, 9.0);
+        point -= Point::new(4.0, 5.0, 6.0);
+        assert_eq!(point.x, 1.0);
+        assert_eq!(point.y, 2.0);
+        assert_eq!(point.z, 3.0);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Copy Operators
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    #[test]
+    fn test_point_mul() {
+        let point = Point::new(1.0, 2.0, 3.0);
+        let result = point * 2.0;
+        assert_eq!(result.x, 2.0);
+        assert_eq!(result.y, 4.0);
+        assert_eq!(result.z, 6.0);
+    }
+
+    #[test]
+    fn test_point_truediv() {
+        let point = Point::new(2.0, 4.0, 6.0);
+        let result = point / 2.0;
+        assert_eq!(result.x, 1.0);
+        assert_eq!(result.y, 2.0);
+        assert_eq!(result.z, 3.0);
+    }
+
+    #[test]
+    fn test_point_add() {
+        let point = Point::new(1.0, 2.0, 3.0);
+        let result = point + Point::new(4.0, 5.0, 6.0);
+        assert_eq!(result.x, 5.0);
+        assert_eq!(result.y, 7.0);
+        assert_eq!(result.z, 9.0);
+    }
+
+    #[test]
+    fn test_point_sub() {
+        let point = Point::new(5.0, 7.0, 9.0);
+        let result = point - Point::new(4.0, 5.0, 6.0);
+        assert_eq!(result.x, 1.0);
+        assert_eq!(result.y, 2.0);
+        assert_eq!(result.z, 3.0);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Details
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    #[test]
+    fn test_point_ccw() {
+        let a = Point::new(0.0, 0.0, 0.0);
+        let b = Point::new(1.0, 0.0, 0.0);
+        let c = Point::new(0.0, 1.0, 0.0);
+        assert!(Point::ccw(&a, &b, &c));
+        assert!(!Point::ccw(&b, &a, &c));
+    }
+
+    #[test]
+    fn test_point_mid_point() {
+        let p1 = Point::new(0.0, 0.0, 0.0);
+        let p2 = Point::new(1.0, 0.0, 0.0);
+        let mid = p1.mid_point(&p2);
+        assert_eq!((mid.x * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((mid.y * 1000000.0).round() / 1000000.0, 0.0);
+        assert_eq!((mid.z * 1000000.0).round() / 1000000.0, 0.0);
+    }
+
+    #[test]
+    fn test_point_distance() {
+        let p1 = Point::new(0.0, 0.0, 0.0);
+        let p2 = Point::new(1.0, 0.0, 0.0);
+        assert_eq!((p1.distance(&p2) * 1000000.0).round() / 1000000.0, 1.0);
+    }
+
+    #[test]
+    fn test_point_area() {
+        let points = vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(1.0, 0.0, 0.0),
+            Point::new(0.0, 1.0, 0.0),
+        ];
+        assert_eq!(Point::area(&points), 0.5);
+    }
+
+    #[test]
+    fn test_point_centroid_quad() {
+        let vertices = vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(1.0, 0.0, 0.0),
+            Point::new(1.0, 1.0, 0.0),
+            Point::new(0.0, 1.0, 0.0),
+        ];
+        let centroid = Point::centroid_quad(&vertices).unwrap();
+        assert_eq!((centroid.x * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((centroid.y * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((centroid.z * 1000000.0).round() / 1000000.0, 0.0);
     }
 }

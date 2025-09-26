@@ -1,6 +1,7 @@
 use crate::Color;
 use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
 use std::fmt;
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 use uuid::Uuid;
 
 /// A 3D point with visual properties and JSON serialization support.
@@ -71,6 +72,100 @@ impl Point {
         let json = std::fs::read_to_string(filepath)?;
         Self::from_json_data(&json)
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Details
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Check if the points are in counter-clockwise order.
+    pub fn ccw(a: &Point, b: &Point, c: &Point) -> bool {
+        (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+    }
+
+    /// Calculate the mid point between this point and another point.
+    pub fn mid_point(&self, p: &Point) -> Point {
+        Point::new(
+            (self.x + p.x) / 2.0,
+            (self.y + p.y) / 2.0,
+            (self.z + p.z) / 2.0,
+        )
+    }
+
+    /// Calculate the distance between this point and another point.
+    pub fn distance(&self, p: &Point) -> f32 {
+        self.distance_with_min(p, 1e-12)
+    }
+
+    /// Calculate the distance between this point and another point with custom minimum.
+    pub fn distance_with_min(&self, p: &Point, double_min: f32) -> f32 {
+        let mut dx = (self[0] - p[0]).abs();
+        let mut dy = (self[1] - p[1]).abs();
+        let mut dz = (self[2] - p[2]).abs();
+
+        // Reorder coordinates to put largest in dx
+        if dy >= dx && dy >= dz {
+            std::mem::swap(&mut dx, &mut dy);
+        } else if dz >= dx && dz >= dy {
+            std::mem::swap(&mut dx, &mut dz);
+        }
+
+        let length = if dx > double_min {
+            dy /= dx;
+            dz /= dx;
+            dx * (1.0 + dy * dy + dz * dz).sqrt()
+        } else if dx > 0.0 && dx.is_finite() {
+            dx
+        } else {
+            0.0
+        };
+
+        length
+    }
+
+    /// Calculate the area of a polygon.
+    pub fn area(points: &[Point]) -> f32 {
+        let n = points.len();
+        let mut area = 0.0;
+
+        for i in 0..n {
+            let j = (i + 1) % n;
+            area += points[i][0] * points[j][1];
+            area -= points[j][0] * points[i][1];
+        }
+
+        area.abs() / 2.0
+    }
+
+    /// Calculate the centroid of a quadrilateral.
+    pub fn centroid_quad(vertices: &[Point]) -> Result<Point, &'static str> {
+        if vertices.len() != 4 {
+            return Err("Polygon must have exactly 4 vertices.");
+        }
+
+        let mut total_area = 0.0;
+        let mut centroid_sum = Point::new(0.0, 0.0, 0.0);
+
+        for i in 0..4 {
+            let p0 = &vertices[i];
+            let p1 = &vertices[(i + 1) % 4];
+            let p2 = &vertices[(i + 2) % 4];
+
+            let tri_area =
+                ((p0[0] * (p1[1] - p2[1]) + p1[0] * (p2[1] - p0[1]) + p2[0] * (p0[1] - p1[1]))
+                    .abs())
+                    / 2.0;
+            total_area += tri_area;
+
+            let tri_centroid = Point::new(
+                (p0[0] + p1[0] + p2[0]) / 3.0,
+                (p0[1] + p1[1] + p2[1]) / 3.0,
+                (p0[2] + p1[2] + p2[2]) / 3.0,
+            );
+            centroid_sum += tri_centroid * tri_area;
+        }
+
+        Ok(centroid_sum / total_area)
+    }
 }
 
 impl fmt::Display for Point {
@@ -80,5 +175,116 @@ impl fmt::Display for Point {
             "Point({}, {}, {}, {}, {}, {}, {})",
             self.x, self.y, self.z, self.guid, self.name, self.pointcolor, self.width
         )
+    }
+}
+
+impl PartialEq for Point {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && (self.x * 1000000.0).round() == (other.x * 1000000.0).round()
+            && (self.y * 1000000.0).round() == (other.y * 1000000.0).round()
+            && (self.z * 1000000.0).round() == (other.z * 1000000.0).round()
+            && (self.width * 1000000.0).round() == (other.width * 1000000.0).round()
+            && self.pointcolor == other.pointcolor
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Indexing operators
+///////////////////////////////////////////////////////////////////////////////////////////
+
+impl Index<usize> for Point {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Index out of range"),
+        }
+    }
+}
+
+impl IndexMut<usize> for Point {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("Index out of range"),
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// No-copy operators
+///////////////////////////////////////////////////////////////////////////////////////////
+
+impl MulAssign<f32> for Point {
+    fn mul_assign(&mut self, rhs: f32) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+    }
+}
+
+impl DivAssign<f32> for Point {
+    fn div_assign(&mut self, rhs: f32) {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
+    }
+}
+
+impl AddAssign<Point> for Point {
+    fn add_assign(&mut self, rhs: Point) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+    }
+}
+
+impl SubAssign<Point> for Point {
+    fn sub_assign(&mut self, rhs: Point) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Copy operators
+///////////////////////////////////////////////////////////////////////////////////////////
+
+impl Mul<f32> for Point {
+    type Output = Point;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Point::new(self.x * rhs, self.y * rhs, self.z * rhs)
+    }
+}
+
+impl Div<f32> for Point {
+    type Output = Point;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Point::new(self.x / rhs, self.y / rhs, self.z / rhs)
+    }
+}
+
+impl Add<Point> for Point {
+    type Output = Point;
+
+    fn add(self, rhs: Point) -> Self::Output {
+        Point::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+    }
+}
+
+impl Sub<Point> for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: Point) -> Self::Output {
+        Point::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }

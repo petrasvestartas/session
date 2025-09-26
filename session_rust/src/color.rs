@@ -108,3 +108,13 @@ impl fmt::Display for Color {
         )
     }
 }
+
+impl PartialEq for Color {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.r == other.r
+            && self.g == other.g
+            && self.b == other.b
+            && self.a == other.a
+    }
+}
