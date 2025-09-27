@@ -59,9 +59,57 @@ Color Color::from_json(const std::string &filepath) {
   return from_json_data(data);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// Presets
+///////////////////////////////////////////////////////////////////////////////////////////
+
 Color Color::white() { return Color(255, 255, 255, 255, "white"); }
 
 Color Color::black() { return Color(0, 0, 0, 255, "black"); }
+
+Color Color::grey() { return Color(128, 128, 128, 255, "grey"); }
+
+Color Color::red() { return Color(255, 0, 0, 255, "red"); }
+
+Color Color::orange() { return Color(255, 128, 0, 255, "orange"); }
+
+Color Color::yellow() { return Color(255, 255, 0, 255, "yellow"); }
+
+Color Color::lime() { return Color(128, 255, 0, 255, "lime"); }
+
+Color Color::green() { return Color(0, 255, 0, 255, "green"); }
+
+Color Color::mint() { return Color(0, 255, 128, 255, "mint"); }
+
+Color Color::cyan() { return Color(0, 255, 255, 255, "cyan"); }
+
+Color Color::azure() { return Color(0, 128, 255, 255, "azure"); }
+
+Color Color::blue() { return Color(0, 0, 255, 255, "blue"); }
+
+Color Color::violet() { return Color(128, 0, 255, 255, "violet"); }
+
+Color Color::magenta() { return Color(255, 0, 255, 255, "magenta"); }
+
+Color Color::pink() { return Color(255, 0, 128, 255, "pink"); }
+
+Color Color::maroon() { return Color(128, 0, 0, 255, "maroon"); }
+
+Color Color::brown() { return Color(128, 64, 0, 255, "brown"); }
+
+Color Color::olive() { return Color(128, 128, 0, 255, "olive"); }
+
+Color Color::teal() { return Color(0, 128, 128, 255, "teal"); }
+
+Color Color::navy() { return Color(0, 0, 128, 255, "navy"); }
+
+Color Color::purple() { return Color(128, 0, 128, 255, "purple"); }
+
+Color Color::silver() { return Color(192, 192, 192, 255, "silver"); }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Details
+///////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<double, 4> Color::to_float_array() const {
   return {r / 255.0, g / 255.0, b / 255.0, a / 255.0};

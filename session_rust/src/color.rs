@@ -27,6 +27,10 @@ impl Color {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Presets
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     /// Create white color.
     pub fn white() -> Self {
         let mut color = Color::new(255, 255, 255, 255);
@@ -40,6 +44,150 @@ impl Color {
         color.name = "black".to_string();
         color
     }
+
+    /// Create grey color.
+    pub fn grey() -> Self {
+        let mut color = Color::new(128, 128, 128, 255);
+        color.name = "grey".to_string();
+        color
+    }
+
+    /// Create red color.
+    pub fn red() -> Self {
+        let mut color = Color::new(255, 0, 0, 255);
+        color.name = "red".to_string();
+        color
+    }
+
+    /// Create orange color.
+    pub fn orange() -> Self {
+        let mut color = Color::new(255, 128, 0, 255);
+        color.name = "orange".to_string();
+        color
+    }
+
+    /// Create yellow color.
+    pub fn yellow() -> Self {
+        let mut color = Color::new(255, 255, 0, 255);
+        color.name = "yellow".to_string();
+        color
+    }
+
+    /// Create lime color.
+    pub fn lime() -> Self {
+        let mut color = Color::new(128, 255, 0, 255);
+        color.name = "lime".to_string();
+        color
+    }
+
+    /// Create green color.
+    pub fn green() -> Self {
+        let mut color = Color::new(0, 255, 0, 255);
+        color.name = "green".to_string();
+        color
+    }
+
+    /// Create mint color.
+    pub fn mint() -> Self {
+        let mut color = Color::new(0, 255, 128, 255);
+        color.name = "mint".to_string();
+        color
+    }
+
+    /// Create cyan color.
+    pub fn cyan() -> Self {
+        let mut color = Color::new(0, 255, 255, 255);
+        color.name = "cyan".to_string();
+        color
+    }
+
+    /// Create azure color.
+    pub fn azure() -> Self {
+        let mut color = Color::new(0, 128, 255, 255);
+        color.name = "azure".to_string();
+        color
+    }
+
+    /// Create blue color.
+    pub fn blue() -> Self {
+        let mut color = Color::new(0, 0, 255, 255);
+        color.name = "blue".to_string();
+        color
+    }
+
+    /// Create violet color.
+    pub fn violet() -> Self {
+        let mut color = Color::new(128, 0, 255, 255);
+        color.name = "violet".to_string();
+        color
+    }
+
+    /// Create magenta color.
+    pub fn magenta() -> Self {
+        let mut color = Color::new(255, 0, 255, 255);
+        color.name = "magenta".to_string();
+        color
+    }
+
+    /// Create pink color.
+    pub fn pink() -> Self {
+        let mut color = Color::new(255, 0, 128, 255);
+        color.name = "pink".to_string();
+        color
+    }
+
+    /// Create maroon color.
+    pub fn maroon() -> Self {
+        let mut color = Color::new(128, 0, 0, 255);
+        color.name = "maroon".to_string();
+        color
+    }
+
+    /// Create brown color.
+    pub fn brown() -> Self {
+        let mut color = Color::new(128, 64, 0, 255);
+        color.name = "brown".to_string();
+        color
+    }
+
+    /// Create olive color.
+    pub fn olive() -> Self {
+        let mut color = Color::new(128, 128, 0, 255);
+        color.name = "olive".to_string();
+        color
+    }
+
+    /// Create teal color.
+    pub fn teal() -> Self {
+        let mut color = Color::new(0, 128, 128, 255);
+        color.name = "teal".to_string();
+        color
+    }
+
+    /// Create navy color.
+    pub fn navy() -> Self {
+        let mut color = Color::new(0, 0, 128, 255);
+        color.name = "navy".to_string();
+        color
+    }
+
+    /// Create purple color.
+    pub fn purple() -> Self {
+        let mut color = Color::new(128, 0, 128, 255);
+        color.name = "purple".to_string();
+        color
+    }
+
+    /// Create silver color.
+    pub fn silver() -> Self {
+        let mut color = Color::new(192, 192, 192, 255);
+        color.name = "silver".to_string();
+        color
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Details
+    ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to float array [0-1].
     pub fn to_float_array(&self) -> [f32; 4] {

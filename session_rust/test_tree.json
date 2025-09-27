@@ -1,29 +1,29 @@
 {
     "type": "Tree",
-    "guid": "d2bf4f2a-9bcb-4a73-8d2d-3aee9d654d67",
+    "guid": "48acde99-de92-4002-a9c1-524df7ecfc67",
     "name": "my_tree",
     "root": {
         "type": "TreeNode",
-        "guid": "9d622e55-673e-4bcc-a0d0-2e02e76b09e5",
-        "name": "a30e461f-0922-4557-bb98-b7e84bbe79f0",
+        "guid": "7d6cf0f0-0683-4b30-9557-5fa43a23407a",
+        "name": "cdeac743-4ffc-4171-9ee7-16a231d36869",
         "children": [
             {
                 "type": "TreeNode",
-                "guid": "426abee3-4fd9-4fcb-97fe-067605773a9c",
-                "name": "59e38796-be2a-4e1c-8c9a-8006fc18a863",
+                "guid": "b63d284f-1827-4d51-bfd9-619d0d14cef1",
+                "name": "0143b1ce-c4b8-45b0-9272-49913f5bc28a",
                 "children": [
                     {
                         "type": "TreeNode",
-                        "guid": "1a442426-d533-4713-b161-13cc357e29a5",
-                        "name": "846f5d80-3780-478f-af89-6d04c2607f34",
+                        "guid": "fb5a465f-6c68-47e1-9a1c-4c9bd2777ece",
+                        "name": "227e1c6d-2334-4ed5-908d-b19fe33b652f",
                         "children": []
                     }
                 ]
             },
             {
                 "type": "TreeNode",
-                "guid": "57330a0d-db90-4268-b5e1-af63bc5dcc1d",
-                "name": "27df710a-fa4d-41e2-8172-82ea5ade06f6",
+                "guid": "a92af1f9-e8f0-4831-a234-cb734314c60c",
+                "name": "6d219fd9-f3a2-413a-8194-eeb3557b1405",
                 "children": []
             }
         ]

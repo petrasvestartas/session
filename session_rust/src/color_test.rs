@@ -115,4 +115,44 @@ mod tests {
         assert_eq!(color.b, 64); // 0.25 * 255 = 63.75, rounded to 64
         assert_eq!(color.a, 255);
     }
+
+    #[test]
+    fn test_color_red() {
+        let red = Color::red();
+        assert_eq!(red.name, "red");
+        assert_eq!(red.r, 255);
+        assert_eq!(red.g, 0);
+        assert_eq!(red.b, 0);
+        assert_eq!(red.a, 255);
+    }
+
+    #[test]
+    fn test_color_green() {
+        let green = Color::green();
+        assert_eq!(green.name, "green");
+        assert_eq!(green.r, 0);
+        assert_eq!(green.g, 255);
+        assert_eq!(green.b, 0);
+        assert_eq!(green.a, 255);
+    }
+
+    #[test]
+    fn test_color_blue() {
+        let blue = Color::blue();
+        assert_eq!(blue.name, "blue");
+        assert_eq!(blue.r, 0);
+        assert_eq!(blue.g, 0);
+        assert_eq!(blue.b, 255);
+        assert_eq!(blue.a, 255);
+    }
+
+    #[test]
+    fn test_color_grey() {
+        let grey = Color::grey();
+        assert_eq!(grey.name, "grey");
+        assert_eq!(grey.r, 128);
+        assert_eq!(grey.g, 128);
+        assert_eq!(grey.b, 128);
+        assert_eq!(grey.a, 255);
+    }
 }

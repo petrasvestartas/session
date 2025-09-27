@@ -59,7 +59,7 @@ class Point:
             and round(self.width, 6) == round(other.width, 6)
             and self.pointcolor == other.pointcolor
         )
-    
+
     def __ne__(self, other):
         return not self == other
 
@@ -153,7 +153,7 @@ class Point:
             return self.z
         else:
             raise IndexError("Index out of range")
-    
+
     def __setitem__(self, index, value):
         if index == 0:
             self.x = value
@@ -194,7 +194,7 @@ class Point:
 
     def __mul__(self, other):
         return Point(self.x * other, self.y * other, self.z * other)
-    
+
     def __truediv__(self, other):
         return Point(self.x / other, self.y / other, self.z / other)
 
@@ -225,11 +225,11 @@ class Point:
         -------
         bool
             True if the points are in counter-clockwise order, False otherwise.
-        
+
         """
 
         return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
-    
+
     def mid_point(self, p):
         """Calculate the mid point between this point and another point.
 
@@ -246,7 +246,7 @@ class Point:
         """
 
         return Point((self.x + p.x) / 2, (self.y + p.y) / 2, (self.z + p.z) / 2)
-    
+
     def distance(self, p, double_min=1e-12):
         """Calculate the distance between this point and another point.
 
@@ -298,7 +298,7 @@ class Point:
         -------
         float
             The area of the polygon.
-        
+
         """
 
         n = len(points)
@@ -323,23 +323,31 @@ class Point:
         -------
         :class:`Point`
             The centroid of the quadrilateral.
-        
+
         """
 
         if len(vertices) != 4:
             raise ValueError("Polygon must have exactly 4 vertices.")
-        
+
         total_area = 0.0
         centroid_sum = Point(0, 0, 0)
 
         for i in range(4):
-            p0, p1, p2 = vertices[i], vertices[(i+1)%4], vertices[(i+2)%4]
-            tri_area = abs(p0[0]*(p1[1]-p2[1]) + p1[0]*(p2[1]-p0[1]) + p2[0]*(p0[1]-p1[1])) / 2.0
+            p0, p1, p2 = vertices[i], vertices[(i + 1) % 4], vertices[(i + 2) % 4]
+            tri_area = (
+                abs(
+                    p0[0] * (p1[1] - p2[1])
+                    + p1[0] * (p2[1] - p0[1])
+                    + p2[0] * (p0[1] - p1[1])
+                )
+                / 2.0
+            )
             total_area += tri_area
-            tri_centroid = Point((p0[0]+p1[0]+p2[0])/3.0,
-                                 (p0[1]+p1[1]+p2[1])/3.0,
-                                 (p0[2]+p1[2]+p2[2])/3.0)
+            tri_centroid = Point(
+                (p0[0] + p1[0] + p2[0]) / 3.0,
+                (p0[1] + p1[1] + p2[1]) / 3.0,
+                (p0[2] + p1[2] + p2[2]) / 3.0,
+            )
             centroid_sum += tri_centroid * tri_area
 
         return centroid_sum / total_area
-        

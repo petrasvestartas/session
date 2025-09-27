@@ -101,3 +101,43 @@ def test_color_from_float():
     assert color.g == 127  # 0.5 * 255 = 127.5, rounded to 127
     assert color.b == 63  # 0.25 * 255 = 63.75, rounded to 63
     assert color.a == 255
+
+
+def test_color_red():
+    """Test Color.red() class method."""
+    red = Color.red()
+    assert red.name == "red"
+    assert red.r == 255
+    assert red.g == 0
+    assert red.b == 0
+    assert red.a == 255
+
+
+def test_color_green():
+    """Test Color.green() class method."""
+    green = Color.green()
+    assert green.name == "green"
+    assert green.r == 0
+    assert green.g == 255
+    assert green.b == 0
+    assert green.a == 255
+
+
+def test_color_blue():
+    """Test Color.blue() class method."""
+    blue = Color.blue()
+    assert blue.name == "blue"
+    assert blue.r == 0
+    assert blue.g == 0
+    assert blue.b == 255
+    assert blue.a == 255
+
+
+def test_color_grey():
+    """Test Color.grey() class method."""
+    grey = Color.grey()
+    assert grey.name == "grey"
+    assert grey.r == 128
+    assert grey.g == 128
+    assert grey.b == 128
+    assert grey.a == 255

@@ -1,5 +1,4 @@
 from .graph import Graph, Vertex
-from .point import Point
 
 
 def test_graph_constructor():

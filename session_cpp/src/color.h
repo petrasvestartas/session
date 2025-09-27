@@ -67,6 +67,66 @@ public:
   /// Create a black color.
   static Color black();
 
+  /// Create a grey color.
+  static Color grey();
+
+  /// Create a red color.
+  static Color red();
+
+  /// Create an orange color.
+  static Color orange();
+
+  /// Create a yellow color.
+  static Color yellow();
+
+  /// Create a lime color.
+  static Color lime();
+
+  /// Create a green color.
+  static Color green();
+
+  /// Create a mint color.
+  static Color mint();
+
+  /// Create a cyan color.
+  static Color cyan();
+
+  /// Create an azure color.
+  static Color azure();
+
+  /// Create a blue color.
+  static Color blue();
+
+  /// Create a violet color.
+  static Color violet();
+
+  /// Create a magenta color.
+  static Color magenta();
+
+  /// Create a pink color.
+  static Color pink();
+
+  /// Create a maroon color.
+  static Color maroon();
+
+  /// Create a brown color.
+  static Color brown();
+
+  /// Create an olive color.
+  static Color olive();
+
+  /// Create a teal color.
+  static Color teal();
+
+  /// Create a navy color.
+  static Color navy();
+
+  /// Create a purple color.
+  static Color purple();
+
+  /// Create a silver color.
+  static Color silver();
+
   /// Convert to normalized float array [0-1].
   std::array<double, 4> to_float_array() const;
 
