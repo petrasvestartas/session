@@ -126,12 +126,12 @@ Point Point::operator/(double factor) const {
 }
 
 Point Point::operator+(const Vector& other) const {
-  Point result(x + other.x, y + other.y, z + other.z);
+  Point result(x + other.x(), y + other.y(), z + other.z());
   return result;
 }
 
 Point Point::operator-(const Vector& other) const {
-  Point result(x - other.x, y - other.y, z - other.z);
+  Point result(x - other.x(), y - other.y(), z - other.z());
   return result;
 }
 

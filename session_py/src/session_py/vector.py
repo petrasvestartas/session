@@ -34,10 +34,43 @@ class Vector:
     def __init__(self, x=0.0, y=0.0, z=0.0):
         self.guid = str(uuid.uuid4())
         self.name = "my_vector"
-        self.x = x
-        self.y = y
-        self.z = z
+        self._x = x
+        self._y = y
+        self._z = z
         self._length = 0.0
+        self._has_length = False
+
+    @property
+    def x(self):
+        """Get the X coordinate."""
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        """Set the X coordinate and invalidate length cache."""
+        self._x = value
+        self._has_length = False
+
+    @property
+    def y(self):
+        """Get the Y coordinate."""
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        """Set the Y coordinate and invalidate length cache."""
+        self._y = value
+        self._has_length = False
+
+    @property
+    def z(self):
+        """Get the Z coordinate."""
+        return self._z
+
+    @z.setter
+    def z(self, value):
+        """Set the Z coordinate and invalidate length cache."""
+        self._z = value
         self._has_length = False
 
     def __str__(self):
@@ -156,30 +189,30 @@ class Vector:
         self._has_length = False
 
     def __imul__(self, other):
-        self.x *= other
-        self.y *= other
-        self.z *= other
+        self._x *= other
+        self._y *= other
+        self._z *= other
         self._has_length = False
         return self
 
     def __itruediv__(self, other):
-        self.x /= other
-        self.y /= other
-        self.z /= other
+        self._x /= other
+        self._y /= other
+        self._z /= other
         self._has_length = False
         return self
 
     def __iadd__(self, other):
-        self.x += other.x
-        self.y += other.y
-        self.z += other.z
+        self._x += other._x
+        self._y += other._y
+        self._z += other._z
         self._has_length = False
         return self
 
     def __isub__(self, other):
-        self.x -= other.x
-        self.y -= other.y
-        self.z -= other.z
+        self._x -= other._x
+        self._y -= other._y
+        self._z -= other._z
         self._has_length = False
         return self
 
@@ -188,16 +221,16 @@ class Vector:
     ###########################################################################################
 
     def __mul__(self, other):
-        return Vector(self.x * other, self.y * other, self.z * other)
+        return Vector(self._x * other, self._y * other, self._z * other)
 
     def __truediv__(self, other):
-        return Vector(self.x / other, self.y / other, self.z / other)
+        return Vector(self._x / other, self._y / other, self._z / other)
 
     def __add__(self, other):
-        return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)
 
     def __sub__(self, other):
-        return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)
 
     ###########################################################################################
     # Static Methods
@@ -271,9 +304,9 @@ class Vector:
             Self.
 
         """
-        self.x = -self.x
-        self.y = -self.y
-        self.z = -self.z
+        self._x = -self._x
+        self._y = -self._y
+        self._z = -self._z
         self._has_length = False
         return self
 
@@ -287,9 +320,9 @@ class Vector:
         """
         length = 0.0
 
-        x = abs(self.x)
-        y = abs(self.y)
-        z = abs(self.z)
+        x = abs(self._x)
+        y = abs(self._y)
+        z = abs(self._z)
 
         # Handle two zero case:
         x_zero = x < globals.ZERO_TOLERANCE
@@ -335,31 +368,14 @@ class Vector:
 
         return length
 
-    def length(self, predefined_length=0.0):
+    def length(self):
         """Get the cached length of the vector, computing it if necessary.
-
-        Parameters
-        ----------
-        predefined_length : float, optional
-            If provided and non-zero, sets the vector to this length.
 
         Returns
         -------
         float
-            The length of the vector.
+            The length (magnitude) of the vector.
         """
-        if predefined_length != 0.0:
-            # Scale vector to predefined length using current direction
-            current_length = self.compute_length()
-            if current_length > 0.0:
-                scale_factor = predefined_length / current_length
-                self.x *= scale_factor
-                self.y *= scale_factor
-                self.z *= scale_factor
-                self._length = predefined_length
-                self._has_length = True
-                return self._length
-
         if not self._has_length:
             self._length = self.compute_length()
             self._has_length = True
@@ -376,9 +392,9 @@ class Vector:
         """
         d = self.length()
         if d > 0.0:
-            self.x /= d
-            self.y /= d
-            self.z /= d
+            self._x /= d
+            self._y /= d
+            self._z /= d
             self._length = 1.0
             self._has_length = True
             return True
@@ -392,7 +408,7 @@ class Vector:
         Vector
             A new vector that is the unit vector of this vector.
         """
-        unitized_vector = Vector(self.x, self.y, self.z)
+        unitized_vector = Vector(self._x, self._y, self._z)
         unitized_vector.unitize()
         return unitized_vector
 
@@ -410,7 +426,7 @@ class Vector:
             Dot product value.
 
         """
-        return self.x * other.x + self.y * other.y + self.z * other.z
+        return self._x * other._x + self._y * other._y + self._z * other._z
 
     def cross(self, other):
         """Calculate cross product with another vector.
@@ -426,9 +442,9 @@ class Vector:
             Unitized cross product vector (orthogonal to inputs).
 
         """
-        x = self.y * other.z - self.z * other.y
-        y = self.z * other.x - self.x * other.z
-        z = self.x * other.y - self.y * other.x
+        x = self._y * other._z - self._z * other._y
+        y = self._z * other._x - self._x * other._z
+        z = self._x * other._y - self._y * other._x
         result = Vector(x, y, z)
         result.unitize()
         return result
@@ -498,7 +514,7 @@ class Vector:
 
         if sign_by_cross_product:
             # Raw cross product z-component for sign check
-            cross_z = self.x * other.y - self.y * other.x
+            cross_z = self._x * other._y - self._y * other._x
             if cross_z < 0:
                 angle = -angle
 
@@ -562,7 +578,7 @@ class Vector:
             Scaled copy matching the C++ implementation.
 
         """
-        copy = Vector(self.x, self.y, self.z)
+        copy = Vector(self._x, self._y, self._z)
 
         if copy.unitize():
             reference_vector = Vector(0, 0, 1)
@@ -711,18 +727,18 @@ class Vector:
         """
         x = y = z = 0.0
         for vector in vectors:
-            x += vector.x
-            y += vector.y
-            z += vector.z
+            x += vector._x
+            y += vector._y
+            z += vector._z
         return Vector(x, y, z)
 
     def coordinate_direction_3angles(self, degrees=True):
-        """Get coordinate direction angles (alpha, beta, gamma).
+        """Compute coordinate direction angles (alpha, beta, gamma).
 
         Parameters
         ----------
         degrees : bool, optional
-            If True, return degrees; otherwise radians.
+            Return angles in degrees if True, radians if False.
 
         Returns
         -------
@@ -730,14 +746,14 @@ class Vector:
             (alpha, beta, gamma)
 
         """
-        r = math.sqrt(self.x**2 + self.y**2 + self.z**2)
+        r = math.sqrt(self._x**2 + self._y**2 + self._z**2)
 
         if r == 0:
             return (0, 0, 0)
 
-        x_proportion = self.x / r
-        y_proportion = self.y / r
-        z_proportion = self.z / r
+        x_proportion = self._x / r
+        y_proportion = self._y / r
+        z_proportion = self._z / r
 
         alpha = math.acos(x_proportion)
         beta = math.acos(y_proportion)
@@ -751,12 +767,12 @@ class Vector:
         return (alpha, beta, gamma)
 
     def coordinate_direction_2angles(self, degrees=True):
-        """Get spherical coordinate angles (phi, theta).
+        """Compute coordinate direction angles (phi, theta).
 
         Parameters
         ----------
         degrees : bool, optional
-            If True, return degrees; otherwise radians.
+            Return angles in degrees if True, radians if False.
 
         Returns
         -------
@@ -764,13 +780,13 @@ class Vector:
             (phi, theta)
 
         """
-        r = math.sqrt(self.x**2 + self.y**2 + self.z**2)
+        r = math.sqrt(self._x**2 + self._y**2 + self._z**2)
 
         if r == 0:
             return (0, 0)
 
-        phi = math.acos(self.z / r)
-        theta = math.atan2(self.y, self.x)
+        phi = math.acos(self._z / r)
+        theta = math.atan2(self._y, self._x)
 
         if degrees:
             phi *= globals.TO_DEGREES
@@ -825,7 +841,7 @@ class Vector:
         coords[j] = a
         coords[k] = 0.0
 
-        self.x, self.y, self.z = coords
+        self._x, self._y, self._z = coords
         self._has_length = False
 
         return a != 0.0

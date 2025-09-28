@@ -32,3 +32,20 @@ LENGTH = 1
 
 # Scale factor
 SCALE = 1e6
+
+
+def is_finite(x):
+    """
+    Test if a number is finite (equivalent to C++ IS_FINITE function).
+
+    Parameters
+    ----------
+    x : float
+        Number to test
+
+    Returns
+    -------
+    bool
+        True if the number is finite, False if infinite or NaN
+    """
+    return math.isfinite(x)

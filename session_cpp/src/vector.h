@@ -5,6 +5,7 @@
 #include "json.h"
 #include <array>
 #include <cmath>
+#include <tuple>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -21,9 +22,30 @@ class Vector {
 public:
   std::string guid = ::guid();    ///< Unique identifier for the vector
   std::string name = "my_vector"; ///< Vector identifier/name
-  double x = 0.0;                 ///< X coordinate
-  double y = 0.0;                 ///< Y coordinate
-  double z = 0.0;                 ///< Z coordinate
+
+private:
+  double _x = 0.0;                   ///< X coordinate (private)
+  double _y = 0.0;                   ///< Y coordinate (private)
+  double _z = 0.0;                   ///< Z coordinate (private)
+  mutable double _length = 0.0;      ///< Cached length value
+  mutable bool _has_length = false;  ///< Cache validity flag
+
+  /// Invalidates the cached length when coordinates change
+  void invalidate_length_cache() { _has_length = false; }
+
+  /// Gets cached length, computing if necessary (internal only)
+  double cached_length() const;
+
+public:
+  /// Getters for coordinates
+  double x() const { return _x; }
+  double y() const { return _y; }
+  double z() const { return _z; }
+
+  /// Setters for coordinates (invalidate cached length)
+  void set_x(double v) { _x = v; invalidate_length_cache(); }
+  void set_y(double v) { _y = v; invalidate_length_cache(); }
+  void set_z(double v) { _z = v; invalidate_length_cache(); }
 
 public:
   /**
@@ -32,8 +54,8 @@ public:
    * @param y The Y coordinate of the vector.
    * @param z The Z coordinate of the vector.
    */
-  Vector(double x, double y, double z) : x(x), y(y), z(z) {}
-  Vector() : x(0.0), y(0.0), z(0.0) {}
+  Vector(double x, double y, double z) : _x(x), _y(y), _z(z) {}
+  Vector() : _x(0.0), _y(0.0), _z(0.0) {}
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Operators
@@ -100,16 +122,17 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   void reverse();
-  double length(double predefined_length = 0.0);
+  /// Returns the (cached) length. Does not rescale.
+  double length() const;
   double compute_length() const;
   bool unitize();
   Vector unitized();
 
-  Vector projection(Vector &projection_vector,
-                    double tolerance = geo::GLOBALS::ZERO_TOLERANCE,
-                    double *out_projected_vector_length = nullptr,
-                    Vector *out_perpendicular_projected_vector = nullptr,
-                    double *out_perpendicular_projected_vector_length = nullptr);
+  /// Project this vector onto `projection_vector`.
+  /// Returns: (projection_vector, projected_length, perpendicular_vector, perpendicular_length)
+  std::tuple<Vector, double, Vector, double>
+  projection(Vector &projection_vector,
+             double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
 
   int is_parallel_to(Vector &v);
   double dot(Vector &other);
@@ -133,8 +156,8 @@ public:
                                 double &angle_in_front_of_b,
                                 bool degrees = true);
 
-  static double angle_between_vector_xy_components_degrees(Vector &vector,
-                                                           bool degrees = true);
+  /// Angle between XY components in degrees.
+  static double angle_between_vector_xy_components(Vector &vector);
 
   static Vector sum_of_vectors(std::vector<Vector> &vectors);
 
@@ -146,8 +169,6 @@ public:
   void scale(double factor);
   void scale_up();
   void scale_down();
-  void rescale(double factor);
-  Vector rescaled(double factor);
 
 }; // End of Vector class
 

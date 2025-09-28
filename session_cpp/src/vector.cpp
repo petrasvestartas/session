@@ -9,12 +9,12 @@ namespace session_cpp {
 
 /// Convert vector to string representation
 std::string Vector::to_string() const {
-  return fmt::format("Vector({}, {}, {}, {}, {})", x, y, z, guid, name);
+  return fmt::format("Vector({}, {}, {}, {}, {})", _x, _y, _z, guid, name);
 }
 
 /// Equality operator
 bool Vector::operator==(const Vector &other) const {
-  return x == other.x && y == other.y && z == other.z;
+  return _x == other._x && _y == other._y && _z == other._z;
 }
 
 /// Inequality operator
@@ -25,46 +25,47 @@ bool Vector::operator!=(const Vector &other) const { return !(*this == other); }
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 double &Vector::operator[](int index) {
+  invalidate_length_cache();
   if (index == 0)
-    return x;
+    return _x;
   if (index == 1)
-    return y;
-  return z; // assume index == 2
+    return _y;
+  return _z; // assume index == 2
 }
 
 const double &Vector::operator[](int index) const {
   if (index == 0)
-    return x;
+    return _x;
   if (index == 1)
-    return y;
-  return z; // assume index == 2
+    return _y;
+  return _z; // assume index == 2
 }
 
 Vector &Vector::operator*=(double factor) {
-  x *= factor;
-  y *= factor;
-  z *= factor;
+  set_x(_x * factor);
+  set_y(_y * factor);
+  set_z(_z * factor);
   return *this;
 }
 
 Vector &Vector::operator/=(double factor) {
-  x /= factor;
-  y /= factor;
-  z /= factor;
+  set_x(_x / factor);
+  set_y(_y / factor);
+  set_z(_z / factor);
   return *this;
 }
 
 Vector &Vector::operator+=(const Vector &other) {
-  x += other.x;
-  y += other.y;
-  z += other.z;
+  set_x(_x + other._x);
+  set_y(_y + other._y);
+  set_z(_z + other._z);
   return *this;
 }
 
 Vector &Vector::operator-=(const Vector &other) {
-  x -= other.x;
-  y -= other.y;
-  z -= other.z;
+  set_x(_x - other._x);
+  set_y(_y - other._y);
+  set_z(_z - other._z);
   return *this;
 }
 
@@ -72,16 +73,16 @@ Vector &Vector::operator-=(const Vector &other) {
 // Copy operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-Vector Vector::operator*(double factor) const { return Vector(x * factor, y * factor, z * factor); }
+Vector Vector::operator*(double factor) const { return Vector(_x * factor, _y * factor, _z * factor); }
 
-Vector Vector::operator/(double factor) const { return Vector(x / factor, y / factor, z / factor); }
+Vector Vector::operator/(double factor) const { return Vector(_x / factor, _y / factor, _z / factor); }
 
 Vector Vector::operator+(const Vector &other) const {
-  return Vector(x + other.x, y + other.y, z + other.z);
+  return Vector(_x + other._x, _y + other._y, _z + other._z);
 }
 
 Vector Vector::operator-(const Vector &other) const {
-  return Vector(x - other.x, y - other.y, z - other.z);
+  return Vector(_x - other._x, _y - other._y, _z - other._z);
 }
 
 Vector operator*(double factor, const Vector &v) { return v * factor; }
@@ -93,8 +94,8 @@ Vector operator*(double factor, const Vector &v) { return v * factor; }
 /// Convert to JSON-serializable object
 nlohmann::ordered_json Vector::to_json_data() const {
   return nlohmann::ordered_json{{"type", "Vector"}, {"guid", guid},
-                                {"name", name},     {"x", x},
-                                {"y", y},           {"z", z}};
+                                {"name", name},     {"x", _x},
+                                {"y", _y},           {"z", _z}};
 }
 
 /// Create vector from JSON data
@@ -128,7 +129,7 @@ Vector Vector::YAxis() { return Vector(0.0, 1.0, 0.0); }
 Vector Vector::ZAxis() { return Vector(0.0, 0.0, 1.0); }
 
 Vector Vector::from_start_and_end(const Vector &start, const Vector &end) {
-  return Vector(end.x - start.x, end.y - start.y, end.z - start.z);
+  return Vector(end._x - start._x, end._y - start._y, end._z - start._z);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -136,17 +137,18 @@ Vector Vector::from_start_and_end(const Vector &start, const Vector &end) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 void Vector::reverse() {
-  x = -x;
-  y = -y;
-  z = -z;
+  set_x(-_x);
+  set_y(-_y);
+  set_z(-_z);
+  // Length magnitude stays the same, no need to invalidate cache
 }
 
 double Vector::compute_length() const {
   double len = 0.0;
 
-  double ax = std::abs(x);
-  double ay = std::abs(y);
-  double az = std::abs(z);
+  double ax = std::abs(_x);
+  double ay = std::abs(_y);
+  double az = std::abs(_z);
 
   const bool x_zero = ax < geo::GLOBALS::ZERO_TOLERANCE;
   const bool y_zero = ay < geo::GLOBALS::ZERO_TOLERANCE;
@@ -181,81 +183,60 @@ double Vector::compute_length() const {
   return len;
 }
 
-double Vector::length(double predefined_length) {
-  if (predefined_length != 0.0) {
-    // Rescale current direction to predefined_length
-    double d = compute_length();
-    if (d > 0.0) {
-      double s = predefined_length / d;
-      x *= s;
-      y *= s;
-      z *= s;
-    }
+double Vector::cached_length() const {
+  if (!_has_length) {
+    _length = compute_length();
+    _has_length = true;
   }
-  return compute_length();
+  return _length;
 }
+
+double Vector::length() const { return cached_length(); }
 
 bool Vector::unitize() {
   double d = compute_length();
   if (d > 0.0) {
-    x /= d;
-    y /= d;
-    z /= d;
+    set_x(_x / d);
+    set_y(_y / d);
+    set_z(_z / d);
     return true;
   }
   return false;
 }
 
 Vector Vector::unitized() {
-  Vector u(x, y, z);
+  Vector u(_x, _y, _z);
   u.unitize();
   return u;
 }
 
-Vector Vector::projection(
-    Vector &projection_vector, double tolerance,
-    double *out_projected_vector_length,
-    Vector *out_perpendicular_projected_vector,
-    double *out_perpendicular_projected_vector_length) {
+std::tuple<Vector, double, Vector, double>
+Vector::projection(Vector &projection_vector, double tolerance) {
   double projection_vector_length = projection_vector.length();
 
   if (projection_vector_length < tolerance) {
-    if (out_projected_vector_length)
-      *out_projected_vector_length = 0.0;
-    if (out_perpendicular_projected_vector)
-      *out_perpendicular_projected_vector = Vector(0, 0, 0);
-    if (out_perpendicular_projected_vector_length)
-      *out_perpendicular_projected_vector_length = 0.0;
-    return Vector(0, 0, 0);
+    return {Vector(0, 0, 0), 0.0, Vector(0, 0, 0), 0.0};
   }
 
   Vector projection_vector_unit(
-      projection_vector.x / projection_vector_length,
-      projection_vector.y / projection_vector_length,
-      projection_vector.z / projection_vector_length);
+      projection_vector._x / projection_vector_length,
+      projection_vector._y / projection_vector_length,
+      projection_vector._z / projection_vector_length);
 
   double projected_vector_length = this->dot(projection_vector_unit);
-  if (out_projected_vector_length)
-    *out_projected_vector_length = projected_vector_length;
-
   Vector out_projection_vector = projection_vector_unit * projected_vector_length;
 
-  if (out_perpendicular_projected_vector) {
-    *out_perpendicular_projected_vector = *this - out_projection_vector;
-    if (out_perpendicular_projected_vector_length) {
-      *out_perpendicular_projected_vector_length =
-          out_perpendicular_projected_vector->length();
-    }
-  } else if (out_perpendicular_projected_vector_length) {
-    Vector temp = *this - out_projection_vector;
-    *out_perpendicular_projected_vector_length = temp.length();
-  }
+  Vector out_perpendicular_projected_vector = *this - out_projection_vector;
+  double out_perpendicular_projected_vector_length = out_perpendicular_projected_vector.length();
 
-  return out_projection_vector;
+  return {out_projection_vector,
+          projected_vector_length,
+          out_perpendicular_projected_vector,
+          out_perpendicular_projected_vector_length};
 }
 
 int Vector::is_parallel_to(Vector &v) {
-  double ll = length() * v.length();
+  double ll = cached_length() * v.cached_length();
   int result;
   
   if (ll > 0.0) {
@@ -296,8 +277,8 @@ Vector Vector::cross(Vector &other) {
 double Vector::angle(Vector &other, bool sign_by_cross_product, bool degrees,
                      double tolerance) {
   double dotp = this->dot(other);
-  double len0 = this->length();
-  double len1 = other.length();
+  double len0 = this->cached_length();
+  double len1 = other.cached_length();
   double denom = len0 * len1;
   if (denom < tolerance) {
     return 0.0;
@@ -307,7 +288,7 @@ double Vector::angle(Vector &other, bool sign_by_cross_product, bool degrees,
   double ang = std::acos(cos_angle);
   if (sign_by_cross_product) {
     Vector cp = this->cross(other);
-    if (cp.z < 0)
+    if (cp._z < 0)
       ang = -ang;
   }
   double to_degrees = degrees ? geo::GLOBALS::TO_DEGREES : 1.0;
@@ -315,7 +296,7 @@ double Vector::angle(Vector &other, bool sign_by_cross_product, bool degrees,
 }
 
 Vector Vector::get_leveled_vector(double &vertical_height) {
-  Vector copy(x, y, z);
+  Vector copy(_x, _y, _z);
   if (copy.unitize()) {
     Vector reference(0, 0, 1);
     double angle = copy.angle(reference, true); // returns degrees
@@ -342,9 +323,8 @@ double Vector::sine_law_length(double &a, double &A, double &B, bool degrees) {
   return (a * std::sin(B * to_rad)) / std::sin(A * to_rad);
 }
 
-double Vector::angle_between_vector_xy_components_degrees(Vector &vector, bool degrees) {
-  double to_deg = degrees ? geo::GLOBALS::TO_DEGREES : 1.0;
-  return std::atan(vector[1] / vector[0]) * to_deg;
+double Vector::angle_between_vector_xy_components(Vector &vector) {
+  return std::atan(vector[1] / vector[0]) * geo::GLOBALS::TO_DEGREES;
 }
 
 Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
@@ -358,9 +338,9 @@ Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
 }
 
 std::array<double, 3> Vector::coordinate_direction_3angles(bool degrees) {
-  double x_coord = x;
-  double y_coord = y;
-  double z_coord = z;
+  double x_coord = _x;
+  double y_coord = _y;
+  double z_coord = _z;
   double r = std::sqrt(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
   
   if (r == 0) {
@@ -387,9 +367,9 @@ std::array<double, 3> Vector::coordinate_direction_3angles(bool degrees) {
 }
 
 std::array<double, 2> Vector::coordinate_direction_2angles(bool degrees) {
-  double x_coord = x;
-  double y_coord = y;
-  double z_coord = z;
+  double x_coord = _x;
+  double y_coord = _y;
+  double z_coord = _z;
   double r = std::sqrt(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
   
   if (r == 0) {
@@ -434,35 +414,26 @@ bool Vector::perpendicular_to(Vector &v) {
     i = 0; j = 1; k = 2; a = v[0]; b = -v[1];
   }
 
-  double arr[3] = {x, y, z};
+  double arr[3] = {_x, _y, _z};
   arr[i] = b;
   arr[j] = a;
   arr[k] = 0.0;
-  x = arr[0];
-  y = arr[1];
-  z = arr[2];
+  set_x(arr[0]);
+  set_y(arr[1]);
+  set_z(arr[2]);
   return (a != 0.0) ? true : false;
 }
 
 void Vector::scale(double factor) {
-  x *= factor; y *= factor; z *= factor;
+  set_x(_x * factor);
+  set_y(_y * factor);
+  set_z(_z * factor);
 }
 
 void Vector::scale_up() { scale(geo::GLOBALS::SCALE); }
 
 void Vector::scale_down() { scale(1.0 / geo::GLOBALS::SCALE); }
 
-void Vector::rescale(double factor) {
-  unitize();
-  scale(factor);
-}
-
-Vector Vector::rescaled(double factor) {
-  Vector v(x, y, z);
-  v.unitize();
-  v.scale(factor);
-  return v;
-}
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Not class methods
 ///////////////////////////////////////////////////////////////////////////////////////////

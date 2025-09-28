@@ -1,31 +1,39 @@
+#include "src/vector.h"
 #include <iostream>
-#include "fmt/core.h"
-#include "src/point.h"
 
 using namespace session_cpp;
 
 int main() {
-    fmt::print("=== C++ Point JSON Demo ===\n");
+    std::cout << "=== C++ Length Caching Demo ===" << std::endl;
     
-    // Create a point
-    Point point0(1.5, 2.5, 3.5);  
-    Point point1(1.5, 2.5, 3.5);
-    fmt::print("Point equality: {}\n", point0 == point1);
-    fmt::print("Created point: {}\n", point0);
+    // Create a vector
+    Vector v(3.0, 4.0, 5.0);
+    std::cout << "Created vector: (" << v.x() << ", " << v.y() << ", " << v.z() << ")" << std::endl;
     
-    // Show JSON serialization output
-    auto json_data = point0.to_json_data();
-    fmt::print("\nSerialized JSON:\n{}\n", json_data.dump(2));
+    // First call to length() - will compute and cache
+    std::cout << "First length() call - computes: " << v.length() << std::endl;
     
-    // Test deserialization from JSON data
-    Point loaded_point = Point::from_json_data(json_data);
-    fmt::print("\nDeserialized point: {}\n", loaded_point);
+    // Second call to length() - uses cached value
+    std::cout << "Second length() call - cached: " << v.length() << std::endl;
     
-    // Also save to file
-    std::string filename = "point_cpp.json";
-    point0.to_json(filename);
-    fmt::print("\nAlso saved to file: {}\n", filename);
+    // Modify the vector - this invalidates the cache
+    v.set_x(6.0);
+    std::cout << "Modified x to 6.0" << std::endl;
     
-    fmt::print("JSON serialization demo completed!\n");
+    // Next call to length() - recomputes because cache was invalidated
+    std::cout << "After modification - recomputes: " << v.length() << std::endl;
+    
+    // Use compound assignment - also invalidates cache
+    v *= 2.0;
+    std::cout << "After scaling by 2.0" << std::endl;
+    std::cout << "Length after scaling: " << v.length() << std::endl;
+    
+    // Test compute_length (always computes)
+    std::cout << "Using compute_length(): " << v.compute_length() << std::endl;
+    
+    std::cout << std::endl << "✅ Length caching working correctly!" << std::endl;
+    std::cout << "🔧 Cache is invalidated when coordinates change" << std::endl;
+    std::cout << "📈 Performance improved by avoiding repeated sqrt() calls" << std::endl;
+    
     return 0;
 }

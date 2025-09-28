@@ -8,9 +8,9 @@ namespace session_cpp {
 
 TEST_CASE("Vector constructor.") {
   Vector v(1.0, 2.0, 3.0);
-  REQUIRE(v.x == 1.0);
-  REQUIRE(v.y == 2.0);
-  REQUIRE(v.z == 3.0);
+  REQUIRE(v.x() == 1.0);
+  REQUIRE(v.y() == 2.0);
+  REQUIRE(v.z() == 3.0);
   REQUIRE(!v.guid.empty());
 }
 
@@ -37,9 +37,9 @@ TEST_CASE("Vector from_json_data") {
   Vector orig(42.1, 84.2, 126.3);
   orig.name = "control_point_B";
   Vector rest = Vector::from_json_data(orig.to_json_data());
-  REQUIRE(rest.x == 42.1);
-  REQUIRE(rest.y == 84.2);
-  REQUIRE(rest.z == 126.3);
+  REQUIRE(rest.x() == 42.1);
+  REQUIRE(rest.y() == 84.2);
+  REQUIRE(rest.z() == 126.3);
   REQUIRE(rest.name == "control_point_B");
   REQUIRE(rest.guid == orig.guid);
 }
@@ -49,9 +49,9 @@ TEST_CASE("Vector to_json from_json") {
   orig.name = "file_test_point";
   orig.to_json("test_vector.json");
   Vector load = Vector::from_json("test_vector.json");
-  REQUIRE(load.x == orig.x);
-  REQUIRE(load.y == orig.y);
-  REQUIRE(load.z == orig.z);
+  REQUIRE(load.x() == orig.x());
+  REQUIRE(load.y() == orig.y());
+  REQUIRE(load.z() == orig.z());
   REQUIRE(load.name == orig.name);
   REQUIRE(load.guid == orig.guid);
 }
@@ -143,7 +143,9 @@ TEST_CASE("Vector unitize") {
 
 TEST_CASE("Vector projection") {
   Vector v(1, 1, 1), x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
-  Vector px = v.projection(x), py = v.projection(y), pz = v.projection(z);
+  auto [px, lenx, perp_x, plenx] = v.projection(x);
+  auto [py, leny, perp_y, pleny] = v.projection(y);
+  auto [pz, lenz, perp_z, plenz] = v.projection(z);
   REQUIRE((px[0] == 1 && px[1] == 0 && px[2] == 0));
   REQUIRE((py[0] == 0 && py[1] == 1 && py[2] == 0));
   REQUIRE((pz[0] == 0 && pz[1] == 0 && pz[2] == 1));
@@ -207,8 +209,8 @@ TEST_CASE("Vector sine_law_length") {
 
 TEST_CASE("Vector angle_between_vector_xy_components") {
   Vector v1(std::sqrt(3), 1, 0), v2(1, std::sqrt(3), 0);
-  REQUIRE(std::round(Vector::angle_between_vector_xy_components_degrees(v1) * 100) / 100 == 30);
-  REQUIRE(std::round(Vector::angle_between_vector_xy_components_degrees(v2) * 100) / 100 == 60);
+  REQUIRE(std::round(Vector::angle_between_vector_xy_components(v1) * 100) / 100 == 30);
+  REQUIRE(std::round(Vector::angle_between_vector_xy_components(v2) * 100) / 100 == 60);
 }
 
 TEST_CASE("Vector sum_of_vectors") {
