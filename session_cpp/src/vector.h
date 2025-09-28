@@ -112,9 +112,29 @@ public:
   // Static Methods
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  static Vector XAxis();
-  static Vector YAxis();
-  static Vector ZAxis();
+  /// Get unit vector along the x-axis.
+  /// 
+  /// Returns
+  /// -------
+  /// Vector
+  ///     Unit vector (1, 0, 0).
+  static Vector x_axis();
+  
+  /// Get unit vector along the y-axis.
+  /// 
+  /// Returns
+  /// -------
+  /// Vector
+  ///     Unit vector (0, 1, 0).
+  static Vector y_axis();
+  
+  /// Get unit vector along the z-axis.
+  /// 
+  /// Returns
+  /// -------
+  /// Vector
+  ///     Unit vector (0, 0, 1).
+  static Vector z_axis();
   static Vector from_start_and_end(const Vector &start, const Vector &end);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -123,8 +143,35 @@ public:
 
   void reverse();
   /// Returns the (cached) length. Does not rescale.
+  ///
+  /// Returns
+  /// -------
+  /// double
+  ///     The length (magnitude) of the vector.
   double length() const;
+  
+  /// Computes the length (magnitude) of the vector without caching.
+  ///
+  /// Returns
+  /// -------
+  /// double
+  ///     The length of the vector.
   double compute_length() const;
+  
+  /// Get the squared length of the vector (avoids sqrt for performance).
+  ///
+  /// Returns
+  /// -------
+  /// double
+  ///     The squared length of the vector.
+  double length_squared() const;
+  
+  /// Unitize the vector (make it unit length).
+  ///
+  /// Returns
+  /// -------
+  /// bool
+  ///     True if successful, false if vector has zero length.
   bool unitize();
   Vector unitized();
 
@@ -134,10 +181,63 @@ public:
   projection(Vector &projection_vector,
              double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
 
-  int is_parallel_to(Vector &v);
-  double dot(Vector &other);
-  Vector cross(Vector &other);
-  double angle(Vector &other, bool sign_by_cross_product = true,
+  /// Check if this vector is parallel/antiparallel to another.
+  ///
+  /// Parameters
+  /// ----------
+  /// other : const Vector&
+  ///     Other vector.
+  ///
+  /// Returns
+  /// -------
+  /// int
+  ///     1 for parallel, -1 for antiparallel, 0 for not parallel.
+  int is_parallel_to(const Vector &other);
+  
+  /// Calculate dot product with another vector.
+  ///
+  /// Parameters
+  /// ----------
+  /// other : const Vector&
+  ///     Other vector.
+  ///
+  /// Returns
+  /// -------
+  /// double
+  ///     Dot product value.
+  double dot(const Vector &other);
+  
+  /// Calculate cross product with another vector.
+  ///
+  /// Parameters
+  /// ----------
+  /// other : const Vector&
+  ///     Other vector.
+  ///
+  /// Returns
+  /// -------
+  /// Vector
+  ///     Unitized cross product vector (orthogonal to inputs).
+  Vector cross(const Vector &other);
+  
+  /// Angle between this vector and another.
+  ///
+  /// Parameters
+  /// ----------
+  /// other : const Vector&
+  ///     Other vector.
+  /// sign_by_cross_product : bool
+  ///     Whether to use cross product for sign determination.
+  /// degrees : bool
+  ///     Return angle in degrees if true, radians if false.
+  /// tolerance : double
+  ///     Tolerance for zero-length vectors.
+  ///
+  /// Returns
+  /// -------
+  /// double
+  ///     Angle between vectors.
+  double angle(const Vector &other, bool sign_by_cross_product = true,
                bool degrees = true,
                double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
   Vector get_leveled_vector(double &vertical_height);

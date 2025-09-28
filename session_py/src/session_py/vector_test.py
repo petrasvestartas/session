@@ -14,12 +14,12 @@ def test_constructor():
 
 
 def test_static_methods():
-    v = Vector.XAxis()
-    assert v[0] == 1 and v[1] == 0 and v[2] == 0
-    v = Vector.YAxis()
-    assert v[0] == 0 and v[1] == 1 and v[2] == 0
-    v = Vector.ZAxis()
-    assert v[0] == 0 and v[1] == 0 and v[2] == 1
+    v = Vector.x_axis()
+    assert (v.x, v.y, v.z) == (1.0, 0.0, 0.0)
+    v = Vector.y_axis()
+    assert (v.x, v.y, v.z) == (0.0, 1.0, 0.0)
+    v = Vector.z_axis()
+    assert (v.x, v.y, v.z) == (0.0, 0.0, 1.0)
 
 
 def test_from_start_and_end():

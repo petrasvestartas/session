@@ -148,12 +148,12 @@ mod tests {
         let x = Vector::x_axis();
         let y = Vector::y_axis();
         let z = Vector::z_axis();
-        let (px, _lenx, _perp_x, _perp_lenx) = v.projection(&x);
-        let (py, _leny, _perp_y, _perp_leny) = v.projection(&y);
-        let (pz, _lenz, _perp_z, _perp_lenz) = v.projection(&z);
-        assert_eq!((px[0], px[1], px[2]), (1.0, 0.0, 0.0));
-        assert_eq!((py[0], py[1], py[2]), (0.0, 1.0, 0.0));
-        assert_eq!((pz[0], pz[1], pz[2]), (0.0, 0.0, 1.0));
+        let (proj_x, _lenx, _perp_x, _perp_lenx) = v.projection(&x);
+        let (proj_y, _leny, _perp_y, _perp_leny) = v.projection(&y);
+        let (proj_z, _lenz, _perp_z, _perp_lenz) = v.projection(&z);
+        assert_eq!((proj_x[0], proj_x[1], proj_x[2]), (1.0, 0.0, 0.0));
+        assert_eq!((proj_y[0], proj_y[1], proj_y[2]), (0.0, 1.0, 0.0));
+        assert_eq!((proj_z[0], proj_z[1], proj_z[2]), (0.0, 0.0, 1.0));
     }
 
     #[test]

@@ -237,7 +237,7 @@ class Vector:
     ###########################################################################################
 
     @staticmethod
-    def XAxis():
+    def x_axis():
         """Get unit vector along the x-axis.
 
         Returns
@@ -249,7 +249,7 @@ class Vector:
         return Vector(1.0, 0.0, 0.0)
 
     @staticmethod
-    def YAxis():
+    def y_axis():
         """Get unit vector along the y-axis.
 
         Returns
@@ -261,7 +261,7 @@ class Vector:
         return Vector(0.0, 1.0, 0.0)
 
     @staticmethod
-    def ZAxis():
+    def z_axis():
         """Get unit vector along the z-axis.
 
         Returns
@@ -381,6 +381,16 @@ class Vector:
             self._has_length = True
 
         return self._length
+
+    def length_squared(self):
+        """Get the squared length of the vector (avoids sqrt for performance).
+
+        Returns
+        -------
+        float
+            The squared length of the vector.
+        """
+        return self._x * self._x + self._y * self._y + self._z * self._z
 
     def unitize(self):
         """Unitize the vector (make it unit length).

@@ -71,7 +71,7 @@ TEST_CASE("Vector constructor") {
 }
 
 TEST_CASE("Vector static methods") {
-  Vector x = Vector::XAxis(), y = Vector::YAxis(), z = Vector::ZAxis();
+  Vector x = Vector::x_axis(), y = Vector::y_axis(), z = Vector::z_axis();
   REQUIRE((x[0] == 1 && x[1] == 0 && x[2] == 0));
   REQUIRE((y[0] == 0 && y[1] == 1 && y[2] == 0));
   REQUIRE((z[0] == 0 && z[1] == 0 && z[2] == 1));

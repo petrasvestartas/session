@@ -124,9 +124,9 @@ Vector Vector::from_json(const std::string &filepath) {
 // Static methods
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-Vector Vector::XAxis() { return Vector(1.0, 0.0, 0.0); }
-Vector Vector::YAxis() { return Vector(0.0, 1.0, 0.0); }
-Vector Vector::ZAxis() { return Vector(0.0, 0.0, 1.0); }
+Vector Vector::x_axis() { return Vector(1.0, 0.0, 0.0); }
+Vector Vector::y_axis() { return Vector(0.0, 1.0, 0.0); }
+Vector Vector::z_axis() { return Vector(0.0, 0.0, 1.0); }
 
 Vector Vector::from_start_and_end(const Vector &start, const Vector &end) {
   return Vector(end._x - start._x, end._y - start._y, end._z - start._z);
@@ -193,6 +193,10 @@ double Vector::cached_length() const {
 
 double Vector::length() const { return cached_length(); }
 
+double Vector::length_squared() const {
+  return _x * _x + _y * _y + _z * _z;
+}
+
 bool Vector::unitize() {
   double d = compute_length();
   if (d > 0.0) {
@@ -235,12 +239,12 @@ Vector::projection(Vector &projection_vector, double tolerance) {
           out_perpendicular_projected_vector_length};
 }
 
-int Vector::is_parallel_to(Vector &v) {
-  double ll = cached_length() * v.cached_length();
+int Vector::is_parallel_to(const Vector &other) {
+  double ll = cached_length() * other.cached_length();
   int result;
   
   if (ll > 0.0) {
-    const double cos_angle = ((*this)[0] * v[0] + (*this)[1] * v[1] + (*this)[2] * v[2]) / ll;
+    const double cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;
     
     const double angle_in_radians = geo::GLOBALS::ANGLE * (geo::GLOBALS::PI / 180.0);
     const double cos_tol = std::cos(angle_in_radians);
@@ -257,7 +261,7 @@ int Vector::is_parallel_to(Vector &v) {
   return result;
 }
 
-double Vector::dot(Vector &other) {
+double Vector::dot(const Vector &other) {
   double result = 0.0;
   for (size_t i = 0; i < 3; ++i) {
     result += (*this)[i] * other[i];
@@ -265,7 +269,7 @@ double Vector::dot(Vector &other) {
   return result;
 }
 
-Vector Vector::cross(Vector &other) {
+Vector Vector::cross(const Vector &other) {
   double cx = (*this)[1] * other[2] - (*this)[2] * other[1];
   double cy = (*this)[2] * other[0] - (*this)[0] * other[2];
   double cz = (*this)[0] * other[1] - (*this)[1] * other[0];
@@ -274,7 +278,7 @@ Vector Vector::cross(Vector &other) {
   return result;
 }
 
-double Vector::angle(Vector &other, bool sign_by_cross_product, bool degrees,
+double Vector::angle(const Vector &other, bool sign_by_cross_product, bool degrees,
                      double tolerance) {
   double dotp = this->dot(other);
   double len0 = this->cached_length();

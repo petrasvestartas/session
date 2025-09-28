@@ -44,11 +44,21 @@ impl Vector {
     }
 
     /// Creates a unit vector along X-axis.
+    ///
+    /// Returns
+    /// -------
+    /// Vector
+    ///     Unit vector (1, 0, 0).
     pub fn x_axis() -> Self {
         Self::new(1.0, 0.0, 0.0)
     }
 
     /// Creates a unit vector along Y-axis.
+    ///
+    /// Returns
+    /// -------
+    /// Vector
+    ///     Unit vector (0, 1, 0).
     pub fn y_axis() -> Self {
         Self::new(0.0, 1.0, 0.0)
     }
@@ -79,11 +89,28 @@ impl Vector {
     }
 
     /// Creates a unit vector along Z-axis.
+    ///
+    /// Returns
+    /// -------
+    /// Vector
+    ///     Unit vector (0, 0, 1).
     pub fn z_axis() -> Self {
         Self::new(0.0, 0.0, 1.0)
     }
 
     /// Creates a vector from start point to end point.
+    ///
+    /// Parameters
+    /// ----------
+    /// start : &Vector
+    ///     The starting point.
+    /// end : &Vector
+    ///     The ending point.
+    ///
+    /// Returns
+    /// -------
+    /// Vector
+    ///     The vector from start to end (end - start).
     pub fn from_start_and_end(start: &Vector, end: &Vector) -> Self {
         Self::new(end._x - start._x, end._y - start._y, end._z - start._z)
     }
@@ -98,11 +125,21 @@ impl Vector {
     }
 
     /// Computes the length (magnitude) of the vector without caching.
+    ///
+    /// Returns
+    /// -------
+    /// f64
+    ///     The length of the vector.
     pub fn compute_length(&self) -> f64 {
         (self._x * self._x + self._y * self._y + self._z * self._z).sqrt()
     }
 
     /// Returns the cached length of the vector, computing and caching it if necessary.
+    ///
+    /// Returns
+    /// -------
+    /// f64
+    ///     The length (magnitude) of the vector.
     pub fn length(&mut self) -> f64 {
         if !self._has_length {
             self._length = self.compute_length();
@@ -167,11 +204,31 @@ impl Vector {
     }
 
     /// Computes the dot product with another vector.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : &Vector
+    ///     Other vector.
+    ///
+    /// Returns
+    /// -------
+    /// f64
+    ///     Dot product value.
     pub fn dot(&self, other: &Vector) -> f64 {
         self._x * other._x + self._y * other._y + self._z * other._z
     }
 
     /// Computes the cross product with another vector.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : &Vector
+    ///     Other vector.
+    ///
+    /// Returns
+    /// -------
+    /// Vector
+    ///     Unitized cross product vector (orthogonal to inputs).
     pub fn cross(&self, other: &Vector) -> Vector {
         let result = Vector::new(
             self._y * other._z - self._z * other._y,
