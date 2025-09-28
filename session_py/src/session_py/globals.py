@@ -8,8 +8,7 @@ TO_RADIANS = math.pi / 180.0
 
 # Tolerance values
 ZERO_TOLERANCE = 1e-12
-ANGLE = 1.0
-# General tolerance (C++)
+ANGLE = 0.11
 TOLERANCE = 1e-3
 
 # Double precision limits
@@ -17,9 +16,6 @@ DOUBLE_MIN = sys.float_info.min
 DOUBLE_MAX = sys.float_info.max
 EPSILON = sys.float_info.epsilon
 SQRT_EPSILON = math.sqrt(EPSILON)
-
-# Scale factor
-SCALE = 1000.0
 
 # Metric prefixes
 GIGA = 1e9
@@ -33,3 +29,6 @@ NANO = 1e-9
 FORCE = 1
 MASS = 1
 LENGTH = 1
+
+# Scale factor
+SCALE = 1e6

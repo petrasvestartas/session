@@ -3,10 +3,14 @@
 #include "fmt/core.h"
 #include "guid.h"
 #include "json.h"
+#include <array>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include "globals.h"
 
 namespace session_cpp {
 /**
@@ -29,6 +33,7 @@ public:
    * @param z The Z coordinate of the vector.
    */
   Vector(double x, double y, double z) : x(x), y(y), z(z) {}
+  Vector() : x(0.0), y(0.0), z(0.0) {}
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Operators
@@ -42,6 +47,28 @@ public:
 
   /// Inequality operator
   bool operator!=(const Vector &other) const;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // No-copy Operators
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  double &operator[](int index);
+  const double &operator[](int index) const;
+
+  Vector &operator*=(double factor);
+  Vector &operator/=(double factor);
+  Vector &operator+=(const Vector &other);
+  Vector &operator-=(const Vector &other);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Copy Operators
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  Vector operator*(double factor) const;
+  Vector operator/(double factor) const;
+  Vector operator+(const Vector &other) const;
+  Vector operator-(const Vector &other) const;
+  friend Vector operator*(double factor, const Vector &v);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // JSON
@@ -58,6 +85,69 @@ public:
 
   /// Deserialize from JSON file
   static Vector from_json(const std::string &filepath);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Static Methods
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  static Vector XAxis();
+  static Vector YAxis();
+  static Vector ZAxis();
+  static Vector from_start_and_end(const Vector &start, const Vector &end);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // Details / Geometry
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  void reverse();
+  double length(double predefined_length = 0.0);
+  double compute_length() const;
+  bool unitize();
+  Vector unitized();
+
+  Vector projection(Vector &projection_vector,
+                    double tolerance = geo::GLOBALS::ZERO_TOLERANCE,
+                    double *out_projected_vector_length = nullptr,
+                    Vector *out_perpendicular_projected_vector = nullptr,
+                    double *out_perpendicular_projected_vector_length = nullptr);
+
+  int is_parallel_to(Vector &v);
+  double dot(Vector &other);
+  Vector cross(Vector &other);
+  double angle(Vector &other, bool sign_by_cross_product = true,
+               bool degrees = true,
+               double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
+  Vector get_leveled_vector(double &vertical_height);
+
+  static double cosine_law(double &triangle_edge_length_a,
+                           double &triangle_edge_length_b,
+                           double &angle_in_between_edges, bool degrees = true);
+
+  static double sine_law_angle(double &triangle_edge_length_a,
+                               double &angle_in_front_of_a,
+                               double &triangle_edge_length_b,
+                               bool degrees = true);
+
+  static double sine_law_length(double &triangle_edge_length_a,
+                                double &angle_in_front_of_a,
+                                double &angle_in_front_of_b,
+                                bool degrees = true);
+
+  static double angle_between_vector_xy_components_degrees(Vector &vector,
+                                                           bool degrees = true);
+
+  static Vector sum_of_vectors(std::vector<Vector> &vectors);
+
+  std::array<double, 3> coordinate_direction_3angles(bool degrees = false);
+  std::array<double, 2> coordinate_direction_2angles(bool degrees = false);
+
+  bool perpendicular_to(Vector &v);
+
+  void scale(double factor);
+  void scale_up();
+  void scale_down();
+  void rescale(double factor);
+  Vector rescaled(double factor);
 
 }; // End of Vector class
 
