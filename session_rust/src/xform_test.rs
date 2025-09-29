@@ -78,7 +78,8 @@ mod xform_tests {
 
     #[test]
     fn test_xform_inverse_composition() {
-        let t = &(&Xform::translation(1.0, 2.0, 3.0) * &Xform::rotation_z(0.7)) * &Xform::scaling(2.0, 2.0, 2.0);
+        let t = &(&Xform::translation(1.0, 2.0, 3.0) * &Xform::rotation_z(0.7))
+            * &Xform::scaling(2.0, 2.0, 2.0);
         let inv = t.inverse().unwrap();
         let id = &t * &inv;
         assert!(matrices_close(&id, &Xform::identity()));
@@ -138,17 +139,15 @@ mod xform_tests {
         let mut acc = Xform::identity();
         acc *= a;
         acc *= b;
-        let r2 = &Xform::identity() * &(&Xform::translation(1.0, 2.0, 3.0) * &Xform::scaling(2.0, 3.0, 4.0));
+        let r2 = &Xform::identity()
+            * &(&Xform::translation(1.0, 2.0, 3.0) * &Xform::scaling(2.0, 3.0, 4.0));
         assert!(matrices_close(&acc, &r2));
     }
 
     #[test]
     fn test_xform_json_round_trip() {
         let x = Xform::from_matrix([
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            4.0, 5.0, 6.0, 1.0,
+            1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 5.0, 6.0, 1.0,
         ]);
         let data = x.to_json_data().unwrap();
         let y = Xform::from_json_data(&data).unwrap();

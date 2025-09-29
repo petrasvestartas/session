@@ -3,7 +3,6 @@ use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Index, IndexMut, Mul, MulAssign};
 
-
 /// A 4x4 column-major transformation matrix in 3D space
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename = "Xform")]
@@ -12,12 +11,11 @@ pub struct Xform {
     pub m: [f32; 16],
 }
 
-
 impl Xform {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Basic Constructors
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn new(value: f32) -> Self {
         Xform { m: [value; 16] }
     }
@@ -38,7 +36,7 @@ impl Xform {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Basic Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn translation(tx: f32, ty: f32, tz: f32) -> Self {
         let mut xform = Self::identity();
         xform.m[12] = tx;
@@ -58,17 +56,17 @@ impl Xform {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Rotations
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn rotation_x(angle_radians: f32) -> Self {
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
-        
+
         xform.m[5] = cos_angle;
         xform.m[6] = sin_angle;
         xform.m[9] = -sin_angle;
         xform.m[10] = cos_angle;
-        
+
         xform
     }
 
@@ -76,12 +74,12 @@ impl Xform {
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
-        
+
         xform.m[0] = cos_angle;
         xform.m[2] = -sin_angle;
         xform.m[8] = sin_angle;
         xform.m[10] = cos_angle;
-        
+
         xform
     }
 
@@ -89,81 +87,93 @@ impl Xform {
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
-        
+
         xform.m[0] = cos_angle;
         xform.m[1] = sin_angle;
         xform.m[4] = -sin_angle;
         xform.m[5] = cos_angle;
-        
+
         xform
     }
 
     pub fn rotation(axis: &Vector, angle_radians: f32) -> Self {
-        assert!((axis.compute_length() - 1.0).abs() < 1e-6, "Axis must be normalized");
-        
+        assert!(
+            (axis.compute_length() - 1.0).abs() < 1e-6,
+            "Axis must be normalized"
+        );
+
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
         let one_minus_cos = 1.0 - cos_angle;
-        
+
         let xx = (axis.x() as f32) * (axis.x() as f32);
         let xy = (axis.x() as f32) * (axis.y() as f32);
         let xz = (axis.x() as f32) * (axis.z() as f32);
         let yy = (axis.y() as f32) * (axis.y() as f32);
         let yz = (axis.y() as f32) * (axis.z() as f32);
         let zz = (axis.z() as f32) * (axis.z() as f32);
-        
+
         xform.m[0] = cos_angle + xx * one_minus_cos;
         xform.m[1] = xy * one_minus_cos + (axis.z() as f32) * sin_angle;
         xform.m[2] = xz * one_minus_cos - (axis.y() as f32) * sin_angle;
-        
+
         xform.m[4] = xy * one_minus_cos - (axis.z() as f32) * sin_angle;
         xform.m[5] = cos_angle + yy * one_minus_cos;
         xform.m[6] = yz * one_minus_cos + (axis.x() as f32) * sin_angle;
-        
+
         xform.m[8] = xz * one_minus_cos + (axis.y() as f32) * sin_angle;
         xform.m[9] = yz * one_minus_cos - (axis.x() as f32) * sin_angle;
         xform.m[10] = cos_angle + zz * one_minus_cos;
-        
+
         xform
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Advanced Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn change_basis(origin: &Point, x_axis: &Vector, y_axis: &Vector, z_axis: &Vector) -> Self {
-        assert!((x_axis.compute_length() - 1.0).abs() < 1e-6, "X axis must be normalized");
-        assert!((y_axis.compute_length() - 1.0).abs() < 1e-6, "Y axis must be normalized");
-        assert!((z_axis.compute_length() - 1.0).abs() < 1e-6, "Z axis must be normalized");
-        
+        assert!(
+            (x_axis.compute_length() - 1.0).abs() < 1e-6,
+            "X axis must be normalized"
+        );
+        assert!(
+            (y_axis.compute_length() - 1.0).abs() < 1e-6,
+            "Y axis must be normalized"
+        );
+        assert!(
+            (z_axis.compute_length() - 1.0).abs() < 1e-6,
+            "Z axis must be normalized"
+        );
+
         let mut xform = Self::identity();
-        
+
         // Set the basis vectors
         xform.m[0] = x_axis.x() as f32;
         xform.m[1] = x_axis.y() as f32;
         xform.m[2] = x_axis.z() as f32;
-        
+
         xform.m[4] = y_axis.x() as f32;
         xform.m[5] = y_axis.y() as f32;
         xform.m[6] = y_axis.z() as f32;
-        
+
         xform.m[8] = z_axis.x() as f32;
         xform.m[9] = z_axis.y() as f32;
         xform.m[10] = z_axis.z() as f32;
-        
+
         // Set the origin
         xform.m[12] = origin.x;
         xform.m[13] = origin.y;
         xform.m[14] = origin.z;
-        
+
         xform
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Matrix Operations
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn inverse(&self) -> Option<Xform> {
         let a00 = self[(0, 0)];
         let a01 = self[(0, 1)];
@@ -175,8 +185,7 @@ impl Xform {
         let a21 = self[(2, 1)];
         let a22 = self[(2, 2)];
 
-        let det = a00 * (a11 * a22 - a12 * a21)
-            - a01 * (a10 * a22 - a12 * a20)
+        let det = a00 * (a11 * a22 - a12 * a21) - a01 * (a10 * a22 - a12 * a20)
             + a02 * (a10 * a21 - a11 * a20);
         if det.abs() < 1e-12 {
             return None;
@@ -201,10 +210,18 @@ impl Xform {
         let itz = -(m20 * tx + m21 * ty + m22 * tz);
 
         let mut res = Xform::identity();
-        res[(0, 0)] = m00; res[(0, 1)] = m01; res[(0, 2)] = m02;
-        res[(1, 0)] = m10; res[(1, 1)] = m11; res[(1, 2)] = m12;
-        res[(2, 0)] = m20; res[(2, 1)] = m21; res[(2, 2)] = m22;
-        res[(0, 3)] = itx; res[(1, 3)] = ity; res[(2, 3)] = itz;
+        res[(0, 0)] = m00;
+        res[(0, 1)] = m01;
+        res[(0, 2)] = m02;
+        res[(1, 0)] = m10;
+        res[(1, 1)] = m11;
+        res[(1, 2)] = m12;
+        res[(2, 0)] = m20;
+        res[(2, 1)] = m21;
+        res[(2, 2)] = m22;
+        res[(0, 3)] = itx;
+        res[(1, 3)] = ity;
+        res[(2, 3)] = itz;
         Some(res)
     }
 
@@ -212,21 +229,24 @@ impl Xform {
         let m = &self.m;
         let w = m[3] * point.x + m[7] * point.y + m[11] * point.z + m[15];
         let w_inv = if w.abs() > 1e-10 { 1.0 / w } else { 1.0 };
-        
+
         Point::new(
             (m[0] * point.x + m[4] * point.y + m[8] * point.z + m[12]) * w_inv,
             (m[1] * point.x + m[5] * point.y + m[9] * point.z + m[13]) * w_inv,
-            (m[2] * point.x + m[6] * point.y + m[10] * point.z + m[14]) * w_inv
+            (m[2] * point.x + m[6] * point.y + m[10] * point.z + m[14]) * w_inv,
         )
     }
 
     pub fn transform_vector(&self, vector: &Vector) -> Vector {
         let m = &self.m;
-        
+
         Vector::new(
-            (m[0] * (vector.x() as f32) + m[4] * (vector.y() as f32) + m[8] * (vector.z() as f32)) as f64,
-            (m[1] * (vector.x() as f32) + m[5] * (vector.y() as f32) + m[9] * (vector.z() as f32)) as f64,
-            (m[2] * (vector.x() as f32) + m[6] * (vector.y() as f32) + m[10] * (vector.z() as f32)) as f64,
+            (m[0] * (vector.x() as f32) + m[4] * (vector.y() as f32) + m[8] * (vector.z() as f32))
+                as f64,
+            (m[1] * (vector.x() as f32) + m[5] * (vector.y() as f32) + m[9] * (vector.z() as f32))
+                as f64,
+            (m[2] * (vector.x() as f32) + m[6] * (vector.y() as f32) + m[10] * (vector.z() as f32))
+                as f64,
         )
     }
 
@@ -239,141 +259,250 @@ impl Xform {
         }
         true
     }
-    
+
     #[allow(clippy::too_many_arguments)]
-    pub fn change_basis_alt(origin_1: &Point, x_axis_1: &Vector, y_axis_1: &Vector, z_axis_1: &Vector, 
-                        origin_0: &Point, x_axis_0: &Vector, y_axis_0: &Vector, z_axis_0: &Vector) -> Self {
+    pub fn change_basis_alt(
+        origin_1: &Point,
+        x_axis_1: &Vector,
+        y_axis_1: &Vector,
+        z_axis_1: &Vector,
+        origin_0: &Point,
+        x_axis_0: &Vector,
+        y_axis_0: &Vector,
+        z_axis_0: &Vector,
+    ) -> Self {
         let a = x_axis_1.dot(y_axis_1);
         let b = x_axis_1.dot(z_axis_1);
         let c = y_axis_1.dot(z_axis_1);
-        
+
         let mut r = [
-            [x_axis_1.dot(x_axis_1), a, b, x_axis_1.dot(x_axis_0), x_axis_1.dot(y_axis_0), x_axis_1.dot(z_axis_0)],
-            [a, y_axis_1.dot(y_axis_1), c, y_axis_1.dot(x_axis_0), y_axis_1.dot(y_axis_0), y_axis_1.dot(z_axis_0)],
-            [b, c, z_axis_1.dot(z_axis_1), z_axis_1.dot(x_axis_0), z_axis_1.dot(y_axis_0), z_axis_1.dot(z_axis_0)]
+            [
+                x_axis_1.dot(x_axis_1),
+                a,
+                b,
+                x_axis_1.dot(x_axis_0),
+                x_axis_1.dot(y_axis_0),
+                x_axis_1.dot(z_axis_0),
+            ],
+            [
+                a,
+                y_axis_1.dot(y_axis_1),
+                c,
+                y_axis_1.dot(x_axis_0),
+                y_axis_1.dot(y_axis_0),
+                y_axis_1.dot(z_axis_0),
+            ],
+            [
+                b,
+                c,
+                z_axis_1.dot(z_axis_1),
+                z_axis_1.dot(x_axis_0),
+                z_axis_1.dot(y_axis_0),
+                z_axis_1.dot(z_axis_0),
+            ],
         ];
-        
+
         let mut i0 = if r[0][0] >= r[1][1] { 0 } else { 1 };
-        if r[2][2] > r[i0][i0] { i0 = 2; }
+        if r[2][2] > r[i0][i0] {
+            i0 = 2;
+        }
         let i1 = (i0 + 1) % 3;
         let i2 = (i1 + 1) % 3;
-        
-        if r[i0][i0] == 0.0 { return Self::identity(); }
-        
+
+        if r[i0][i0] == 0.0 {
+            return Self::identity();
+        }
+
         let d = 1.0 / r[i0][i0];
-        for j in 0..6 { r[i0][j] *= d; }
+        for j in 0..6 {
+            r[i0][j] *= d;
+        }
         r[i0][i0] = 1.0;
-        
+
         if r[i1][i0] != 0.0 {
             let d = -r[i1][i0];
-            for j in 0..6 { r[i1][j] += d * r[i0][j]; }
+            for j in 0..6 {
+                r[i1][j] += d * r[i0][j];
+            }
             r[i1][i0] = 0.0;
         }
         if r[i2][i0] != 0.0 {
             let d = -r[i2][i0];
-            for j in 0..6 { r[i2][j] += d * r[i0][j]; }
+            for j in 0..6 {
+                r[i2][j] += d * r[i0][j];
+            }
             r[i2][i0] = 0.0;
         }
-        
+
         let (i1, i2) = if r[i1][i1].abs() < r[i2][i2].abs() {
             (i2, i1)
         } else {
             (i1, i2)
         };
-        if r[i1][i1] == 0.0 { return Self::identity(); }
-        
+        if r[i1][i1] == 0.0 {
+            return Self::identity();
+        }
+
         let d = 1.0 / r[i1][i1];
-        for j in 0..6 { r[i1][j] *= d; }
+        for j in 0..6 {
+            r[i1][j] *= d;
+        }
         r[i1][i1] = 1.0;
-        
+
         if r[i0][i1] != 0.0 {
             let d = -r[i0][i1];
-            for j in 0..6 { r[i0][j] += d * r[i1][j]; }
+            for j in 0..6 {
+                r[i0][j] += d * r[i1][j];
+            }
             r[i0][i1] = 0.0;
         }
         if r[i2][i1] != 0.0 {
             let d = -r[i2][i1];
-            for j in 0..6 { r[i2][j] += d * r[i1][j]; }
+            for j in 0..6 {
+                r[i2][j] += d * r[i1][j];
+            }
             r[i2][i1] = 0.0;
         }
-        
-        if r[i2][i2] == 0.0 { return Self::identity(); }
-        
+
+        if r[i2][i2] == 0.0 {
+            return Self::identity();
+        }
+
         let d = 1.0 / r[i2][i2];
-        for j in 0..6 { r[i2][j] *= d; }
+        for j in 0..6 {
+            r[i2][j] *= d;
+        }
         r[i2][i2] = 1.0;
-        
+
         if r[i0][i2] != 0.0 {
             let d = -r[i0][i2];
-            for j in 0..6 { r[i0][j] += d * r[i2][j]; }
+            for j in 0..6 {
+                r[i0][j] += d * r[i2][j];
+            }
             r[i0][i2] = 0.0;
         }
         if r[i1][i2] != 0.0 {
             let d = -r[i1][i2];
-            for j in 0..6 { r[i1][j] += d * r[i2][j]; }
+            for j in 0..6 {
+                r[i1][j] += d * r[i2][j];
+            }
             r[i1][i2] = 0.0;
         }
-        
+
         let mut m_xform = Self::identity();
-        m_xform.m[0] = r[0][3] as f32; m_xform.m[4] = r[0][4] as f32; m_xform.m[8] = r[0][5] as f32;
-        m_xform.m[1] = r[1][3] as f32; m_xform.m[5] = r[1][4] as f32; m_xform.m[9] = r[1][5] as f32;
-        m_xform.m[2] = r[2][3] as f32; m_xform.m[6] = r[2][4] as f32; m_xform.m[10] = r[2][5] as f32;
-        
+        m_xform.m[0] = r[0][3] as f32;
+        m_xform.m[4] = r[0][4] as f32;
+        m_xform.m[8] = r[0][5] as f32;
+        m_xform.m[1] = r[1][3] as f32;
+        m_xform.m[5] = r[1][4] as f32;
+        m_xform.m[9] = r[1][5] as f32;
+        m_xform.m[2] = r[2][3] as f32;
+        m_xform.m[6] = r[2][4] as f32;
+        m_xform.m[10] = r[2][5] as f32;
+
         let t0 = Self::translation(-origin_1.x, -origin_1.y, -origin_1.z);
         let t2 = Self::translation(origin_0.x, origin_0.y, origin_0.z);
         &t2 * &(&m_xform * &t0)
     }
-    
+
     #[allow(clippy::too_many_arguments)]
-    pub fn plane_to_plane(origin_0: &Point, x_axis_0: &Vector, y_axis_0: &Vector, z_axis_0: &Vector,
-                         origin_1: &Point, x_axis_1: &Vector, y_axis_1: &Vector, z_axis_1: &Vector) -> Self {
-        let mut x0 = x_axis_0.clone(); let mut y0 = y_axis_0.clone(); let mut z0 = z_axis_0.clone();
-        let mut x1 = x_axis_1.clone(); let mut y1 = y_axis_1.clone(); let mut z1 = z_axis_1.clone();
-        x0.unitize(); y0.unitize(); z0.unitize();
-        x1.unitize(); y1.unitize(); z1.unitize();
-        
+    pub fn plane_to_plane(
+        origin_0: &Point,
+        x_axis_0: &Vector,
+        y_axis_0: &Vector,
+        z_axis_0: &Vector,
+        origin_1: &Point,
+        x_axis_1: &Vector,
+        y_axis_1: &Vector,
+        z_axis_1: &Vector,
+    ) -> Self {
+        let mut x0 = x_axis_0.clone();
+        let mut y0 = y_axis_0.clone();
+        let mut z0 = z_axis_0.clone();
+        let mut x1 = x_axis_1.clone();
+        let mut y1 = y_axis_1.clone();
+        let mut z1 = z_axis_1.clone();
+        x0.unitize();
+        y0.unitize();
+        z0.unitize();
+        x1.unitize();
+        y1.unitize();
+        z1.unitize();
+
         let t0 = Self::translation(-origin_0.x, -origin_0.y, -origin_0.z);
-        
+
         let mut f0 = Self::identity();
-        f0.m[0] = x0.x() as f32; f0.m[1] = x0.y() as f32; f0.m[2] = x0.z() as f32;
-        f0.m[4] = y0.x() as f32; f0.m[5] = y0.y() as f32; f0.m[6] = y0.z() as f32;
-        f0.m[8] = z0.x() as f32; f0.m[9] = z0.y() as f32; f0.m[10] = z0.z() as f32;
-        
+        f0.m[0] = x0.x() as f32;
+        f0.m[1] = x0.y() as f32;
+        f0.m[2] = x0.z() as f32;
+        f0.m[4] = y0.x() as f32;
+        f0.m[5] = y0.y() as f32;
+        f0.m[6] = y0.z() as f32;
+        f0.m[8] = z0.x() as f32;
+        f0.m[9] = z0.y() as f32;
+        f0.m[10] = z0.z() as f32;
+
         let mut f1 = Self::identity();
-        f1.m[0] = x1.x() as f32; f1.m[4] = x1.y() as f32; f1.m[8] = x1.z() as f32;
-        f1.m[1] = y1.x() as f32; f1.m[5] = y1.y() as f32; f1.m[9] = y1.z() as f32;
-        f1.m[2] = z1.x() as f32; f1.m[6] = z1.y() as f32; f1.m[10] = z1.z() as f32;
-        
+        f1.m[0] = x1.x() as f32;
+        f1.m[4] = x1.y() as f32;
+        f1.m[8] = x1.z() as f32;
+        f1.m[1] = y1.x() as f32;
+        f1.m[5] = y1.y() as f32;
+        f1.m[9] = y1.z() as f32;
+        f1.m[2] = z1.x() as f32;
+        f1.m[6] = z1.y() as f32;
+        f1.m[10] = z1.z() as f32;
+
         let r = &f1 * &f0;
         let t1 = Self::translation(origin_1.x, origin_1.y, origin_1.z);
         &t1 * &(&r * &t0)
     }
-    
+
     pub fn plane_to_xy(origin: &Point, x_axis: &Vector, y_axis: &Vector, z_axis: &Vector) -> Self {
-        let mut x = x_axis.clone(); let mut y = y_axis.clone(); let mut z = z_axis.clone();
-        x.unitize(); y.unitize(); z.unitize();
-        
+        let mut x = x_axis.clone();
+        let mut y = y_axis.clone();
+        let mut z = z_axis.clone();
+        x.unitize();
+        y.unitize();
+        z.unitize();
+
         let t = Self::translation(-origin.x, -origin.y, -origin.z);
         let mut f = Self::identity();
-        f.m[0] = x.x() as f32; f.m[1] = x.y() as f32; f.m[2] = x.z() as f32;
-        f.m[4] = y.x() as f32; f.m[5] = y.y() as f32; f.m[6] = y.z() as f32;
-        f.m[8] = z.x() as f32; f.m[9] = z.y() as f32; f.m[10] = z.z() as f32;
+        f.m[0] = x.x() as f32;
+        f.m[1] = x.y() as f32;
+        f.m[2] = x.z() as f32;
+        f.m[4] = y.x() as f32;
+        f.m[5] = y.y() as f32;
+        f.m[6] = y.z() as f32;
+        f.m[8] = z.x() as f32;
+        f.m[9] = z.y() as f32;
+        f.m[10] = z.z() as f32;
         &f * &t
     }
-    
+
     pub fn xy_to_plane(origin: &Point, x_axis: &Vector, y_axis: &Vector, z_axis: &Vector) -> Self {
-        let mut x = x_axis.clone(); let mut y = y_axis.clone(); let mut z = z_axis.clone();
-        x.unitize(); y.unitize(); z.unitize();
-        
+        let mut x = x_axis.clone();
+        let mut y = y_axis.clone();
+        let mut z = z_axis.clone();
+        x.unitize();
+        y.unitize();
+        z.unitize();
+
         let mut f = Self::identity();
-        f.m[0] = x.x() as f32; f.m[4] = y.x() as f32; f.m[8] = z.x() as f32;
-        f.m[1] = x.y() as f32; f.m[5] = y.y() as f32; f.m[9] = z.y() as f32;
-        f.m[2] = x.z() as f32; f.m[6] = y.z() as f32; f.m[10] = z.z() as f32;
-        
+        f.m[0] = x.x() as f32;
+        f.m[4] = y.x() as f32;
+        f.m[8] = z.x() as f32;
+        f.m[1] = x.y() as f32;
+        f.m[5] = y.y() as f32;
+        f.m[9] = z.y() as f32;
+        f.m[2] = x.z() as f32;
+        f.m[6] = y.z() as f32;
+        f.m[10] = z.z() as f32;
+
         let t = Self::translation(origin.x, origin.y, origin.z);
         &t * &f
     }
-    
+
     pub fn scale_xyz(scale_x: f32, scale_y: f32, scale_z: f32) -> Self {
         let mut xform = Self::identity();
         xform.m[0] = scale_x;
@@ -381,21 +510,21 @@ impl Xform {
         xform.m[10] = scale_z;
         xform
     }
-    
+
     pub fn scale_uniform(origin: &Point, scale_value: f32) -> Self {
         let t0 = Self::translation(-origin.x, -origin.y, -origin.z);
         let t1 = Self::scaling(scale_value, scale_value, scale_value);
         let t2 = Self::translation(origin.x, origin.y, origin.z);
         &t2 * &(&t1 * &t0)
     }
-    
+
     pub fn scale_non_uniform(origin: &Point, scale_x: f32, scale_y: f32, scale_z: f32) -> Self {
         let t0 = Self::translation(-origin.x, -origin.y, -origin.z);
         let t1 = Self::scale_xyz(scale_x, scale_y, scale_z);
         let t2 = Self::translation(origin.x, origin.y, origin.z);
         &t2 * &(&t1 * &t0)
     }
-    
+
     pub fn axis_rotation(angle: f32, axis: &Vector) -> Self {
         let c = angle.cos();
         let s = angle.sin();
@@ -403,7 +532,7 @@ impl Xform {
         let uy = axis.y() as f32;
         let uz = axis.z() as f32;
         let t = 1.0 - c;
-        
+
         let mut xform = Self::identity();
         xform.m[0] = t * ux * ux + c;
         xform.m[4] = t * ux * uy - uz * s;
@@ -416,14 +545,14 @@ impl Xform {
         xform.m[2] = t * ux * uz - uy * s;
         xform.m[6] = t * uy * uz + ux * s;
         xform.m[10] = t * uz * uz + c;
-        
+
         xform
     }
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
@@ -452,10 +581,26 @@ impl Xform {
 impl fmt::Display for Xform {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Transform Matrix:")?;
-        writeln!(f, "[{:.4}, {:.4}, {:.4}, {:.4}]", self.m[0], self.m[4], self.m[8], self.m[12])?;
-        writeln!(f, "[{:.4}, {:.4}, {:.4}, {:.4}]", self.m[1], self.m[5], self.m[9], self.m[13])?;
-        writeln!(f, "[{:.4}, {:.4}, {:.4}, {:.4}]", self.m[2], self.m[6], self.m[10], self.m[14])?;
-        write!(f, "[{:.4}, {:.4}, {:.4}, {:.4}]", self.m[3], self.m[7], self.m[11], self.m[15])
+        writeln!(
+            f,
+            "[{:.4}, {:.4}, {:.4}, {:.4}]",
+            self.m[0], self.m[4], self.m[8], self.m[12]
+        )?;
+        writeln!(
+            f,
+            "[{:.4}, {:.4}, {:.4}, {:.4}]",
+            self.m[1], self.m[5], self.m[9], self.m[13]
+        )?;
+        writeln!(
+            f,
+            "[{:.4}, {:.4}, {:.4}, {:.4}]",
+            self.m[2], self.m[6], self.m[10], self.m[14]
+        )?;
+        write!(
+            f,
+            "[{:.4}, {:.4}, {:.4}, {:.4}]",
+            self.m[3], self.m[7], self.m[11], self.m[15]
+        )
     }
 }
 
@@ -494,7 +639,7 @@ impl Mul for &Xform {
 
     fn mul(self, rhs: &Xform) -> Self::Output {
         let mut result = Xform::new(0.0);
-        
+
         for i in 0..4 {
             for j in 0..4 {
                 let mut sum = 0.0;
@@ -505,7 +650,7 @@ impl Mul for &Xform {
                 result[(i, j)] = sum;
             }
         }
-        
+
         result
     }
 }
