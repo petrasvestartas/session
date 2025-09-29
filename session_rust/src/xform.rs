@@ -5,7 +5,7 @@ use std::ops::{Index, IndexMut, Mul, MulAssign};
 
 /// A 4x4 column-major transformation matrix in 3D space
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type", rename = "Xform")]
+#[serde(rename = "Xform")]
 pub struct Xform {
     /// The matrix elements stored in column-major order as a flattened array
     pub m: [f32; 16],

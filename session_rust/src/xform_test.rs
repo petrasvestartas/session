@@ -149,8 +149,8 @@ mod xform_tests {
         let x = Xform::from_matrix([
             1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 5.0, 6.0, 1.0,
         ]);
-        let data = x.to_json_data().unwrap();
-        let y = Xform::from_json_data(&data).unwrap();
+        let data = x.to_json_data().expect("Failed to serialize Xform to JSON");
+        let y = Xform::from_json_data(&data).expect("Failed to deserialize JSON to Xform");
         assert!(matrices_close(&x, &y));
     }
 }
