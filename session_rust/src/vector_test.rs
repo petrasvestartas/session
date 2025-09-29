@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod vector_tests {
     use crate::{globals, Vector};
 
     #[test]
@@ -209,7 +209,7 @@ mod tests {
     fn test_vector_get_leveled_vector() {
         let lev = Vector::new(1.0, 1.0, 1.0).get_leveled_vector(1.0);
         unsafe {
-            assert!((lev.compute_length() - 4.1684325329666283).abs() < globals::ZERO_TOLERANCE);
+            assert!((lev.compute_length() - 4.168_432_532_966_628).abs() < globals::ZERO_TOLERANCE);
         }
     }
 

@@ -175,7 +175,7 @@ impl Session {
 
         // Automatically add to graph using point's GUID as node key
         self.graph
-            .add_node(&point_guid, &format!("point_{}", point_name));
+            .add_node(&point_guid, &format!("point_{point_name}"));
 
         // Automatically add to tree as child of root using point's GUID as node name
         let tree_node = TreeNode::new(&point_guid);

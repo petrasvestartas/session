@@ -13,6 +13,7 @@ pub mod point;
 pub mod session;
 pub mod tree;
 pub mod vector;
+pub mod xform;
 
 pub use color::Color;
 pub use graph::Graph;
@@ -23,3 +24,4 @@ pub use session::Session;
 pub use tree::Tree;
 pub use tree::TreeNode;
 pub use vector::Vector;
+pub use xform::Xform;

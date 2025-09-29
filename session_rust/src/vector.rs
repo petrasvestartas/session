@@ -250,7 +250,7 @@ impl Vector {
             }
         }
 
-        let cos_angle = (dotp / len_product).max(-1.0).min(1.0);
+        let cos_angle = (dotp / len_product).clamp(-1.0, 1.0);
         let mut angle = cos_angle.acos() * unsafe { globals::TO_DEGREES };
 
         if sign_by_cross_product {

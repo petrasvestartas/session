@@ -109,7 +109,7 @@ impl Point {
             std::mem::swap(&mut dx, &mut dz);
         }
 
-        let length = if dx > double_min {
+        if dx > double_min {
             dy /= dx;
             dz /= dx;
             dx * (1.0 + dy * dy + dz * dz).sqrt()
@@ -117,9 +117,7 @@ impl Point {
             dx
         } else {
             0.0
-        };
-
-        length
+        }
     }
 
     /// Calculate the area of a polygon.

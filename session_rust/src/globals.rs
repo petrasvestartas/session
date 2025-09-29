@@ -2,7 +2,6 @@ use std::f64::consts::PI as STD_PI;
 
 /// Mutable global variables (direct access like Python/C++)
 /// WARNING: Requires unsafe blocks for access - not thread-safe!
-
 /// Mathematical constants
 pub static mut PI: f64 = STD_PI;
 pub static mut TO_DEGREES: f64 = 180.0 / STD_PI;

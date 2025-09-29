@@ -4,13 +4,18 @@ Multi-language project for vizualization.
 
 ## Plan
 
-- [x] Convert python to C++ and Rust: point, vector, color
-- [x] Separate python tests to to separate files same as in c++
-- [ ] Convert python to C++ and Rust: tree, objects, graph, session
-- [ ] Python: Finish the python point, vector structures
-- [ ] Convert python to C++ and Rust: point, vector
-- [ ] Python: Line
+- [ ] xform
+- [ ] quaternion
+- [ ] line
+- [ ] arrow
+- [ ] plane
+- [ ] pline
+- [ ] pointcloud
+- [ ] mesh
+- [ ] pipe
 
+https://github.com/petrasvestartas/wink/blob/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/primitives/xform.rs
+https://github.com/petrasvestartas/wink/tree/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/geometry
 
 ## Project Structure
 
