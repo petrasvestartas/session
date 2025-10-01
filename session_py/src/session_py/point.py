@@ -38,11 +38,41 @@ class Point:
     def __init__(self, x=0.0, y=0.0, z=0.0):
         self.guid = str(uuid.uuid4())
         self.name = "my_point"
-        self.x = x
-        self.y = y
-        self.z = z
+        self._x = x
+        self._y = y
+        self._z = z
         self.width = 1.0
         self.pointcolor = Color.white()
+
+    @property
+    def x(self):
+        """Get the X coordinate."""
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        """Set the X coordinate."""
+        self._x = value
+
+    @property
+    def y(self):
+        """Get the Y coordinate."""
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        """Set the Y coordinate."""
+        self._y = value
+
+    @property
+    def z(self):
+        """Get the Z coordinate."""
+        return self._z
+
+    @z.setter
+    def z(self, value):
+        """Set the Z coordinate."""
+        self._z = value
 
     def __str__(self):
         return f"Point({self.x}, {self.y}, {self.z})"

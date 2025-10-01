@@ -88,11 +88,9 @@ mod vector_tests {
     fn test_vector_from_start_and_end() {
         let v =
             Vector::from_start_and_end(&Vector::new(8.7, 5.7, -1.87), &Vector::new(1.0, 1.57, 2.0));
-        unsafe {
-            assert!((v[0] + 7.7).abs() < globals::ZERO_TOLERANCE);
-            assert!((v[1] + 4.13).abs() < globals::ZERO_TOLERANCE);
-            assert!((v[2] - 3.87).abs() < globals::ZERO_TOLERANCE);
-        }
+        assert!((v[0] + 7.7).abs() < 1e-5);
+        assert!((v[1] + 4.13).abs() < 1e-5);
+        assert!((v[2] - 3.87).abs() < 1e-5);
     }
 
     #[test]
@@ -179,7 +177,7 @@ mod vector_tests {
         let dot = v1.dot(&v2);
         let mag = v1.compute_length() * v2.compute_length();
         if mag > 0.0 {
-            let angle_deg = (dot / mag).acos() * unsafe { globals::TO_DEGREES };
+            let angle_deg = (dot / mag).acos() * unsafe { globals::TO_DEGREES as f32 };
             assert_eq!(angle_deg, 90.0);
         }
     }
@@ -197,10 +195,10 @@ mod vector_tests {
         let v1 = Vector::new(1.0, 1.0, 0.0);
         let v2 = Vector::new(0.0, 1.0, 0.0);
         unsafe {
-            assert!((v1.angle(&v2, false) - 45.0).abs() < globals::ZERO_TOLERANCE);
+            assert!((v1.angle(&v2, false) - 45.0).abs() < globals::ZERO_TOLERANCE as f32);
             assert!(
                 (Vector::new(-1.0, 1.0, 0.0).angle(&v2, true) + 45.0).abs()
-                    < globals::ZERO_TOLERANCE
+                    < globals::ZERO_TOLERANCE as f32
             );
         }
     }
@@ -208,9 +206,7 @@ mod vector_tests {
     #[test]
     fn test_vector_get_leveled_vector() {
         let lev = Vector::new(1.0, 1.0, 1.0).get_leveled_vector(1.0);
-        unsafe {
-            assert!((lev.compute_length() - 4.168_432_532_966_628).abs() < globals::ZERO_TOLERANCE);
-        }
+        assert!((lev.compute_length() - 4.168_432_5).abs() < 1e-4);
     }
 
     #[test]
@@ -233,8 +229,8 @@ mod vector_tests {
 
     #[test]
     fn test_vector_angle_between_vector_xy_components() {
-        let v1 = Vector::new(3.0_f64.sqrt(), 1.0, 0.0);
-        let v2 = Vector::new(1.0, 3.0_f64.sqrt(), 0.0);
+        let v1 = Vector::new(3.0_f32.sqrt(), 1.0, 0.0);
+        let v2 = Vector::new(1.0, 3.0_f32.sqrt(), 0.0);
         assert_eq!(
             (Vector::angle_between_vector_xy_components(&v1) * 100.0).round() / 100.0,
             30.0
@@ -259,11 +255,11 @@ mod vector_tests {
     #[test]
     fn test_vector_coordinate_direction_angles() {
         let abg = Vector::new(35.4, 35.4, 86.6).coordinate_direction_3angles(true);
-        assert!((abg[0] - 69.274204).abs() < 1e-6);
-        assert!((abg[1] - 69.274204).abs() < 1e-6);
-        assert!((abg[2] - 30.032058).abs() < 1e-6);
+        assert!((abg[0] - 69.274204).abs() < 1e-4);
+        assert!((abg[1] - 69.274204).abs() < 1e-4);
+        assert!((abg[2] - 30.032058).abs() < 1e-4);
 
-        let pt = Vector::new(1.0, 1.0, 2.0_f64.sqrt()).coordinate_direction_2angles(true);
+        let pt = Vector::new(1.0, 1.0, 2.0_f32.sqrt()).coordinate_direction_2angles(true);
         assert!((pt[0] - 45.0).abs() < 1e-6);
         assert!((pt[1] - 45.0).abs() < 1e-6);
     }
@@ -279,10 +275,18 @@ mod vector_tests {
         unsafe {
             assert_eq!(
                 (vsu[0], vsu[1], vsu[2]),
-                (globals::SCALE, globals::SCALE, globals::SCALE)
+                (
+                    globals::SCALE as f32,
+                    globals::SCALE as f32,
+                    globals::SCALE as f32
+                )
             );
 
-            let mut vsd = Vector::new(globals::SCALE, globals::SCALE, globals::SCALE);
+            let mut vsd = Vector::new(
+                globals::SCALE as f32,
+                globals::SCALE as f32,
+                globals::SCALE as f32,
+            );
             vsd.scale_down();
             assert_eq!((vsd[0], vsd[1], vsd[2]), (1.0, 1.0, 1.0));
         }

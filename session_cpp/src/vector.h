@@ -24,28 +24,28 @@ public:
   std::string name = "my_vector"; ///< Vector identifier/name
 
 private:
-  double _x = 0.0;                   ///< X coordinate (private)
-  double _y = 0.0;                   ///< Y coordinate (private)
-  double _z = 0.0;                   ///< Z coordinate (private)
-  mutable double _length = 0.0;      ///< Cached length value
+  float _x = 0.0f;                   ///< X coordinate (private)
+  float _y = 0.0f;                   ///< Y coordinate (private)
+  float _z = 0.0f;                   ///< Z coordinate (private)
+  mutable float _length = 0.0f;      ///< Cached length value
   mutable bool _has_length = false;  ///< Cache validity flag
 
   /// Invalidates the cached length when coordinates change
   void invalidate_length_cache() { _has_length = false; }
 
   /// Gets cached length, computing if necessary (internal only)
-  double cached_length() const;
+  float cached_length() const;
 
 public:
   /// Getters for coordinates
-  double x() const { return _x; }
-  double y() const { return _y; }
-  double z() const { return _z; }
+  float x() const { return _x; }
+  float y() const { return _y; }
+  float z() const { return _z; }
 
   /// Setters for coordinates (invalidate cached length)
-  void set_x(double v) { _x = v; invalidate_length_cache(); }
-  void set_y(double v) { _y = v; invalidate_length_cache(); }
-  void set_z(double v) { _z = v; invalidate_length_cache(); }
+  void set_x(float v) { _x = v; invalidate_length_cache(); }
+  void set_y(float v) { _y = v; invalidate_length_cache(); }
+  void set_z(float v) { _z = v; invalidate_length_cache(); }
 
 public:
   /**
@@ -54,8 +54,8 @@ public:
    * @param y The Y coordinate of the vector.
    * @param z The Z coordinate of the vector.
    */
-  Vector(double x, double y, double z) : _x(x), _y(y), _z(z) {}
-  Vector() : _x(0.0), _y(0.0), _z(0.0) {}
+  Vector(float x, float y, float z) : _x(x), _y(y), _z(z) {}
+  Vector() : _x(0.0f), _y(0.0f), _z(0.0f) {}
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Operators
@@ -74,11 +74,11 @@ public:
   // No-copy Operators
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  double &operator[](int index);
-  const double &operator[](int index) const;
+  float &operator[](int index);
+  const float &operator[](int index) const;
 
-  Vector &operator*=(double factor);
-  Vector &operator/=(double factor);
+  Vector &operator*=(float factor);
+  Vector &operator/=(float factor);
   Vector &operator+=(const Vector &other);
   Vector &operator-=(const Vector &other);
 
@@ -86,11 +86,11 @@ public:
   // Copy Operators
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  Vector operator*(double factor) const;
-  Vector operator/(double factor) const;
+  Vector operator*(float factor) const;
+  Vector operator/(float factor) const;
   Vector operator+(const Vector &other) const;
   Vector operator-(const Vector &other) const;
-  friend Vector operator*(double factor, const Vector &v);
+  friend Vector operator*(float factor, const Vector &v);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // JSON
@@ -146,25 +146,25 @@ public:
   ///
   /// Returns
   /// -------
-  /// double
+  /// float
   ///     The length (magnitude) of the vector.
-  double length() const;
+  float length() const;
   
   /// Computes the length (magnitude) of the vector without caching.
   ///
   /// Returns
   /// -------
-  /// double
+  /// float
   ///     The length of the vector.
-  double compute_length() const;
+  float compute_length() const;
   
   /// Get the squared length of the vector (avoids sqrt for performance).
   ///
   /// Returns
   /// -------
-  /// double
+  /// float
   ///     The squared length of the vector.
-  double length_squared() const;
+  float length_squared() const;
   
   /// Unitize the vector (make it unit length).
   ///
@@ -177,9 +177,9 @@ public:
 
   /// Project this vector onto `projection_vector`.
   /// Returns: (projection_vector, projected_length, perpendicular_vector, perpendicular_length)
-  std::tuple<Vector, double, Vector, double>
+  std::tuple<Vector, float, Vector, float>
   projection(Vector &projection_vector,
-             double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
+             float tolerance = geo::GLOBALS::ZERO_TOLERANCE);
 
   /// Check if this vector is parallel/antiparallel to another.
   ///
@@ -203,9 +203,9 @@ public:
   ///
   /// Returns
   /// -------
-  /// double
+  /// float
   ///     Dot product value.
-  double dot(const Vector &other);
+  float dot(const Vector &other);
   
   /// Calculate cross product with another vector.
   ///
@@ -230,30 +230,30 @@ public:
   ///     Whether to use cross product for sign determination.
   /// degrees : bool
   ///     Return angle in degrees if true, radians if false.
-  /// tolerance : double
+  /// tolerance : float
   ///     Tolerance for zero-length vectors.
   ///
   /// Returns
   /// -------
-  /// double
+  /// float
   ///     Angle between vectors.
-  double angle(const Vector &other, bool sign_by_cross_product = true,
+  float angle(const Vector &other, bool sign_by_cross_product = true,
                bool degrees = true,
-               double tolerance = geo::GLOBALS::ZERO_TOLERANCE);
-  Vector get_leveled_vector(double &vertical_height);
+               float tolerance = geo::GLOBALS::ZERO_TOLERANCE);
+  Vector get_leveled_vector(float &vertical_height);
 
-  static double cosine_law(double &triangle_edge_length_a,
-                           double &triangle_edge_length_b,
-                           double &angle_in_between_edges, bool degrees = true);
+  static float cosine_law(float &triangle_edge_length_a,
+                           float &triangle_edge_length_b,
+                           float &angle_in_between_edges, bool degrees = true);
 
-  static double sine_law_angle(double &triangle_edge_length_a,
-                               double &angle_in_front_of_a,
-                               double &triangle_edge_length_b,
+  static float sine_law_angle(float &triangle_edge_length_a,
+                               float &angle_in_front_of_a,
+                               float &triangle_edge_length_b,
                                bool degrees = true);
 
-  static double sine_law_length(double &triangle_edge_length_a,
-                                double &angle_in_front_of_a,
-                                double &angle_in_front_of_b,
+  static float sine_law_length(float &triangle_edge_length_a,
+                                float &angle_in_front_of_a,
+                                float &angle_in_front_of_b,
                                 bool degrees = true);
 
   /// Angle between XY components in degrees.
@@ -261,12 +261,12 @@ public:
 
   static Vector sum_of_vectors(std::vector<Vector> &vectors);
 
-  std::array<double, 3> coordinate_direction_3angles(bool degrees = false);
-  std::array<double, 2> coordinate_direction_2angles(bool degrees = false);
+  std::array<float, 3> coordinate_direction_3angles(bool degrees = false);
+  std::array<float, 2> coordinate_direction_2angles(bool degrees = false);
 
   bool perpendicular_to(Vector &v);
 
-  void scale(double factor);
+  void scale(float factor);
   void scale_up();
   void scale_down();
 

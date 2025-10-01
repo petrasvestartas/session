@@ -9,9 +9,9 @@ namespace session_cpp {
 
 TEST_CASE("Point constructor.") {
   Point point(1.0, 2.0, 3.0);
-  REQUIRE(point.x == 1.0);
-  REQUIRE(point.y == 2.0);
-  REQUIRE(point.z == 3.0);
+  REQUIRE(point.x() == 1.0);
+  REQUIRE(point.y() == 2.0);
+  REQUIRE(point.z() == 3.0);
   REQUIRE(point.name == "my_point");
   REQUIRE(point.width == 1.0);
   REQUIRE(point.pointcolor == Color::white());
@@ -37,10 +37,10 @@ TEST_CASE("Point to_json_data") {
   auto data = point.to_json_data();
   REQUIRE(data["type"] == "Point");
   REQUIRE(data["name"] == "survey_point_A");
-  REQUIRE(data["x"] == 15.5);
-  REQUIRE(data["y"] == 25.7);
-  REQUIRE(data["z"] == 35.9);
-  REQUIRE(data["width"] == 2.5);
+  REQUIRE(std::abs(data["x"].get<float>() - 15.5f) < 1e-5f);
+  REQUIRE(std::abs(data["y"].get<float>() - 25.7f) < 1e-5f);
+  REQUIRE(std::abs(data["z"].get<float>() - 35.9f) < 1e-5f);
+  REQUIRE(std::abs(data["width"].get<float>() - 2.5f) < 1e-5f);
   REQUIRE(data["pointcolor"]["r"] == 255);
   REQUIRE(data["pointcolor"]["g"] == 128);
   REQUIRE(data["pointcolor"]["b"] == 64);
@@ -54,11 +54,11 @@ TEST_CASE("Point from_json_data") {
   original.pointcolor = Color(200, 100, 50, 255);
   auto data = original.to_json_data();
   Point restored = Point::from_json_data(data);
-  REQUIRE(restored.x == 42.1);
-  REQUIRE(restored.y == 84.2);
-  REQUIRE(restored.z == 126.3);
+  REQUIRE(std::abs(restored.x() - 42.1f) < 1e-5f);
+  REQUIRE(std::abs(restored.y() - 84.2f) < 1e-5f);
+  REQUIRE(std::abs(restored.z() - 126.3f) < 1e-5f);
   REQUIRE(restored.name == "control_point_B");
-  REQUIRE(restored.width == 3.0);
+  REQUIRE(std::abs(restored.width - 3.0f) < 1e-5f);
   REQUIRE(restored.pointcolor.r == 200);
   REQUIRE(restored.pointcolor.g == 100);
   REQUIRE(restored.pointcolor.b == 50);
@@ -74,9 +74,9 @@ TEST_CASE("Point to_json from_json") {
   std::string filename = "test_point.json";
   original.to_json(filename);
   Point loaded = Point::from_json(filename);
-  REQUIRE(loaded.x == original.x);
-  REQUIRE(loaded.y == original.y);
-  REQUIRE(loaded.z == original.z);
+  REQUIRE(std::abs(loaded.x() - original.x()) < 1e-5f);
+  REQUIRE(std::abs(loaded.y() - original.y()) < 1e-5f);
+  REQUIRE(std::abs(loaded.z() - original.z()) < 1e-5f);
   REQUIRE(loaded.name == original.name);
   REQUIRE(loaded.width == original.width);
   REQUIRE(loaded.pointcolor == original.pointcolor);
@@ -99,41 +99,41 @@ TEST_CASE("Point setitem") {
   point[0] = 4.0;
   point[1] = 5.0;
   point[2] = 6.0;
-  REQUIRE(point.x == 4.0);
-  REQUIRE(point.y == 5.0);
-  REQUIRE(point.z == 6.0);
+  REQUIRE(point.x() == 4.0);
+  REQUIRE(point.y() == 5.0);
+  REQUIRE(point.z() == 6.0);
 }
 
 TEST_CASE("Point imul") {
   Point point(1.0, 2.0, 3.0);
   point *= 2.0;
-  REQUIRE(point.x == 2.0);
-  REQUIRE(point.y == 4.0);
-  REQUIRE(point.z == 6.0);
+  REQUIRE(point.x() == 2.0);
+  REQUIRE(point.y() == 4.0);
+  REQUIRE(point.z() == 6.0);
 }
 
 TEST_CASE("Point itruediv") {
   Point point(2.0, 4.0, 6.0);
   point /= 2.0;
-  REQUIRE(point.x == 1.0);
-  REQUIRE(point.y == 2.0);
-  REQUIRE(point.z == 3.0);
+  REQUIRE(point.x() == 1.0);
+  REQUIRE(point.y() == 2.0);
+  REQUIRE(point.z() == 3.0);
 }
 
 TEST_CASE("Point iadd") {
   Point point(1.0, 2.0, 3.0);
   point += Point(4.0, 5.0, 6.0);
-  REQUIRE(point.x == 5.0);
-  REQUIRE(point.y == 7.0);
-  REQUIRE(point.z == 9.0);
+  REQUIRE(point.x() == 5.0);
+  REQUIRE(point.y() == 7.0);
+  REQUIRE(point.z() == 9.0);
 }
 
 TEST_CASE("Point isub") {
   Point point(5.0, 7.0, 9.0);
   point -= Point(4.0, 5.0, 6.0);
-  REQUIRE(point.x == 1.0);
-  REQUIRE(point.y == 2.0);
-  REQUIRE(point.z == 3.0);
+  REQUIRE(point.x() == 1.0);
+  REQUIRE(point.y() == 2.0);
+  REQUIRE(point.z() == 3.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -143,33 +143,33 @@ TEST_CASE("Point isub") {
 TEST_CASE("Point mul") {
   Point point(1.0, 2.0, 3.0);
   Point result = point * 2.0;
-  REQUIRE(result.x == 2.0);
-  REQUIRE(result.y == 4.0);
-  REQUIRE(result.z == 6.0);
+  REQUIRE(result.x() == 2.0);
+  REQUIRE(result.y() == 4.0);
+  REQUIRE(result.z() == 6.0);
 }
 
 TEST_CASE("Point truediv") {
   Point point(2.0, 4.0, 6.0);
   Point result = point / 2.0;
-  REQUIRE(result.x == 1.0);
-  REQUIRE(result.y == 2.0);
-  REQUIRE(result.z == 3.0);
+  REQUIRE(result.x() == 1.0);
+  REQUIRE(result.y() == 2.0);
+  REQUIRE(result.z() == 3.0);
 }
 
 TEST_CASE("Point add") {
   Point point(1.0, 2.0, 3.0);
   Point result = point + Point(4.0, 5.0, 6.0);
-  REQUIRE(result.x == 5.0);
-  REQUIRE(result.y == 7.0);
-  REQUIRE(result.z == 9.0);
+  REQUIRE(result.x() == 5.0);
+  REQUIRE(result.y() == 7.0);
+  REQUIRE(result.z() == 9.0);
 }
 
 TEST_CASE("Point sub") {
   Point point(5.0, 7.0, 9.0);
   Point result = point - Point(4.0, 5.0, 6.0);
-  REQUIRE(result.x == 1.0);
-  REQUIRE(result.y == 2.0);
-  REQUIRE(result.z == 3.0);
+  REQUIRE(result.x() == 1.0);
+  REQUIRE(result.y() == 2.0);
+  REQUIRE(result.z() == 3.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -188,9 +188,9 @@ TEST_CASE("Point mid_point") {
   Point p1(0.0, 0.0, 0.0);
   Point p2(1.0, 0.0, 0.0);
   Point mid = p1.mid_point(p2);
-  REQUIRE(std::round(mid.x * 1000000) / 1000000 == 0.5);
-  REQUIRE(std::round(mid.y * 1000000) / 1000000 == 0.0);
-  REQUIRE(std::round(mid.z * 1000000) / 1000000 == 0.0);
+  REQUIRE(std::round(mid.x() * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(mid.y() * 1000000) / 1000000 == 0.0);
+  REQUIRE(std::round(mid.z() * 1000000) / 1000000 == 0.0);
 }
 
 TEST_CASE("Point distance") {
@@ -207,9 +207,9 @@ TEST_CASE("Point area") {
 TEST_CASE("Point centroid_quad") {
   std::vector<Point> vertices = {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)};
   Point centroid = Point::centroid_quad(vertices);
-  REQUIRE(std::round(centroid.x * 1000000) / 1000000 == 0.5);
-  REQUIRE(std::round(centroid.y * 1000000) / 1000000 == 0.5);
-  REQUIRE(std::round(centroid.z * 1000000) / 1000000 == 0.0);
+  REQUIRE(std::round(centroid.x() * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(centroid.y() * 1000000) / 1000000 == 0.5);
+  REQUIRE(std::round(centroid.z() * 1000000) / 1000000 == 0.0);
 }
 
 } // namespace session_cpp

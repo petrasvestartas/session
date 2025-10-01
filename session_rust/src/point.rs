@@ -8,21 +8,24 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename = "Point")]
 pub struct Point {
-    pub guid: String,      // Unique identifier
-    pub name: String,      // Name of the point
-    pub x: f32,            // X coordinate
-    pub y: f32,            // Y coordinate
-    pub z: f32,            // Z coordinate
-    pub width: f32,        // Width of the point
+    pub guid: String, // Unique identifier
+    pub name: String, // Name of the point
+    #[serde(rename = "x")]
+    _x: f32, // X coordinate (private)
+    #[serde(rename = "y")]
+    _y: f32, // Y coordinate (private)
+    #[serde(rename = "z")]
+    _z: f32, // Z coordinate (private)
+    pub width: f32,   // Width of the point
     pub pointcolor: Color, // Color of the point
 }
 
 impl Default for Point {
     fn default() -> Self {
         Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
+            _x: 0.0,
+            _y: 0.0,
+            _z: 0.0,
             guid: Uuid::new_v4().to_string(),
             name: "my_point".to_string(),
             pointcolor: Color::white(),
@@ -35,11 +38,33 @@ impl Point {
     /// Creates a new Point with specified coordinates.
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self {
-            x,
-            y,
-            z,
+            _x: x,
+            _y: y,
+            _z: z,
             ..Default::default()
         }
+    }
+
+    /// Getters for coordinates
+    pub fn x(&self) -> f32 {
+        self._x
+    }
+    pub fn y(&self) -> f32 {
+        self._y
+    }
+    pub fn z(&self) -> f32 {
+        self._z
+    }
+
+    /// Setters for coordinates
+    pub fn set_x(&mut self, v: f32) {
+        self._x = v;
+    }
+    pub fn set_y(&mut self, v: f32) {
+        self._y = v;
+    }
+    pub fn set_z(&mut self, v: f32) {
+        self._z = v;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -79,15 +104,15 @@ impl Point {
 
     /// Check if the points are in counter-clockwise order.
     pub fn ccw(a: &Point, b: &Point, c: &Point) -> bool {
-        (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+        (c._y - a._y) * (b._x - a._x) > (b._y - a._y) * (c._x - a._x)
     }
 
     /// Calculate the mid point between this point and another point.
     pub fn mid_point(&self, p: &Point) -> Point {
         Point::new(
-            (self.x + p.x) / 2.0,
-            (self.y + p.y) / 2.0,
-            (self.z + p.z) / 2.0,
+            (self._x + p._x) / 2.0,
+            (self._y + p._y) / 2.0,
+            (self._z + p._z) / 2.0,
         )
     }
 
@@ -171,7 +196,7 @@ impl fmt::Display for Point {
         write!(
             f,
             "Point({}, {}, {}, {}, {}, {}, {})",
-            self.x, self.y, self.z, self.guid, self.name, self.pointcolor, self.width
+            self._x, self._y, self._z, self.guid, self.name, self.pointcolor, self.width
         )
     }
 }
@@ -179,9 +204,9 @@ impl fmt::Display for Point {
 impl PartialEq for Point {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
-            && (self.x * 1000000.0).round() == (other.x * 1000000.0).round()
-            && (self.y * 1000000.0).round() == (other.y * 1000000.0).round()
-            && (self.z * 1000000.0).round() == (other.z * 1000000.0).round()
+            && (self._x * 1000000.0).round() == (other._x * 1000000.0).round()
+            && (self._y * 1000000.0).round() == (other._y * 1000000.0).round()
+            && (self._z * 1000000.0).round() == (other._z * 1000000.0).round()
             && (self.width * 1000000.0).round() == (other.width * 1000000.0).round()
             && self.pointcolor == other.pointcolor
     }
@@ -196,9 +221,9 @@ impl Index<usize> for Point {
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
+            0 => &self._x,
+            1 => &self._y,
+            2 => &self._z,
             _ => panic!("Index out of range"),
         }
     }
@@ -207,9 +232,9 @@ impl Index<usize> for Point {
 impl IndexMut<usize> for Point {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match index {
-            0 => &mut self.x,
-            1 => &mut self.y,
-            2 => &mut self.z,
+            0 => &mut self._x,
+            1 => &mut self._y,
+            2 => &mut self._z,
             _ => panic!("Index out of range"),
         }
     }
@@ -221,33 +246,33 @@ impl IndexMut<usize> for Point {
 
 impl MulAssign<f32> for Point {
     fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
+        self._x *= rhs;
+        self._y *= rhs;
+        self._z *= rhs;
     }
 }
 
 impl DivAssign<f32> for Point {
     fn div_assign(&mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-        self.z /= rhs;
+        self._x /= rhs;
+        self._y /= rhs;
+        self._z /= rhs;
     }
 }
 
 impl AddAssign<Point> for Point {
     fn add_assign(&mut self, rhs: Point) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
+        self._x += rhs._x;
+        self._y += rhs._y;
+        self._z += rhs._z;
     }
 }
 
 impl SubAssign<Point> for Point {
     fn sub_assign(&mut self, rhs: Point) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
+        self._x -= rhs._x;
+        self._y -= rhs._y;
+        self._z -= rhs._z;
     }
 }
 
@@ -259,7 +284,7 @@ impl Mul<f32> for Point {
     type Output = Point;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Point::new(self.x * rhs, self.y * rhs, self.z * rhs)
+        Point::new(self._x * rhs, self._y * rhs, self._z * rhs)
     }
 }
 
@@ -267,7 +292,7 @@ impl Div<f32> for Point {
     type Output = Point;
 
     fn div(self, rhs: f32) -> Self::Output {
-        Point::new(self.x / rhs, self.y / rhs, self.z / rhs)
+        Point::new(self._x / rhs, self._y / rhs, self._z / rhs)
     }
 }
 
@@ -275,7 +300,7 @@ impl Add<Point> for Point {
     type Output = Point;
 
     fn add(self, rhs: Point) -> Self::Output {
-        Point::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        Point::new(self._x + rhs._x, self._y + rhs._y, self._z + rhs._z)
     }
 }
 
@@ -283,6 +308,6 @@ impl Sub<Point> for Point {
     type Output = Point;
 
     fn sub(self, rhs: Point) -> Self::Output {
-        Point::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        Point::new(self._x - rhs._x, self._y - rhs._y, self._z - rhs._z)
     }
 }

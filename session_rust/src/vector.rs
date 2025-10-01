@@ -13,20 +13,20 @@ pub struct Vector {
     pub guid: String,
     pub name: String,
     #[serde(rename = "x")]
-    _x: f64,
+    _x: f32,
     #[serde(rename = "y")]
-    _y: f64,
+    _y: f32,
     #[serde(rename = "z")]
-    _z: f64,
+    _z: f32,
     #[serde(skip)]
-    _length: f64,
+    _length: f32,
     #[serde(skip)]
     _has_length: bool,
 }
 
 impl Vector {
     /// Creates a new Vector with specified coordinates.
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self {
             _x: x,
             _y: y,
@@ -64,26 +64,26 @@ impl Vector {
     }
 
     /// Getters for coordinates
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> f32 {
         self._x
     }
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> f32 {
         self._y
     }
-    pub fn z(&self) -> f64 {
+    pub fn z(&self) -> f32 {
         self._z
     }
 
     /// Setters for coordinates (invalidate cached length)
-    pub fn set_x(&mut self, v: f64) {
+    pub fn set_x(&mut self, v: f32) {
         self._x = v;
         self.invalidate_length_cache();
     }
-    pub fn set_y(&mut self, v: f64) {
+    pub fn set_y(&mut self, v: f32) {
         self._y = v;
         self.invalidate_length_cache();
     }
-    pub fn set_z(&mut self, v: f64) {
+    pub fn set_z(&mut self, v: f32) {
         self._z = v;
         self.invalidate_length_cache();
     }
@@ -128,19 +128,19 @@ impl Vector {
     ///
     /// Returns
     /// -------
-    /// f64
+    /// f32
     ///     The length of the vector.
-    pub fn compute_length(&self) -> f64 {
+    pub fn compute_length(&self) -> f32 {
         (self._x * self._x + self._y * self._y + self._z * self._z).sqrt()
     }
 
-    /// Returns the cached length of the vector, computing and caching it if necessary.
+    /// Gets the (cached) length. Avoids recalculating if unchanged.
     ///
     /// Returns
     /// -------
-    /// f64
+    /// f32
     ///     The length (magnitude) of the vector.
-    pub fn length(&mut self) -> f64 {
+    pub fn length(&mut self) -> f32 {
         if !self._has_length {
             self._length = self.compute_length();
             self._has_length = true;
@@ -149,7 +149,7 @@ impl Vector {
     }
 
     /// Computes the squared length of the vector (avoids sqrt for performance).
-    pub fn length_squared(&self) -> f64 {
+    pub fn length_squared(&self) -> f32 {
         self._x * self._x + self._y * self._y + self._z * self._z
     }
 
@@ -157,7 +157,7 @@ impl Vector {
     pub fn unitize(&mut self) {
         let len = self.length();
         unsafe {
-            if len > globals::ZERO_TOLERANCE {
+            if len > globals::ZERO_TOLERANCE as f32 {
                 self._x /= len;
                 self._y /= len;
                 self._z /= len;
@@ -182,7 +182,7 @@ impl Vector {
     }
 
     /// Scales the vector by a factor.
-    pub fn scale(&mut self, factor: f64) {
+    pub fn scale(&mut self, factor: f32) {
         self._x *= factor;
         self._y *= factor;
         self._z *= factor;
@@ -192,14 +192,14 @@ impl Vector {
     /// Scales the vector up by the global scale factor.
     pub fn scale_up(&mut self) {
         unsafe {
-            self.scale(globals::SCALE);
+            self.scale(globals::SCALE as f32);
         }
     }
 
     /// Scales the vector down by the global scale factor.
     pub fn scale_down(&mut self) {
         unsafe {
-            self.scale(1.0 / globals::SCALE);
+            self.scale(1.0 / globals::SCALE as f32);
         }
     }
 
@@ -212,9 +212,9 @@ impl Vector {
     ///
     /// Returns
     /// -------
-    /// f64
+    /// f32
     ///     Dot product value.
-    pub fn dot(&self, other: &Vector) -> f64 {
+    pub fn dot(&self, other: &Vector) -> f32 {
         self._x * other._x + self._y * other._y + self._z * other._z
     }
 
@@ -240,18 +240,18 @@ impl Vector {
     }
 
     /// Computes the angle between this vector and another in degrees.
-    pub fn angle(&self, other: &Vector, sign_by_cross_product: bool) -> f64 {
+    pub fn angle(&self, other: &Vector, sign_by_cross_product: bool) -> f32 {
         let dotp = self.dot(other);
         let len_product = self.compute_length() * other.compute_length();
 
         unsafe {
-            if len_product < globals::ZERO_TOLERANCE {
+            if len_product < globals::ZERO_TOLERANCE as f32 {
                 return 0.0;
             }
         }
 
         let cos_angle = (dotp / len_product).clamp(-1.0, 1.0);
-        let mut angle = cos_angle.acos() * unsafe { globals::TO_DEGREES };
+        let mut angle = cos_angle.acos() * unsafe { globals::TO_DEGREES as f32 };
 
         if sign_by_cross_product {
             let cp = self.cross(other);
@@ -270,13 +270,13 @@ impl Vector {
     /// - projected length (scalar projection)
     /// - perpendicular projected vector (self - projection)
     /// - perpendicular projected vector length
-    pub fn projection(&self, onto: &Vector) -> (Vector, f64, Vector, f64) {
-        // Default tolerance follows Python: globals::ZERO_TOLERANCE
-        self.projection_with(onto, unsafe { globals::ZERO_TOLERANCE })
+    pub fn projection(&self, onto: &Vector) -> (Vector, f32, Vector, f32) {
+        // Default tolerance follows Python: globals::ZERO_TOLERANCE as f32
+        self.projection_with(onto, unsafe { globals::ZERO_TOLERANCE as f32 })
     }
 
     /// Same as `projection` but allows specifying a tolerance.
-    pub fn projection_with(&self, onto: &Vector, tolerance: f64) -> (Vector, f64, Vector, f64) {
+    pub fn projection_with(&self, onto: &Vector, tolerance: f32) -> (Vector, f32, Vector, f32) {
         let onto_len_sq = onto.length_squared();
 
         if onto_len_sq < tolerance {
@@ -316,7 +316,7 @@ impl Vector {
         }
 
         let cos_angle = self.dot(other) / len_product;
-        let angle_in_radians = unsafe { globals::ANGLE * globals::TO_RADIANS };
+        let angle_in_radians = unsafe { globals::ANGLE as f32 * globals::TO_RADIANS as f32 };
         let cos_tolerance = angle_in_radians.cos();
 
         if cos_angle >= cos_tolerance {
@@ -329,7 +329,7 @@ impl Vector {
     }
 
     /// Gets a leveled vector (replicates statics bug with degrees passed to cos).
-    pub fn get_leveled_vector(&self, vertical_height: f64) -> Vector {
+    pub fn get_leveled_vector(&self, vertical_height: f32) -> Vector {
         let mut copy = self.clone();
         copy.unitize();
 
@@ -351,8 +351,8 @@ impl Vector {
         let i: usize;
         let j: usize;
         let k: usize;
-        let a: f64;
-        let b: f64;
+        let a: f32;
+        let b: f32;
 
         if v.y().abs() > v.x().abs() {
             if v.z().abs() > v.y().abs() {
@@ -419,13 +419,13 @@ impl Vector {
 
     /// Computes the cosine law for triangle edge length.
     pub fn cosine_law(
-        triangle_edge_length_a: f64,
-        triangle_edge_length_b: f64,
-        angle_in_degrees_between_edges: f64,
+        triangle_edge_length_a: f32,
+        triangle_edge_length_b: f32,
+        angle_in_degrees_between_edges: f32,
         degrees: bool,
-    ) -> f64 {
+    ) -> f32 {
         let angle = if degrees {
-            angle_in_degrees_between_edges * unsafe { globals::TO_RADIANS }
+            angle_in_degrees_between_edges * unsafe { globals::TO_RADIANS as f32 as f32 }
         } else {
             angle_in_degrees_between_edges
         };
@@ -437,13 +437,13 @@ impl Vector {
 
     /// Computes the sine law for triangle angle.
     pub fn sine_law_angle(
-        triangle_edge_length_a: f64,
-        angle_in_degrees_in_front_of_a: f64,
-        triangle_edge_length_b: f64,
+        triangle_edge_length_a: f32,
+        angle_in_degrees_in_front_of_a: f32,
+        triangle_edge_length_b: f32,
         degrees: bool,
-    ) -> f64 {
+    ) -> f32 {
         let angle_a = if degrees {
-            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS }
+            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS as f32 }
         } else {
             angle_in_degrees_in_front_of_a
         };
@@ -452,7 +452,7 @@ impl Vector {
         let angle_b = sin_b.asin();
 
         if degrees {
-            angle_b * unsafe { globals::TO_DEGREES }
+            angle_b * unsafe { globals::TO_DEGREES as f32 }
         } else {
             angle_b
         }
@@ -460,19 +460,19 @@ impl Vector {
 
     /// Computes the sine law for triangle edge length.
     pub fn sine_law_length(
-        triangle_edge_length_a: f64,
-        angle_in_degrees_in_front_of_a: f64,
-        angle_in_degrees_in_front_of_b: f64,
+        triangle_edge_length_a: f32,
+        angle_in_degrees_in_front_of_a: f32,
+        angle_in_degrees_in_front_of_b: f32,
         degrees: bool,
-    ) -> f64 {
+    ) -> f32 {
         let angle_a = if degrees {
-            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS }
+            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS as f32 }
         } else {
             angle_in_degrees_in_front_of_a
         };
 
         let angle_b = if degrees {
-            angle_in_degrees_in_front_of_b * unsafe { globals::TO_RADIANS }
+            angle_in_degrees_in_front_of_b * unsafe { globals::TO_RADIANS as f32 }
         } else {
             angle_in_degrees_in_front_of_b
         };
@@ -481,13 +481,13 @@ impl Vector {
     }
 
     /// Computes the angle between vector XY components in degrees.
-    pub fn angle_between_vector_xy_components(vector: &Vector) -> f64 {
-        vector._y.atan2(vector._x) * unsafe { globals::TO_DEGREES }
+    pub fn angle_between_vector_xy_components(vector: &Vector) -> f32 {
+        vector._y.atan2(vector._x) * unsafe { globals::TO_DEGREES as f32 }
     }
 
     /// Deprecated: use `angle_between_vector_xy_components`.
     #[allow(dead_code)]
-    pub fn angle_between_vector_xy_components_degrees(vector: &Vector) -> f64 {
+    pub fn angle_between_vector_xy_components_degrees(vector: &Vector) -> f32 {
         Self::angle_between_vector_xy_components(vector)
     }
 
@@ -503,10 +503,10 @@ impl Vector {
     }
 
     /// Computes coordinate direction angles (alpha, beta, gamma) in degrees.
-    pub fn coordinate_direction_3angles(&self, degrees: bool) -> [f64; 3] {
+    pub fn coordinate_direction_3angles(&self, degrees: bool) -> [f32; 3] {
         let length = self.compute_length();
         unsafe {
-            if length < globals::ZERO_TOLERANCE {
+            if length < globals::ZERO_TOLERANCE as f32 {
                 return [0.0, 0.0, 0.0];
             }
         }
@@ -522,9 +522,9 @@ impl Vector {
         if degrees {
             unsafe {
                 [
-                    alpha * globals::TO_DEGREES,
-                    beta * globals::TO_DEGREES,
-                    gamma * globals::TO_DEGREES,
+                    alpha * globals::TO_DEGREES as f32,
+                    beta * globals::TO_DEGREES as f32,
+                    gamma * globals::TO_DEGREES as f32,
                 ]
             }
         } else {
@@ -533,12 +533,12 @@ impl Vector {
     }
 
     /// Computes coordinate direction angles (phi, theta) in degrees.
-    pub fn coordinate_direction_2angles(&self, degrees: bool) -> [f64; 2] {
+    pub fn coordinate_direction_2angles(&self, degrees: bool) -> [f32; 2] {
         let length_xy = (self._x * self._x + self._y * self._y).sqrt();
         let length = self.compute_length();
 
         unsafe {
-            if length < globals::ZERO_TOLERANCE {
+            if length < globals::ZERO_TOLERANCE as f32 {
                 return [0.0, 0.0];
             }
         }
@@ -547,7 +547,12 @@ impl Vector {
         let theta = length_xy.atan2(self._z);
 
         if degrees {
-            unsafe { [phi * globals::TO_DEGREES, theta * globals::TO_DEGREES] }
+            unsafe {
+                [
+                    phi * globals::TO_DEGREES as f32,
+                    theta * globals::TO_DEGREES as f32,
+                ]
+            }
         } else {
             [phi, theta]
         }
@@ -593,7 +598,7 @@ impl Default for Vector {
 
 // Index trait for array-like access
 impl Index<usize> for Vector {
-    type Output = f64;
+    type Output = f32;
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
@@ -666,34 +671,34 @@ impl Sub for &Vector {
     }
 }
 
-impl Mul<f64> for Vector {
+impl Mul<f32> for Vector {
     type Output = Vector;
 
-    fn mul(self, scalar: f64) -> Vector {
+    fn mul(self, scalar: f32) -> Vector {
         Vector::new(self.x() * scalar, self.y() * scalar, self.z() * scalar)
     }
 }
 
-impl Mul<f64> for &Vector {
+impl Mul<f32> for &Vector {
     type Output = Vector;
 
-    fn mul(self, scalar: f64) -> Vector {
+    fn mul(self, scalar: f32) -> Vector {
         Vector::new(self.x() * scalar, self.y() * scalar, self.z() * scalar)
     }
 }
 
-impl Div<f64> for Vector {
+impl Div<f32> for Vector {
     type Output = Vector;
 
-    fn div(self, scalar: f64) -> Vector {
+    fn div(self, scalar: f32) -> Vector {
         Vector::new(self.x() / scalar, self.y() / scalar, self.z() / scalar)
     }
 }
 
-impl Div<f64> for &Vector {
+impl Div<f32> for &Vector {
     type Output = Vector;
 
-    fn div(self, scalar: f64) -> Vector {
+    fn div(self, scalar: f32) -> Vector {
         Vector::new(self.x() / scalar, self.y() / scalar, self.z() / scalar)
     }
 }
@@ -747,16 +752,16 @@ impl SubAssign<&Vector> for Vector {
     }
 }
 
-impl MulAssign<f64> for Vector {
-    fn mul_assign(&mut self, scalar: f64) {
+impl MulAssign<f32> for Vector {
+    fn mul_assign(&mut self, scalar: f32) {
         self.set_x(self.x() * scalar);
         self.set_y(self.y() * scalar);
         self.set_z(self.z() * scalar);
     }
 }
 
-impl DivAssign<f64> for Vector {
-    fn div_assign(&mut self, scalar: f64) {
+impl DivAssign<f32> for Vector {
+    fn div_assign(&mut self, scalar: f32) {
         self.set_x(self.x() / scalar);
         self.set_y(self.y() / scalar);
         self.set_z(self.z() / scalar);

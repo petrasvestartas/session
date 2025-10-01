@@ -44,8 +44,8 @@ TEST_CASE("Objects from_json_data.") {
   REQUIRE(objects.name == "my_objects");
   REQUIRE(objects.points);
   REQUIRE(objects.points->size() == 3);
-  REQUIRE(objects.points->at(0)->x == 1.0);
-  REQUIRE(objects.points->at(1)->y == 5.0);
+  REQUIRE(objects.points->at(0)->x() == 1.0);
+  REQUIRE(objects.points->at(1)->y() == 5.0);
 }
 
 TEST_CASE("Objects to_json_from_json.") {
@@ -63,8 +63,8 @@ TEST_CASE("Objects to_json_from_json.") {
   REQUIRE(loaded.name == objects.name);
   REQUIRE(loaded.points);
   REQUIRE(loaded.points->size() == 3);
-  REQUIRE(loaded.points->at(0)->x == 1.0);
-  REQUIRE(loaded.points->at(1)->y == 5.0);
+  REQUIRE(loaded.points->at(0)->x() == 1.0);
+  REQUIRE(loaded.points->at(1)->y() == 5.0);
 }
 
 } // namespace session_cpp

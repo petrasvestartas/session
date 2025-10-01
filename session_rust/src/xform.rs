@@ -37,19 +37,19 @@ impl Xform {
     // Basic Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    pub fn translation(tx: f32, ty: f32, tz: f32) -> Self {
+    pub fn translation(x: f32, y: f32, z: f32) -> Self {
         let mut xform = Self::identity();
-        xform.m[12] = tx;
-        xform.m[13] = ty;
-        xform.m[14] = tz;
+        xform.m[12] = x;
+        xform.m[13] = y;
+        xform.m[14] = z;
         xform
     }
 
-    pub fn scaling(sx: f32, sy: f32, sz: f32) -> Self {
+    pub fn scaling(x: f32, y: f32, z: f32) -> Self {
         let mut xform = Self::identity();
-        xform.m[0] = sx;
-        xform.m[5] = sy;
-        xform.m[10] = sz;
+        xform.m[0] = x;
+        xform.m[5] = y;
+        xform.m[10] = z;
         xform
     }
 
@@ -59,6 +59,7 @@ impl Xform {
 
     pub fn rotation_x(angle_radians: f32) -> Self {
         let mut xform = Self::identity();
+
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
 
@@ -72,6 +73,7 @@ impl Xform {
 
     pub fn rotation_y(angle_radians: f32) -> Self {
         let mut xform = Self::identity();
+
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
 
@@ -97,33 +99,30 @@ impl Xform {
     }
 
     pub fn rotation(axis: &Vector, angle_radians: f32) -> Self {
-        assert!(
-            (axis.compute_length() - 1.0).abs() < 1e-6,
-            "Axis must be normalized"
-        );
+        let axis = axis.unitized();
 
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
         let one_minus_cos = 1.0 - cos_angle;
 
-        let xx = (axis.x() as f32) * (axis.x() as f32);
-        let xy = (axis.x() as f32) * (axis.y() as f32);
-        let xz = (axis.x() as f32) * (axis.z() as f32);
-        let yy = (axis.y() as f32) * (axis.y() as f32);
-        let yz = (axis.y() as f32) * (axis.z() as f32);
-        let zz = (axis.z() as f32) * (axis.z() as f32);
+        let xx = axis.x() * axis.x();
+        let xy = axis.x() * axis.y();
+        let xz = axis.x() * axis.z();
+        let yy = axis.y() * axis.y();
+        let yz = axis.y() * axis.z();
+        let zz = axis.z() * axis.z();
 
         xform.m[0] = cos_angle + xx * one_minus_cos;
-        xform.m[1] = xy * one_minus_cos + (axis.z() as f32) * sin_angle;
-        xform.m[2] = xz * one_minus_cos - (axis.y() as f32) * sin_angle;
+        xform.m[1] = xy * one_minus_cos + axis.z() * sin_angle;
+        xform.m[2] = xz * one_minus_cos - axis.y() * sin_angle;
 
-        xform.m[4] = xy * one_minus_cos - (axis.z() as f32) * sin_angle;
+        xform.m[4] = xy * one_minus_cos - axis.z() * sin_angle;
         xform.m[5] = cos_angle + yy * one_minus_cos;
-        xform.m[6] = yz * one_minus_cos + (axis.x() as f32) * sin_angle;
+        xform.m[6] = yz * one_minus_cos + axis.x() * sin_angle;
 
-        xform.m[8] = xz * one_minus_cos + (axis.y() as f32) * sin_angle;
-        xform.m[9] = yz * one_minus_cos - (axis.x() as f32) * sin_angle;
+        xform.m[8] = xz * one_minus_cos + axis.y() * sin_angle;
+        xform.m[9] = yz * one_minus_cos - axis.x() * sin_angle;
         xform.m[10] = cos_angle + zz * one_minus_cos;
 
         xform
@@ -134,38 +133,28 @@ impl Xform {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn change_basis(origin: &Point, x_axis: &Vector, y_axis: &Vector, z_axis: &Vector) -> Self {
-        assert!(
-            (x_axis.compute_length() - 1.0).abs() < 1e-6,
-            "X axis must be normalized"
-        );
-        assert!(
-            (y_axis.compute_length() - 1.0).abs() < 1e-6,
-            "Y axis must be normalized"
-        );
-        assert!(
-            (z_axis.compute_length() - 1.0).abs() < 1e-6,
-            "Z axis must be normalized"
-        );
+        let x_axis = x_axis.unitized();
+        let y_axis = y_axis.unitized();
+        let z_axis = z_axis.unitized();
 
         let mut xform = Self::identity();
 
-        // Set the basis vectors
-        xform.m[0] = x_axis.x() as f32;
-        xform.m[1] = x_axis.y() as f32;
-        xform.m[2] = x_axis.z() as f32;
+        xform.m[0] = x_axis.x();
+        xform.m[1] = x_axis.y();
+        xform.m[2] = x_axis.z();
 
-        xform.m[4] = y_axis.x() as f32;
-        xform.m[5] = y_axis.y() as f32;
-        xform.m[6] = y_axis.z() as f32;
+        xform.m[4] = y_axis.x();
+        xform.m[5] = y_axis.y();
+        xform.m[6] = y_axis.z();
 
-        xform.m[8] = z_axis.x() as f32;
-        xform.m[9] = z_axis.y() as f32;
-        xform.m[10] = z_axis.z() as f32;
+        xform.m[8] = z_axis.x();
+        xform.m[9] = z_axis.y();
+        xform.m[10] = z_axis.z();
 
         // Set the origin
-        xform.m[12] = origin.x;
-        xform.m[13] = origin.y;
-        xform.m[14] = origin.z;
+        xform.m[12] = origin.x();
+        xform.m[13] = origin.y();
+        xform.m[14] = origin.z();
 
         xform
     }
@@ -227,13 +216,13 @@ impl Xform {
 
     pub fn transform_point(&self, point: &Point) -> Point {
         let m = &self.m;
-        let w = m[3] * point.x + m[7] * point.y + m[11] * point.z + m[15];
+        let w = m[3] * point.x() + m[7] * point.y() + m[11] * point.z() + m[15];
         let w_inv = if w.abs() > 1e-10 { 1.0 / w } else { 1.0 };
 
         Point::new(
-            (m[0] * point.x + m[4] * point.y + m[8] * point.z + m[12]) * w_inv,
-            (m[1] * point.x + m[5] * point.y + m[9] * point.z + m[13]) * w_inv,
-            (m[2] * point.x + m[6] * point.y + m[10] * point.z + m[14]) * w_inv,
+            (m[0] * point.x() + m[4] * point.y() + m[8] * point.z() + m[12]) * w_inv,
+            (m[1] * point.x() + m[5] * point.y() + m[9] * point.z() + m[13]) * w_inv,
+            (m[2] * point.x() + m[6] * point.y() + m[10] * point.z() + m[14]) * w_inv,
         )
     }
 
@@ -241,12 +230,9 @@ impl Xform {
         let m = &self.m;
 
         Vector::new(
-            (m[0] * (vector.x() as f32) + m[4] * (vector.y() as f32) + m[8] * (vector.z() as f32))
-                as f64,
-            (m[1] * (vector.x() as f32) + m[5] * (vector.y() as f32) + m[9] * (vector.z() as f32))
-                as f64,
-            (m[2] * (vector.x() as f32) + m[6] * (vector.y() as f32) + m[10] * (vector.z() as f32))
-                as f64,
+            m[0] * vector.x() + m[4] * vector.y() + m[8] * vector.z(),
+            m[1] * vector.x() + m[5] * vector.y() + m[9] * vector.z(),
+            m[2] * vector.x() + m[6] * vector.y() + m[10] * vector.z(),
         )
     }
 
@@ -400,8 +386,8 @@ impl Xform {
         m_xform.m[6] = r[2][4] as f32;
         m_xform.m[10] = r[2][5] as f32;
 
-        let t0 = Self::translation(-origin_1.x, -origin_1.y, -origin_1.z);
-        let t2 = Self::translation(origin_0.x, origin_0.y, origin_0.z);
+        let t0 = Self::translation(-origin_1.x(), -origin_1.y(), -origin_1.z());
+        let t2 = Self::translation(origin_0.x(), origin_0.y(), origin_0.z());
         &t2 * &(&m_xform * &t0)
     }
 
@@ -429,7 +415,7 @@ impl Xform {
         y1.unitize();
         z1.unitize();
 
-        let t0 = Self::translation(-origin_0.x, -origin_0.y, -origin_0.z);
+        let t0 = Self::translation(-origin_0.x(), -origin_0.y(), -origin_0.z());
 
         let mut f0 = Self::identity();
         f0.m[0] = x0.x() as f32;
@@ -454,7 +440,7 @@ impl Xform {
         f1.m[10] = z1.z() as f32;
 
         let r = &f1 * &f0;
-        let t1 = Self::translation(origin_1.x, origin_1.y, origin_1.z);
+        let t1 = Self::translation(origin_1.x(), origin_1.y(), origin_1.z());
         &t1 * &(&r * &t0)
     }
 
@@ -466,7 +452,7 @@ impl Xform {
         y.unitize();
         z.unitize();
 
-        let t = Self::translation(-origin.x, -origin.y, -origin.z);
+        let t = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let mut f = Self::identity();
         f.m[0] = x.x() as f32;
         f.m[1] = x.y() as f32;
@@ -499,7 +485,7 @@ impl Xform {
         f.m[6] = y.z() as f32;
         f.m[10] = z.z() as f32;
 
-        let t = Self::translation(origin.x, origin.y, origin.z);
+        let t = Self::translation(origin.x(), origin.y(), origin.z());
         &t * &f
     }
 
@@ -512,16 +498,16 @@ impl Xform {
     }
 
     pub fn scale_uniform(origin: &Point, scale_value: f32) -> Self {
-        let t0 = Self::translation(-origin.x, -origin.y, -origin.z);
+        let t0 = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let t1 = Self::scaling(scale_value, scale_value, scale_value);
-        let t2 = Self::translation(origin.x, origin.y, origin.z);
+        let t2 = Self::translation(origin.x(), origin.y(), origin.z());
         &t2 * &(&t1 * &t0)
     }
 
     pub fn scale_non_uniform(origin: &Point, scale_x: f32, scale_y: f32, scale_z: f32) -> Self {
-        let t0 = Self::translation(-origin.x, -origin.y, -origin.z);
+        let t0 = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let t1 = Self::scale_xyz(scale_x, scale_y, scale_z);
-        let t2 = Self::translation(origin.x, origin.y, origin.z);
+        let t2 = Self::translation(origin.x(), origin.y(), origin.z());
         &t2 * &(&t1 * &t0)
     }
 
