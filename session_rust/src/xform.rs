@@ -16,8 +16,8 @@ impl Xform {
     // Basic Constructors
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    pub fn new(value: f32) -> Self {
-        Xform { m: [value; 16] }
+    pub fn new() -> Self {
+        Self::identity()
     }
 
     pub fn from_matrix(matrix: [f32; 16]) -> Self {
@@ -25,7 +25,7 @@ impl Xform {
     }
 
     pub fn identity() -> Self {
-        let mut xform = Xform::new(0.0);
+        let mut xform = Xform { m: [0.0; 16] };
         xform.m[0] = 1.0;
         xform.m[5] = 1.0;
         xform.m[10] = 1.0;
@@ -638,7 +638,7 @@ impl Mul for &Xform {
     type Output = Xform;
 
     fn mul(self, rhs: &Xform) -> Self::Output {
-        let mut result = Xform::new(0.0);
+        let mut result = Xform { m: [0.0; 16] };
 
         for i in 0..4 {
             for j in 0..4 {
