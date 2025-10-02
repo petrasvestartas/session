@@ -36,7 +36,10 @@ class Quaternion:
 
     def magnitude(self):
         return math.sqrt(
-            self.s * self.s + self.v.x * self.v.x + self.v.y * self.v.y + self.v.z * self.v.z
+            self.s * self.s
+            + self.v.x * self.v.x
+            + self.v.y * self.v.y
+            + self.v.z * self.v.z
         )
 
     def normalize(self):

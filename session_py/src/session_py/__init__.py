@@ -12,4 +12,15 @@ from .graph import Graph
 from .objects import Objects
 from .session import Session
 
-__all__ = ["Color", "Point", "Vector", "Xform", "Quaternion", "Tree", "TreeNode", "Graph", "Objects", "Session"]
+__all__ = [
+    "Color",
+    "Point",
+    "Vector",
+    "Xform",
+    "Quaternion",
+    "Tree",
+    "TreeNode",
+    "Graph",
+    "Objects",
+    "Session",
+]

@@ -48,7 +48,7 @@ impl<'de> Deserialize<'de> for Quaternion {
             y: f32,
             z: f32,
         }
-        
+
         let helper = QuaternionHelper::deserialize(deserializer)?;
         Ok(Quaternion {
             typ: helper.typ,

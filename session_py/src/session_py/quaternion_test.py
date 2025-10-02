@@ -10,7 +10,11 @@ def approx_f32(a, b, tol=1e-5):
 
 
 def vectors_close(a, b, tol=1e-5):
-    return approx_f32(a.x, b.x, tol) and approx_f32(a.y, b.y, tol) and approx_f32(a.z, b.z, tol)
+    return (
+        approx_f32(a.x, b.x, tol)
+        and approx_f32(a.y, b.y, tol)
+        and approx_f32(a.z, b.z, tol)
+    )
 
 
 def test_quaternion_identity():

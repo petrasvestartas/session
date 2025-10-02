@@ -69,20 +69,14 @@ Quaternion Quaternion::operator*(const Quaternion& other) const {
 }
 
 nlohmann::ordered_json Quaternion::to_json_data() const {
-    auto clean_float = [](float val) -> double { 
-        // For very small values, keep high precision
-        if (std::abs(val) < 0.01f) return static_cast<double>(val);
-        // For normal values, round to 2 decimal places
-        return static_cast<double>(std::round(val * 100.0f) / 100.0f);
-    };
     return nlohmann::ordered_json{
         {"type", typ},
         {"guid", guid},
         {"name", name},
-        {"s", clean_float(s)},
-        {"x", clean_float(v.x())},
-        {"y", clean_float(v.y())},
-        {"z", clean_float(v.z())}
+        {"s", static_cast<double>(s)},
+        {"x", static_cast<double>(v.x())},
+        {"y", static_cast<double>(v.y())},
+        {"z", static_cast<double>(v.z())}
     };
 }
 
