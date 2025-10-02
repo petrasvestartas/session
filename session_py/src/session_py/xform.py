@@ -92,7 +92,7 @@ class Xform:
     @staticmethod
     def rotation(axis, angle_radians):
         xform = Xform()
-        axis = axis.unitized()
+        axis = axis.normalize()
         cos_angle = math.cos(angle_radians)
         sin_angle = math.sin(angle_radians)
         one_minus_cos = 1.0 - cos_angle
@@ -116,9 +116,9 @@ class Xform:
     @staticmethod
     def change_basis(origin, x_axis, y_axis, z_axis):
         xform = Xform()
-        x_axis = x_axis.unitized()
-        y_axis = y_axis.unitized()
-        z_axis = z_axis.unitized()
+        x_axis = x_axis.normalize()
+        y_axis = y_axis.normalize()
+        z_axis = z_axis.normalize()
         xform.m[0] = x_axis.x
         xform.m[1] = x_axis.y
         xform.m[2] = x_axis.z
@@ -239,12 +239,12 @@ class Xform:
     def plane_to_plane(
         origin_0, x_axis_0, y_axis_0, z_axis_0, origin_1, x_axis_1, y_axis_1, z_axis_1
     ):
-        x0 = x_axis_0.unitized()
-        y0 = y_axis_0.unitized()
-        z0 = z_axis_0.unitized()
-        x1 = x_axis_1.unitized()
-        y1 = y_axis_1.unitized()
-        z1 = z_axis_1.unitized()
+        x0 = x_axis_0.normalize()
+        y0 = y_axis_0.normalize()
+        z0 = z_axis_0.normalize()
+        x1 = x_axis_1.normalize()
+        y1 = y_axis_1.normalize()
+        z1 = z_axis_1.normalize()
         t0 = Xform.translation(-origin_0.x, -origin_0.y, -origin_0.z)
         f0 = Xform()
         f0.m[0] = x0.x
@@ -272,9 +272,9 @@ class Xform:
 
     @staticmethod
     def plane_to_xy(origin, x_axis, y_axis, z_axis):
-        x = x_axis.unitized()
-        y = y_axis.unitized()
-        z = z_axis.unitized()
+        x = x_axis.normalize()
+        y = y_axis.normalize()
+        z = z_axis.normalize()
         t = Xform.translation(-origin.x, -origin.y, -origin.z)
         f = Xform()
         f.m[0] = x.x
@@ -290,9 +290,9 @@ class Xform:
 
     @staticmethod
     def xy_to_plane(origin, x_axis, y_axis, z_axis):
-        x = x_axis.unitized()
-        y = y_axis.unitized()
-        z = z_axis.unitized()
+        x = x_axis.normalize()
+        y = y_axis.normalize()
+        z = z_axis.normalize()
         f = Xform()
         f.m[0] = x.x
         f.m[4] = y.x
@@ -346,6 +346,29 @@ class Xform:
         xform.m[2] = t * ux * uz - uy * s
         xform.m[6] = t * uy * uz + ux * s
         xform.m[10] = t * uz * uz + c
+        return xform
+
+    @staticmethod
+    def look_at_rh(eye, target, up):
+        from .vector import Vector
+
+        f = (target - eye).normalize()
+        s = f.cross(up.normalize()).normalize()
+        u = s.cross(f)
+        xform = Xform()
+        xform.m[0] = s.x
+        xform.m[4] = s.y
+        xform.m[8] = s.z
+        xform.m[1] = u.x
+        xform.m[5] = u.y
+        xform.m[9] = u.z
+        xform.m[2] = -f.x
+        xform.m[6] = -f.y
+        xform.m[10] = -f.z
+        eye_vec = Vector(eye.x, eye.y, eye.z)
+        xform.m[12] = -s.dot(eye_vec)
+        xform.m[13] = -u.dot(eye_vec)
+        xform.m[14] = f.dot(eye_vec)
         return xform
 
     def inverse(self) -> Optional["Xform"]:

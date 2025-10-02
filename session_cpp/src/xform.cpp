@@ -74,7 +74,7 @@ Xform Xform::rotation_z(float angle_radians) {
 
 Xform Xform::rotation(Vector& axis, float angle_radians) {
     Xform xform;
-    axis.unitize();
+    axis.normalize_self();
     
     float cos_angle = std::cos(angle_radians);
     float sin_angle = std::sin(angle_radians);
@@ -105,9 +105,9 @@ Xform Xform::rotation(Vector& axis, float angle_radians) {
 Xform Xform::change_basis(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis) {
     Xform xform;
 
-    x_axis.unitize();
-    y_axis.unitize();
-    z_axis.unitize();
+    x_axis.normalize_self();
+    y_axis.normalize_self();
+    z_axis.normalize_self();
 
     xform.m[0] = x_axis.x();
     xform.m[1] = x_axis.y();
@@ -219,8 +219,8 @@ Xform Xform::plane_to_plane(Point& origin_0, Vector& x_axis_0, Vector& y_axis_0,
                              Point& origin_1, Vector& x_axis_1, Vector& y_axis_1, Vector& z_axis_1) {
     Vector x0 = x_axis_0, y0 = y_axis_0, z0 = z_axis_0;
     Vector x1 = x_axis_1, y1 = y_axis_1, z1 = z_axis_1;
-    x0.unitize(); y0.unitize(); z0.unitize();
-    x1.unitize(); y1.unitize(); z1.unitize();
+    x0.normalize_self(); y0.normalize_self(); z0.normalize_self();
+    x1.normalize_self(); y1.normalize_self(); z1.normalize_self();
 
     Xform t0 = translation(-origin_0.x(), -origin_0.y(), -origin_0.z());
 
@@ -241,7 +241,7 @@ Xform Xform::plane_to_plane(Point& origin_0, Vector& x_axis_0, Vector& y_axis_0,
 
 Xform Xform::plane_to_xy(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis) {
     Vector x = x_axis, y = y_axis, z = z_axis;
-    x.unitize(); y.unitize(); z.unitize();
+    x.normalize_self(); y.normalize_self(); z.normalize_self();
 
     Xform t = translation(-origin.x(), -origin.y(), -origin.z());
     Xform f;
@@ -253,7 +253,7 @@ Xform Xform::plane_to_xy(Point& origin, Vector& x_axis, Vector& y_axis, Vector& 
 
 Xform Xform::xy_to_plane(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis) {
     Vector x = x_axis, y = y_axis, z = z_axis;
-    x.unitize(); y.unitize(); z.unitize();
+    x.normalize_self(); y.normalize_self(); z.normalize_self();
 
     Xform f;
     f.m[0] = x.x(); f.m[4] = y.x(); f.m[8] = z.x();
@@ -307,6 +307,33 @@ Xform Xform::axis_rotation(float angle, Vector& axis) {
     xform.m[6] = t * uy * uz + ux * s;
     xform.m[10] = t * uz * uz + c;
 
+    return xform;
+}
+
+Xform Xform::look_at_rh(const Point& eye, const Point& target, const Vector& up) {
+    Vector f = (target - eye).normalize();
+    Vector up_copy = up;
+    Vector s = f.cross(up_copy.normalize()).normalize();
+    Vector u = s.cross(f);
+    
+    Xform xform;
+    xform.m[0] = s.x();
+    xform.m[4] = s.y();
+    xform.m[8] = s.z();
+    
+    xform.m[1] = u.x();
+    xform.m[5] = u.y();
+    xform.m[9] = u.z();
+    
+    xform.m[2] = -f.x();
+    xform.m[6] = -f.y();
+    xform.m[10] = -f.z();
+    
+    Vector eye_vec(eye.x(), eye.y(), eye.z());
+    xform.m[12] = -s.dot(eye_vec);
+    xform.m[13] = -u.dot(eye_vec);
+    xform.m[14] = f.dot(eye_vec);
+    
     return xform;
 }
 
@@ -408,13 +435,13 @@ void Xform::transform_vector(Vector& vector) const {
     vector[2] = m[2] * x + m[6] * y + m[10] * z;
 }
 
-nlohmann::json Xform::to_json_data() const {
-    nlohmann::json data;
-    data["type"] = "Xform";
-    data["guid"] = guid;
-    data["name"] = name;
-    data["m"] = m;
-    return data;
+nlohmann::ordered_json Xform::to_json_data() const {
+    return nlohmann::ordered_json{
+        {"type", "Xform"},
+        {"guid", guid},
+        {"name", name},
+        {"m", m}
+    };
 }
 
 Xform Xform::from_json_data(const nlohmann::json& data) {

@@ -93,9 +93,10 @@ Vector operator*(float factor, const Vector &v) { return v * factor; }
 
 /// Convert to JSON-serializable object
 nlohmann::ordered_json Vector::to_json_data() const {
+  auto clean_float = [](float val) -> double { return static_cast<double>(std::round(val * 100.0f) / 100.0f); };
   return nlohmann::ordered_json{{"type", "Vector"}, {"guid", guid},
-                                {"name", name},     {"x", _x},
-                                {"y", _y},           {"z", _z}};
+                                {"name", name},     {"x", clean_float(_x)},
+                                {"y", clean_float(_y)}, {"z", clean_float(_z)}};
 }
 
 /// Create vector from JSON data
@@ -191,13 +192,13 @@ float Vector::cached_length() const {
   return _length;
 }
 
-float Vector::length() const { return cached_length(); }
+float Vector::magnitude() const { return cached_length(); }
 
 float Vector::length_squared() const {
   return _x * _x + _y * _y + _z * _z;
 }
 
-bool Vector::unitize() {
+bool Vector::normalize_self() {
   float d = compute_length();
   if (d > 0.0f) {
     set_x(_x / d);
@@ -208,15 +209,15 @@ bool Vector::unitize() {
   return false;
 }
 
-Vector Vector::unitized() {
+Vector Vector::normalize() {
   Vector u(_x, _y, _z);
-  u.unitize();
+  u.normalize_self();
   return u;
 }
 
 std::tuple<Vector, float, Vector, float>
 Vector::projection(Vector &projection_vector, float tolerance) {
-  float projection_vector_length = projection_vector.length();
+  float projection_vector_length = projection_vector.magnitude();
 
   if (projection_vector_length < tolerance) {
     return {Vector(0, 0, 0), 0.0f, Vector(0, 0, 0), 0.0f};
@@ -231,7 +232,7 @@ Vector::projection(Vector &projection_vector, float tolerance) {
   Vector out_projection_vector = projection_vector_unit * projected_vector_length;
 
   Vector out_perpendicular_projected_vector = *this - out_projection_vector;
-  float out_perpendicular_projected_vector_length = out_perpendicular_projected_vector.length();
+  float out_perpendicular_projected_vector_length = out_perpendicular_projected_vector.magnitude();
 
   return {out_projection_vector,
           projected_vector_length,
@@ -273,9 +274,7 @@ Vector Vector::cross(const Vector &other) {
   float cx = (*this)[1] * other[2] - (*this)[2] * other[1];
   float cy = (*this)[2] * other[0] - (*this)[0] * other[2];
   float cz = (*this)[0] * other[1] - (*this)[1] * other[0];
-  Vector result(cx, cy, cz);
-  result.unitize();
-  return result;
+  return Vector(cx, cy, cz);
 }
 
 float Vector::angle(const Vector &other, bool sign_by_cross_product, bool degrees,
@@ -301,7 +300,7 @@ float Vector::angle(const Vector &other, bool sign_by_cross_product, bool degree
 
 Vector Vector::get_leveled_vector(float &vertical_height) {
   Vector copy(_x, _y, _z);
-  if (copy.unitize()) {
+  if (copy.normalize_self()) {
     Vector reference(0, 0, 1);
     float angle = copy.angle(reference, true); // returns degrees
     // CRITICAL: statics bug - passes degrees directly to cos (expects radians)

@@ -134,10 +134,10 @@ mod vector_tests {
     #[test]
     fn test_vector_unitize() {
         let v = Vector::new(5.5697, -9.84, 1.587);
-        assert_eq!(v.unitized().compute_length(), 1.0);
+        assert_eq!(v.normalize().compute_length(), 1.0);
         let mut v = Vector::new(5.5697, -9.84, 1.587);
-        v.unitize();
-        assert_eq!(v.length(), 1.0);
+        v.normalize_self();
+        assert_eq!(v.magnitude(), 1.0);
     }
 
     #[test]

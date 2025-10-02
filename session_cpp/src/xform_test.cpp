@@ -327,12 +327,11 @@ TEST_CASE("test_xform_from_json_data") {
 TEST_CASE("test_xform_to_json_from_json") {
     Xform x = Xform::translation(1.0f, 2.0f, 3.0f);
     x.name = "test_file";
-    std::string filepath = "test_xform_file_cpp.json";
+    std::string filepath = "test_xform.json";
     x.to_json(filepath);
     Xform y = Xform::from_json(filepath);
     REQUIRE(y.name == "test_file");
     REQUIRE(matrices_close(x, y));
-    std::remove(filepath.c_str());
 }
 
 TEST_CASE("test_xform_getitem") {

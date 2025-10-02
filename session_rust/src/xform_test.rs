@@ -329,7 +329,7 @@ mod xform_tests {
 
     #[test]
     fn test_xform_from_json_data() {
-        let data = r#"{"m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]}"#;
+        let data = r#"{"type":"Xform","guid":"test-guid","name":"test_xform","m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]}"#;
         let x = Xform::from_json_data(data).expect("Failed to deserialize");
         assert!(x.is_identity());
     }
@@ -337,11 +337,10 @@ mod xform_tests {
     #[test]
     fn test_xform_to_json_from_json() {
         let x = Xform::translation(1.0, 2.0, 3.0);
-        let filepath = "test_xform_file_rust.json";
+        let filepath = "test_xform.json";
         x.to_json(filepath).expect("Failed to write JSON");
         let y = Xform::from_json(filepath).expect("Failed to read JSON");
         assert!(matrices_close(&x, &y));
-        std::fs::remove_file(filepath).ok();
     }
 
     #[test]
@@ -363,5 +362,43 @@ mod xform_tests {
         assert_eq!(x[(0, 3)], 5.0);
         assert_eq!(x[(1, 3)], 10.0);
         assert_eq!(x[(2, 3)], 15.0);
+    }
+
+    #[test]
+    fn test_xform_from_cols_matrix3() {
+        let col_x = Vector::new(1.0, 0.0, 0.0);
+        let col_y = Vector::new(0.0, 1.0, 0.0);
+        let col_z = Vector::new(0.0, 0.0, 1.0);
+        let x = Xform::from_cols(col_x, col_y, col_z);
+        assert!(x.is_identity());
+    }
+
+    #[test]
+    fn test_xform_column_accessors() {
+        let col_x = Vector::new(1.0, 2.0, 3.0);
+        let col_y = Vector::new(4.0, 5.0, 6.0);
+        let col_z = Vector::new(7.0, 8.0, 9.0);
+        let x = Xform::from_cols(col_x, col_y, col_z);
+
+        let retrieved_x = x.x();
+        let retrieved_y = x.y();
+        let retrieved_z = x.z();
+
+        assert_eq!(retrieved_x.x(), 1.0);
+        assert_eq!(retrieved_x.y(), 2.0);
+        assert_eq!(retrieved_x.z(), 3.0);
+
+        assert_eq!(retrieved_y.x(), 4.0);
+        assert_eq!(retrieved_y.y(), 5.0);
+        assert_eq!(retrieved_y.z(), 6.0);
+
+        assert_eq!(retrieved_z.x(), 7.0);
+        assert_eq!(retrieved_z.y(), 8.0);
+        assert_eq!(retrieved_z.z(), 9.0);
+
+        assert_eq!(x[(0, 0)], 1.0);
+        assert_eq!(x[(1, 0)], 2.0);
+        assert_eq!(x[(2, 0)], 3.0);
+        assert_eq!(x[(3, 3)], 1.0);
     }
 }

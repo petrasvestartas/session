@@ -1,4 +1,4 @@
-use crate::Color;
+use crate::{Color, Vector};
 use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
@@ -166,7 +166,7 @@ impl Point {
         }
 
         let mut total_area = 0.0;
-        let mut centroid_sum = Point::new(0.0, 0.0, 0.0);
+        let mut centroid_sum = Vector::new(0.0, 0.0, 0.0);
 
         for i in 0..4 {
             let p0 = &vertices[i];
@@ -179,7 +179,7 @@ impl Point {
                     / 2.0;
             total_area += tri_area;
 
-            let tri_centroid = Point::new(
+            let tri_centroid = Vector::new(
                 (p0[0] + p1[0] + p2[0]) / 3.0,
                 (p0[1] + p1[1] + p2[1]) / 3.0,
                 (p0[2] + p1[2] + p2[2]) / 3.0,
@@ -187,7 +187,8 @@ impl Point {
             centroid_sum += tri_centroid * tri_area;
         }
 
-        Ok(centroid_sum / total_area)
+        let result = centroid_sum / total_area;
+        Ok(Point::new(result.x(), result.y(), result.z()))
     }
 }
 
@@ -260,19 +261,19 @@ impl DivAssign<f32> for Point {
     }
 }
 
-impl AddAssign<Point> for Point {
-    fn add_assign(&mut self, rhs: Point) {
-        self._x += rhs._x;
-        self._y += rhs._y;
-        self._z += rhs._z;
+impl AddAssign<Vector> for Point {
+    fn add_assign(&mut self, rhs: Vector) {
+        self._x += rhs.x();
+        self._y += rhs.y();
+        self._z += rhs.z();
     }
 }
 
-impl SubAssign<Point> for Point {
-    fn sub_assign(&mut self, rhs: Point) {
-        self._x -= rhs._x;
-        self._y -= rhs._y;
-        self._z -= rhs._z;
+impl SubAssign<Vector> for Point {
+    fn sub_assign(&mut self, rhs: Vector) {
+        self._x -= rhs.x();
+        self._y -= rhs.y();
+        self._z -= rhs.z();
     }
 }
 
@@ -296,18 +297,26 @@ impl Div<f32> for Point {
     }
 }
 
-impl Add<Point> for Point {
-    type Output = Point;
+impl Sub<Point> for Point {
+    type Output = Vector;
 
-    fn add(self, rhs: Point) -> Self::Output {
-        Point::new(self._x + rhs._x, self._y + rhs._y, self._z + rhs._z)
+    fn sub(self, rhs: Point) -> Self::Output {
+        Vector::new(self._x - rhs._x, self._y - rhs._y, self._z - rhs._z)
     }
 }
 
-impl Sub<Point> for Point {
+impl Add<Vector> for Point {
     type Output = Point;
 
-    fn sub(self, rhs: Point) -> Self::Output {
-        Point::new(self._x - rhs._x, self._y - rhs._y, self._z - rhs._z)
+    fn add(self, rhs: Vector) -> Self::Output {
+        Point::new(self._x + rhs.x(), self._y + rhs.y(), self._z + rhs.z())
+    }
+}
+
+impl Sub<Vector> for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: Vector) -> Self::Output {
+        Point::new(self._x - rhs.x(), self._y - rhs.y(), self._z - rhs.z())
     }
 }

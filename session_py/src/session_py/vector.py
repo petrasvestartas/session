@@ -368,13 +368,13 @@ class Vector:
 
         return length
 
-    def length(self):
-        """Get the cached length of the vector, computing it if necessary.
+    def magnitude(self):
+        """Get the cached magnitude of the vector, computing it if necessary.
 
         Returns
         -------
         float
-            The length (magnitude) of the vector.
+            The magnitude (length) of the vector.
         """
         if not self._has_length:
             self._length = self.compute_length()
@@ -392,15 +392,15 @@ class Vector:
         """
         return self._x * self._x + self._y * self._y + self._z * self._z
 
-    def unitize(self):
-        """Unitize the vector (make it unit length).
+    def normalize_self(self):
+        """Normalize the vector in place (make it unit length).
 
         Returns
         -------
         bool
             True if successful, False if vector has zero length.
         """
-        d = self.length()
+        d = self.magnitude()
         if d > 0.0:
             self._x /= d
             self._y /= d
@@ -410,17 +410,17 @@ class Vector:
             return True
         return False
 
-    def unitized(self):
-        """Return a unitized copy of the vector.
+    def normalize(self):
+        """Return a normalized copy of the vector.
 
         Returns
         -------
         Vector
             A new vector that is the unit vector of this vector.
         """
-        unitized_vector = Vector(self._x, self._y, self._z)
-        unitized_vector.unitize()
-        return unitized_vector
+        normalized_vector = Vector(self._x, self._y, self._z)
+        normalized_vector.normalize_self()
+        return normalized_vector
 
     def dot(self, other):
         """Calculate dot product with another vector.
@@ -449,15 +449,13 @@ class Vector:
         Returns
         -------
         :class:`Vector`
-            Unitized cross product vector (orthogonal to inputs).
+            Cross product vector (orthogonal to inputs).
 
         """
         x = self._y * other._z - self._z * other._y
         y = self._z * other._x - self._x * other._z
         z = self._x * other._y - self._y * other._x
-        result = Vector(x, y, z)
-        result.unitize()
-        return result
+        return Vector(x, y, z)
 
     def is_parallel_to(self, v):
         """Check if this vector is parallel/antiparallel to another.
@@ -473,7 +471,7 @@ class Vector:
             1 if parallel, -1 if antiparallel, 0 otherwise.
 
         """
-        ll = self.length() * v.length()
+        ll = self.magnitude() * v.magnitude()
 
         if ll > 0.0:
             cos_angle = self.dot(v) / ll
@@ -510,8 +508,8 @@ class Vector:
 
         """
         dot_product = self.dot(other)
-        len0 = self.length()
-        len1 = other.length()
+        len0 = self.magnitude()
+        len1 = other.magnitude()
 
         denominator = len0 * len1
         if denominator < tolerance:
@@ -550,7 +548,7 @@ class Vector:
             perpendicular_vector is :class:`Vector`, and perpendicular_length is float.
 
         """
-        projection_vector_length = projection_vector.length()
+        projection_vector_length = projection_vector.magnitude()
 
         if projection_vector_length < tolerance:
             return Vector(0, 0, 0), 0.0, Vector(0, 0, 0), 0.0
@@ -565,7 +563,7 @@ class Vector:
         out_projection_vector = projection_vector_unit * projected_vector_length
 
         out_perpendicular_vector = self - out_projection_vector
-        out_perpendicular_length = out_perpendicular_vector.length()
+        out_perpendicular_length = out_perpendicular_vector.magnitude()
 
         return (
             out_projection_vector,
@@ -590,7 +588,7 @@ class Vector:
         """
         copy = Vector(self._x, self._y, self._z)
 
-        if copy.unitize():
+        if copy.normalize_self():
             reference_vector = Vector(0, 0, 1)
             angle = copy.angle(
                 reference_vector, sign_by_cross_product=True, degrees=True

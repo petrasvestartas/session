@@ -1,6 +1,7 @@
 #include "catch_amalgamated.hpp"
 #include "color.h"
 #include "point.h"
+#include "vector.h"
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -122,7 +123,8 @@ TEST_CASE("Point itruediv") {
 
 TEST_CASE("Point iadd") {
   Point point(1.0, 2.0, 3.0);
-  point += Point(4.0, 5.0, 6.0);
+  Vector vec(4.0, 5.0, 6.0);
+  point += vec;
   REQUIRE(point.x() == 5.0);
   REQUIRE(point.y() == 7.0);
   REQUIRE(point.z() == 9.0);
@@ -130,7 +132,8 @@ TEST_CASE("Point iadd") {
 
 TEST_CASE("Point isub") {
   Point point(5.0, 7.0, 9.0);
-  point -= Point(4.0, 5.0, 6.0);
+  Vector vec(4.0, 5.0, 6.0);
+  point -= vec;
   REQUIRE(point.x() == 1.0);
   REQUIRE(point.y() == 2.0);
   REQUIRE(point.z() == 3.0);
@@ -158,18 +161,26 @@ TEST_CASE("Point truediv") {
 
 TEST_CASE("Point add") {
   Point point(1.0, 2.0, 3.0);
-  Point result = point + Point(4.0, 5.0, 6.0);
+  Vector vec(4.0, 5.0, 6.0);
+  Point result = point + vec;
   REQUIRE(result.x() == 5.0);
   REQUIRE(result.y() == 7.0);
   REQUIRE(result.z() == 9.0);
 }
 
 TEST_CASE("Point sub") {
-  Point point(5.0, 7.0, 9.0);
-  Point result = point - Point(4.0, 5.0, 6.0);
+  Point p1(5.0, 7.0, 9.0);
+  Point p2(4.0, 5.0, 6.0);
+  Vector result = p1 - p2;
   REQUIRE(result.x() == 1.0);
   REQUIRE(result.y() == 2.0);
   REQUIRE(result.z() == 3.0);
+  
+  Vector vec(1.0, 1.0, 1.0);
+  Point result2 = p1 - vec;
+  REQUIRE(result2.x() == 4.0);
+  REQUIRE(result2.y() == 6.0);
+  REQUIRE(result2.z() == 8.0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

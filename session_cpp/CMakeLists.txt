@@ -43,7 +43,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/src/json/include       # JSON library headers
     ${PROJECT_SOURCE_DIR}/src/guid/include       # GUID library headers
 )
-
 #############################################################################################
 # Create Catch2 library - optimized static library
 #############################################################################################

@@ -2,6 +2,7 @@ import uuid
 import json
 import math
 from .color import Color
+from .vector import Vector
 
 
 class Point:
@@ -207,15 +208,21 @@ class Point:
         return self
 
     def __iadd__(self, other):
-        self.x += other.x
-        self.y += other.y
-        self.z += other.z
+        if isinstance(other, Vector):
+            self.x += other.x
+            self.y += other.y
+            self.z += other.z
+        else:
+            raise TypeError("Point can only be added with Vector")
         return self
 
     def __isub__(self, other):
-        self.x -= other.x
-        self.y -= other.y
-        self.z -= other.z
+        if isinstance(other, Vector):
+            self.x -= other.x
+            self.y -= other.y
+            self.z -= other.z
+        else:
+            raise TypeError("Point can only be subtracted with Vector")
         return self
 
     ###########################################################################################
@@ -229,10 +236,18 @@ class Point:
         return Point(self.x / other, self.y / other, self.z / other)
 
     def __add__(self, other):
-        return Point(self.x + other.x, self.y + other.y, self.z + other.z)
+        if isinstance(other, Vector):
+            return Point(self.x + other.x, self.y + other.y, self.z + other.z)
+        raise TypeError("Point can only be added with Vector")
 
     def __sub__(self, other):
-        return Point(self.x - other.x, self.y - other.y, self.z - other.z)
+        if isinstance(other, Point):
+            return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+        elif isinstance(other, Vector):
+            return Point(self.x - other.x, self.y - other.y, self.z - other.z)
+        raise TypeError(
+            "Point can be subtracted with Point (returns Vector) or Vector (returns Point)"
+        )
 
     ###########################################################################################
     # Details
@@ -360,7 +375,7 @@ class Point:
             raise ValueError("Polygon must have exactly 4 vertices.")
 
         total_area = 0.0
-        centroid_sum = Point(0, 0, 0)
+        centroid_sum = Vector(0, 0, 0)
 
         for i in range(4):
             p0, p1, p2 = vertices[i], vertices[(i + 1) % 4], vertices[(i + 2) % 4]
@@ -373,11 +388,12 @@ class Point:
                 / 2.0
             )
             total_area += tri_area
-            tri_centroid = Point(
+            tri_centroid = Vector(
                 (p0[0] + p1[0] + p2[0]) / 3.0,
                 (p0[1] + p1[1] + p2[1]) / 3.0,
                 (p0[2] + p1[2] + p2[2]) / 3.0,
             )
             centroid_sum += tri_centroid * tri_area
 
-        return centroid_sum / total_area
+        result = centroid_sum / total_area
+        return Point(result.x, result.y, result.z)

@@ -9,26 +9,26 @@ fn main() {
     let mut v = Vector::new(3.0, 4.0, 5.0);
     println!("Created vector: ({}, {}, {})", v.x(), v.y(), v.z());
 
-    // First call to length() - will compute and cache
-    println!("First length() call - computes: {}", v.length());
+    // First call to magnitude() - will compute and cache
+    println!("First magnitude() call - computes: {}", v.magnitude());
 
-    // Second call to length() - uses cached value
-    println!("Second length() call - cached: {}", v.length());
+    // Second call to magnitude() - uses cached value
+    println!("Second magnitude() call - cached: {}", v.magnitude());
 
     // Modify the vector - this invalidates the cache
     v.set_x(6.0);
     println!("Modified x to 6.0");
 
-    // Next call to length() - recomputes because cache was invalidated
-    println!("After modification - recomputes: {}", v.length());
+    // Next call to magnitude() - recomputes because cache was invalidated
+    println!("After modification - recomputes: {}", v.magnitude());
 
     // Use compound assignment - also invalidates cache
     v *= 2.0;
     println!("After scaling by 2.0");
-    println!("Length after scaling: {}", v.length());
+    println!("Magnitude after scaling: {}", v.magnitude());
 
-    // Just show length again (computes without mutating cache)
-    println!("Length again: {}", v.length());
+    // Just show magnitude again (computes without mutating cache)
+    println!("Magnitude again: {}", v.magnitude());
 
     println!("\n✅ Length caching working correctly!");
     println!("🦀 Cache is invalidated when coordinates change");

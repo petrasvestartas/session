@@ -368,16 +368,13 @@ def test_xform_from_json_data():
 
 
 def test_xform_to_json_from_json():
-    import os
-
     x = Xform.translation(1.0, 2.0, 3.0)
     x.name = "test_file"
-    filepath = "test_xform_file.json"
+    filepath = "test_xform.json"
     x.to_json(filepath)
     y = Xform.from_json(filepath)
     assert y.name == "test_file"
     assert matrices_close(x, y)
-    os.remove(filepath)
 
 
 def test_xform_getitem():

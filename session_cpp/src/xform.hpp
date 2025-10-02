@@ -50,6 +50,7 @@ public:
     static Xform scale_uniform(Point& origin, float scale_value);
     static Xform scale_non_uniform(Point& origin, float scale_x, float scale_y, float scale_z);
     static Xform axis_rotation(float angle, Vector& axis);
+    static Xform look_at_rh(const Point& eye, const Point& target, const Vector& up);
 
     std::optional<Xform> inverse() const;
     bool is_identity() const;
@@ -59,7 +60,7 @@ public:
     void transform_point(Point& point) const;
     void transform_vector(Vector& vector) const;
 
-    nlohmann::json to_json_data() const;
+    nlohmann::ordered_json to_json_data() const;
     static Xform from_json_data(const nlohmann::json& data);
     void to_json(const std::string& filepath) const;
     static Xform from_json(const std::string& filepath);

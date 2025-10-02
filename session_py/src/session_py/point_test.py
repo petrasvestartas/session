@@ -1,4 +1,5 @@
 from .point import Point
+from .vector import Vector
 from .color import Color
 
 
@@ -126,7 +127,8 @@ def test_point_itruediv():
 
 def test_point_iadd():
     point = Point(1.0, 2.0, 3.0)
-    point += Point(4.0, 5.0, 6.0)
+    vec = Vector(4.0, 5.0, 6.0)
+    point += vec
     assert point.x == 5.0
     assert point.y == 7.0
     assert point.z == 9.0
@@ -134,7 +136,8 @@ def test_point_iadd():
 
 def test_point_isub():
     point = Point(5.0, 7.0, 9.0)
-    point -= Point(4.0, 5.0, 6.0)
+    vec = Vector(4.0, 5.0, 6.0)
+    point -= vec
     assert point.x == 1.0
     assert point.y == 2.0
     assert point.z == 3.0
@@ -163,18 +166,28 @@ def test_point_truediv():
 
 def test_point_add():
     point = Point(1.0, 2.0, 3.0)
-    result = point + Point(4.0, 5.0, 6.0)
+    vec = Vector(4.0, 5.0, 6.0)
+    result = point + vec
     assert result.x == 5.0
     assert result.y == 7.0
     assert result.z == 9.0
 
 
 def test_point_sub():
-    point = Point(5.0, 7.0, 9.0)
-    result = point - Point(4.0, 5.0, 6.0)
+    p1 = Point(5.0, 7.0, 9.0)
+    p2 = Point(4.0, 5.0, 6.0)
+    result = p1 - p2
+    assert isinstance(result, Vector)
     assert result.x == 1.0
     assert result.y == 2.0
     assert result.z == 3.0
+
+    vec = Vector(1.0, 1.0, 1.0)
+    result2 = p1 - vec
+    assert isinstance(result2, Point)
+    assert result2.x == 4.0
+    assert result2.y == 6.0
+    assert result2.z == 8.0
 
 
 ###########################################################################################

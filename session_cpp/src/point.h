@@ -89,9 +89,9 @@ public:
   
   Point &operator/=(float factor);
 
-  Point &operator+=(const Point &other);
+  Point &operator+=(const Vector &other);
 
-  Point &operator-=(const Point &other);
+  Point &operator-=(const Vector &other);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Copy Operators
@@ -105,9 +105,7 @@ public:
 
   Point operator-(const Vector& other) const;
 
-  Point operator+(const Point& other) const;
-
-  Point operator-(const Point& other) const;
+  Vector operator-(const Point& other) const;
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Details

@@ -134,13 +134,13 @@ impl Vector {
         (self._x * self._x + self._y * self._y + self._z * self._z).sqrt()
     }
 
-    /// Gets the (cached) length. Avoids recalculating if unchanged.
+    /// Gets the (cached) magnitude. Avoids recalculating if unchanged.
     ///
     /// Returns
     /// -------
     /// f32
-    ///     The length (magnitude) of the vector.
-    pub fn length(&mut self) -> f32 {
+    ///     The magnitude (length) of the vector.
+    pub fn magnitude(&mut self) -> f32 {
         if !self._has_length {
             self._length = self.compute_length();
             self._has_length = true;
@@ -154,8 +154,8 @@ impl Vector {
     }
 
     /// Normalizes the vector in place.
-    pub fn unitize(&mut self) {
-        let len = self.length();
+    pub fn normalize_self(&mut self) {
+        let len = self.magnitude();
         unsafe {
             if len > globals::ZERO_TOLERANCE as f32 {
                 self._x /= len;
@@ -167,9 +167,9 @@ impl Vector {
     }
 
     /// Returns a normalized copy of the vector.
-    pub fn unitized(&self) -> Self {
+    pub fn normalize(&self) -> Self {
         let mut result = self.clone();
-        result.unitize();
+        result.normalize_self();
         result
     }
 
@@ -228,15 +228,13 @@ impl Vector {
     /// Returns
     /// -------
     /// Vector
-    ///     Unitized cross product vector (orthogonal to inputs).
+    ///     Cross product vector (orthogonal to inputs).
     pub fn cross(&self, other: &Vector) -> Vector {
-        let result = Vector::new(
+        Vector::new(
             self._y * other._z - self._z * other._y,
             self._z * other._x - self._x * other._z,
             self._x * other._y - self._y * other._x,
-        );
-        // Return unitized result to match statics behavior
-        result.unitized()
+        )
     }
 
     /// Computes the angle between this vector and another in degrees.
@@ -331,7 +329,7 @@ impl Vector {
     /// Gets a leveled vector (replicates statics bug with degrees passed to cos).
     pub fn get_leveled_vector(&self, vertical_height: f32) -> Vector {
         let mut copy = self.clone();
-        copy.unitize();
+        copy.normalize_self();
 
         if vertical_height != 0.0 {
             let reference = Vector::z_axis();

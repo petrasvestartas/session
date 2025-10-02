@@ -46,7 +46,7 @@ TEST_CASE("Vector from_json_data") {
 
 TEST_CASE("Vector to_json from_json") {
   Vector orig(123.45, 678.90, 999.11);
-  orig.name = "file_test_point";
+  orig.name = "my_vector";
   orig.to_json("test_vector.json");
   Vector load = Vector::from_json("test_vector.json");
   REQUIRE(std::abs(load.x() - orig.x()) < 1e-5f);
@@ -130,15 +130,15 @@ TEST_CASE("Vector reverse") {
 
 TEST_CASE("Vector length") {
   Vector v(5.5697, -9.84, 1.587);
-  float length = v.length();
-  REQUIRE(std::round(length * 100) / 100 == 11.42f);
+  float magnitude = v.magnitude();
+  REQUIRE(std::round(magnitude * 100) / 100 == 11.42f);
 }
 
 TEST_CASE("Vector unitize") {
   Vector v(5.5697, -9.84, 1.587);
-  REQUIRE(v.unitized().length() == 1);
-  v.unitize();
-  REQUIRE(v.length() == 1);
+  REQUIRE(v.normalize().magnitude() == 1);
+  v.normalize_self();
+  REQUIRE(v.magnitude() == 1);
 }
 
 TEST_CASE("Vector projection") {
@@ -164,7 +164,7 @@ TEST_CASE("Vector dot") {
   REQUIRE(v1.dot(v3) == -1);
   REQUIRE(v1.dot(v1) == 1);
   
-  float dot = v1.dot(v2), mag = v1.length() * v2.length();
+  float dot = v1.dot(v2), mag = v1.magnitude() * v2.magnitude();
   if (mag > 0.0f) {
     float angle_deg = std::acos(dot / mag) * geo::GLOBALS::TO_DEGREES;
     REQUIRE(std::round(angle_deg) == 90);
@@ -186,7 +186,7 @@ TEST_CASE("Vector angle") {
 TEST_CASE("Vector get_leveled_vector") {
   float scale = 1.0f;
   Vector lev = Vector(1, 1, 1).get_leveled_vector(scale);
-  REQUIRE(std::round(lev.length() * 100) / 100 == 4.17f);
+  REQUIRE(std::round(lev.magnitude() * 100) / 100 == 4.17f);
 }
 
 TEST_CASE("Vector cosine_law") {

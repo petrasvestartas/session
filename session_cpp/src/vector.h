@@ -142,13 +142,13 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   void reverse();
-  /// Returns the (cached) length. Does not rescale.
+  /// Returns the (cached) magnitude. Does not rescale.
   ///
   /// Returns
   /// -------
   /// float
-  ///     The length (magnitude) of the vector.
-  float length() const;
+  ///     The magnitude (length) of the vector.
+  float magnitude() const;
   
   /// Computes the length (magnitude) of the vector without caching.
   ///
@@ -166,14 +166,14 @@ public:
   ///     The squared length of the vector.
   float length_squared() const;
   
-  /// Unitize the vector (make it unit length).
+  /// Normalize the vector in place (make it unit length).
   ///
   /// Returns
   /// -------
   /// bool
   ///     True if successful, false if vector has zero length.
-  bool unitize();
-  Vector unitized();
+  bool normalize_self();
+  Vector normalize();
 
   /// Project this vector onto `projection_vector`.
   /// Returns: (projection_vector, projected_length, perpendicular_vector, perpendicular_length)
@@ -217,7 +217,7 @@ public:
   /// Returns
   /// -------
   /// Vector
-  ///     Unitized cross product vector (orthogonal to inputs).
+  ///     Cross product vector (orthogonal to inputs).
   Vector cross(const Vector &other);
   
   /// Angle between this vector and another.

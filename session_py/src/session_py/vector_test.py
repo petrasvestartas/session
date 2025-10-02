@@ -61,16 +61,16 @@ def test_reverse():
 
 def test_length():
     v = Vector(5.5697, -9.84, 1.587)
-    length = v.length()
-    assert length == 11.4177811806848
+    magnitude = v.magnitude()
+    assert magnitude == 11.4177811806848
 
 
 def test_unitize():
     v = Vector(5.5697, -9.84, 1.587)
-    unitized_vector = v.unitized()
-    assert unitized_vector.length() == 1
-    v.unitize()
-    assert v.length() == 1
+    normalized_vector = v.normalize()
+    assert normalized_vector.magnitude() == 1
+    v.normalize_self()
+    assert v.magnitude() == 1
 
 
 def test_projection():
@@ -106,7 +106,7 @@ def test_dot():
     assert v1.dot(v1) == 1
 
     dot_product = v1.dot(v2)
-    magnitudes = v1.length() * v2.length()
+    magnitudes = v1.magnitude() * v2.magnitude()
     if magnitudes > 0.0:
         cos_angle = dot_product / magnitudes
         angle = math.acos(cos_angle)
@@ -135,7 +135,7 @@ def test_get_leveled_vector():
     v = Vector(1, 1, 1)
     scale = 1.0
     leveled_vector = v.get_leveled_vector(scale)
-    assert abs(leveled_vector.length() - 4.1684325329666283) < globals.ZERO_TOLERANCE
+    assert abs(leveled_vector.magnitude() - 4.1684325329666283) < globals.ZERO_TOLERANCE
 
 
 def test_cosine_law():
@@ -236,12 +236,9 @@ def test_vector_from_json_data():
 
 
 def test_vector_to_json_from_json():
-    import os
-
     orig = Vector(123.45, 678.90, 999.11)
     orig.to_json("test_vector.json")
     load = Vector.from_json("test_vector.json")
     assert abs(load.x - orig.x) < 1e-5
     assert abs(load.y - orig.y) < 1e-5
     assert abs(load.z - orig.z) < 1e-5
-    os.remove("test_vector.json")
