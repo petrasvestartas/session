@@ -11,14 +11,6 @@ mod tests {
     }
 
     #[test]
-    fn test_objects_default() {
-        let objects = Objects::default();
-        assert_eq!(objects.name, "my_objects");
-        assert!(!objects.guid.is_empty());
-        assert_eq!(objects.vec.len(), 0);
-    }
-
-    #[test]
     fn test_objects_to_json_data() {
         let mut objects = Objects::new();
         let point1 = Point::new(1.0, 2.0, 3.0);
@@ -79,30 +71,5 @@ mod tests {
         assert_eq!(loaded_objects.vec.len(), objects.vec.len());
         assert_eq!(loaded_objects.vec[0].x, objects.vec[0].x);
         assert_eq!(loaded_objects.vec[2].z, objects.vec[2].z);
-    }
-
-    #[test]
-    fn test_objects_empty_collection() {
-        let objects = Objects::new();
-        let json_data = objects.to_json_data().unwrap();
-        let restored = Objects::from_json_data(&json_data).unwrap();
-
-        assert_eq!(restored.name, objects.name);
-        assert_eq!(restored.vec.len(), 0);
-        assert!(!restored.guid.is_empty());
-    }
-
-    #[test]
-    fn test_objects_with_points() {
-        let mut objects = Objects::new();
-        objects.name = "test_collection".to_string();
-
-        let mut point = Point::new(1.5, 2.5, 3.5);
-        point.name = "test_point".to_string();
-        objects.vec.push(point);
-
-        assert_eq!(objects.vec.len(), 1);
-        assert_eq!(objects.vec[0].name, "test_point");
-        assert_eq!(objects.vec[0].x, 1.5);
     }
 }

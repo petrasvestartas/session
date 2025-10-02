@@ -37,7 +37,7 @@ if not exist "Release\tests.exe" (
 :: Run all tests
 echo Running all tests...
 echo.
-Release\tests.exe
+Release\tests.exe --reporter compact
 
 :: Check test results
 if !errorlevel! equ 0 (

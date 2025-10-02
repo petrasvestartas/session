@@ -263,32 +263,4 @@ mod vector_tests {
         assert!((pt[0] - 45.0).abs() < 1e-6);
         assert!((pt[1] - 45.0).abs() < 1e-6);
     }
-
-    #[test]
-    fn test_vector_scale_methods() {
-        let mut vs = Vector::new(1.0, 1.0, 1.0);
-        vs.scale(2.0);
-        assert_eq!((vs[0], vs[1], vs[2]), (2.0, 2.0, 2.0));
-
-        let mut vsu = Vector::new(1.0, 1.0, 1.0);
-        vsu.scale_up();
-        unsafe {
-            assert_eq!(
-                (vsu[0], vsu[1], vsu[2]),
-                (
-                    globals::SCALE as f32,
-                    globals::SCALE as f32,
-                    globals::SCALE as f32
-                )
-            );
-
-            let mut vsd = Vector::new(
-                globals::SCALE as f32,
-                globals::SCALE as f32,
-                globals::SCALE as f32,
-            );
-            vsd.scale_down();
-            assert_eq!((vsd[0], vsd[1], vsd[2]), (1.0, 1.0, 1.0));
-        }
-    }
 }

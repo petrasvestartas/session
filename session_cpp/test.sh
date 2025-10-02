@@ -61,7 +61,8 @@ echo ""
 ./tests
 
 # Check test results
-if [ $? -eq 0 ]; then
+TEST_EXIT_CODE=$?
+if [ $TEST_EXIT_CODE -eq 0 ]; then
     echo ""
     echo -e "${GREEN}All tests passed! ✓${NC}"
 else

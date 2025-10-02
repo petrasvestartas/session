@@ -468,4 +468,18 @@ Xform& Xform::operator*=(const Xform& other) {
     return *this;
 }
 
+float& Xform::operator()(int row, int col) {
+    if (row < 0 || row >= 4 || col < 0 || col >= 4) {
+        throw std::out_of_range("Index out of bounds: (" + std::to_string(row) + ", " + std::to_string(col) + ")");
+    }
+    return m[col * 4 + row];
+}
+
+const float& Xform::operator()(int row, int col) const {
+    if (row < 0 || row >= 4 || col < 0 || col >= 4) {
+        throw std::out_of_range("Index out of bounds: (" + std::to_string(row) + ", " + std::to_string(col) + ")");
+    }
+    return m[col * 4 + row];
+}
+
 } // namespace session_cpp

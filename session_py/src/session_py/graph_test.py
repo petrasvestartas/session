@@ -2,14 +2,12 @@ from .graph import Graph, Vertex
 
 
 def test_graph_constructor():
-    """Test Graph constructor."""
     graph = Graph("my_graph")
     assert graph.name == "my_graph"
     assert graph.guid is not None
 
 
 def test_graph_add_node():
-    """Test Graph add_node method."""
     graph = Graph()
     result = graph.add_node("node1", "attribute_data")
     assert result == "node1"
@@ -17,7 +15,6 @@ def test_graph_add_node():
 
 
 def test_graph_add_edge():
-    """Test Graph add_edge method."""
     graph = Graph()
     result = graph.add_edge("node1", "node2", "edge_data")
     assert result == ("node1", "node2")
@@ -25,7 +22,6 @@ def test_graph_add_edge():
 
 
 def test_graph_has_node():
-    """Test Graph has_node method."""
     graph = Graph()
     graph.add_node("node1")
     assert graph.has_node("node1")
@@ -33,7 +29,6 @@ def test_graph_has_node():
 
 
 def test_graph_has_edge():
-    """Test Graph has_edge method."""
     graph = Graph()
     graph.add_edge("A", "B", "edge_attr")
     assert graph.has_edge(("A", "B"))
@@ -41,7 +36,6 @@ def test_graph_has_edge():
 
 
 def test_graph_remove_node():
-    """Test Graph remove_node method."""
     graph = Graph()
     graph.add_node("node1")
     graph.remove_node("node1")
@@ -49,7 +43,6 @@ def test_graph_remove_node():
 
 
 def test_graph_remove_edge():
-    """Test Graph remove_edge method."""
     graph = Graph()
     graph.add_edge("A", "B", "edge_attr")
     graph.remove_edge(("A", "B"))
@@ -57,7 +50,6 @@ def test_graph_remove_edge():
 
 
 def test_graph_get_vertices():
-    """Test Graph get_vertices method."""
     graph = Graph()
     graph.add_node("node1", "node_data")
     vertices = graph.get_vertices()
@@ -67,7 +59,6 @@ def test_graph_get_vertices():
 
 
 def test_graph_edges():
-    """Test Graph edges method."""
     graph = Graph()
     graph.add_edge("node1", "node2", "edge_data")
     edges = list(graph.get_edges())
@@ -76,7 +67,6 @@ def test_graph_edges():
 
 
 def test_graph_neighbors():
-    """Test Graph neighbors method."""
     graph = Graph()
     graph.add_edge("A", "B", "edge1")
     graph.add_edge("A", "C", "edge2")
@@ -85,21 +75,18 @@ def test_graph_neighbors():
 
 
 def test_graph_number_of_vertices():
-    """Test Graph number_of_vertices method."""
     graph = Graph()
     graph.add_node("node1")
     assert graph.number_of_vertices() == 1
 
 
 def test_graph_number_of_edges():
-    """Test Graph number_of_edges method."""
     graph = Graph()
     graph.add_edge("node1", "node2")
     assert graph.number_of_edges() == 1
 
 
 def test_graph_clear():
-    """Test Graph clear method."""
     graph = Graph()
     graph.add_node("node1")
     graph.clear()
@@ -107,7 +94,6 @@ def test_graph_clear():
 
 
 def test_graph_node_attribute():
-    """Test Graph node_attribute method."""
     graph = Graph()
     graph.add_node("node1", "initial_data")
     assert graph.node_attribute("node1") == "initial_data"
@@ -116,7 +102,6 @@ def test_graph_node_attribute():
 
 
 def test_graph_edge_attribute():
-    """Test Graph edge_attribute method."""
     graph = Graph("test_graph")
     graph.add_edge("node1", "node2", "edge_data")
     assert graph.edge_attribute("node1", "node2") == "edge_data"
@@ -125,7 +110,6 @@ def test_graph_edge_attribute():
 
 
 def test_graph_to_json_from_json():
-    """Test Graph file I/O with to_json and from_json."""
     graph = Graph("my_graph")
     graph.add_node("A", "vertex_A")
     graph.add_node("B", "vertex_B")
@@ -145,7 +129,6 @@ def test_graph_to_json_from_json():
 
 
 def test_graph_from_json_data():
-    """Test Graph from_json_data method."""
     data = {
         "type": "Graph",
         "name": "test_graph",

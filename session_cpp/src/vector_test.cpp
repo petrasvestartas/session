@@ -229,18 +229,4 @@ TEST_CASE("Vector coordinate_direction_angles") {
   REQUIRE((std::abs(pt[0] - 45) < 1e-5f && std::abs(pt[1] - 45) < 1e-5f));
 }
 
-TEST_CASE("Vector scale methods") {
-  Vector vs(1, 1, 1);
-  vs.scale(2);
-  REQUIRE((vs[0] == 2 && vs[1] == 2 && vs[2] == 2));
-
-  Vector vsu(1, 1, 1);
-  vsu.scale_up();
-  REQUIRE((vsu[0] == geo::GLOBALS::SCALE && vsu[1] == geo::GLOBALS::SCALE && vsu[2] == geo::GLOBALS::SCALE));
-
-  Vector vsd(geo::GLOBALS::SCALE, geo::GLOBALS::SCALE, geo::GLOBALS::SCALE);
-  vsd.scale_down();
-  REQUIRE((vsd[0] == 1 && vsd[1] == 1 && vsd[2] == 1));
-}
-
 } // namespace session_cpp

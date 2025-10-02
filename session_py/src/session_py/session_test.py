@@ -4,7 +4,6 @@ from .point import Point
 
 
 def test_session_constructor():
-    """Test Session constructor."""
     session = Session()
     assert session.name == "my_session"
     assert session.guid is not None
@@ -14,7 +13,6 @@ def test_session_constructor():
 
 
 def test_session_to_json_data():
-    """Test Session to_json_data method."""
     session = Session()
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -30,7 +28,6 @@ def test_session_to_json_data():
 
 
 def test_session_from_json_data():
-    """Test Session from_json_data method."""
     session = Session()
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -45,7 +42,6 @@ def test_session_from_json_data():
 
 
 def test_session_to_json_from_json():
-    """Test Session file I/O with to_json and from_json."""
     session = Session()
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -65,7 +61,6 @@ def test_session_to_json_from_json():
 
 
 def test_session_add_point():
-    """Test Session add_point method."""
     session = Session()
     point = Point(1.0, 2.0, 3.0)
     session.add_point(point)
@@ -76,7 +71,6 @@ def test_session_add_point():
 
 
 def test_session_add_edge():
-    """Test Session add_edge method."""
     session = Session()
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -88,7 +82,6 @@ def test_session_add_edge():
 
 
 def test_session_get_object():
-    """Test Session get_object method."""
     session = Session()
     point = Point(1.0, 2.0, 3.0)
     session.add_point(point)
@@ -98,7 +91,6 @@ def test_session_get_object():
 
 
 def test_session_to_json_file():
-    """Test Session file I/O with to_json and from_json."""
     session = Session("test_session")
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)

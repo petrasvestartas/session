@@ -207,3 +207,41 @@ def test_coordinate_direction_angles():
     phi_theta = v.coordinate_direction_2angles(True)
     assert abs(phi_theta[0] - 45) < 1e-6
     assert abs(phi_theta[1] - 45) < 1e-6
+
+
+def test_vector_equality():
+    v1 = Vector(1.0, 2.0, 3.0)
+    v2 = Vector(1.0, 2.0, 3.0)
+    v2.guid = v1.guid
+    assert v1 == v2
+    v3 = Vector(1.1, 2.0, 3.0)
+    assert v1 != v3
+
+
+def test_vector_constructor_values():
+    v = Vector(0.57, -158.63, 180.890)
+    assert (v[0], v[1], v[2]) == (0.57, -158.63, 180.890)
+
+
+def test_vector_to_json_data():
+    v = Vector(15.5, 25.7, 35.9)
+    data = v.to_json_data()
+    assert "Vector" in data["type"] and data["x"] == 15.5
+
+
+def test_vector_from_json_data():
+    orig = Vector(42.1, 84.2, 126.3)
+    rest = Vector.from_json_data(orig.to_json_data())
+    assert (rest.x, rest.y, rest.z) == (42.1, 84.2, 126.3)
+
+
+def test_vector_to_json_from_json():
+    import os
+
+    orig = Vector(123.45, 678.90, 999.11)
+    orig.to_json("test_vector.json")
+    load = Vector.from_json("test_vector.json")
+    assert abs(load.x - orig.x) < 1e-5
+    assert abs(load.y - orig.y) < 1e-5
+    assert abs(load.z - orig.z) < 1e-5
+    os.remove("test_vector.json")

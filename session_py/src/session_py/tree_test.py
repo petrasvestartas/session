@@ -3,14 +3,12 @@ from .point import Point
 
 
 def test_treenode_constructor():
-    """Test TreeNode constructor."""
     node = TreeNode("root")
     assert node.name == "root"
     assert node.is_root
 
 
 def test_treenode_to_json_data():
-    """Test TreeNode to_json_data method."""
     root = TreeNode("project_root")
     folder1 = TreeNode("src")
     folder2 = TreeNode("docs")
@@ -29,7 +27,6 @@ def test_treenode_to_json_data():
 
 
 def test_treenode_from_json_data():
-    """Test TreeNode from_json_data method."""
     original_root = TreeNode("filesystem_root")
     bin_folder = TreeNode("bin")
     lib_folder = TreeNode("lib")
@@ -48,7 +45,6 @@ def test_treenode_from_json_data():
 
 
 def test_treenode_add():
-    """Test TreeNode add method."""
     parent = TreeNode("parent")
     child = TreeNode("child")
     parent.add(child)
@@ -57,7 +53,6 @@ def test_treenode_add():
 
 
 def test_treenode_remove():
-    """Test TreeNode remove method."""
     parent = TreeNode("parent")
     child = TreeNode("child")
     parent.add(child)
@@ -67,7 +62,6 @@ def test_treenode_remove():
 
 
 def test_treenode_traverse():
-    """Test TreeNode traverse method."""
     root = TreeNode("root")
     child = TreeNode("child")
     root.add(child)
@@ -77,7 +71,6 @@ def test_treenode_traverse():
 
 
 def test_tree_constructor():
-    """Test Tree constructor."""
     tree = Tree("my_tree")
     assert tree.name == "my_tree"
     assert tree.guid is not None
@@ -85,7 +78,6 @@ def test_tree_constructor():
 
 
 def test_tree_to_json_data():
-    """Test Tree to_json_data method."""
     tree = Tree("object_hierarchy")
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -107,7 +99,6 @@ def test_tree_to_json_data():
 
 
 def test_tree_from_json_data():
-    """Test Tree from_json_data method."""
     original_tree = Tree("spatial_hierarchy")
     point1 = Point(100.0, 200.0, 300.0)
     point2 = Point(400.0, 500.0, 600.0)
@@ -126,7 +117,6 @@ def test_tree_from_json_data():
 
 
 def test_tree_to_json_from_json():
-    """Test Tree file I/O with to_json and from_json."""
     tree = Tree()
     point1 = Point(0.0, 0.0, 0.0)
     point2 = Point(1.0, 1.0, 1.0)
@@ -151,7 +141,6 @@ def test_tree_to_json_from_json():
 
 
 def test_tree_add():
-    """Test Tree add method."""
     tree = Tree()
     root = TreeNode("root")
     tree.add(root)
@@ -160,7 +149,6 @@ def test_tree_add():
 
 
 def test_tree_remove():
-    """Test Tree remove method."""
     tree = Tree()
     root = TreeNode("root")
     tree.add(root)
@@ -169,7 +157,6 @@ def test_tree_remove():
 
 
 def test_tree_get_node_by_name():
-    """Test Tree get_node_by_name method."""
     tree = Tree()
     root = TreeNode("root")
     tree.add(root)

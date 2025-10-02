@@ -157,6 +157,39 @@ mod tests {
     }
 
     #[test]
+    fn test_graph_from_json_data() {
+        let data = r#"{
+            "type": "Graph",
+            "name": "test_graph",
+            "guid": "test-guid-123",
+            "vertex_count": 3,
+            "edge_count": 2,
+            "vertices": [
+                {"name": "node1", "attribute": "type:start"},
+                {"name": "node2", "attribute": "type:middle"},
+                {"name": "node3", "attribute": "type:end"}
+            ],
+            "edges": [
+                {"v0": "node1", "v1": "node2", "attribute": "weight:10"},
+                {"v0": "node2", "v1": "node3", "attribute": "weight:20"}
+            ]
+        }"#;
+        
+        let graph = Graph::from_json_data(data).unwrap();
+        
+        assert_eq!(graph.name, "test_graph");
+        assert_eq!(graph.number_of_vertices(), 3);
+        assert_eq!(graph.number_of_edges(), 2);
+        assert!(graph.has_node("node1"));
+        assert!(graph.has_node("node2"));
+        assert!(graph.has_node("node3"));
+        assert!(graph.has_edge("node1", "node2"));
+        assert!(graph.has_edge("node2", "node3"));
+        assert_eq!(graph.node_attribute("node1", None).unwrap(), "type:start");
+        assert_eq!(graph.edge_attribute("node1", "node2", None).unwrap(), "weight:10");
+    }
+
+    #[test]
     fn test_graph_to_json_from_json() {
         let mut graph = Graph::new("my_graph");
         graph.add_node("A", "vertex_A");

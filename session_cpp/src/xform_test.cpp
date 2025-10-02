@@ -162,4 +162,196 @@ TEST_CASE("test_xform_json_round_trip") {
     REQUIRE(matrices_close(x, y));
 }
 
+TEST_CASE("test_xform_from_matrix") {
+    std::array<float, 16> m = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 5.0f, 10.0f, 15.0f, 1.0f};
+    Xform x = Xform::from_matrix(m);
+    REQUIRE(x.m == m);
+}
+
+TEST_CASE("test_xform_rotation_x") {
+    Xform r = Xform::rotation_x(M_PI / 2.0f);
+    Point p(0.0f, 1.0f, 0.0f);
+    Point rp = r.transformed_point(p);
+    REQUIRE(approx_f32(rp.x(), 0.0f));
+    REQUIRE(approx_f32(rp.y(), 0.0f));
+    REQUIRE(approx_f32(rp.z(), 1.0f));
+}
+
+TEST_CASE("test_xform_rotation_y") {
+    Xform r = Xform::rotation_y(M_PI / 2.0f);
+    Point p(1.0f, 0.0f, 0.0f);
+    Point rp = r.transformed_point(p);
+    REQUIRE(approx_f32(rp.x(), 0.0f));
+    REQUIRE(approx_f32(rp.y(), 0.0f));
+    REQUIRE(approx_f32(rp.z(), -1.0f));
+}
+
+TEST_CASE("test_xform_rotation") {
+    Vector axis(0.0f, 0.0f, 1.0f);
+    Xform r = Xform::rotation(axis, M_PI / 2.0f);
+    Point p(1.0f, 0.0f, 0.0f);
+    Point rp = r.transformed_point(p);
+    REQUIRE(approx_f32(rp.x(), 0.0f));
+    REQUIRE(approx_f32(rp.y(), 1.0f));
+    REQUIRE(approx_f32(rp.z(), 0.0f));
+}
+
+TEST_CASE("test_xform_change_basis") {
+    Point o(1.0f, 2.0f, 3.0f);
+    Vector x(1.0f, 0.0f, 0.0f);
+    Vector y(0.0f, 1.0f, 0.0f);
+    Vector z(0.0f, 0.0f, 1.0f);
+    Xform cb = Xform::change_basis(o, x, y, z);
+    REQUIRE(approx_f32(cb.m[12], 1.0f));
+    REQUIRE(approx_f32(cb.m[13], 2.0f));
+    REQUIRE(approx_f32(cb.m[14], 3.0f));
+}
+
+TEST_CASE("test_xform_plane_to_xy") {
+    Point o(1.0f, 2.0f, 3.0f);
+    Vector x(1.0f, 0.0f, 0.0f);
+    Vector y(0.0f, 1.0f, 0.0f);
+    Vector z(0.0f, 0.0f, 1.0f);
+    Xform m = Xform::plane_to_xy(o, x, y, z);
+    Point mapped = m.transformed_point(o);
+    REQUIRE(approx_f32(mapped.x(), 0.0f));
+    REQUIRE(approx_f32(mapped.y(), 0.0f));
+    REQUIRE(approx_f32(mapped.z(), 0.0f));
+}
+
+TEST_CASE("test_xform_xy_to_plane") {
+    Point o(1.0f, 2.0f, 3.0f);
+    Vector x(1.0f, 0.0f, 0.0f);
+    Vector y(0.0f, 1.0f, 0.0f);
+    Vector z(0.0f, 0.0f, 1.0f);
+    Xform m = Xform::xy_to_plane(o, x, y, z);
+    Point origin(0.0f, 0.0f, 0.0f);
+    Point mapped = m.transformed_point(origin);
+    REQUIRE(approx_f32(mapped.x(), o.x()));
+    REQUIRE(approx_f32(mapped.y(), o.y()));
+    REQUIRE(approx_f32(mapped.z(), o.z()));
+}
+
+TEST_CASE("test_xform_scale_xyz") {
+    Xform s = Xform::scale_xyz(2.0f, 3.0f, 4.0f);
+    Point p(1.0f, 1.0f, 1.0f);
+    Point sp = s.transformed_point(p);
+    REQUIRE(sp.x() == 2.0f);
+    REQUIRE(sp.y() == 3.0f);
+    REQUIRE(sp.z() == 4.0f);
+}
+
+TEST_CASE("test_xform_scale_uniform") {
+    Point o(1.0f, 1.0f, 1.0f);
+    Xform s = Xform::scale_uniform(o, 2.0f);
+    Point p(2.0f, 2.0f, 2.0f);
+    Point sp = s.transformed_point(p);
+    REQUIRE(approx_f32(sp.x(), 3.0f));
+    REQUIRE(approx_f32(sp.y(), 3.0f));
+    REQUIRE(approx_f32(sp.z(), 3.0f));
+}
+
+TEST_CASE("test_xform_scale_non_uniform") {
+    Point o(0.0f, 0.0f, 0.0f);
+    Xform s = Xform::scale_non_uniform(o, 2.0f, 3.0f, 4.0f);
+    Point p(1.0f, 1.0f, 1.0f);
+    Point sp = s.transformed_point(p);
+    REQUIRE(sp.x() == 2.0f);
+    REQUIRE(sp.y() == 3.0f);
+    REQUIRE(sp.z() == 4.0f);
+}
+
+TEST_CASE("test_xform_is_identity") {
+    Xform x = Xform::identity();
+    REQUIRE(x.is_identity());
+    x.m[0] = 2.0f;
+    REQUIRE(!x.is_identity());
+}
+
+TEST_CASE("test_xform_transformed_point") {
+    Xform t = Xform::translation(1.0f, 2.0f, 3.0f);
+    Point p(0.0f, 0.0f, 0.0f);
+    Point tp = t.transformed_point(p);
+    REQUIRE(tp.x() == 1.0f);
+    REQUIRE(tp.y() == 2.0f);
+    REQUIRE(tp.z() == 3.0f);
+}
+
+TEST_CASE("test_xform_transformed_vector") {
+    Xform s = Xform::scaling(2.0f, 3.0f, 4.0f);
+    Vector v(1.0f, 1.0f, 1.0f);
+    Vector sv = s.transformed_vector(v);
+    REQUIRE(sv[0] == 2.0f);
+    REQUIRE(sv[1] == 3.0f);
+    REQUIRE(sv[2] == 4.0f);
+}
+
+TEST_CASE("test_xform_transform_point") {
+    Xform t = Xform::translation(1.0f, 2.0f, 3.0f);
+    Point p(0.0f, 0.0f, 0.0f);
+    t.transform_point(p);
+    REQUIRE(p.x() == 1.0f);
+    REQUIRE(p.y() == 2.0f);
+    REQUIRE(p.z() == 3.0f);
+}
+
+TEST_CASE("test_xform_transform_vector") {
+    Xform s = Xform::scaling(2.0f, 3.0f, 4.0f);
+    Vector v(1.0f, 1.0f, 1.0f);
+    s.transform_vector(v);
+    REQUIRE(v[0] == 2.0f);
+    REQUIRE(v[1] == 3.0f);
+    REQUIRE(v[2] == 4.0f);
+}
+
+TEST_CASE("test_xform_to_json_data") {
+    Xform x = Xform::identity();
+    x.name = "test_matrix";
+    nlohmann::json data = x.to_json_data();
+    REQUIRE(data["name"] == "test_matrix");
+    REQUIRE(data["type"] == "Xform");
+    REQUIRE(data["m"].size() == 16);
+}
+
+TEST_CASE("test_xform_from_json_data") {
+    nlohmann::json data;
+    data["type"] = "Xform";
+    data["guid"] = "test-guid";
+    data["name"] = "test_matrix";
+    data["m"] = std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    Xform x = Xform::from_json_data(data);
+    REQUIRE(x.name == "test_matrix");
+    REQUIRE(x.guid == "test-guid");
+}
+
+TEST_CASE("test_xform_to_json_from_json") {
+    Xform x = Xform::translation(1.0f, 2.0f, 3.0f);
+    x.name = "test_file";
+    std::string filepath = "test_xform_file_cpp.json";
+    x.to_json(filepath);
+    Xform y = Xform::from_json(filepath);
+    REQUIRE(y.name == "test_file");
+    REQUIRE(matrices_close(x, y));
+    std::remove(filepath.c_str());
+}
+
+TEST_CASE("test_xform_getitem") {
+    Xform x = Xform::identity();
+    REQUIRE(x(0, 0) == 1.0f);
+    REQUIRE(x(1, 1) == 1.0f);
+    REQUIRE(x(2, 2) == 1.0f);
+    REQUIRE(x(3, 3) == 1.0f);
+    REQUIRE(x(0, 3) == 0.0f);
+}
+
+TEST_CASE("test_xform_setitem") {
+    Xform x = Xform::identity();
+    x(0, 3) = 5.0f;
+    x(1, 3) = 10.0f;
+    x(2, 3) = 15.0f;
+    REQUIRE(x(0, 3) == 5.0f);
+    REQUIRE(x(1, 3) == 10.0f);
+    REQUIRE(x(2, 3) == 15.0f);
+}
+
 }

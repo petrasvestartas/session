@@ -3,7 +3,6 @@ from .point import Point
 
 
 def test_objects_constructor():
-    """Test Objects constructor."""
     objects = Objects()
     assert objects.name == "my_objects"
     assert objects.guid is not None
@@ -11,7 +10,6 @@ def test_objects_constructor():
 
 
 def test_objects_to_json_data():
-    """Test Objects to_json_data method."""
     objects = Objects()
     point1 = Point(1.0, 2.0, 3.0)
     point2 = Point(4.0, 5.0, 6.0)
@@ -27,7 +25,6 @@ def test_objects_to_json_data():
 
 
 def test_objects_from_json_data():
-    """Test Objects from_json_data method."""
     objects = Objects()
     point1 = Point(10.0, 20.0, 30.0)
     point2 = Point(40.0, 50.0, 60.0)
@@ -41,7 +38,6 @@ def test_objects_from_json_data():
 
 
 def test_objects_to_json_from_json():
-    """Test Objects file I/O with to_json and from_json."""
     objects = Objects()
     point1 = Point(100.0, 200.0, 300.0)
     point2 = Point(400.0, 500.0, 600.0)

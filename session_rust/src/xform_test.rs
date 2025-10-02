@@ -171,4 +171,197 @@ mod xform_tests {
         let y = Xform::from_json_data(&data).expect("Failed to deserialize JSON to Xform");
         assert!(matrices_close(&x, &y));
     }
+
+    #[test]
+    fn test_xform_from_matrix() {
+        let m = [
+            1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 5.0, 10.0, 15.0, 1.0,
+        ];
+        let x = Xform::from_matrix(m);
+        assert_eq!(x.m, m);
+    }
+
+    #[test]
+    fn test_xform_rotation_x() {
+        let r = Xform::rotation_x(std::f32::consts::FRAC_PI_2);
+        let p = Point::new(0.0, 1.0, 0.0);
+        let rp = r.transformed_point(&p);
+        assert!(approx_f32(rp.x(), 0.0));
+        assert!(approx_f32(rp.y(), 0.0));
+        assert!(approx_f32(rp.z(), 1.0));
+    }
+
+    #[test]
+    fn test_xform_rotation_y() {
+        let r = Xform::rotation_y(std::f32::consts::FRAC_PI_2);
+        let p = Point::new(1.0, 0.0, 0.0);
+        let rp = r.transformed_point(&p);
+        assert!(approx_f32(rp.x(), 0.0));
+        assert!(approx_f32(rp.y(), 0.0));
+        assert!(approx_f32(rp.z(), -1.0));
+    }
+
+    #[test]
+    fn test_xform_rotation() {
+        let axis = Vector::new(0.0, 0.0, 1.0);
+        let r = Xform::rotation(&axis, std::f32::consts::FRAC_PI_2);
+        let p = Point::new(1.0, 0.0, 0.0);
+        let rp = r.transformed_point(&p);
+        assert!(approx_f32(rp.x(), 0.0));
+        assert!(approx_f32(rp.y(), 1.0));
+        assert!(approx_f32(rp.z(), 0.0));
+    }
+
+    #[test]
+    fn test_xform_change_basis() {
+        let o = Point::new(1.0, 2.0, 3.0);
+        let x = Vector::new(1.0, 0.0, 0.0);
+        let y = Vector::new(0.0, 1.0, 0.0);
+        let z = Vector::new(0.0, 0.0, 1.0);
+        let cb = Xform::change_basis(&o, &x, &y, &z);
+        assert!(approx_f32(cb.m[12], 1.0));
+        assert!(approx_f32(cb.m[13], 2.0));
+        assert!(approx_f32(cb.m[14], 3.0));
+    }
+
+    #[test]
+    fn test_xform_plane_to_xy() {
+        let o = Point::new(1.0, 2.0, 3.0);
+        let x = Vector::new(1.0, 0.0, 0.0);
+        let y = Vector::new(0.0, 1.0, 0.0);
+        let z = Vector::new(0.0, 0.0, 1.0);
+        let m = Xform::plane_to_xy(&o, &x, &y, &z);
+        let mapped = m.transformed_point(&o);
+        assert!(approx_f32(mapped.x(), 0.0));
+        assert!(approx_f32(mapped.y(), 0.0));
+        assert!(approx_f32(mapped.z(), 0.0));
+    }
+
+    #[test]
+    fn test_xform_xy_to_plane() {
+        let o = Point::new(1.0, 2.0, 3.0);
+        let x = Vector::new(1.0, 0.0, 0.0);
+        let y = Vector::new(0.0, 1.0, 0.0);
+        let z = Vector::new(0.0, 0.0, 1.0);
+        let m = Xform::xy_to_plane(&o, &x, &y, &z);
+        let origin = Point::new(0.0, 0.0, 0.0);
+        let mapped = m.transformed_point(&origin);
+        assert!(approx_f32(mapped.x(), o.x()));
+        assert!(approx_f32(mapped.y(), o.y()));
+        assert!(approx_f32(mapped.z(), o.z()));
+    }
+
+    #[test]
+    fn test_xform_scale_xyz() {
+        let s = Xform::scale_xyz(2.0, 3.0, 4.0);
+        let p = Point::new(1.0, 1.0, 1.0);
+        let sp = s.transformed_point(&p);
+        assert_eq!((sp.x(), sp.y(), sp.z()), (2.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn test_xform_scale_uniform() {
+        let o = Point::new(1.0, 1.0, 1.0);
+        let s = Xform::scale_uniform(&o, 2.0);
+        let p = Point::new(2.0, 2.0, 2.0);
+        let sp = s.transformed_point(&p);
+        assert!(approx_f32(sp.x(), 3.0));
+        assert!(approx_f32(sp.y(), 3.0));
+        assert!(approx_f32(sp.z(), 3.0));
+    }
+
+    #[test]
+    fn test_xform_scale_non_uniform() {
+        let o = Point::new(0.0, 0.0, 0.0);
+        let s = Xform::scale_non_uniform(&o, 2.0, 3.0, 4.0);
+        let p = Point::new(1.0, 1.0, 1.0);
+        let sp = s.transformed_point(&p);
+        assert_eq!((sp.x(), sp.y(), sp.z()), (2.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn test_xform_is_identity() {
+        let mut x = Xform::identity();
+        assert!(x.is_identity());
+        x.m[0] = 2.0;
+        assert!(!x.is_identity());
+    }
+
+    #[test]
+    fn test_xform_transformed_point() {
+        let t = Xform::translation(1.0, 2.0, 3.0);
+        let p = Point::new(0.0, 0.0, 0.0);
+        let tp = t.transformed_point(&p);
+        assert_eq!((tp.x(), tp.y(), tp.z()), (1.0, 2.0, 3.0));
+    }
+
+    #[test]
+    fn test_xform_transformed_vector() {
+        let s = Xform::scaling(2.0, 3.0, 4.0);
+        let v = Vector::new(1.0, 1.0, 1.0);
+        let sv = s.transformed_vector(&v);
+        assert_eq!((sv[0], sv[1], sv[2]), (2.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn test_xform_transform_point() {
+        let t = Xform::translation(1.0, 2.0, 3.0);
+        let mut p = Point::new(0.0, 0.0, 0.0);
+        t.transform_point(&mut p);
+        assert_eq!((p.x(), p.y(), p.z()), (1.0, 2.0, 3.0));
+    }
+
+    #[test]
+    fn test_xform_transform_vector() {
+        let s = Xform::scaling(2.0, 3.0, 4.0);
+        let mut v = Vector::new(1.0, 1.0, 1.0);
+        s.transform_vector(&mut v);
+        assert_eq!((v[0], v[1], v[2]), (2.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn test_xform_to_json_data() {
+        let x = Xform::identity();
+        let data = x.to_json_data().expect("Failed to serialize");
+        assert!(data.contains("\"m\""));
+        assert!(data.len() > 10);
+    }
+
+    #[test]
+    fn test_xform_from_json_data() {
+        let data = r#"{"m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]}"#;
+        let x = Xform::from_json_data(data).expect("Failed to deserialize");
+        assert!(x.is_identity());
+    }
+
+    #[test]
+    fn test_xform_to_json_from_json() {
+        let x = Xform::translation(1.0, 2.0, 3.0);
+        let filepath = "test_xform_file_rust.json";
+        x.to_json(filepath).expect("Failed to write JSON");
+        let y = Xform::from_json(filepath).expect("Failed to read JSON");
+        assert!(matrices_close(&x, &y));
+        std::fs::remove_file(filepath).ok();
+    }
+
+    #[test]
+    fn test_xform_getitem() {
+        let x = Xform::identity();
+        assert_eq!(x[(0, 0)], 1.0);
+        assert_eq!(x[(1, 1)], 1.0);
+        assert_eq!(x[(2, 2)], 1.0);
+        assert_eq!(x[(3, 3)], 1.0);
+        assert_eq!(x[(0, 3)], 0.0);
+    }
+
+    #[test]
+    fn test_xform_setitem() {
+        let mut x = Xform::identity();
+        x[(0, 3)] = 5.0;
+        x[(1, 3)] = 10.0;
+        x[(2, 3)] = 15.0;
+        assert_eq!(x[(0, 3)], 5.0);
+        assert_eq!(x[(1, 3)], 10.0);
+        assert_eq!(x[(2, 3)], 15.0);
+    }
 }

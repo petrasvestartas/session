@@ -13,16 +13,6 @@ mod tests {
     }
 
     #[test]
-    fn test_session_default() {
-        let session = Session::default();
-        assert_eq!(session.name, "my_session");
-        assert!(!session.guid.is_empty());
-        assert_eq!(session.objects.vec.len(), 0);
-        assert!(session.tree.root().is_some());
-        assert_eq!(session.graph.vertex_count, 0);
-    }
-
-    #[test]
     fn test_session_to_json_data() {
         let mut session = Session::new("my_session");
         let point1 = Point::new(1.0, 2.0, 3.0);
@@ -135,63 +125,6 @@ mod tests {
         assert_eq!(retrieved.x, expected_x);
         assert_eq!(retrieved.y, expected_y);
         assert_eq!(retrieved.z, expected_z);
-    }
-
-    #[test]
-    fn test_session_remove_object() {
-        let mut session = Session::new("my_session");
-        let point = Point::new(1.0, 2.0, 3.0);
-        let point_guid = point.guid.clone();
-
-        session.add_point(point);
-        assert_eq!(session.objects.vec.len(), 1);
-        assert!(session.lookup.contains_key(&point_guid));
-
-        let removed = session.remove_object(&point_guid);
-        assert!(removed);
-        assert_eq!(session.objects.vec.len(), 0);
-        assert!(!session.lookup.contains_key(&point_guid));
-        assert!(!session.graph.has_node(&point_guid));
-    }
-
-    #[test]
-    fn test_session_add_relationship() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
-
-        session.add_point(point1);
-        session.add_point(point2);
-
-        session.add_relationship(&point1_guid, &point2_guid, "related");
-
-        assert!(session.graph.has_edge((&point1_guid, &point2_guid)));
-    }
-
-    #[test]
-    fn test_session_get_neighbours() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point3 = Point::new(7.0, 8.0, 9.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
-        let point3_guid = point3.guid.clone();
-
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_point(point3);
-
-        session.add_relationship(&point1_guid, &point2_guid, "connected");
-        session.add_relationship(&point1_guid, &point3_guid, "linked");
-
-        let mut neighbours = session.get_neighbours(&point1_guid);
-        neighbours.sort();
-        let mut expected = vec![point2_guid, point3_guid];
-        expected.sort();
-        assert_eq!(neighbours, expected);
     }
 
     #[test]

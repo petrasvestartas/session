@@ -3,7 +3,6 @@ from .color import Color
 
 
 def test_point_constructor():
-    """Test Point constructor."""
     point = Point(1.0, 2.0, 3.0)
     assert point.name == "my_point"
     assert point.guid != ""
@@ -15,7 +14,6 @@ def test_point_constructor():
 
 
 def test_point_equality():
-    """Test Point equality."""
     p1 = Point(1.0, 2.0, 3.0)
     p2 = Point(1.0, 2.0, 3.0)
     assert p1 == p2
@@ -33,7 +31,6 @@ def test_point_equality():
 
 
 def test_point_to_json_data():
-    """Test Point to_json_data method."""
     point = Point(15.5, 25.7, 35.9)
     point.name = "survey_point_A"
     point.width = 2.5
@@ -52,7 +49,6 @@ def test_point_to_json_data():
 
 
 def test_point_from_json_data():
-    """Test Point from_json_data method."""
     original_point = Point(42.1, 84.2, 126.3)
     original_point.name = "control_point_B"
     original_point.width = 3.0
@@ -72,7 +68,6 @@ def test_point_from_json_data():
 
 
 def test_point_to_json_from_json():
-    """Test Point file I/O with to_json and from_json."""
     original = Point(123.45, 678.90, 999.11)
     original.name = "file_test_point"
     original.width = 4.5
@@ -97,7 +92,6 @@ def test_point_to_json_from_json():
 
 
 def test_point_getitem():
-    """Test Point getitem method."""
     point = Point(1.0, 2.0, 3.0)
     assert point[0] == 1.0
     assert point[1] == 2.0
@@ -105,7 +99,6 @@ def test_point_getitem():
 
 
 def test_point_setitem():
-    """Test Point setitem method."""
     point = Point(1.0, 2.0, 3.0)
     point[0] = 4.0
     point[1] = 5.0
@@ -116,7 +109,6 @@ def test_point_setitem():
 
 
 def test_point_imul():
-    """Test Point imul method."""
     point = Point(1.0, 2.0, 3.0)
     point *= 2.0
     assert point.x == 2.0
@@ -125,7 +117,6 @@ def test_point_imul():
 
 
 def test_point_itruediv():
-    """Test Point itruediv method."""
     point = Point(2.0, 4.0, 6.0)
     point /= 2.0
     assert point.x == 1.0
@@ -134,7 +125,6 @@ def test_point_itruediv():
 
 
 def test_point_iadd():
-    """Test Point iadd method."""
     point = Point(1.0, 2.0, 3.0)
     point += Point(4.0, 5.0, 6.0)
     assert point.x == 5.0
@@ -143,7 +133,6 @@ def test_point_iadd():
 
 
 def test_point_isub():
-    """Test Point isub method."""
     point = Point(5.0, 7.0, 9.0)
     point -= Point(4.0, 5.0, 6.0)
     assert point.x == 1.0
@@ -157,7 +146,6 @@ def test_point_isub():
 
 
 def test_point_mul():
-    """Test Point mul method."""
     point = Point(1.0, 2.0, 3.0)
     result = point * 2.0
     assert result.x == 2.0
@@ -166,7 +154,6 @@ def test_point_mul():
 
 
 def test_point_truediv():
-    """Test Point truediv method."""
     point = Point(2.0, 4.0, 6.0)
     result = point / 2.0
     assert result.x == 1.0
@@ -175,7 +162,6 @@ def test_point_truediv():
 
 
 def test_point_add():
-    """Test Point add method."""
     point = Point(1.0, 2.0, 3.0)
     result = point + Point(4.0, 5.0, 6.0)
     assert result.x == 5.0
@@ -184,7 +170,6 @@ def test_point_add():
 
 
 def test_point_sub():
-    """Test Point sub method."""
     point = Point(5.0, 7.0, 9.0)
     result = point - Point(4.0, 5.0, 6.0)
     assert result.x == 1.0
@@ -198,7 +183,6 @@ def test_point_sub():
 
 
 def test_point_ccw():
-    """Test Point ccw method."""
     a = Point(0.0, 0.0, 0.0)
     b = Point(1.0, 0.0, 0.0)
     c = Point(0.0, 1.0, 0.0)
@@ -207,7 +191,6 @@ def test_point_ccw():
 
 
 def test_point_mid_point():
-    """Test Point mid_point method."""
     p1 = Point(0.0, 0.0, 0.0)
     p2 = Point(1.0, 0.0, 0.0)
     mid = p1.mid_point(p2)
@@ -217,20 +200,17 @@ def test_point_mid_point():
 
 
 def test_point_distance():
-    """Test Point distance method."""
     p1 = Point(0.0, 0.0, 0.0)
     p2 = Point(1.0, 0.0, 0.0)
     assert round(p1.distance(p2), 6) == 1.0
 
 
 def test_point_area():
-    """Test Point area method."""
     points = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]
     assert Point.area(points) == 0.5
 
 
 def test_point_centroid_quad():
-    """Test Point centroid_quad method."""
     vertices = [
         Point(0.0, 0.0, 0.0),
         Point(1.0, 0.0, 0.0),

@@ -67,6 +67,9 @@ public:
     Xform operator*(const Xform& other) const;
     Xform& operator*=(const Xform& other);
 
+    float& operator()(int row, int col);
+    const float& operator()(int row, int col) const;
+
 };
 
 } // namespace session_cpp
