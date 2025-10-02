@@ -6,179 +6,66 @@
 #include "json.h"
 #include "vector.h"
 #include "point.h"
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector.h>
 
 namespace session_cpp {
-/**
- * @class Xform
- * @brief A transformation matrix for 3D operations.
- */
+
 class Xform {
+public:
+    std::string guid = ::guid();
+    std::string name = "my_xform";
+    std::array<float, 16> m;
 
-    public:
-      std::string guid = ::guid();       ///< Unique identifier for the point
-      std::string name = "my_xform";     ///< XForm identifier/name
-      std::array<float, 16> m;
+    Xform();
+    Xform(const std::array<float, 16>& matrix);
 
-    public:
-      Xform() {
-          m = {0.0f, 0.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 0.0f, 0.0f};
-          m[0] = 1.0f;
-          m[5] = 1.0f;
-          m[10] = 1.0f;
-          m[15] = 1.0f;
-      }
-
-      Xform(const std::array<float, 16>& matrix) : m(matrix) {}
-
-      static Xform identity() {
-          return Xform();
-      }
-
+    static Xform identity();
+    static Xform from_matrix(const std::array<float, 16>& matrix);
+    
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // Basic Transformations
+    // Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
     
-    static Xform translation(float x, float y, float z){
-        Xform xform;
-        xform.m[12] = x;
-        xform.m[13] = y;
-        xform.m[14] = z;
-        return xform;
-    }
+    static Xform translation(float x, float y, float z);
+    static Xform scaling(float x, float y, float z);
+    static Xform rotation_x(float angle_radians);
+    static Xform rotation_y(float angle_radians);
+    static Xform rotation_z(float angle_radians);
+    static Xform rotation(Vector& axis, float angle_radians);
+    static Xform change_basis(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis);
+    static Xform change_basis_alt(Point& origin_1, Vector& x_axis_1, Vector& y_axis_1, Vector& z_axis_1,
+                                   Point& origin_0, Vector& x_axis_0, Vector& y_axis_0, Vector& z_axis_0);
+    static Xform plane_to_plane(Point& origin_0, Vector& x_axis_0, Vector& y_axis_0, Vector& z_axis_0,
+                                Point& origin_1, Vector& x_axis_1, Vector& y_axis_1, Vector& z_axis_1);
+    static Xform plane_to_xy(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis);
+    static Xform xy_to_plane(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis);
+    static Xform scale_xyz(float scale_x, float scale_y, float scale_z);
+    static Xform scale_uniform(Point& origin, float scale_value);
+    static Xform scale_non_uniform(Point& origin, float scale_x, float scale_y, float scale_z);
+    static Xform axis_rotation(float angle, Vector& axis);
 
-    static Xform scaling(float x, float y, float z){
-        Xform xform;
-        xform.m[0] = x;
-        xform.m[5] = y;
-        xform.m[10] = z;
-        return xform;
-    }
+    std::optional<Xform> inverse() const;
+    bool is_identity() const;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Rotations
-    ///////////////////////////////////////////////////////////////////////////////////////////
+    Point transformed_point(const Point& point) const;
+    Vector transformed_vector(const Vector& vector) const;
+    void transform_point(Point& point) const;
+    void transform_vector(Vector& vector) const;
 
-    static Xform rotation_x(float angle_radians){
-        Xform xform;
+    nlohmann::json to_json_data() const;
+    static Xform from_json_data(const nlohmann::json& data);
+    void to_json(const std::string& filepath) const;
+    static Xform from_json(const std::string& filepath);
 
-        float cos_angle = cos(angle_radians);
-        float sin_angle = sin(angle_radians);
-
-        xform.m[5] = cos_angle;
-        xform.m[6] = sin_angle;
-        xform.m[9] = -sin_angle;
-        xform.m[10] = cos_angle;
-
-        return xform;
-    }
-
-    static Xform rotation_y(float angle_radians){
-        Xform xform;
-
-        float cos_angle = cos(angle_radians);
-        float sin_angle = sin(angle_radians);
-
-        xform.m[0] = cos_angle;
-        xform.m[2] = -sin_angle;
-        xform.m[8] = sin_angle;
-        xform.m[10] = cos_angle;
-
-        return xform;
-    }
-
-    static Xform rotation_z(float angle_radians){
-        Xform xform;
-
-        float cos_angle = cos(angle_radians);
-        float sin_angle = sin(angle_radians);
-
-        xform.m[0] = cos_angle;
-        xform.m[1] = sin_angle;
-        xform.m[4] = -sin_angle;
-        xform.m[5] = cos_angle;
-
-        return xform;
-    }
-
-    static Xform rotation(Vector& axis, float angle_radians){
-        
-        Xform xform;
-        axis.unitize();
-        
-        float cos_angle = cos(angle_radians);
-        float sin_angle = sin(angle_radians);
-        float one_minus_cos = 1.0f - cos_angle;
-
-        float xx = axis.x() * axis.x();
-        float xy = axis.x() * axis.y();
-        float xz = axis.x() * axis.z();
-        float yy = axis.y() * axis.y();
-        float yz = axis.y() * axis.z();
-        float zz = axis.z() * axis.z();
-
-        xform.m[0] = cos_angle + xx * one_minus_cos;
-        xform.m[1] = xy * one_minus_cos + axis.z() * sin_angle;
-        xform.m[2] = xz * one_minus_cos - axis.y() * sin_angle;
-
-        xform.m[4] = xy * one_minus_cos - axis.z() * sin_angle;
-        xform.m[5] = cos_angle + yy * one_minus_cos;
-        xform.m[6] = yz * one_minus_cos + axis.x() * sin_angle;
-
-        xform.m[8] = xz * one_minus_cos + axis.y() * sin_angle;
-        xform.m[9] = yz * one_minus_cos - axis.x() * sin_angle;
-        xform.m[10] = cos_angle + zz * one_minus_cos;
-
-        return xform;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Advanced Transformations
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
-    static Xform change_basis(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis){
-        
-        Xform xform;
-
-        x_axis.unitize();
-        y_axis.unitize();
-        z_axis.unitize();
-
-        xform.m[0] = x_axis.x();
-        xform.m[1] = x_axis.y();
-        xform.m[2] = x_axis.z();
-
-        xform.m[4] = y_axis.x();
-        xform.m[5] = y_axis.y();
-        xform.m[6] = y_axis.z();
-
-        xform.m[8] = z_axis.x();
-        xform.m[9] = z_axis.y();
-        xform.m[10] = z_axis.z();
-
-        xform.m[12] = origin.x();
-        xform.m[13] = origin.y();
-        xform.m[14] = origin.z();
-
-        return xform;
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Matrix Operations
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
-
-
+    Xform operator*(const Xform& other) const;
+    Xform& operator*=(const Xform& other);
 
 };
 

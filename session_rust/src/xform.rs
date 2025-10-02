@@ -34,7 +34,7 @@ impl Xform {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // Basic Transformations
+    // Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn translation(x: f32, y: f32, z: f32) -> Self {
@@ -52,10 +52,6 @@ impl Xform {
         xform.m[10] = z;
         xform
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Rotations
-    ///////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn rotation_x(angle_radians: f32) -> Self {
         let mut xform = Self::identity();
@@ -128,10 +124,6 @@ impl Xform {
         xform
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Advanced Transformations
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
     pub fn change_basis(origin: &Point, x_axis: &Vector, y_axis: &Vector, z_axis: &Vector) -> Self {
         let x_axis = x_axis.unitized();
         let y_axis = y_axis.unitized();
@@ -158,10 +150,6 @@ impl Xform {
 
         xform
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Matrix Operations
-    ///////////////////////////////////////////////////////////////////////////////////////////
 
     pub fn inverse(&self) -> Option<Xform> {
         let a00 = self[(0, 0)];
@@ -214,7 +202,11 @@ impl Xform {
         Some(res)
     }
 
-    pub fn transform_point(&self, point: &Point) -> Point {
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Apply Transformations
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    pub fn transformed_point(&self, point: &Point) -> Point {
         let m = &self.m;
         let w = m[3] * point.x() + m[7] * point.y() + m[11] * point.z() + m[15];
         let w_inv = if w.abs() > 1e-10 { 1.0 / w } else { 1.0 };
@@ -226,7 +218,7 @@ impl Xform {
         )
     }
 
-    pub fn transform_vector(&self, vector: &Vector) -> Vector {
+    pub fn transformed_vector(&self, vector: &Vector) -> Vector {
         let m = &self.m;
 
         Vector::new(
@@ -234,6 +226,30 @@ impl Xform {
             m[1] * vector.x() + m[5] * vector.y() + m[9] * vector.z(),
             m[2] * vector.x() + m[6] * vector.y() + m[10] * vector.z(),
         )
+    }
+
+    pub fn transform_point(&self, point: &mut Point) {
+        let m = &self.m;
+        let x = point[0];
+        let y = point[1];
+        let z = point[2];
+        let w = m[3] * x + m[7] * y + m[11] * z + m[15];
+        let w_inv = if w.abs() > 1e-10 { 1.0 / w } else { 1.0 };
+
+        point[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) * w_inv;
+        point[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) * w_inv;
+        point[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) * w_inv;
+    }
+
+    pub fn transform_vector(&self, vector: &mut Vector) {
+        let m = &self.m;
+        let x = vector[0];
+        let y = vector[1];
+        let z = vector[2];
+
+        vector[0] = m[0] * x + m[4] * y + m[8] * z;
+        vector[1] = m[1] * x + m[5] * y + m[9] * z;
+        vector[2] = m[2] * x + m[6] * y + m[10] * z;
     }
 
     pub fn is_identity(&self) -> bool {
