@@ -1,6 +1,7 @@
 #include "vector.h"
 #include <algorithm>
 #include <limits>
+#include <cmath>
 
 namespace session_cpp {
 
@@ -175,7 +176,7 @@ float Vector::compute_length() const {
   if (ax > std::numeric_limits<float>::min()) {
     ay /= ax;
     az /= ax;
-    len = ax * std::sqrtf(1.0f + ay * ay + az * az);
+    len = ax * sqrtf(1.0f + ay * ay + az * az);
   } else if (ax > 0.0f && geo::GLOBALS::IS_FINITE(ax)) {
     len = ax;
   } else {
@@ -248,7 +249,7 @@ int Vector::is_parallel_to(const Vector &other) {
   if (ll > 0.0f) {
     const float cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;
     const float angle_in_radians = geo::GLOBALS::ANGLE_F * (geo::GLOBALS::PI_F / 180.0f);
-    const float cos_tol = std::cosf(angle_in_radians);
+    const float cos_tol = cosf(angle_in_radians);
     if (cos_angle >= cos_tol)
       result = 1;  // Parallel
     else if (cos_angle <= -cos_tol)
@@ -288,7 +289,7 @@ float Vector::angle(const Vector &other, bool sign_by_cross_product, bool degree
   }
   float cos_angle = dotp / denom;
   cos_angle = std::max(-1.0f, std::min(1.0f, cos_angle));
-  float ang = std::acosf(cos_angle);
+  float ang = acosf(cos_angle);
   if (sign_by_cross_product) {
     Vector cp = this->cross(other);
     if (cp._z < 0)
@@ -312,22 +313,22 @@ Vector Vector::get_leveled_vector(float &vertical_height) {
 
 float Vector::cosine_law(float &a, float &b, float &ang_between, bool degrees) {
   float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
-  return std::sqrtf(a * a + b * b - 2.0f * a * b * std::cosf(ang_between * to_rad));
+  return sqrtf(a * a + b * b - 2.0f * a * b * cosf(ang_between * to_rad));
 }
 
 float Vector::sine_law_angle(float &a, float &A, float &b, bool degrees) {
   float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
   float to_deg = degrees ? geo::GLOBALS::TO_DEGREES_F : 1.0f;
-  return std::asinf((b * std::sinf(A * to_rad)) / a) * to_deg;
+  return asinf((b * sinf(A * to_rad)) / a) * to_deg;
 }
 
 float Vector::sine_law_length(float &a, float &A, float &B, bool degrees) {
   float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
-  return (a * std::sinf(B * to_rad)) / std::sinf(A * to_rad);
+  return (a * sinf(B * to_rad)) / sinf(A * to_rad);
 }
 
 float Vector::angle_between_vector_xy_components(Vector &vector) {
-  return std::atan2f(vector[1], vector[0]) * geo::GLOBALS::TO_DEGREES_F;
+  return atan2f(vector[1], vector[0]) * geo::GLOBALS::TO_DEGREES_F;
 }
 
 Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
@@ -344,7 +345,7 @@ std::array<float, 3> Vector::coordinate_direction_3angles(bool degrees) {
   float x_coord = _x;
   float y_coord = _y;
   float z_coord = _z;
-  float r = std::sqrtf(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
+  float r = sqrtf(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
   
   if (r == 0) {
     return {0, 0, 0};
@@ -356,9 +357,9 @@ std::array<float, 3> Vector::coordinate_direction_3angles(bool degrees) {
   float z_proportion = z_coord / r;
   
   // angles
-  float alpha = std::acosf(x_proportion);
-  float beta = std::acosf(y_proportion);
-  float gamma = std::acosf(z_proportion);
+  float alpha = acosf(x_proportion);
+  float beta = acosf(y_proportion);
+  float gamma = acosf(z_proportion);
   
   if (degrees) {
     alpha = alpha * (180.0f / geo::GLOBALS::PI_F);
@@ -380,8 +381,8 @@ std::array<float, 2> Vector::coordinate_direction_2angles(bool degrees) {
   }
   
   // spherical coordinates
-  float phi = std::acosf(z_coord / r);
-  float theta = std::atan2f(y_coord, x_coord);
+  float phi = acosf(z_coord / r);
+  float theta = atan2f(y_coord, x_coord);
   
   if (degrees) {
     phi = phi * (180.0f / geo::GLOBALS::PI_F);
