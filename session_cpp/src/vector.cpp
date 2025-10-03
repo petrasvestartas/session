@@ -1,5 +1,6 @@
 #include "vector.h"
 #include <algorithm>
+#include <limits>
 
 namespace session_cpp {
 
@@ -151,9 +152,9 @@ float Vector::compute_length() const {
   float ay = std::abs(_y);
   float az = std::abs(_z);
 
-  const bool x_zero = ax < geo::GLOBALS::ZERO_TOLERANCE;
-  const bool y_zero = ay < geo::GLOBALS::ZERO_TOLERANCE;
-  const bool z_zero = az < geo::GLOBALS::ZERO_TOLERANCE;
+  const bool x_zero = ax < geo::GLOBALS::ZERO_TOLERANCE_F;
+  const bool y_zero = ay < geo::GLOBALS::ZERO_TOLERANCE_F;
+  const bool z_zero = az < geo::GLOBALS::ZERO_TOLERANCE_F;
 
   if (x_zero && y_zero && z_zero)
     return 0.0f;
@@ -171,10 +172,10 @@ float Vector::compute_length() const {
     std::swap(ax, az);
   }
 
-  if (ax > geo::GLOBALS::DOUBLE_MIN) {
+  if (ax > std::numeric_limits<float>::min()) {
     ay /= ax;
     az /= ax;
-    len = ax * std::sqrt(1.0f + ay * ay + az * az);
+    len = ax * std::sqrtf(1.0f + ay * ay + az * az);
   } else if (ax > 0.0f && geo::GLOBALS::IS_FINITE(ax)) {
     len = ax;
   } else {
@@ -246,9 +247,8 @@ int Vector::is_parallel_to(const Vector &other) {
   
   if (ll > 0.0f) {
     const float cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;
-    
-    const float angle_in_radians = geo::GLOBALS::ANGLE * (geo::GLOBALS::PI / 180.0f);
-    const float cos_tol = std::cos(angle_in_radians);
+    const float angle_in_radians = geo::GLOBALS::ANGLE_F * (geo::GLOBALS::PI_F / 180.0f);
+    const float cos_tol = std::cosf(angle_in_radians);
     if (cos_angle >= cos_tol)
       result = 1;  // Parallel
     else if (cos_angle <= -cos_tol)
@@ -264,7 +264,7 @@ int Vector::is_parallel_to(const Vector &other) {
 
 float Vector::dot(const Vector &other) {
   float result = 0.0f;
-  for (size_t i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; ++i) {
     result += (*this)[i] * other[i];
   }
   return result;
@@ -288,13 +288,13 @@ float Vector::angle(const Vector &other, bool sign_by_cross_product, bool degree
   }
   float cos_angle = dotp / denom;
   cos_angle = std::max(-1.0f, std::min(1.0f, cos_angle));
-  float ang = std::acos(cos_angle);
+  float ang = std::acosf(cos_angle);
   if (sign_by_cross_product) {
     Vector cp = this->cross(other);
     if (cp._z < 0)
       ang = -ang;
   }
-  float to_degrees = degrees ? geo::GLOBALS::TO_DEGREES : 1.0f;
+  float to_degrees = degrees ? geo::GLOBALS::TO_DEGREES_F : 1.0f;
   return ang * to_degrees;
 }
 
@@ -311,23 +311,23 @@ Vector Vector::get_leveled_vector(float &vertical_height) {
 }
 
 float Vector::cosine_law(float &a, float &b, float &ang_between, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS : 1.0f;
-  return std::sqrt(a * a + b * b - 2 * a * b * std::cos(ang_between * to_rad));
+  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
+  return std::sqrtf(a * a + b * b - 2.0f * a * b * std::cosf(ang_between * to_rad));
 }
 
 float Vector::sine_law_angle(float &a, float &A, float &b, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS : 1.0f;
-  float to_deg = degrees ? geo::GLOBALS::TO_DEGREES : 1.0f;
-  return std::asin((b * std::sin(A * to_rad)) / a) * to_deg;
+  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
+  float to_deg = degrees ? geo::GLOBALS::TO_DEGREES_F : 1.0f;
+  return std::asinf((b * std::sinf(A * to_rad)) / a) * to_deg;
 }
 
 float Vector::sine_law_length(float &a, float &A, float &B, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS : 1.0f;
-  return (a * std::sin(B * to_rad)) / std::sin(A * to_rad);
+  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
+  return (a * std::sinf(B * to_rad)) / std::sinf(A * to_rad);
 }
 
-double Vector::angle_between_vector_xy_components(Vector &vector) {
-  return std::atan(vector[1] / vector[0]) * geo::GLOBALS::TO_DEGREES;
+float Vector::angle_between_vector_xy_components(Vector &vector) {
+  return std::atan2f(vector[1], vector[0]) * geo::GLOBALS::TO_DEGREES_F;
 }
 
 Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
@@ -344,7 +344,7 @@ std::array<float, 3> Vector::coordinate_direction_3angles(bool degrees) {
   float x_coord = _x;
   float y_coord = _y;
   float z_coord = _z;
-  float r = std::sqrt(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
+  float r = std::sqrtf(x_coord * x_coord + y_coord * y_coord + z_coord * z_coord);
   
   if (r == 0) {
     return {0, 0, 0};
@@ -356,14 +356,14 @@ std::array<float, 3> Vector::coordinate_direction_3angles(bool degrees) {
   float z_proportion = z_coord / r;
   
   // angles
-  float alpha = std::acos(x_proportion);
-  float beta = std::acos(y_proportion);
-  float gamma = std::acos(z_proportion);
+  float alpha = std::acosf(x_proportion);
+  float beta = std::acosf(y_proportion);
+  float gamma = std::acosf(z_proportion);
   
   if (degrees) {
-    alpha = alpha * 180.0f / geo::GLOBALS::PI;
-    beta = beta * 180.0f / geo::GLOBALS::PI;
-    gamma = gamma * 180.0f / geo::GLOBALS::PI;
+    alpha = alpha * (180.0f / geo::GLOBALS::PI_F);
+    beta = beta * (180.0f / geo::GLOBALS::PI_F);
+    gamma = gamma * (180.0f / geo::GLOBALS::PI_F);
   }
   
   return {alpha, beta, gamma};
@@ -380,12 +380,12 @@ std::array<float, 2> Vector::coordinate_direction_2angles(bool degrees) {
   }
   
   // spherical coordinates
-  float phi = std::acos(z_coord / r);
-  float theta = std::atan2(y_coord, x_coord);
+  float phi = std::acosf(z_coord / r);
+  float theta = std::atan2f(y_coord, x_coord);
   
   if (degrees) {
-    phi = phi * 180.0f / geo::GLOBALS::PI;
-    theta = theta * 180.0f / geo::GLOBALS::PI;
+    phi = phi * (180.0f / geo::GLOBALS::PI_F);
+    theta = theta * (180.0f / geo::GLOBALS::PI_F);
   }
   
   return {phi, theta};
@@ -433,9 +433,9 @@ void Vector::scale(float factor) {
   set_z(_z * factor);
 }
 
-void Vector::scale_up() { scale(geo::GLOBALS::SCALE); }
+void Vector::scale_up() { scale(geo::GLOBALS::SCALE_F); }
 
-void Vector::scale_down() { scale(1.0f / geo::GLOBALS::SCALE); }
+void Vector::scale_down() { scale(1.0f / geo::GLOBALS::SCALE_F); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Not class methods

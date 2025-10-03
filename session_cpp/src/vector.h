@@ -257,7 +257,7 @@ public:
                                 bool degrees = true);
 
   /// Angle between XY components in degrees.
-  static double angle_between_vector_xy_components(Vector &vector);
+  static float angle_between_vector_xy_components(Vector &vector);
 
   static Vector sum_of_vectors(std::vector<Vector> &vectors);
 
