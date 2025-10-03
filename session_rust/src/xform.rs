@@ -459,15 +459,15 @@ impl Xform {
         }
 
         let mut m_xform = Self::identity();
-        m_xform.m[0] = r[0][3] as f32;
-        m_xform.m[4] = r[0][4] as f32;
-        m_xform.m[8] = r[0][5] as f32;
-        m_xform.m[1] = r[1][3] as f32;
-        m_xform.m[5] = r[1][4] as f32;
-        m_xform.m[9] = r[1][5] as f32;
-        m_xform.m[2] = r[2][3] as f32;
-        m_xform.m[6] = r[2][4] as f32;
-        m_xform.m[10] = r[2][5] as f32;
+        m_xform.m[0] = r[0][3];
+        m_xform.m[4] = r[0][4];
+        m_xform.m[8] = r[0][5];
+        m_xform.m[1] = r[1][3];
+        m_xform.m[5] = r[1][4];
+        m_xform.m[9] = r[1][5];
+        m_xform.m[2] = r[2][3];
+        m_xform.m[6] = r[2][4];
+        m_xform.m[10] = r[2][5];
 
         let t0 = Self::translation(-origin_1.x(), -origin_1.y(), -origin_1.z());
         let t2 = Self::translation(origin_0.x(), origin_0.y(), origin_0.z());
@@ -501,26 +501,26 @@ impl Xform {
         let t0 = Self::translation(-origin_0.x(), -origin_0.y(), -origin_0.z());
 
         let mut f0 = Self::identity();
-        f0.m[0] = x0.x() as f32;
-        f0.m[1] = x0.y() as f32;
-        f0.m[2] = x0.z() as f32;
-        f0.m[4] = y0.x() as f32;
-        f0.m[5] = y0.y() as f32;
-        f0.m[6] = y0.z() as f32;
-        f0.m[8] = z0.x() as f32;
-        f0.m[9] = z0.y() as f32;
-        f0.m[10] = z0.z() as f32;
+        f0.m[0] = x0.x();
+        f0.m[1] = x0.y();
+        f0.m[2] = x0.z();
+        f0.m[4] = y0.x();
+        f0.m[5] = y0.y();
+        f0.m[6] = y0.z();
+        f0.m[8] = z0.x();
+        f0.m[9] = z0.y();
+        f0.m[10] = z0.z();
 
         let mut f1 = Self::identity();
-        f1.m[0] = x1.x() as f32;
-        f1.m[4] = x1.y() as f32;
-        f1.m[8] = x1.z() as f32;
-        f1.m[1] = y1.x() as f32;
-        f1.m[5] = y1.y() as f32;
-        f1.m[9] = y1.z() as f32;
-        f1.m[2] = z1.x() as f32;
-        f1.m[6] = z1.y() as f32;
-        f1.m[10] = z1.z() as f32;
+        f1.m[0] = x1.x();
+        f1.m[4] = x1.y();
+        f1.m[8] = x1.z();
+        f1.m[1] = y1.x();
+        f1.m[5] = y1.y();
+        f1.m[9] = y1.z();
+        f1.m[2] = z1.x();
+        f1.m[6] = z1.y();
+        f1.m[10] = z1.z();
 
         let r = &f1 * &f0;
         let t1 = Self::translation(origin_1.x(), origin_1.y(), origin_1.z());
@@ -537,15 +537,15 @@ impl Xform {
 
         let t = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let mut f = Self::identity();
-        f.m[0] = x.x() as f32;
-        f.m[1] = x.y() as f32;
-        f.m[2] = x.z() as f32;
-        f.m[4] = y.x() as f32;
-        f.m[5] = y.y() as f32;
-        f.m[6] = y.z() as f32;
-        f.m[8] = z.x() as f32;
-        f.m[9] = z.y() as f32;
-        f.m[10] = z.z() as f32;
+        f.m[0] = x.x();
+        f.m[1] = x.y();
+        f.m[2] = x.z();
+        f.m[4] = y.x();
+        f.m[5] = y.y();
+        f.m[6] = y.z();
+        f.m[8] = z.x();
+        f.m[9] = z.y();
+        f.m[10] = z.z();
         &f * &t
     }
 
@@ -558,15 +558,15 @@ impl Xform {
         z.normalize_self();
 
         let mut f = Self::identity();
-        f.m[0] = x.x() as f32;
-        f.m[4] = y.x() as f32;
-        f.m[8] = z.x() as f32;
-        f.m[1] = x.y() as f32;
-        f.m[5] = y.y() as f32;
-        f.m[9] = z.y() as f32;
-        f.m[2] = x.z() as f32;
-        f.m[6] = y.z() as f32;
-        f.m[10] = z.z() as f32;
+        f.m[0] = x.x();
+        f.m[4] = y.x();
+        f.m[8] = z.x();
+        f.m[1] = x.y();
+        f.m[5] = y.y();
+        f.m[9] = z.y();
+        f.m[2] = x.z();
+        f.m[6] = y.z();
+        f.m[10] = z.z();
 
         let t = Self::translation(origin.x(), origin.y(), origin.z());
         &t * &f
@@ -597,9 +597,9 @@ impl Xform {
     pub fn axis_rotation(angle: f32, axis: &Vector) -> Self {
         let c = angle.cos();
         let s = angle.sin();
-        let ux = axis.x() as f32;
-        let uy = axis.y() as f32;
-        let uz = axis.z() as f32;
+        let ux = axis.x();
+        let uy = axis.y();
+        let uz = axis.z();
         let t = 1.0 - c;
 
         let mut xform = Self::identity();

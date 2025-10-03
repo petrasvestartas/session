@@ -14,6 +14,14 @@ cd "$(dirname "$0")"
 echo -e "${BLUE}Formatting Rust code...${NC}"
 cargo fmt --all
 
+# Run clippy
+echo -e "${BLUE}Running clippy...${NC}"
+cargo clippy --all-targets --all-features -- -D warnings
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Clippy failed! Fix warnings above.${NC}"
+    exit 1
+fi
+
 # Run tests
 echo -e "${BLUE}Running Rust tests...${NC}"
 cargo test

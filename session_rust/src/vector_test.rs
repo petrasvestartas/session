@@ -128,7 +128,7 @@ mod vector_tests {
     fn test_vector_length() {
         let v = Vector::new(5.5697, -9.84, 1.587);
         let length = v.compute_length();
-        assert_eq!(length, 11.4177811806848);
+        assert_eq!(length, 11.417_781);
     }
 
     #[test]
@@ -255,8 +255,8 @@ mod vector_tests {
     #[test]
     fn test_vector_coordinate_direction_angles() {
         let abg = Vector::new(35.4, 35.4, 86.6).coordinate_direction_3angles(true);
-        assert!((abg[0] - 69.274204).abs() < 1e-4);
-        assert!((abg[1] - 69.274204).abs() < 1e-4);
+        assert!((abg[0] - 69.274_2).abs() < 1e-4);
+        assert!((abg[1] - 69.274_2).abs() < 1e-4);
         assert!((abg[2] - 30.032058).abs() < 1e-4);
 
         let pt = Vector::new(1.0, 1.0, 2.0_f32.sqrt()).coordinate_direction_2angles(true);

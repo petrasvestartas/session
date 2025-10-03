@@ -423,7 +423,7 @@ impl Vector {
         degrees: bool,
     ) -> f32 {
         let angle = if degrees {
-            angle_in_degrees_between_edges * unsafe { globals::TO_RADIANS as f32 as f32 }
+            angle_in_degrees_between_edges * unsafe { globals::TO_RADIANS as f32 }
         } else {
             angle_in_degrees_between_edges
         };

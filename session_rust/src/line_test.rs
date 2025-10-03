@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_line_to_string() {
         let line = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
-        let s = format!("{}", line);
+        let s = format!("{line}");
         assert!(s.contains("1"));
     }
 
