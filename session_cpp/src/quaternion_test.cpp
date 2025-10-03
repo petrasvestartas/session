@@ -130,7 +130,7 @@ TEST_CASE("test_quaternion_to_json_from_json") {
     float angle = PI / 4.0f;
     Quaternion orig = Quaternion::from_axis_angle(axis, angle);
 
-    std::string filepath = "test_quaternion.json";
+    std::string filepath = "../test_quaternion.json";
     orig.to_json(filepath);
     Quaternion loaded = Quaternion::from_json(filepath);
 

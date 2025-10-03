@@ -51,7 +51,7 @@ TEST_CASE("Color from_json_data") {
 TEST_CASE("Color to_json from_json") {
   Color original(123, 678, 999, 255);
   original.name = "file_test_color";
-  std::string filename = "test_color.json";
+  std::string filename = "../test_color.json";
   original.to_json(filename);
   Color loaded = Color::from_json(filename);
   REQUIRE(loaded.r == original.r);

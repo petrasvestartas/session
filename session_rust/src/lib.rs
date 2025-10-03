@@ -8,6 +8,7 @@
 pub mod color;
 pub mod globals;
 pub mod graph;
+pub mod line;
 pub mod objects;
 pub mod point;
 pub mod quaternion;
@@ -19,6 +20,7 @@ pub mod xform;
 pub use color::Color;
 pub use graph::Graph;
 pub use graph::Vertex;
+pub use line::Line;
 pub use objects::Objects;
 pub use point::Point;
 pub use quaternion::Quaternion;

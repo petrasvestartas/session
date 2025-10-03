@@ -5,6 +5,7 @@ This module contains all the classes and functions that are exposed to the user.
 from .color import Color
 from .point import Point
 from .vector import Vector
+from .line import Line
 from .xform import Xform
 from .quaternion import Quaternion
 from .tree import Tree, TreeNode
@@ -16,6 +17,7 @@ __all__ = [
     "Color",
     "Point",
     "Vector",
+    "Line",
     "Xform",
     "Quaternion",
     "Tree",

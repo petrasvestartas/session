@@ -146,7 +146,7 @@ TEST_CASE("Graph to_json from_json.") {
   graph.add_edge("A", "B", "edge_AB");
   graph.add_edge("B", "C", "edge_BC");
   graph.add_edge("C", "D", "edge_CD");
-  std::string filename = "test_graph.json";
+  std::string filename = "../test_graph.json";
   graph.to_json(filename);
   Graph loaded = Graph::from_json(filename);
   REQUIRE(loaded.name == graph.name);

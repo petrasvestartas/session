@@ -50,7 +50,7 @@ TEST_CASE("Session to_json and from_json file I/O.") {
   session.add_point(point1);
   session.add_point(point2);
   session.add_edge(point1->guid, point2->guid, "connection");
-  std::string filename = "test_session.json";
+  std::string filename = "../test_session.json";
 
   session.to_json(filename);
   Session loaded_session = Session::from_json(filename);
@@ -101,7 +101,7 @@ TEST_CASE("Session to_json_file.") {
   session.add_point(point1);
   session.add_point(point2);
   session.add_edge(point1->guid, point2->guid, "test_connection");
-  std::string filename = "test_session.json";
+  std::string filename = "../test_session.json";
 
   session.to_json(filename);
   Session loaded_session = Session::from_json(filename);

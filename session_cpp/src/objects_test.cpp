@@ -56,7 +56,7 @@ TEST_CASE("Objects to_json_from_json.") {
   objects.points->push_back(std::make_shared<Point>(7.0, 8.0, 9.0));
 
   // Save to a temporary file, then load back
-  std::string filename = "test_objects.json";
+  std::string filename = "../test_objects.json";
   objects.to_json(filename);
   auto loaded = Objects::from_json(filename);
 

@@ -5,14 +5,18 @@ Multi-language project for vizualization.
 ## Plan
 
 - [x] xform
-- [ ] quaternion
-- [ ] line
-- [ ] arrow
+- [x] quaternion
+- [x] line
 - [ ] plane
 - [ ] pline
 - [ ] pointcloud
 - [ ] mesh
+- [ ] arrow
 - [ ] pipe
+- [ ] box (boundingbox form all types) with inflation
+- [ ] bvh and implementation into session
+- [ ] protobuf
+- [ ] element level implementation: beam, plate
 
 https://github.com/petrasvestartas/wink/blob/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/primitives/xform.rs
 https://github.com/petrasvestartas/wink/tree/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/geometry

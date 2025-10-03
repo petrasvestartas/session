@@ -47,8 +47,8 @@ TEST_CASE("Vector from_json_data") {
 TEST_CASE("Vector to_json from_json") {
   Vector orig(123.45, 678.90, 999.11);
   orig.name = "my_vector";
-  orig.to_json("test_vector.json");
-  Vector load = Vector::from_json("test_vector.json");
+  orig.to_json("../test_vector.json");
+  Vector load = Vector::from_json("../test_vector.json");
   REQUIRE(std::abs(load.x() - orig.x()) < 1e-5f);
   REQUIRE(std::abs(load.y() - orig.y()) < 1e-5f);
   REQUIRE(std::abs(load.z() - orig.z()) < 1e-5f);

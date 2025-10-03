@@ -128,7 +128,7 @@ TEST_CASE("Tree test tree to_json_from_json.") {
   tree->add(child1, root);
   tree->add(child2, root);
   tree->add(child3, child1);
-  std::string filename = "test_tree.json";
+  std::string filename = "../test_tree.json";
 
   tree->to_json(filename);
   Tree loaded_tree = Tree::from_json(filename);

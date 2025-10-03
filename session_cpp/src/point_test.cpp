@@ -72,7 +72,7 @@ TEST_CASE("Point to_json from_json") {
   original.name = "file_test_point";
   original.width = 4.5;
   original.pointcolor = Color(0, 255, 128, 255);
-  std::string filename = "test_point.json";
+  std::string filename = "../test_point.json";
   original.to_json(filename);
   Point loaded = Point::from_json(filename);
   REQUIRE(std::abs(loaded.x() - original.x()) < 1e-5f);
