@@ -152,13 +152,12 @@ TEST_CASE("Plane from_json_data") {
 }
 
 TEST_CASE("Plane JSON file round-trip") {
-  std::string filepath = "test_plane.json";
+  std::string filepath = "../test_plane.json";
   Plane original = Plane::xy_plane();
   original.to_json(filepath);
   Plane loaded = Plane::from_json(filepath);
   REQUIRE(loaded.name == original.name);
   REQUIRE(loaded.c() == original.c());
-  std::filesystem::remove(filepath);
 }
 
 TEST_CASE("Plane reverse") {
