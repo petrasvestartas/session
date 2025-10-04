@@ -135,6 +135,19 @@ public:
   /// Vector
   ///     Unit vector (0, 0, 1).
   static Vector z_axis();
+
+  /// Get vector from start and end points.
+  /// 
+  /// Parameters
+  /// ----------
+  /// start : const Vector&
+  ///     Start point.
+  /// end : const Vector&
+  ///     End point.
+  /// 
+  /// Returns
+  /// -------
+  /// Vector
   static Vector from_start_and_end(const Vector &start, const Vector &end);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
