@@ -1,0 +1,8 @@
+{
+    "type": "Vector",
+    "guid": "836099ea-1fab-42ff-b9f5-d3c658c9e060",
+    "name": "my_vector",
+    "x": 123.45,
+    "y": 678.9,
+    "z": 999.11
+}

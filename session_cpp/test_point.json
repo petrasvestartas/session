@@ -1,0 +1,18 @@
+{
+    "type": "Point",
+    "guid": "2e80f26d-528f-4aa5-969f-bf087677f2a3",
+    "name": "file_test_point",
+    "x": 123.44999694824219,
+    "y": 678.9000244140625,
+    "z": 999.1099853515625,
+    "width": 4.5,
+    "pointcolor": {
+        "type": "Color",
+        "guid": "ccfd3c62-d498-4042-8a66-08e535ac9457",
+        "name": "my_color",
+        "r": 0,
+        "g": 255,
+        "b": 128,
+        "a": 255
+    }
+}

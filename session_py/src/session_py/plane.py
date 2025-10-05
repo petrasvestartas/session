@@ -47,27 +47,27 @@ class Plane:
     def __init__(self, origin=None, x_axis=None, y_axis=None, name="my_plane"):
         self.guid = str(uuid.uuid4())
         self.name = name
-        
+
         if origin is None:
             self._origin = Point(0.0, 0.0, 0.0)
         else:
             self._origin = origin
-            
+
         if x_axis is None:
             self._x_axis = Vector.x_axis()
         else:
             self._x_axis = x_axis
             self._x_axis.normalize_self()
-            
+
         if y_axis is None:
             self._y_axis = Vector.y_axis()
         else:
             self._y_axis = y_axis - x_axis * (y_axis.dot(self._x_axis))
             self._y_axis.normalize_self()
-            
+
         self._z_axis = self._x_axis.cross(self._y_axis)
         self._z_axis.normalize_self()
-        
+
         self._update_equation()
 
     def _update_equation(self):
@@ -75,7 +75,11 @@ class Plane:
         self._a = self._z_axis.x
         self._b = self._z_axis.y
         self._c = self._z_axis.z
-        self._d = -(self._a * self._origin.x + self._b * self._origin.y + self._c * self._origin.z)
+        self._d = -(
+            self._a * self._origin.x
+            + self._b * self._origin.y
+            + self._c * self._origin.z
+        )
 
     @property
     def origin(self):
@@ -163,22 +167,22 @@ class Plane:
         """
         if len(points) < 3:
             return Plane()
-        
+
         plane = Plane.__new__(Plane)
         plane.guid = str(uuid.uuid4())
         plane.name = "my_plane"
         plane._origin = points[0]
-        
+
         v1 = points[1] - points[0]
         v2 = points[2] - points[0]
         plane._z_axis = v1.cross(v2)
         plane._z_axis.normalize_self()
-        
+
         plane._x_axis = Vector(v1.x, v1.y, v1.z)
         plane._x_axis.normalize_self()
         plane._y_axis = plane._z_axis.cross(plane._x_axis)
         plane._y_axis.normalize_self()
-        
+
         plane._update_equation()
         return plane
 
@@ -202,17 +206,17 @@ class Plane:
         plane.guid = str(uuid.uuid4())
         plane.name = "my_plane"
         plane._origin = point1
-        
+
         direction = point2 - point1
         direction.normalize_self()
         plane._z_axis = Vector()
         plane._z_axis.perpendicular_to(direction)
         plane._z_axis.normalize_self()
-        
+
         plane._x_axis = direction
         plane._y_axis = plane._z_axis.cross(plane._x_axis)
         plane._y_axis.normalize_self()
-        
+
         plane._update_equation()
         return plane
 
@@ -367,7 +371,7 @@ class Plane:
             "a": round(self._a, 2),
             "b": round(self._b, 2),
             "c": round(self._c, 2),
-            "d": round(self._d, 2)
+            "d": round(self._d, 2),
         }
 
     @staticmethod
@@ -402,7 +406,7 @@ class Plane:
         filepath : str
             Path to JSON file.
         """
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(self.to_json_data(), f, indent=4)
 
     @staticmethod
@@ -419,7 +423,7 @@ class Plane:
         Plane
             The loaded plane.
         """
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
         return Plane.from_json_data(data)
 
@@ -441,10 +445,10 @@ class Plane:
         """
         cos_angle = math.cos(angles_in_radians)
         sin_angle = math.sin(angles_in_radians)
-        
+
         new_x = self._x_axis * cos_angle + self._y_axis * sin_angle
         new_y = self._y_axis * cos_angle - self._x_axis * sin_angle
-        
+
         self._x_axis = new_x
         self._y_axis = new_y
         self._update_equation()
@@ -481,9 +485,9 @@ class Plane:
         """
         n0 = plane0._z_axis
         n1 = plane1._z_axis
-        
+
         parallel = n0.is_parallel_to(n1)
-        
+
         if can_be_flipped:
             return parallel != 0
         else:
@@ -505,16 +509,20 @@ class Plane:
         bool
             True if origins are very close.
         """
-        dist0 = abs(plane0._a * plane1._origin.x + 
-                   plane0._b * plane1._origin.y + 
-                   plane0._c * plane1._origin.z + 
-                   plane0._d)
-        
-        dist1 = abs(plane1._a * plane0._origin.x + 
-                   plane1._b * plane0._origin.y + 
-                   plane1._c * plane0._origin.z + 
-                   plane1._d)
-        
+        dist0 = abs(
+            plane0._a * plane1._origin.x
+            + plane0._b * plane1._origin.y
+            + plane0._c * plane1._origin.z
+            + plane0._d
+        )
+
+        dist1 = abs(
+            plane1._a * plane0._origin.x
+            + plane1._b * plane0._origin.y
+            + plane1._c * plane0._origin.z
+            + plane1._d
+        )
+
         tolerance = globals.ZERO_TOLERANCE
         return dist0 < tolerance and dist1 < tolerance
 
@@ -536,5 +544,6 @@ class Plane:
         bool
             True if planes are coplanar.
         """
-        return (Plane.is_same_direction(plane0, plane1, can_be_flipped) and 
-                Plane.is_same_position(plane0, plane1))
+        return Plane.is_same_direction(
+            plane0, plane1, can_be_flipped
+        ) and Plane.is_same_position(plane0, plane1)

@@ -37,11 +37,7 @@ def test_plane_from_point_normal():
 
 
 def test_plane_from_points():
-    points = [
-        Point(0.0, 0.0, 0.0),
-        Point(1.0, 0.0, 0.0),
-        Point(0.0, 1.0, 0.0)
-    ]
+    points = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]
     plane = Plane.from_points(points)
     assert abs(plane.c - 1.0) < 1e-5
     assert abs(plane.d) < 1e-5
@@ -155,8 +151,6 @@ def test_plane_json_file_round_trip():
     loaded = Plane.from_json(filepath)
     assert loaded.name == original.name
     assert loaded.c == original.c
-    if os.path.exists(filepath):
-        os.remove(filepath)
 
 
 def test_plane_reverse():
