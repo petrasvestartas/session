@@ -116,6 +116,13 @@ namespace session_cpp {
   void rotate(float angles_in_radians);
 
   /**
+   * @brief Check if the plane follows the right-hand rule.
+   * 
+   * @return True if x_axis × y_axis = z_axis (right-handed).
+   */
+  bool is_right_hand() const;
+
+  /**
    * @brief Check if two planes have the same or flipped normal.
    * 
    * @param plane0 First plane.

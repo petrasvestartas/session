@@ -209,4 +209,19 @@ TEST_CASE("Plane is_coplanar") {
   REQUIRE_FALSE(Plane::is_coplanar(p1, p2, true));
 }
 
+TEST_CASE("Plane is_right_hand") {
+  Plane plane = Plane::xy_plane();
+  REQUIRE(plane.is_right_hand());
+  plane = Plane::yz_plane();
+  REQUIRE(plane.is_right_hand());
+  plane = Plane::xz_plane();
+  REQUIRE(plane.is_right_hand());
+  plane = Plane();
+  REQUIRE(plane.is_right_hand());
+  plane.reverse();
+  REQUIRE(plane.is_right_hand());
+  plane.rotate(geo::GLOBALS::PI_F / 4.0f);
+  REQUIRE(plane.is_right_hand());
+}
+
 } // namespace session_cpp

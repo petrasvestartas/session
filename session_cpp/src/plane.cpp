@@ -130,8 +130,8 @@ Plane Plane::xz_plane() {
     plane.name = "xz_plane";
     plane._origin = Point(0.0f, 0.0f, 0.0f);
     plane._x_axis = Vector::x_axis();
-    plane._y_axis = Vector::z_axis();
-    plane._z_axis = Vector::y_axis();
+    plane._y_axis = Vector(0.0f, 0.0f, -1.0f);
+    plane._z_axis = Vector(0.0f, 1.0f, 0.0f);
     plane._a = 0.0f;
     plane._b = 1.0f;
     plane._c = 0.0f;
@@ -286,6 +286,15 @@ void Plane::rotate(float angles_in_radians) {
     _b = _z_axis.y();
     _c = _z_axis.z();
     _d = -(_a * _origin.x() + _b * _origin.y() + _c * _origin.z());
+}
+
+bool Plane::is_right_hand() const {
+    Vector x_copy = _x_axis;
+    Vector y_copy = _y_axis;
+    Vector z_copy = _z_axis;
+    Vector cross = x_copy.cross(y_copy);
+    float dot_product = cross.dot(z_copy);
+    return dot_product > 0.999f;
 }
 
 bool Plane::is_same_direction(const Plane &plane0, const Plane &plane1, bool can_be_flipped) {
