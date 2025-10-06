@@ -1,6 +1,6 @@
 {
     "type": "Line",
-    "guid": "79308225-5c1c-4e17-9999-e788214d594f",
+    "guid": "160bf6fc-a228-48db-ba4d-10e91895cca0",
     "name": "serialized",
     "x0": 1.0,
     "y0": 2.0,
@@ -11,7 +11,7 @@
     "width": 1.0,
     "linecolor": {
         "type": "Color",
-        "guid": "aa36ed05-32ce-4286-9b72-94bef5c117f2",
+        "guid": "7ac56e2c-57f7-4dd0-a505-da67b7b9de05",
         "name": "white",
         "r": 255,
         "g": 255,

@@ -11,12 +11,17 @@ pub mod line;
 pub mod objects;
 pub mod plane;
 pub mod point;
+pub mod polyline;
 pub mod quaternion;
 pub mod session;
 pub mod tolerance;
 pub mod tree;
 pub mod vector;
 pub mod xform;
+
+#[cfg(test)]
+#[path = "polyline_test.rs"]
+mod polyline_test;
 
 pub use color::Color;
 pub use graph::Graph;
@@ -25,6 +30,7 @@ pub use line::Line;
 pub use objects::Objects;
 pub use plane::Plane;
 pub use point::Point;
+pub use polyline::Polyline;
 pub use quaternion::Quaternion;
 pub use session::Session;
 pub use tolerance::Tolerance;

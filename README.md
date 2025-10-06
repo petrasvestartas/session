@@ -9,7 +9,7 @@ Multi-language project for vizualization.
 - [x] line
 - [x] plane
 - [x] tolerance
-- [ ] pline
+- [x] polyline
 - [ ] pointcloud
 - [ ] mesh
 - [ ] arrow
@@ -19,6 +19,10 @@ Multi-language project for vizualization.
 - [ ] protobuf
 - [ ] element level implementation: beam, plate
 - [ ] brep and nurbs surface
+
+## References
+
+https://github.com/petrasvestartas/wood/tree/main/cmake/src/wood/include
 
 https://github.com/petrasvestartas/wink/blob/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/primitives/xform.rs
 https://github.com/petrasvestartas/wink/tree/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/geometry

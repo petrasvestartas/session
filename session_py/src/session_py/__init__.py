@@ -7,6 +7,7 @@ from .point import Point
 from .vector import Vector
 from .plane import Plane
 from .line import Line
+from .polyline import Polyline
 from .xform import Xform
 from .quaternion import Quaternion
 from .tree import Tree, TreeNode
@@ -20,6 +21,7 @@ __all__ = [
     "Vector",
     "Plane",
     "Line",
+    "Polyline",
     "Xform",
     "Quaternion",
     "Tree",
