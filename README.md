@@ -7,7 +7,8 @@ Multi-language project for vizualization.
 - [x] xform
 - [x] quaternion
 - [x] line
-- [ ] plane
+- [x] plane
+- [ ] tolerance: https://github.com/compas-dev/compas/blob/b8cef0d/src/compas/tolerance.py#L17 https://compas.dev/compas/2.7.0/userguide/advanced.tolerance.html https://github.com/compas-dev/compas/blob/b8cef0dd8797c05228207f6ce9d2e688bb9c6864/tests/compas/test_tolerance.py
 - [ ] pline
 - [ ] pointcloud
 - [ ] mesh

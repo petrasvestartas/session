@@ -87,6 +87,7 @@ Plane Plane::from_two_points(Point& point1, Point& point2) {
     plane._z_axis.normalize_self();
     
     plane._x_axis = direction;
+    
     plane._y_axis = plane._z_axis.cross(plane._x_axis);
     plane._y_axis.normalize_self();
     
