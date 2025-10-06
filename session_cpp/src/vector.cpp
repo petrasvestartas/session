@@ -153,9 +153,9 @@ float Vector::compute_length() const {
   float ay = std::abs(_y);
   float az = std::abs(_z);
 
-  const bool x_zero = ax < geo::GLOBALS::ZERO_TOLERANCE_F;
-  const bool y_zero = ay < geo::GLOBALS::ZERO_TOLERANCE_F;
-  const bool z_zero = az < geo::GLOBALS::ZERO_TOLERANCE_F;
+  const bool x_zero = ax < static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE);
+  const bool y_zero = ay < static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE);
+  const bool z_zero = az < static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE);
 
   if (x_zero && y_zero && z_zero)
     return 0.0f;
@@ -177,7 +177,7 @@ float Vector::compute_length() const {
     ay /= ax;
     az /= ax;
     len = ax * sqrtf(1.0f + ay * ay + az * az);
-  } else if (ax > 0.0f && geo::GLOBALS::IS_FINITE(ax)) {
+  } else if (ax > 0.0f && session_cpp::is_finite(ax)) {
     len = ax;
   } else {
     len = 0.0f;
@@ -211,11 +211,6 @@ bool Vector::normalize_self() {
   return false;
 }
 
-Vector Vector::normalize() {
-  Vector u(_x, _y, _z);
-  u.normalize_self();
-  return u;
-}
 
 std::tuple<Vector, float, Vector, float>
 Vector::projection(Vector &projection_vector, float tolerance) {
@@ -248,7 +243,7 @@ int Vector::is_parallel_to(const Vector &other) {
   
   if (ll > 0.0f) {
     const float cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;
-    const float angle_in_radians = geo::GLOBALS::ANGLE_F * (geo::GLOBALS::PI_F / 180.0f);
+    const float angle_in_radians = static_cast<float>(session_cpp::Tolerance::ANGLE_TOLERANCE_DEGREES) * static_cast<float>(session_cpp::TO_RADIANS);
     const float cos_tol = cosf(angle_in_radians);
     if (cos_angle >= cos_tol)
       result = 1;  // Parallel
@@ -295,7 +290,7 @@ float Vector::angle(const Vector &other, bool sign_by_cross_product, bool degree
     if (cp._z < 0)
       ang = -ang;
   }
-  float to_degrees = degrees ? geo::GLOBALS::TO_DEGREES_F : 1.0f;
+  float to_degrees = degrees ? static_cast<float>(session_cpp::TO_DEGREES) : 1.0f;
   return ang * to_degrees;
 }
 
@@ -312,23 +307,23 @@ Vector Vector::get_leveled_vector(float &vertical_height) {
 }
 
 float Vector::cosine_law(float &a, float &b, float &ang_between, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
+  float to_rad = degrees ? static_cast<float>(session_cpp::TO_RADIANS) : 1.0f;
   return sqrtf(a * a + b * b - 2.0f * a * b * cosf(ang_between * to_rad));
 }
 
 float Vector::sine_law_angle(float &a, float &A, float &b, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
-  float to_deg = degrees ? geo::GLOBALS::TO_DEGREES_F : 1.0f;
+  float to_rad = degrees ? static_cast<float>(session_cpp::TO_RADIANS) : 1.0f;
+  float to_deg = degrees ? static_cast<float>(session_cpp::TO_DEGREES) : 1.0f;
   return asinf((b * sinf(A * to_rad)) / a) * to_deg;
 }
 
 float Vector::sine_law_length(float &a, float &A, float &B, bool degrees) {
-  float to_rad = degrees ? geo::GLOBALS::TO_RADIANS_F : 1.0f;
+  float to_rad = degrees ? static_cast<float>(session_cpp::TO_RADIANS) : 1.0f;
   return (a * sinf(B * to_rad)) / sinf(A * to_rad);
 }
 
 float Vector::angle_between_vector_xy_components(Vector &vector) {
-  return atan2f(vector[1], vector[0]) * geo::GLOBALS::TO_DEGREES_F;
+  return atan2f(vector[1], vector[0]) * static_cast<float>(session_cpp::TO_DEGREES);
 }
 
 Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
@@ -362,9 +357,9 @@ std::array<float, 3> Vector::coordinate_direction_3angles(bool degrees) {
   float gamma = acosf(z_proportion);
   
   if (degrees) {
-    alpha = alpha * (180.0f / geo::GLOBALS::PI_F);
-    beta = beta * (180.0f / geo::GLOBALS::PI_F);
-    gamma = gamma * (180.0f / geo::GLOBALS::PI_F);
+    alpha = alpha * static_cast<float>(session_cpp::TO_DEGREES);
+    beta = beta * static_cast<float>(session_cpp::TO_DEGREES);
+    gamma = gamma * static_cast<float>(session_cpp::TO_DEGREES);
   }
   
   return {alpha, beta, gamma};
@@ -385,8 +380,8 @@ std::array<float, 2> Vector::coordinate_direction_2angles(bool degrees) {
   float theta = atan2f(y_coord, x_coord);
   
   if (degrees) {
-    phi = phi * (180.0f / geo::GLOBALS::PI_F);
-    theta = theta * (180.0f / geo::GLOBALS::PI_F);
+    phi = phi * static_cast<float>(session_cpp::TO_DEGREES);
+    theta = theta * static_cast<float>(session_cpp::TO_DEGREES);
   }
   
   return {phi, theta};
@@ -434,9 +429,9 @@ void Vector::scale(float factor) {
   set_z(_z * factor);
 }
 
-void Vector::scale_up() { scale(geo::GLOBALS::SCALE_F); }
+void Vector::scale_up() { scale(static_cast<float>(session_cpp::SCALE)); }
 
-void Vector::scale_down() { scale(1.0f / geo::GLOBALS::SCALE_F); }
+void Vector::scale_down() { scale(1.0f / static_cast<float>(session_cpp::SCALE)); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Not class methods

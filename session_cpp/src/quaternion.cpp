@@ -19,8 +19,8 @@ Quaternion Quaternion::from_sv(float s, float x, float y, float z) {
 }
 
 Quaternion Quaternion::from_axis_angle(const Vector& axis, float angle) {
-    Vector axis_copy = axis;
-    Vector normalized_axis = axis_copy.normalize();
+    Vector normalized_axis = axis;
+    normalized_axis.normalize_self();
     float half_angle = angle * 0.5f;
     float s = std::cos(half_angle);
     Vector v = normalized_axis * std::sin(half_angle);

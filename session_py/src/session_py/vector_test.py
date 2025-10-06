@@ -1,6 +1,6 @@
 import math
 from .vector import Vector
-from . import globals
+from .tolerance import Tolerance, TO_DEGREES
 
 
 def test_default_constructor():
@@ -26,9 +26,9 @@ def test_from_start_and_end():
     start = Vector(8.7, 5.7, -1.87)
     end = Vector(1, 1.57, 2)
     v = Vector.from_start_and_end(start, end)
-    assert abs(v[0] - (-7.7)) < globals.ZERO_TOLERANCE
-    assert abs(v[1] - (-4.13)) < globals.ZERO_TOLERANCE
-    assert abs(v[2] - 3.87) < globals.ZERO_TOLERANCE
+    assert abs(v[0] - (-7.7)) < Tolerance.ZERO_TOLERANCE
+    assert abs(v[1] - (-4.13)) < Tolerance.ZERO_TOLERANCE
+    assert abs(v[2] - 3.87) < Tolerance.ZERO_TOLERANCE
 
 
 def test_operators():
@@ -110,7 +110,7 @@ def test_dot():
     if magnitudes > 0.0:
         cos_angle = dot_product / magnitudes
         angle = math.acos(cos_angle)
-        angle_degrees = angle * globals.TO_DEGREES
+        angle_degrees = angle * TO_DEGREES
         assert angle_degrees == 90
 
 
@@ -125,17 +125,19 @@ def test_angle():
     v1 = Vector(1, 1, 0)
     v2 = Vector(0, 1, 0)
     angle = v1.angle(v2, False)
-    assert abs(angle - 45) < globals.ZERO_TOLERANCE
+    assert abs(angle - 45) < Tolerance.ZERO_TOLERANCE
     v1 = Vector(-1, 1, 0)
     angle = v1.angle(v2, True)
-    assert abs(angle - (-45)) < globals.ZERO_TOLERANCE
+    assert abs(angle - (-45)) < Tolerance.ZERO_TOLERANCE
 
 
 def test_get_leveled_vector():
     v = Vector(1, 1, 1)
     scale = 1.0
     leveled_vector = v.get_leveled_vector(scale)
-    assert abs(leveled_vector.magnitude() - 4.1684325329666283) < globals.ZERO_TOLERANCE
+    assert (
+        abs(leveled_vector.magnitude() - 4.1684325329666283) < Tolerance.ZERO_TOLERANCE
+    )
 
 
 def test_cosine_law():

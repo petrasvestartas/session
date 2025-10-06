@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod vector_tests {
-    use crate::{globals, Vector};
+    use crate::Vector;
 
     #[test]
     fn test_vector_constructor() {
@@ -177,7 +177,7 @@ mod vector_tests {
         let dot = v1.dot(&v2);
         let mag = v1.compute_length() * v2.compute_length();
         if mag > 0.0 {
-            let angle_deg = (dot / mag).acos() * unsafe { globals::TO_DEGREES as f32 };
+            let angle_deg = (dot / mag).acos() * crate::tolerance::TO_DEGREES as f32;
             assert_eq!(angle_deg, 90.0);
         }
     }
@@ -194,13 +194,14 @@ mod vector_tests {
     fn test_vector_angle() {
         let v1 = Vector::new(1.0, 1.0, 0.0);
         let v2 = Vector::new(0.0, 1.0, 0.0);
-        unsafe {
-            assert!((v1.angle(&v2, false) - 45.0).abs() < globals::ZERO_TOLERANCE as f32);
-            assert!(
-                (Vector::new(-1.0, 1.0, 0.0).angle(&v2, true) + 45.0).abs()
-                    < globals::ZERO_TOLERANCE as f32
-            );
-        }
+        assert!(
+            (v1.angle(&v2, false) - 45.0).abs()
+                < crate::tolerance::Tolerance::ZERO_TOLERANCE as f32
+        );
+        assert!(
+            (Vector::new(-1.0, 1.0, 0.0).angle(&v2, true) + 45.0).abs()
+                < crate::tolerance::Tolerance::ZERO_TOLERANCE as f32
+        );
     }
 
     #[test]

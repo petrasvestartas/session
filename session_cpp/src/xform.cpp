@@ -311,9 +311,12 @@ Xform Xform::axis_rotation(float angle, Vector& axis) {
 }
 
 Xform Xform::look_at_rh(const Point& eye, const Point& target, const Vector& up) {
-    Vector f = (target - eye).normalize();
+    Vector f = target - eye;
+    f.normalize_self();
     Vector up_copy = up;
-    Vector s = f.cross(up_copy.normalize()).normalize();
+    up_copy.normalize_self();
+    Vector s = f.cross(up_copy);
+    s.normalize_self();
     Vector u = s.cross(f);
     
     Xform xform;

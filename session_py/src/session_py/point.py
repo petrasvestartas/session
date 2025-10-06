@@ -76,7 +76,9 @@ class Point:
         self._z = value
 
     def __str__(self):
-        return f"Point({self.x}, {self.y}, {self.z})"
+        from .tolerance import TOL
+
+        return f"Point(x={TOL.format_number(self.x)}, y={TOL.format_number(self.y)}, z={TOL.format_number(self.z)})"
 
     def __repr__(self):
         return f"Point({self.x}, {self.y}, {self.z}, {self.guid}, {self.name}, {self.pointcolor}, {self.width})"

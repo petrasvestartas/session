@@ -1,4 +1,4 @@
-use crate::globals;
+use crate::tolerance::{Tolerance, SCALE, TO_DEGREES, TO_RADIANS};
 use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
 use std::fmt;
 use std::ops::{
@@ -156,13 +156,11 @@ impl Vector {
     /// Normalizes the vector in place.
     pub fn normalize_self(&mut self) {
         let len = self.magnitude();
-        unsafe {
-            if len > globals::ZERO_TOLERANCE as f32 {
-                self._x /= len;
-                self._y /= len;
-                self._z /= len;
-                self.invalidate_length_cache();
-            }
+        if len > Tolerance::ZERO_TOLERANCE as f32 {
+            self._x /= len;
+            self._y /= len;
+            self._z /= len;
+            self.invalidate_length_cache();
         }
     }
 
@@ -191,16 +189,12 @@ impl Vector {
 
     /// Scales the vector up by the global scale factor.
     pub fn scale_up(&mut self) {
-        unsafe {
-            self.scale(globals::SCALE as f32);
-        }
+        self.scale(SCALE as f32);
     }
 
     /// Scales the vector down by the global scale factor.
     pub fn scale_down(&mut self) {
-        unsafe {
-            self.scale(1.0 / globals::SCALE as f32);
-        }
+        self.scale(1.0 / SCALE as f32);
     }
 
     /// Computes the dot product with another vector.
@@ -242,14 +236,12 @@ impl Vector {
         let dotp = self.dot(other);
         let len_product = self.compute_length() * other.compute_length();
 
-        unsafe {
-            if len_product < globals::ZERO_TOLERANCE as f32 {
-                return 0.0;
-            }
+        if len_product < Tolerance::ZERO_TOLERANCE as f32 {
+            return 0.0;
         }
 
         let cos_angle = (dotp / len_product).clamp(-1.0, 1.0);
-        let mut angle = cos_angle.acos() * unsafe { globals::TO_DEGREES as f32 };
+        let mut angle = cos_angle.acos() * TO_DEGREES as f32;
 
         if sign_by_cross_product {
             let cp = self.cross(other);
@@ -269,8 +261,7 @@ impl Vector {
     /// - perpendicular projected vector (self - projection)
     /// - perpendicular projected vector length
     pub fn projection(&self, onto: &Vector) -> (Vector, f32, Vector, f32) {
-        // Default tolerance follows Python: globals::ZERO_TOLERANCE as f32
-        self.projection_with(onto, unsafe { globals::ZERO_TOLERANCE as f32 })
+        self.projection_with(onto, Tolerance::ZERO_TOLERANCE as f32)
     }
 
     /// Same as `projection` but allows specifying a tolerance.
@@ -314,7 +305,7 @@ impl Vector {
         }
 
         let cos_angle = self.dot(other) / len_product;
-        let angle_in_radians = unsafe { globals::ANGLE as f32 * globals::TO_RADIANS as f32 };
+        let angle_in_radians = Tolerance::ANGLE_TOLERANCE_DEGREES as f32 * TO_RADIANS as f32;
         let cos_tolerance = angle_in_radians.cos();
 
         if cos_angle >= cos_tolerance {
@@ -423,7 +414,7 @@ impl Vector {
         degrees: bool,
     ) -> f32 {
         let angle = if degrees {
-            angle_in_degrees_between_edges * unsafe { globals::TO_RADIANS as f32 }
+            angle_in_degrees_between_edges * TO_RADIANS as f32
         } else {
             angle_in_degrees_between_edges
         };
@@ -441,7 +432,7 @@ impl Vector {
         degrees: bool,
     ) -> f32 {
         let angle_a = if degrees {
-            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS as f32 }
+            angle_in_degrees_in_front_of_a * TO_RADIANS as f32
         } else {
             angle_in_degrees_in_front_of_a
         };
@@ -450,7 +441,7 @@ impl Vector {
         let angle_b = sin_b.asin();
 
         if degrees {
-            angle_b * unsafe { globals::TO_DEGREES as f32 }
+            angle_b * TO_DEGREES as f32
         } else {
             angle_b
         }
@@ -464,13 +455,13 @@ impl Vector {
         degrees: bool,
     ) -> f32 {
         let angle_a = if degrees {
-            angle_in_degrees_in_front_of_a * unsafe { globals::TO_RADIANS as f32 }
+            angle_in_degrees_in_front_of_a * TO_RADIANS as f32
         } else {
             angle_in_degrees_in_front_of_a
         };
 
         let angle_b = if degrees {
-            angle_in_degrees_in_front_of_b * unsafe { globals::TO_RADIANS as f32 }
+            angle_in_degrees_in_front_of_b * TO_RADIANS as f32
         } else {
             angle_in_degrees_in_front_of_b
         };
@@ -480,7 +471,7 @@ impl Vector {
 
     /// Computes the angle between vector XY components in degrees.
     pub fn angle_between_vector_xy_components(vector: &Vector) -> f32 {
-        vector._y.atan2(vector._x) * unsafe { globals::TO_DEGREES as f32 }
+        vector._y.atan2(vector._x) * TO_DEGREES as f32
     }
 
     /// Deprecated: use `angle_between_vector_xy_components`.
@@ -503,10 +494,8 @@ impl Vector {
     /// Computes coordinate direction angles (alpha, beta, gamma) in degrees.
     pub fn coordinate_direction_3angles(&self, degrees: bool) -> [f32; 3] {
         let length = self.compute_length();
-        unsafe {
-            if length < globals::ZERO_TOLERANCE as f32 {
-                return [0.0, 0.0, 0.0];
-            }
+        if length < Tolerance::ZERO_TOLERANCE as f32 {
+            return [0.0, 0.0, 0.0];
         }
 
         let cos_alpha = self._x / length;
@@ -518,13 +507,11 @@ impl Vector {
         let gamma = cos_gamma.acos();
 
         if degrees {
-            unsafe {
-                [
-                    alpha * globals::TO_DEGREES as f32,
-                    beta * globals::TO_DEGREES as f32,
-                    gamma * globals::TO_DEGREES as f32,
-                ]
-            }
+            [
+                alpha * TO_DEGREES as f32,
+                beta * TO_DEGREES as f32,
+                gamma * TO_DEGREES as f32,
+            ]
         } else {
             [alpha, beta, gamma]
         }
@@ -535,22 +522,15 @@ impl Vector {
         let length_xy = (self._x * self._x + self._y * self._y).sqrt();
         let length = self.compute_length();
 
-        unsafe {
-            if length < globals::ZERO_TOLERANCE as f32 {
-                return [0.0, 0.0];
-            }
+        if length < Tolerance::ZERO_TOLERANCE as f32 {
+            return [0.0, 0.0];
         }
 
         let phi = self._y.atan2(self._x);
         let theta = length_xy.atan2(self._z);
 
         if degrees {
-            unsafe {
-                [
-                    phi * globals::TO_DEGREES as f32,
-                    theta * globals::TO_DEGREES as f32,
-                ]
-            }
+            [phi * TO_DEGREES as f32, theta * TO_DEGREES as f32]
         } else {
             [phi, theta]
         }

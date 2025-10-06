@@ -136,9 +136,11 @@ TEST_CASE("Vector length") {
 
 TEST_CASE("Vector unitize") {
   Vector v(5.5697, -9.84, 1.587);
-  REQUIRE(v.normalize().magnitude() == 1);
+  Vector v_copy = v;
+  v_copy.normalize_self();
+  REQUIRE(std::abs(v_copy.magnitude() - 1.0f) < 1e-5f);
   v.normalize_self();
-  REQUIRE(v.magnitude() == 1);
+  REQUIRE(std::abs(v.magnitude() - 1.0f) < 1e-5f);
 }
 
 TEST_CASE("Vector projection") {
@@ -166,7 +168,7 @@ TEST_CASE("Vector dot") {
   
   float dot = v1.dot(v2), mag = v1.magnitude() * v2.magnitude();
   if (mag > 0.0f) {
-    float angle_deg = std::acos(dot / mag) * geo::GLOBALS::TO_DEGREES;
+    float angle_deg = std::acos(dot / mag) * static_cast<float>(session_cpp::TO_DEGREES);
     REQUIRE(std::round(angle_deg) == 90);
   }
 }

@@ -1,10 +1,9 @@
 #include "catch_amalgamated.hpp"
 #include "quaternion.h"
+#include "tolerance.h"
 #include <cmath>
 
 using namespace session_cpp;
-
-const float PI = 3.14159265359f;
 
 bool approx_f32(float a, float b, float tol = 1e-5f) {
     return std::abs(a - b) < tol;
@@ -24,16 +23,16 @@ TEST_CASE("test_quaternion_identity") {
 
 TEST_CASE("test_quaternion_from_axis_angle_90deg_z") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    float angle = PI / 2.0f;
+    float angle = static_cast<float>(PI) / 2.0f;
     Quaternion q = Quaternion::from_axis_angle(axis, angle);
 
-    REQUIRE(approx_f32(q.s, std::cos(PI / 4.0f)));
-    REQUIRE(approx_f32(q.v.z(), std::sin(PI / 4.0f)));
+    REQUIRE(approx_f32(q.s, std::cos(static_cast<float>(PI) / 4.0f)));
+    REQUIRE(approx_f32(q.v.z(), std::sin(static_cast<float>(PI) / 4.0f)));
 }
 
 TEST_CASE("test_quaternion_rotate_vector_90deg_z") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    float angle = PI / 2.0f;
+    float angle = static_cast<float>(PI) / 2.0f;
     Quaternion q = Quaternion::from_axis_angle(axis, angle);
 
     Vector v(1.0f, 0.0f, 0.0f);
@@ -45,7 +44,7 @@ TEST_CASE("test_quaternion_rotate_vector_90deg_z") {
 
 TEST_CASE("test_quaternion_rotate_vector_180deg_z") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    float angle = PI;
+    float angle = static_cast<float>(PI);
     Quaternion q = Quaternion::from_axis_angle(axis, angle);
 
     Vector v(1.0f, 0.0f, 0.0f);
@@ -64,8 +63,8 @@ TEST_CASE("test_quaternion_normalize") {
 }
 
 TEST_CASE("test_quaternion_multiplication") {
-    Quaternion q1 = Quaternion::from_axis_angle(Vector(0.0f, 0.0f, 1.0f), PI / 2.0f);
-    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0f, 0.0f, 1.0f), PI / 2.0f);
+    Quaternion q1 = Quaternion::from_axis_angle(Vector(0.0f, 0.0f, 1.0f), static_cast<float>(PI) / 2.0f);
+    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0f, 0.0f, 1.0f), static_cast<float>(PI) / 2.0f);
     Quaternion q_combined = q1 * q2;
 
     Vector v(1.0f, 0.0f, 0.0f);
@@ -103,7 +102,7 @@ TEST_CASE("test_quaternion_magnitude") {
 
 TEST_CASE("test_quaternion_rotate_around_x") {
     Vector axis(1.0f, 0.0f, 0.0f);
-    float angle = PI / 2.0f;
+    float angle = static_cast<float>(PI) / 2.0f;
     Quaternion q = Quaternion::from_axis_angle(axis, angle);
 
     Vector v(0.0f, 1.0f, 0.0f);
@@ -115,7 +114,7 @@ TEST_CASE("test_quaternion_rotate_around_x") {
 
 TEST_CASE("test_quaternion_rotate_around_y") {
     Vector axis(0.0f, 1.0f, 0.0f);
-    float angle = PI / 2.0f;
+    float angle = static_cast<float>(PI) / 2.0f;
     Quaternion q = Quaternion::from_axis_angle(axis, angle);
 
     Vector v(0.0f, 0.0f, 1.0f);
@@ -127,7 +126,7 @@ TEST_CASE("test_quaternion_rotate_around_y") {
 
 TEST_CASE("test_quaternion_to_json_from_json") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    float angle = PI / 4.0f;
+    float angle = static_cast<float>(PI) / 4.0f;
     Quaternion orig = Quaternion::from_axis_angle(axis, angle);
 
     std::string filepath = "../test_quaternion.json";

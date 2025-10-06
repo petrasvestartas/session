@@ -8,7 +8,7 @@ Multi-language project for vizualization.
 - [x] quaternion
 - [x] line
 - [x] plane
-- [ ] tolerance: https://github.com/compas-dev/compas/blob/b8cef0d/src/compas/tolerance.py#L17 https://compas.dev/compas/2.7.0/userguide/advanced.tolerance.html https://github.com/compas-dev/compas/blob/b8cef0dd8797c05228207f6ce9d2e688bb9c6864/tests/compas/test_tolerance.py
+- [x] tolerance
 - [ ] pline
 - [ ] pointcloud
 - [ ] mesh
@@ -18,6 +18,7 @@ Multi-language project for vizualization.
 - [ ] bvh and implementation into session
 - [ ] protobuf
 - [ ] element level implementation: beam, plate
+- [ ] brep and nurbs surface
 
 https://github.com/petrasvestartas/wink/blob/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/primitives/xform.rs
 https://github.com/petrasvestartas/wink/tree/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/geometry

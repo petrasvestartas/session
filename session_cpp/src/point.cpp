@@ -1,4 +1,5 @@
 #include "point.h"
+#include "tolerance.h"
 
 namespace session_cpp {
 
@@ -224,6 +225,9 @@ Point Point::centroid_quad(const std::vector<Point>& vertices) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream &operator<<(std::ostream &os, const Point &point) {
-  return os << point.to_string();
+  return os << fmt::format("Point(x={}, y={}, z={})", 
+                           TOL.format_number(point.x()), 
+                           TOL.format_number(point.y()), 
+                           TOL.format_number(point.z()));
 }
 } // namespace session_cpp

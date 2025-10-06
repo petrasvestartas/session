@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "globals.h"
+#include "tolerance.h"
 
 namespace session_cpp {
 /**
@@ -186,13 +186,12 @@ public:
   /// bool
   ///     True if successful, false if vector has zero length.
   bool normalize_self();
-  Vector normalize();
 
   /// Project this vector onto `projection_vector`.
   /// Returns: (projection_vector, projected_length, perpendicular_vector, perpendicular_length)
   std::tuple<Vector, float, Vector, float>
   projection(Vector &projection_vector,
-             float tolerance = geo::GLOBALS::ZERO_TOLERANCE);
+             float tolerance = static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE));
 
   /// Check if this vector is parallel/antiparallel to another.
   ///
@@ -252,7 +251,7 @@ public:
   ///     Angle between vectors.
   float angle(const Vector &other, bool sign_by_cross_product = true,
                bool degrees = true,
-               float tolerance = geo::GLOBALS::ZERO_TOLERANCE);
+               float tolerance = static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE));
   Vector get_leveled_vector(float &vertical_height);
 
   static float cosine_law(float &triangle_edge_length_a,

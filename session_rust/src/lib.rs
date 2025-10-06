@@ -6,7 +6,6 @@
 #![allow(static_mut_refs)]
 
 pub mod color;
-pub mod globals;
 pub mod graph;
 pub mod line;
 pub mod objects;
@@ -14,6 +13,7 @@ pub mod plane;
 pub mod point;
 pub mod quaternion;
 pub mod session;
+pub mod tolerance;
 pub mod tree;
 pub mod vector;
 pub mod xform;
@@ -27,6 +27,7 @@ pub use plane::Plane;
 pub use point::Point;
 pub use quaternion::Quaternion;
 pub use session::Session;
+pub use tolerance::Tolerance;
 pub use tree::Tree;
 pub use tree::TreeNode;
 pub use vector::Vector;

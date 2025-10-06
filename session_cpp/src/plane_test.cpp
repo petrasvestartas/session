@@ -172,7 +172,7 @@ TEST_CASE("Plane reverse") {
 
 TEST_CASE("Plane rotate") {
   Plane plane = Plane::xy_plane();
-  float angle = geo::GLOBALS::PI_F / 2.0f;
+  float angle = static_cast<float>(session_cpp::PI) / 2.0f;
   plane.rotate(angle);
   REQUIRE(std::abs(plane.x_axis().y() - 1.0f) < 1e-5f);
 }
@@ -220,7 +220,7 @@ TEST_CASE("Plane is_right_hand") {
   REQUIRE(plane.is_right_hand());
   plane.reverse();
   REQUIRE(plane.is_right_hand());
-  plane.rotate(geo::GLOBALS::PI_F / 4.0f);
+  plane.rotate(static_cast<float>(session_cpp::PI) / 4.0f);
   REQUIRE(plane.is_right_hand());
 }
 

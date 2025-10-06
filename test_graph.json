@@ -1,33 +1,33 @@
 {
     "type": "Graph",
     "name": "my_graph",
-    "guid": "9dfe9a4f-39b4-49a1-9d1b-20d71e36b8d0",
+    "guid": "ca7cdf45-4d10-4af7-b1df-3c7f95933a4e",
     "vertices": [
         {
             "type": "Vertex",
             "name": "A",
-            "guid": "c5c90cf3-99f4-4bca-8bee-e6ef79d25bb5",
+            "guid": "70bdd558-3c74-4f67-a1d2-d710669b1bd2",
             "attribute": "vertex_A",
             "index": 0
         },
         {
             "type": "Vertex",
             "name": "B",
-            "guid": "60e4dfd7-d01d-4a9a-ba2d-998da7ed127f",
+            "guid": "fb343c0c-b738-413d-b9b9-2e39af142fd5",
             "attribute": "vertex_B",
             "index": 1
         },
         {
             "type": "Vertex",
             "name": "C",
-            "guid": "95925264-29dc-4691-b0e9-715a8e68518a",
+            "guid": "37fb606c-191e-4ea9-a454-aa84ec97c24b",
             "attribute": "vertex_C",
             "index": 2
         },
         {
             "type": "Vertex",
             "name": "D",
-            "guid": "4aeda63d-3bf1-49f5-bc09-b056e39b298c",
+            "guid": "3cf0e533-0796-4fb8-b294-24cc97a167a8",
             "attribute": "vertex_D",
             "index": 3
         }
@@ -35,7 +35,7 @@
     "edges": [
         {
             "type": "Edge",
-            "guid": "e2f3e6f9-8164-4595-a397-4ccc426c2640",
+            "guid": "67fd3dd7-08ce-4b66-a324-b283c2467ab9",
             "name": "my_edge",
             "v0": "A",
             "v1": "B",
@@ -44,7 +44,7 @@
         },
         {
             "type": "Edge",
-            "guid": "3427d787-a119-46b7-bfc7-5a37f0855963",
+            "guid": "86dc92a8-8322-4731-bada-72f6c7c28c3d",
             "name": "my_edge",
             "v0": "B",
             "v1": "C",
@@ -53,7 +53,7 @@
         },
         {
             "type": "Edge",
-            "guid": "c1f17fa9-4f1a-4a0a-9587-19c1adc7d5e1",
+            "guid": "42f05ab1-8720-47c5-adb3-7cdfd59756c8",
             "name": "my_edge",
             "v0": "C",
             "v1": "D",

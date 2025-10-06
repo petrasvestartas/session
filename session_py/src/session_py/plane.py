@@ -3,7 +3,7 @@ import json
 import math
 from .point import Point
 from .vector import Vector
-from . import globals
+from .tolerance import Tolerance
 
 
 class Plane:
@@ -523,7 +523,7 @@ class Plane:
             + plane1._d
         )
 
-        tolerance = globals.ZERO_TOLERANCE
+        tolerance = Tolerance.ZERO_TOLERANCE
         return dist0 < tolerance and dist1 < tolerance
 
     @staticmethod

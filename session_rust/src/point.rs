@@ -194,10 +194,13 @@ impl Point {
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use crate::tolerance::TOL;
         write!(
             f,
-            "Point({}, {}, {}, {}, {}, {}, {})",
-            self._x, self._y, self._z, self.guid, self.name, self.pointcolor, self.width
+            "Point(x={}, y={}, z={})",
+            TOL.format_number(self._x as f64, None),
+            TOL.format_number(self._y as f64, None),
+            TOL.format_number(self._z as f64, None)
         )
     }
 }

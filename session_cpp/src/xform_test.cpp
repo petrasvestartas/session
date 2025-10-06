@@ -1,7 +1,7 @@
 #include "catch/include/catch_amalgamated.hpp"
 #include "xform.hpp"
 #include <cmath>
-#include "globals.h"
+#include "tolerance.h"
 
 
 namespace session_cpp {
@@ -72,7 +72,7 @@ TEST_CASE("test_xform_scaling_vector") {
 }
 
 TEST_CASE("test_xform_rotation_z") {
-    Xform r = Xform::rotation_z(geo::GLOBALS::PI_F / 2.0f);
+    Xform r = Xform::rotation_z(static_cast<float>(session_cpp::PI) / 2.0f);
     Point p(1.0f, 0.0f, 0.0f);
     Point rp = r.transformed_point(p);
     REQUIRE(approx_f32(rp.x(), 0.0f));
@@ -82,8 +82,8 @@ TEST_CASE("test_xform_rotation_z") {
 
 TEST_CASE("test_xform_axis_rotation") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    Xform r1 = Xform::rotation_z(geo::GLOBALS::PI_F / 2.0f);
-    Xform r2 = Xform::axis_rotation(geo::GLOBALS::PI_F / 2.0f, axis);
+    Xform r1 = Xform::rotation_z(static_cast<float>(session_cpp::PI) / 2.0f);
+    Xform r2 = Xform::axis_rotation(static_cast<float>(session_cpp::PI) / 2.0f, axis);
     Point p(1.0f, 0.0f, 0.0f);
     Point p1 = r1.transformed_point(p);
     Point p2 = r2.transformed_point(p);
@@ -171,7 +171,7 @@ TEST_CASE("test_xform_from_matrix") {
 }
 
 TEST_CASE("test_xform_rotation_x") {
-    Xform r = Xform::rotation_x(geo::GLOBALS::PI_F / 2.0f);
+    Xform r = Xform::rotation_x(static_cast<float>(session_cpp::PI) / 2.0f);
     Point p(0.0f, 1.0f, 0.0f);
     Point rp = r.transformed_point(p);
     REQUIRE(approx_f32(rp.x(), 0.0f));
@@ -180,7 +180,7 @@ TEST_CASE("test_xform_rotation_x") {
 }
 
 TEST_CASE("test_xform_rotation_y") {
-    Xform r = Xform::rotation_y(geo::GLOBALS::PI_F / 2.0f);
+    Xform r = Xform::rotation_y(static_cast<float>(session_cpp::PI) / 2.0f);
     Point p(1.0f, 0.0f, 0.0f);
     Point rp = r.transformed_point(p);
     REQUIRE(approx_f32(rp.x(), 0.0f));
@@ -190,7 +190,7 @@ TEST_CASE("test_xform_rotation_y") {
 
 TEST_CASE("test_xform_rotation") {
     Vector axis(0.0f, 0.0f, 1.0f);
-    Xform r = Xform::rotation(axis, geo::GLOBALS::PI_F / 2.0f);
+    Xform r = Xform::rotation(axis, static_cast<float>(session_cpp::PI) / 2.0f);
     Point p(1.0f, 0.0f, 0.0f);
     Point rp = r.transformed_point(p);
     REQUIRE(approx_f32(rp.x(), 0.0f));

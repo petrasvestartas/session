@@ -1,8 +1,7 @@
-import os
+import math
 from .plane import Plane
 from .point import Point
 from .vector import Vector
-from . import globals
 
 
 def test_plane_default_constructor():
@@ -165,7 +164,7 @@ def test_plane_reverse():
 
 def test_plane_rotate():
     plane = Plane.xy_plane()
-    angle = globals.PI / 2.0
+    angle = math.pi / 2.0
     plane.rotate(angle)
     assert abs(plane.x_axis.y - 1.0) < 1e-5
 
@@ -213,5 +212,5 @@ def test_plane_is_right_hand():
     assert plane.is_right_hand()
     plane.reverse()
     assert plane.is_right_hand()
-    plane.rotate(globals.PI / 4.0)
+    plane.rotate(math.pi / 4.0)
     assert plane.is_right_hand()

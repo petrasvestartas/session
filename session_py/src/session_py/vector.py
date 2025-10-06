@@ -1,7 +1,7 @@
 import uuid
 import json
 import math
-from . import globals
+from .tolerance import Tolerance, TO_DEGREES, TO_RADIANS
 
 
 class Vector:
@@ -325,9 +325,9 @@ class Vector:
         z = abs(self._z)
 
         # Handle two zero case:
-        x_zero = x < globals.ZERO_TOLERANCE
-        y_zero = y < globals.ZERO_TOLERANCE
-        z_zero = z < globals.ZERO_TOLERANCE
+        x_zero = x < Tolerance.ZERO_TOLERANCE
+        y_zero = y < Tolerance.ZERO_TOLERANCE
+        z_zero = z < Tolerance.ZERO_TOLERANCE
 
         if x_zero and y_zero and z_zero:
             length = 0.0
@@ -357,7 +357,7 @@ class Vector:
         # than DOUBLE_MIN), some compilers/FPUs set 1.0/x to +INF.
         # Without the DOUBLE_MIN test we end up with
         # microscopic vectors that have infinite length!
-        if x > globals.DOUBLE_MIN:
+        if x > 2.22507385850720200e-308:
             y /= x
             z /= x
             length = x * math.sqrt(1.0 + y * y + z * z)
@@ -475,7 +475,7 @@ class Vector:
 
         if ll > 0.0:
             cos_angle = self.dot(v) / ll
-            angle_in_radians = globals.ANGLE * globals.TO_RADIANS
+            angle_in_radians = Tolerance.ANGLE_TOLERANCE_DEGREES * TO_RADIANS
             cos_tol = math.cos(angle_in_radians)
 
             if cos_angle >= cos_tol:
@@ -624,7 +624,7 @@ class Vector:
             Length of the third side.
 
         """
-        to_radians = globals.TO_RADIANS if degrees else 1.0
+        to_radians = TO_RADIANS if degrees else 1.0
         return math.sqrt(
             triangle_edge_length_a**2
             + triangle_edge_length_b**2
@@ -660,8 +660,8 @@ class Vector:
             Angle opposite to side b (degrees if `degrees`).
 
         """
-        to_radians = globals.TO_RADIANS if degrees else 1.0
-        to_degrees = globals.TO_DEGREES if degrees else 1.0
+        to_radians = TO_RADIANS if degrees else 1.0
+        to_degrees = TO_DEGREES if degrees else 1.0
         return (
             math.asin(
                 (triangle_edge_length_b * math.sin(angle_in_front_of_a * to_radians))
@@ -693,7 +693,7 @@ class Vector:
             Length of side b.
 
         """
-        to_radians = globals.TO_RADIANS if degrees else 1.0
+        to_radians = TO_RADIANS if degrees else 1.0
         return (
             triangle_edge_length_a * math.sin(angle_in_front_of_b * to_radians)
         ) / math.sin(angle_in_front_of_a * to_radians)
@@ -715,7 +715,7 @@ class Vector:
             Angle in the XY plane.
 
         """
-        to_degrees = globals.TO_DEGREES if degrees else 1.0
+        to_degrees = TO_DEGREES if degrees else 1.0
         return math.atan(vector.y / vector.x) * to_degrees
 
     @staticmethod
@@ -768,9 +768,9 @@ class Vector:
         gamma = math.acos(z_proportion)
 
         if degrees:
-            alpha *= globals.TO_DEGREES
-            beta *= globals.TO_DEGREES
-            gamma *= globals.TO_DEGREES
+            alpha *= TO_DEGREES
+            beta *= TO_DEGREES
+            gamma *= TO_DEGREES
 
         return (alpha, beta, gamma)
 
@@ -797,8 +797,8 @@ class Vector:
         theta = math.atan2(self._y, self._x)
 
         if degrees:
-            phi *= globals.TO_DEGREES
-            theta *= globals.TO_DEGREES
+            phi *= TO_DEGREES
+            theta *= TO_DEGREES
 
         return (phi, theta)
 

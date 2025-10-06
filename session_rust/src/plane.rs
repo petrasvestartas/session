@@ -336,7 +336,7 @@ impl Plane {
             + plane1._d)
             .abs();
 
-        let tolerance = unsafe { crate::globals::ZERO_TOLERANCE as f32 };
+        let tolerance = crate::tolerance::Tolerance::ZERO_TOLERANCE as f32;
         dist0 < tolerance && dist1 < tolerance
     }
 
@@ -419,3 +419,7 @@ impl std::fmt::Display for Plane {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "plane_test.rs"]
+mod plane_test;

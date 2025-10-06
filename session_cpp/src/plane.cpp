@@ -1,5 +1,5 @@
 #include "plane.h"
-#include "globals.h"
+#include "tolerance.h"
 #include <algorithm>
 
 namespace session_cpp {
@@ -322,7 +322,7 @@ bool Plane::is_same_position(const Plane &plane0, const Plane &plane1) {
                            plane1._c * plane0._origin.z() + 
                            plane1._d);
     
-    float tolerance = geo::GLOBALS::ZERO_TOLERANCE_F;
+    float tolerance = static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE);
     return dist0 < tolerance && dist1 < tolerance;
 }
 
