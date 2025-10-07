@@ -6,6 +6,10 @@
 
 namespace session_cpp {
 
+/**
+ * @class Quaternion
+ * @brief A quaternion for 3D rotations.
+ */
 class Quaternion {
 public:
     std::string typ;

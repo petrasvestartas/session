@@ -8,6 +8,10 @@
 #include <vector>
 
 namespace session_cpp {
+/**
+ * @class Objects
+ * @brief A collection of geometry objects.
+ */
 class Objects {
 public:
   std::string name = "my_objects"; ///< The name of the objects

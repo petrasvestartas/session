@@ -10,6 +10,10 @@
 
 namespace session_cpp {
 
+/**
+ * @class PointCloud
+ * @brief A point cloud with points, normals, colors, and transformation.
+ */
 class PointCloud {
 private:
     std::string _guid;

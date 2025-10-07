@@ -21,6 +21,10 @@ namespace session_cpp {
 // All geometry types as a variant - easily extensible for Curve, Mesh, etc.
 using Geometry = std::variant<std::shared_ptr<Point>, std::shared_ptr<Vector>>;
 
+/**
+ * @class Session
+ * @brief A session containing geometry objects.
+ */
 class Session {
 public:
   std::string name = "my_session"; ///< The name of the session

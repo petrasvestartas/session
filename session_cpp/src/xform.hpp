@@ -17,6 +17,10 @@
 
 namespace session_cpp {
 
+/**
+ * @class Xform
+ * @brief A 4x4 transformation matrix.
+ */
 class Xform {
 public:
     std::string guid = ::guid();

@@ -14,6 +14,10 @@ constexpr double TO_RADIANS = PI / 180.0;
 // Scale factor
 constexpr double SCALE = 1e6;
 
+/**
+ * @class Tolerance
+ * @brief Tolerance values for geometric comparisons.
+ */
 class Tolerance {
 public:
     // Default tolerance values
