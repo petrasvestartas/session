@@ -14,16 +14,27 @@ session/
 ## Implementation Status
 
 **Completed:**
-- ✅ Point, Vector, Plane
-- ✅ Xform, Quaternion, Line
-- ✅ Tolerance, Polyline
+- Point
+- Vector
+- Plane
+- Xform
+- Quaternion
+- Line
+- Tolerance
+- Polyline
+- PointCloud
 
 **Planned:**
-- PointCloud, Mesh
-- Arrow, Pipe, BoundingBox
-- BVH, Protobuf
+- Mesh
+- Arrow
+- Pipe
+- BoundingBox
+- BVH
+- Protobuf
 - Beam, Plate elements
-- BREP, NURBS surfaces
+- Curve
+- NURBS
+- BREP
 
 ## Development Setup
 
