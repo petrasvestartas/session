@@ -25,36 +25,6 @@ session/
 - Beam, Plate elements
 - BREP, NURBS surfaces
 
-## Code Organization Pattern
-
-All classes follow this structure across C++, Rust, and Python:
-
-1. **Constructors / Static Factory Methods** - `xy_plane()`, `from_points()`, etc.
-2. **Operators** - `__str__`, `__eq__`, `to_string()`, equality checks
-3. **JSON** - `to_json_data()`, `from_json_data()`, `to_json()`, `from_json()`
-4. **No-copy Operators** - `__iadd__`, `__isub__`, `__getitem__`, `operator[]`
-5. **Copy Operators** - `__add__`, `__sub__`, `__mul__`, `operator+`, `operator*`
-6. **Static Methods** - `x_axis()`, `cosine_law()`, utility functions
-7. **Details** - `reverse()`, `rotate()`, geometric/transformation methods
-
-**Section Headers:**
-```python
-# Python/C++
-###########################################################################################
-# JSON
-###########################################################################################
-```
-
-**Rust:** Use `impl` blocks for organization (no comment headers).
-
-## Documentation Style
-
-| Language | Format | Sections |
-|----------|--------|----------|
-| **Python** | `"""docstring"""` | NumPy-style (Parameters, Returns) |
-| **C++** | `/// comment` | NumPy-style OR Doxygen (`@brief`, `@param`) |
-| **Rust** | `/// comment` | Brief description only |
-
 ## Development Setup
 
 ### Build & Run Aliases
