@@ -1,0 +1,39 @@
+{
+  "type": "Mesh",
+  "guid": "55708fd8-1dfb-4474-af98-8f10a54e16f7",
+  "name": "my_mesh",
+  "vertex": {
+    "1": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "attributes": {}
+    },
+    "3": {
+      "x": 1.0,
+      "y": 0.0,
+      "z": 0.0,
+      "attributes": {}
+    },
+    "5": {
+      "x": 0.0,
+      "y": 1.0,
+      "z": 0.0,
+      "attributes": {}
+    }
+  },
+  "face": {
+    "1": [
+      1,
+      3,
+      5
+    ]
+  },
+  "default_vertex_attributes": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "default_face_attributes": {},
+  "default_edge_attributes": {}
+}

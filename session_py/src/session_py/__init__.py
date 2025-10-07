@@ -14,6 +14,7 @@ from .tree import Tree, TreeNode
 from .graph import Graph
 from .objects import Objects
 from .session import Session
+from .mesh import Mesh, NormalWeighting
 
 __all__ = [
     "Color",
@@ -29,4 +30,6 @@ __all__ = [
     "Graph",
     "Objects",
     "Session",
+    "Mesh",
+    "NormalWeighting",
 ]

@@ -14,18 +14,23 @@ session/
 ## Implementation Status
 
 **Completed:**
-- Point
-- Vector
-- Plane
-- Xform
-- Quaternion
+- Color
+- Graph
 - Line
-- Tolerance
+- Mesh
+- Objects
+- Plane
+- Point
+- Pointcloud
 - Polyline
-- PointCloud
+- Quaternion
+- Session
+- Tree
+- Tolerance
+- Vector
+- Xform
 
 **Planned:**
-- Mesh
 - Arrow
 - Pipe
 - BoundingBox

@@ -8,6 +8,7 @@
 pub mod color;
 pub mod graph;
 pub mod line;
+pub mod mesh;
 pub mod objects;
 pub mod plane;
 pub mod point;
@@ -28,6 +29,7 @@ pub use color::Color;
 pub use graph::Graph;
 pub use graph::Vertex;
 pub use line::Line;
+pub use mesh::Mesh;
 pub use objects::Objects;
 pub use plane::Plane;
 pub use point::Point;

@@ -1,9 +1,9 @@
 {
-    "type": "Color",
-    "guid": "5ca3acd5-3fa1-452e-9af5-08e9dc8d8357",
-    "name": "file_test_color",
-    "r": 123,
-    "g": 678,
-    "b": 999,
-    "a": 255
+  "type": "Color",
+  "guid": "c71b4b74-c568-4983-a916-4aa25caeecbb",
+  "name": "file_test_color",
+  "r": 123,
+  "g": 678,
+  "b": 999,
+  "a": 255
 }
