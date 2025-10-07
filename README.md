@@ -77,5 +77,5 @@ alias pdoc='(cd /home/pv/brg/code_rust/session/session_py && ./doc.sh)'
 ## References
 
 - [Wood Library](https://github.com/petrasvestartas/wood/tree/main/cmake/src/wood/include)
-- [Wink Geometry](https://github.com/petrasvestartas/wink/tree/main/src/openmodel/src/geometry)
+- [Wink Geometry](https://github.com/petrasvestartas/wink/tree/5d0a53e68cef2f4ea3671fef5fccbe009124369a/src/openmodel/src/geometry)
 
