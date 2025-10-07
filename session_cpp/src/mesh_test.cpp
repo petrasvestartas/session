@@ -161,7 +161,7 @@ TEST_CASE("Mesh vertex angle in face", "[mesh]") {
     auto angle = mesh.vertex_angle_in_face(v0, f);
     
     REQUIRE(angle.has_value());
-    REQUIRE(std::abs(angle.value() - M_PI / 2.0f) < 1e-6f);
+    REQUIRE(std::abs(angle.value() - static_cast<float>(PI) / 2.0f) < 1e-6f);
 }
 
 TEST_CASE("Mesh from polygons simple", "[mesh]") {
