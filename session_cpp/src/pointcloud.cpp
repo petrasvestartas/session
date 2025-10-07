@@ -1,16 +1,12 @@
 #include "pointcloud.h"
+#include "guid.h"
 #include <fstream>
 #include <sstream>
-#include <uuid/uuid.h>
 
 namespace session_cpp {
 
 PointCloud::PointCloud() {
-    uuid_t uuid;
-    uuid_generate(uuid);
-    char uuid_str[37];
-    uuid_unparse(uuid, uuid_str);
-    _guid = uuid_str;
+    _guid = guid();
     _name = "my_pointcloud";
     _xform = Xform::identity();
 }
@@ -19,15 +15,10 @@ PointCloud::PointCloud(const std::vector<Point>& points,
                        const std::vector<Vector>& normals, 
                        const std::vector<Color>& colors)
     : _points(points), _normals(normals), _colors(colors) {
-    uuid_t uuid;
-    uuid_generate(uuid);
-    char uuid_str[37];
-    uuid_unparse(uuid, uuid_str);
-    _guid = uuid_str;
+    _guid = guid();
     _name = "my_pointcloud";
     _xform = Xform::identity();
 }
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Operators
 ///////////////////////////////////////////////////////////////////////////////////////////
