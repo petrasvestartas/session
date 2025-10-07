@@ -3,26 +3,42 @@ API Reference
 
 This page contains the API reference for the Session PY library.
 
-Color Module
+Point Module
 ------------
 
-.. automodule:: session_py.color
+.. automodule:: session_py.point
    :members:
    :undoc-members:
    :show-inheritance:
 
-Globals Module
---------------
+Vector Module
+-------------
 
-.. automodule:: session_py.globals
+.. automodule:: session_py.vector
    :members:
    :undoc-members:
    :show-inheritance:
 
-Graph Module
+Plane Module
 ------------
 
-.. automodule:: session_py.graph
+.. automodule:: session_py.plane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Xform Module
+------------
+
+.. automodule:: session_py.xform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Quaternion Module
+-----------------
+
+.. automodule:: session_py.quaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -35,26 +51,50 @@ Line Module
    :undoc-members:
    :show-inheritance:
 
+Tolerance Module
+----------------
+
+.. automodule:: session_py.tolerance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Polyline Module
+---------------
+
+.. automodule:: session_py.polyline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PointCloud Module
+-----------------
+
+.. automodule:: session_py.pointcloud
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Color Module
+------------
+
+.. automodule:: session_py.color
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Graph Module
+------------
+
+.. automodule:: session_py.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Objects Module
 --------------
 
 .. automodule:: session_py.objects
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Point Module
-------------
-
-.. automodule:: session_py.point
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Quaternion Module
------------------
-
-.. automodule:: session_py.quaternion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -71,22 +111,6 @@ Tree Module
 -----------
 
 .. automodule:: session_py.tree
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Vector Module
--------------
-
-.. automodule:: session_py.vector
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Xform Module
-------------
-
-.. automodule:: session_py.xform
    :members:
    :undoc-members:
    :show-inheritance:
