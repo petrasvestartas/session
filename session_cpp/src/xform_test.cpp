@@ -1,5 +1,5 @@
 #include "catch/include/catch_amalgamated.hpp"
-#include "xform.hpp"
+#include "xform.h"
 #include <cmath>
 #include "tolerance.h"
 

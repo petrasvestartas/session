@@ -1,11 +1,11 @@
 {
     "type": "Polyline",
-    "guid": "d3a32cd3-24ea-4ade-ac1c-275907908b1c",
+    "guid": "4869f359-b058-4e6f-aa61-3657aca52fd3",
     "name": "my_polyline",
     "points": [
         {
             "type": "Point",
-            "guid": "872411e5-0b08-473a-b081-1e51bda94ecf",
+            "guid": "f3214b40-c158-46a6-bea7-5d3bc5f9eace",
             "name": "my_point",
             "x": 1.0,
             "y": 2.0,
@@ -13,7 +13,7 @@
             "width": 1.0,
             "pointcolor": {
                 "type": "Color",
-                "guid": "05b0208a-a256-4980-a3f9-6e9079b0c4a1",
+                "guid": "e1a1cc4b-34ff-4f24-ab7e-784971d6b621",
                 "name": "white",
                 "r": 255,
                 "g": 255,
@@ -23,7 +23,7 @@
         },
         {
             "type": "Point",
-            "guid": "5063d62d-daaf-4c0c-8255-d8b77a263a9d",
+            "guid": "91d68e54-cbf7-44d7-a95a-e2d1a6dd7a88",
             "name": "my_point",
             "x": 4.0,
             "y": 5.0,
@@ -31,7 +31,7 @@
             "width": 1.0,
             "pointcolor": {
                 "type": "Color",
-                "guid": "fe7a395c-189c-478c-82af-51fd61f1eb18",
+                "guid": "baf5a073-8d4b-43d3-988c-b6ae8b1a81a9",
                 "name": "white",
                 "r": 255,
                 "g": 255,
@@ -41,7 +41,7 @@
         },
         {
             "type": "Point",
-            "guid": "095f7612-3615-4901-9e1b-9ab64e45dba4",
+            "guid": "eea96bd1-1d2d-488e-8221-af3094bbd48c",
             "name": "my_point",
             "x": 7.0,
             "y": 8.0,
@@ -49,7 +49,7 @@
             "width": 1.0,
             "pointcolor": {
                 "type": "Color",
-                "guid": "e7ecfbb8-3d87-4200-bf80-d91512ba1276",
+                "guid": "d1377827-fdab-40bd-806c-e07271be9cd3",
                 "name": "white",
                 "r": 255,
                 "g": 255,
@@ -60,11 +60,11 @@
     ],
     "plane": {
         "type": "Plane",
-        "guid": "176bc798-43ab-4e30-847d-97feffc7f8fa",
+        "guid": "7d23488c-0289-4c1b-bf1c-2a4e9e5d5cd1",
         "name": "my_plane",
         "origin": {
             "type": "Point",
-            "guid": "872411e5-0b08-473a-b081-1e51bda94ecf",
+            "guid": "f3214b40-c158-46a6-bea7-5d3bc5f9eace",
             "name": "my_point",
             "x": 1.0,
             "y": 2.0,
@@ -72,7 +72,7 @@
             "width": 1.0,
             "pointcolor": {
                 "type": "Color",
-                "guid": "05b0208a-a256-4980-a3f9-6e9079b0c4a1",
+                "guid": "e1a1cc4b-34ff-4f24-ab7e-784971d6b621",
                 "name": "white",
                 "r": 255,
                 "g": 255,
@@ -82,7 +82,7 @@
         },
         "x_axis": {
             "type": "Vector",
-            "guid": "fafd716a-6ed8-4c3d-88d6-e6e1d599cc65",
+            "guid": "ee75dbf4-8132-450c-8a7c-6d89b6ab54d2",
             "name": "my_vector",
             "x": -0.0,
             "y": 0.0,
@@ -90,7 +90,7 @@
         },
         "y_axis": {
             "type": "Vector",
-            "guid": "b9dc2973-a02b-48db-b6e6-5be5232201b4",
+            "guid": "fcafdd6b-12ce-412b-beb1-88b4dff78b1c",
             "name": "my_vector",
             "x": 0.0,
             "y": -0.0,
@@ -98,7 +98,7 @@
         },
         "z_axis": {
             "type": "Vector",
-            "guid": "db34622b-6208-4a25-9841-bf3309f28f5c",
+            "guid": "82c11c5f-70db-4b1c-b723-9fdfeccd3b56",
             "name": "my_vector",
             "x": 0.0,
             "y": 0.0,

@@ -29,13 +29,12 @@ nlohmann::ordered_json Color::to_json_data() const {
                                 {"guid", guid},
                                 {"name", name},
                                 {"r", static_cast<int>(r)},
-                                {"g", static_cast<int>(g)},
                                 {"b", static_cast<int>(b)},
                                 {"a", static_cast<int>(a)}};
 }
 
 Color Color::from_json_data(const nlohmann::json &data) {
-  Color color = Color(static_cast<unsigned int>(data["r"]),
+  Color color(static_cast<unsigned int>(data["r"]),
                       static_cast<unsigned int>(data["g"]),
                       static_cast<unsigned int>(data["b"]),
                       static_cast<unsigned int>(data["a"]), data["name"]);
@@ -45,7 +44,6 @@ Color Color::from_json_data(const nlohmann::json &data) {
 
 void Color::to_json(const std::string &filepath) const {
   std::ofstream file(filepath);
-  file << to_json_data().dump(4);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

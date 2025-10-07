@@ -11,30 +11,56 @@ namespace session_cpp {
  * @brief A quaternion for 3D rotations.
  */
 class Quaternion {
-public:
-    std::string typ;
-    std::string guid;
-    std::string name;
-    float s;
-    Vector v;
+private:
+    std::string typ;   ///< Type tag used for JSON serialization (always "Quaternion")
 
+public:
+    std::string guid;  ///< Unique identifier generated on construction
+    std::string name;  ///< Human-readable name
+    float s;           ///< Scalar component
+    Vector v;          ///< Vector component (x, y, z)
+
+    /**
+     * @brief Default constructor (identity quaternion).
+     */
     Quaternion();
+
+    /**
+     * @brief Construct from scalar and vector parts.
+     * @param s Scalar component.
+     * @param v Vector component.
+     */
     Quaternion(float s, const Vector& v);
     
+    /// Get the type tag (always "Quaternion")
+    const std::string& type() const { return typ; }
+    
+    /// Create identity quaternion (no rotation)
     static Quaternion identity();
+    /// Create quaternion from scalar and vector components
     static Quaternion from_sv(float s, float x, float y, float z);
+    /// Create quaternion from rotation axis and angle (radians)
     static Quaternion from_axis_angle(const Vector& axis, float angle);
 
+    /// Rotate a vector by this quaternion
     Vector rotate_vector(const Vector& vec) const;
+    /// Magnitude (norm) of the quaternion
     float magnitude() const;
+    /// Normalized quaternion (unit length)
     Quaternion normalize() const;
+    /// Conjugate of the quaternion
     Quaternion conjugate() const;
 
+    /// Hamilton product between two quaternions
     Quaternion operator*(const Quaternion& other) const;
 
+    /// Serialize to ordered JSON object
     nlohmann::ordered_json to_json_data() const;
+    /// Deserialize from JSON object
     static Quaternion from_json_data(const nlohmann::json& data);
+    /// Write JSON to file
     void to_json(const std::string& filepath) const;
+    /// Read JSON from file
     static Quaternion from_json(const std::string& filepath);
 };
 
