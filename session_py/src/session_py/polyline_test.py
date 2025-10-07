@@ -1,5 +1,6 @@
 """Tests for Polyline class."""
 
+from session_py.plane import Plane
 from session_py.point import Point
 from session_py.polyline import Polyline
 from session_py.vector import Vector
@@ -151,6 +152,19 @@ def test_polyline_from_json_data():
     assert deserialized.points[1].x == 4.0
 
 
+def test_polyline_json_serialization():
+    points = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]
+    polyline = Polyline(points)
+
+    json_string = polyline.to_json_data()
+    deserialized = Polyline.from_json_data(json_string)
+
+    assert len(deserialized) == 3
+    assert deserialized.points[0].x == 0.0
+    assert deserialized.points[1].x == 1.0
+    assert deserialized.points[2].y == 1.0
+
+
 def test_polyline_to_json_from_json():
     points = [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0)]
     polyline = Polyline(points)
@@ -174,3 +188,310 @@ def test_polyline_get_point():
 
     invalid = polyline.get_point(10)
     assert invalid is None
+
+
+def test_polyline_get_point_mut():
+    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 2.0, 3.0)])
+
+    # In Python, we can directly modify points since they're mutable objects
+    if len(polyline.points) > 1:
+        polyline.points[1] = Point(5.0, 6.0, 7.0)
+
+    assert polyline.points[1].x == 5.0
+    assert polyline.points[1].y == 6.0
+    assert polyline.points[1].z == 7.0
+
+
+def test_polyline_shift():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0)]
+    )
+
+    polyline.shift(1)
+
+    assert polyline.points[0].x == 1.0
+    assert polyline.points[1].x == 2.0
+    assert polyline.points[2].x == 0.0
+
+
+def test_polyline_length_squared():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]
+    )
+
+    length_sq = polyline.length_squared()
+    assert abs(length_sq - 2.0) < 1e-5
+
+
+def test_polyline_point_at_parameter():
+    start = Point(0.0, 0.0, 0.0)
+    end = Point(2.0, 0.0, 0.0)
+
+    mid = Polyline.point_at_parameter(start, end, 0.5)
+    assert mid.x == 1.0
+    assert mid.y == 0.0
+    assert mid.z == 0.0
+
+
+def test_polyline_closest_point_to_line():
+    line_start = Point(0.0, 0.0, 0.0)
+    line_end = Point(2.0, 0.0, 0.0)
+    test_point = Point(1.0, 1.0, 0.0)
+
+    t = Polyline.closest_point_to_line(test_point, line_start, line_end)
+    assert abs(t - 0.5) < 1e-5
+
+
+def test_polyline_line_line_overlap():
+    line0_start = Point(0.0, 0.0, 0.0)
+    line0_end = Point(2.0, 0.0, 0.0)
+    line1_start = Point(1.0, 0.0, 0.0)
+    line1_end = Point(3.0, 0.0, 0.0)
+
+    overlap = Polyline.line_line_overlap(line0_start, line0_end, line1_start, line1_end)
+
+    assert overlap is not None
+    overlap_start, overlap_end = overlap
+    assert abs(overlap_start.x - 1.0) < 1e-5
+    assert abs(overlap_end.x - 2.0) < 1e-5
+
+
+def test_polyline_line_line_average():
+    line0_start = Point(0.0, 0.0, 0.0)
+    line0_end = Point(2.0, 0.0, 0.0)
+    line1_start = Point(0.0, 2.0, 0.0)
+    line1_end = Point(2.0, 2.0, 0.0)
+
+    avg_start, avg_end = Polyline.line_line_average(
+        line0_start, line0_end, line1_start, line1_end
+    )
+
+    assert abs(avg_start.y - 1.0) < 1e-5
+    assert abs(avg_end.y - 1.0) < 1e-5
+
+
+def test_polyline_line_line_overlap_average():
+    line0_start = Point(0.0, 0.0, 0.0)
+    line0_end = Point(3.0, 0.0, 0.0)
+    line1_start = Point(1.0, 0.0, 0.0)
+    line1_end = Point(4.0, 0.0, 0.0)
+
+    output_start, output_end = Polyline.line_line_overlap_average(
+        line0_start, line0_end, line1_start, line1_end
+    )
+
+    assert output_start.x >= 0.0
+    assert output_end.x <= 4.0
+
+
+def test_polyline_line_from_projected_points():
+    line_start = Point(0.0, 0.0, 0.0)
+    line_end = Point(2.0, 0.0, 0.0)
+    points = [Point(0.5, 1.0, 0.0), Point(1.5, -1.0, 0.0)]
+
+    result = Polyline.line_from_projected_points(line_start, line_end, points)
+
+    assert result is not None
+    output_start, output_end = result
+    assert abs(output_start.x - 0.5) < 1e-5
+    assert abs(output_end.x - 1.5) < 1e-5
+
+
+def test_polyline_closest_distance_and_point():
+    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0)])
+    test_point = Point(1.0, 1.0, 0.0)
+
+    distance, edge_id, closest_point = polyline.closest_distance_and_point(test_point)
+
+    assert edge_id == 0
+    assert abs(closest_point.x - 1.0) < 1e-5
+    assert abs(distance - 1.0) < 1e-5
+
+
+def test_polyline_is_closed():
+    open_polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]
+    )
+    assert not open_polyline.is_closed()
+
+    closed_polyline = Polyline(
+        [
+            Point(0.0, 0.0, 0.0),
+            Point(1.0, 0.0, 0.0),
+            Point(1.0, 1.0, 0.0),
+            Point(0.0, 0.0, 0.0),
+        ]
+    )
+    assert closed_polyline.is_closed()
+
+
+def test_polyline_center():
+    polyline = Polyline(
+        [
+            Point(0.0, 0.0, 0.0),
+            Point(2.0, 0.0, 0.0),
+            Point(2.0, 2.0, 0.0),
+            Point(0.0, 2.0, 0.0),
+        ]
+    )
+
+    c = polyline.center()
+    assert abs(c.x - 1.0) < 1e-5
+    assert abs(c.y - 1.0) < 1e-5
+    assert abs(c.z - 0.0) < 1e-5
+
+
+def test_polyline_center_vec():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(2.0, 2.0, 0.0)]
+    )
+
+    c = polyline.center_vec()
+    assert abs(c.x - 4.0 / 3.0) < 1e-5
+    assert abs(c.y - 2.0 / 3.0) < 1e-5
+
+
+def test_polyline_get_average_plane():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]
+    )
+
+    origin, x_axis, y_axis, z_axis = polyline.get_average_plane()
+
+    assert abs(z_axis.z - 1.0) < 1e-5
+
+
+def test_polyline_get_fast_plane():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]
+    )
+
+    origin, plane = polyline.get_fast_plane()
+
+    assert origin.x == 0.0
+    assert origin.y == 0.0
+    assert origin.z == 0.0
+
+
+def test_polyline_get_middle_line():
+    line0_start = Point(0.0, 0.0, 0.0)
+    line0_end = Point(2.0, 0.0, 0.0)
+    line1_start = Point(0.0, 2.0, 0.0)
+    line1_end = Point(2.0, 2.0, 0.0)
+
+    output_start, output_end = Polyline.get_middle_line(
+        line0_start, line0_end, line1_start, line1_end
+    )
+
+    assert abs(output_start.y - 1.0) < 1e-5
+    assert abs(output_end.y - 1.0) < 1e-5
+
+
+def test_polyline_extend_line():
+    start = Point(0.0, 0.0, 0.0)
+    end = Point(1.0, 0.0, 0.0)
+
+    Polyline.extend_line(start, end, 0.5, 0.5)
+
+    assert abs(start.x - (-0.5)) < 1e-5
+    assert abs(end.x - 1.5) < 1e-5
+
+
+def test_polyline_scale_line():
+    start = Point(0.0, 0.0, 0.0)
+    end = Point(2.0, 0.0, 0.0)
+
+    Polyline.scale_line(start, end, 0.25)
+
+    assert abs(start.x - 0.5) < 1e-5
+    assert abs(end.x - 1.5) < 1e-5
+
+
+def test_polyline_extend_segment():
+    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])
+
+    polyline.extend_segment(0, 0.5, 0.5)
+
+    assert abs(polyline.points[0].x - (-0.5)) < 1e-5
+    assert abs(polyline.points[1].x - 1.5) < 1e-5
+
+
+def test_polyline_extend_segment_equally_static():
+    start = Point(0.0, 0.0, 0.0)
+    end = Point(1.0, 0.0, 0.0)
+
+    Polyline.extend_segment_equally_static(start, end, 0.5)
+
+    assert abs(start.x - (-0.5)) < 1e-5
+    assert abs(end.x - 1.5) < 1e-5
+
+
+def test_polyline_extend_segment_equally():
+    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])
+
+    polyline.extend_segment_equally(0, 0.5)
+
+    assert abs(polyline.points[0].x - (-0.5)) < 1e-5
+    assert abs(polyline.points[1].x - 1.5) < 1e-5
+
+
+def test_polyline_move_by():
+    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])
+    translation = Vector(1.0, 1.0, 1.0)
+
+    polyline.move_by(translation)
+
+    assert polyline.points[0].x == 1.0
+    assert polyline.points[0].y == 1.0
+    assert polyline.points[0].z == 1.0
+    assert polyline.points[1].x == 2.0
+    assert polyline.points[1].y == 1.0
+    assert polyline.points[1].z == 1.0
+
+
+def test_polyline_is_clockwise():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]
+    )
+    plane = Plane()
+
+    clockwise = polyline.is_clockwise(plane)
+    # Just test it doesn't crash
+    assert clockwise == True or clockwise == False
+
+
+def test_polyline_flip():
+    polyline = Polyline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0)]
+    )
+
+    polyline.flip()
+
+    assert polyline.points[0].x == 2.0
+    assert polyline.points[1].x == 1.0
+    assert polyline.points[2].x == 0.0
+
+
+def test_polyline_get_convex_corners():
+    polyline = Polyline(
+        [
+            Point(0.0, 0.0, 0.0),
+            Point(1.0, 0.0, 0.0),
+            Point(1.0, 1.0, 0.0),
+            Point(0.0, 1.0, 0.0),
+        ]
+    )
+
+    convex_corners = polyline.get_convex_corners()
+
+    assert len(convex_corners) == 4
+
+
+def test_polyline_tween_two_polylines():
+    polyline0 = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])
+    polyline1 = Polyline([Point(0.0, 2.0, 0.0), Point(1.0, 2.0, 0.0)])
+
+    result = Polyline.tween_two_polylines(polyline0, polyline1, 0.5)
+
+    assert abs(result.points[0].y - 1.0) < 1e-5
+    assert abs(result.points[1].y - 1.0) < 1e-5

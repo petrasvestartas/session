@@ -1,7 +1,3 @@
-"""
-The tolerance module provides functionality to deal with tolerances consistently.
-"""
-
 import math
 
 
