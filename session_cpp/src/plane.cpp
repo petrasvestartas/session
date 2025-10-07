@@ -331,6 +331,20 @@ bool Plane::is_coplanar(const Plane &plane0, const Plane plane1, bool can_be_fli
            is_same_position(plane0, plane1);
 }
 
+Plane Plane::translate_by_normal(float distance) const {
+    // Get normalized normal vector (z_axis)
+    Vector normal = _z_axis;
+    normal.normalize_self();
+    
+    // Move origin along the normal
+    Point new_origin = _origin + (normal * distance);
+    
+    // Create new plane with same orientation but new origin
+    Vector x_copy = _x_axis;
+    Vector y_copy = _y_axis;
+    return Plane(new_origin, x_copy, y_copy, name);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Stream operator
 ///////////////////////////////////////////////////////////////////////////////////////////

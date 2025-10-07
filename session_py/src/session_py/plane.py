@@ -286,6 +286,10 @@ class Plane:
         plane._d = 0.0
         return plane
 
+    ###########################################################################################
+    # Operators
+    ###########################################################################################
+
     def __str__(self):
         return f"Plane(origin={self._origin}, x_axis={self._x_axis}, y_axis={self._y_axis}, z_axis={self._z_axis}, guid={self.guid}, name={self.name})"
 
@@ -310,6 +314,93 @@ class Plane:
             return self._z_axis
         raise IndexError("Plane index out of range (0-2)")
 
+    ###########################################################################################
+    # JSON
+    ###########################################################################################
+
+    def to_json_data(self):
+        """Convert to JSON-serializable dictionary.
+
+        Returns
+        -------
+        dict
+            JSON-serializable dictionary.
+        """
+        return {
+            "type": "Plane",
+            "guid": self.guid,
+            "name": self.name,
+            "origin": self._origin.to_json_data(),
+            "x_axis": self._x_axis.to_json_data(),
+            "y_axis": self._y_axis.to_json_data(),
+            "z_axis": self._z_axis.to_json_data(),
+            "a": self._a,
+            "b": self._b,
+            "c": self._c,
+            "d": self._d,
+        }
+
+    @staticmethod
+    def from_json_data(data):
+        """Create Plane from JSON data.
+
+        Parameters
+        ----------
+        data : dict
+            JSON data dictionary.
+
+        Returns
+        -------
+        Plane
+            Plane instance.
+        """
+        plane = Plane.__new__(Plane)
+        plane.guid = data["guid"]
+        plane.name = data["name"]
+        plane._origin = Point.from_json_data(data["origin"])
+        plane._x_axis = Vector.from_json_data(data["x_axis"])
+        plane._y_axis = Vector.from_json_data(data["y_axis"])
+        plane._z_axis = Vector.from_json_data(data["z_axis"])
+        plane._a = data["a"]
+        plane._b = data["b"]
+        plane._c = data["c"]
+        plane._d = data["d"]
+        plane._update_equation()
+        return plane
+
+    def to_json(self, filepath):
+        """Serialize to JSON file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path to JSON file.
+        """
+        with open(filepath, "w") as f:
+            json.dump(self.to_json_data(), f, indent=4)
+
+    @staticmethod
+    def from_json(filepath):
+        """Deserialize from JSON file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path to JSON file.
+
+        Returns
+        -------
+        Plane
+            Plane instance.
+        """
+        with open(filepath, "r") as f:
+            data = json.load(f)
+        return Plane.from_json_data(data)
+
+    ###########################################################################################
+    # No-copy Operators
+    ###########################################################################################
+
     def __iadd__(self, other):
         """Translate plane by vector (in-place)."""
         if isinstance(other, Vector):
@@ -323,6 +414,10 @@ class Plane:
             self._origin -= other
             self._update_equation()
         return self
+
+    ###########################################################################################
+    # Copy Operators
+    ###########################################################################################
 
     def __add__(self, other):
         """Translate plane by vector (copy)."""
@@ -352,80 +447,9 @@ class Plane:
             return result
         return NotImplemented
 
-    def to_json_data(self):
-        """Convert to JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            JSON-serializable dictionary.
-        """
-        return {
-            "type": "Plane",
-            "guid": self.guid,
-            "name": self.name,
-            "origin": self._origin.to_json_data(),
-            "x_axis": self._x_axis.to_json_data(),
-            "y_axis": self._y_axis.to_json_data(),
-            "z_axis": self._z_axis.to_json_data(),
-            "a": round(self._a, 2),
-            "b": round(self._b, 2),
-            "c": round(self._c, 2),
-            "d": round(self._d, 2),
-        }
-
-    @staticmethod
-    def from_json_data(data):
-        """Create plane from JSON data.
-
-        Parameters
-        ----------
-        data : dict
-            JSON data dictionary.
-
-        Returns
-        -------
-        Plane
-            The constructed plane.
-        """
-        plane = Plane.__new__(Plane)
-        plane._origin = Point.from_json_data(data["origin"])
-        plane._x_axis = Vector.from_json_data(data["x_axis"])
-        plane._y_axis = Vector.from_json_data(data["y_axis"])
-        plane._z_axis = Vector.from_json_data(data["z_axis"])
-        plane.guid = data["guid"]
-        plane.name = data["name"]
-        plane._update_equation()
-        return plane
-
-    def to_json(self, filepath):
-        """Serialize to JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath):
-        """Deserialize from JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-
-        Returns
-        -------
-        Plane
-            The loaded plane.
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return Plane.from_json_data(data)
+    ###########################################################################################
+    # Details
+    ###########################################################################################
 
     def reverse(self):
         """Reverse the plane's normal direction."""
@@ -547,3 +571,23 @@ class Plane:
         return Plane.is_same_direction(
             plane0, plane1, can_be_flipped
         ) and Plane.is_same_position(plane0, plane1)
+
+    def translate_by_normal(self, distance):
+        """Translate (move) a plane along its normal direction by a specified distance.
+
+        Parameters
+        ----------
+        distance : float
+            Distance to move the plane along its normal (positive = normal direction, negative = opposite).
+
+        Returns
+        -------
+        Plane
+            New plane translated by the specified distance.
+        """
+        normal = Vector(self._z_axis.x, self._z_axis.y, self._z_axis.z)
+        normal.normalize_self()
+
+        new_origin = self._origin + (normal * distance)
+
+        return Plane(new_origin, self._x_axis, self._y_axis)

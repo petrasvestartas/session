@@ -224,4 +224,32 @@ TEST_CASE("Plane is_right_hand") {
   REQUIRE(plane.is_right_hand());
 }
 
+TEST_CASE("Plane translate_by_normal") {
+  Plane plane = Plane::xy_plane();
+  
+  // Translate along positive normal (Z direction)
+  Plane translated = plane.translate_by_normal(5.0f);
+  REQUIRE(translated.origin().x() == 0.0f);
+  REQUIRE(translated.origin().y() == 0.0f);
+  REQUIRE(translated.origin().z() == 5.0f);
+  
+  // Normal should remain the same
+  REQUIRE(translated.z_axis().x() == plane.z_axis().x());
+  REQUIRE(translated.z_axis().y() == plane.z_axis().y());
+  REQUIRE(translated.z_axis().z() == plane.z_axis().z());
+  
+  // Translate along negative normal
+  Plane translated_neg = plane.translate_by_normal(-3.0f);
+  REQUIRE(translated_neg.origin().x() == 0.0f);
+  REQUIRE(translated_neg.origin().y() == 0.0f);
+  REQUIRE(translated_neg.origin().z() == -3.0f);
+  
+  // Test with YZ plane
+  Plane yz_plane = Plane::yz_plane();
+  Plane yz_translated = yz_plane.translate_by_normal(2.0f);
+  REQUIRE(yz_translated.origin().x() == 2.0f);
+  REQUIRE(yz_translated.origin().y() == 0.0f);
+  REQUIRE(yz_translated.origin().z() == 0.0f);
+}
+
 } // namespace session_cpp

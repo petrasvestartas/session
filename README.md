@@ -1,97 +1,111 @@
-# Session Multi-Language Project
+# Session Multi-Language Geometry Library
 
-Multi-language project for vizualization.
-
-## Plan
-
-- [x] xform
-- [x] quaternion
-- [x] line
-- [x] plane
-- [x] tolerance
-- [x] polyline
-- [ ] pointcloud
-- [ ] mesh
-- [ ] arrow
-- [ ] pipe
-- [ ] box (boundingbox form all types) with inflation
-- [ ] bvh and implementation into session
-- [ ] protobuf
-- [ ] element level implementation: beam, plate
-- [ ] brep and nurbs surface
-
-## References
-
-https://github.com/petrasvestartas/wood/tree/main/cmake/src/wood/include
-
-https://github.com/petrasvestartas/wink/blob/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/primitives/xform.rs
-https://github.com/petrasvestartas/wink/tree/7144dc3ee6f32b4bfabc202eb8853a8cb8601703/src/openmodel/src/geometry
+Cross-platform 3D geometry library implemented in C++, Rust, and Python with complete API parity.
 
 ## Project Structure
 
 ```
 session/
-├── session_py/     # Python implementation
+├── session_cpp/    # C++ implementation
 ├── session_rust/   # Rust implementation  
-└── session_cpp/    # C++ implementation
+└── session_py/     # Python implementation
 ```
 
-## Alias
+## Implementation Status
 
-### Directory shortcuts
+**Completed:**
+- ✅ Point, Vector, Plane
+- ✅ Xform, Quaternion, Line
+- ✅ Tolerance, Polyline
 
-```bash
-alias ls_session='cd /home/pv/brg/code_rust/session/'
-alias ls_session_py='cd /home/pv/brg/code_rust/session/session_py/'
-alias ls_session_py_src='cd /home/pv/brg/code_rust/session/session_py/src/session_py/'
-alias ls_session_cpp='cd /home/pv/brg/code_rust/session/session_cpp/'
-alias ls_session_cpp_src='cd /home/pv/brg/code_rust/session/session_cpp/src/'
-alias ls_session_rust='cd /home/pv/brg/code_rust/session/session_rust'
-alias ls_session_rust_src='cd /home/pv/brg/code_rust/session/session_rust/src/'
+**Planned:**
+- PointCloud, Mesh
+- Arrow, Pipe, BoundingBox
+- BVH, Protobuf
+- Beam, Plate elements
+- BREP, NURBS surfaces
+
+## Code Organization Pattern
+
+All classes follow this structure across C++, Rust, and Python:
+
+1. **Constructors / Static Factory Methods** - `xy_plane()`, `from_points()`, etc.
+2. **Operators** - `__str__`, `__eq__`, `to_string()`, equality checks
+3. **JSON** - `to_json_data()`, `from_json_data()`, `to_json()`, `from_json()`
+4. **No-copy Operators** - `__iadd__`, `__isub__`, `__getitem__`, `operator[]`
+5. **Copy Operators** - `__add__`, `__sub__`, `__mul__`, `operator+`, `operator*`
+6. **Static Methods** - `x_axis()`, `cosine_law()`, utility functions
+7. **Details** - `reverse()`, `rotate()`, geometric/transformation methods
+
+**Section Headers:**
+```python
+# Python/C++
+###########################################################################################
+# JSON
+###########################################################################################
 ```
 
-### Unlock files
+**Rust:** Use `impl` blocks for organization (no comment headers).
 
+## Documentation Style
+
+| Language | Format | Sections |
+|----------|--------|----------|
+| **Python** | `"""docstring"""` | NumPy-style (Parameters, Returns) |
+| **C++** | `/// comment` | NumPy-style OR Doxygen (`@brief`, `@param`) |
+| **Rust** | `/// comment` | Brief description only |
+
+## Development Setup
+
+### Build & Run Aliases
+
+**Linux:**
 ```bash
-chmod +x /Users/petras/brg/code_rust/session/session_cpp/test.sh
-```
-
-### Build
-
-```bash
-# Linux
+alias c='(cd /home/pv/brg/code_rust/session/session_cpp && ./build.sh)'
 alias r='(cd /home/pv/brg/code_rust/session/session_rust && cargo run)'
 alias p='(cd /home/pv/brg/code_rust/session/session_py && conda activate session && python main.py)'
-alias c='(cd /home/pv/brg/code_rust/session/session_cpp && ./build.sh)'
+```
 
-alias ct='(cd /home/pv/brg/code_rust/session/session_cpp && ./test.sh)'
-alias rt='(cd /home/pv/brg/code_rust/session/session_rust && ./test.sh)'
-alias pt='(cd /home/pv/brg/code_rust/session/session_py && ./test.sh)'
-
-# macOS
+**macOS:**
+```bash
 alias c='(cd /Users/petras/brg/code_rust/session/session_cpp && ./build.sh)'
 alias r='(cd /Users/petras/brg/code_rust/session/session_rust && cargo run)'
 alias p='(cd /Users/petras/brg/code_rust/session/session_py && conda activate session && python main.py)'
+```
 
-alias ct='(cd /Users/petras/brg/code_rust/session/session_cpp && ./test.sh)'
-alias rt='(cd /Users/petras/brg/code_rust/session/session_rust && ./test.sh)'
-alias pt='(cd /Users/petras/brg/code_rust/session/session_py && ./test.sh)'
-
-# Windows
+**Windows:**
+```cmd
 doskey c=cd /d "c:\brg\code_rust\session\session_cpp" ^& build.bat
 doskey r=cd /d "c:\brg\code_rust\session\session_rust" ^& cargo run
 doskey p=cd /d "c:\brg\code_rust\session\session_py" ^& conda activate session ^& python main.py
+```
 
+### Test Aliases
+
+**Linux/macOS:**
+```bash
+alias ct='(cd /home/pv/brg/code_rust/session/session_cpp && ./test.sh)'    # or /Users/petras/...
+alias rt='(cd /home/pv/brg/code_rust/session/session_rust && ./test.sh)'
+alias pt='(cd /home/pv/brg/code_rust/session/session_py && ./test.sh)'
+```
+
+**Windows:**
+```cmd
 doskey ct=cd /d "c:\brg\code_rust\session\session_cpp" ^& test.bat
 doskey rt=cd /d "c:\brg\code_rust\session\session_rust" ^& test.bat
 doskey pt=cd /d "c:\brg\code_rust\session\session_py" ^& test.bat
 ```
 
-### Doc
+### Documentation Aliases
 
 ```bash
+alias cdoc='(cd /home/pv/brg/code_rust/session/session_cpp && ./doc.sh)'
 alias rdoc='(cd /home/pv/brg/code_rust/session/session_rust && cargo doc)'
 alias pdoc='(cd /home/pv/brg/code_rust/session/session_py && ./doc.sh)'
-alias cdoc='(cd /home/pv/brg/code_rust/session/session_cpp && ./doc.sh)'
 ```
+
+## References
+
+- [Wood Library](https://github.com/petrasvestartas/wood/tree/main/cmake/src/wood/include)
+- [Wink Geometry](https://github.com/petrasvestartas/wink/tree/main/src/openmodel/src/geometry)
 

@@ -151,6 +151,14 @@ namespace session_cpp {
    */
   static bool is_coplanar(const Plane &plane0, const Plane plane1, bool can_be_flipped = true);
 
+  /**
+   * @brief Translate (move) a plane along its normal direction by a specified distance.
+   * 
+   * @param distance Distance to move the plane along its normal (positive = normal direction, negative = opposite).
+   * @return New plane translated by the specified distance.
+   */
+  Plane translate_by_normal(float distance) const;
+
   
 }; // End of Plane class
 

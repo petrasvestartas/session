@@ -410,6 +410,18 @@ impl PartialEq<Point> for Plane {
     }
 }
 
+impl Plane {
+    /// Translate (move) a plane along its normal direction by a specified distance
+    pub fn translate_by_normal(&self, distance: f64) -> Plane {
+        let mut normal = self._z_axis.clone();
+        normal.normalize_self();
+
+        let new_origin = self._origin.clone() + (normal * distance as f32);
+
+        Plane::new(new_origin, self._x_axis.clone(), self._y_axis.clone())
+    }
+}
+
 impl std::fmt::Display for Plane {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

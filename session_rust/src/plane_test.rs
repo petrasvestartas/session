@@ -244,3 +244,32 @@ fn test_plane_is_right_hand() {
     plane.rotate(PI / 4.0);
     assert!(plane.is_right_hand());
 }
+
+#[test]
+fn test_plane_translate_by_normal() {
+    let plane = Plane::xy_plane();
+
+    // Translate along positive normal (Z direction)
+    let translated = plane.translate_by_normal(5.0);
+    assert_eq!(translated.origin().x(), 0.0);
+    assert_eq!(translated.origin().y(), 0.0);
+    assert_eq!(translated.origin().z(), 5.0);
+
+    // Normal should remain the same
+    assert_eq!(translated.z_axis().x(), plane.z_axis().x());
+    assert_eq!(translated.z_axis().y(), plane.z_axis().y());
+    assert_eq!(translated.z_axis().z(), plane.z_axis().z());
+
+    // Translate along negative normal
+    let translated_neg = plane.translate_by_normal(-3.0);
+    assert_eq!(translated_neg.origin().x(), 0.0);
+    assert_eq!(translated_neg.origin().y(), 0.0);
+    assert_eq!(translated_neg.origin().z(), -3.0);
+
+    // Test with YZ plane
+    let yz_plane = Plane::yz_plane();
+    let yz_translated = yz_plane.translate_by_normal(2.0);
+    assert_eq!(yz_translated.origin().x(), 2.0);
+    assert_eq!(yz_translated.origin().y(), 0.0);
+    assert_eq!(yz_translated.origin().z(), 0.0);
+}

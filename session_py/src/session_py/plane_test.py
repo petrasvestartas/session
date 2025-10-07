@@ -214,3 +214,31 @@ def test_plane_is_right_hand():
     assert plane.is_right_hand()
     plane.rotate(math.pi / 4.0)
     assert plane.is_right_hand()
+
+
+def test_plane_translate_by_normal():
+    plane = Plane.xy_plane()
+
+    # Translate along positive normal (Z direction)
+    translated = plane.translate_by_normal(5.0)
+    assert translated.origin.x == 0.0
+    assert translated.origin.y == 0.0
+    assert translated.origin.z == 5.0
+
+    # Normal should remain the same
+    assert translated.z_axis.x == plane.z_axis.x
+    assert translated.z_axis.y == plane.z_axis.y
+    assert translated.z_axis.z == plane.z_axis.z
+
+    # Translate along negative normal
+    translated_neg = plane.translate_by_normal(-3.0)
+    assert translated_neg.origin.x == 0.0
+    assert translated_neg.origin.y == 0.0
+    assert translated_neg.origin.z == -3.0
+
+    # Test with YZ plane
+    yz_plane = Plane.yz_plane()
+    yz_translated = yz_plane.translate_by_normal(2.0)
+    assert yz_translated.origin.x == 2.0
+    assert yz_translated.origin.y == 0.0
+    assert yz_translated.origin.z == 0.0
