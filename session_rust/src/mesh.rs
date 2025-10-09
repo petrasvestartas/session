@@ -424,6 +424,38 @@ impl Mesh {
         normals
     }
 
+    pub fn vertex_index(&self) -> HashMap<usize, usize> {
+        let mut keys: Vec<usize> = self.vertex.keys().copied().collect();
+        keys.sort();
+        keys.iter()
+            .enumerate()
+            .map(|(index, &key)| (key, index))
+            .collect()
+    }
+
+    pub fn to_vertices_and_faces(&self) -> (Vec<Point>, Vec<Vec<usize>>) {
+        let vertex_index = self.vertex_index();
+        let mut vertices: Vec<Point> = vec![Point::default(); self.vertex.len()];
+
+        for (&key, data) in &self.vertex {
+            let idx = vertex_index[&key];
+            vertices[idx] = data.position();
+        }
+
+        // Sort face keys to ensure consistent ordering
+        let mut face_keys: Vec<usize> = self.face.keys().copied().collect();
+        face_keys.sort();
+
+        let mut faces = Vec::new();
+        for face_key in face_keys {
+            let face_vertices = &self.face[&face_key];
+            let remapped: Vec<usize> = face_vertices.iter().map(|v| vertex_index[v]).collect();
+            faces.push(remapped);
+        }
+
+        (vertices, faces)
+    }
+
     pub fn from_polygons(polygons: Vec<Vec<Point>>, precision: Option<f32>) -> Self {
         let mut mesh = Mesh::new();
         let mut map_eps: HashMap<(i64, i64, i64), usize> = HashMap::new();

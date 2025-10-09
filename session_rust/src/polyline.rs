@@ -777,3 +777,7 @@ impl fmt::Display for Polyline {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "polyline_test.rs"]
+mod polyline_test;

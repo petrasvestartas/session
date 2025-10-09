@@ -191,6 +191,22 @@ public:
     std::map<size_t, Vector> vertex_normals_weighted(NormalWeighting weighting) const;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // COMPAS-style Export Methods
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @brief Create a mapping from sparse vertex keys to sequential indices.
+     * @return A map of vertex_key -> sequential_index (0, 1, 2, ...).
+     */
+    std::map<size_t, size_t> vertex_index() const;
+
+    /**
+     * @brief Export vertices and faces with sequential 0-based indices.
+     * @return A pair of (vertices, faces) where faces use sequential indices.
+     */
+    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces() const;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // Construction
     ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -15,6 +15,7 @@ from .graph import Graph
 from .objects import Objects
 from .session import Session
 from .mesh import Mesh, NormalWeighting
+from .cylinder import Cylinder
 
 __all__ = [
     "Color",
@@ -32,4 +33,5 @@ __all__ = [
     "Session",
     "Mesh",
     "NormalWeighting",
+    "Cylinder",
 ]

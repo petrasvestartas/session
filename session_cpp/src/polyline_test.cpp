@@ -198,7 +198,7 @@ TEST_CASE("Polyline to json from json", "[polyline]") {
     };
     Polyline polyline(points);
 
-    std::string filepath = "test_polyline.json";
+    std::string filepath = "../test_polyline.json";
     polyline.to_json(filepath);
     Polyline loaded = Polyline::from_json(filepath);
 

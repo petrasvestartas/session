@@ -1,5 +1,4 @@
 import math
-import os
 from .mesh import Mesh, NormalWeighting
 from .point import Point
 

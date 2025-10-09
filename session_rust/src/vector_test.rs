@@ -36,8 +36,9 @@ mod vector_tests {
     #[test]
     fn test_vector_to_json_from_json() {
         let orig = Vector::new(123.45, 678.90, 999.11);
-        orig.to_json("test_vector.json").unwrap();
-        let load = Vector::from_json("test_vector.json").unwrap();
+        let filename = "test_vector.json";
+        orig.to_json(filename).unwrap();
+        let load = Vector::from_json(filename).unwrap();
         assert_eq!(
             (load.x(), load.y(), load.z()),
             (orig.x(), orig.y(), orig.z())

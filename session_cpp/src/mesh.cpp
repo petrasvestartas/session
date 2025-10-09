@@ -378,6 +378,54 @@ Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::o
     return mesh;
 }
 
+std::map<size_t, size_t> Mesh::vertex_index() const {
+    // Collect and sort keys to ensure consistent ordering
+    std::vector<size_t> keys;
+    keys.reserve(vertex.size());
+    for (const auto& [key, _] : vertex) {
+        keys.push_back(key);
+    }
+    std::sort(keys.begin(), keys.end());
+    
+    // Create index mapping
+    std::map<size_t, size_t> index_map;
+    for (size_t index = 0; index < keys.size(); ++index) {
+        index_map[keys[index]] = index;
+    }
+    return index_map;
+}
+
+std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> Mesh::to_vertices_and_faces() const {
+    auto vertex_idx = vertex_index();
+    std::vector<Point> vertices(vertex.size());
+    
+    for (const auto& [key, vdata] : vertex) {
+        size_t idx = vertex_idx[key];
+        vertices[idx] = vdata.position();
+    }
+    
+    // Sort face keys to ensure consistent ordering
+    std::vector<size_t> face_keys;
+    face_keys.reserve(face.size());
+    for (const auto& [key, _] : face) {
+        face_keys.push_back(key);
+    }
+    std::sort(face_keys.begin(), face_keys.end());
+    
+    std::vector<std::vector<size_t>> faces;
+    for (size_t face_key : face_keys) {
+        const auto& face_vertices = face.at(face_key);
+        std::vector<size_t> remapped;
+        remapped.reserve(face_vertices.size());
+        for (size_t v : face_vertices) {
+            remapped.push_back(vertex_idx.at(v));
+        }
+        faces.push_back(remapped);
+    }
+    
+    return {vertices, faces};
+}
+
 nlohmann::ordered_json Mesh::to_json_data() const {
     nlohmann::ordered_json data;
     data["type"] = "Mesh";

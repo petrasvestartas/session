@@ -6,6 +6,7 @@
 #![allow(static_mut_refs)]
 
 pub mod color;
+pub mod cylinder;
 pub mod graph;
 pub mod line;
 pub mod mesh;
@@ -21,11 +22,8 @@ pub mod tree;
 pub mod vector;
 pub mod xform;
 
-#[cfg(test)]
-#[path = "polyline_test.rs"]
-mod polyline_test;
-
 pub use color::Color;
+pub use cylinder::Cylinder;
 pub use graph::Graph;
 pub use graph::Vertex;
 pub use line::Line;

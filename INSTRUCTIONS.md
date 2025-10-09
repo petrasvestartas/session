@@ -9,6 +9,7 @@
 ## JSON
 
 - Use the same workflow for json serialization and desialization as point file
+- The json file must always be kept, if you have remove file code, remove it. 
 
 ## For xform.rs
 

@@ -1,0 +1,62 @@
+#pragma once
+
+#include "line.h"
+#include "mesh.h"
+#include "point.h"
+#include "vector.h"
+#include "xform.h"
+#include "guid.h"
+#include "json.h"
+#include <string>
+#include <vector>
+#include <array>
+
+namespace session_cpp {
+
+/**
+ * @class Cylinder
+ * @brief A cylinder geometry defined by a line and radius.
+ * 
+ * The cylinder is generated as a 10-sided cylinder mesh that is oriented
+ * along the line direction and scaled to match the line length and specified radius.
+ */
+class Cylinder {
+public:
+    std::string guid = ::guid();
+    std::string name = "my_cylinder";
+    float radius;
+    Line line;
+    Mesh mesh;
+
+    /**
+     * @brief Creates a new Cylinder from a line and radius.
+     * @param line The centerline of the cylinder
+     * @param radius The radius of the cylinder
+     * @return A new Cylinder with a generated 10-sided cylinder mesh
+     */
+    Cylinder(const Line& line, float radius);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // JSON
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Serializes the Cylinder to a JSON string
+    nlohmann::ordered_json to_json_data() const;
+    
+    /// Deserializes a Cylinder from JSON data
+    static Cylinder from_json_data(const nlohmann::json& data);
+    
+    /// Serializes the Cylinder to a JSON file
+    void to_json(const std::string& filepath) const;
+    
+    /// Deserializes a Cylinder from a JSON file
+    static Cylinder from_json(const std::string& filepath);
+
+private:
+    static Mesh create_cylinder_mesh(const Line& line, float radius);
+    static std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> unit_cylinder_geometry();
+    static Xform line_to_cylinder_transform(const Line& line, float radius);
+    static Mesh transform_geometry(const std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>>& geometry, const Xform& xform);
+};
+
+} // namespace session_cpp

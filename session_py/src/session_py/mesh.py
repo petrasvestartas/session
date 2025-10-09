@@ -2,7 +2,7 @@ import uuid
 import json
 import math
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 from .point import Point
 from .vector import Vector
 from .tolerance import Tolerance
@@ -485,6 +485,49 @@ class Mesh:
             mesh.add_face(vkeys)
         
         return mesh
+    
+    ###########################################################################################
+    # COMPAS-style Export Methods
+    ###########################################################################################
+    
+    def vertex_index(self) -> Dict[int, int]:
+        """Create a mapping from sparse vertex keys to sequential indices.
+        
+        Returns
+        -------
+        dict[int, int]
+            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).
+        """
+        # Sort keys to ensure consistent ordering
+        sorted_keys = sorted(self.vertex.keys())
+        return {key: index for index, key in enumerate(sorted_keys)}
+    
+    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:
+        """Export vertices and faces with sequential 0-based indices.
+        
+        Returns
+        -------
+        tuple
+            A tuple of (vertices, faces) where:
+            - vertices: List of Point objects in sequential order
+            - faces: List of face vertex lists using sequential indices
+        """
+        vertex_idx = self.vertex_index()
+        vertices = [None] * len(self.vertex)
+        
+        for key, vdata in self.vertex.items():
+            idx = vertex_idx[key]
+            vertices[idx] = vdata.position()
+        
+        # Sort face keys to ensure consistent ordering
+        sorted_face_keys = sorted(self.face.keys())
+        faces = []
+        for face_key in sorted_face_keys:
+            face_vertices = self.face[face_key]
+            remapped = [vertex_idx[v] for v in face_vertices]
+            faces.append(remapped)
+        
+        return vertices, faces
     
     ###########################################################################################
     # JSON
