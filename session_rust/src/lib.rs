@@ -5,6 +5,7 @@
 // Usage: session_rust::point::Point
 #![allow(static_mut_refs)]
 
+pub mod arrow;
 pub mod color;
 pub mod cylinder;
 pub mod graph;
@@ -22,6 +23,7 @@ pub mod tree;
 pub mod vector;
 pub mod xform;
 
+pub use arrow::Arrow;
 pub use color::Color;
 pub use cylinder::Cylinder;
 pub use graph::Graph;

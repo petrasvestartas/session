@@ -10,10 +10,10 @@ from .mesh import Mesh
 
 class Cylinder:
     """A cylinder geometry defined by a line and radius.
-    
+
     The cylinder is generated as a 10-sided cylinder mesh that is oriented
     along the line direction and scaled to match the line length and specified radius.
-    
+
     Attributes
     ----------
     guid : str
@@ -27,10 +27,10 @@ class Cylinder:
     mesh : Mesh
         The generated 10-sided cylinder mesh.
     """
-    
+
     def __init__(self, line: Line, radius: float):
         """Creates a new Cylinder from a line and radius.
-        
+
         Parameters
         ----------
         line : Line
@@ -43,7 +43,7 @@ class Cylinder:
         self.radius = radius
         self.line = line
         self.mesh = self._create_cylinder_mesh(line, radius)
-    
+
     @staticmethod
     def _unit_cylinder_geometry() -> Tuple[List[Point], List[List[int]]]:
         """Generate the unit cylinder geometry."""
@@ -69,22 +69,32 @@ class Cylinder:
             Point(0.154508, -0.475528, 0.5),
             Point(0.404508, -0.293893, 0.5),
         ]
-        
+
         triangles = [
-            [0, 1, 11], [0, 11, 10],
-            [1, 2, 12], [1, 12, 11],
-            [2, 3, 13], [2, 13, 12],
-            [3, 4, 14], [3, 14, 13],
-            [4, 5, 15], [4, 15, 14],
-            [5, 6, 16], [5, 16, 15],
-            [6, 7, 17], [6, 17, 16],
-            [7, 8, 18], [7, 18, 17],
-            [8, 9, 19], [8, 19, 18],
-            [9, 0, 10], [9, 10, 19],
+            [0, 1, 11],
+            [0, 11, 10],
+            [1, 2, 12],
+            [1, 12, 11],
+            [2, 3, 13],
+            [2, 13, 12],
+            [3, 4, 14],
+            [3, 14, 13],
+            [4, 5, 15],
+            [4, 15, 14],
+            [5, 6, 16],
+            [5, 16, 15],
+            [6, 7, 17],
+            [6, 17, 16],
+            [7, 8, 18],
+            [7, 18, 17],
+            [8, 9, 19],
+            [8, 19, 18],
+            [9, 0, 10],
+            [9, 10, 19],
         ]
-        
+
         return vertices, triangles
-    
+
     @staticmethod
     def _line_to_cylinder_transform(line: Line, radius: float) -> Xform:
         """Create transformation from unit cylinder to oriented cylinder."""
@@ -92,16 +102,16 @@ class Cylinder:
         end = line.end()
         line_vec = line.to_vector()
         length = line.length()
-        
+
         z_axis = line_vec.normalize()
         if abs(z_axis.z) < 0.9:
             x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()
         else:
             x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()
         y_axis = z_axis.cross(x_axis).normalize()
-        
+
         scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)
-        
+
         # Create rotation matrix from column vectors
         rotation = Xform()
         rotation.m[0] = x_axis.x
@@ -113,48 +123,48 @@ class Cylinder:
         rotation.m[8] = z_axis.x
         rotation.m[9] = z_axis.y
         rotation.m[10] = z_axis.z
-        
+
         center = Point(
-            (start.x + end.x) * 0.5,
-            (start.y + end.y) * 0.5,
-            (start.z + end.z) * 0.5
+            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5
         )
         translation = Xform.translation(center.x, center.y, center.z)
-        
+
         return translation * rotation * scale
-    
+
     @staticmethod
-    def _transform_geometry(geometry: Tuple[List[Point], List[List[int]]], xform: Xform) -> Mesh:
+    def _transform_geometry(
+        geometry: Tuple[List[Point], List[List[int]]], xform: Xform
+    ) -> Mesh:
         """Transform unit geometry and create mesh."""
         vertices, triangles = geometry
         mesh = Mesh()
-        
+
         vertex_keys = []
         for v in vertices:
             transformed = xform.transformed_point(v)
             vertex_keys.append(mesh.add_vertex(transformed))
-        
+
         for tri in triangles:
             face_vertices = [
                 vertex_keys[tri[0]],
                 vertex_keys[tri[1]],
-                vertex_keys[tri[2]]
+                vertex_keys[tri[2]],
             ]
             mesh.add_face(face_vertices)
-        
+
         return mesh
-    
+
     @classmethod
     def _create_cylinder_mesh(cls, line: Line, radius: float) -> Mesh:
         """Create the cylinder mesh."""
         unit_cylinder = cls._unit_cylinder_geometry()
         xform = cls._line_to_cylinder_transform(line, radius)
         return cls._transform_geometry(unit_cylinder, xform)
-    
+
     ###########################################################################################
     # JSON
     ###########################################################################################
-    
+
     def to_json_data(self) -> dict:
         """Serializes the Cylinder to a JSON-serializable dictionary."""
         return {
@@ -163,31 +173,31 @@ class Cylinder:
             "name": self.name,
             "radius": self.radius,
             "line": self.line.to_json_data(),
-            "mesh": self.mesh.to_json_data()
+            "mesh": self.mesh.to_json_data(),
         }
-    
+
     @staticmethod
-    def from_json_data(data: dict) -> 'Cylinder':
+    def from_json_data(data: dict) -> "Cylinder":
         """Deserializes a Cylinder from JSON data."""
         line = Line.from_json_data(data["line"])
         radius = data["radius"]
         cylinder = Cylinder(line, radius)
-        
+
         if "guid" in data:
             cylinder.guid = data["guid"]
         if "name" in data:
             cylinder.name = data["name"]
-        
+
         return cylinder
-    
+
     def to_json(self, filepath: str) -> None:
         """Serializes the Cylinder to a JSON file."""
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(self.to_json_data(), f, indent=4)
-    
+
     @staticmethod
-    def from_json(filepath: str) -> 'Cylinder':
+    def from_json(filepath: str) -> "Cylinder":
         """Deserializes a Cylinder from a JSON file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
         return Cylinder.from_json_data(data)

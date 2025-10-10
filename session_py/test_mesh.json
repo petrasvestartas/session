@@ -1,6 +1,6 @@
 {
   "type": "Mesh",
-  "guid": "1fbe8729-c0cd-4869-b87f-62283df67dfe",
+  "guid": "40f05054-d993-42f9-9860-1f165725bdd4",
   "name": "my_mesh",
   "vertex": {
     "1": {
@@ -35,5 +35,37 @@
     "z": 0.0
   },
   "default_face_attributes": {},
-  "default_edge_attributes": {}
+  "default_edge_attributes": {},
+  "pointcolors": [
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255
+  ],
+  "facecolors": [
+    255,
+    255,
+    255
+  ],
+  "linecolors": [
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255
+  ],
+  "widths": [
+    1.0,
+    1.0,
+    1.0
+  ]
 }

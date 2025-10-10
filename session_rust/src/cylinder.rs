@@ -3,10 +3,10 @@ use crate::mesh::Mesh;
 use crate::point::Point;
 use crate::vector::Vector;
 use crate::xform::Xform;
-use serde::{ser::Serialize as SerTrait, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// A cylinder (cylinder) geometry defined by a line and radius.
+/// A cylinder geometry defined by a line and radius.
 ///
 /// The cylinder is generated as a 10-sided cylinder mesh that is oriented
 /// along the line direction and scaled to match the line length and specified radius.
@@ -154,11 +154,15 @@ impl Cylinder {
 
     /// Serializes the Cylinder to a JSON string.
     pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
-        let mut buf = Vec::new();
-        let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
-        let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
-        self.serialize(&mut ser)?;
-        Ok(String::from_utf8(buf)?)
+        let data = serde_json::json!({
+            "type": "Cylinder",
+            "guid": self.guid,
+            "name": self.name,
+            "radius": self.radius,
+            "line": self.line,
+            "mesh": self.mesh.to_json_data()
+        });
+        Ok(serde_json::to_string_pretty(&data)?)
     }
 
     /// Deserializes a Cylinder from a JSON string.

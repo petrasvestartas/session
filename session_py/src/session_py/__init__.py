@@ -16,6 +16,7 @@ from .objects import Objects
 from .session import Session
 from .mesh import Mesh, NormalWeighting
 from .cylinder import Cylinder
+from .arrow import Arrow
 
 __all__ = [
     "Color",
@@ -34,4 +35,5 @@ __all__ = [
     "Mesh",
     "NormalWeighting",
     "Cylinder",
+    "Arrow",
 ]

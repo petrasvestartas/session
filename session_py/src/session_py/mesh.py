@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Tuple
 from .point import Point
 from .vector import Vector
 from .tolerance import Tolerance
+from .color import Color
 
 
 class NormalWeighting(Enum):
@@ -16,12 +17,12 @@ class NormalWeighting(Enum):
 
 class VertexData:
     """Vertex data containing position and attributes.
-    
+
     Parameters
     ----------
     point : Point, optional
         Initial position. Defaults to origin.
-    
+
     Attributes
     ----------
     x : float
@@ -33,7 +34,7 @@ class VertexData:
     attributes : dict
         Custom vertex attributes.
     """
-    
+
     def __init__(self, point: Point = None):
         if point is None:
             point = Point(0.0, 0.0, 0.0)
@@ -41,41 +42,41 @@ class VertexData:
         self.y = point.y
         self.z = point.z
         self.attributes = {}
-    
+
     def position(self) -> Point:
         """Get the vertex position as a Point."""
         return Point(self.x, self.y, self.z)
-    
+
     def set_position(self, point: Point):
         """Set the vertex position from a Point."""
         self.x = point.x
         self.y = point.y
         self.z = point.z
-    
+
     def color(self) -> List[float]:
         """Get the vertex color as [r, g, b]."""
         return [
             self.attributes.get("r", 0.5),
             self.attributes.get("g", 0.5),
-            self.attributes.get("b", 0.5)
+            self.attributes.get("b", 0.5),
         ]
-    
+
     def set_color(self, r: float, g: float, b: float):
         """Set the vertex color."""
         self.attributes["r"] = r
         self.attributes["g"] = g
         self.attributes["b"] = b
-    
+
     def normal(self) -> Optional[List[float]]:
         """Get the vertex normal as [nx, ny, nz]."""
-        if "nx" in self.attributes and "ny" in self.attributes and "nz" in self.attributes:
-            return [
-                self.attributes["nx"],
-                self.attributes["ny"],
-                self.attributes["nz"]
-            ]
+        if (
+            "nx" in self.attributes
+            and "ny" in self.attributes
+            and "nz" in self.attributes
+        ):
+            return [self.attributes["nx"], self.attributes["ny"], self.attributes["nz"]]
         return None
-    
+
     def set_normal(self, nx: float, ny: float, nz: float):
         """Set the vertex normal."""
         self.attributes["nx"] = nx
@@ -85,7 +86,7 @@ class VertexData:
 
 class Mesh:
     """A halfedge mesh data structure for representing polygonal surfaces.
-    
+
     Attributes
     ----------
     halfedge : dict
@@ -108,8 +109,16 @@ class Mesh:
         Unique identifier for the mesh.
     name : str
         Name of the mesh.
+    pointcolors : list
+        Vertex colors (one per vertex).
+    facecolors : list
+        Face colors (one per face).
+    linecolors : list
+        Edge colors (one per edge).
+    widths : list
+        Edge widths (one per edge).
     """
-    
+
     def __init__(self):
         self.halfedge = {}
         self.vertex = {}
@@ -124,19 +133,23 @@ class Mesh:
         self._max_face = 0
         self.guid = str(uuid.uuid4())
         self.name = "my_mesh"
-    
+        self.pointcolors = []
+        self.facecolors = []
+        self.linecolors = []
+        self.widths = []
+
     ###########################################################################################
     # Basic Queries
     ###########################################################################################
-    
+
     def number_of_vertices(self) -> int:
         """Get the number of vertices."""
         return len(self.vertex)
-    
+
     def number_of_faces(self) -> int:
         """Get the number of faces."""
         return len(self.face)
-    
+
     def number_of_edges(self) -> int:
         """Get the number of edges."""
         seen = set()
@@ -148,15 +161,17 @@ class Mesh:
                     seen.add(edge)
                     count += 1
         return count
-    
+
     def is_empty(self) -> bool:
         """Check if the mesh is empty."""
         return len(self.vertex) == 0
-    
+
     def euler(self) -> int:
         """Calculate Euler characteristic (V - E + F)."""
-        return self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()
-    
+        return (
+            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()
+        )
+
     def clear(self):
         """Clear all mesh data."""
         self.halfedge.clear()
@@ -167,21 +182,25 @@ class Mesh:
         self.triangulation.clear()
         self._max_vertex = 0
         self._max_face = 0
-    
+        self.pointcolors.clear()
+        self.facecolors.clear()
+        self.linecolors.clear()
+        self.widths.clear()
+
     ###########################################################################################
     # Vertex and Face Operations
     ###########################################################################################
-    
+
     def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:
         """Add a vertex to the mesh.
-        
+
         Parameters
         ----------
         position : Point
             The position of the vertex.
         vkey : int, optional
             Optional vertex key. If None, auto-generated.
-            
+
         Returns
         -------
         int
@@ -192,25 +211,28 @@ class Mesh:
             vertex_key = self._max_vertex
         else:
             vertex_key = vkey
-        
+
         if vertex_key >= self._max_vertex:
             self._max_vertex = vertex_key + 1
-        
+
         self.vertex[vertex_key] = VertexData(position)
         self.halfedge[vertex_key] = {}
-        
+        self.pointcolors.append(Color.white())
+
         return vertex_key
-    
-    def add_face(self, vertices: List[int], fkey: Optional[int] = None) -> Optional[int]:
+
+    def add_face(
+        self, vertices: List[int], fkey: Optional[int] = None
+    ) -> Optional[int]:
         """Add a face to the mesh.
-        
+
         Parameters
         ----------
         vertices : list of int
             The vertex keys forming the face.
         fkey : int, optional
             Optional face key. If None, auto-generated.
-            
+
         Returns
         -------
         int or None
@@ -218,61 +240,66 @@ class Mesh:
         """
         if len(vertices) < 3:
             return None
-        
+
         if not all(v in self.vertex for v in vertices):
             return None
-        
+
         if len(set(vertices)) != len(vertices):
             return None
-        
+
         if fkey is None:
             self._max_face += 1
             face_key = self._max_face
         else:
             face_key = fkey
-        
+
         if face_key >= self._max_face:
             self._max_face = face_key + 1
-        
+
         self.face[face_key] = vertices.copy()
         self.triangulation.pop(face_key, None)
-        
+        self.facecolors.append(Color.white())
+
         for i in range(len(vertices)):
             u = vertices[i]
             v = vertices[(i + 1) % len(vertices)]
-            
+
             if u not in self.halfedge:
                 self.halfedge[u] = {}
             if v not in self.halfedge:
                 self.halfedge[v] = {}
-            
+
+            is_new_edge = u not in self.halfedge[v]
+
             self.halfedge[u][v] = face_key
-            
-            if u not in self.halfedge[v]:
+
+            if is_new_edge:
                 self.halfedge[v][u] = None
-        
+                self.linecolors.append(Color.white())
+                self.widths.append(1.0)
+
         return face_key
-    
+
     ###########################################################################################
     # Connectivity Queries
     ###########################################################################################
-    
+
     def vertex_position(self, vertex_key: int) -> Optional[Point]:
         """Get the position of a vertex."""
         if vertex_key not in self.vertex:
             return None
         return self.vertex[vertex_key].position()
-    
+
     def face_vertices(self, face_key: int) -> Optional[List[int]]:
         """Get the vertices of a face."""
         return self.face.get(face_key)
-    
+
     def vertex_neighbors(self, vertex_key: int) -> List[int]:
         """Get the neighboring vertices of a vertex."""
         if vertex_key not in self.halfedge:
             return []
         return list(self.halfedge[vertex_key].keys())
-    
+
     def vertex_faces(self, vertex_key: int) -> List[int]:
         """Get the faces incident to a vertex."""
         faces = []
@@ -280,139 +307,143 @@ class Mesh:
             if vertex_key in face_vertices:
                 faces.append(face_key)
         return faces
-    
+
     def is_vertex_on_boundary(self, vertex_key: int) -> bool:
         """Check if a vertex is on the boundary."""
         if vertex_key not in self.halfedge:
             return False
-        
+
         for v, face_opt in self.halfedge[vertex_key].items():
             if face_opt is None:
                 return True
-        
+
         for u, neighbors in self.halfedge.items():
             if vertex_key in neighbors and neighbors[vertex_key] is None:
                 return True
-        
+
         return False
-    
+
     ###########################################################################################
     # Geometric Properties
     ###########################################################################################
-    
+
     def face_normal(self, face_key: int) -> Optional[Vector]:
         """Calculate the normal of a face."""
         vertices = self.face_vertices(face_key)
         if vertices is None or len(vertices) < 3:
             return None
-        
+
         p0 = self.vertex_position(vertices[0])
         p1 = self.vertex_position(vertices[1])
         p2 = self.vertex_position(vertices[2])
-        
+
         if p0 is None or p1 is None or p2 is None:
             return None
-        
+
         u = Vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
         v = Vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z)
-        
+
         normal = u.cross(v)
         length = normal.magnitude()
-        
+
         if length > Tolerance.ZERO_TOLERANCE:
             return Vector(normal.x / length, normal.y / length, normal.z / length)
-        
+
         return None
-    
+
     def vertex_normal(self, vertex_key: int) -> Optional[Vector]:
         """Calculate the normal of a vertex (area-weighted)."""
         return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)
-    
-    def vertex_normal_weighted(self, vertex_key: int, weighting: NormalWeighting) -> Optional[Vector]:
+
+    def vertex_normal_weighted(
+        self, vertex_key: int, weighting: NormalWeighting
+    ) -> Optional[Vector]:
         """Calculate the normal of a vertex with specified weighting."""
         faces = self.vertex_faces(vertex_key)
         if not faces:
             return None
-        
+
         normal_acc = Vector(0.0, 0.0, 0.0)
-        
+
         for face_key in faces:
             face_normal = self.face_normal(face_key)
             if face_normal is None:
                 continue
-            
+
             if weighting == NormalWeighting.AREA:
                 weight = self.face_area(face_key) or 1.0
             elif weighting == NormalWeighting.ANGLE:
                 weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0
             else:  # UNIFORM
                 weight = 1.0
-            
+
             normal_acc.x += face_normal.x * weight
             normal_acc.y += face_normal.y * weight
             normal_acc.z += face_normal.z * weight
-        
+
         length = normal_acc.magnitude()
         if length > Tolerance.ZERO_TOLERANCE:
-            return Vector(normal_acc.x / length, normal_acc.y / length, normal_acc.z / length)
-        
+            return Vector(
+                normal_acc.x / length, normal_acc.y / length, normal_acc.z / length
+            )
+
         return None
-    
+
     def face_area(self, face_key: int) -> Optional[float]:
         """Calculate the area of a face."""
         vertices = self.face_vertices(face_key)
         if vertices is None or len(vertices) < 3:
             return 0.0
-        
+
         area = 0.0
         p0 = self.vertex_position(vertices[0])
         if p0 is None:
             return None
-        
+
         for i in range(1, len(vertices) - 1):
             p1 = self.vertex_position(vertices[i])
             p2 = self.vertex_position(vertices[i + 1])
             if p1 is None or p2 is None:
                 return None
-            
+
             u = Vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
             v = Vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z)
-            
+
             area += u.cross(v).magnitude() * 0.5
-        
+
         return area
-    
+
     def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:
         """Calculate the angle at a vertex in a face."""
         vertices = self.face_vertices(face_key)
         if vertices is None or vertex_key not in vertices:
             return None
-        
+
         vertex_index = vertices.index(vertex_key)
         n = len(vertices)
         prev_vertex = vertices[(vertex_index - 1) % n]
         next_vertex = vertices[(vertex_index + 1) % n]
-        
+
         center = self.vertex_position(vertex_key)
         prev_pos = self.vertex_position(prev_vertex)
         next_pos = self.vertex_position(next_vertex)
-        
+
         if center is None or prev_pos is None or next_pos is None:
             return None
-        
+
         u = Vector(prev_pos.x - center.x, prev_pos.y - center.y, prev_pos.z - center.z)
         v = Vector(next_pos.x - center.x, next_pos.y - center.y, next_pos.z - center.z)
-        
+
         u_len = u.magnitude()
         v_len = v.magnitude()
-        
+
         if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:
             return 0.0
-        
+
         cos_angle = u.dot(v) / (u_len * v_len)
         cos_angle = max(-1.0, min(1.0, cos_angle))
         return math.acos(cos_angle)
-    
+
     def face_normals(self) -> Dict[int, Vector]:
         """Calculate normals for all faces."""
         normals = {}
@@ -421,11 +452,11 @@ class Mesh:
             if normal is not None:
                 normals[face_key] = normal
         return normals
-    
+
     def vertex_normals(self) -> Dict[int, Vector]:
         """Calculate normals for all vertices (area-weighted)."""
         return self.vertex_normals_weighted(NormalWeighting.AREA)
-    
+
     def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:
         """Calculate normals for all vertices with specified weighting."""
         normals = {}
@@ -434,22 +465,24 @@ class Mesh:
             if normal is not None:
                 normals[vertex_key] = normal
         return normals
-    
+
     ###########################################################################################
     # Construction
     ###########################################################################################
-    
+
     @staticmethod
-    def from_polygons(polygons: List[List[Point]], precision: Optional[float] = None) -> 'Mesh':
+    def from_polygons(
+        polygons: List[List[Point]], precision: Optional[float] = None
+    ) -> "Mesh":
         """Create a mesh from a list of polygons.
-        
+
         Parameters
         ----------
         polygons : list of list of Point
             List of polygons, each polygon is a list of points.
         precision : float, optional
             Precision for vertex merging. If None, exact matching is used.
-            
+
         Returns
         -------
         Mesh
@@ -458,7 +491,7 @@ class Mesh:
         mesh = Mesh()
         map_eps = {}
         map_exact = {}
-        
+
         def get_vkey(p: Point) -> int:
             if precision is not None:
                 kx = round(p.x / precision)
@@ -477,22 +510,22 @@ class Mesh:
                 vk = mesh.add_vertex(p)
                 map_exact[key] = vk
                 return vk
-        
+
         for poly in polygons:
             if len(poly) < 3:
                 continue
             vkeys = [get_vkey(p) for p in poly]
             mesh.add_face(vkeys)
-        
+
         return mesh
-    
+
     ###########################################################################################
     # COMPAS-style Export Methods
     ###########################################################################################
-    
+
     def vertex_index(self) -> Dict[int, int]:
         """Create a mapping from sparse vertex keys to sequential indices.
-        
+
         Returns
         -------
         dict[int, int]
@@ -501,10 +534,10 @@ class Mesh:
         # Sort keys to ensure consistent ordering
         sorted_keys = sorted(self.vertex.keys())
         return {key: index for index, key in enumerate(sorted_keys)}
-    
+
     def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:
         """Export vertices and faces with sequential 0-based indices.
-        
+
         Returns
         -------
         tuple
@@ -514,11 +547,11 @@ class Mesh:
         """
         vertex_idx = self.vertex_index()
         vertices = [None] * len(self.vertex)
-        
+
         for key, vdata in self.vertex.items():
             idx = vertex_idx[key]
             vertices[idx] = vdata.position()
-        
+
         # Sort face keys to ensure consistent ordering
         sorted_face_keys = sorted(self.face.keys())
         faces = []
@@ -526,13 +559,13 @@ class Mesh:
             face_vertices = self.face[face_key]
             remapped = [vertex_idx[v] for v in face_vertices]
             faces.append(remapped)
-        
+
         return vertices, faces
-    
+
     ###########################################################################################
     # JSON
     ###########################################################################################
-    
+
     def to_json_data(self) -> dict:
         """Convert to JSON-serializable dictionary."""
         data = {
@@ -543,32 +576,36 @@ class Mesh:
             "face": {},
             "default_vertex_attributes": self.default_vertex_attributes,
             "default_face_attributes": self.default_face_attributes,
-            "default_edge_attributes": self.default_edge_attributes
+            "default_edge_attributes": self.default_edge_attributes,
+            "pointcolors": [val for c in self.pointcolors for val in (c.r, c.g, c.b)],
+            "facecolors": [val for c in self.facecolors for val in (c.r, c.g, c.b)],
+            "linecolors": [val for c in self.linecolors for val in (c.r, c.g, c.b)],
+            "widths": self.widths,
         }
-        
+
         for key, vdata in self.vertex.items():
             data["vertex"][str(key)] = {
                 "x": vdata.x,
                 "y": vdata.y,
                 "z": vdata.z,
-                "attributes": vdata.attributes
+                "attributes": vdata.attributes,
             }
-        
+
         for key, vertices in self.face.items():
             data["face"][str(key)] = vertices
-        
+
         return data
-    
+
     @staticmethod
-    def from_json_data(data: dict) -> 'Mesh':
+    def from_json_data(data: dict) -> "Mesh":
         """Create mesh from JSON data."""
         mesh = Mesh()
-        
+
         if "guid" in data:
             mesh.guid = data["guid"]
         if "name" in data:
             mesh.name = data["name"]
-        
+
         if "vertex" in data:
             for key_str, vdata in data["vertex"].items():
                 key = int(key_str)
@@ -582,29 +619,74 @@ class Mesh:
                 mesh.halfedge[key] = {}
                 if key >= mesh._max_vertex:
                     mesh._max_vertex = key + 1
-        
+
         if "face" in data:
             for key_str, vertices in data["face"].items():
                 key = int(key_str)
                 mesh.add_face(vertices, key)
-        
+
         if "default_vertex_attributes" in data:
             mesh.default_vertex_attributes = data["default_vertex_attributes"]
         if "default_face_attributes" in data:
             mesh.default_face_attributes = data["default_face_attributes"]
         if "default_edge_attributes" in data:
             mesh.default_edge_attributes = data["default_edge_attributes"]
-        
+
+        if "pointcolors" in data:
+            rgb_flat = data["pointcolors"]
+            mesh.pointcolors = [
+                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
+                for i in range(0, len(rgb_flat), 3)
+            ]
+        if "facecolors" in data:
+            rgb_flat = data["facecolors"]
+            mesh.facecolors = [
+                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
+                for i in range(0, len(rgb_flat), 3)
+            ]
+        if "linecolors" in data:
+            rgb_flat = data["linecolors"]
+            mesh.linecolors = [
+                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
+                for i in range(0, len(rgb_flat), 3)
+            ]
+        if "widths" in data:
+            mesh.widths = data["widths"]
+
         return mesh
-    
+
+    ###########################################################################################
+    # Color and Width Management
+    ###########################################################################################
+
+    def set_vertex_color(self, index: int, color: Color):
+        """Set color for a specific vertex."""
+        if 0 <= index < len(self.pointcolors):
+            self.pointcolors[index] = color
+
+    def set_face_color(self, index: int, color: Color):
+        """Set color for a specific face."""
+        if 0 <= index < len(self.facecolors):
+            self.facecolors[index] = color
+
+    def set_edge_color(self, index: int, color: Color):
+        """Set color for a specific edge."""
+        if 0 <= index < len(self.linecolors):
+            self.linecolors[index] = color
+
+    def set_edge_width(self, index: int, width: float):
+        """Set width for a specific edge."""
+        if 0 <= index < len(self.widths):
+            self.widths[index] = width
+
     def to_json(self, filepath: str):
         """Serialize to JSON file."""
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(self.to_json_data(), f, indent=2)
-    
+
     @staticmethod
-    def from_json(filepath: str) -> 'Mesh':
+    def from_json(filepath: str) -> "Mesh":
         """Deserialize from JSON file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
         return Mesh.from_json_data(data)

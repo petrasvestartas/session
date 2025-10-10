@@ -29,10 +29,10 @@ session/
 - Tolerance
 - Vector
 - Xform
-- Pipe
+- Cylinder
+- Arrow
 
 **Planned:**
-- Arrow
 - BoundingBox
 - BVH
 - Protobuf

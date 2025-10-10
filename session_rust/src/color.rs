@@ -266,3 +266,7 @@ impl PartialEq for Color {
             && self.a == other.a
     }
 }
+
+#[cfg(test)]
+#[path = "color_test.rs"]
+mod color_test;

@@ -323,3 +323,7 @@ impl Sub<Vector> for Point {
         Point::new(self._x - rhs.x(), self._y - rhs.y(), self._z - rhs.z())
     }
 }
+
+#[cfg(test)]
+#[path = "point_test.rs"]
+mod point_test;

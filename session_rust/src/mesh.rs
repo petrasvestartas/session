@@ -1,3 +1,4 @@
+use crate::color::Color;
 use crate::point::Point;
 use crate::tolerance::Tolerance;
 use crate::vector::Vector;
@@ -29,6 +30,14 @@ pub struct Mesh {
     max_face: usize,                                             // Next face key
     pub guid: String,                                            // Unique identifier
     pub name: String,                                            // Mesh name
+    #[serde(skip)]
+    pub pointcolors: Vec<Color>,               // Vertex colors
+    #[serde(skip)]
+    pub facecolors: Vec<Color>,                // Face colors
+    #[serde(skip)]
+    pub linecolors: Vec<Color>,                // Edge colors
+    #[serde(skip)]
+    pub widths: Vec<f32>,                      // Edge widths
 }
 
 /// Vertex data containing position and attributes
@@ -116,6 +125,10 @@ impl Mesh {
             max_face: 0,
             guid: uuid::Uuid::new_v4().to_string(),
             name: "my_mesh".to_string(),
+            pointcolors: Vec::new(),
+            facecolors: Vec::new(),
+            linecolors: Vec::new(),
+            widths: Vec::new(),
         }
     }
 
@@ -132,6 +145,10 @@ impl Mesh {
         self.triangulation.clear();
         self.max_vertex = 0;
         self.max_face = 0;
+        self.pointcolors.clear();
+        self.facecolors.clear();
+        self.linecolors.clear();
+        self.widths.clear();
     }
 
     pub fn number_of_vertices(&self) -> usize {
@@ -180,6 +197,7 @@ impl Mesh {
         let vertex_data = VertexData::new(position);
         self.vertex.insert(vertex_key, vertex_data);
         self.halfedge.entry(vertex_key).or_default();
+        self.pointcolors.push(Color::white());
 
         vertex_key
     }
@@ -211,6 +229,7 @@ impl Mesh {
 
         self.face.insert(face_key, vertices.clone());
         self.triangulation.remove(&face_key);
+        self.facecolors.push(Color::white());
 
         for i in 0..vertices.len() {
             let u = vertices[i];
@@ -219,10 +238,14 @@ impl Mesh {
             self.halfedge.entry(u).or_default();
             self.halfedge.entry(v).or_default();
 
+            let is_new_edge = !self.halfedge.get(&v).unwrap().contains_key(&u);
+
             self.halfedge.get_mut(&u).unwrap().insert(v, Some(face_key));
 
-            if !self.halfedge.get(&v).unwrap().contains_key(&u) {
+            if is_new_edge {
                 self.halfedge.get_mut(&v).unwrap().insert(u, None);
+                self.linecolors.push(Color::white());
+                self.widths.push(1.0);
             }
         }
 
@@ -506,11 +529,57 @@ impl Mesh {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Color and Width Management
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    pub fn set_vertex_color(&mut self, index: usize, color: Color) {
+        if index < self.pointcolors.len() {
+            self.pointcolors[index] = color;
+        }
+    }
+
+    pub fn set_face_color(&mut self, index: usize, color: Color) {
+        if index < self.facecolors.len() {
+            self.facecolors[index] = color;
+        }
+    }
+
+    pub fn set_edge_color(&mut self, index: usize, color: Color) {
+        if index < self.linecolors.len() {
+            self.linecolors[index] = color;
+        }
+    }
+
+    pub fn set_edge_width(&mut self, index: usize, width: f32) {
+        if index < self.widths.len() {
+            self.widths[index] = width;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Mesh to JSON data
     pub fn to_json_data(&self) -> serde_json::Value {
+        let pointcolors_flat: Vec<u8> = self
+            .pointcolors
+            .iter()
+            .flat_map(|c| vec![c.r, c.g, c.b])
+            .collect();
+
+        let facecolors_flat: Vec<u8> = self
+            .facecolors
+            .iter()
+            .flat_map(|c| vec![c.r, c.g, c.b])
+            .collect();
+
+        let linecolors_flat: Vec<u8> = self
+            .linecolors
+            .iter()
+            .flat_map(|c| vec![c.r, c.g, c.b])
+            .collect();
+
         serde_json::json!({
             "type": "Mesh",
             "guid": self.guid,
@@ -524,12 +593,106 @@ impl Mesh {
             "default_face_attributes": self.default_face_attributes,
             "default_edge_attributes": self.default_edge_attributes,
             "max_vertex": self.max_vertex,
-            "max_face": self.max_face
+            "max_face": self.max_face,
+            "pointcolors": pointcolors_flat,
+            "facecolors": facecolors_flat,
+            "linecolors": linecolors_flat,
+            "widths": self.widths
         })
     }
 
     pub fn from_json_data(data: &serde_json::Value) -> Option<Self> {
-        serde_json::from_value(data.clone()).ok()
+        let mut mesh = Mesh::new();
+
+        if let Some(guid) = data.get("guid").and_then(|v| v.as_str()) {
+            mesh.guid = guid.to_string();
+        }
+        if let Some(name) = data.get("name").and_then(|v| v.as_str()) {
+            mesh.name = name.to_string();
+        }
+
+        if let Some(vertex_data) = data.get("vertex") {
+            mesh.vertex = serde_json::from_value(vertex_data.clone()).ok()?;
+        }
+        if let Some(face_data) = data.get("face") {
+            mesh.face = serde_json::from_value(face_data.clone()).ok()?;
+        }
+        if let Some(halfedge_data) = data.get("halfedge") {
+            mesh.halfedge = serde_json::from_value(halfedge_data.clone()).ok()?;
+        }
+        if let Some(facedata) = data.get("facedata") {
+            mesh.facedata = serde_json::from_value(facedata.clone()).ok()?;
+        }
+        if let Some(edgedata) = data.get("edgedata") {
+            mesh.edgedata = serde_json::from_value(edgedata.clone()).ok()?;
+        }
+        if let Some(max_vertex) = data.get("max_vertex").and_then(|v| v.as_u64()) {
+            mesh.max_vertex = max_vertex as usize;
+        }
+        if let Some(max_face) = data.get("max_face").and_then(|v| v.as_u64()) {
+            mesh.max_face = max_face as usize;
+        }
+
+        // Deserialize flat color arrays
+        if let Some(pointcolors_flat) = data.get("pointcolors").and_then(|v| v.as_array()) {
+            let rgb_values: Vec<u8> = pointcolors_flat
+                .iter()
+                .filter_map(|v| v.as_u64().map(|n| n as u8))
+                .collect();
+            mesh.pointcolors = rgb_values
+                .chunks(3)
+                .map(|chunk| {
+                    if chunk.len() == 3 {
+                        Color::new(chunk[0], chunk[1], chunk[2], 255)
+                    } else {
+                        Color::white()
+                    }
+                })
+                .collect();
+        }
+
+        if let Some(facecolors_flat) = data.get("facecolors").and_then(|v| v.as_array()) {
+            let rgb_values: Vec<u8> = facecolors_flat
+                .iter()
+                .filter_map(|v| v.as_u64().map(|n| n as u8))
+                .collect();
+            mesh.facecolors = rgb_values
+                .chunks(3)
+                .map(|chunk| {
+                    if chunk.len() == 3 {
+                        Color::new(chunk[0], chunk[1], chunk[2], 255)
+                    } else {
+                        Color::white()
+                    }
+                })
+                .collect();
+        }
+
+        if let Some(linecolors_flat) = data.get("linecolors").and_then(|v| v.as_array()) {
+            let rgb_values: Vec<u8> = linecolors_flat
+                .iter()
+                .filter_map(|v| v.as_u64().map(|n| n as u8))
+                .collect();
+            mesh.linecolors = rgb_values
+                .chunks(3)
+                .map(|chunk| {
+                    if chunk.len() == 3 {
+                        Color::new(chunk[0], chunk[1], chunk[2], 255)
+                    } else {
+                        Color::white()
+                    }
+                })
+                .collect();
+        }
+
+        if let Some(widths) = data.get("widths").and_then(|v| v.as_array()) {
+            mesh.widths = widths
+                .iter()
+                .filter_map(|v| v.as_f64().map(|n| n as f32))
+                .collect();
+        }
+
+        Some(mesh)
     }
 
     pub fn to_json(&self, filename: &str) -> std::io::Result<()> {

@@ -42,6 +42,10 @@ void Mesh::clear() {
     triangulation.clear();
     max_vertex = 0;
     max_face = 0;
+    pointcolors.clear();
+    facecolors.clear();
+    linecolors.clear();
+    widths.clear();
 }
 
 size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
@@ -53,6 +57,7 @@ size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
     
     vertex[vertex_key] = VertexData(position);
     halfedge[vertex_key] = {};
+    pointcolors.push_back(Color::white());
     
     return vertex_key;
 }
@@ -81,15 +86,20 @@ std::optional<size_t> Mesh::add_face(const std::vector<size_t>& vertices, std::o
     
     face[face_key] = vertices;
     triangulation.erase(face_key);
+    facecolors.push_back(Color::white());
     
     for (size_t i = 0; i < vertices.size(); ++i) {
         size_t u = vertices[i];
         size_t v = vertices[(i + 1) % vertices.size()];
         
+        bool is_new_edge = (halfedge[v].find(u) == halfedge[v].end());
+        
         halfedge[u][v] = face_key;
         
-        if (halfedge[v].find(u) == halfedge[v].end()) {
+        if (is_new_edge) {
             halfedge[v][u] = std::nullopt;
+            linecolors.push_back(Color::white());
+            widths.push_back(1.0f);
         }
     }
     

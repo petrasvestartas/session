@@ -1,6 +1,7 @@
 #pragma once
 #include "point.h"
 #include "vector.h"
+#include "color.h"
 #include "tolerance.h"
 #include "json.h"
 #include <map>
@@ -91,6 +92,10 @@ public:
     std::map<std::string, float> default_edge_attributes;                ///< Default edge attrs
     std::string guid = ::guid();                                         ///< Unique identifier
     std::string name = "my_mesh";                                           ///< Mesh name
+    std::vector<Color> pointcolors;                                      ///< Vertex colors
+    std::vector<Color> facecolors;                                       ///< Face colors
+    std::vector<Color> linecolors;                                       ///< Edge colors
+    std::vector<float> widths;                                           ///< Edge widths
 
 private:
     size_t max_vertex = 0;                                               ///< Next vertex key

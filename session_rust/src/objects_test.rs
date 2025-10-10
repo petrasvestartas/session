@@ -45,8 +45,8 @@ mod tests {
         let objects2 = objects2_result.unwrap();
         assert_eq!(objects2.name, "my_objects");
         assert_eq!(objects2.vec.len(), 2);
-        assert_eq!(objects2.vec[0].x, 10.0);
-        assert_eq!(objects2.vec[1].z, 60.0);
+        assert_eq!(objects2.vec[0].x(), 10.0);
+        assert_eq!(objects2.vec[1].z(), 60.0);
     }
 
     #[test]
@@ -69,7 +69,7 @@ mod tests {
         let loaded_objects = loaded_result.unwrap();
         assert_eq!(loaded_objects.name, objects.name);
         assert_eq!(loaded_objects.vec.len(), objects.vec.len());
-        assert_eq!(loaded_objects.vec[0].x, objects.vec[0].x);
-        assert_eq!(loaded_objects.vec[2].z, objects.vec[2].z);
+        assert_eq!(loaded_objects.vec[0].x(), objects.vec[0].x());
+        assert_eq!(loaded_objects.vec[2].z(), objects.vec[2].z());
     }
 }

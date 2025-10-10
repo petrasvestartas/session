@@ -114,17 +114,17 @@ mod tests {
         let mut session = Session::new("my_session");
         let point = Point::new(1.0, 2.0, 3.0);
         let point_guid = point.guid.clone();
-        let expected_x = point.x;
-        let expected_y = point.y;
-        let expected_z = point.z;
+        let expected_x = point.x();
+        let expected_y = point.y();
+        let expected_z = point.z();
 
         session.add_point(point);
 
         let retrieved = session.get_object(&point_guid).unwrap();
         assert_eq!(retrieved.guid, point_guid);
-        assert_eq!(retrieved.x, expected_x);
-        assert_eq!(retrieved.y, expected_y);
-        assert_eq!(retrieved.z, expected_z);
+        assert_eq!(retrieved.x(), expected_x);
+        assert_eq!(retrieved.y(), expected_y);
+        assert_eq!(retrieved.z(), expected_z);
     }
 
     #[test]

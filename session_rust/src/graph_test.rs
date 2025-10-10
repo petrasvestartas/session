@@ -165,28 +165,31 @@ mod tests {
             "vertex_count": 3,
             "edge_count": 2,
             "vertices": [
-                {"name": "node1", "attribute": "type:start"},
-                {"name": "node2", "attribute": "type:middle"},
-                {"name": "node3", "attribute": "type:end"}
+                {"name": "node1", "guid": "guid1", "attribute": "type:start", "index": 0},
+                {"name": "node2", "guid": "guid2", "attribute": "type:middle", "index": 1},
+                {"name": "node3", "guid": "guid3", "attribute": "type:end", "index": 2}
             ],
             "edges": [
-                {"v0": "node1", "v1": "node2", "attribute": "weight:10"},
-                {"v0": "node2", "v1": "node3", "attribute": "weight:20"}
+                {"v0": "node1", "v1": "node2", "guid": "edge1", "name": "edge1", "attribute": "weight:10", "index": 0},
+                {"v0": "node2", "v1": "node3", "guid": "edge2", "name": "edge2", "attribute": "weight:20", "index": 1}
             ]
         }"#;
-        
-        let graph = Graph::from_json_data(data).unwrap();
-        
+
+        let mut graph = Graph::from_json_data(data).unwrap();
+
         assert_eq!(graph.name, "test_graph");
         assert_eq!(graph.number_of_vertices(), 3);
         assert_eq!(graph.number_of_edges(), 2);
         assert!(graph.has_node("node1"));
         assert!(graph.has_node("node2"));
         assert!(graph.has_node("node3"));
-        assert!(graph.has_edge("node1", "node2"));
-        assert!(graph.has_edge("node2", "node3"));
+        assert!(graph.has_edge(("node1", "node2")));
+        assert!(graph.has_edge(("node2", "node3")));
         assert_eq!(graph.node_attribute("node1", None).unwrap(), "type:start");
-        assert_eq!(graph.edge_attribute("node1", "node2", None).unwrap(), "weight:10");
+        assert_eq!(
+            graph.edge_attribute("node1", "node2", None).unwrap(),
+            "weight:10"
+        );
     }
 
     #[test]

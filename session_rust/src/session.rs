@@ -311,3 +311,7 @@ impl fmt::Display for Session {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "session_test.rs"]
+mod session_test;

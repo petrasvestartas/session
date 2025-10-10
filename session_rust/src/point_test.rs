@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use crate::{Color, Point};
+    use crate::{Color, Point, Vector};
 
     #[test]
     fn test_point_constructor() {
         let point = Point::new(1.0, 2.0, 3.0);
         assert_eq!(point.name, "my_point");
         assert!(!point.guid.to_string().is_empty());
-        assert_eq!(point.x, 1.0);
-        assert_eq!(point.y, 2.0);
-        assert_eq!(point.z, 3.0);
+        assert_eq!(point.x(), 1.0);
+        assert_eq!(point.y(), 2.0);
+        assert_eq!(point.z(), 3.0);
         assert_eq!(point.width, 1.0);
         assert_eq!(point.pointcolor.r, Color::white().r);
         assert_eq!(point.pointcolor.g, Color::white().g);
@@ -63,9 +63,9 @@ mod tests {
         let json_string = original_point.to_json_data().unwrap();
         let restored_point = Point::from_json_data(&json_string).unwrap();
 
-        assert_eq!(restored_point.x, 42.1);
-        assert_eq!(restored_point.y, 84.2);
-        assert_eq!(restored_point.z, 126.3);
+        assert_eq!(restored_point.x(), 42.1);
+        assert_eq!(restored_point.y(), 84.2);
+        assert_eq!(restored_point.z(), 126.3);
         assert_eq!(restored_point.name, "control_point_B");
         assert_eq!(restored_point.width, 3.0);
         assert_eq!(restored_point.pointcolor.r, 200);
@@ -86,9 +86,9 @@ mod tests {
         original.to_json(filename).unwrap();
         let loaded = Point::from_json(filename).unwrap();
 
-        assert_eq!(loaded.x, original.x);
-        assert_eq!(loaded.y, original.y);
-        assert_eq!(loaded.z, original.z);
+        assert_eq!(loaded.x(), original.x());
+        assert_eq!(loaded.y(), original.y());
+        assert_eq!(loaded.z(), original.z());
         assert_eq!(loaded.name, original.name);
         assert_eq!(loaded.width, original.width);
         assert_eq!(loaded.pointcolor.r, original.pointcolor.r);
@@ -116,45 +116,45 @@ mod tests {
         point[0] = 4.0;
         point[1] = 5.0;
         point[2] = 6.0;
-        assert_eq!(point.x, 4.0);
-        assert_eq!(point.y, 5.0);
-        assert_eq!(point.z, 6.0);
+        assert_eq!(point.x(), 4.0);
+        assert_eq!(point.y(), 5.0);
+        assert_eq!(point.z(), 6.0);
     }
 
     #[test]
     fn test_point_imul() {
         let mut point = Point::new(1.0, 2.0, 3.0);
         point *= 2.0;
-        assert_eq!(point.x, 2.0);
-        assert_eq!(point.y, 4.0);
-        assert_eq!(point.z, 6.0);
+        assert_eq!(point.x(), 2.0);
+        assert_eq!(point.y(), 4.0);
+        assert_eq!(point.z(), 6.0);
     }
 
     #[test]
     fn test_point_itruediv() {
         let mut point = Point::new(2.0, 4.0, 6.0);
         point /= 2.0;
-        assert_eq!(point.x, 1.0);
-        assert_eq!(point.y, 2.0);
-        assert_eq!(point.z, 3.0);
+        assert_eq!(point.x(), 1.0);
+        assert_eq!(point.y(), 2.0);
+        assert_eq!(point.z(), 3.0);
     }
 
     #[test]
     fn test_point_iadd() {
         let mut point = Point::new(1.0, 2.0, 3.0);
-        point += Point::new(4.0, 5.0, 6.0);
-        assert_eq!(point.x, 5.0);
-        assert_eq!(point.y, 7.0);
-        assert_eq!(point.z, 9.0);
+        point += Vector::new(4.0, 5.0, 6.0);
+        assert_eq!(point.x(), 5.0);
+        assert_eq!(point.y(), 7.0);
+        assert_eq!(point.z(), 9.0);
     }
 
     #[test]
     fn test_point_isub() {
         let mut point = Point::new(5.0, 7.0, 9.0);
-        point -= Point::new(4.0, 5.0, 6.0);
-        assert_eq!(point.x, 1.0);
-        assert_eq!(point.y, 2.0);
-        assert_eq!(point.z, 3.0);
+        point -= Vector::new(4.0, 5.0, 6.0);
+        assert_eq!(point.x(), 1.0);
+        assert_eq!(point.y(), 2.0);
+        assert_eq!(point.z(), 3.0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -165,36 +165,36 @@ mod tests {
     fn test_point_mul() {
         let point = Point::new(1.0, 2.0, 3.0);
         let result = point * 2.0;
-        assert_eq!(result.x, 2.0);
-        assert_eq!(result.y, 4.0);
-        assert_eq!(result.z, 6.0);
+        assert_eq!(result.x(), 2.0);
+        assert_eq!(result.y(), 4.0);
+        assert_eq!(result.z(), 6.0);
     }
 
     #[test]
     fn test_point_truediv() {
         let point = Point::new(2.0, 4.0, 6.0);
         let result = point / 2.0;
-        assert_eq!(result.x, 1.0);
-        assert_eq!(result.y, 2.0);
-        assert_eq!(result.z, 3.0);
+        assert_eq!(result.x(), 1.0);
+        assert_eq!(result.y(), 2.0);
+        assert_eq!(result.z(), 3.0);
     }
 
     #[test]
     fn test_point_add() {
         let point = Point::new(1.0, 2.0, 3.0);
-        let result = point + Point::new(4.0, 5.0, 6.0);
-        assert_eq!(result.x, 5.0);
-        assert_eq!(result.y, 7.0);
-        assert_eq!(result.z, 9.0);
+        let result = point + Vector::new(4.0, 5.0, 6.0);
+        assert_eq!(result.x(), 5.0);
+        assert_eq!(result.y(), 7.0);
+        assert_eq!(result.z(), 9.0);
     }
 
     #[test]
     fn test_point_sub() {
         let point = Point::new(5.0, 7.0, 9.0);
         let result = point - Point::new(4.0, 5.0, 6.0);
-        assert_eq!(result.x, 1.0);
-        assert_eq!(result.y, 2.0);
-        assert_eq!(result.z, 3.0);
+        assert_eq!(result.x(), 1.0);
+        assert_eq!(result.y(), 2.0);
+        assert_eq!(result.z(), 3.0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -215,9 +215,9 @@ mod tests {
         let p1 = Point::new(0.0, 0.0, 0.0);
         let p2 = Point::new(1.0, 0.0, 0.0);
         let mid = p1.mid_point(&p2);
-        assert_eq!((mid.x * 1000000.0).round() / 1000000.0, 0.5);
-        assert_eq!((mid.y * 1000000.0).round() / 1000000.0, 0.0);
-        assert_eq!((mid.z * 1000000.0).round() / 1000000.0, 0.0);
+        assert_eq!((mid.x() * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((mid.y() * 1000000.0).round() / 1000000.0, 0.0);
+        assert_eq!((mid.z() * 1000000.0).round() / 1000000.0, 0.0);
     }
 
     #[test]
@@ -246,8 +246,8 @@ mod tests {
             Point::new(0.0, 1.0, 0.0),
         ];
         let centroid = Point::centroid_quad(&vertices).unwrap();
-        assert_eq!((centroid.x * 1000000.0).round() / 1000000.0, 0.5);
-        assert_eq!((centroid.y * 1000000.0).round() / 1000000.0, 0.5);
-        assert_eq!((centroid.z * 1000000.0).round() / 1000000.0, 0.0);
+        assert_eq!((centroid.x() * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((centroid.y() * 1000000.0).round() / 1000000.0, 0.5);
+        assert_eq!((centroid.z() * 1000000.0).round() / 1000000.0, 0.0);
     }
 }
