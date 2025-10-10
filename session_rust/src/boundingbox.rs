@@ -252,6 +252,7 @@ impl BoundingBox {
 
     pub fn to_json_data(&self) -> Result<String, std::boxed::Box<dyn std::error::Error>> {
         let data = serde_json::json!({
+            "type": "BoundingBox",
             "center": serde_json::from_str::<serde_json::Value>(&self.center.to_json_data()?)?,
             "x_axis": serde_json::from_str::<serde_json::Value>(&self.x_axis.to_json_data()?)?,
             "y_axis": serde_json::from_str::<serde_json::Value>(&self.y_axis.to_json_data()?)?,

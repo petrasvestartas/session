@@ -138,14 +138,15 @@ mod tests {
         );
 
         let data = b.to_json_data().unwrap();
-
-        assert!(data.contains("center"));
-        assert!(data.contains("x_axis"));
-        assert!(data.contains("y_axis"));
-        assert!(data.contains("z_axis"));
-        assert!(data.contains("half_size"));
-        assert!(data.contains("guid"));
-        assert!(data.contains("name"));
+        assert!(data.contains("\"type\""));
+        assert!(data.contains("\"BoundingBox\""));
+        assert!(data.contains("\"center\""));
+        assert!(data.contains("\"x_axis\""));
+        assert!(data.contains("\"y_axis\""));
+        assert!(data.contains("\"z_axis\""));
+        assert!(data.contains("\"half_size\""));
+        assert!(data.contains("\"guid\""));
+        assert!(data.contains("\"name\""));
     }
 
     #[test]

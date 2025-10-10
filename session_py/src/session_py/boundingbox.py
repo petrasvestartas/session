@@ -197,6 +197,7 @@ class BoundingBox:
 
     def to_json_data(self) -> dict:
         return {
+            "type": "BoundingBox",
             "center": self.center.to_json_data(),
             "x_axis": self.x_axis.to_json_data(),
             "y_axis": self.y_axis.to_json_data(),

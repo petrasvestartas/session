@@ -189,6 +189,7 @@ bool BoundingBox::collides_with(const BoundingBox& other) const {
 
 nlohmann::ordered_json BoundingBox::to_json_data() const {
     return {
+        {"type", "BoundingBox"},
         {"center", center.to_json_data()},
         {"x_axis", x_axis.to_json_data()},
         {"y_axis", y_axis.to_json_data()},

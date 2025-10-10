@@ -1,12 +1,12 @@
 {
-  "guid": "105670d7-aae1-45f1-ab84-18996132faf6",
+  "guid": "f6d05ed8-7ad3-44e1-8def-c6e346981b68",
   "line": {
-    "guid": "7757817d-1a4b-4478-b77c-83cc8f90fae2",
+    "guid": "f8f36de5-c6f7-4d61-8bd3-e523097f4555",
     "linecolor": {
       "a": 255,
       "b": 255,
       "g": 255,
-      "guid": "f22aee63-bf9c-4133-8287-2b50366e0f70",
+      "guid": "b55e23e5-d5ec-49c2-ab03-d900b211e70f",
       "name": "white",
       "r": 255,
       "type": "Color"
@@ -259,7 +259,7 @@
       255
     ],
     "facedata": {},
-    "guid": "1b87e366-910e-4740-a836-5adb49071b6e",
+    "guid": "0ea629df-c891-49b3-986d-bb771f8ff376",
     "halfedge": {
       "1": {
         "19": null,
