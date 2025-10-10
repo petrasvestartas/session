@@ -6,6 +6,7 @@
 #![allow(static_mut_refs)]
 
 pub mod arrow;
+pub mod boundingbox;
 pub mod color;
 pub mod cylinder;
 pub mod graph;
@@ -24,6 +25,7 @@ pub mod vector;
 pub mod xform;
 
 pub use arrow::Arrow;
+pub use boundingbox::BoundingBox;
 pub use color::Color;
 pub use cylinder::Cylinder;
 pub use graph::Graph;

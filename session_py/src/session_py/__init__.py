@@ -17,6 +17,7 @@ from .session import Session
 from .mesh import Mesh, NormalWeighting
 from .cylinder import Cylinder
 from .arrow import Arrow
+from .boundingbox import BoundingBox
 
 __all__ = [
     "Color",
@@ -36,4 +37,5 @@ __all__ = [
     "NormalWeighting",
     "Cylinder",
     "Arrow",
+    "BoundingBox",
 ]

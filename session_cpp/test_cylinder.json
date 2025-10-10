@@ -1,11 +1,11 @@
 {
     "type": "Cylinder",
-    "guid": "de0425cd-4413-45f7-a231-23dd88d5d897",
+    "guid": "7311a58d-bf05-405f-8203-8878687e636b",
     "name": "my_cylinder",
     "radius": 1.0,
     "line": {
         "type": "Line",
-        "guid": "27f86d09-6e01-4c8b-9b42-a339f7baf090",
+        "guid": "fe8e79ca-bbb3-48ed-8e6c-c668fe91c121",
         "name": "my_line",
         "x0": 0.0,
         "y0": 0.0,
@@ -16,7 +16,7 @@
         "width": 1.0,
         "linecolor": {
             "type": "Color",
-            "guid": "52781727-d2ec-496e-a127-e1db1efdd22a",
+            "guid": "4ae5c98c-936b-4cf1-b647-8ba3761f7e70",
             "name": "white",
             "r": 255,
             "g": 255,
@@ -26,7 +26,7 @@
     },
     "mesh": {
         "type": "Mesh",
-        "guid": "5738e719-2dd8-465c-829c-5d6b1667723e",
+        "guid": "e4dde89b-7680-4876-b810-8c02beebdde4",
         "name": "my_mesh",
         "vertex": {
             "1": {

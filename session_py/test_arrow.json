@@ -1,11 +1,11 @@
 {
     "type": "Arrow",
-    "guid": "3e57af9b-db19-4adf-be5f-5b6623190613",
+    "guid": "4323bc62-d3f3-4c54-ab21-d4d7b549b5ef",
     "name": "my_arrow",
     "radius": 0.5,
     "line": {
         "type": "Line",
-        "guid": "be682608-428b-48aa-8be7-b4130b3e5f14",
+        "guid": "c35dabc5-d0fd-4eab-9eb4-e30bd719c0a2",
         "name": "my_line",
         "x0": 1.0,
         "y0": 2.0,
@@ -16,7 +16,7 @@
         "width": 1.0,
         "linecolor": {
             "type": "Color",
-            "guid": "558eb4ee-0355-4d94-a9b5-43950b8d75e5",
+            "guid": "0a08d536-1f3b-4a88-9731-e30be29d8b29",
             "name": "white",
             "r": 255,
             "g": 255,
@@ -26,7 +26,7 @@
     },
     "mesh": {
         "type": "Mesh",
-        "guid": "f9ad6a8e-b791-4d80-957c-495d7a328194",
+        "guid": "5a3abcb8-4bd1-44ea-9dcc-3dcd63778c6a",
         "name": "my_mesh",
         "vertex": {
             "1": {

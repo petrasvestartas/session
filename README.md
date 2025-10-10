@@ -31,10 +31,11 @@ session/
 - Xform
 - Cylinder
 - Arrow
+- BoundingBox
 
 **Planned:**
-- BoundingBox
 - BVH
+- Intesections
 - Protobuf
 - Beam, Plate elements
 - Curve

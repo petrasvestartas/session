@@ -1,0 +1,58 @@
+#pragma once
+
+#include "point.h"
+#include "vector.h"
+#include "plane.h"
+#include "guid.h"
+#include "json.h"
+#include <string>
+#include <array>
+#include <vector>
+#include <limits>
+
+namespace session_cpp {
+
+class Line;
+class Polyline;
+class Mesh;
+class PointCloud;
+
+class BoundingBox {
+public:
+    Point center;
+    Vector x_axis;
+    Vector y_axis;
+    Vector z_axis;
+    Vector half_size;
+    std::string guid;
+    std::string name;
+
+    BoundingBox();
+    BoundingBox(const Point& center, const Vector& x_axis, const Vector& y_axis, const Vector& z_axis, const Vector& half_size);
+    BoundingBox(const Plane&plane, float dx, float dy, float dz);
+    
+    static BoundingBox from_point(const Point& point, float inflate = 0.0f);
+    static BoundingBox from_points(const std::vector<Point>& points, float inflate = 0.0f);
+    static BoundingBox from_line(const Line& line, float inflate = 0.0f);
+    static BoundingBox from_polyline(const Polyline& polyline, float inflate = 0.0f);
+    static BoundingBox from_mesh(const Mesh& mesh, float inflate = 0.0f);
+    static BoundingBox from_pointcloud(const PointCloud& pointcloud, float inflate = 0.0f);
+    
+    std::array<Point, 8> corners() const;
+    std::array<Point, 10> two_rectangles() const;
+    Point point_at(float x, float y, float z) const;
+    void inflate(float amount);
+    
+    bool collides_with(const BoundingBox& other) const;
+    
+    nlohmann::ordered_json to_json_data() const;
+    static BoundingBox from_json_data(const nlohmann::json& data);
+    
+    void to_json_file(const std::string& filepath) const;
+    static BoundingBox from_json_file(const std::string& filepath);
+
+private:
+    static bool separating_plane_exists(const Vector& relative_position, const Vector& axis, const BoundingBox& box1, const BoundingBox& box2);
+};
+
+}
