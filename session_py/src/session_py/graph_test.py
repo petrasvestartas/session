@@ -1,4 +1,5 @@
-from .graph import Graph, Vertex
+from .graph import Graph
+from .vertex import Vertex
 
 
 def test_graph_constructor():
@@ -109,51 +110,21 @@ def test_graph_edge_attribute():
     assert graph.edge_attribute("node1", "node2") == "new_data"
 
 
-def test_graph_to_json_from_json():
+def test_graph_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
     graph = Graph("my_graph")
     graph.add_node("A", "vertex_A")
     graph.add_node("B", "vertex_B")
     graph.add_node("C", "vertex_C")
-    graph.add_node("D", "vertex_D")
     graph.add_edge("A", "B", "edge_AB")
     graph.add_edge("B", "C", "edge_BC")
-    graph.add_edge("C", "D", "edge_CD")
-    filename = "test_graph.json"
 
-    graph.to_json(filename)
-    loaded_graph = Graph.from_json(filename)
+    path = Path(__file__).resolve().parents[2] / "test_graph.json"
+    json_dump(graph, path)
+    loaded = json_load(path)
 
-    assert loaded_graph.name == graph.name
-    assert loaded_graph.number_of_vertices() == graph.number_of_vertices()
-    assert loaded_graph.number_of_edges() == graph.number_of_edges()
-
-
-def test_graph_from_json_data():
-    data = {
-        "type": "Graph",
-        "name": "test_graph",
-        "guid": "test-guid-123",
-        "vertex_count": 3,
-        "edge_count": 2,
-        "vertices": [
-            {"name": "node1", "attribute": "type:start"},
-            {"name": "node2", "attribute": "type:middle"},
-            {"name": "node3", "attribute": "type:end"},
-        ],
-        "edges": [
-            {"v0": "node1", "v1": "node2", "attribute": "weight:10"},
-            {"v0": "node2", "v1": "node3", "attribute": "weight:20"},
-        ],
-    }
-    graph = Graph.from_json_data(data)
-
-    assert graph.name == "test_graph"
-    assert graph.number_of_vertices() == 3
-    assert graph.number_of_edges() == 2
-    assert graph.has_node("node1")
-    assert graph.has_node("node2")
-    assert graph.has_node("node3")
-    assert graph.has_edge(("node1", "node2"))
-    assert graph.has_edge(("node2", "node3"))
-    assert graph.node_attribute("node1") == "type:start"
-    assert graph.edge_attribute("node1", "node2") == "weight:10"
+    assert loaded.name == graph.name
+    assert loaded.number_of_vertices() == graph.number_of_vertices()
+    assert loaded.number_of_edges() == graph.number_of_edges()

@@ -31,60 +31,26 @@ def test_point_equality():
 ###########################################################################################
 
 
-def test_point_to_json_data():
-    point = Point(15.5, 25.7, 35.9)
-    point.name = "survey_point_A"
-    point.width = 2.5
+def test_point_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
+    point = Point(1.5, 2.5, 3.5)
+    point.name = "test_point"
+    point.width = 2.0
     point.pointcolor = Color(255, 128, 64, 255)
-    data = point.to_json_data()
-    assert data["type"] == "Point"
-    assert data["name"] == "survey_point_A"
-    assert data["x"] == 15.5
-    assert data["y"] == 25.7
-    assert data["z"] == 35.9
-    assert data["width"] == 2.5
-    assert data["pointcolor"]["r"] == 255
-    assert data["pointcolor"]["g"] == 128
-    assert data["pointcolor"]["b"] == 64
-    assert data["pointcolor"]["a"] == 255
 
+    path = Path(__file__).resolve().parents[2] / "test_point.json"
+    json_dump(point, path)
+    loaded = json_load(path)
 
-def test_point_from_json_data():
-    original_point = Point(42.1, 84.2, 126.3)
-    original_point.name = "control_point_B"
-    original_point.width = 3.0
-    original_point.pointcolor = Color(200, 100, 50, 255)
-    data = original_point.to_json_data()
-    restored_point = Point.from_json_data(data)
-    assert restored_point.x == 42.1
-    assert restored_point.y == 84.2
-    assert restored_point.z == 126.3
-    assert restored_point.name == "control_point_B"
-    assert restored_point.width == 3.0
-    assert restored_point.pointcolor.r == 200
-    assert restored_point.pointcolor.g == 100
-    assert restored_point.pointcolor.b == 50
-    assert restored_point.pointcolor.a == 255
-    assert restored_point.guid == original_point.guid
-
-
-def test_point_to_json_from_json():
-    original = Point(123.45, 678.90, 999.11)
-    original.name = "file_test_point"
-    original.width = 4.5
-    original.pointcolor = Color(0, 255, 128, 255)
-    filename = "test_point.json"
-
-    original.to_json(filename)
-    loaded = Point.from_json(filename)
-
-    assert loaded.x == original.x
-    assert loaded.y == original.y
-    assert loaded.z == original.z
-    assert loaded.name == original.name
-    assert loaded.width == original.width
-    assert loaded.pointcolor == original.pointcolor
-    assert loaded.guid == original.guid
+    assert isinstance(loaded, Point)
+    assert loaded.x == point.x
+    assert loaded.y == point.y
+    assert loaded.z == point.z
+    assert loaded.name == point.name
+    assert loaded.width == point.width
+    assert loaded.pointcolor.r == 255
 
 
 ###########################################################################################

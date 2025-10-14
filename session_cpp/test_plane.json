@@ -1,51 +1,51 @@
 {
-    "type": "Plane",
-    "guid": "351598cb-5b5d-4b94-b16f-be5cc5b3accf",
-    "name": "xy_plane",
-    "origin": {
-        "type": "Point",
-        "guid": "f5dfd85b-9be5-4158-97a2-1920c25a6317",
-        "name": "my_point",
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "width": 1.0,
-        "pointcolor": {
-            "type": "Color",
-            "guid": "f6353dc0-1e07-4ec7-a282-8030ee384592",
-            "name": "white",
-            "r": 255,
-            "g": 255,
-            "b": 255,
-            "a": 255
-        }
-    },
-    "x_axis": {
-        "type": "Vector",
-        "guid": "d2acb19e-d7e7-49a8-b633-4968eb23a1a3",
-        "name": "my_vector",
-        "x": 1.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "y_axis": {
-        "type": "Vector",
-        "guid": "70a5374a-d9df-48e4-bba9-867d08f5c5a5",
-        "name": "my_vector",
-        "x": 0.0,
-        "y": 1.0,
-        "z": 0.0
-    },
-    "z_axis": {
-        "type": "Vector",
-        "guid": "ea42cd23-e82a-4db8-843f-77d04f0d5644",
-        "name": "my_vector",
-        "x": 0.0,
-        "y": 0.0,
-        "z": 1.0
-    },
-    "a": 0.0,
-    "b": 0.0,
-    "c": 1.0,
-    "d": 0.0
+  "type": "Plane",
+  "guid": "8befa672-157d-40c6-9595-0371e21aecf5",
+  "name": "test_plane",
+  "origin": {
+    "type": "Point",
+    "guid": "99cded19-cfa6-4ec3-97ea-ddd398616dc7",
+    "name": "my_point",
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0,
+    "width": 1.0,
+    "pointcolor": {
+      "type": "Color",
+      "guid": "e0c40405-550e-4973-87af-f3b0cbb78f62",
+      "name": "white",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    }
+  },
+  "x_axis": {
+    "type": "Vector",
+    "guid": "326b69dd-989e-4bc4-8067-0ddddd3d0f54",
+    "name": "my_vector",
+    "x": 1.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "y_axis": {
+    "type": "Vector",
+    "guid": "d5926d01-5bc7-40e9-9a3f-6c0dbe1f209d",
+    "name": "my_vector",
+    "x": 0.0,
+    "y": 1.0,
+    "z": 0.0
+  },
+  "z_axis": {
+    "type": "Vector",
+    "guid": "eb21855f-5dbb-4530-8563-628286aab510",
+    "name": "my_vector",
+    "x": 0.0,
+    "y": 0.0,
+    "z": 1.0
+  },
+  "a": 0.0,
+  "b": 0.0,
+  "c": 1.0,
+  "d": 0.0
 }

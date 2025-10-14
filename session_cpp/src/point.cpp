@@ -22,38 +22,28 @@ bool Point::operator!=(const Point &other) const { return !(*this == other); }
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /// Convert to JSON-serializable object
-nlohmann::ordered_json Point::to_json_data() const {
+nlohmann::ordered_json Point::jsondump() const {
   auto clean_float = [](float val) -> double { return static_cast<double>(std::round(val * 100.0f) / 100.0f); };
   return nlohmann::ordered_json{
       {"type", "Point"}, {"guid", guid},
       {"name", name},    {"x", clean_float(_x)},
       {"y", clean_float(_y)}, {"z", clean_float(_z)},
-      {"width", width},  {"pointcolor", pointcolor.to_json_data()}};
+      {"width", width},  {"pointcolor", pointcolor.jsondump()}};
 }
 
 /// Create point from JSON data
-Point Point::from_json_data(const nlohmann::json &data) {
+Point Point::jsonload(const nlohmann::json &data) {
   Point point(data["x"], data["y"], data["z"]);
   point.guid = data["guid"];
   point.name = data["name"];
-  point.pointcolor = Color::from_json_data(data["pointcolor"]);
+  point.pointcolor = Color::jsonload(data["pointcolor"]);
   point.width = data["width"];
   return point;
 }
 
 /// Serialize to JSON file
-void Point::to_json(const std::string &filepath) const {
-  std::ofstream file(filepath);
-  file << to_json_data().dump(4);
-}
 
 /// Deserialize from JSON file
-Point Point::from_json(const std::string &filepath) {
-  std::ifstream file(filepath);
-  nlohmann::json data;
-  file >> data;
-  return from_json_data(data);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // No-copy Operators
@@ -188,7 +178,6 @@ float Point::area(const std::vector<Point>& points) {
         area += points[i][0] * points[j][1];
         area -= points[j][0] * points[i][1];
     }
-    
     return std::abs(area) / 2.0f;
 }
 

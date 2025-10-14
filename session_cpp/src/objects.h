@@ -1,9 +1,18 @@
 #pragma once
 #include "guid.h"  // For ::guid()
 #include "json.h"  // For nlohmann::ordered_json
-#include "point.h" // For Point
-#include <fstream> // For std::ifstream and std::ofstream
-#include <memory>  // For std::shared_ptr
+#include "point.h"
+#include "vector.h"
+#include "line.h"
+#include "plane.h"
+#include "boundingbox.h"
+#include "polyline.h"
+#include "pointcloud.h"
+#include "mesh.h"
+#include "cylinder.h"
+#include "arrow.h"
+#include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -16,20 +25,33 @@ class Objects {
 public:
   std::string name = "my_objects"; ///< The name of the objects
   std::string guid = ::guid();     ///< The unique identifier of the objects
-  std::shared_ptr<std::vector<std::shared_ptr<Point>>>
-      points; ///< Shared pointer to the list of point shared_ptrs
+  
+  // Collections for all geometry types
+  std::shared_ptr<std::vector<std::shared_ptr<Point>>> points;
+  std::shared_ptr<std::vector<std::shared_ptr<Line>>> lines;
+  std::shared_ptr<std::vector<std::shared_ptr<Plane>>> planes;
+  std::shared_ptr<std::vector<std::shared_ptr<BoundingBox>>> bboxes;
+  std::shared_ptr<std::vector<std::shared_ptr<Polyline>>> polylines;
+  std::shared_ptr<std::vector<std::shared_ptr<PointCloud>>> pointclouds;
+  std::shared_ptr<std::vector<std::shared_ptr<Mesh>>> meshes;
+  std::shared_ptr<std::vector<std::shared_ptr<Cylinder>>> cylinders;
+  std::shared_ptr<std::vector<std::shared_ptr<Arrow>>> arrows;
 
   /**
    * @brief Constructor.
    * @param name The name of the collection.
-   * @param points Shared pointer to the list of points in the collection.
    */
-  Objects(std::string name = "my_objects",
-          std::shared_ptr<std::vector<std::shared_ptr<Point>>> points = nullptr)
-      : name(std::move(name)) {
-    this->points =
-        points ? std::move(points)
-               : std::make_shared<std::vector<std::shared_ptr<Point>>>();
+  Objects(std::string name = "my_objects") : name(std::move(name)) {
+    // Initialize all geometry collections
+    this->points = std::make_shared<std::vector<std::shared_ptr<Point>>>();
+    this->lines = std::make_shared<std::vector<std::shared_ptr<Line>>>();
+    this->planes = std::make_shared<std::vector<std::shared_ptr<Plane>>>();
+    this->bboxes = std::make_shared<std::vector<std::shared_ptr<BoundingBox>>>();
+    this->polylines = std::make_shared<std::vector<std::shared_ptr<Polyline>>>();
+    this->pointclouds = std::make_shared<std::vector<std::shared_ptr<PointCloud>>>();
+    this->meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();
+    this->cylinders = std::make_shared<std::vector<std::shared_ptr<Cylinder>>>();
+    this->arrows = std::make_shared<std::vector<std::shared_ptr<Arrow>>>();
   }
 
   /// Convert point to string representation
@@ -39,27 +61,25 @@ public:
    * @brief Serializes the Objects instance to JSON.
    * @return JSON representation of the Objects instance.
    */
-  nlohmann::ordered_json to_json_data() const;
+  nlohmann::ordered_json jsondump() const;
 
   /**
    * @brief Creates an Objects instance from JSON data.
    * @param data JSON data containing objects information.
    * @return Objects instance created from the data.
    */
-  static Objects from_json_data(const nlohmann::json &data);
+  static Objects jsonload(const nlohmann::json &data);
 
   /**
    * @brief Saves the Objects instance to a JSON file.
    * @param filepath Path where to save the JSON file.
    */
-  void to_json(const std::string &filepath) const;
 
   /**
    * @brief Loads an Objects instance from a JSON file.
    * @param filepath Path to the JSON file to load.
    * @return Objects instance loaded from the file.
    */
-  static Objects from_json(const std::string &filepath);
 };
 /**
  * @brief  To use this operator, you can do:

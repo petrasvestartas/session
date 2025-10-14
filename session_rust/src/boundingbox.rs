@@ -1,10 +1,9 @@
-use crate::plane::Plane;
-use crate::point::Point;
-use crate::vector::Vector;
+use crate::{Plane, Point, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename = "BoundingBox")]
 pub struct BoundingBox {
     pub center: Point,
     pub x_axis: Vector,
@@ -13,6 +12,8 @@ pub struct BoundingBox {
     pub half_size: Vector,
     pub guid: String,
     pub name: String,
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,
 }
 
 impl BoundingBox {
@@ -31,6 +32,7 @@ impl BoundingBox {
             half_size,
             guid: Uuid::new_v4().to_string(),
             name: "my_boundingbox".to_string(),
+            xform: Xform::identity(),
         }
     }
 
@@ -43,6 +45,7 @@ impl BoundingBox {
             half_size: Vector::new(dx * 0.5, dy * 0.5, dz * 0.5),
             guid: Uuid::new_v4().to_string(),
             name: String::new(),
+            xform: Xform::identity(),
         }
     }
 
@@ -54,6 +57,7 @@ impl BoundingBox {
             z_axis: Vector::new(0.0, 0.0, 1.0),
             half_size: Vector::new(inflate, inflate, inflate),
             guid: Uuid::new_v4().to_string(),
+            xform: Xform::identity(),
             name: String::new(),
         }
     }
@@ -98,6 +102,7 @@ impl BoundingBox {
             half_size,
             guid: Uuid::new_v4().to_string(),
             name: String::new(),
+            xform: Xform::identity(),
         }
     }
 
@@ -250,28 +255,28 @@ impl BoundingBox {
             ))
     }
 
-    pub fn to_json_data(&self) -> Result<String, std::boxed::Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, std::boxed::Box<dyn std::error::Error>> {
         let data = serde_json::json!({
             "type": "BoundingBox",
-            "center": serde_json::from_str::<serde_json::Value>(&self.center.to_json_data()?)?,
-            "x_axis": serde_json::from_str::<serde_json::Value>(&self.x_axis.to_json_data()?)?,
-            "y_axis": serde_json::from_str::<serde_json::Value>(&self.y_axis.to_json_data()?)?,
-            "z_axis": serde_json::from_str::<serde_json::Value>(&self.z_axis.to_json_data()?)?,
-            "half_size": serde_json::from_str::<serde_json::Value>(&self.half_size.to_json_data()?)?,
+            "center": serde_json::from_str::<serde_json::Value>(&self.center.jsondump()?)?,
+            "x_axis": serde_json::from_str::<serde_json::Value>(&self.x_axis.jsondump()?)?,
+            "y_axis": serde_json::from_str::<serde_json::Value>(&self.y_axis.jsondump()?)?,
+            "z_axis": serde_json::from_str::<serde_json::Value>(&self.z_axis.jsondump()?)?,
+            "half_size": serde_json::from_str::<serde_json::Value>(&self.half_size.jsondump()?)?,
             "guid": self.guid,
             "name": self.name,
         });
         Ok(serde_json::to_string(&data)?)
     }
 
-    pub fn from_json_data(json_data: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>> {
         let data: serde_json::Value = serde_json::from_str(json_data)?;
         let mut bbox = BoundingBox::new(
-            Point::from_json_data(&data["center"].to_string())?,
-            Vector::from_json_data(&data["x_axis"].to_string())?,
-            Vector::from_json_data(&data["y_axis"].to_string())?,
-            Vector::from_json_data(&data["z_axis"].to_string())?,
-            Vector::from_json_data(&data["half_size"].to_string())?,
+            Point::jsonload(&data["center"].to_string())?,
+            Vector::jsonload(&data["x_axis"].to_string())?,
+            Vector::jsonload(&data["y_axis"].to_string())?,
+            Vector::jsonload(&data["z_axis"].to_string())?,
+            Vector::jsonload(&data["half_size"].to_string())?,
         );
         bbox.guid = data["guid"].as_str().unwrap().to_string();
         bbox.name = data["name"].as_str().unwrap().to_string();
@@ -279,7 +284,7 @@ impl BoundingBox {
     }
 
     pub fn to_json(&self, filepath: &str) -> Result<(), std::boxed::Box<dyn std::error::Error>> {
-        let json_string = self.to_json_data()?;
+        let json_string = self.jsondump()?;
         let value: serde_json::Value = serde_json::from_str(&json_string)?;
         let pretty = serde_json::to_string_pretty(&value)?;
         std::fs::write(filepath, pretty)?;
@@ -288,7 +293,7 @@ impl BoundingBox {
 
     pub fn from_json(filepath: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>> {
         let json_string = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json_string)
+        Self::jsonload(&json_string)
     }
 }
 
@@ -302,6 +307,7 @@ impl Default for BoundingBox {
             half_size: Vector::new(0.5, 0.5, 0.5),
             guid: Uuid::new_v4().to_string(),
             name: String::new(),
+            xform: Xform::identity(),
         }
     }
 }

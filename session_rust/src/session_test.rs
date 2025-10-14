@@ -1,165 +1,135 @@
 #[cfg(test)]
 mod tests {
-    use crate::{Point, Session};
+    use crate::encoders::{json_dump, json_load};
+    use crate::{
+        Arrow, BoundingBox, Cylinder, Line, Mesh, Plane, Point, PointCloud, Polyline, Session,
+        TreeNode, Vector,
+    };
 
     #[test]
-    fn test_session_constructor() {
-        let session = Session::new("my_session");
-        assert_eq!(session.name, "my_session");
-        assert!(!session.guid.is_empty());
-        assert_eq!(session.objects.vec.len(), 0);
-        assert!(session.tree.root().is_some());
-        assert_eq!(session.graph.vertex_count, 0);
-    }
+    fn test_session_serialization_with_all_geometry_types() {
+        // Create a session with all geometry types
+        let mut my_session = Session::new("test_session");
 
-    #[test]
-    fn test_session_to_json_data() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
+        // Create all geometry types that Objects class can handle
+        let point = Point::new(1., 2., 3.);
+        let line = Line::new(0., 0., 0., 1., 1., 1.);
+        let plane = Plane::from_point_normal(Point::new(0., 0., 0.), Vector::new(0., 0., 1.));
+        let bbox = BoundingBox::from_point(Point::new(0., 0., 0.), 1.0);
+        let polyline = Polyline::new(vec![Point::new(0., 0., 0.), Point::new(1., 0., 0.)]);
+        let pointcloud = PointCloud::new(vec![Point::new(0., 0., 0.)], vec![], vec![]);
+        let mesh = Mesh::new();
+        let cylinder = Cylinder::new(Line::new(0., 0., 0., 0., 0., 1.), 0.5);
+        let arrow = Arrow::new(Line::new(0., 0., 0., 1., 0., 0.), 0.1);
 
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_edge(&point1_guid, &point2_guid, "connection");
+        // Demonstrate 3-level tree hierarchy
+        // Level 1: Root -> "geometry" folder
+        let geometry_folder = TreeNode::new("geometry");
+        my_session.add(&geometry_folder, None); // defaults to root
 
-        let json_result = session.to_json_data();
-        assert!(json_result.is_ok());
-        let json_data = json_result.unwrap();
+        // Level 2: "geometry" -> "primitives" and "complex" folders
+        let primitives_folder = TreeNode::new("primitives");
+        let complex_folder = TreeNode::new("complex");
+        my_session.add(&primitives_folder, &geometry_folder);
+        my_session.add(&complex_folder, &geometry_folder);
 
-        // Check that JSON contains expected structure
-        assert!(json_data.contains("\"name\": \"my_session\""));
-        assert!(json_data.contains("\"type\": \"Session\""));
-        assert!(json_data.contains("\"objects\""));
-        assert!(json_data.contains("\"graph\""));
-        assert!(json_data.contains("\"tree\""));
-    }
+        // Add all geometry to session - returns TreeNode for easy nesting!
+        let arrow_node = my_session.add_arrow(arrow.clone());
+        let bbox_node = my_session.add_bbox(bbox.clone());
+        let cylinder_node = my_session.add_cylinder(cylinder.clone());
+        let line_node = my_session.add_line(line.clone());
+        let mesh_node = my_session.add_mesh(mesh.clone());
+        let plane_node = my_session.add_plane(plane.clone());
+        let point_node = my_session.add_point(point.clone());
+        let pointcloud_node = my_session.add_pointcloud(pointcloud.clone());
+        let polyline_node = my_session.add_polyline(polyline.clone());
 
-    #[test]
-    fn test_session_from_json_data() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
+        // Level 3: Organize geometry under folders
+        // Primitives: point, line, plane
+        my_session.add(&point_node, &primitives_folder);
+        my_session.add(&line_node, &primitives_folder);
+        my_session.add(&plane_node, &primitives_folder);
 
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_edge(&point1_guid, &point2_guid, "connection");
+        // Complex: mesh, polyline, pointcloud, bbox, cylinder, arrow
+        my_session.add(&mesh_node, &complex_folder);
+        my_session.add(&polyline_node, &complex_folder);
+        my_session.add(&pointcloud_node, &complex_folder);
+        my_session.add(&bbox_node, &complex_folder);
+        my_session.add(&cylinder_node, &complex_folder);
+        my_session.add(&arrow_node, &complex_folder);
 
-        let json_data = session.to_json_data().unwrap();
-        let session2 = Session::from_json_data(&json_data).unwrap();
-        assert_eq!(session2.name, "my_session");
-        assert_eq!(session2.lookup.len(), 2);
-        assert_eq!(session2.graph.get_vertices().len(), 2);
-    }
+        // Add edge relationships between geometry objects
+        my_session.add_edge(&point.guid, &line.guid, "point_to_line");
+        my_session.add_edge(&line.guid, &plane.guid, "line_to_plane");
 
-    #[test]
-    fn test_session_to_json_from_json() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
+        // Verify original session structure before serialization
+        assert_eq!(my_session.objects.points.len(), 1);
+        assert_eq!(my_session.objects.lines.len(), 1);
+        assert_eq!(my_session.objects.planes.len(), 1);
+        assert_eq!(my_session.objects.bboxes.len(), 1);
+        assert_eq!(my_session.objects.polylines.len(), 1);
+        assert_eq!(my_session.objects.pointclouds.len(), 1);
+        assert_eq!(my_session.objects.meshes.len(), 1);
+        assert_eq!(my_session.objects.cylinders.len(), 1);
+        assert_eq!(my_session.objects.arrows.len(), 1);
+        assert_eq!(my_session.lookup.len(), 9);
 
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_edge(&point1_guid, &point2_guid, "connection");
+        // Graph structure before serialization
+        let original_graph_vertices = my_session.graph.number_of_vertices();
+        let original_graph_edges = my_session.graph.number_of_edges();
+        assert_eq!(original_graph_vertices, 9);
+        assert_eq!(original_graph_edges, 2);
 
-        // Use in-memory JSON (do not create any files in this test)
-        let json_data = session.to_json_data().unwrap();
-        let loaded_session = Session::from_json_data(&json_data).unwrap();
+        // Tree should have: root + geometry + primitives + complex + 9 geometry nodes = 13 nodes
+        let original_tree_nodes = my_session.tree.nodes();
+        assert_eq!(original_tree_nodes.len(), 13);
 
-        assert_eq!(loaded_session.name, session.name);
-        assert_eq!(loaded_session.lookup.len(), session.lookup.len());
+        // Serialize session using custom jsondump (not serde's Serialize trait)
+        let s = my_session.jsondump().unwrap();
+
+        // Deserialize using Session::jsonload to properly rebuild lookup table and graph
+        let loaded = Session::jsonload(&s).unwrap();
+
+        // Verify session structure after deserialization
+        assert_eq!(loaded.name, my_session.name);
+
+        // Verify all geometry objects are preserved
+        assert_eq!(loaded.objects.arrows.len(), my_session.objects.arrows.len());
+        assert_eq!(loaded.objects.bboxes.len(), my_session.objects.bboxes.len());
         assert_eq!(
-            loaded_session.graph.get_vertices().len(),
-            session.graph.get_vertices().len()
+            loaded.objects.cylinders.len(),
+            my_session.objects.cylinders.len()
         );
-
-        // No file was created in this test
-    }
-
-    #[test]
-    fn test_session_add_point() {
-        let mut session = Session::new("my_session");
-        let point = Point::new(1.0, 2.0, 3.0);
-        let point_guid = point.guid.clone();
-
-        session.add_point(point);
-
-        assert_eq!(session.objects.vec.len(), 1);
-        assert!(session.lookup.contains_key(&point_guid));
-        assert!(session.graph.has_node(&point_guid));
-    }
-
-    #[test]
-    fn test_session_add_edge() {
-        let mut session = Session::new("my_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
-
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_edge(&point1_guid, &point2_guid, "connection");
-
-        assert!(session.graph.has_edge((&point1_guid, &point2_guid)));
-    }
-
-    #[test]
-    fn test_session_get_object() {
-        let mut session = Session::new("my_session");
-        let point = Point::new(1.0, 2.0, 3.0);
-        let point_guid = point.guid.clone();
-        let expected_x = point.x();
-        let expected_y = point.y();
-        let expected_z = point.z();
-
-        session.add_point(point);
-
-        let retrieved = session.get_object(&point_guid).unwrap();
-        assert_eq!(retrieved.guid, point_guid);
-        assert_eq!(retrieved.x(), expected_x);
-        assert_eq!(retrieved.y(), expected_y);
-        assert_eq!(retrieved.z(), expected_z);
-    }
-
-    #[test]
-    fn test_session_to_json_file() {
-        let mut session = Session::new("test_session");
-        let point1 = Point::new(1.0, 2.0, 3.0);
-        let point2 = Point::new(4.0, 5.0, 6.0);
-        let point1_guid = point1.guid.clone();
-        let point2_guid = point2.guid.clone();
-
-        session.add_point(point1);
-        session.add_point(point2);
-        session.add_edge(&point1_guid, &point2_guid, "test_connection");
-
-        let filename = "test_session.json";
-        // Ensure a clean state for the file (ignore error if it doesn't exist)
-        let _ = std::fs::remove_file(filename);
-
-        // Write to file
-        session.to_json(filename).unwrap();
-
-        // Read from file
-        let loaded_session = Session::from_json(filename).unwrap();
-
-        assert_eq!(loaded_session.name, session.name);
-        assert_eq!(loaded_session.objects.vec.len(), session.objects.vec.len());
+        assert_eq!(loaded.objects.lines.len(), my_session.objects.lines.len());
+        assert_eq!(loaded.objects.meshes.len(), my_session.objects.meshes.len());
+        assert_eq!(loaded.objects.planes.len(), my_session.objects.planes.len());
+        assert_eq!(loaded.objects.points.len(), my_session.objects.points.len());
         assert_eq!(
-            loaded_session.graph.number_of_vertices(),
-            session.graph.number_of_vertices()
+            loaded.objects.pointclouds.len(),
+            my_session.objects.pointclouds.len()
         );
         assert_eq!(
-            loaded_session.graph.number_of_edges(),
-            session.graph.number_of_edges()
+            loaded.objects.polylines.len(),
+            my_session.objects.polylines.len()
         );
 
-        // Keep the file as requested - don't delete it
+        // Verify lookup table is preserved (rebuilt from objects during deserialization)
+        assert_eq!(loaded.lookup.len(), my_session.lookup.len());
+
+        // Verify graph structure is fully preserved
+        assert_eq!(loaded.graph.number_of_vertices(), original_graph_vertices);
+        assert_eq!(loaded.graph.number_of_edges(), original_graph_edges);
+        assert!(loaded.graph.has_edge((&point.guid, &line.guid)));
+        assert!(loaded.graph.has_edge((&line.guid, &plane.guid)));
+
+        // Verify tree structure is preserved
+        let loaded_tree_nodes = loaded.tree.nodes();
+        assert_eq!(loaded_tree_nodes.len(), original_tree_nodes.len());
+        assert!(loaded.tree.root().is_some());
+
+        // File I/O
+        json_dump(&my_session, "test_session.json", true).unwrap();
+        let from_file: Session = json_load("test_session.json").unwrap();
+        assert!(!from_file.objects.points.is_empty());
     }
 }

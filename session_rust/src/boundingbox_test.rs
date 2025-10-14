@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::boundingbox::BoundingBox;
+    use crate::encoders::{json_dump, json_load};
     use crate::plane::Plane;
     use crate::point::Point;
     use crate::vector::Vector;
@@ -137,7 +138,7 @@ mod tests {
             Vector::new(2.0, 3.0, 4.0),
         );
 
-        let data = b.to_json_data().unwrap();
+        let data = b.jsondump().unwrap();
         assert!(data.contains("\"type\""));
         assert!(data.contains("\"BoundingBox\""));
         assert!(data.contains("\"center\""));
@@ -160,8 +161,8 @@ mod tests {
         );
         original.name = "test_box".to_string();
 
-        let data = original.to_json_data().unwrap();
-        let loaded = BoundingBox::from_json_data(&data).unwrap();
+        let data = original.jsondump().unwrap();
+        let loaded = BoundingBox::jsonload(&data).unwrap();
 
         assert_eq!(loaded.center.x(), original.center.x());
         assert_eq!(loaded.center.y(), original.center.y());
@@ -312,8 +313,8 @@ mod tests {
         );
         let filename = "test_boundingbox.json";
 
-        original.to_json(filename).unwrap();
-        let loaded = BoundingBox::from_json(filename).unwrap();
+        json_dump(&original, filename, true).unwrap();
+        let loaded = json_load::<BoundingBox>(filename).unwrap();
 
         assert_eq!(loaded.center.x(), original.center.x());
         assert_eq!(loaded.center.y(), original.center.y());

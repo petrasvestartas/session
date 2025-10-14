@@ -1,7 +1,8 @@
-import json
 import uuid
 from typing import List, Optional, Tuple
 
+from .color import Color
+from .xform import Xform
 from .plane import Plane
 from .point import Point
 from .tolerance import Tolerance
@@ -20,6 +21,9 @@ class Polyline:
         self.guid = str(uuid.uuid4())
         self.name = "my_polyline"
         self.points = points if points is not None else []
+        self.width = 1.0
+        self.linecolor = Color.white()
+        self.xform = Xform.identity()
 
         # Delegate plane computation to Plane.from_points
         if len(self.points) >= 3:
@@ -140,60 +144,6 @@ class Polyline:
     def __repr__(self) -> str:
         """Returns a detailed string representation."""
         return self.__str__()
-
-    def to_json_data(self) -> str:
-        """Serializes the Polyline to a JSON string."""
-        data = {
-            "type": "Polyline",
-            "guid": self.guid,
-            "name": self.name,
-            "points": [p.to_json_data() for p in self.points],
-            "plane": self.plane.to_json_data(),
-        }
-        return json.dumps(data, indent=4)
-
-    @staticmethod
-    def from_json_data(json_data: str) -> "Polyline":
-        """Deserializes a Polyline from a JSON string."""
-        data = json.loads(json_data)
-        polyline = Polyline()
-        polyline.guid = data["guid"]
-        polyline.name = data["name"]
-        polyline.points = [Point.from_json_data(pt) for pt in data["points"]]
-        polyline.plane = Plane.from_json_data(data["plane"])
-        return polyline
-
-    def to_json(self, filepath: str) -> None:
-        """Serializes the Polyline to a JSON file."""
-        with open(filepath, "w") as f:
-            f.write(self.to_json_data())
-
-    @staticmethod
-    def from_json(filepath: str) -> "Polyline":
-        """Deserializes a Polyline from a JSON file."""
-        with open(filepath, "r") as f:
-            json_data = f.read()
-        return Polyline.from_json_data(json_data)
-
-    def to_data(self) -> dict:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            "type": "Polyline",
-            "guid": self.guid,
-            "name": self.name,
-            "points": [p.to_json_data() for p in self.points],
-            "plane": self.plane.to_json_data(),
-        }
-
-    @staticmethod
-    def from_data(data: dict) -> "Polyline":
-        """Create Polyline from dictionary."""
-        polyline = Polyline()
-        polyline.guid = data["guid"]
-        polyline.name = data["name"]
-        polyline.points = [Point.from_json_data(pt) for pt in data["points"]]
-        polyline.plane = Plane.from_json_data(data["plane"])
-        return polyline
 
     # ===========================================================================================
     # Geometric Utilities
@@ -633,3 +583,66 @@ class Polyline:
             average_normal += cross
 
         return average_normal.normalize()
+
+    ###########################################################################################
+    # Polymorphic JSON Serialization
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "points": [p.__jsondump__() for p in self.points],
+            "plane": self.plane.__jsondump__() if self.plane else None,
+            "width": self.width,
+            "linecolor": self.linecolor.__jsondump__(),
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing polyline data.
+        guid : str, optional
+            GUID for the polyline.
+        name : str, optional
+            Name for the polyline.
+
+        Returns
+        -------
+        :class:`Polyline`
+            Reconstructed polyline instance.
+
+        """
+        from .encoders import decode_node
+
+        points = [decode_node(p) for p in data["points"]]
+        plane = decode_node(data["plane"]) if data.get("plane") else None
+
+        polyline = cls(points)
+        polyline.plane = plane
+        polyline.guid = guid
+        polyline.name = name
+        
+        if "width" in data:
+            polyline.width = data["width"]
+        if "linecolor" in data:
+            polyline.linecolor = decode_node(data["linecolor"])
+        
+
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
+        return polyline

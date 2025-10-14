@@ -14,94 +14,10 @@
 #include <fstream>   // std::ifstream, std::ofstream
 #include <set>       // std::set
 #include <stdexcept> // std::runtime_error
+#include "vertex.h"
+#include "edge.h"
 
 namespace session_cpp {
-
-/**
- * @class Vertex
- * @brief A graph vertex with a unique identifier and attribute string.
- */
-class Vertex {
-public:
-  std::string name = "my_vertex"; ///< The name of the vertex
-  std::string guid = ::guid();    ///< The unique identifier of the vertex
-  std::string attribute = "";     ///< Vertex attribute data as string
-  int index = -1;                 ///< Integer index for the vertex
-
-  /**
-   * @brief Initialize a new Vertex.
-   * @param name The name of the vertex.
-   * @param attribute The attribute of the vertex.
-   */
-  Vertex(std::string name = "my_vertex", std::string attribute = "")
-      : name(name), attribute(attribute) {}
-
-  /// Convert vertex to string representation
-  std::string to_string() const;
-
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  // JSON
-  ///////////////////////////////////////////////////////////////////////////////////////////
-
-  /// Convert the Vertex to a JSON-serializable dictionary.
-  nlohmann::ordered_json to_json_data();
-
-  /// Create Vertex from JSON data dictionary.
-  static Vertex from_json_data(const nlohmann::json &data);
-};
-
-/**
- * @class Edge
- * @brief A graph edge connecting two vertices with an attribute string.
- */
-class Edge {
-public:
-  std::string guid = ::guid();  ///< The unique identifier of the edge.
-  std::string name = "my_edge"; ///< The name of the edge.
-  std::string v0 = "";          ///< The first vertex of the edge.
-  std::string v1 = "";          ///< The second vertex of the edge.
-  std::string attribute = "";   ///< Edge attribute data as string.
-  int index = -1;               ///< Integer index for the edge.
-
-  /**
-   * @brief Initialize a new Edge.
-   * @param name The name of the edge.
-   * @param attribute The attribute of the edge.
-   */
-  Edge(std::string name = "my_edge", std::string v0 = "", std::string v1 = "",
-       std::string attribute = "")
-      : name(name), v0(v0), v1(v1), attribute(attribute) {}
-
-  /// Convert edge to string representation
-  std::string to_string() const;
-
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  // JSON
-  ///////////////////////////////////////////////////////////////////////////////////////////
-
-  /// Convert the Edge to a JSON-serializable dictionary.
-  nlohmann::ordered_json to_json_data();
-
-  /// Create Edge from JSON data dictionary.
-  static Edge from_json_data(const nlohmann::json &data);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  // Details
-  ///////////////////////////////////////////////////////////////////////////////////////////
-
-  /// Get the edge vertices as a tuple.
-  std::tuple<std::string, std::string> vertices() const;
-
-  /// @brief Check if this edge connects to a given vertex.
-  /// @param vertex_id
-  /// @return true if this edge connects to the given vertex, false otherwise
-  bool connects(const std::string &vertex_id);
-
-  /// @brief Get the other vertex ID connected by this edge.
-  /// @param vertex_id
-  /// @return the other vertex ID connected by this edge
-  std::string other_vertex(const std::string &vertex_id);
-};
 
 /**
  * @class Graph
@@ -135,21 +51,19 @@ public:
 
   /// @brief  Convert the Graph to a JSON-serializable dictionary.
   /// @return Dictionary representation of the graph.
-  nlohmann::ordered_json to_json_data();
+  nlohmann::ordered_json jsondump() const;
 
   /// @brief Create a Graph from JSON data dictionary.
   /// @param data Dictionary containing graph data.
   /// @return Graph instance created from the data.
-  static Graph from_json_data(const nlohmann::json &data);
+  static Graph jsonload(const nlohmann::json &data);
 
   /// @brief Load a Graph from a JSON file.
   /// @param filepath Path to the JSON file to load.
   /// @return Graph instance loaded from the file.
-  static Graph from_json(const std::string &filepath);
 
   /// @brief Save the Graph to a JSON file.
   /// @param filepath Path to the JSON file to save.
-  void to_json(const std::string &filepath);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Details

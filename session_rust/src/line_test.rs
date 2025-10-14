@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::{Line, Point, Vector};
 
     #[test]
@@ -160,7 +161,7 @@ mod tests {
     fn test_line_to_json_data() {
         let mut line = Line::new(1.5, 2.5, 3.5, 4.5, 5.5, 6.5);
         line.name = "test".to_string();
-        let json = serde_json::to_string(&line).unwrap();
+        let json = line.jsondump().unwrap();
         assert!(json.contains("Line"));
         assert!(json.contains("test"));
     }
@@ -168,21 +169,18 @@ mod tests {
     #[test]
     fn test_line_from_json_data() {
         let orig = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
-        let json = serde_json::to_string(&orig).unwrap();
-        let restored: Line = serde_json::from_str(&json).unwrap();
+        let json = orig.jsondump().unwrap();
+        let restored = Line::jsonload(&json).unwrap();
         assert_eq!(restored.name, "my_line");
         assert_eq!(restored.x0(), 1.0);
     }
 
     #[test]
     fn test_line_to_json_from_json() {
-        use std::fs;
         let mut orig = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
         orig.name = "serialized".to_string();
-        let json = serde_json::to_string_pretty(&orig).unwrap();
-        fs::write("test_line.json", &json).unwrap();
-        let loaded_json = fs::read_to_string("test_line.json").unwrap();
-        let loaded: Line = serde_json::from_str(&loaded_json).unwrap();
+        json_dump(&orig, "test_line.json", true).unwrap();
+        let loaded: Line = json_load("test_line.json").unwrap();
         assert_eq!(loaded.name, orig.name);
         assert_eq!(loaded.x0(), orig.x0());
         assert_eq!(loaded.z1(), orig.z1());

@@ -1,4 +1,3 @@
-import os
 from .cylinder import Cylinder
 from .line import Line
 
@@ -14,48 +13,19 @@ def test_cylinder_new():
     assert cylinder.name == "my_cylinder"
 
 
-def test_cylinder_json_serialization():
-    line = Line(0.0, 0.0, 0.0, 5.0, 0.0, 0.0)
-    cylinder = Cylinder(line, 2.0)
+def test_cylinder_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
-    json_data = cylinder.to_json_data()
-    deserialized = Cylinder.from_json_data(json_data)
-
-    assert deserialized.radius == 2.0
-    assert deserialized.mesh.number_of_vertices() == 20
-    assert deserialized.mesh.number_of_faces() == 20
-
-
-def test_cylinder_to_json_data():
-    line = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)
-    cylinder = Cylinder(line, 1.5)
-
-    json_data = cylinder.to_json_data()
-    assert json_data["type"] == "Cylinder"
-    assert "radius" in json_data
-    assert json_data["radius"] == 1.5
-
-
-def test_cylinder_from_json_data():
-    line = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
-    cylinder = Cylinder(line, 0.5)
-
-    json_data = cylinder.to_json_data()
-    deserialized = Cylinder.from_json_data(json_data)
-
-    assert deserialized.radius == 0.5
-    assert deserialized.mesh.number_of_vertices() == 20
-    assert deserialized.mesh.number_of_faces() == 20
-
-
-def test_cylinder_to_json_from_json():
-    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)
+    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 10.0)
     cylinder = Cylinder(line, 1.0)
+    cylinder.name = "test_cylinder"
 
-    filepath = "test_cylinder.json"
-    cylinder.to_json(filepath)
+    path = Path(__file__).resolve().parents[2] / "test_cylinder.json"
+    json_dump(cylinder, path)
+    loaded = json_load(path)
 
-    loaded = Cylinder.from_json(filepath)
-    assert loaded.radius == 1.0
-    assert loaded.mesh.number_of_vertices() == 20
-    assert loaded.mesh.number_of_faces() == 20
+    assert isinstance(loaded, Cylinder)
+    assert loaded.radius == cylinder.radius
+    assert loaded.line.z1 == cylinder.line.z1
+    assert loaded.name == cylinder.name

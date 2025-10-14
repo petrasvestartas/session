@@ -1,15 +1,17 @@
 from .point import Point
+from .line import Line
+from .plane import Plane
+from .boundingbox import BoundingBox
+from .polyline import Polyline
+from .pointcloud import PointCloud
+from .mesh import Mesh
+from .cylinder import Cylinder
+from .arrow import Arrow
 import uuid
-import json
 
 
 class Objects:
-    """A collection of objects.
-
-    Parameters
-    ----------
-    points : list[:class:`Point`], optional
-        The list of points in the collection. Defaults to an empty list.
+    """A collection of all geometry objects.
 
     Attributes
     ----------
@@ -18,14 +20,38 @@ class Objects:
     guid : UUID
         The unique identifier of the collection.
     points : list[Point]
-        The list of points in the collection.
+        The list of points.
+    lines : list[Line]
+        The list of lines.
+    planes : list[Plane]
+        The list of planes.
+    bboxes : list[BoundingBox]
+        The list of bounding boxes.
+    polylines : list[Polyline]
+        The list of polylines.
+    pointclouds : list[PointCloud]
+        The list of point clouds.
+    meshes : list[Mesh]
+        The list of meshes.
+    cylinders : list[Cylinder]
+        The list of cylinders.
+    arrows : list[Arrow]
+        The list of arrows.
 
     """
 
-    def __init__(self, points: list[Point] = None):
+    def __init__(self):
         self.guid = str(uuid.uuid4())
         self.name = "my_objects"
-        self.points: list[Point] = points or []
+        self.points: list[Point] = []
+        self.lines: list[Line] = []
+        self.planes: list[Plane] = []
+        self.bboxes: list[BoundingBox] = []
+        self.polylines: list[Polyline] = []
+        self.pointclouds: list[PointCloud] = []
+        self.meshes: list[Mesh] = []
+        self.cylinders: list[Cylinder] = []
+        self.arrows: list[Arrow] = []
 
     def __str__(self):
         return f"Objects(points={len(self.points)})"
@@ -34,78 +60,69 @@ class Objects:
         return f"Objects({self.guid}, {self.name}, points={len(self.points)})"
 
     ###########################################################################################
-    # JSON
+    # Polymorphic JSON Serialization
     ###########################################################################################
 
-    def to_json_data(self):
-        """Convert the Objects to a JSON-serializable dictionary.
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
 
         Returns
         -------
         dict
-            Dictionary representation of the objects collection.
+            Dictionary with 'type', 'guid', 'name', and object fields.
 
         """
         return {
-            "type": "Objects",
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
             "name": self.name,
-            "guid": str(self.guid),
-            "points": [point.to_json_data() for point in self.points],
+            "points": [p.__jsondump__() for p in self.points],
+            "lines": [l.__jsondump__() for l in self.lines],
+            "planes": [pl.__jsondump__() for pl in self.planes],
+            "bboxes": [b.__jsondump__() for b in self.bboxes],
+            "polylines": [pl.__jsondump__() for pl in self.polylines],
+            "pointclouds": [pc.__jsondump__() for pc in self.pointclouds],
+            "meshes": [m.__jsondump__() for m in self.meshes],
+            "cylinders": [c.__jsondump__() for c in self.cylinders],
+            "arrows": [a.__jsondump__() for a in self.arrows],
         }
 
     @classmethod
-    def from_json_data(cls, data):
-        """Create an Objects from JSON data dictionary.
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
 
         Parameters
         ----------
         data : dict
             Dictionary containing objects data.
+        guid : str, optional
+            GUID for the objects.
+        name : str, optional
+            Name for the objects.
 
         Returns
         -------
         :class:`Objects`
-            Objects instance created from the data.
+            Reconstructed objects instance.
 
         """
-        points = [
-            Point.from_json_data(point_data) for point_data in data.get("points", [])
-        ]
-        objects = cls(points)
-        objects.name = data["name"]
-        objects.guid = str(data["guid"]) if "guid" in data else str(uuid.uuid4())
-        return objects
+        from .encoders import decode_node
 
-    def to_json(self, filepath):
-        """Save the Objects to a JSON file.
+        obj = cls()
+        obj.guid = guid if guid is not None else data.get("guid", obj.guid)
+        obj.name = name if name is not None else data.get("name", obj.name)
 
-        Parameters
-        ----------
-        filepath : str
-            Path where to save the JSON file.
+        obj.points = [decode_node(p) for p in data.get("points", [])]
+        obj.lines = [decode_node(l) for l in data.get("lines", [])]
+        obj.planes = [decode_node(pl) for pl in data.get("planes", [])]
+        obj.bboxes = [decode_node(b) for b in data.get("bboxes", [])]
+        obj.polylines = [decode_node(pl) for pl in data.get("polylines", [])]
+        obj.pointclouds = [decode_node(pc) for pc in data.get("pointclouds", [])]
+        obj.meshes = [decode_node(m) for m in data.get("meshes", [])]
+        obj.cylinders = [decode_node(c) for c in data.get("cylinders", [])]
+        obj.arrows = [decode_node(a) for a in data.get("arrows", [])]
 
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=2)
-
-    @classmethod
-    def from_json(cls, filepath):
-        """Load Objects from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Objects`
-            Objects instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
+        return obj
 
     ###########################################################################################
     # Details

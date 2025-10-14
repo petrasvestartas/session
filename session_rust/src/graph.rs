@@ -73,12 +73,12 @@ impl Vertex {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert the Vertex to a JSON-serializable string.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         Ok(serde_json::to_string_pretty(self)?)
     }
 
     /// Create Vertex from JSON string data.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 }
@@ -136,12 +136,12 @@ impl Edge {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert the Edge to a JSON-serializable string.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         Ok(serde_json::to_string_pretty(self)?)
     }
 
     /// Create Edge from JSON string data.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 
@@ -389,7 +389,7 @@ impl Graph {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Graph to a JSON string.
-    pub fn to_json_data(&self) -> Result<String, serde_json::Error> {
+    pub fn jsondump(&self) -> Result<String, serde_json::Error> {
         // Convert vertices to array, sorted by index to ensure consistent order
         let mut vertices: Vec<&Vertex> = self.vertices.values().collect();
         vertices.sort_by_key(|v| v.index);
@@ -421,7 +421,7 @@ impl Graph {
     }
 
     /// Deserializes a Graph from a JSON string.
-    pub fn from_json_data(json_data: &str) -> Result<Self, serde_json::Error> {
+    pub fn jsonload(json_data: &str) -> Result<Self, serde_json::Error> {
         let json_obj: serde_json::Value = serde_json::from_str(json_data)?;
 
         let mut graph = Graph::new(json_obj["name"].as_str().unwrap_or("my_graph"));
@@ -462,7 +462,7 @@ impl Graph {
 
     /// Serializes the Graph to a JSON file.
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json_data = self.to_json_data()?;
+        let json_data = self.jsondump()?;
         std::fs::write(filepath, json_data)?;
         Ok(())
     }
@@ -470,7 +470,7 @@ impl Graph {
     /// Deserializes a Graph from a JSON file.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json_data = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json_data).map_err(|e| e.into())
+        Self::jsonload(&json_data).map_err(|e| e.into())
     }
 
     /// Get or set edge attribute.

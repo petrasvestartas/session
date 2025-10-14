@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod quaternion_tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::{Quaternion, Vector};
     use std::f32::consts::PI;
 
@@ -140,8 +141,8 @@ mod quaternion_tests {
         let orig = Quaternion::from_axis_angle(axis, angle);
 
         let filepath = "test_quaternion.json";
-        orig.to_json(filepath).unwrap();
-        let loaded = Quaternion::from_json(filepath).unwrap();
+        json_dump(&orig, filepath, true).unwrap();
+        let loaded = json_load::<Quaternion>(filepath).unwrap();
 
         assert!(approx_f32(loaded.s, orig.s));
         assert!(vectors_close(&loaded.v, &orig.v));

@@ -97,16 +97,14 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   /// Convert to JSON-serializable object
-  nlohmann::ordered_json to_json_data() const;
+  nlohmann::ordered_json jsondump() const;
 
   /// Create vector from JSON data
-  static Vector from_json_data(const nlohmann::json &data);
+  static Vector jsonload(const nlohmann::json &data);
 
   /// Serialize to JSON file
-  void to_json(const std::string &filepath) const;
 
   /// Deserialize from JSON file
-  static Vector from_json(const std::string &filepath);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Static Methods

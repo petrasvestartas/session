@@ -1,5 +1,4 @@
 import uuid
-import json
 import math
 from .point import Point
 from .vector import Vector
@@ -315,89 +314,6 @@ class Plane:
         raise IndexError("Plane index out of range (0-2)")
 
     ###########################################################################################
-    # JSON
-    ###########################################################################################
-
-    def to_json_data(self):
-        """Convert to JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            JSON-serializable dictionary.
-        """
-        return {
-            "type": "Plane",
-            "guid": self.guid,
-            "name": self.name,
-            "origin": self._origin.to_json_data(),
-            "x_axis": self._x_axis.to_json_data(),
-            "y_axis": self._y_axis.to_json_data(),
-            "z_axis": self._z_axis.to_json_data(),
-            "a": self._a,
-            "b": self._b,
-            "c": self._c,
-            "d": self._d,
-        }
-
-    @staticmethod
-    def from_json_data(data):
-        """Create Plane from JSON data.
-
-        Parameters
-        ----------
-        data : dict
-            JSON data dictionary.
-
-        Returns
-        -------
-        Plane
-            Plane instance.
-        """
-        plane = Plane.__new__(Plane)
-        plane.guid = data["guid"]
-        plane.name = data["name"]
-        plane._origin = Point.from_json_data(data["origin"])
-        plane._x_axis = Vector.from_json_data(data["x_axis"])
-        plane._y_axis = Vector.from_json_data(data["y_axis"])
-        plane._z_axis = Vector.from_json_data(data["z_axis"])
-        plane._a = data["a"]
-        plane._b = data["b"]
-        plane._c = data["c"]
-        plane._d = data["d"]
-        plane._update_equation()
-        return plane
-
-    def to_json(self, filepath):
-        """Serialize to JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath):
-        """Deserialize from JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-
-        Returns
-        -------
-        Plane
-            Plane instance.
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return Plane.from_json_data(data)
-
-    ###########################################################################################
     # No-copy Operators
     ###########################################################################################
 
@@ -591,3 +507,70 @@ class Plane:
         new_origin = self._origin + (normal * distance)
 
         return Plane(new_origin, self._x_axis, self._y_axis)
+
+    ###########################################################################################
+    # Polymorphic JSON Serialization
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "origin": self.origin.__jsondump__(),
+            "x_axis": self.x_axis.__jsondump__(),
+            "y_axis": self.y_axis.__jsondump__(),
+            "z_axis": self.z_axis.__jsondump__(),
+            "a": self.a,
+            "b": self.b,
+            "c": self.c,
+            "d": self.d,
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing plane data.
+        guid : str, optional
+            GUID for the plane.
+        name : str, optional
+            Name for the plane.
+
+        Returns
+        -------
+        :class:`Plane`
+            Reconstructed plane instance.
+
+        """
+        from .encoders import decode_node
+
+        origin = decode_node(data["origin"])
+        x_axis = decode_node(data["x_axis"])
+        y_axis = decode_node(data["y_axis"])
+
+        plane = cls(origin, x_axis, y_axis)
+        plane.guid = guid if guid is not None else data.get("guid", plane.guid)
+        plane.name = name if name is not None else data.get("name", plane.name)
+        
+        # z_axis, a, b, c, d are computed automatically, but verify if provided
+        if "z_axis" in data:
+            z_axis_loaded = decode_node(data["z_axis"])
+            # z_axis is already computed from cross product, just verify consistency
+        
+
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
+        return plane

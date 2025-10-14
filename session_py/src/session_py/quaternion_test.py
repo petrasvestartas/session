@@ -128,14 +128,17 @@ def test_quaternion_rotate_around_y():
     assert vectors_close(rotated, expected)
 
 
-def test_quaternion_to_json_from_json():
-    axis = Vector(0.0, 0.0, 1.0)
-    angle = PI / 4.0
-    orig = Quaternion.from_axis_angle(axis, angle)
+def test_quaternion_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
-    filepath = "test_quaternion.json"
-    orig.to_json(filepath)
-    loaded = Quaternion.from_json(filepath)
+    q = Quaternion.from_axis_angle(Vector(0, 0, 1), 1.57)
+    q.name = "test_quat"
 
-    assert approx_f32(loaded.s, orig.s)
-    assert vectors_close(loaded.v, orig.v)
+    path = Path(__file__).resolve().parents[2] / "test_quaternion.json"
+    json_dump(q, path)
+    loaded = json_load(path)
+
+    assert isinstance(loaded, Quaternion)
+    assert abs(loaded.s - q.s) < 1e-6
+    assert loaded.name == q.name

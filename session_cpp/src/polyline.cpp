@@ -133,43 +133,43 @@ Polyline Polyline::operator-(const Vector& v) const {
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Polyline::to_json_data() const {
+nlohmann::ordered_json Polyline::jsondump() const {
     nlohmann::ordered_json j;
     j["type"] = "Polyline";
     j["guid"] = guid;
     j["name"] = name;
     j["points"] = nlohmann::json::array();
     for (const auto& pt : points) {
-        j["points"].push_back(pt.to_json_data());
+        j["points"].push_back(pt.jsondump());
     }
-    j["plane"] = plane.to_json_data();
+    j["plane"] = plane.jsondump();
+    j["width"] = width;
+    j["linecolor"] = linecolor.jsondump();
+    j["xform"] = xform.jsondump();
     return j;
 }
 
-Polyline Polyline::from_json_data(const nlohmann::json& data) {
+Polyline Polyline::jsonload(const nlohmann::json& data) {
     Polyline polyline;
     polyline.guid = data["guid"];
     polyline.name = data["name"];
     
     for (const auto& pt_json : data["points"]) {
-        polyline.points.push_back(Point::from_json_data(pt_json));
+        polyline.points.push_back(Point::jsonload(pt_json));
     }
     
-    polyline.plane = Plane::from_json_data(data["plane"]);
+    polyline.plane = Plane::jsonload(data["plane"]);
+    
+    if (data.contains("width")) {
+        polyline.width = data["width"];
+    }
+    if (data.contains("linecolor")) {
+        polyline.linecolor = Color::jsonload(data["linecolor"]);
+    }
     return polyline;
 }
 
-void Polyline::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(4);
-}
 
-Polyline Polyline::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Geometric Utilities
@@ -210,7 +210,6 @@ double Polyline::length_squared() const {
 
 Point Polyline::point_at_parameter(const Point& start, const Point& end, double t) {
     const double s = 1.0 - t;
-    
     return Point(
         (start.x() == end.x()) ? start.x() : static_cast<float>(s * start.x() + t * end.x()),
         (start.y() == end.y()) ? start.y() : static_cast<float>(s * start.y() + t * end.y()),

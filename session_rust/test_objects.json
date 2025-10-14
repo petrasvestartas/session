@@ -1,61 +1,138 @@
 {
-    "type": "Objects",
-    "guid": "3d94d2a7-2b82-492f-9941-c43813e452c2",
-    "name": "my_objects",
-    "points": [
-        {
-            "type": "Point",
-            "guid": "2cd45070-e1df-4f03-b02b-d50336843d79",
-            "name": "my_point",
-            "x": 100.0,
-            "y": 200.0,
-            "z": 300.0,
-            "width": 1.0,
-            "pointcolor": {
-                "type": "Color",
-                "guid": "73404e2a-2ec7-46b6-b039-5217b6716b7d",
-                "name": "white",
-                "r": 255,
-                "g": 255,
-                "b": 255,
-                "a": 255
-            }
-        },
-        {
-            "type": "Point",
-            "guid": "319d0224-2d40-4223-b161-ce9b27e46ac7",
-            "name": "my_point",
-            "x": 400.0,
-            "y": 500.0,
-            "z": 600.0,
-            "width": 1.0,
-            "pointcolor": {
-                "type": "Color",
-                "guid": "d49552e8-f271-4e4b-9cd9-eb46a9d9c0fa",
-                "name": "white",
-                "r": 255,
-                "g": 255,
-                "b": 255,
-                "a": 255
-            }
-        },
-        {
-            "type": "Point",
-            "guid": "c5830a8a-8ca1-4ee5-8afa-a113cac0471e",
-            "name": "my_point",
-            "x": 700.0,
-            "y": 800.0,
-            "z": 900.0,
-            "width": 1.0,
-            "pointcolor": {
-                "type": "Color",
-                "guid": "05361af7-3b3b-40bf-949b-5b250a8bc31e",
-                "name": "white",
-                "r": 255,
-                "g": 255,
-                "b": 255,
-                "a": 255
-            }
-        }
-    ]
+  "type": "Objects",
+  "guid": "cfb6d25c-76c0-4d8b-bdb5-833b8f93d08f",
+  "name": "my_objects",
+  "points": [
+    {
+      "type": "Point",
+      "guid": "48309069-0544-4473-82ff-2524ba18fe16",
+      "name": "my_point",
+      "x": 100.0,
+      "y": 200.0,
+      "z": 300.0,
+      "width": 1.0,
+      "pointcolor": {
+        "type": "Color",
+        "guid": "4b82fc08-df9d-4efb-99f7-4dd6776bbec0",
+        "name": "white",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "xform": {
+        "type": "Xform",
+        "guid": "748019ea-09e0-4330-b91a-e940babaca1c",
+        "name": "my_xform",
+        "m": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "Point",
+      "guid": "d7cd10c2-4134-4d08-9861-ab4d12519b53",
+      "name": "my_point",
+      "x": 400.0,
+      "y": 500.0,
+      "z": 600.0,
+      "width": 1.0,
+      "pointcolor": {
+        "type": "Color",
+        "guid": "26da9208-44fb-4b9e-81d2-b211e7425581",
+        "name": "white",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "xform": {
+        "type": "Xform",
+        "guid": "926ea6bf-00a1-4cca-a703-4e11fb52f158",
+        "name": "my_xform",
+        "m": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "Point",
+      "guid": "4b40bc82-f34f-405d-b5b6-ac42d06f4c97",
+      "name": "my_point",
+      "x": 700.0,
+      "y": 800.0,
+      "z": 900.0,
+      "width": 1.0,
+      "pointcolor": {
+        "type": "Color",
+        "guid": "4bad9e22-0d41-419b-849c-afb47b4d79d0",
+        "name": "white",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "xform": {
+        "type": "Xform",
+        "guid": "470e6383-c40b-42e8-ad43-ae2628758492",
+        "name": "my_xform",
+        "m": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    }
+  ],
+  "lines": [],
+  "planes": [],
+  "bboxes": [],
+  "polylines": [],
+  "pointclouds": [],
+  "meshes": [],
+  "cylinders": [],
+  "arrows": []
 }

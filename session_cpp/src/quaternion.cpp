@@ -68,7 +68,7 @@ Quaternion Quaternion::operator*(const Quaternion& other) const {
     return Quaternion(new_s, new_v);
 }
 
-nlohmann::ordered_json Quaternion::to_json_data() const {
+nlohmann::ordered_json Quaternion::jsondump() const {
     return nlohmann::ordered_json{
         {"type", typ},
         {"guid", guid},
@@ -80,7 +80,7 @@ nlohmann::ordered_json Quaternion::to_json_data() const {
     };
 }
 
-Quaternion Quaternion::from_json_data(const nlohmann::json& data) {
+Quaternion Quaternion::jsonload(const nlohmann::json& data) {
     Quaternion q(data["s"].get<float>(), Vector(data["x"].get<float>(), data["y"].get<float>(), data["z"].get<float>()));
     q.typ = data.value("type", "Quaternion");
     q.guid = data["guid"].get<std::string>();
@@ -88,18 +88,6 @@ Quaternion Quaternion::from_json_data(const nlohmann::json& data) {
     return q;
 }
 
-void Quaternion::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(4);
-    file.close();
-}
 
-Quaternion Quaternion::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    file.close();
-    return from_json_data(data);
-}
 
 }  // namespace session_cpp

@@ -1,61 +1,33 @@
 {
-  "type": "Objects",
-  "name": "my_objects",
-  "guid": "f07244d3-3d58-4e2c-b019-f302803581ce",
-  "points": [
-    {
-      "type": "Point",
-      "guid": "0407ede3-a421-4e0b-ba4c-911b4870f561",
-      "name": "my_point",
-      "x": 100.0,
-      "y": 200.0,
-      "z": 300.0,
-      "width": 1.0,
-      "pointcolor": {
-        "type": "Color",
-        "guid": "e6c1ee6f-5845-45b2-a7e6-03f1cba2496f",
-        "name": "white",
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-      }
-    },
-    {
-      "type": "Point",
-      "guid": "9558fbf2-2137-4f4c-b0cf-cc39a32ffb50",
-      "name": "my_point",
-      "x": 400.0,
-      "y": 500.0,
-      "z": 600.0,
-      "width": 1.0,
-      "pointcolor": {
-        "type": "Color",
-        "guid": "e8f8d83e-771e-453d-b016-b82b45329667",
-        "name": "white",
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-      }
-    },
-    {
-      "type": "Point",
-      "guid": "af7b7ebd-9530-4cf1-8053-4254b6cd157e",
-      "name": "my_point",
-      "x": 700.0,
-      "y": 800.0,
-      "z": 900.0,
-      "width": 1.0,
-      "pointcolor": {
-        "type": "Color",
-        "guid": "cfe011e6-dba9-4d80-bf45-3955d90f6cd0",
-        "name": "white",
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-      }
-    }
-  ]
+    "type": "Objects",
+    "guid": "38925a4a-8cb0-449f-864f-12531e975746",
+    "name": "test_objects",
+    "points": [
+        {
+            "type": "Point",
+            "guid": "c34a5ed2-fc98-466c-869e-bb7ae4743c33",
+            "name": "my_point",
+            "x": 1.0,
+            "y": 2.0,
+            "z": 3.0,
+            "width": 1.0,
+            "pointcolor": {
+                "type": "Color",
+                "guid": "2653e228-5531-4d74-89ea-ebb6f43e23b3",
+                "name": "white",
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 255
+            }
+        }
+    ],
+    "lines": [],
+    "planes": [],
+    "bboxes": [],
+    "polylines": [],
+    "pointclouds": [],
+    "meshes": [],
+    "cylinders": [],
+    "arrows": []
 }

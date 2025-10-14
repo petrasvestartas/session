@@ -1,8 +1,4 @@
-use crate::line::Line;
-use crate::mesh::Mesh;
-use crate::point::Point;
-use crate::vector::Vector;
-use crate::xform::Xform;
+use crate::{Line, Mesh, Point, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -18,6 +14,8 @@ pub struct Cylinder {
     pub radius: f32,
     pub line: Line,
     pub mesh: Mesh,
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,
 }
 
 impl Cylinder {
@@ -39,6 +37,7 @@ impl Cylinder {
             radius,
             line,
             mesh,
+            xform: Xform::identity(),
         }
     }
 
@@ -153,26 +152,26 @@ impl Cylinder {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Cylinder to a JSON string.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         let data = serde_json::json!({
             "type": "Cylinder",
             "guid": self.guid,
             "name": self.name,
             "radius": self.radius,
             "line": self.line,
-            "mesh": self.mesh.to_json_data()
+            "mesh": self.mesh.jsondump()
         });
         Ok(serde_json::to_string_pretty(&data)?)
     }
 
     /// Deserializes a Cylinder from a JSON string.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 
     /// Serializes the Cylinder to a JSON file.
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json = self.to_json_data()?;
+        let json = self.jsondump()?;
         std::fs::write(filepath, json)?;
         Ok(())
     }
@@ -180,7 +179,7 @@ impl Cylinder {
     /// Deserializes a Cylinder from a JSON file.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json)
+        Self::jsonload(&json)
     }
 }
 

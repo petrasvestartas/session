@@ -225,22 +225,19 @@ def test_vector_constructor_values():
     assert (v[0], v[1], v[2]) == (0.57, -158.63, 180.890)
 
 
-def test_vector_to_json_data():
-    v = Vector(15.5, 25.7, 35.9)
-    data = v.to_json_data()
-    assert "Vector" in data["type"] and data["x"] == 15.5
+def test_vector_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
+    vec = Vector(1.5, 2.5, 3.5)
+    vec.name = "test_vector"
 
-def test_vector_from_json_data():
-    orig = Vector(42.1, 84.2, 126.3)
-    rest = Vector.from_json_data(orig.to_json_data())
-    assert (rest.x, rest.y, rest.z) == (42.1, 84.2, 126.3)
+    path = Path(__file__).resolve().parents[2] / "test_vector.json"
+    json_dump(vec, path)
+    loaded = json_load(path)
 
-
-def test_vector_to_json_from_json():
-    orig = Vector(123.45, 678.90, 999.11)
-    orig.to_json("test_vector.json")
-    load = Vector.from_json("test_vector.json")
-    assert abs(load.x - orig.x) < 1e-5
-    assert abs(load.y - orig.y) < 1e-5
-    assert abs(load.z - orig.z) < 1e-5
+    assert isinstance(loaded, Vector)
+    assert loaded.x == vec.x
+    assert loaded.y == vec.y
+    assert loaded.z == vec.z
+    assert loaded.name == vec.name

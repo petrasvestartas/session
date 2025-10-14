@@ -1,4 +1,3 @@
-import json
 import uuid
 from typing import List
 from .point import Point
@@ -195,37 +194,39 @@ class BoundingBox:
             )
         )
 
-    def to_json_data(self) -> dict:
+    ###########################################################################################
+    # Polymorphic JSON Serialization (COMPAS-style)
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field."""
         return {
-            "type": "BoundingBox",
-            "center": self.center.to_json_data(),
-            "x_axis": self.x_axis.to_json_data(),
-            "y_axis": self.y_axis.to_json_data(),
-            "z_axis": self.z_axis.to_json_data(),
-            "half_size": self.half_size.to_json_data(),
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
+            "center": self.center.__jsondump__(),
+            "x_axis": self.x_axis.__jsondump__(),
+            "y_axis": self.y_axis.__jsondump__(),
+            "z_axis": self.z_axis.__jsondump__(),
+            "half_size": self.half_size.__jsondump__(),
         }
 
     @classmethod
-    def from_json_data(cls, data: dict) -> "BoundingBox":
-        box = cls(
-            center=Point.from_json_data(data["center"]),
-            x_axis=Vector.from_json_data(data["x_axis"]),
-            y_axis=Vector.from_json_data(data["y_axis"]),
-            z_axis=Vector.from_json_data(data["z_axis"]),
-            half_size=Vector.from_json_data(data["half_size"]),
-        )
-        box.guid = data["guid"]
-        box.name = data["name"]
-        return box
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format."""
+        from .encoders import decode_node
 
-    def to_json(self, filepath: str):
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
+        center = decode_node(data["center"])
+        x_axis = decode_node(data["x_axis"])
+        y_axis = decode_node(data["y_axis"])
+        z_axis = decode_node(data["z_axis"])
+        half_size = decode_node(data["half_size"])
 
-    @classmethod
-    def from_json(cls, filepath: str) -> "BoundingBox":
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return cls.from_json_data(data)
+        bbox = cls(center, x_axis, y_axis, z_axis, half_size)
+        bbox.guid = guid
+        bbox.name = name
+
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
+        return bbox

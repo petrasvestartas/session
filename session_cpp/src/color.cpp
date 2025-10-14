@@ -24,7 +24,7 @@ bool Color::operator!=(const Color &other) const { return !(*this == other); }
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Color::to_json_data() const {
+nlohmann::ordered_json Color::jsondump() const {
   return nlohmann::ordered_json{{"type", "Color"},
                                 {"guid", guid},
                                 {"name", name},
@@ -34,7 +34,7 @@ nlohmann::ordered_json Color::to_json_data() const {
                                 {"a", static_cast<int>(a)}};
 }
 
-Color Color::from_json_data(const nlohmann::json &data) {
+Color Color::jsonload(const nlohmann::json &data) {
   Color color(static_cast<unsigned int>(data["r"]),
                       static_cast<unsigned int>(data["g"]),
                       static_cast<unsigned int>(data["b"]),
@@ -43,21 +43,11 @@ Color Color::from_json_data(const nlohmann::json &data) {
   return color;
 }
 
-void Color::to_json(const std::string &filepath) const {
-  std::ofstream file(filepath);
-  file << to_json_data().dump(2);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Details
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-Color Color::from_json(const std::string &filepath) {
-  std::ifstream file(filepath);
-  nlohmann::json data;
-  file >> data;
-  return from_json_data(data);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Presets

@@ -1,4 +1,4 @@
-use crate::{Color, Point, Vector};
+use crate::{Color, Point, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
@@ -23,6 +23,8 @@ pub struct Line {
     _z1: f32,
     pub width: f32,
     pub linecolor: Color,
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,
 }
 
 impl Default for Line {
@@ -38,6 +40,7 @@ impl Default for Line {
             name: "my_line".to_string(),
             linecolor: Color::white(),
             width: 1.0,
+            xform: Xform::identity(),
         }
     }
 }
@@ -271,6 +274,16 @@ impl fmt::Display for Line {
             "Line({}, {}, {}, {}, {}, {})",
             self._x0, self._y0, self._z0, self._x1, self._y1, self._z1
         )
+    }
+}
+
+impl Line {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
+        Ok(serde_json::to_string_pretty(self)?)
+    }
+
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(serde_json::from_str(json_data)?)
     }
 }
 

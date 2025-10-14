@@ -124,34 +124,6 @@ def test_plane_operator_sub_translation():
     assert moved.origin.z == -3.0
 
 
-def test_plane_to_json_data():
-    plane = Plane.xy_plane()
-    data = plane.to_json_data()
-    assert data["type"] == "Plane"
-    assert data["name"] == "xy_plane"
-    assert data["a"] == 0.0
-    assert data["b"] == 0.0
-    assert data["c"] == 1.0
-    assert data["d"] == 0.0
-
-
-def test_plane_from_json_data():
-    original = Plane.xy_plane()
-    data = original.to_json_data()
-    loaded = Plane.from_json_data(data)
-    assert loaded.name == "xy_plane"
-    assert loaded.c == 1.0
-
-
-def test_plane_json_file_round_trip():
-    filepath = "test_plane.json"
-    original = Plane.xy_plane()
-    original.to_json(filepath)
-    loaded = Plane.from_json(filepath)
-    assert loaded.name == original.name
-    assert loaded.c == original.c
-
-
 def test_plane_reverse():
     plane = Plane.xy_plane()
     orig_x = Vector(plane.x_axis.x, plane.x_axis.y, plane.x_axis.z)
@@ -160,6 +132,22 @@ def test_plane_reverse():
     assert plane.x_axis == orig_y
     assert plane.y_axis == orig_x
     assert plane.c == -1.0
+
+
+def test_plane_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
+    plane = Plane.xy_plane()
+    plane.name = "test_plane"
+
+    path = Path(__file__).resolve().parents[2] / "test_plane.json"
+    json_dump(plane, path)
+    loaded = json_load(path)
+
+    assert isinstance(loaded, Plane)
+    assert loaded.name == plane.name
+    assert loaded.c == plane.c
 
 
 def test_plane_rotate():

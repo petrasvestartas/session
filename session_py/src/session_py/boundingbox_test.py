@@ -115,70 +115,27 @@ def test_box_collision_separated():
     assert not box1.collides_with(box2)
 
 
-def test_box_json_serialization():
-    boundingbox = BoundingBox(
+def test_boundingbox_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
+    bbox = BoundingBox(
         Point(1.0, 2.0, 3.0),
         Vector(1.0, 0.0, 0.0),
         Vector(0.0, 1.0, 0.0),
         Vector(0.0, 0.0, 1.0),
         Vector(2.0, 3.0, 4.0),
     )
+    bbox.name = "test_bbox"
 
-    data = boundingbox.to_json_data()
+    path = Path(__file__).resolve().parents[2] / "test_boundingbox.json"
+    json_dump(bbox, path)
+    loaded = json_load(path)
 
-    assert "center" in data
-    assert "x_axis" in data
-    assert "y_axis" in data
-    assert "z_axis" in data
-    assert "half_size" in data
-    assert "guid" in data
-    assert "name" in data
-
-
-def test_box_json_round_trip():
-    original = BoundingBox(
-        Point(1.0, 2.0, 3.0),
-        Vector(1.0, 0.0, 0.0),
-        Vector(0.0, 1.0, 0.0),
-        Vector(0.0, 0.0, 1.0),
-        Vector(2.0, 3.0, 4.0),
-    )
-
-    data = original.to_json_data()
-    loaded = BoundingBox.from_json_data(data)
-
-    assert loaded.center.x == original.center.x
-    assert loaded.center.y == original.center.y
-    assert loaded.center.z == original.center.z
-    assert loaded.half_size.x == original.half_size.x
-    assert loaded.half_size.y == original.half_size.y
-    assert loaded.half_size.z == original.half_size.z
-    assert loaded.name == original.name
-
-
-def test_box_to_json_from_json():
-    import os
-
-    original = BoundingBox(
-        Point(1.0, 2.0, 3.0),
-        Vector(1.0, 0.0, 0.0),
-        Vector(0.0, 1.0, 0.0),
-        Vector(0.0, 0.0, 1.0),
-        Vector(2.0, 3.0, 4.0),
-    )
-    filename = "test_boundingbox.json"
-
-    original.to_json(filename)
-    loaded = BoundingBox.from_json(filename)
-
-    assert loaded.center.x == original.center.x
-    assert loaded.center.y == original.center.y
-    assert loaded.center.z == original.center.z
-    assert loaded.half_size.x == original.half_size.x
-    assert loaded.half_size.y == original.half_size.y
-    assert loaded.half_size.z == original.half_size.z
-    assert loaded.name == original.name
-    assert loaded.guid == original.guid
+    assert isinstance(loaded, BoundingBox)
+    assert loaded.center.x == bbox.center.x
+    assert loaded.half_size.z == bbox.half_size.z
+    assert loaded.name == bbox.name
 
 
 def test_box_inflate():

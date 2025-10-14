@@ -1,29 +1,16 @@
 {
     "type": "Tree",
-    "guid": "392e86bf-84f7-4f3a-9db5-b4a5a42c6fd8",
-    "name": "my_tree",
+    "guid": "00aaf3e8-5409-4ecb-a0e0-c2f9c75d3e70",
+    "name": "test_tree",
     "root": {
         "type": "TreeNode",
-        "name": "ef94e78c-8fbd-4752-816b-4de5a2999172",
-        "guid": "fd4c3900-82ac-4088-9443-9a343eb882dd",
+        "guid": "d1a59e9b-a398-4ced-b6b2-100bba4b925f",
+        "name": "root",
         "children": [
             {
                 "type": "TreeNode",
-                "name": "8c6ca859-0b85-40ef-a6bc-996f18c15679",
-                "guid": "8e80d745-88ac-4100-8cbd-6207f908fb36",
-                "children": [
-                    {
-                        "type": "TreeNode",
-                        "name": "addaec30-c4f1-436d-b532-d3479c4dd5fd",
-                        "guid": "691ea574-46c0-482e-9fc1-d3ec7a5eb6d3",
-                        "children": []
-                    }
-                ]
-            },
-            {
-                "type": "TreeNode",
-                "name": "01a2a7a8-8697-4188-b3c4-5ccec636157a",
-                "guid": "05cd7e53-d1b0-4a7f-bbdd-c8fb0b25208d",
+                "guid": "5202bae7-523b-4601-ae7d-34e5937584f4",
+                "name": "child",
                 "children": []
             }
         ]

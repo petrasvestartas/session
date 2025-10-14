@@ -2,6 +2,8 @@
 #include "point.h"
 #include "vector.h"
 #include "color.h"
+#include "xform.h"
+#include "xform.h"
 #include "tolerance.h"
 #include "json.h"
 #include <map>
@@ -12,6 +14,7 @@
 #include <cmath>
 
 namespace session_cpp {
+
 
 /// Normal weighting scheme for vertex normal computation
 enum class NormalWeighting {
@@ -91,11 +94,12 @@ public:
     std::map<std::string, float> default_face_attributes;                ///< Default face attrs
     std::map<std::string, float> default_edge_attributes;                ///< Default edge attrs
     std::string guid = ::guid();                                         ///< Unique identifier
-    std::string name = "my_mesh";                                           ///< Mesh name
+    std::string name = "my_mesh";                                        ///< Mesh name
     std::vector<Color> pointcolors;                                      ///< Vertex colors
     std::vector<Color> facecolors;                                       ///< Face colors
     std::vector<Color> linecolors;                                       ///< Edge colors
     std::vector<float> widths;                                           ///< Edge widths
+    Xform xform;                                     ///< Transformation matrix
 
 private:
     size_t max_vertex = 0;                                               ///< Next vertex key
@@ -103,6 +107,7 @@ private:
     std::map<size_t, std::vector<std::array<size_t, 3>>> triangulation; ///< Cached triangulations
 
 public:
+
     /// Constructor
     Mesh();
 
@@ -228,16 +233,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to JSON-serializable object
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
     
     /// Create mesh from JSON data
-    static Mesh from_json_data(const nlohmann::json& data);
+    static Mesh jsonload(const nlohmann::json& data);
     
     /// Serialize to JSON file
-    void to_json(const std::string& filepath) const;
     
     /// Deserialize from JSON file
-    static Mesh from_json(const std::string& filepath);
 };
 
 } // namespace session_cpp

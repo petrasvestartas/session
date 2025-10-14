@@ -1,6 +1,6 @@
 import uuid
-import json
 from .color import Color
+from .xform import Xform
 from .point import Point
 from .vector import Vector
 
@@ -46,6 +46,7 @@ class Line:
         self._z1 = z1
         self.width = 1.0
         self.linecolor = Color.white()
+        self.xform = Xform.identity()
 
     @property
     def x0(self):
@@ -343,16 +344,21 @@ class Line:
         """Detailed representation."""
         return self.__str__()
 
-    def to_json_data(self):
-        """Convert to JSON-serializable dictionary.
+    ###########################################################################################
+    # Polymorphic JSON Serialization
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
 
         Returns
         -------
         dict
-            JSON-serializable dictionary.
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
         """
         return {
-            "type": "Line",
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
             "x0": self._x0,
@@ -362,57 +368,44 @@ class Line:
             "y1": self._y1,
             "z1": self._z1,
             "width": self.width,
-            "linecolor": self.linecolor.to_json_data(),
+            "linecolor": self.linecolor.__jsondump__(),
         }
 
     @classmethod
-    def from_json_data(cls, data):
-        """Create line from JSON data.
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
 
         Parameters
         ----------
         data : dict
-            JSON data dictionary.
+            Dictionary containing line data.
+        guid : str, optional
+            GUID for the line.
+        name : str, optional
+            Name for the line.
 
         Returns
         -------
-        Line
-            Reconstructed line.
+        :class:`Line`
+            Reconstructed line instance.
+
         """
+        from .encoders import decode_node
+
         line = cls(
-            data["x0"], data["y0"], data["z0"], data["x1"], data["y1"], data["z1"]
+            data["x0"], data["y0"], data["z0"],
+            data["x1"], data["y1"], data["z1"]
         )
-        line.guid = data["guid"]
-        line.name = data["name"]
-        line.linecolor = Color.from_json_data(data["linecolor"])
-        line.width = data["width"]
+        line.guid = guid if guid is not None else data.get("guid", line.guid)
+        line.name = name if name is not None else data.get("name", line.name)
+        
+        if "width" in data:
+            line.width = data["width"]
+        if "linecolor" in data:
+            line.linecolor = decode_node(data["linecolor"])
+        
+
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
         return line
-
-    def to_json(self, filepath):
-        """Save line to JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to save JSON file.
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, filepath):
-        """Load line from JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-
-        Returns
-        -------
-        Line
-            Loaded line.
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return cls.from_json_data(data)

@@ -1,7 +1,4 @@
-use crate::color::Color;
-use crate::point::Point;
-use crate::tolerance::Tolerance;
-use crate::vector::Vector;
+use crate::{Color, Point, Tolerance, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -15,6 +12,7 @@ pub enum NormalWeighting {
 
 /// A halfedge mesh data structure for representing polygonal surfaces
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename = "Mesh")]
 pub struct Mesh {
     pub halfedge: HashMap<usize, HashMap<usize, Option<usize>>>, // Halfedge connectivity
     pub vertex: HashMap<usize, VertexData>,                      // Vertex data
@@ -38,6 +36,8 @@ pub struct Mesh {
     pub linecolors: Vec<Color>,                // Edge colors
     #[serde(skip)]
     pub widths: Vec<f32>,                      // Edge widths
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,   // Transformation matrix
 }
 
 /// Vertex data containing position and attributes
@@ -129,6 +129,7 @@ impl Mesh {
             facecolors: Vec::new(),
             linecolors: Vec::new(),
             widths: Vec::new(),
+            xform: Xform::identity(),
         }
     }
 
@@ -561,7 +562,7 @@ impl Mesh {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Mesh to JSON data
-    pub fn to_json_data(&self) -> serde_json::Value {
+    pub fn jsondump(&self) -> serde_json::Value {
         let pointcolors_flat: Vec<u8> = self
             .pointcolors
             .iter()
@@ -601,7 +602,7 @@ impl Mesh {
         })
     }
 
-    pub fn from_json_data(data: &serde_json::Value) -> Option<Self> {
+    pub fn jsonload(data: &serde_json::Value) -> Option<Self> {
         let mut mesh = Mesh::new();
 
         if let Some(guid) = data.get("guid").and_then(|v| v.as_str()) {
@@ -696,14 +697,14 @@ impl Mesh {
     }
 
     pub fn to_json(&self, filename: &str) -> std::io::Result<()> {
-        let data = self.to_json_data();
+        let data = self.jsondump();
         std::fs::write(filename, serde_json::to_string_pretty(&data)?)
     }
 
     pub fn from_json(filename: &str) -> std::io::Result<Self> {
         let content = std::fs::read_to_string(filename)?;
         let data: serde_json::Value = serde_json::from_str(&content)?;
-        Self::from_json_data(&data).ok_or_else(|| {
+        Self::jsonload(&data).ok_or_else(|| {
             std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid mesh data")
         })
     }

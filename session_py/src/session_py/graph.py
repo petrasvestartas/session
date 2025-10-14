@@ -1,145 +1,6 @@
-import json
 import uuid
-
-
-class Vertex:
-    """A graph vertex with a unique identifier and attribute string.
-
-    Parameters
-    ----------
-    name : str, optional
-        Name identifier for the vertex. Defaults to "my_vertex".
-    attribute : str, optional
-        Vertex attribute data as string. Defaults to "".
-
-    Attributes
-    ----------
-    guid : str
-        The unique identifier of the vertex.
-    name : str
-        The name of the vertex.
-    attribute : str
-        Vertex attribute data as string.
-    index : int or None
-        Integer index for the vertex. Set internally by Graph.
-
-    """
-
-    def __init__(self, name="my_vertex", attribute=""):
-        """Initialize a new Vertex.
-
-        Parameters
-        ----------
-        name : str, optional
-            Name identifier for the vertex. Defaults to "my_vertex".
-        attribute : str, optional
-            Vertex attribute data as string. Defaults to "".
-
-        """
-        self.guid = str(uuid.uuid4())
-        self.name = str(name)
-        self.attribute = str(attribute)
-        self.index = None  # Will be set internally by Graph
-
-    def to_json_data(self):
-        """Convert the Vertex to a JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            Dictionary containing the Vertex data in JSON format.
-
-        """
-        return {
-            "type": "Vertex",
-            "guid": self.guid,
-            "name": self.name,
-            "attribute": self.attribute,
-            "index": self.index,
-        }
-
-    @classmethod
-    def from_json_data(cls, data):
-        """Create Vertex from JSON data dictionary.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing vertex data from JSON.
-
-        Returns
-        -------
-        :class:`Vertex`
-            Vertex instance created from the JSON data.
-
-        """
-        vertex = cls(data["name"], data["attribute"])
-        vertex.index = data.get("index")  # Set index after creation
-        vertex.guid = data.get("guid")
-        return vertex
-
-
-class Edge:
-    """A graph edge connecting two vertices with an attribute string."""
-
-    def __init__(self, v0, v1, attribute=""):
-        """Initialize a new Edge.
-
-        Parameters
-        ----------
-        v0 : str
-            Name of the first vertex.
-        v1 : str
-            Name of the second vertex.
-        attribute : str, optional
-            Edge attribute data as string.
-        """
-        self.guid = str(uuid.uuid4())
-        self.name = "my_edge"
-        self.v0 = str(v0)
-        self.v1 = str(v1)
-        self.attribute = str(attribute)
-        self.index = None  # Will be set internally by Graph
-
-    def to_json_data(self):
-        """Convert the Edge to a JSON-serializable dictionary."""
-        return {
-            "type": "Edge",
-            "guid": self.guid,
-            "name": self.name,
-            "v0": self.v0,
-            "v1": self.v1,
-            "attribute": self.attribute,
-            "index": self.index,
-        }
-
-    @classmethod
-    def from_json_data(cls, data):
-        """Create Edge from JSON data dictionary."""
-        edge = cls(data["v0"], data["v1"], data["attribute"])
-        edge.index = data.get("index")  # Set index after creation
-        edge.guid = data.get("guid", edge.guid)
-        edge.name = data.get("name", edge.name)
-        return edge
-
-    @property
-    def vertices(self):
-        """Get the edge vertices as a tuple."""
-        return (self.v0, self.v1)
-
-    def connects(self, vertex_id):
-        """Check if this edge connects to a given vertex."""
-        return str(vertex_id) in self.vertices
-
-    def other_vertex(self, vertex_id):
-        """Get the other vertex ID connected by this edge."""
-        vertex_id = str(vertex_id)
-        if vertex_id == self.v0:
-            return self.v1
-        elif vertex_id == self.v1:
-            return self.v0
-        else:
-            raise ValueError(f"Vertex {vertex_id} is not connected by this edge")
+from .vertex import Vertex
+from .edge import Edge
 
 
 class Graph:
@@ -173,99 +34,76 @@ class Graph:
         return f"Graph({self.name}, {len(self.vertices)} vertices, {len(self.edges)} edges)"
 
     ###########################################################################################
-    # JSON
+    # JSON (polymorphic)
     ###########################################################################################
 
-    def to_json_data(self):
-        """Convert the Graph to a JSON-serializable dictionary.
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field."""
+        # Only store each undirected edge once (u < v)
+        seen = set()
+        edges_list = []
+        for u, neighbors in self.edges.items():
+            for v, edge in neighbors.items():
+                key = (u, v) if u < v else (v, u)
+                if key in seen:
+                    continue
+                seen.add(key)
+                edges_list.append(edge.__jsondump__())
 
-        Returns
-        -------
-        dict
-            Dictionary representation of the graph.
-        """
         return {
-            "type": "Graph",
-            "name": self.name,
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
-            "vertices": [vertex.to_json_data() for vertex in self.vertices.values()],
-            "edges": [
-                edge.to_json_data()
-                for u, neighbors in self.edges.items()
-                for v, edge in neighbors.items()
-                if u < v
-            ],  # Only store each edge once
+            "name": self.name,
+            "vertices": [vertex.__jsondump__() for vertex in self.vertices.values()],
+            "edges": edges_list,
             "vertex_count": self.vertex_count,
             "edge_count": self.edge_count,
         }
 
     @classmethod
-    def from_json_data(cls, data):
-        """Create a Graph from JSON data dictionary.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing graph data.
-
-        Returns
-        -------
-        :class:`Graph`
-            Graph instance created from the data.
-        """
-        graph = cls(name=data["name"])
-        graph.guid = str(data["guid"])
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format."""
+        graph = cls(name=data.get("name", "my_graph"))
+        graph.guid = guid if guid is not None else data.get("guid", graph.guid)
         graph.vertex_count = data.get("vertex_count", 0)
         graph.edge_count = data.get("edge_count", 0)
 
         # Restore vertices
         for vertex_data in data.get("vertices", []):
-            vertex = Vertex.from_json_data(vertex_data)
-            graph.vertices[vertex.name] = vertex
+            # When decoding, nested vertices may already be reconstructed objects
+            if isinstance(vertex_data, Vertex):
+                vtx = vertex_data
+            elif isinstance(vertex_data, dict):
+                vtx = Vertex.__jsonload__(
+                    vertex_data,
+                    vertex_data.get("guid"),
+                    vertex_data.get("name"),
+                )
+            else:
+                continue
+            graph.vertices[str(vtx.name)] = vtx
 
         # Restore edges
         for edge_data in data.get("edges", []):
-            edge = Edge.from_json_data(edge_data)
-            u, v = edge.v0, edge.v1
+            if isinstance(edge_data, Edge):
+                e = edge_data
+            elif isinstance(edge_data, dict):
+                e = Edge.__jsonload__(
+                    edge_data,
+                    edge_data.get("guid"),
+                    edge_data.get("name"),
+                )
+            else:
+                continue
+            u, v = str(e.v0), str(e.v1)
             if u not in graph.edges:
                 graph.edges[u] = {}
             if v not in graph.edges:
                 graph.edges[v] = {}
-            graph.edges[u][v] = edge
-            graph.edges[v][u] = edge
+            graph.edges[u][v] = e
+            graph.edges[v][u] = e
 
         return graph
-
-    @classmethod
-    def from_json(cls, filepath):
-        """Load a Graph from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Graph`
-            Graph instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
-
-    def to_json(self, filepath):
-        """Save the Graph to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path where to save the JSON file.
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=2)
 
     ###########################################################################################
     # Details: Essential Graph Methods

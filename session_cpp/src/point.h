@@ -1,5 +1,6 @@
 #pragma once
 #include "color.h"
+#include "xform.h"
 #include "fmt/core.h"
 #include "guid.h"
 #include "json.h"
@@ -12,6 +13,7 @@
 #include <vector.h>
 
 namespace session_cpp {
+
 /**
  * @class Point
  * @brief A point defined by XYZ coordinates with display properties.
@@ -22,6 +24,7 @@ public:
   std::string name = "my_point";     ///< Point identifier/name
   float width = 1.0f;                ///< Point diameter in pixels
   Color pointcolor = Color::white(); ///< Color of the point
+  Xform xform = Xform::identity();   ///< Transformation matrix
 
 private:
   float _x = 0.0f;                   ///< X coordinate (private)
@@ -66,16 +69,14 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   /// Convert to JSON-serializable object
-  nlohmann::ordered_json to_json_data() const;
+  nlohmann::ordered_json jsondump() const;
 
   /// Create point from JSON data
-  static Point from_json_data(const nlohmann::json &data);
+  static Point jsonload(const nlohmann::json &data);
 
   /// Serialize to JSON file
-  void to_json(const std::string &filepath) const;
 
   /// Deserialize from JSON file
-  static Point from_json(const std::string &filepath);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // No-copy Operators

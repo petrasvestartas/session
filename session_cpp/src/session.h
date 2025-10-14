@@ -6,8 +6,16 @@
 #include "json.h"
 #include "objects.h"
 #include "point.h"
-#include "tree.h"
 #include "vector.h"
+#include "line.h"
+#include "plane.h"
+#include "boundingbox.h"
+#include "polyline.h"
+#include "pointcloud.h"
+#include "mesh.h"
+#include "cylinder.h"
+#include "arrow.h"
+#include "tree.h"
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -18,8 +26,18 @@
 
 namespace session_cpp {
 
-// All geometry types as a variant - easily extensible for Curve, Mesh, etc.
-using Geometry = std::variant<std::shared_ptr<Point>, std::shared_ptr<Vector>>;
+// All geometry types as a variant
+using Geometry = std::variant<
+    std::shared_ptr<Arrow>,
+    std::shared_ptr<BoundingBox>,
+    std::shared_ptr<Cylinder>,
+    std::shared_ptr<Line>,
+    std::shared_ptr<Mesh>,
+    std::shared_ptr<Plane>,
+    std::shared_ptr<Point>,
+    std::shared_ptr<PointCloud>,
+    std::shared_ptr<Polyline>
+>;
 
 /**
  * @class Session
@@ -89,14 +107,65 @@ public:
   /**
    * @brief Add a point to the session.
    * @param point Shared pointer to the point to add
+   * @return Shared pointer to the TreeNode created for this point
    */
-  void add_point(std::shared_ptr<Point> point);
+  std::shared_ptr<TreeNode> add_point(std::shared_ptr<Point> point);
 
   /**
-   * @brief Add a vector to the session.
-   * @param vector Shared pointer to the vector to add
+   * @brief Add a line to the session.
+   * @return Shared pointer to the TreeNode created for this line
    */
-  void add_vector(std::shared_ptr<Vector> vector);
+  std::shared_ptr<TreeNode> add_line(std::shared_ptr<Line> line);
+
+  /**
+   * @brief Add a plane to the session.
+   * @return Shared pointer to the TreeNode created for this plane
+   */
+  std::shared_ptr<TreeNode> add_plane(std::shared_ptr<Plane> plane);
+
+  /**
+   * @brief Add a bounding box to the session.
+   * @return Shared pointer to the TreeNode created for this bounding box
+   */
+  std::shared_ptr<TreeNode> add_bbox(std::shared_ptr<BoundingBox> bbox);
+
+  /**
+   * @brief Add a polyline to the session.
+   * @return Shared pointer to the TreeNode created for this polyline
+   */
+  std::shared_ptr<TreeNode> add_polyline(std::shared_ptr<Polyline> polyline);
+
+  /**
+   * @brief Add a point cloud to the session.
+   * @return Shared pointer to the TreeNode created for this point cloud
+   */
+  std::shared_ptr<TreeNode> add_pointcloud(std::shared_ptr<PointCloud> pointcloud);
+
+  /**
+   * @brief Add a mesh to the session.
+   * @return Shared pointer to the TreeNode created for this mesh
+   */
+  std::shared_ptr<TreeNode> add_mesh(std::shared_ptr<Mesh> mesh);
+
+  /**
+   * @brief Add a cylinder to the session.
+   * @return Shared pointer to the TreeNode created for this cylinder
+   */
+  std::shared_ptr<TreeNode> add_cylinder(std::shared_ptr<Cylinder> cylinder);
+
+  /**
+   * @brief Add an arrow to the session.
+   * @return Shared pointer to the TreeNode created for this arrow
+   */
+  std::shared_ptr<TreeNode> add_arrow(std::shared_ptr<Arrow> arrow);
+
+  /**
+   * @brief Add a TreeNode to the tree hierarchy.
+   * @param node The TreeNode to add
+   * @param parent Optional parent TreeNode (defaults to root if not provided)
+   */
+  void add(std::shared_ptr<TreeNode> node, 
+           std::shared_ptr<TreeNode> parent = nullptr);
 
   /**
    * @brief Add an edge between two geometry objects in the graph.
@@ -163,27 +232,25 @@ public:
    * @brief Serializes the Session instance to JSON.
    * @return JSON representation of the Session instance.
    */
-  nlohmann::ordered_json to_json_data();
+  nlohmann::ordered_json jsondump() const;
 
   /**
    * @brief Creates a Session instance from JSON data.
    * @param data JSON data containing session information.
    * @return Session instance created from the data.
    */
-  static Session from_json_data(const nlohmann::json &data);
+  static Session jsonload(const nlohmann::json &data);
 
   /**
    * @brief Saves the Session instance to a JSON file.
    * @param filepath Path where to save the JSON file.
    */
-  void to_json(const std::string &filepath);
 
   /**
    * @brief Loads a Session instance from a JSON file.
    * @param filepath Path to the JSON file to load.
    * @return Session instance loaded from the file.
    */
-  static Session from_json(const std::string &filepath);
 };
 /**
  * @brief  To use this operator, you can do:

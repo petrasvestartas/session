@@ -1,7 +1,21 @@
 {
   "type": "Mesh",
-  "guid": "7fcc6fdc-f8ea-4cda-a35c-992acdb86aff",
+  "guid": "110161c2-1fc6-4861-a5e6-a527184227f9",
   "name": "my_mesh",
+  "halfedge": {
+    "1": {
+      "3": 1,
+      "5": null
+    },
+    "3": {
+      "1": null,
+      "5": 1
+    },
+    "5": {
+      "1": 1,
+      "3": null
+    }
+  },
   "vertex": {
     "1": {
       "x": 0.0,
@@ -29,11 +43,15 @@
       5
     ]
   },
+  "facedata": null,
+  "edgedata": null,
   "default_vertex_attributes": {
     "x": 0.0,
     "y": 0.0,
     "z": 0.0
   },
   "default_face_attributes": {},
-  "default_edge_attributes": {}
+  "default_edge_attributes": {},
+  "max_vertex": 6,
+  "max_face": 2
 }

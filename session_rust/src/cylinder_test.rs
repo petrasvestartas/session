@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::cylinder::Cylinder;
+    use crate::encoders::{json_dump, json_load};
     use crate::line::Line;
 
     #[test]
@@ -33,7 +34,7 @@ mod tests {
         let line = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
         let pipe = Cylinder::new(line, 1.5);
 
-        let json_string = pipe.to_json_data().unwrap();
+        let json_string = pipe.jsondump().unwrap();
         assert!(json_string.contains("Cylinder"));
         assert!(json_string.contains("radius"));
         assert!(json_string.contains("1.5"));
@@ -44,8 +45,8 @@ mod tests {
         let line = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
         let pipe = Cylinder::new(line, 0.5);
 
-        let json_string = pipe.to_json_data().unwrap();
-        let deserialized = Cylinder::from_json_data(&json_string).unwrap();
+        let json_string = pipe.jsondump().unwrap();
+        let deserialized = Cylinder::jsonload(&json_string).unwrap();
 
         assert_eq!(deserialized.radius, 0.5);
         assert_eq!(deserialized.mesh.number_of_vertices(), 20);
@@ -58,9 +59,9 @@ mod tests {
         let pipe = Cylinder::new(line, 1.0);
 
         let filepath = "test_cylinder.json";
-        pipe.to_json(filepath).unwrap();
+        json_dump(&pipe, filepath, true).unwrap();
 
-        let loaded = Cylinder::from_json(filepath).unwrap();
+        let loaded = json_load::<Cylinder>(filepath).unwrap();
         assert_eq!(loaded.radius, 1.0);
         assert_eq!(loaded.mesh.number_of_vertices(), 20);
         assert_eq!(loaded.mesh.number_of_faces(), 20);

@@ -1,6 +1,4 @@
-import json
 import uuid
-from typing import List
 
 from .color import Color
 from .point import Point
@@ -61,13 +59,14 @@ class PointCloud:
     # JSON
     ###########################################################################################
 
-    def to_json_data(self) -> dict:
-        """Convert to JSON-serializable dictionary with flat arrays.
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
 
         Returns
         -------
         dict
-            JSON-serializable dictionary.
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
         """
         # Flatten points to [x, y, z, x, y, z, ...]
         points_flat = []
@@ -85,32 +84,39 @@ class PointCloud:
             colors_flat.extend([c.r, c.g, c.b])
 
         return {
-            "type": "PointCloud",
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
             "points": points_flat,
             "normals": normals_flat,
             "colors": colors_flat,
-            "xform": self.xform.to_json_data(),
+            "xform": self.xform.__jsondump__(),
         }
 
-    @staticmethod
-    def from_json_data(data: dict) -> "PointCloud":
-        """Create PointCloud from JSON data.
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
 
         Parameters
         ----------
         data : dict
-            JSON data dictionary.
+            Dictionary containing pointcloud data.
+        guid : str, optional
+            GUID for the pointcloud.
+        name : str, optional
+            Name for the pointcloud.
 
         Returns
         -------
-        PointCloud
-            PointCloud instance.
+        :class:`PointCloud`
+            Reconstructed pointcloud instance.
+
         """
-        cloud = PointCloud()
-        cloud.guid = data["guid"]
-        cloud.name = data["name"]
+        from .encoders import decode_node
+
+        cloud = cls()
+        cloud.guid = guid
+        cloud.name = name
 
         # Reconstruct points from flat array
         points_flat = data["points"]
@@ -133,38 +139,9 @@ class PointCloud:
             for i in range(0, len(colors_flat), 3)
         ]
 
-        cloud.xform = Xform.from_json_data(data["xform"])
+        cloud.xform = decode_node(data["xform"])
 
         return cloud
-
-    def to_json(self, filepath: str) -> None:
-        """Serialize to JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath: str) -> "PointCloud":
-        """Deserialize from JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to JSON file.
-
-        Returns
-        -------
-        PointCloud
-            PointCloud instance.
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return PointCloud.from_json_data(data)
 
     ###########################################################################################
     # No-copy Operators

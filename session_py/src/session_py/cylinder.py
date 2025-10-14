@@ -1,5 +1,4 @@
 import uuid
-import json
 from typing import List, Tuple
 from .point import Point
 from .vector import Vector
@@ -165,39 +164,52 @@ class Cylinder:
     # JSON
     ###########################################################################################
 
-    def to_json_data(self) -> dict:
-        """Serializes the Cylinder to a JSON-serializable dictionary."""
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
         return {
-            "type": "Cylinder",
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
             "radius": self.radius,
-            "line": self.line.to_json_data(),
-            "mesh": self.mesh.to_json_data(),
+            "line": self.line.__jsondump__(),
+            "mesh": self.mesh.__jsondump__(),
         }
 
-    @staticmethod
-    def from_json_data(data: dict) -> "Cylinder":
-        """Deserializes a Cylinder from JSON data."""
-        line = Line.from_json_data(data["line"])
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing cylinder data.
+        guid : str, optional
+            GUID for the cylinder.
+        name : str, optional
+            Name for the cylinder.
+
+        Returns
+        -------
+        :class:`Cylinder`
+            Reconstructed cylinder instance.
+
+        """
+        from .encoders import decode_node
+
+        line = decode_node(data["line"])
         radius = data["radius"]
-        cylinder = Cylinder(line, radius)
+        cylinder = cls(line, radius)
+        cylinder.guid = guid
+        cylinder.name = name
 
-        if "guid" in data:
-            cylinder.guid = data["guid"]
-        if "name" in data:
-            cylinder.name = data["name"]
-
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
         return cylinder
-
-    def to_json(self, filepath: str) -> None:
-        """Serializes the Cylinder to a JSON file."""
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath: str) -> "Cylinder":
-        """Deserializes a Cylinder from a JSON file."""
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return Cylinder.from_json_data(data)

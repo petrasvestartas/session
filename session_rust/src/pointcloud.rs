@@ -49,7 +49,7 @@ impl PointCloud {
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
         let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
@@ -57,19 +57,19 @@ impl PointCloud {
         Ok(String::from_utf8(buf)?)
     }
 
-    pub fn from_json_data(json_str: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_str: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_str)?)
     }
 
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json_str = self.to_json_data()?;
+        let json_str = self.jsondump()?;
         std::fs::write(filepath, json_str)?;
         Ok(())
     }
 
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json_str = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json_str)
+        Self::jsonload(&json_str)
     }
 }
 

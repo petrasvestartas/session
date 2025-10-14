@@ -1,4 +1,4 @@
-use crate::{Point, Vector};
+use crate::{Point, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -23,6 +23,8 @@ pub struct Plane {
     _c: f32,
     #[serde(rename = "d")]
     _d: f32,
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,
 }
 
 impl Default for Plane {
@@ -38,6 +40,7 @@ impl Default for Plane {
             _b: 0.0,
             _c: 1.0,
             _d: 0.0,
+            xform: Xform::identity(),
         }
     }
 }
@@ -67,6 +70,7 @@ impl Plane {
             _b: b,
             _c: c,
             _d: d,
+            xform: Xform::identity(),
         }
     }
 
@@ -94,6 +98,7 @@ impl Plane {
             _b: b,
             _c: c,
             _d: d,
+            xform: Xform::identity(),
         }
     }
 
@@ -123,6 +128,7 @@ impl Plane {
             _b: b,
             _c: c,
             _d: d,
+            xform: Xform::identity(),
         }
     }
 
@@ -161,6 +167,7 @@ impl Plane {
             _b: b,
             _c: c,
             _d: d,
+            xform: Xform::identity(),
         }
     }
 
@@ -193,6 +200,7 @@ impl Plane {
             _b: b,
             _c: c,
             _d: d,
+            xform: Xform::identity(),
         }
     }
 
@@ -208,6 +216,7 @@ impl Plane {
             _b: 0.0,
             _c: 1.0,
             _d: 0.0,
+            xform: Xform::identity(),
         }
     }
 
@@ -223,6 +232,7 @@ impl Plane {
             _b: 0.0,
             _c: 0.0,
             _d: 0.0,
+            xform: Xform::identity(),
         }
     }
 
@@ -238,6 +248,7 @@ impl Plane {
             _b: 1.0,
             _c: 0.0,
             _d: 0.0,
+            xform: Xform::identity(),
         }
     }
 
@@ -429,6 +440,16 @@ impl std::fmt::Display for Plane {
             "Plane(origin={}, x_axis={}, y_axis={}, z_axis={}, guid={}, name={})",
             self._origin, self._x_axis, self._y_axis, self._z_axis, self.guid, self.name
         )
+    }
+}
+
+impl Plane {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
+        Ok(serde_json::to_string_pretty(self)?)
+    }
+
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(serde_json::from_str(json_data)?)
     }
 }
 

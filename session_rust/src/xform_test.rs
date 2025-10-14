@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod xform_tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::{Point, Vector, Xform};
 
     fn approx_f32(a: f32, b: f32) -> bool {
@@ -167,8 +168,8 @@ mod xform_tests {
         let x = Xform::from_matrix([
             1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 5.0, 6.0, 1.0,
         ]);
-        let data = x.to_json_data().expect("Failed to serialize Xform to JSON");
-        let y = Xform::from_json_data(&data).expect("Failed to deserialize JSON to Xform");
+        let data = x.jsondump().expect("Failed to serialize Xform to JSON");
+        let y = Xform::jsonload(&data).expect("Failed to deserialize JSON to Xform");
         assert!(matrices_close(&x, &y));
     }
 
@@ -322,7 +323,7 @@ mod xform_tests {
     #[test]
     fn test_xform_to_json_data() {
         let x = Xform::identity();
-        let data = x.to_json_data().expect("Failed to serialize");
+        let data = x.jsondump().expect("Failed to serialize");
         assert!(data.contains("\"m\""));
         assert!(data.len() > 10);
     }
@@ -330,7 +331,7 @@ mod xform_tests {
     #[test]
     fn test_xform_from_json_data() {
         let data = r#"{"type":"Xform","guid":"test-guid","name":"test_xform","m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]}"#;
-        let x = Xform::from_json_data(data).expect("Failed to deserialize");
+        let x = Xform::jsonload(data).expect("Failed to deserialize");
         assert!(x.is_identity());
     }
 
@@ -338,8 +339,8 @@ mod xform_tests {
     fn test_xform_to_json_from_json() {
         let x = Xform::translation(1.0, 2.0, 3.0);
         let filepath = "test_xform.json";
-        x.to_json(filepath).expect("Failed to write JSON");
-        let y = Xform::from_json(filepath).expect("Failed to read JSON");
+        json_dump(&x, filepath, true).expect("Failed to write JSON");
+        let y = json_load(filepath).expect("Failed to read JSON");
         assert!(matrices_close(&x, &y));
     }
 

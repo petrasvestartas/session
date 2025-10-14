@@ -2,6 +2,9 @@
 #include "plane.h"
 #include "point.h"
 #include "vector.h"
+#include "color.h"
+#include "xform.h"
+#include "xform.h"
 #include "guid.h"
 #include "json.h"
 #include <vector>
@@ -10,6 +13,7 @@
 #include <iostream>
 
 namespace session_cpp {
+
 
 /**
  * @class Polyline
@@ -21,6 +25,10 @@ public:
     std::string name = "my_polyline";
     std::vector<Point> points;
     Plane plane;
+    float width = 1.0f;
+    Color linecolor = Color::white();
+
+    Xform xform;
 
     /// Default constructor
     Polyline();
@@ -80,16 +88,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to JSON-serializable object
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
 
     /// Create polyline from JSON data
-    static Polyline from_json_data(const nlohmann::json& data);
+    static Polyline jsonload(const nlohmann::json& data);
 
     /// Serialize to JSON file
-    void to_json(const std::string& filepath) const;
 
     /// Deserialize from JSON file
-    static Polyline from_json(const std::string& filepath);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Geometric Utilities

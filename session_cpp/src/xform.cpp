@@ -1,4 +1,5 @@
 #include "xform.h"
+#include "point.h"
 
 namespace session_cpp {
 
@@ -438,7 +439,7 @@ void Xform::transform_vector(Vector& vector) const {
     vector[2] = m[2] * x + m[6] * y + m[10] * z;
 }
 
-nlohmann::ordered_json Xform::to_json_data() const {
+nlohmann::ordered_json Xform::jsondump() const {
     return nlohmann::ordered_json{
         {"type", "Xform"},
         {"guid", guid},
@@ -447,30 +448,12 @@ nlohmann::ordered_json Xform::to_json_data() const {
     };
 }
 
-Xform Xform::from_json_data(const nlohmann::json& data) {
+Xform Xform::jsonload(const nlohmann::json& data) {
     Xform xform;
     xform.guid = data["guid"].get<std::string>();
     xform.name = data["name"].get<std::string>();
     xform.m = data["m"].get<std::array<float, 16>>();
     return xform;
-}
-
-void Xform::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + filepath);
-    }
-    file << to_json_data().dump(4);
-}
-
-Xform Xform::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + filepath);
-    }
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
 }
 
 Xform Xform::operator*(const Xform& other) const {

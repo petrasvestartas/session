@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::{Objects, Point};
 
     #[test]
@@ -7,7 +8,7 @@ mod tests {
         let objects = Objects::new();
         assert_eq!(objects.name, "my_objects");
         assert!(!objects.guid.is_empty());
-        assert_eq!(objects.vec.len(), 0);
+        assert_eq!(objects.points.len(), 0);
     }
 
     #[test]
@@ -16,9 +17,9 @@ mod tests {
         let point1 = Point::new(1.0, 2.0, 3.0);
         let point2 = Point::new(4.0, 5.0, 6.0);
         let point3 = Point::new(7.0, 8.0, 9.0);
-        objects.vec = vec![point1, point2, point3];
+        objects.points = vec![point1, point2, point3];
 
-        let json_result = objects.to_json_data();
+        let json_result = objects.jsondump();
         assert!(json_result.is_ok());
 
         let json_data = json_result.unwrap();
@@ -36,17 +37,17 @@ mod tests {
         let mut objects = Objects::new();
         let point1 = Point::new(10.0, 20.0, 30.0);
         let point2 = Point::new(40.0, 50.0, 60.0);
-        objects.vec = vec![point1, point2];
+        objects.points = vec![point1, point2];
 
-        let json_data = objects.to_json_data().unwrap();
-        let objects2_result = Objects::from_json_data(&json_data);
+        let json_data = objects.jsondump().unwrap();
+        let objects2_result = Objects::jsonload(&json_data);
         assert!(objects2_result.is_ok());
 
         let objects2 = objects2_result.unwrap();
         assert_eq!(objects2.name, "my_objects");
-        assert_eq!(objects2.vec.len(), 2);
-        assert_eq!(objects2.vec[0].x(), 10.0);
-        assert_eq!(objects2.vec[1].z(), 60.0);
+        assert_eq!(objects2.points.len(), 2);
+        assert_eq!(objects2.points[0].x(), 10.0);
+        assert_eq!(objects2.points[1].z(), 60.0);
     }
 
     #[test]
@@ -55,21 +56,21 @@ mod tests {
         let point1 = Point::new(100.0, 200.0, 300.0);
         let point2 = Point::new(400.0, 500.0, 600.0);
         let point3 = Point::new(700.0, 800.0, 900.0);
-        objects.vec = vec![point1, point2, point3];
+        objects.points = vec![point1, point2, point3];
         let filename = "test_objects.json";
 
         // Save to file
-        let save_result = objects.to_json(filename);
+        let save_result = json_dump(&objects, filename, true);
         assert!(save_result.is_ok());
 
         // Load from file
-        let loaded_result = Objects::from_json(filename);
+        let loaded_result = json_load::<Objects>(filename);
         assert!(loaded_result.is_ok());
 
         let loaded_objects = loaded_result.unwrap();
         assert_eq!(loaded_objects.name, objects.name);
-        assert_eq!(loaded_objects.vec.len(), objects.vec.len());
-        assert_eq!(loaded_objects.vec[0].x(), objects.vec[0].x());
-        assert_eq!(loaded_objects.vec[2].z(), objects.vec[2].z());
+        assert_eq!(loaded_objects.points.len(), objects.points.len());
+        assert_eq!(loaded_objects.points[0].x(), objects.points[0].x());
+        assert_eq!(loaded_objects.points[2].z(), objects.points[2].z());
     }
 }

@@ -2,6 +2,7 @@
 #include "point.h"
 #include "vector.h"
 #include "color.h"
+#include "xform.h"
 #include "fmt/core.h"
 #include "guid.h"
 #include "json.h"
@@ -13,6 +14,7 @@
 #include <string>
 
 namespace session_cpp {
+
 /**
  * @class Line
  * @brief A class representing a line in 3D space with display properties.
@@ -23,6 +25,7 @@ public:
     std::string name = "my_line";      ///< Line identifier/name
     float width = 1.0f;                ///< Line width in pixels
     Color linecolor = Color::white();  ///< Color of the line
+    Xform xform;   ///< Transformation matrix
     // Mesh mesh;                      ///< Mesh for visualization (pipe) - TODO: implement later
 
 private:
@@ -34,6 +37,7 @@ private:
     float _z1 = 1.0f;                  ///< Z coordinate of end point
 
 public:
+
     /// Getters for coordinates
     float x0() const { return _x0; }
     float y0() const { return _y0; }
@@ -93,16 +97,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to JSON-serializable object
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
 
     /// Create line from JSON data
-    static Line from_json_data(const nlohmann::json& data);
+    static Line jsonload(const nlohmann::json& data);
 
     /// Serialize to JSON file
-    void to_json(const std::string& filepath) const;
 
     /// Deserialize from JSON file
-    static Line from_json(const std::string& filepath);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Operators

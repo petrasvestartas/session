@@ -1,18 +1,18 @@
 {
-    "type": "Point",
-    "guid": "65fffb6c-7c34-49ca-814e-30245e7843fd",
-    "name": "file_test_point",
-    "x": 123.44999694824219,
-    "y": 678.9000244140625,
-    "z": 999.1099853515625,
-    "width": 4.5,
-    "pointcolor": {
-        "type": "Color",
-        "guid": "0ea18301-b78f-4c2b-ab2f-bf1e7bf8f194",
-        "name": "my_color",
-        "r": 0,
-        "g": 255,
-        "b": 128,
-        "a": 255
-    }
+  "type": "Point",
+  "guid": "1e76ecab-e40e-4d03-9bfa-3e9e55748afb",
+  "name": "test_point",
+  "x": 42.099998474121094,
+  "y": 84.19999694824219,
+  "z": 126.30000305175781,
+  "width": 3.0,
+  "pointcolor": {
+    "type": "Color",
+    "guid": "b6599ef5-c9d6-49fb-b9f0-7aa4c24662cd",
+    "name": "white",
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 255
+  }
 }

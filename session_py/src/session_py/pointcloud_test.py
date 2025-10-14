@@ -95,74 +95,22 @@ def test_pointcloud_str():
     assert "points=1" in s
 
 
-def test_pointcloud_json_serialization():
-    cloud = PointCloud(
-        [Point(1.0, 2.0, 3.0)],
-        [Vector(0.0, 0.0, 1.0)],
-        [Color(255, 0, 0, 255)],
-    )
-    json_data = cloud.to_json_data()
-    cloud2 = PointCloud.from_json_data(json_data)
-    assert cloud2.points[0].x == 1.0
-    assert cloud2.points[0].y == 2.0
-    assert cloud2.points[0].z == 3.0
+def test_pointcloud_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
+    points = [Point(0, 0, 0), Point(1, 1, 1)]
+    normals = [Vector(0, 0, 1), Vector(0, 0, 1)]
+    colors = [Color.red(), Color.blue()]
+    cloud = PointCloud(points, normals, colors)
+    cloud.name = "test_cloud"
 
-def test_pointcloud_json_file():
-    cloud = PointCloud(
-        [
-            Point(1.0, 2.0, 3.0),
-            Point(4.0, 5.0, 6.0),
-            Point(7.0, 8.0, 9.0),
-        ],
-        [
-            Vector(0.0, 0.0, 1.0),
-            Vector(0.0, 1.0, 0.0),
-            Vector(1.0, 0.0, 0.0),
-        ],
-        [
-            Color(255, 0, 0, 255),
-            Color(0, 255, 0, 255),
-            Color(0, 0, 255, 255),
-        ],
-    )
-    cloud.to_json("test_pointcloud.json")
-    cloud2 = PointCloud.from_json("test_pointcloud.json")
+    path = Path(__file__).resolve().parents[2] / "test_pointcloud.json"
+    json_dump(cloud, path)
+    loaded = json_load(path)
 
-    assert len(cloud2) == 3
-    assert cloud2.points[0].x == 1.0
-    assert cloud2.points[1].y == 5.0
-    assert cloud2.points[2].z == 9.0
-
-
-def test_pointcloud_json_multiple_points():
-    cloud = PointCloud(
-        [
-            Point(1.0, 2.0, 3.0),
-            Point(4.0, 5.0, 6.0),
-            Point(7.0, 8.0, 9.0),
-        ],
-        [
-            Vector(0.0, 0.0, 1.0),
-            Vector(0.0, 1.0, 0.0),
-            Vector(1.0, 0.0, 0.0),
-        ],
-        [
-            Color(255, 0, 0, 255),
-            Color(0, 255, 0, 255),
-            Color(0, 0, 255, 255),
-        ],
-    )
-    json_data = cloud.to_json_data()
-    cloud2 = PointCloud.from_json_data(json_data)
-
-    assert len(cloud2) == 3
-    assert cloud2.points[0].x == 1.0
-    assert cloud2.points[1].y == 5.0
-    assert cloud2.points[2].z == 9.0
-    assert cloud2.normals[0].z == 1.0
-    assert cloud2.colors[1].g == 255
-    # Verify alpha is always 255 after deserialization
-    assert cloud2.colors[0].a == 255
-    assert cloud2.colors[1].a == 255
-    assert cloud2.colors[2].a == 255
+    assert isinstance(loaded, PointCloud)
+    assert len(loaded.points) == 2
+    assert loaded.points[0].x == 0.0
+    assert loaded.points[1].z == 1.0
+    assert loaded.name == cloud.name

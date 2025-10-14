@@ -1,4 +1,3 @@
-import json
 import uuid
 
 
@@ -66,92 +65,6 @@ class Color:
             and self.b == other.b
             and self.a == other.a
         )
-
-    ###########################################################################################
-    # JSON
-    ###########################################################################################
-
-    def to_json_data(self, minimal=False) -> dict:
-        """Convert to JSON-serializable dictionary.
-
-        Parameters
-        ----------
-        minimal : bool, optional
-            If True, return minimal representation without None values.
-
-        Returns
-        -------
-        dict
-            Dictionary representation of the color.
-
-        """
-        data = {
-            "type": "Color",
-            "guid": self.guid,
-            "name": self.name,
-            "r": self.r,
-            "g": self.g,
-            "b": self.b,
-            "a": self.a,
-        }
-        if minimal:
-            return {k: v for k, v in data.items() if v is not None}
-        return data
-
-    @classmethod
-    def from_json_data(cls, data) -> "Color | None":
-        """Create color from JSON data.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing color data from JSON.
-
-        Returns
-        -------
-        :class:`Color`
-            Color instance created from the JSON data.
-
-        """
-        if not all(key in data for key in ["r", "g", "b", "a"]):
-            return None
-        color = cls(data["r"], data["g"], data["b"], data["a"], data.get("name"))
-        if "guid" in data:
-            color.guid = data["guid"]
-        return color
-
-    def to_json(self, filepath, minimal=False) -> None:
-        """Save the Color to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path where to save the JSON file.
-        minimal : bool, optional
-            If True, save minimal representation.
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(minimal), f, indent=2)
-
-    @classmethod
-    def from_json(cls, filepath) -> "Color":
-        """Load Color from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Color`
-            Color instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
 
     ###########################################################################################
     # Details
@@ -322,4 +235,28 @@ class Color:
         """Create a silver color."""
         color = cls(192, 192, 192, 255)
         color.name = "silver"
+        return color
+
+    ###########################################################################################
+    # Polymorphic JSON Serialization (COMPAS-style)
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field."""
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "r": self.r,
+            "g": self.g,
+            "b": self.b,
+            "a": self.a,
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format."""
+        color = cls(data["r"], data["g"], data["b"], data.get("a", 255))
+        color.guid = guid
+        color.name = name
         return color

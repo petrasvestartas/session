@@ -133,50 +133,23 @@ def test_polyline_display():
     assert "points=2" in display_str
 
 
-def test_polyline_to_json_data():
-    polyline = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])
+def test_polyline_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
-    json_string = polyline.to_json_data()
-    assert "Polyline" in json_string
-    assert "points" in json_string
-
-
-def test_polyline_from_json_data():
-    polyline = Polyline([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)])
-
-    json_string = polyline.to_json_data()
-    deserialized = Polyline.from_json_data(json_string)
-
-    assert len(deserialized) == 2
-    assert deserialized.points[0].x == 1.0
-    assert deserialized.points[1].x == 4.0
-
-
-def test_polyline_json_serialization():
     points = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]
     polyline = Polyline(points)
+    polyline.name = "test_polyline"
 
-    json_string = polyline.to_json_data()
-    deserialized = Polyline.from_json_data(json_string)
+    path = Path(__file__).resolve().parents[2] / "test_polyline.json"
+    json_dump(polyline, path)
+    loaded = json_load(path)
 
-    assert len(deserialized) == 3
-    assert deserialized.points[0].x == 0.0
-    assert deserialized.points[1].x == 1.0
-    assert deserialized.points[2].y == 1.0
-
-
-def test_polyline_to_json_from_json():
-    points = [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0)]
-    polyline = Polyline(points)
-
-    filepath = "test_polyline.json"
-    polyline.to_json(filepath)
-    loaded = Polyline.from_json(filepath)
-
+    assert isinstance(loaded, Polyline)
     assert len(loaded) == 3
-    assert loaded.points[0].x == 1.0
-    assert loaded.points[1].y == 5.0
-    assert loaded.points[2].z == 9.0
+    assert loaded.points[0].x == 0.0
+    assert loaded.points[2].y == 1.0
+    assert loaded.name == polyline.name
 
 
 def test_polyline_get_point():

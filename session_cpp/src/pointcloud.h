@@ -15,37 +15,13 @@ namespace session_cpp {
  * @brief A point cloud with points, normals, colors, and transformation.
  */
 class PointCloud {
-private:
-    std::string _guid;
-    std::string _name;
-    std::vector<Point> _points;
-    std::vector<Vector> _normals;
-    std::vector<Color> _colors;
-    Xform _xform;
-
 public:
-    /// Get the unique identifier
-    const std::string& guid() const { return _guid; }
-    
-    /// Get the name
-    const std::string& name() const { return _name; }
-    
-    /// Get the collection of points
-    const std::vector<Point>& points() const { return _points; }
-    /// Get the collection of normals
-    const std::vector<Vector>& normals() const { return _normals; }
-    
-    /// Get the collection of colors
-    const std::vector<Color>& colors() const { return _colors; }
-    
-    /// Get the transformation matrix
-    const Xform& xform() const { return _xform; }
-
-    /// Set the name
-    void set_name(const std::string& name) { _name = name; }
-    
-    /// Set the transformation matrix
-    void set_xform(const Xform& xform) { _xform = xform; }
+    std::string guid = ::guid();
+    std::string name = "my_pointcloud";
+    std::vector<Point> points;
+    std::vector<Vector> normals;
+    std::vector<Color> colors;
+    Xform xform;
     /**
      * @brief Default constructor.
      */
@@ -79,16 +55,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to JSON-serializable object
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
     
     /// Create point cloud from JSON data
-    static PointCloud from_json_data(const nlohmann::json& data);
+    static PointCloud jsonload(const nlohmann::json& data);
     
     /// Serialize to JSON file
-    void to_json(const std::string& filepath) const;
     
     /// Deserialize from JSON file
-    static PointCloud from_json(const std::string& filepath);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // No-copy Operators
@@ -115,10 +89,10 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Get the number of points
-    size_t size() const { return _points.size(); }
+    size_t size() const { return points.size(); }
     
     /// Check if point cloud is empty
-    bool empty() const { return _points.empty(); }
+    bool empty() const { return points.empty(); }
 };
 
 /// Stream output operator for point cloud

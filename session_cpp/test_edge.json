@@ -1,0 +1,9 @@
+{
+  "type": "Edge",
+  "guid": "8237f547-ce2a-4e6e-b35e-3cbb21ce76ba",
+  "name": "my_edge",
+  "v0": "test_edge",
+  "v1": "v0",
+  "attribute": "v1",
+  "index": -1
+}

@@ -12,35 +12,85 @@ std::string Session::to_string() const {
 
 // Geometry Management
 
-void Session::add_point(std::shared_ptr<Point> point) {
-  // Add to objects collection
+std::shared_ptr<TreeNode> Session::add_point(std::shared_ptr<Point> point) {
   objects.points->push_back(point);
-
-  // Add to lookup table
   lookup[point->guid] = point;
-
-  // Automatically add to graph using point's GUID as node key
   graph.add_node(point->guid, "point_" + point->name);
-
-  // Automatically add to tree as child of root using point's GUID as node name
   auto tree_node = std::make_shared<TreeNode>(point->guid);
-  tree.add(tree_node, tree.root());
+  return tree_node;
 }
 
-void Session::add_vector(std::shared_ptr<Vector> vector) {
-  // Note: Objects class may need vectors collection - for now just add to
-  // lookup objects.vectors->push_back(*vector);  // Uncomment when Objects has
-  // vectors
+std::shared_ptr<TreeNode> Session::add_line(std::shared_ptr<Line> line) {
+  objects.lines->push_back(line);
+  lookup[line->guid] = line;
+  graph.add_node(line->guid, "line_" + line->name);
+  auto tree_node = std::make_shared<TreeNode>(line->guid);
+  return tree_node;
+}
 
-  // Add to lookup table
-  lookup[vector->guid] = vector;
+std::shared_ptr<TreeNode> Session::add_plane(std::shared_ptr<Plane> plane) {
+  objects.planes->push_back(plane);
+  lookup[plane->guid] = plane;
+  graph.add_node(plane->guid, "plane_" + plane->name);
+  auto tree_node = std::make_shared<TreeNode>(plane->guid);
+  return tree_node;
+}
 
-  // Automatically add to graph using vector's GUID as node key
-  graph.add_node(vector->guid, "vector_" + vector->name);
+std::shared_ptr<TreeNode> Session::add_bbox(std::shared_ptr<BoundingBox> bbox) {
+  objects.bboxes->push_back(bbox);
+  lookup[bbox->guid] = bbox;
+  graph.add_node(bbox->guid, "bbox_" + bbox->name);
+  auto tree_node = std::make_shared<TreeNode>(bbox->guid);
+  return tree_node;
+}
 
-  // Automatically add to tree as child of root using vector's GUID as node name
-  auto tree_node = std::make_shared<TreeNode>(vector->guid);
-  tree.add(tree_node, tree.root());
+std::shared_ptr<TreeNode> Session::add_polyline(std::shared_ptr<Polyline> polyline) {
+  objects.polylines->push_back(polyline);
+  lookup[polyline->guid] = polyline;
+  graph.add_node(polyline->guid, "polyline_" + polyline->name);
+  auto tree_node = std::make_shared<TreeNode>(polyline->guid);
+  return tree_node;
+}
+
+std::shared_ptr<TreeNode> Session::add_pointcloud(std::shared_ptr<PointCloud> pointcloud) {
+  objects.pointclouds->push_back(pointcloud);
+  lookup[pointcloud->guid] = pointcloud;
+  graph.add_node(pointcloud->guid, "pointcloud_" + pointcloud->name);
+  auto tree_node = std::make_shared<TreeNode>(pointcloud->guid);
+  return tree_node;
+}
+
+std::shared_ptr<TreeNode> Session::add_mesh(std::shared_ptr<Mesh> mesh) {
+  objects.meshes->push_back(mesh);
+  lookup[mesh->guid] = mesh;
+  graph.add_node(mesh->guid, "mesh_" + mesh->name);
+  auto tree_node = std::make_shared<TreeNode>(mesh->guid);
+  return tree_node;
+}
+
+std::shared_ptr<TreeNode> Session::add_cylinder(std::shared_ptr<Cylinder> cylinder) {
+  objects.cylinders->push_back(cylinder);
+  lookup[cylinder->guid] = cylinder;
+  graph.add_node(cylinder->guid, "cylinder_" + cylinder->name);
+  auto tree_node = std::make_shared<TreeNode>(cylinder->guid);
+  return tree_node;
+}
+
+std::shared_ptr<TreeNode> Session::add_arrow(std::shared_ptr<Arrow> arrow) {
+  objects.arrows->push_back(arrow);
+  lookup[arrow->guid] = arrow;
+  graph.add_node(arrow->guid, "arrow_" + arrow->name);
+  auto tree_node = std::make_shared<TreeNode>(arrow->guid);
+  return tree_node;
+}
+
+void Session::add(std::shared_ptr<TreeNode> node, 
+                  std::shared_ptr<TreeNode> parent) {
+  if (parent == nullptr) {
+    tree.add(node, tree.root());
+  } else {
+    tree.add(node, parent);
+  }
 }
 
 void Session::add_edge(const std::string &guid1, const std::string &guid2,
@@ -111,60 +161,65 @@ std::vector<std::string> Session::get_neighbours(const std::string &guid) {
 
 // JSON Serialization
 
-nlohmann::ordered_json Session::to_json_data() {
+nlohmann::ordered_json Session::jsondump() const {
   nlohmann::ordered_json data;
   data["type"] = "Session";
   data["name"] = name;
   data["guid"] = guid;
-  data["objects"] = objects.to_json_data();
-  data["tree"] = tree.to_json_data();
-  data["graph"] = graph.to_json_data();
+  data["objects"] = objects.jsondump();
+  data["tree"] = tree.jsondump();
+  data["graph"] = graph.jsondump();
   return data;
 }
 
-Session Session::from_json_data(const nlohmann::json &data) {
+Session Session::jsonload(const nlohmann::json &data) {
   Session session(data.value("name", "my_session"));
 
   // Load objects
   if (data.contains("objects")) {
-    session.objects = Objects::from_json_data(data["objects"]);
+    session.objects = Objects::jsonload(data["objects"]);
   }
 
-  // Rebuild lookup from objects
+  // Rebuild lookup from all objects
+  for (const auto &arrow_ptr : *session.objects.arrows) {
+    session.lookup[arrow_ptr->guid] = arrow_ptr;
+  }
+  for (const auto &bbox_ptr : *session.objects.bboxes) {
+    session.lookup[bbox_ptr->guid] = bbox_ptr;
+  }
+  for (const auto &cylinder_ptr : *session.objects.cylinders) {
+    session.lookup[cylinder_ptr->guid] = cylinder_ptr;
+  }
+  for (const auto &line_ptr : *session.objects.lines) {
+    session.lookup[line_ptr->guid] = line_ptr;
+  }
+  for (const auto &mesh_ptr : *session.objects.meshes) {
+    session.lookup[mesh_ptr->guid] = mesh_ptr;
+  }
+  for (const auto &plane_ptr : *session.objects.planes) {
+    session.lookup[plane_ptr->guid] = plane_ptr;
+  }
   for (const auto &point_ptr : *session.objects.points) {
     session.lookup[point_ptr->guid] = point_ptr;
+  }
+  for (const auto &pointcloud_ptr : *session.objects.pointclouds) {
+    session.lookup[pointcloud_ptr->guid] = pointcloud_ptr;
+  }
+  for (const auto &polyline_ptr : *session.objects.polylines) {
+    session.lookup[polyline_ptr->guid] = polyline_ptr;
   }
 
   // Load tree structure
   if (data.contains("tree")) {
-    session.tree = Tree::from_json_data(data["tree"]);
+    session.tree = Tree::jsonload(data["tree"]);
   }
 
   // Load graph structure
   if (data.contains("graph")) {
-    session.graph = Graph::from_json_data(data["graph"]);
+    session.graph = Graph::jsonload(data["graph"]);
   }
 
   return session;
-}
-
-void Session::to_json(const std::string &filepath) {
-  std::ofstream file(filepath);
-  if (file.is_open()) {
-    file << to_json_data().dump(4);
-    file.close();
-  }
-}
-
-Session Session::from_json(const std::string &filepath) {
-  std::ifstream file(filepath);
-  if (file.is_open()) {
-    nlohmann::json data;
-    file >> data;
-    file.close();
-    return from_json_data(data);
-  }
-  return Session(); // Return default session if file can't be opened
 }
 
 std::ostream &operator<<(std::ostream &os, const Session &session) {

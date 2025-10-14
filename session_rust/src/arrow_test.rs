@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::arrow::Arrow;
+    use crate::encoders::{json_dump, json_load};
     use crate::line::Line;
 
     #[test]
@@ -33,7 +34,7 @@ mod tests {
         let line = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
         let arrow = Arrow::new(line, 1.5);
 
-        let json_string = arrow.to_json_data().unwrap();
+        let json_string = arrow.jsondump().unwrap();
         assert!(json_string.contains("Arrow"));
         assert!(json_string.contains("radius"));
         assert!(json_string.contains("1.5"));
@@ -44,8 +45,8 @@ mod tests {
         let line = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
         let arrow = Arrow::new(line, 0.5);
 
-        let json_string = arrow.to_json_data().unwrap();
-        let deserialized = Arrow::from_json_data(&json_string).unwrap();
+        let json_string = arrow.jsondump().unwrap();
+        let deserialized = Arrow::jsonload(&json_string).unwrap();
 
         assert_eq!(deserialized.radius, 0.5);
         assert_eq!(deserialized.mesh.number_of_vertices(), 29);
@@ -58,9 +59,9 @@ mod tests {
         let arrow = Arrow::new(line, 1.0);
 
         let filepath = "test_arrow.json";
-        arrow.to_json(filepath).unwrap();
+        json_dump(&arrow, filepath, true).unwrap();
 
-        let loaded = Arrow::from_json(filepath).unwrap();
+        let loaded = json_load::<Arrow>(filepath).unwrap();
         assert_eq!(loaded.radius, 1.0);
         assert_eq!(loaded.mesh.number_of_vertices(), 29);
         assert_eq!(loaded.mesh.number_of_faces(), 28);

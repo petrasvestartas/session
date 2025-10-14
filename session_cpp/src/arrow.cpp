@@ -160,19 +160,20 @@ Mesh Arrow::create_arrow_mesh(const Line& line, float radius) {
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Arrow::to_json_data() const {
+nlohmann::ordered_json Arrow::jsondump() const {
     nlohmann::ordered_json j;
     j["type"] = "Arrow";
     j["guid"] = guid;
     j["name"] = name;
     j["radius"] = radius;
-    j["line"] = line.to_json_data();
-    j["mesh"] = mesh.to_json_data();
+    j["line"] = line.jsondump();
+    j["mesh"] = mesh.jsondump();
+    j["xform"] = xform.jsondump();
     return j;
 }
 
-Arrow Arrow::from_json_data(const nlohmann::json& data) {
-    Line line = Line::from_json_data(data["line"]);
+Arrow Arrow::jsonload(const nlohmann::json& data) {
+    Line line = Line::jsonload(data["line"]);
     float radius = data["radius"];
     Arrow arrow(line, radius);
     
@@ -182,20 +183,13 @@ Arrow Arrow::from_json_data(const nlohmann::json& data) {
     if (data.contains("name")) {
         arrow.name = data["name"];
     }
+    if (data.contains("xform")) {
+        arrow.xform = Xform::jsonload(data["xform"]);
+    }
     
     return arrow;
 }
 
-void Arrow::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(4);
-}
 
-Arrow Arrow::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
-}
 
 } // namespace session_cpp

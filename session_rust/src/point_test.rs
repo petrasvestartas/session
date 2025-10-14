@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::{Color, Point, Vector};
 
     #[test]
@@ -37,7 +38,7 @@ mod tests {
         point.width = 2.5;
         point.pointcolor = Color::new(255, 128, 64, 255);
 
-        let json_string = point.to_json_data().unwrap();
+        let json_string = point.jsondump().unwrap();
         let data: serde_json::Value = serde_json::from_str(&json_string).unwrap();
 
         assert_eq!(data["type"], "Point");
@@ -60,8 +61,8 @@ mod tests {
         original_point.width = 3.0;
         original_point.pointcolor = Color::new(200, 100, 50, 255);
 
-        let json_string = original_point.to_json_data().unwrap();
-        let restored_point = Point::from_json_data(&json_string).unwrap();
+        let json_string = original_point.jsondump().unwrap();
+        let restored_point = Point::jsonload(&json_string).unwrap();
 
         assert_eq!(restored_point.x(), 42.1);
         assert_eq!(restored_point.y(), 84.2);
@@ -83,8 +84,8 @@ mod tests {
         original.pointcolor = Color::new(0, 255, 128, 255);
         let filename = "test_point.json";
 
-        original.to_json(filename).unwrap();
-        let loaded = Point::from_json(filename).unwrap();
+        json_dump(&original, filename, true).unwrap();
+        let loaded = json_load::<Point>(filename).unwrap();
 
         assert_eq!(loaded.x(), original.x());
         assert_eq!(loaded.y(), original.y());

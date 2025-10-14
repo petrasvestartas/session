@@ -2,74 +2,6 @@
 
 namespace session_cpp {
 
-std::string Vertex::to_string() const {
-  return fmt::format("Vertex({}, {}, {}, {})", guid, name, attribute, index);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// JSON
-///////////////////////////////////////////////////////////////////////////////////////////
-
-std::string Edge::to_string() const {
-  return fmt::format("Edge({}, {}, {}, {})", guid, name, v0, v1);
-}
-
-nlohmann::ordered_json Vertex::to_json_data() {
-  return nlohmann::ordered_json{{"type", "Vertex"},
-                                {"name", name},
-                                {"guid", guid},
-                                {"attribute", attribute},
-                                {"index", index}};
-}
-
-Vertex Vertex::from_json_data(const nlohmann::json &data) {
-  Vertex vertex(data["name"], data["attribute"]);
-  vertex.index = data["index"];
-  vertex.guid = data["guid"];
-  return vertex;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// JSON
-///////////////////////////////////////////////////////////////////////////////////////////
-
-nlohmann::ordered_json Edge::to_json_data() {
-  return nlohmann::ordered_json{
-      {"type", "Edge"}, {"guid", guid},           {"name", name},  {"v0", v0},
-      {"v1", v1},       {"attribute", attribute}, {"index", index}};
-}
-
-/// Create Edge from JSON data dictionary.
-Edge Edge::from_json_data(const nlohmann::json &data) {
-  Edge edge(data["name"], data["v0"], data["v1"], data["attribute"]);
-  edge.index = data["index"];
-  edge.guid = data["guid"];
-  return edge;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// Details
-///////////////////////////////////////////////////////////////////////////////////////////
-
-std::tuple<std::string, std::string> Edge::vertices() const {
-  return std::make_tuple(v0, v1);
-}
-
-bool Edge::connects(const std::string &vertex_id) {
-  return v0 == vertex_id || v1 == vertex_id;
-}
-
-std::string Edge::other_vertex(const std::string &vertex_id) {
-  if (v0 == vertex_id) {
-    return v1;
-  } else if (v1 == vertex_id) {
-    return v0;
-  } else {
-    throw std::runtime_error("Vertex " + vertex_id +
-                             " is not connected by this edge");
-  }
-}
-
 std::string Graph::to_string() const {
   return fmt::format("Graph({}, {}, {}, {})", guid, name, vertex_count,
                      edge_count);
@@ -79,11 +11,11 @@ std::string Graph::to_string() const {
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Graph::to_json_data() {
+nlohmann::ordered_json Graph::jsondump() const {
   // Convert vertices to JSON array
   nlohmann::ordered_json vertices_json = nlohmann::ordered_json::array();
   for (auto &[vertex_name, vertex] : vertices) {
-    vertices_json.push_back(vertex.to_json_data());
+    vertices_json.push_back(vertex.jsondump());
   }
 
   // Convert edges to JSON array (store each edge only once)
@@ -91,7 +23,7 @@ nlohmann::ordered_json Graph::to_json_data() {
   for (auto &[u, neighbors] : edges) {
     for (auto &[v, edge] : neighbors) {
       if (u < v) { // Only store each edge once
-        edges_json.push_back(edge.to_json_data());
+        edges_json.push_back(edge.jsondump());
       }
     }
   }
@@ -105,7 +37,7 @@ nlohmann::ordered_json Graph::to_json_data() {
                                 {"edge_count", edge_count}};
 }
 
-Graph Graph::from_json_data(const nlohmann::json &data) {
+Graph Graph::jsonload(const nlohmann::json &data) {
   Graph graph(data["name"]);
   graph.guid = data["guid"];
   graph.vertex_count = data["vertex_count"];
@@ -113,13 +45,13 @@ Graph Graph::from_json_data(const nlohmann::json &data) {
 
   // Restore vertices
   for (const auto &vertex_data : data["vertices"]) {
-    Vertex vertex = Vertex::from_json_data(vertex_data);
+    Vertex vertex = Vertex::jsonload(vertex_data);
     graph.vertices[vertex.name] = vertex;
   }
 
   // Restore edges
   for (const auto &edge_data : data["edges"]) {
-    Edge edge = Edge::from_json_data(edge_data);
+    Edge edge = Edge::jsonload(edge_data);
     std::string u = edge.v0;
     std::string v = edge.v1;
     if (graph.edges.find(u) == graph.edges.end()) {
@@ -133,18 +65,6 @@ Graph Graph::from_json_data(const nlohmann::json &data) {
   }
 
   return graph;
-}
-
-Graph Graph::from_json(const std::string &filepath) {
-  std::ifstream file(filepath);
-  nlohmann::json data;
-  file >> data;
-  return Graph::from_json_data(data);
-}
-
-void Graph::to_json(const std::string &filepath) {
-  std::ofstream file(filepath);
-  file << this->to_json_data().dump(4);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -188,7 +108,7 @@ Graph::add_edge(const std::string &u, const std::string &v,
   }
 
   // Add edge (store in both directions for undirected graph)
-  Edge edge("my_edge", u, v, attribute);
+  Edge edge(u, v, attribute);
   edge.index = edge_count; // Set index internally
   if (edges.find(u) == edges.end()) {
     edges[u] = std::map<std::string, Edge>();

@@ -10,14 +10,18 @@ from .line import Line
 from .polyline import Polyline
 from .xform import Xform
 from .quaternion import Quaternion
-from .tree import Tree, TreeNode
+from .tree import Tree
+from .treenode import TreeNode
 from .graph import Graph
+from .vertex import Vertex
+from .edge import Edge
 from .objects import Objects
 from .session import Session
 from .mesh import Mesh, NormalWeighting
 from .cylinder import Cylinder
 from .arrow import Arrow
 from .boundingbox import BoundingBox
+from .pointcloud import PointCloud
 
 __all__ = [
     "Color",
@@ -31,6 +35,8 @@ __all__ = [
     "Tree",
     "TreeNode",
     "Graph",
+    "Vertex",
+    "Edge",
     "Objects",
     "Session",
     "Mesh",
@@ -38,4 +44,5 @@ __all__ = [
     "Cylinder",
     "Arrow",
     "BoundingBox",
+    "PointCloud",
 ]

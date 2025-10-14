@@ -27,7 +27,7 @@ std::string Line::to_string() const {
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Line::to_json_data() const {
+nlohmann::ordered_json Line::jsondump() const {
     return nlohmann::ordered_json{
         {"type", "Line"},
         {"guid", guid},
@@ -39,29 +39,19 @@ nlohmann::ordered_json Line::to_json_data() const {
         {"y1", _y1},
         {"z1", _z1},
         {"width", width},
-        {"linecolor", linecolor.to_json_data()}};
+        {"linecolor", linecolor.jsondump()}};
 }
 
-Line Line::from_json_data(const nlohmann::json& data) {
+Line Line::jsonload(const nlohmann::json& data) {
     Line line(data["x0"], data["y0"], data["z0"], data["x1"], data["y1"], data["z1"]);
     line.guid = data["guid"];
     line.name = data["name"];
-    line.linecolor = Color::from_json_data(data["linecolor"]);
+    line.linecolor = Color::jsonload(data["linecolor"]);
     line.width = data["width"];
     return line;
 }
 
-void Line::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(4);
-}
 
-Line Line::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Operators

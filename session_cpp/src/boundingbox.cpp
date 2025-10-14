@@ -69,7 +69,6 @@ BoundingBox BoundingBox::from_points(const std::vector<Point>& points, float inf
         (max_y - min_y) * 0.5f + inflate_amount,
         (max_z - min_z) * 0.5f + inflate_amount
     );
-    
     return BoundingBox(center, Vector(1.0f, 0.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Vector(0.0f, 0.0f, 1.0f), half_size);
 }
 
@@ -88,7 +87,7 @@ BoundingBox BoundingBox::from_mesh(const Mesh& mesh, float inflate_amount) {
 }
 
 BoundingBox BoundingBox::from_pointcloud(const PointCloud& pointcloud, float inflate_amount) {
-    return from_points(pointcloud.points(), inflate_amount);
+    return from_points(pointcloud.points, inflate_amount);
 }
 
 Point BoundingBox::point_at(float x, float y, float z) const {
@@ -111,7 +110,6 @@ std::array<Point, 8> BoundingBox::corners() const {
     result[5] = point_at(-half_size.x(), half_size.y(), half_size.z());
     result[6] = point_at(-half_size.x(), -half_size.y(), half_size.z());
     result[7] = point_at(half_size.x(), -half_size.y(), half_size.z());
-    
     return result;
 }
 
@@ -129,7 +127,6 @@ std::array<Point, 10> BoundingBox::two_rectangles() const {
     result[7] = point_at(-half_size.x(), -half_size.y(), half_size.z());
     result[8] = point_at(half_size.x(), -half_size.y(), half_size.z());
     result[9] = point_at(half_size.x(), half_size.y(), half_size.z());
-    
     return result;
 }
 
@@ -157,7 +154,6 @@ bool BoundingBox::separating_plane_exists(const Vector& relative_position, const
     Vector v6 = box2.z_axis * box2.half_size.z();
     Vector ax2 = axis;
     float proj2 = std::abs(v4.dot(ax2)) + std::abs(v5.dot(ax2)) + std::abs(v6.dot(ax2));
-    
     return dot_rp > (proj1 + proj2);
 }
 
@@ -168,7 +164,6 @@ bool BoundingBox::collides_with(const BoundingBox& other) const {
     
     Vector x1 = x_axis, y1 = y_axis, z1 = z_axis;
     Vector x2 = other.x_axis, y2 = other.y_axis, z2 = other.z_axis;
-    
     return !(
         separating_plane_exists(relative_position, x1, *this, other) ||
         separating_plane_exists(relative_position, y1, *this, other) ||
@@ -187,26 +182,26 @@ bool BoundingBox::collides_with(const BoundingBox& other) const {
     );
 }
 
-nlohmann::ordered_json BoundingBox::to_json_data() const {
+nlohmann::ordered_json BoundingBox::jsondump() const {
     return {
         {"type", "BoundingBox"},
-        {"center", center.to_json_data()},
-        {"x_axis", x_axis.to_json_data()},
-        {"y_axis", y_axis.to_json_data()},
-        {"z_axis", z_axis.to_json_data()},
-        {"half_size", half_size.to_json_data()},
+        {"center", center.jsondump()},
+        {"x_axis", x_axis.jsondump()},
+        {"y_axis", y_axis.jsondump()},
+        {"z_axis", z_axis.jsondump()},
+        {"half_size", half_size.jsondump()},
         {"guid", guid},
         {"name", name}
     };
 }
 
-BoundingBox BoundingBox::from_json_data(const nlohmann::json& data) {
+BoundingBox BoundingBox::jsonload(const nlohmann::json& data) {
     BoundingBox box;
-    box.center = Point::from_json_data(data["center"]);
-    box.x_axis = Vector::from_json_data(data["x_axis"]);
-    box.y_axis = Vector::from_json_data(data["y_axis"]);
-    box.z_axis = Vector::from_json_data(data["z_axis"]);
-    box.half_size = Vector::from_json_data(data["half_size"]);
+    box.center = Point::jsonload(data["center"]);
+    box.x_axis = Vector::jsonload(data["x_axis"]);
+    box.y_axis = Vector::jsonload(data["y_axis"]);
+    box.z_axis = Vector::jsonload(data["z_axis"]);
+    box.half_size = Vector::jsonload(data["half_size"]);
     box.guid = data["guid"];
     box.name = data["name"];
     return box;
@@ -214,14 +209,14 @@ BoundingBox BoundingBox::from_json_data(const nlohmann::json& data) {
 
 void BoundingBox::to_json_file(const std::string& filepath) const {
     std::ofstream file(filepath);
-    file << to_json_data().dump(4);
+    file << jsondump().dump(4);
 }
 
 BoundingBox BoundingBox::from_json_file(const std::string& filepath) {
     std::ifstream file(filepath);
     nlohmann::json data;
     file >> data;
-    return from_json_data(data);
+    return jsonload(data);
 }
 
 }

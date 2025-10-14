@@ -1,3 +1,4 @@
+use crate::encoders::{json_dump, json_load};
 use crate::{Plane, Point, Polyline, Vector};
 
 #[test]
@@ -178,7 +179,7 @@ fn test_polyline_json_serialization() {
 fn test_polyline_to_json_data() {
     let polyline = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
 
-    let json_string = polyline.to_json_data().unwrap();
+    let json_string = polyline.jsondump().unwrap();
     assert!(json_string.contains("Polyline"));
     assert!(json_string.contains("points"));
 }
@@ -187,8 +188,8 @@ fn test_polyline_to_json_data() {
 fn test_polyline_from_json_data() {
     let polyline = Polyline::new(vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)]);
 
-    let json_string = polyline.to_json_data().unwrap();
-    let deserialized = Polyline::from_json_data(&json_string).unwrap();
+    let json_string = polyline.jsondump().unwrap();
+    let deserialized = Polyline::jsonload(&json_string).unwrap();
 
     assert_eq!(deserialized.len(), 2);
     assert_eq!(deserialized.points[0].x(), 1.0);
@@ -204,8 +205,8 @@ fn test_polyline_to_json_from_json() {
     ]);
 
     let filepath = "test_polyline.json";
-    polyline.to_json(filepath).unwrap();
-    let loaded = Polyline::from_json(filepath).unwrap();
+    json_dump(&polyline, filepath, true).unwrap();
+    let loaded = json_load::<Polyline>(filepath).unwrap();
 
     assert_eq!(loaded.len(), 3);
     assert_eq!(loaded.points[0].x(), 1.0);

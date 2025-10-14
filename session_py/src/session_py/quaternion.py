@@ -1,5 +1,4 @@
 import uuid
-import json
 import math
 from .vector import Vector
 
@@ -67,9 +66,17 @@ class Quaternion:
             return Quaternion(s, v)
         raise TypeError("Quaternion can only be multiplied with another Quaternion")
 
-    def to_json_data(self):
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
         return {
-            "type": self.typ,
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
             "s": self.s,
@@ -78,20 +85,35 @@ class Quaternion:
             "z": self.v.z,
         }
 
-    @staticmethod
-    def from_json_data(data):
-        q = Quaternion(data["s"], Vector(data["x"], data["y"], data["z"]))
-        q.typ = data.get("type", "Quaternion")
-        q.guid = data["guid"]
-        q.name = data["name"]
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing quaternion data.
+        guid : str, optional
+            GUID for the quaternion.
+        name : str, optional
+            Name for the quaternion.
+
+        Returns
+        -------
+        :class:`Quaternion`
+            Reconstructed quaternion instance.
+
+        """
+        from .encoders import decode_node
+        from .vector import Vector
+
+        # Support both old format (v as Vector) and new format (x, y, z)
+        if "v" in data:
+            v = decode_node(data["v"])
+        else:
+            v = Vector(data["x"], data["y"], data["z"])
+        
+        q = cls(data["s"], v)
+        q.guid = guid
+        q.name = name
         return q
-
-    def to_json(self, filepath):
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath):
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return Quaternion.from_json_data(data)

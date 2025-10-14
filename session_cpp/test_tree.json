@@ -1,31 +1,11 @@
 {
-    "type": "Tree",
-    "guid": "cbacd00d-4f79-4e65-adbc-5c4f88fb39ee",
-    "name": "my_tree",
-    "root": {
-        "type": "TreeNode",
-        "guid": "175a3715-840e-4aa3-b0cf-275bd4e319f0",
-        "name": "a6beb9be-5bc5-4a6a-8011-4bfbe5d408b6",
-        "children": [
-            {
-                "type": "TreeNode",
-                "guid": "f0e39c6a-b02c-4add-88e2-23abc8b391a4",
-                "name": "d5cab6ab-dff8-47c5-bcb5-1f8b09a05877",
-                "children": [
-                    {
-                        "type": "TreeNode",
-                        "guid": "40f0eb24-e080-4f1f-b8ff-a98de4051486",
-                        "name": "2c7d375e-1ed7-4381-906c-0742660d5f08",
-                        "children": []
-                    }
-                ]
-            },
-            {
-                "type": "TreeNode",
-                "guid": "6bd245f6-7ffa-4ff1-9ed2-60479e1e513a",
-                "name": "98df7ee9-219c-4318-b9ee-b2e16aa62047",
-                "children": []
-            }
-        ]
-    }
+  "type": "Tree",
+  "guid": "ab866971-a187-4b3a-ba11-bd4679e94e8e",
+  "name": "test_tree",
+  "root": {
+    "type": "TreeNode",
+    "guid": "f4fab7b3-cea5-48ee-b0d1-868a9b622dfb",
+    "name": "2bd015bf-0c74-4646-af82-b2a40d3d3fd3",
+    "children": []
+  }
 }

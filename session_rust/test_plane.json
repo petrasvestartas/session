@@ -1,10 +1,10 @@
 {
   "type": "Plane",
-  "guid": "4311140e-328e-4497-9b92-cc1f8bfd6d63",
+  "guid": "0b05b2aa-e9c0-48e5-a14f-ce1484b6c4f2",
   "name": "xy_plane",
   "origin": {
     "type": "Point",
-    "guid": "2b1109b1-1eee-4ad4-8648-9ddd371e38fc",
+    "guid": "68c74e40-5abf-4a42-9632-aa3a0189da50",
     "name": "my_point",
     "x": 0.0,
     "y": 0.0,
@@ -12,17 +12,40 @@
     "width": 1.0,
     "pointcolor": {
       "type": "Color",
-      "guid": "1dd86ec8-394f-485e-90c4-f4c9fdaebd03",
+      "guid": "a08456a6-d2a1-4747-b90a-3f737ec79ddc",
       "name": "white",
       "r": 255,
       "g": 255,
       "b": 255,
       "a": 255
+    },
+    "xform": {
+      "type": "Xform",
+      "guid": "30d5d1cd-c01e-490a-a7d3-d598a893a936",
+      "name": "my_xform",
+      "m": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     }
   },
   "x_axis": {
     "type": "Vector",
-    "guid": "35eafacf-4677-4beb-a37b-d71f64b3111b",
+    "guid": "3d4d34db-1c7b-4026-9c96-b75236ada9cd",
     "name": "my_vector",
     "x": 1.0,
     "y": 0.0,
@@ -30,7 +53,7 @@
   },
   "y_axis": {
     "type": "Vector",
-    "guid": "eba03be5-91ac-4591-843c-3d327dc464cb",
+    "guid": "bf78455b-9951-4d8e-b33e-91b92c7a18b7",
     "name": "my_vector",
     "x": 0.0,
     "y": 1.0,
@@ -38,7 +61,7 @@
   },
   "z_axis": {
     "type": "Vector",
-    "guid": "09b3d604-678b-4efd-9ffe-162b9fbaa715",
+    "guid": "9a1c480e-35ce-4065-a3b2-cc2be7601e19",
     "name": "my_vector",
     "x": 0.0,
     "y": 0.0,
@@ -47,5 +70,28 @@
   "a": 0.0,
   "b": 0.0,
   "c": 1.0,
-  "d": 0.0
+  "d": 0.0,
+  "xform": {
+    "type": "Xform",
+    "guid": "1903235c-fab3-4816-bbb1-b727ebf348d8",
+    "name": "my_xform",
+    "m": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  }
 }

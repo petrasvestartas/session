@@ -1,8 +1,10 @@
 import uuid
-import json
 import math
-from typing import Optional
-from .point import Point
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .point import Point
+    
 from .vector import Vector
 
 
@@ -429,6 +431,7 @@ class Xform:
         return True
 
     def transformed_point(self, point):
+        from .point import Point
         x = point.x
         y = point.y
         z = point.z
@@ -468,27 +471,6 @@ class Xform:
         vector.y = self.m[1] * x + self.m[5] * y + self.m[9] * z
         vector.z = self.m[2] * x + self.m[6] * y + self.m[10] * z
 
-    def to_json_data(self):
-        return {"type": "Xform", "guid": self.guid, "name": self.name, "m": self.m}
-
-    @staticmethod
-    def from_json_data(data):
-        xform = Xform()
-        xform.guid = data["guid"]
-        xform.name = data["name"]
-        xform.m = data["m"]
-        return xform
-
-    def to_json(self, filepath):
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @staticmethod
-    def from_json(filepath):
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return Xform.from_json_data(data)
-
     def __mul__(self, other):
         result = Xform()
         result.m = [0.0] * 16
@@ -521,3 +503,47 @@ class Xform:
             self.m[col * 4 + row] = value
         else:
             raise TypeError("Index must be a tuple of (row, col)")
+
+    ###########################################################################################
+    # Polymorphic JSON Serialization
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "m": self.m,
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing xform data.
+        guid : str, optional
+            GUID for the xform.
+        name : str, optional
+            Name for the xform.
+
+        Returns
+        -------
+        :class:`Xform`
+            Reconstructed xform instance.
+
+        """
+        xform = cls.from_matrix(data["m"])
+        xform.guid = guid
+        xform.name = name
+        return xform

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::Color;
 
     #[test]
@@ -35,7 +36,7 @@ mod tests {
         let mut color = Color::new(128, 64, 192, 255);
         color.name = "purple".to_string();
 
-        let json_string = color.to_json_data().unwrap();
+        let json_string = color.jsondump().unwrap();
         let data: serde_json::Value = serde_json::from_str(&json_string).unwrap();
 
         assert_eq!(data["type"], "Color");
@@ -52,8 +53,8 @@ mod tests {
         let mut original_color = Color::new(200, 150, 100, 255);
         original_color.name = "bronze".to_string();
 
-        let json_string = original_color.to_json_data().unwrap();
-        let restored_color = Color::from_json_data(&json_string).unwrap();
+        let json_string = original_color.jsondump().unwrap();
+        let restored_color = Color::jsonload(&json_string).unwrap();
 
         assert_eq!(restored_color.r, 200);
         assert_eq!(restored_color.g, 150);
@@ -69,8 +70,8 @@ mod tests {
         original.name = "sunset_orange".to_string();
         let filename = "test_color.json";
 
-        original.to_json(filename).unwrap();
-        let loaded = Color::from_json(filename).unwrap();
+        json_dump(&original, filename, true).unwrap();
+        let loaded = json_load::<Color>(filename).unwrap();
 
         assert_eq!(loaded.r, original.r);
         assert_eq!(loaded.g, original.g);

@@ -6,6 +6,7 @@
 namespace session_cpp {
 
 Mesh::Mesh() {
+    xform = Xform::identity();
     default_vertex_attributes["x"] = 0.0f;
     default_vertex_attributes["y"] = 0.0f;
     default_vertex_attributes["z"] = 0.0f;
@@ -23,7 +24,6 @@ size_t Mesh::number_of_edges() const {
             }
         }
     }
-    
     return count;
 }
 
@@ -58,7 +58,6 @@ size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
     vertex[vertex_key] = VertexData(position);
     halfedge[vertex_key] = {};
     pointcolors.push_back(Color::white());
-    
     return vertex_key;
 }
 
@@ -102,7 +101,6 @@ std::optional<size_t> Mesh::add_face(const std::vector<size_t>& vertices, std::o
             widths.push_back(1.0f);
         }
     }
-    
     return face_key;
 }
 
@@ -161,7 +159,6 @@ bool Mesh::is_vertex_on_boundary(size_t vertex_key) const {
             return true;
         }
     }
-    
     return false;
 }
 
@@ -193,7 +190,6 @@ std::optional<Vector> Mesh::face_normal(size_t face_key) const {
     if (len > Tolerance::ZERO_TOLERANCE) {
         return Vector(normal.x() / len, normal.y() / len, normal.z() / len);
     }
-    
     return std::nullopt;
 }
 
@@ -237,7 +233,6 @@ std::optional<Vector> Mesh::vertex_normal_weighted(size_t vertex_key, NormalWeig
     if (len > Tolerance::ZERO_TOLERANCE) {
         return Vector(normal_acc.x() / len, normal_acc.y() / len, normal_acc.z() / len);
     }
-    
     return std::nullopt;
 }
 
@@ -266,7 +261,6 @@ std::optional<float> Mesh::face_area(size_t face_key) const {
         
         area += u.cross(v).magnitude() * 0.5f;
     }
-    
     return area;
 }
 
@@ -384,7 +378,6 @@ Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::o
         }
         mesh.add_face(vkeys);
     }
-    
     return mesh;
 }
 
@@ -432,16 +425,27 @@ std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> Mesh::to_vertice
         }
         faces.push_back(remapped);
     }
-    
     return {vertices, faces};
 }
 
-nlohmann::ordered_json Mesh::to_json_data() const {
+nlohmann::ordered_json Mesh::jsondump() const {
     nlohmann::ordered_json data;
     data["type"] = "Mesh";
     data["guid"] = guid;
     data["name"] = name;
     
+    // Halfedge connectivity
+    nlohmann::ordered_json halfedge_data;
+    for (const auto& [u, neighbors] : halfedge) {
+        nlohmann::ordered_json neighbor_data;
+        for (const auto& [v, face_opt] : neighbors) {
+            neighbor_data[std::to_string(v)] = face_opt.has_value() ? nlohmann::json(face_opt.value()) : nlohmann::json(nullptr);
+        }
+        halfedge_data[std::to_string(u)] = neighbor_data;
+    }
+    data["halfedge"] = halfedge_data;
+    
+    // Vertex data
     nlohmann::ordered_json vertex_data;
     for (const auto& [key, vdata] : vertex) {
         nlohmann::ordered_json v;
@@ -453,25 +457,59 @@ nlohmann::ordered_json Mesh::to_json_data() const {
     }
     data["vertex"] = vertex_data;
     
+    // Face data
     nlohmann::ordered_json face_data;
     for (const auto& [key, vertices] : face) {
         face_data[std::to_string(key)] = vertices;
     }
     data["face"] = face_data;
     
+    // Face attributes
+    nlohmann::ordered_json facedata_json;
+    for (const auto& [key, attrs] : facedata) {
+        facedata_json[std::to_string(key)] = attrs;
+    }
+    data["facedata"] = facedata_json;
+    
+    // Edge attributes
+    nlohmann::ordered_json edgedata_json;
+    for (const auto& [edge, attrs] : edgedata) {
+        std::string edge_key = std::to_string(edge.first) + "," + std::to_string(edge.second);
+        edgedata_json[edge_key] = attrs;
+    }
+    data["edgedata"] = edgedata_json;
+    
     data["default_vertex_attributes"] = default_vertex_attributes;
     data["default_face_attributes"] = default_face_attributes;
     data["default_edge_attributes"] = default_edge_attributes;
-    
+    data["max_vertex"] = max_vertex;
+    data["max_face"] = max_face;
     return data;
 }
 
-Mesh Mesh::from_json_data(const nlohmann::json& data) {
+Mesh Mesh::jsonload(const nlohmann::json& data) {
     Mesh mesh;
     
     if (data.contains("guid")) mesh.guid = data["guid"];
     if (data.contains("name")) mesh.name = data["name"];
     
+    // Load halfedge connectivity
+    if (data.contains("halfedge")) {
+        for (const auto& [u_str, neighbors] : data["halfedge"].items()) {
+            size_t u = std::stoull(u_str);
+            mesh.halfedge[u] = {};
+            for (const auto& [v_str, face_val] : neighbors.items()) {
+                size_t v = std::stoull(v_str);
+                if (face_val.is_null()) {
+                    mesh.halfedge[u][v] = std::nullopt;
+                } else {
+                    mesh.halfedge[u][v] = face_val.get<size_t>();
+                }
+            }
+        }
+    }
+    
+    // Load vertex data
     if (data.contains("vertex")) {
         for (const auto& [key_str, vdata] : data["vertex"].items()) {
             size_t key = std::stoull(key_str);
@@ -483,15 +521,37 @@ Mesh Mesh::from_json_data(const nlohmann::json& data) {
                 vertex_data.attributes = vdata["attributes"].get<std::map<std::string, float>>();
             }
             mesh.vertex[key] = vertex_data;
-            mesh.halfedge[key] = {};
+            if (!data.contains("halfedge")) {
+                mesh.halfedge[key] = {};
+            }
             if (key >= mesh.max_vertex) mesh.max_vertex = key + 1;
         }
     }
     
+    // Load face data
     if (data.contains("face")) {
         for (const auto& [key_str, vertices] : data["face"].items()) {
             size_t key = std::stoull(key_str);
-            mesh.add_face(vertices.get<std::vector<size_t>>(), key);
+            mesh.face[key] = vertices.get<std::vector<size_t>>();
+            if (key >= mesh.max_face) mesh.max_face = key + 1;
+        }
+    }
+    
+    // Load face attributes
+    if (data.contains("facedata")) {
+        for (const auto& [key_str, attrs] : data["facedata"].items()) {
+            size_t key = std::stoull(key_str);
+            mesh.facedata[key] = attrs.get<std::map<std::string, float>>();
+        }
+    }
+    
+    // Load edge attributes
+    if (data.contains("edgedata")) {
+        for (const auto& [edge_str, attrs] : data["edgedata"].items()) {
+            size_t comma_pos = edge_str.find(',');
+            size_t u = std::stoull(edge_str.substr(0, comma_pos));
+            size_t v = std::stoull(edge_str.substr(comma_pos + 1));
+            mesh.edgedata[{u, v}] = attrs.get<std::map<std::string, float>>();
         }
     }
     
@@ -504,20 +564,15 @@ Mesh Mesh::from_json_data(const nlohmann::json& data) {
     if (data.contains("default_edge_attributes")) {
         mesh.default_edge_attributes = data["default_edge_attributes"];
     }
-    
+    if (data.contains("max_vertex")) {
+        mesh.max_vertex = data["max_vertex"];
+    }
+    if (data.contains("max_face")) {
+        mesh.max_face = data["max_face"];
+    }
     return mesh;
 }
 
-void Mesh::to_json(const std::string& filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(2);
-}
 
-Mesh Mesh::from_json(const std::string& filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
-}
 
 } // namespace session_cpp

@@ -1,5 +1,4 @@
 import uuid
-import json
 import math
 from enum import Enum
 from typing import Optional, List, Dict, Tuple
@@ -7,6 +6,7 @@ from .point import Point
 from .vector import Vector
 from .tolerance import Tolerance
 from .color import Color
+from .xform import Xform
 
 
 class NormalWeighting(Enum):
@@ -137,6 +137,7 @@ class Mesh:
         self.facecolors = []
         self.linecolors = []
         self.widths = []
+        self.xform = Xform.identity()
 
     ###########################################################################################
     # Basic Queries
@@ -566,46 +567,96 @@ class Mesh:
     # JSON
     ###########################################################################################
 
-    def to_json_data(self) -> dict:
-        """Convert to JSON-serializable dictionary."""
-        data = {
-            "type": "Mesh",
-            "guid": self.guid,
-            "name": self.name,
-            "vertex": {},
-            "face": {},
-            "default_vertex_attributes": self.default_vertex_attributes,
-            "default_face_attributes": self.default_face_attributes,
-            "default_edge_attributes": self.default_edge_attributes,
-            "pointcolors": [val for c in self.pointcolors for val in (c.r, c.g, c.b)],
-            "facecolors": [val for c in self.facecolors for val in (c.r, c.g, c.b)],
-            "linecolors": [val for c in self.linecolors for val in (c.r, c.g, c.b)],
-            "widths": self.widths,
-        }
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
 
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
+        # Halfedge connectivity
+        halfedge_data = {}
+        for u, neighbors in self.halfedge.items():
+            halfedge_data[str(u)] = {
+                str(v): face_key for v, face_key in neighbors.items()
+            }
+        
+        # Vertex data
+        vertex_data = {}
         for key, vdata in self.vertex.items():
-            data["vertex"][str(key)] = {
+            vertex_data[str(key)] = {
                 "x": vdata.x,
                 "y": vdata.y,
                 "z": vdata.z,
                 "attributes": vdata.attributes,
             }
 
+        # Face data
+        face_data = {}
         for key, vertices in self.face.items():
-            data["face"][str(key)] = vertices
+            face_data[str(key)] = vertices
+        
+        # Face attributes
+        facedata_json = {}
+        for key, attrs in self.facedata.items():
+            facedata_json[str(key)] = attrs
+        
+        # Edge attributes
+        edgedata_json = {}
+        for (u, v), attrs in self.edgedata.items():
+            edgedata_json[f"{u},{v}"] = attrs
 
-        return data
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "halfedge": halfedge_data,
+            "vertex": vertex_data,
+            "face": face_data,
+            "facedata": facedata_json,
+            "edgedata": edgedata_json,
+            "default_vertex_attributes": self.default_vertex_attributes,
+            "default_face_attributes": self.default_face_attributes,
+            "default_edge_attributes": self.default_edge_attributes,
+            "max_vertex": self._max_vertex,
+            "max_face": self._max_face,
+        }
 
-    @staticmethod
-    def from_json_data(data: dict) -> "Mesh":
-        """Create mesh from JSON data."""
-        mesh = Mesh()
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format.
 
-        if "guid" in data:
-            mesh.guid = data["guid"]
-        if "name" in data:
-            mesh.name = data["name"]
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing mesh data.
+        guid : str, optional
+            GUID for the mesh.
+        name : str, optional
+            Name for the mesh.
 
+        Returns
+        -------
+        :class:`Mesh`
+            Reconstructed mesh instance.
+
+        """
+        mesh = cls()
+        mesh.guid = guid if guid is not None else data.get("guid", mesh.guid)
+        mesh.name = name if name is not None else data.get("name", mesh.name)
+
+        # Load halfedge connectivity
+        if "halfedge" in data:
+            for u_str, neighbors in data["halfedge"].items():
+                u = int(u_str)
+                mesh.halfedge[u] = {}
+                for v_str, face_key in neighbors.items():
+                    v = int(v_str)
+                    mesh.halfedge[u][v] = face_key
+
+        # Load vertex data
         if "vertex" in data:
             for key_str, vdata in data["vertex"].items():
                 key = int(key_str)
@@ -616,14 +667,30 @@ class Mesh:
                 if "attributes" in vdata:
                     vertex_data.attributes = vdata["attributes"]
                 mesh.vertex[key] = vertex_data
-                mesh.halfedge[key] = {}
+                if "halfedge" not in data:
+                    mesh.halfedge[key] = {}
                 if key >= mesh._max_vertex:
                     mesh._max_vertex = key + 1
 
+        # Load face data
         if "face" in data:
             for key_str, vertices in data["face"].items():
                 key = int(key_str)
-                mesh.add_face(vertices, key)
+                mesh.face[key] = vertices
+                if key >= mesh._max_face:
+                    mesh._max_face = key + 1
+        
+        # Load face attributes
+        if "facedata" in data:
+            for key_str, attrs in data["facedata"].items():
+                key = int(key_str)
+                mesh.facedata[key] = attrs
+        
+        # Load edge attributes
+        if "edgedata" in data:
+            for edge_str, attrs in data["edgedata"].items():
+                u, v = map(int, edge_str.split(','))
+                mesh.edgedata[(u, v)] = attrs
 
         if "default_vertex_attributes" in data:
             mesh.default_vertex_attributes = data["default_vertex_attributes"]
@@ -631,28 +698,16 @@ class Mesh:
             mesh.default_face_attributes = data["default_face_attributes"]
         if "default_edge_attributes" in data:
             mesh.default_edge_attributes = data["default_edge_attributes"]
+        
+        if "max_vertex" in data:
+            mesh._max_vertex = data["max_vertex"]
+        if "max_face" in data:
+            mesh._max_face = data["max_face"]
 
-        if "pointcolors" in data:
-            rgb_flat = data["pointcolors"]
-            mesh.pointcolors = [
-                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
-                for i in range(0, len(rgb_flat), 3)
-            ]
-        if "facecolors" in data:
-            rgb_flat = data["facecolors"]
-            mesh.facecolors = [
-                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
-                for i in range(0, len(rgb_flat), 3)
-            ]
-        if "linecolors" in data:
-            rgb_flat = data["linecolors"]
-            mesh.linecolors = [
-                Color(rgb_flat[i], rgb_flat[i + 1], rgb_flat[i + 2], 255)
-                for i in range(0, len(rgb_flat), 3)
-            ]
-        if "widths" in data:
-            mesh.widths = data["widths"]
 
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
         return mesh
 
     ###########################################################################################
@@ -678,15 +733,3 @@ class Mesh:
         """Set width for a specific edge."""
         if 0 <= index < len(self.widths):
             self.widths[index] = width
-
-    def to_json(self, filepath: str):
-        """Serialize to JSON file."""
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=2)
-
-    @staticmethod
-    def from_json(filepath: str) -> "Mesh":
-        """Deserialize from JSON file."""
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return Mesh.from_json_data(data)

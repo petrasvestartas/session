@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::point::Point;
     use crate::tree::{Tree, TreeNode};
 
@@ -25,7 +26,7 @@ mod tests {
         folder1.add(&file1);
         folder2.add(&file2);
 
-        let data = root.to_json_data().unwrap();
+        let data = root.jsondump().unwrap();
         let json_value: serde_json::Value = serde_json::from_str(&data).unwrap();
 
         assert_eq!(json_value["name"], "project_root");
@@ -55,8 +56,8 @@ mod tests {
         bin_folder.add(&app_file);
         lib_folder.add(&config_file);
 
-        let data = original_root.to_json_data().unwrap();
-        let restored_root = TreeNode::from_json_data(&data).unwrap();
+        let data = original_root.jsondump().unwrap();
+        let restored_root = TreeNode::jsonload(&data).unwrap();
 
         assert_eq!(restored_root.name(), "filesystem_root");
         assert_eq!(restored_root.children().len(), 2);
@@ -125,7 +126,7 @@ mod tests {
         tree.add(&child2, Some(&root_node));
         tree.add(&grandchild, Some(&child1));
 
-        let data = tree.to_json_data().unwrap();
+        let data = tree.jsondump().unwrap();
         let json_value: serde_json::Value = serde_json::from_str(&data).unwrap();
 
         assert_eq!(json_value["name"], "object_hierarchy");
@@ -150,8 +151,8 @@ mod tests {
         original_tree.add(&child1, Some(&root));
         original_tree.add(&child2, Some(&root));
 
-        let data = original_tree.to_json_data().unwrap();
-        let restored_tree = Tree::from_json_data(&data).unwrap();
+        let data = original_tree.jsondump().unwrap();
+        let restored_tree = Tree::jsonload(&data).unwrap();
 
         assert_eq!(restored_tree.name, "spatial_hierarchy");
         assert_eq!(
@@ -182,8 +183,8 @@ mod tests {
 
         let filename = "test_tree.json";
 
-        tree.to_json(filename).unwrap();
-        let loaded_tree = Tree::from_json(filename).unwrap();
+        json_dump(&tree, filename, true).unwrap();
+        let loaded_tree = json_load::<Tree>(filename).unwrap();
 
         assert_eq!(loaded_tree.name, tree.name);
         assert_eq!(

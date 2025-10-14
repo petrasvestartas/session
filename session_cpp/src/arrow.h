@@ -27,6 +27,7 @@ public:
     float radius;
     Line line;
     Mesh mesh;
+    Xform xform;
 
     /**
      * @brief Creates a new Arrow from a line and radius.
@@ -41,16 +42,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Arrow to a JSON string
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
     
     /// Deserializes an Arrow from JSON data
-    static Arrow from_json_data(const nlohmann::json& data);
+    static Arrow jsonload(const nlohmann::json& data);
     
     /// Serializes the Arrow to a JSON file
-    void to_json(const std::string& filepath) const;
     
     /// Deserializes an Arrow from a JSON file
-    static Arrow from_json(const std::string& filepath);
 
 private:
     static Mesh create_arrow_mesh(const Line& line, float radius);

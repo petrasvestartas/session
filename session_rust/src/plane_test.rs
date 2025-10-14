@@ -1,3 +1,4 @@
+use crate::encoders::{json_dump, json_load};
 use crate::{Plane, Point, Vector};
 use std::f32::consts::PI;
 
@@ -148,7 +149,7 @@ fn test_plane_operator_sub_translation() {
 #[test]
 fn test_plane_json_serialization() {
     let plane = Plane::xy_plane();
-    let json = serde_json::to_string(&plane).unwrap();
+    let json = plane.jsondump().unwrap();
     assert!(json.contains("Plane"));
     assert!(json.contains("xy_plane"));
 }
@@ -156,8 +157,8 @@ fn test_plane_json_serialization() {
 #[test]
 fn test_plane_json_deserialization() {
     let original = Plane::xy_plane();
-    let json = serde_json::to_string(&original).unwrap();
-    let loaded: Plane = serde_json::from_str(&json).unwrap();
+    let json = original.jsondump().unwrap();
+    let loaded = Plane::jsonload(&json).unwrap();
     assert_eq!(loaded.name, "xy_plane");
     assert_eq!(loaded.c(), 1.0);
 }
@@ -166,10 +167,8 @@ fn test_plane_json_deserialization() {
 fn test_plane_json_file_round_trip() {
     let filepath = "test_plane.json";
     let original = Plane::xy_plane();
-    let json = serde_json::to_string_pretty(&original).unwrap();
-    std::fs::write(filepath, json).unwrap();
-    let json_loaded = std::fs::read_to_string(filepath).unwrap();
-    let loaded: Plane = serde_json::from_str(&json_loaded).unwrap();
+    json_dump(&original, filepath, true).unwrap();
+    let loaded: Plane = json_load(filepath).unwrap();
     assert_eq!(loaded.name, original.name);
     assert_eq!(loaded.c(), original.c());
 }

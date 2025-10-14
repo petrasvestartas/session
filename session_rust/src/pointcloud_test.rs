@@ -1,4 +1,5 @@
 use super::*;
+use crate::encoders::{json_dump, json_load};
 
 #[test]
 fn test_pointcloud_new() {
@@ -105,8 +106,8 @@ fn test_pointcloud_json_serialization() {
         vec![Vector::new(0.0, 0.0, 1.0)],
         vec![Color::new(255, 0, 0, 255)],
     );
-    let json = cloud.to_json_data().unwrap();
-    let cloud2 = PointCloud::from_json_data(&json).unwrap();
+    let json = cloud.jsondump().unwrap();
+    let cloud2 = PointCloud::jsonload(&json).unwrap();
     assert_eq!(cloud2.points[0].x(), 1.0);
     assert_eq!(cloud2.points[0].y(), 2.0);
     assert_eq!(cloud2.points[0].z(), 3.0);
@@ -131,8 +132,8 @@ fn test_pointcloud_json_file() {
             Color::new(0, 0, 255, 255),
         ],
     );
-    cloud.to_json("test_pointcloud.json").unwrap();
-    let cloud2 = PointCloud::from_json("test_pointcloud.json").unwrap();
+    json_dump(&cloud, "test_pointcloud.json", true).unwrap();
+    let cloud2 = json_load::<PointCloud>("test_pointcloud.json").unwrap();
     assert_eq!(cloud2.points[0].x(), 1.0);
     assert_eq!(cloud2.points[1].y(), 5.0);
     assert_eq!(cloud2.points[2].z(), 9.0);
@@ -158,8 +159,8 @@ fn test_pointcloud_json_multiple_points() {
             Color::new(0, 0, 255, 255),
         ],
     );
-    let json = cloud.to_json_data().unwrap();
-    let cloud2 = PointCloud::from_json_data(&json).unwrap();
+    let json = cloud.jsondump().unwrap();
+    let cloud2 = PointCloud::jsonload(&json).unwrap();
 
     assert_eq!(cloud2.len(), 3);
     assert_eq!(cloud2.points[0].x(), 1.0);

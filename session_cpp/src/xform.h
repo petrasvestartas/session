@@ -5,7 +5,6 @@
 #include "guid.h"
 #include "json.h"
 #include "vector.h"
-#include "point.h"
 #include <array>
 #include <cmath>
 #include <fstream>
@@ -16,6 +15,8 @@
 #include <string>
 
 namespace session_cpp {
+
+class Point; // Forward declaration
 
 /**
  * @class Xform
@@ -91,13 +92,11 @@ public:
     void transform_vector(Vector& vector) const;
 
     /// Serialize to ordered JSON object
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
     /// Deserialize from JSON object
-    static Xform from_json_data(const nlohmann::json& data);
+    static Xform jsonload(const nlohmann::json& data);
     /// Write JSON to file
-    void to_json(const std::string& filepath) const;
     /// Read JSON from file
-    static Xform from_json(const std::string& filepath);
 
     /// Matrix multiplication
     Xform operator*(const Xform& other) const;

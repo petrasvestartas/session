@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::graph::Graph;
 
     #[test]
@@ -175,7 +176,7 @@ mod tests {
             ]
         }"#;
 
-        let mut graph = Graph::from_json_data(data).unwrap();
+        let mut graph = Graph::jsonload(data).unwrap();
 
         assert_eq!(graph.name, "test_graph");
         assert_eq!(graph.number_of_vertices(), 3);
@@ -204,8 +205,8 @@ mod tests {
         graph.add_edge("C", "D", "edge_CD");
         let filename = "test_graph.json";
 
-        graph.to_json(filename).unwrap();
-        let loaded_graph = Graph::from_json(filename).unwrap();
+        json_dump(&graph, filename, true).unwrap();
+        let loaded_graph = json_load::<Graph>(filename).unwrap();
 
         assert_eq!(graph.name, loaded_graph.name);
         assert_eq!(

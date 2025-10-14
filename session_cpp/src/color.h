@@ -46,16 +46,14 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   /// Convert to JSON-serializable object.
-  nlohmann::ordered_json to_json_data() const;
+  nlohmann::ordered_json jsondump() const;
 
   /// Create color from JSON data.
-  static Color from_json_data(const nlohmann::json &data);
+  static Color jsonload(const nlohmann::json &data);
 
   /// Serialize to JSON file
-  void to_json(const std::string &filepath) const;
 
   /// Deserialize from JSON file
-  static Color from_json(const std::string &filepath);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Details

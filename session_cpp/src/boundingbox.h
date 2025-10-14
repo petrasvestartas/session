@@ -12,6 +12,7 @@
 
 namespace session_cpp {
 
+
 class Line;
 class Polyline;
 class Mesh;
@@ -26,6 +27,8 @@ public:
     Vector half_size;
     std::string guid;
     std::string name;
+
+    Xform xform;
 
     BoundingBox();
     BoundingBox(const Point& center, const Vector& x_axis, const Vector& y_axis, const Vector& z_axis, const Vector& half_size);
@@ -45,8 +48,8 @@ public:
     
     bool collides_with(const BoundingBox& other) const;
     
-    nlohmann::ordered_json to_json_data() const;
-    static BoundingBox from_json_data(const nlohmann::json& data);
+    nlohmann::ordered_json jsondump() const;
+    static BoundingBox jsonload(const nlohmann::json& data);
     
     void to_json_file(const std::string& filepath) const;
     static BoundingBox from_json_file(const std::string& filepath);

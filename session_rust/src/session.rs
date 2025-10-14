@@ -1,9 +1,44 @@
-use crate::{Graph, Objects, Point, Tree, TreeNode};
+use crate::{
+    Arrow, BoundingBox, Cylinder, Graph, Line, Mesh, Objects, Plane, Point, PointCloud, Polyline,
+    Tree, TreeNode,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use uuid::Uuid;
+
+/// Enum representing all possible geometry types in a Session.
+/// This is equivalent to C++'s std::variant<...> for heterogeneous geometry storage.
+#[derive(Debug, Clone)]
+pub enum Geometry {
+    Arrow(Arrow),
+    BoundingBox(BoundingBox),
+    Cylinder(Cylinder),
+    Line(Line),
+    Mesh(Mesh),
+    Plane(Plane),
+    Point(Point),
+    PointCloud(PointCloud),
+    Polyline(Polyline),
+}
+
+impl Geometry {
+    /// Get the GUID of the geometry object
+    pub fn guid(&self) -> &str {
+        match self {
+            Geometry::Arrow(g) => &g.guid,
+            Geometry::BoundingBox(g) => &g.guid,
+            Geometry::Cylinder(g) => &g.guid,
+            Geometry::Line(g) => &g.guid,
+            Geometry::Mesh(g) => &g.guid,
+            Geometry::Plane(g) => &g.guid,
+            Geometry::Point(g) => &g.guid,
+            Geometry::PointCloud(g) => &g.guid,
+            Geometry::Polyline(g) => &g.guid,
+        }
+    }
+}
 
 /// A Session containing geometry objects with hierarchical and graph structures.
 ///
@@ -20,9 +55,9 @@ pub struct Session {
     /// Collection of geometry objects (Points)
     #[serde(rename = "objects")]
     pub objects: Objects,
-    /// Lookup table mapping object GUIDs to their types
-    #[serde(rename = "lookup")]
-    pub lookup: HashMap<String, String>,
+    /// Lookup table mapping object GUIDs to geometry objects (fast heterogeneous lookup)
+    #[serde(skip)]
+    pub lookup: HashMap<String, Geometry>,
     /// Hierarchical tree structure for organizing objects
     #[serde(rename = "tree")]
     pub tree: Tree,
@@ -77,10 +112,10 @@ impl Session {
     /// # Returns
     /// A Result containing the JSON string representation of the Session,
     /// or an error if serialization fails.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         // Use custom serialization to ensure consistent structure with C++/Python
         // Convert graph to use array structure instead of nested objects
-        let graph_json: serde_json::Value = serde_json::from_str(&self.graph.to_json_data()?)?;
+        let graph_json: serde_json::Value = serde_json::from_str(&self.graph.jsondump()?)?;
 
         let json_obj = serde_json::json!({
             "type": "Session",
@@ -101,18 +136,47 @@ impl Session {
     ///
     /// # Returns
     /// A Result containing the deserialized Session, or an error if parsing fails.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json_obj: serde_json::Value = serde_json::from_str(json_data)?;
 
         // Deserialize components using their custom methods
         let objects: Objects = serde_json::from_value(json_obj["objects"].clone())?;
         let tree: Tree = serde_json::from_value(json_obj["tree"].clone())?;
-        let graph: Graph = Graph::from_json_data(&json_obj["graph"].to_string())?;
+        // Convert graph JSON value to properly formatted string
+        let graph_json_str = serde_json::to_string(&json_obj["graph"])?;
+        let graph: Graph = Graph::jsonload(&graph_json_str)?;
 
-        // Rebuild lookup table from objects
+        // Rebuild lookup table from all objects
         let mut lookup = HashMap::new();
-        for point in &objects.vec {
-            lookup.insert(point.guid.clone(), "point".to_string());
+        for arrow in &objects.arrows {
+            lookup.insert(arrow.guid.clone(), Geometry::Arrow(arrow.clone()));
+        }
+        for bbox in &objects.bboxes {
+            lookup.insert(bbox.guid.clone(), Geometry::BoundingBox(bbox.clone()));
+        }
+        for cylinder in &objects.cylinders {
+            lookup.insert(cylinder.guid.clone(), Geometry::Cylinder(cylinder.clone()));
+        }
+        for line in &objects.lines {
+            lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));
+        }
+        for mesh in &objects.meshes {
+            lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));
+        }
+        for plane in &objects.planes {
+            lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));
+        }
+        for point in &objects.points {
+            lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));
+        }
+        for pointcloud in &objects.pointclouds {
+            lookup.insert(
+                pointcloud.guid.clone(),
+                Geometry::PointCloud(pointcloud.clone()),
+            );
+        }
+        for polyline in &objects.polylines {
+            lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));
         }
 
         let session = Session {
@@ -138,7 +202,7 @@ impl Session {
     /// # Returns
     /// A Result indicating success or failure of the file write operation.
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json = self.to_json_data()?;
+        let json = self.jsondump()?;
         fs::write(filepath, json)?;
         Ok(())
     }
@@ -152,7 +216,7 @@ impl Session {
     /// A Result containing the deserialized Session, or an error if file reading or parsing fails.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json = fs::read_to_string(filepath)?;
-        Self::from_json_data(&json)
+        Self::jsonload(&json)
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -166,21 +230,128 @@ impl Session {
     ///
     /// # Arguments
     /// * `point` - The Point object to add to the session
-    pub fn add_point(&mut self, point: Point) {
+    ///
+    /// # Returns
+    /// The TreeNode created for this point
+    pub fn add_point(&mut self, point: Point) -> TreeNode {
         let point_guid = point.guid.clone();
         let point_name = point.name.clone();
-
-        self.objects.vec.push(point);
-        self.lookup.insert(point_guid.clone(), "point".to_string());
-
-        // Automatically add to graph using point's GUID as node key
+        self.objects.points.push(point.clone());
+        self.lookup
+            .insert(point_guid.clone(), Geometry::Point(point));
         self.graph
             .add_node(&point_guid, &format!("point_{point_name}"));
+        TreeNode::new(&point_guid)
+    }
 
-        // Automatically add to tree as child of root using point's GUID as node name
-        let tree_node = TreeNode::new(&point_guid);
-        if let Some(root) = self.tree.root() {
-            self.tree.add(&tree_node, Some(&root));
+    pub fn add_line(&mut self, line: Line) -> TreeNode {
+        let guid = line.guid.clone();
+        let name = line.name.clone();
+        self.objects.lines.push(line.clone());
+        self.lookup.insert(guid.clone(), Geometry::Line(line));
+        self.graph.add_node(&guid, &format!("line_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_plane(&mut self, plane: Plane) -> TreeNode {
+        let guid = plane.guid.clone();
+        let name = plane.name.clone();
+        self.objects.planes.push(plane.clone());
+        self.lookup.insert(guid.clone(), Geometry::Plane(plane));
+        self.graph.add_node(&guid, &format!("plane_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_bbox(&mut self, bbox: BoundingBox) -> TreeNode {
+        let guid = bbox.guid.clone();
+        let name = bbox.name.clone();
+        self.objects.bboxes.push(bbox.clone());
+        self.lookup
+            .insert(guid.clone(), Geometry::BoundingBox(bbox));
+        self.graph.add_node(&guid, &format!("bbox_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_polyline(&mut self, polyline: Polyline) -> TreeNode {
+        let guid = polyline.guid.clone();
+        let name = polyline.name.clone();
+        self.objects.polylines.push(polyline.clone());
+        self.lookup
+            .insert(guid.clone(), Geometry::Polyline(polyline));
+        self.graph.add_node(&guid, &format!("polyline_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_pointcloud(&mut self, pointcloud: PointCloud) -> TreeNode {
+        let guid = pointcloud.guid.clone();
+        let name = pointcloud.name.clone();
+        self.objects.pointclouds.push(pointcloud.clone());
+        self.lookup
+            .insert(guid.clone(), Geometry::PointCloud(pointcloud));
+        self.graph.add_node(&guid, &format!("pointcloud_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_mesh(&mut self, mesh: Mesh) -> TreeNode {
+        let guid = mesh.guid.clone();
+        let name = mesh.name.clone();
+        self.objects.meshes.push(mesh.clone());
+        self.lookup.insert(guid.clone(), Geometry::Mesh(mesh));
+        self.graph.add_node(&guid, &format!("mesh_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_cylinder(&mut self, cylinder: Cylinder) -> TreeNode {
+        let guid = cylinder.guid.clone();
+        let name = cylinder.name.clone();
+        self.objects.cylinders.push(cylinder.clone());
+        self.lookup
+            .insert(guid.clone(), Geometry::Cylinder(cylinder));
+        self.graph.add_node(&guid, &format!("cylinder_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    pub fn add_arrow(&mut self, arrow: Arrow) -> TreeNode {
+        let guid = arrow.guid.clone();
+        let name = arrow.name.clone();
+        self.objects.arrows.push(arrow.clone());
+        self.lookup.insert(guid.clone(), Geometry::Arrow(arrow));
+        self.graph.add_node(&guid, &format!("arrow_{name}"));
+        TreeNode::new(&guid)
+    }
+
+    /// Adds a TreeNode to the tree hierarchy.
+    ///
+    /// # Arguments
+    /// * `node` - The TreeNode to add
+    /// * `parent` - Optional parent TreeNode (defaults to root if None)
+    ///
+    /// # Examples
+    /// ```
+    /// use session_rust::{Session, TreeNode};
+    ///
+    /// let mut session = Session::new("my_session");
+    /// let node = TreeNode::new("my_node");
+    ///
+    /// // Add to root (pass None)
+    /// session.add(&node, None);
+    ///
+    /// // Add under parent (pass reference directly)
+    /// let parent = TreeNode::new("parent");
+    /// session.add(&parent, None);
+    /// session.add(&node, &parent);
+    /// ```
+    pub fn add<'a>(&mut self, node: &TreeNode, parent: impl Into<Option<&'a TreeNode>>)
+    where
+        TreeNode: 'a,
+    {
+        let parent_opt = parent.into();
+        if parent_opt.is_none() {
+            if let Some(root) = self.tree.root() {
+                self.tree.add(node, Some(&root));
+            }
+        } else {
+            self.tree.add(node, parent_opt);
         }
     }
 
@@ -204,11 +375,9 @@ impl Session {
     /// * `guid` - The GUID of the object to retrieve
     ///
     /// # Returns
-    /// An Option containing a reference to the Point if found, or None if not found.
-    pub fn get_object(&self, guid: &str) -> Option<&Point> {
-        self.lookup
-            .get(guid)
-            .and_then(|_t| self.objects.vec.iter().find(|p| p.guid == guid))
+    /// An Option containing a reference to the Geometry enum if found, or None if not found.
+    pub fn get_object(&self, guid: &str) -> Option<&Geometry> {
+        self.lookup.get(guid)
     }
 
     /// Remove a geometry object by its GUID.
@@ -226,7 +395,7 @@ impl Session {
 
         // Remove from points collection
         // Note: In Rust, the field is `vec` but serialized as "points" in JSON
-        self.objects.vec.retain(|point| point.guid != guid);
+        self.objects.points.retain(|point| point.guid != guid);
 
         // Remove from lookup table
         self.lookup.remove(guid);
@@ -305,7 +474,7 @@ impl fmt::Display for Session {
             "Session({}, {}, points={}, vertices={}, edges={})",
             self.name,
             self.guid,
-            self.objects.vec.len(),
+            self.objects.points.len(),
             self.graph.vertex_count,
             self.graph.edge_count
         )

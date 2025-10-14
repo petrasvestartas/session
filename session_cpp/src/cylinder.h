@@ -28,6 +28,8 @@ public:
     Line line;
     Mesh mesh;
 
+    Xform xform;
+
     /**
      * @brief Creates a new Cylinder from a line and radius.
      * @param line The centerline of the cylinder
@@ -41,16 +43,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Cylinder to a JSON string
-    nlohmann::ordered_json to_json_data() const;
+    nlohmann::ordered_json jsondump() const;
     
     /// Deserializes a Cylinder from JSON data
-    static Cylinder from_json_data(const nlohmann::json& data);
+    static Cylinder jsonload(const nlohmann::json& data);
     
     /// Serializes the Cylinder to a JSON file
-    void to_json(const std::string& filepath) const;
     
     /// Deserializes a Cylinder from a JSON file
-    static Cylinder from_json(const std::string& filepath);
 
 private:
     static Mesh create_cylinder_mesh(const Line& line, float radius);

@@ -162,11 +162,13 @@ def test_xform_mul_assign():
 
 
 def test_xform_json_round_trip():
+    from session_py.encoders import json_dumps, json_loads
+
     x = Xform.from_matrix(
         [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 5.0, 6.0, 1.0]
     )
-    data = x.to_json_data()
-    y = Xform.from_json_data(data)
+    s = json_dumps(x)
+    y = json_loads(s)
     assert matrices_close(x, y)
 
 
@@ -329,54 +331,6 @@ def test_xform_transform_vector():
     assert v.z == 4.0
 
 
-def test_xform_to_json_data():
-    x = Xform.identity()
-    x.name = "test_matrix"
-    data = x.to_json_data()
-    assert data["name"] == "test_matrix"
-    assert data["type"] == "Xform"
-    assert len(data["m"]) == 16
-
-
-def test_xform_from_json_data():
-    data = {
-        "type": "Xform",
-        "guid": "test-guid",
-        "name": "test_matrix",
-        "m": [
-            1.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        ],
-    }
-    x = Xform.from_json_data(data)
-    assert x.name == "test_matrix"
-    assert x.guid == "test-guid"
-
-
-def test_xform_to_json_from_json():
-    x = Xform.translation(1.0, 2.0, 3.0)
-    x.name = "test_file"
-    filepath = "test_xform.json"
-    x.to_json(filepath)
-    y = Xform.from_json(filepath)
-    assert y.name == "test_file"
-    assert matrices_close(x, y)
-
-
 def test_xform_getitem():
     x = Xform.identity()
     assert x[0, 0] == 1.0
@@ -394,3 +348,19 @@ def test_xform_setitem():
     assert x[0, 3] == 5.0
     assert x[1, 3] == 10.0
     assert x[2, 3] == 15.0
+
+
+def test_xform_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
+    xform = Xform.translation(1.0, 2.0, 3.0)
+    xform.name = "test_xform"
+
+    path = Path(__file__).resolve().parents[2] / "test_xform.json"
+    json_dump(xform, path)
+    loaded = json_load(path)
+
+    assert isinstance(loaded, Xform)
+    assert loaded[0, 3] == xform[0, 3]
+    assert loaded.name == xform.name

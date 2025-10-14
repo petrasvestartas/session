@@ -1,169 +1,8 @@
-import json
 import uuid
-from typing import Any
+from typing import Any, Optional, TYPE_CHECKING
 
-
-class TreeNode:
-    """A node of a tree data structure.
-
-    Parameters
-    ----------
-    name : str, optional
-        The name of the tree node.
-
-    Attributes
-    ----------
-    name : str
-        The name of the tree node.
-    guid : UUID
-        The unique identifier of the tree node.
-    parent : :class:`TreeNode`
-        The parent node of the tree node.
-    children : list[:class:`TreeNode`]
-        The children of the tree node.
-
-    """
-
-    def __init__(self, name="my_node"):
-        self.name = name
-        self.guid = str(uuid.uuid4())
-        self._parent = None
-        self._children = []
-        self._tree = None
-
-    def __str__(self):
-        """String representation."""
-        return f"TreeNode({self.name}"
-
-    def __repr__(self):
-        return f"TreeNode({self.name}, {self.guid}, {len(self.children)} children)"
-
-    ###########################################################################################
-    # JSON
-    ###########################################################################################
-
-    def to_json_data(self) -> dict[str, Any]:
-        """Convert the TreeNode to a JSON-serializable dictionary."""
-        return {
-            "type": "TreeNode",
-            "name": self.name,
-            "guid": self.guid,
-            "children": [child.to_json_data() for child in self.children],
-        }
-
-    @classmethod
-    def from_json_data(cls, data: dict[str, Any]) -> "TreeNode":
-        """Create a TreeNode from JSON data dictionary."""
-        node = cls(name=data["name"])
-        for child_data in data.get("children", []):
-            child_node = cls.from_json_data(child_data)
-            node.add(child_node)
-        return node
-
-    ###########################################################################################
-    # Details
-    ###########################################################################################
-
-    @property
-    def is_root(self):
-        return self._parent is None
-
-    @property
-    def is_leaf(self):
-        return not self._children
-
-    @property
-    def is_branch(self):
-        return not self.is_root and not self.is_leaf
-
-    @property
-    def parent(self):
-        return self._parent
-
-    @property
-    def children(self):
-        return self._children
-
-    @property
-    def tree(self):
-        if self.is_root:
-            return self._tree
-        else:
-            return self.parent.tree  # type: ignore
-
-    def add(self, node):
-        """Add a child node to this node.
-
-        Parameters
-        ----------
-        node : :class:`TreeNode`
-            The node to add.
-
-        """
-        if not isinstance(node, TreeNode):
-            raise TypeError("The node is not a TreeNode object.")
-        if node not in self._children:
-            self._children.append(node)
-        node._parent = self
-
-    def remove(self, node):
-        """Remove a child node from this node.
-
-        Parameters
-        ----------
-        node : :class:`TreeNode`
-            The node to remove.
-
-        """
-        self._children.remove(node)
-        node._parent = None
-
-    @property
-    def ancestors(self):
-        this = self
-        while this.parent:
-            yield this.parent
-            this = this.parent
-
-    @property
-    def descendants(self):
-        for child in self.children:
-            yield child
-            for descendant in child.descendants:
-                yield descendant
-
-    def traverse(self, strategy="depthfirst", order="preorder"):
-        """Traverse the tree from this node.
-
-        Parameters
-        ----------
-        strategy : {"depthfirst", "breadthfirst"}, optional
-            The traversal strategy.
-        order : {"preorder", "postorder"}, optional
-            The traversal order.
-
-        """
-        if strategy == "depthfirst":
-            if order == "preorder":
-                yield self
-                for child in self.children:
-                    for node in child.traverse(strategy, order):
-                        yield node
-            elif order == "postorder":
-                for child in self.children:
-                    for node in child.traverse(strategy, order):
-                        yield node
-                yield self
-            else:
-                raise ValueError("Unknown traversal order: {}".format(order))
-        elif strategy == "breadthfirst":
-            queue = [self]
-            while queue:
-                node = queue.pop(0)
-                yield node
-                queue.extend(node.children)
-        else:
-            raise ValueError("Unknown traversal strategy: {}".format(strategy))
+if TYPE_CHECKING:
+    from .treenode import TreeNode
 
 
 class Tree:
@@ -197,57 +36,31 @@ class Tree:
         return "<Tree with {} nodes>".format(len(list(self.nodes)))
 
     ###########################################################################################
-    # JSON
+    # JSON (polymorphic)
     ###########################################################################################
 
-    def to_json_data(self) -> dict[str, Any]:
-        """Convert the Tree to a JSON-serializable dictionary."""
+    def __jsondump__(self) -> dict:
+        """Serialize to polymorphic JSON format with type field."""
         return {
-            "type": "Tree",
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
             "name": self.name,
-            "root": self.root.to_json_data() if self.root else None,
+            "root": self.root.__jsondump__() if self.root else None,
         }
 
     @classmethod
-    def from_json_data(cls, data: dict[str, Any]) -> "Tree":
-        """Create a Tree from JSON data dictionary."""
+    def __jsonload__(
+        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None
+    ) -> "Tree":
+        """Deserialize from polymorphic JSON format."""
         tree = cls(name=data.get("name", "Tree"))
+        tree.guid = guid if guid is not None else data.get("guid", tree.guid)
         if data.get("root"):
-            root = TreeNode.from_json_data(data["root"])
+            from .encoders import decode_node
+
+            root = decode_node(data["root"])
             tree.add(root)
         return tree
-
-    def to_json(self, filepath: str) -> None:
-        """Serialize the Tree to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the output JSON file
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, filepath: str) -> "Tree":
-        """Deserialize a Tree from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load
-
-        Returns
-        -------
-        :class:`Tree`
-            Tree instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
 
     ###########################################################################################
     # Details
@@ -268,6 +81,8 @@ class Tree:
             The parent node. If None, adds as root.
 
         """
+        from .treenode import TreeNode
+
         if not isinstance(node, TreeNode):
             raise TypeError("The node is not a TreeNode object.")
 

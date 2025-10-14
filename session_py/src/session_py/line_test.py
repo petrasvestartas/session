@@ -138,27 +138,18 @@ def test_line_end():
     assert p.x == 4.0
 
 
-def test_line_to_json_data():
-    line = Line(1.5, 2.5, 3.5, 4.5, 5.5, 6.5)
-    line.name = "test"
-    data = line.to_json_data()
-    assert data["type"] == "Line"
-    assert data["name"] == "test"
+def test_line_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
 
+    line = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    line.name = "test_line"
 
-def test_line_from_json_data():
-    orig = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
-    data = orig.to_json_data()
-    restored = Line.from_json_data(data)
-    assert restored.name == "my_line"
-    assert restored.x0 == 1.0
+    path = Path(__file__).resolve().parents[2] / "test_line.json"
+    json_dump(line, path)
+    loaded = json_load(path)
 
-
-def test_line_to_json_from_json():
-    orig = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
-    orig.name = "serialized"
-    orig.to_json("test_line.json")
-    loaded = Line.from_json("test_line.json")
-    assert loaded.name == orig.name
-    assert loaded.x0 == orig.x0
-    assert loaded.z1 == orig.z1
+    assert isinstance(loaded, Line)
+    assert loaded.x0 == line.x0
+    assert loaded.z1 == line.z1
+    assert loaded.name == line.name

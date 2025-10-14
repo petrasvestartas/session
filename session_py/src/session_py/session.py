@@ -1,9 +1,9 @@
-import json
 import uuid
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from .objects import Objects
 from .point import Point
-from .tree import Tree, TreeNode
+from .tree import Tree
+from .treenode import TreeNode
 from .graph import Graph
 
 
@@ -40,7 +40,7 @@ class Session:
         self.guid = str(uuid.uuid4())
         self.name = name
         self.objects = Objects()
-        self.lookup: dict[str, Any] = {}
+        self.lookup: Dict[str, Any] = {}
         self.tree = Tree(name=f"{name}_tree")
         self.graph = Graph(name=f"{name}_graph")
 
@@ -58,98 +58,65 @@ class Session:
         return f"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})"
 
     ###########################################################################################
-    # JSON
+    # JSON (polymorphic)
     ###########################################################################################
 
-    def to_json_data(self) -> dict[str, Any]:
-        """Convert the Session to a JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            Dictionary representation of the session.
-
-        """
+    def __jsondump__(self) -> dict:
+        """Serialize to polymorphic JSON format with type field."""
         return {
-            "type": "Session",
-            "name": self.name,
+            "type": f"{self.__class__.__name__}",
             "guid": self.guid,
-            "objects": self.objects.to_json_data(),
-            "tree": self.tree.to_json_data(),
-            "graph": self.graph.to_json_data(),
+            "name": self.name,
+            "objects": self.objects.__jsondump__(),
+            "tree": self.tree.__jsondump__(),
+            "graph": self.graph.__jsondump__(),
         }
 
     @classmethod
-    def from_json_data(cls, data: dict[str, Any]) -> "Session":
-        """Create a Session from JSON data dictionary.
+    def __jsonload__(
+        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None
+    ) -> "Session":
+        """Deserialize from polymorphic JSON format."""
+        from .encoders import decode_node
 
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing session data.
-
-        Returns
-        -------
-        :class:`Session`
-            Session instance created from the data.
-
-        """
         session = cls(name=data.get("name", "my_session"))
+        session.guid = guid if guid is not None else data.get("guid", session.guid)
 
-        # Load objects
+        # Load nested structures via decode_node
         if data.get("objects"):
-            session.objects = Objects.from_json_data(data["objects"])
+            session.objects = decode_node(data["objects"])  # Objects
+        if data.get("tree"):
+            session.tree = decode_node(data["tree"])  # Tree
+        if data.get("graph"):
+            session.graph = decode_node(data["graph"])  # Graph
 
-        # Rebuild lookup from objects
+        # Rebuild lookup from all objects
         for point in session.objects.points:
             session.lookup[point.guid] = point
-
-        # Load tree structure (this will override the default tree created by add_point/add_vector)
-        if data.get("tree"):
-            session.tree = Tree.from_json_data(data["tree"])
-
-        # Load graph structure (this will override the default graph created by add_point/add_vector)
-        if data.get("graph"):
-            session.graph = Graph.from_json_data(data["graph"])
+        for line in session.objects.lines:
+            session.lookup[line.guid] = line
+        for plane in session.objects.planes:
+            session.lookup[plane.guid] = plane
+        for bbox in session.objects.bboxes:
+            session.lookup[bbox.guid] = bbox
+        for polyline in session.objects.polylines:
+            session.lookup[polyline.guid] = polyline
+        for pointcloud in session.objects.pointclouds:
+            session.lookup[pointcloud.guid] = pointcloud
+        for mesh in session.objects.meshes:
+            session.lookup[mesh.guid] = mesh
+        for cylinder in session.objects.cylinders:
+            session.lookup[cylinder.guid] = cylinder
+        for arrow in session.objects.arrows:
+            session.lookup[arrow.guid] = arrow
 
         return session
-
-    def to_json(self, filepath: str) -> None:
-        """Serialize the Session to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the output JSON file.
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, filepath: str) -> "Session":
-        """Deserialize a Session from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Session`
-            Session instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
 
     ###########################################################################################
     # Details - Add objects
     ###########################################################################################
 
-    def add_point(self, point: Point) -> None:
+    def add_point(self, point: Point) -> TreeNode:
         """Add a point to the Session.
 
         Automatically creates corresponding nodes in both graph and tree structures.
@@ -158,16 +125,144 @@ class Session:
         ----------
         point : :class:`Point`
             The point to add to the session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this point.
         """
         self.objects.points.append(point)
         self.lookup[point.guid] = point
-
-        # Automatically add to graph using point's GUID as node key
         self.graph.add_node(point.guid, f"point_{point.name}")
-
-        # Automatically add to tree as child of root using point's GUID as node name
         tree_node = TreeNode(name=point.guid)
-        self.tree.add(tree_node, self.tree.root)
+        return tree_node
+
+    def add_line(self, line) -> TreeNode:
+        """Add a line to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this line.
+        """
+        self.objects.lines.append(line)
+        self.lookup[line.guid] = line
+        self.graph.add_node(line.guid, f"line_{line.name}")
+        tree_node = TreeNode(name=line.guid)
+        return tree_node
+
+    def add_plane(self, plane) -> TreeNode:
+        """Add a plane to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this plane.
+        """
+        self.objects.planes.append(plane)
+        self.lookup[plane.guid] = plane
+        self.graph.add_node(plane.guid, f"plane_{plane.name}")
+        tree_node = TreeNode(name=plane.guid)
+        return tree_node
+
+    def add_bbox(self, bbox) -> TreeNode:
+        """Add a bounding box to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this bounding box.
+        """
+        self.objects.bboxes.append(bbox)
+        self.lookup[bbox.guid] = bbox
+        self.graph.add_node(bbox.guid, f"bbox_{bbox.name}")
+        tree_node = TreeNode(name=bbox.guid)
+        return tree_node
+
+    def add_polyline(self, polyline) -> TreeNode:
+        """Add a polyline to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this polyline.
+        """
+        self.objects.polylines.append(polyline)
+        self.lookup[polyline.guid] = polyline
+        self.graph.add_node(polyline.guid, f"polyline_{polyline.name}")
+        tree_node = TreeNode(name=polyline.guid)
+        return tree_node
+
+    def add_pointcloud(self, pointcloud) -> TreeNode:
+        """Add a point cloud to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this point cloud.
+        """
+        self.objects.pointclouds.append(pointcloud)
+        self.lookup[pointcloud.guid] = pointcloud
+        self.graph.add_node(pointcloud.guid, f"pointcloud_{pointcloud.name}")
+        tree_node = TreeNode(name=pointcloud.guid)
+        return tree_node
+
+    def add_mesh(self, mesh) -> TreeNode:
+        """Add a mesh to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this mesh.
+        """
+        self.objects.meshes.append(mesh)
+        self.lookup[mesh.guid] = mesh
+        self.graph.add_node(mesh.guid, f"mesh_{mesh.name}")
+        tree_node = TreeNode(name=mesh.guid)
+        return tree_node
+
+    def add_cylinder(self, cylinder) -> TreeNode:
+        """Add a cylinder to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this cylinder.
+        """
+        self.objects.cylinders.append(cylinder)
+        self.lookup[cylinder.guid] = cylinder
+        self.graph.add_node(cylinder.guid, f"cylinder_{cylinder.name}")
+        tree_node = TreeNode(name=cylinder.guid)
+        return tree_node
+
+    def add_arrow(self, arrow) -> TreeNode:
+        """Add an arrow to the Session.
+
+        Returns
+        -------
+        TreeNode
+            The TreeNode created for this arrow.
+        """
+        self.objects.arrows.append(arrow)
+        self.lookup[arrow.guid] = arrow
+        self.graph.add_node(arrow.guid, f"arrow_{arrow.name}")
+        tree_node = TreeNode(name=arrow.guid)
+        return tree_node
+
+    def add(self, node: TreeNode, parent: TreeNode = None) -> None:
+        """Add a TreeNode to the tree hierarchy.
+
+        Parameters
+        ----------
+        node : TreeNode
+            The TreeNode to add.
+        parent : TreeNode, optional
+            Parent TreeNode (defaults to root if not provided).
+        """
+        if parent is None:
+            self.tree.add(node, self.tree.root)
+        else:
+            self.tree.add(node, parent)
 
     def add_edge(self, guid1: str, guid2: str, attribute: str = "") -> None:
         """Add an edge between two geometry objects in the graph.

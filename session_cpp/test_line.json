@@ -1,21 +1,21 @@
 {
-    "type": "Line",
-    "guid": "2df72ab8-2ddf-4074-824a-7cd01ac916c4",
-    "name": "serialized",
-    "x0": 1.0,
-    "y0": 2.0,
-    "z0": 3.0,
-    "x1": 4.0,
-    "y1": 5.0,
-    "z1": 6.0,
-    "width": 1.0,
-    "linecolor": {
-        "type": "Color",
-        "guid": "a01f8cf0-626a-4676-8821-5aa23283ea39",
-        "name": "white",
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-    }
+  "type": "Line",
+  "guid": "e257936a-3224-4b91-b801-cce624e3e196",
+  "name": "test_line",
+  "x0": 1.0,
+  "y0": 2.0,
+  "z0": 3.0,
+  "x1": 4.0,
+  "y1": 5.0,
+  "z1": 6.0,
+  "width": 1.0,
+  "linecolor": {
+    "type": "Color",
+    "guid": "2ab5cb00-d8d2-492e-a39a-0f5a78fddd7a",
+    "name": "white",
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 255
+  }
 }

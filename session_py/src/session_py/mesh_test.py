@@ -268,31 +268,22 @@ def test_vertex_data_normal():
     assert normal == [0.0, 0.0, 1.0]
 
 
-def test_json_serialization():
+def test_mesh_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
     mesh = Mesh()
-    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))
-    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))
-    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))
+    v0 = mesh.add_vertex(Point(0, 0, 0))
+    v1 = mesh.add_vertex(Point(1, 0, 0))
+    v2 = mesh.add_vertex(Point(0, 1, 0))
     mesh.add_face([v0, v1, v2])
+    mesh.name = "test_mesh"
 
-    data = mesh.to_json_data()
-    restored = Mesh.from_json_data(data)
+    path = Path(__file__).resolve().parents[2] / "test_mesh.json"
+    json_dump(mesh, path)
+    loaded = json_load(path)
 
-    assert restored.number_of_vertices() == 3
-    assert restored.number_of_faces() == 1
-    assert restored.number_of_edges() == 3
-
-
-def test_json_file_io():
-    mesh = Mesh()
-    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))
-    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))
-    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))
-    mesh.add_face([v0, v1, v2])
-
-    filename = "test_mesh.json"
-    mesh.to_json(filename)
-    loaded = Mesh.from_json(filename)
-
+    assert isinstance(loaded, Mesh)
     assert loaded.number_of_vertices() == 3
     assert loaded.number_of_faces() == 1
+    assert loaded.name == mesh.name

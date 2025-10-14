@@ -1,7 +1,7 @@
 import uuid
-import json
 import math
 from .color import Color
+from .xform import Xform
 from .vector import Vector
 
 
@@ -44,6 +44,7 @@ class Point:
         self._z = z
         self.width = 1.0
         self.pointcolor = Color.white()
+        self.xform = Xform.identity()
 
     @property
     def x(self):
@@ -95,83 +96,6 @@ class Point:
 
     def __ne__(self, other):
         return not self == other
-
-    ###########################################################################################
-    # JSON
-    ###########################################################################################
-
-    def to_json_data(self) -> dict:
-        """Convert the Point to a JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            Dictionary containing the Point data in JSON format.
-
-        """
-        return {
-            "type": "Point",
-            "guid": self.guid,
-            "name": self.name,
-            "x": self.x,
-            "y": self.y,
-            "z": self.z,
-            "width": self.width,
-            "pointcolor": self.pointcolor.to_json_data(),
-        }
-
-    @classmethod
-    def from_json_data(cls, data: dict) -> "Point":
-        """Create a Point from JSON data dictionary.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing point data from JSON.
-
-        Returns
-        -------
-        :class:`Point`
-            Point instance created from the JSON data.
-
-        """
-        point = cls(data["x"], data["y"], data["z"])
-        point.guid = data["guid"]
-        point.name = data["name"]
-        point.width = data["width"]
-        point.pointcolor = Color.from_json_data(data["pointcolor"])
-        return point
-
-    def to_json(self, filepath: str) -> None:
-        """Serialize the Point to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the output JSON file.
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, filepath: str) -> "Point":
-        """Deserialize a Point from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Point`
-            Point instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
 
     ###########################################################################################
     # No-copy Operators
@@ -399,3 +323,48 @@ class Point:
 
         result = centroid_sum / total_area
         return Point(result.x, result.y, result.z)
+
+    ###########################################################################################
+    # Polymorphic JSON Serialization (COMPAS-style)
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'type', 'guid', 'name', and object fields.
+
+        """
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "width": self.width,
+            "pointcolor": self.pointcolor.__jsondump__(),
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format."""
+        from .encoders import decode_node
+
+        pt = cls(data["x"], data["y"], data["z"])
+        pt.width = data.get("width", 1.0)
+
+        # Decode nested color (supports polymorphic dicts and plain values)
+        pt.pointcolor = decode_node(data.get("pointcolor"))
+
+        # Always assign metadata (per project convention)
+        pt.guid = guid
+        pt.name = name
+
+
+        if "xform" in data:
+            obj.xform = decode_node(data["xform"])
+        
+        return pt

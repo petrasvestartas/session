@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod vector_tests {
+    use crate::encoders::{json_dump, json_load};
     use crate::Vector;
 
     #[test]
@@ -22,14 +23,14 @@ mod vector_tests {
     #[test]
     fn test_vector_to_json_data() {
         let v = Vector::new(15.5, 25.7, 35.9);
-        let data = v.to_json_data().unwrap();
+        let data = v.jsondump().unwrap();
         assert!(data.contains("Vector") && data.contains("15.5"));
     }
 
     #[test]
     fn test_vector_from_json_data() {
         let orig = Vector::new(42.1, 84.2, 126.3);
-        let rest = Vector::from_json_data(&orig.to_json_data().unwrap()).unwrap();
+        let rest = Vector::jsonload(&orig.jsondump().unwrap()).unwrap();
         assert_eq!((rest.x(), rest.y(), rest.z()), (42.1, 84.2, 126.3));
     }
 
@@ -37,8 +38,8 @@ mod vector_tests {
     fn test_vector_to_json_from_json() {
         let orig = Vector::new(123.45, 678.90, 999.11);
         let filename = "test_vector.json";
-        orig.to_json(filename).unwrap();
-        let load = Vector::from_json(filename).unwrap();
+        json_dump(&orig, filename, true).unwrap();
+        let load = json_load::<Vector>(filename).unwrap();
         assert_eq!(
             (load.x(), load.y(), load.z()),
             (orig.x(), orig.y(), orig.z())

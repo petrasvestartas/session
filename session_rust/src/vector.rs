@@ -541,7 +541,7 @@ impl Vector {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Serializes the Vector to a JSON string.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
         let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
@@ -550,13 +550,13 @@ impl Vector {
     }
 
     /// Deserializes a Vector from a JSON string.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 
     /// Serializes the Vector to a JSON file.
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json = self.to_json_data()?;
+        let json = self.jsondump()?;
         std::fs::write(filepath, json)?;
         Ok(())
     }
@@ -564,7 +564,7 @@ impl Vector {
     /// Deserializes a Vector from a JSON file.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json)
+        Self::jsonload(&json)
     }
 }
 

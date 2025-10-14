@@ -1,0 +1,101 @@
+{
+  "type": "Session",
+  "name": "my_session",
+  "guid": "d0495602-0981-4d38-bf0a-fc0aa2cd91de",
+  "objects": {
+    "type": "Objects",
+    "guid": "eafd5732-d919-4f9d-a165-d07d088af585",
+    "name": "my_objects",
+    "arrows": [],
+    "bboxes": [],
+    "cylinders": [],
+    "lines": [],
+    "meshes": [],
+    "planes": [],
+    "points": [
+      {
+        "type": "Point",
+        "guid": "e467957d-7b69-4667-bb60-6e26fbd94d14",
+        "name": "my_point",
+        "x": 1.0,
+        "y": 2.0,
+        "z": 3.0,
+        "width": 1.0,
+        "pointcolor": {
+          "type": "Color",
+          "guid": "ee1b39ea-15f0-4e13-abc7-7240343d59ed",
+          "name": "white",
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        }
+      },
+      {
+        "type": "Point",
+        "guid": "f0e33959-dd7d-4ed7-ba61-b75ae0667d57",
+        "name": "my_point",
+        "x": 4.0,
+        "y": 5.0,
+        "z": 6.0,
+        "width": 1.0,
+        "pointcolor": {
+          "type": "Color",
+          "guid": "b8f46605-8e7d-4c6c-a136-86f6379a26a9",
+          "name": "white",
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        }
+      }
+    ],
+    "pointclouds": [],
+    "polylines": []
+  },
+  "tree": {
+    "type": "Tree",
+    "guid": "e3c44f2d-f306-46fe-a39f-f55cdfffbc43",
+    "name": "my_session_tree",
+    "root": {
+      "type": "TreeNode",
+      "guid": "b4730aea-99d5-45e1-9c21-c62f40880976",
+      "name": "my_session",
+      "children": []
+    }
+  },
+  "graph": {
+    "type": "Graph",
+    "name": "my_session_graph",
+    "guid": "6bbdd371-0770-4017-9570-f4fe764fff1a",
+    "vertices": [
+      {
+        "type": "Vertex",
+        "name": "e467957d-7b69-4667-bb60-6e26fbd94d14",
+        "guid": "c662b3b5-1809-44ac-9000-ca4f9300a1f4",
+        "attribute": "point_my_point",
+        "index": 0
+      },
+      {
+        "type": "Vertex",
+        "name": "f0e33959-dd7d-4ed7-ba61-b75ae0667d57",
+        "guid": "70d92198-d609-4470-9705-85da9ff96040",
+        "attribute": "point_my_point",
+        "index": 1
+      }
+    ],
+    "edges": [
+      {
+        "type": "Edge",
+        "guid": "337d234c-f6ff-4019-9656-40aabe4cee17",
+        "name": "my_edge",
+        "v0": "e467957d-7b69-4667-bb60-6e26fbd94d14",
+        "v1": "f0e33959-dd7d-4ed7-ba61-b75ae0667d57",
+        "attribute": "connection",
+        "index": 0
+      }
+    ],
+    "vertex_count": 2,
+    "edge_count": 1
+  }
+}

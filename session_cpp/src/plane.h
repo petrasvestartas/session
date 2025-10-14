@@ -1,5 +1,7 @@
 #pragma once
 #include "color.h"
+#include "xform.h"
+#include "xform.h"
 #include "fmt/core.h"
 #include "guid.h"
 #include "json.h"
@@ -13,14 +15,16 @@
 #include <point.h>
 
 namespace session_cpp {
+
     /**
      * @class Plane
      * @brief A plane defined by origina and x-axis, z-axis, y-axis.
      */
     class Plane {
         public:
-        std::string guid = ::guid();       ///< Unique identifier for the point
-        std::string name = "my_plane";     ///< Point identifier/name
+        std::string guid = ::guid();       ///< Unique identifier for the plane
+        std::string name = "my_plane";     ///< Plane identifier/name
+        Xform xform;   ///< Transformation matrix
 
         private:
         Point _origin = Point();   ///< Origin (private)
@@ -33,7 +37,8 @@ namespace session_cpp {
         float _d = 0.0f; ///< W coordinate (private)
 
         public:
-        /// Getters plane attributes
+
+    /// Getters plane attributes
         const Point& origin() const { return _origin; }
         const Vector& x_axis() const { return _x_axis; } 
         const Vector& y_axis() const { return _y_axis; }
@@ -88,16 +93,14 @@ namespace session_cpp {
   ///////////////////////////////////////////////////////////////////////////////////////////
 
   /// Convert to JSON-serializable object
-  nlohmann::ordered_json to_json_data() const;
+  nlohmann::ordered_json jsondump() const;
 
   /// Create vector from JSON data
-  static Plane from_json_data(const nlohmann::json &data);
+  static Plane jsonload(const nlohmann::json &data);
 
   /// Serialize to JSON file
-  void to_json(const std::string &filepath) const;
 
   /// Deserialize from JSON file
-  static Plane from_json(const std::string &filepath);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Details

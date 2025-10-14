@@ -1,5 +1,4 @@
 import uuid
-import json
 import math
 from .tolerance import Tolerance, TO_DEGREES, TO_RADIANS
 
@@ -89,79 +88,6 @@ class Vector:
 
     def __ne__(self, other):
         return not self == other
-
-    ###########################################################################################
-    # JSON
-    ###########################################################################################
-
-    def to_json_data(self) -> dict:
-        """Convert the Vector to a JSON-serializable dictionary.
-
-        Returns
-        -------
-        dict
-            Dictionary containing the Vector data in JSON format.
-
-        """
-        return {
-            "type": "Vector",
-            "guid": self.guid,
-            "name": self.name,
-            "x": self.x,
-            "y": self.y,
-            "z": self.z,
-        }
-
-    @classmethod
-    def from_json_data(cls, data: dict) -> "Vector":
-        """Create a Vector from JSON data dictionary.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing vector data from JSON.
-
-        Returns
-        -------
-        :class:`Vector`
-            Vector instance created from the JSON data.
-
-        """
-        vector = cls(data["x"], data["y"], data["z"])
-        vector.guid = data["guid"]
-        vector.name = data["name"]
-        return vector
-
-    def to_json(self, filepath: str) -> None:
-        """Serialize the Vector to a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the output JSON file.
-
-        """
-        with open(filepath, "w") as f:
-            json.dump(self.to_json_data(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, filepath: str) -> "Vector":
-        """Deserialize a Vector from a JSON file.
-
-        Parameters
-        ----------
-        filepath : str
-            Path to the JSON file to load.
-
-        Returns
-        -------
-        :class:`Vector`
-            Vector instance loaded from the file.
-
-        """
-        with open(filepath, "r") as f:
-            data = json.load(f)
-            return cls.from_json_data(data)
 
     ###########################################################################################
     # No-copy Operators
@@ -852,4 +778,25 @@ class Vector:
         self._x, self._y, self._z = coords
         self._has_length = False
 
-        return a != 0.0
+    ###########################################################################################
+    # Polymorphic JSON Serialization (COMPAS-style)
+    ###########################################################################################
+
+    def __jsondump__(self):
+        """Serialize to polymorphic JSON format with type field."""
+        return {
+            "type": f"{self.__class__.__name__}",
+            "guid": self.guid,
+            "name": self.name,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+        }
+
+    @classmethod
+    def __jsonload__(cls, data, guid=None, name=None):
+        """Deserialize from polymorphic JSON format."""
+        vec = cls(data["x"], data["y"], data["z"])
+        vec.guid = guid
+        vec.name = name
+        return vec

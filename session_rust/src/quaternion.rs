@@ -145,23 +145,23 @@ impl Quaternion {
         }
     }
 
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         Ok(serde_json::to_string_pretty(self)?)
     }
 
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json = self.to_json_data()?;
+        let json = self.jsondump()?;
         std::fs::write(filepath, json)?;
         Ok(())
     }
 
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json_data = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json_data)
+        Self::jsonload(&json_data)
     }
 }
 

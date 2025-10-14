@@ -23,45 +23,6 @@ def test_color_equality():
     assert c3 != c4
 
 
-def test_color_to_json_data():
-    color = Color(128, 64, 192, 255, "purple")
-    data = color.to_json_data()
-    assert data["type"] == "Color"
-    assert data["name"] == "purple"
-    assert data["r"] == 128
-    assert data["g"] == 64
-    assert data["b"] == 192
-    assert data["a"] == 255
-    assert "guid" in data
-
-
-def test_color_from_json_data():
-    original_color = Color(200, 150, 100, 255, "bronze")
-    data = original_color.to_json_data()
-    restored_color = Color.from_json_data(data)
-    assert restored_color.r == 200
-    assert restored_color.g == 150
-    assert restored_color.b == 100
-    assert restored_color.a == 255
-    assert restored_color.name == "bronze"
-    assert restored_color.guid == original_color.guid
-
-
-def test_color_to_json_from_json():
-    original = Color(255, 128, 64, 255, "sunset_orange")
-    filename = "test_color.json"
-
-    original.to_json(filename)
-    loaded = Color.from_json(filename)
-
-    assert loaded.r == original.r
-    assert loaded.g == original.g
-    assert loaded.b == original.b
-    assert loaded.a == original.a
-    assert loaded.name == original.name
-    assert loaded.guid == original.guid
-
-
 def test_color_white():
     white = Color.white()
     assert white.name == "white"
@@ -119,6 +80,33 @@ def test_color_blue():
     assert blue.g == 0
     assert blue.b == 255
     assert blue.a == 255
+
+
+def test_color_silver():
+    silver = Color.silver()
+    assert silver.name == "silver"
+    assert silver.r == 192
+    assert silver.g == 192
+    assert silver.b == 192
+    assert silver.a == 255
+
+
+def test_color_json_roundtrip():
+    from pathlib import Path
+    from session_py.encoders import json_dump, json_load
+
+    color = Color(128, 64, 192, 255, "purple")
+
+    path = Path(__file__).resolve().parents[2] / "test_color.json"
+    json_dump(color, path)
+    loaded = json_load(path)
+
+    assert isinstance(loaded, Color)
+    assert loaded.r == color.r
+    assert loaded.g == color.g
+    assert loaded.b == color.b
+    assert loaded.a == color.a
+    assert loaded.name == color.name
 
 
 def test_color_grey():

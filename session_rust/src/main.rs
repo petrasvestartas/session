@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     session.add_point(point2.clone());
     session.add_relationship(&point1.guid, &point2.guid, "test_connection");
 
-    let json = session.to_json_data()?;
+    let json = session.jsondump()?;
     println!("Session JSON:\n{json}");
 
     Ok(())

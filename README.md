@@ -14,24 +14,29 @@ session/
 ## Implementation Status
 
 **Completed:**
-- Color
-- Graph
-- Line
-- Mesh
-- Objects
-- Plane
-- Point
-- Pointcloud
-- Polyline
-- Quaternion
-- Session
-- Tree
-- Tolerance
-- Vector
-- Xform
-- Cylinder
-- Arrow
-- BoundingBox
+- 1. Arrow - xform
+- 2. BoundingBox - xform
+- 3. Color
+- 4. Cylinder
+- 5. Edge
+- 6. Graph
+- 7. Line - missing linecolor, width
+- 8. Mesh
+- 9. Objects
+- 10. Plane
+- 11. Point
+- 12. Pointcloud
+- 13. Polyline
+- 14. Quaternion
+- 15. Session
+- 16. Tolerance - no need to serialize
+- 17. Tree
+- 18. TreeNode
+- 19. Vector
+- 20. Vertex
+- 21. Xform
+- 22. Encoders
+
 
 **Planned:**
 - BVH

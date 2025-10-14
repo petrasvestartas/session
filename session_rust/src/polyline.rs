@@ -1,4 +1,4 @@
-use crate::{Plane, Point, Tolerance, Vector};
+use crate::{Color, Plane, Point, Tolerance, Vector, Xform};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
@@ -12,6 +12,10 @@ pub struct Polyline {
     pub name: String,
     pub points: Vec<Point>,
     pub plane: Plane,
+    pub width: f32,
+    pub linecolor: Color,
+    #[serde(default = "Xform::identity")]
+    pub xform: Xform,
 }
 
 impl Default for Polyline {
@@ -21,6 +25,9 @@ impl Default for Polyline {
             name: "my_polyline".to_string(),
             points: Vec::new(),
             plane: Plane::default(),
+            width: 1.0,
+            linecolor: Color::white(),
+            xform: Xform::identity(),
         }
     }
 }
@@ -44,6 +51,9 @@ impl Polyline {
             name: "my_polyline".to_string(),
             points,
             plane,
+            width: 1.0,
+            linecolor: Color::white(),
+            xform: Xform::identity(),
         }
     }
 
@@ -133,7 +143,7 @@ impl Polyline {
     }
 
     /// Serializes the Polyline to a JSON string.
-    pub fn to_json_data(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
         let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
@@ -142,13 +152,13 @@ impl Polyline {
     }
 
     /// Deserializes a Polyline from a JSON string.
-    pub fn from_json_data(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(json_data)?)
     }
 
     /// Serializes the Polyline to a JSON file.
     pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json = self.to_json_data()?;
+        let json = self.jsondump()?;
         std::fs::write(filepath, json)?;
         Ok(())
     }
@@ -156,7 +166,7 @@ impl Polyline {
     /// Deserializes a Polyline from a JSON file.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json = std::fs::read_to_string(filepath)?;
-        Self::from_json_data(&json)
+        Self::jsonload(&json)
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

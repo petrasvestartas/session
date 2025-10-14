@@ -9,6 +9,7 @@ namespace session_cpp {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 Plane::Plane() {
+    xform = Xform::identity();
     _origin = Point(0.0f, 0.0f, 0.0f);
     _x_axis = Vector::x_axis();
     _y_axis = Vector::y_axis();
@@ -20,6 +21,7 @@ Plane::Plane() {
 }
 
 Plane::Plane(Point& point, Vector& x_axis, Vector& y_axis, std::string name) {
+    xform = Xform::identity();
     this->name = name;
     _origin = point;
     _x_axis = x_axis;
@@ -210,7 +212,7 @@ Plane Plane::operator-(const Vector &other) const {
 // JSON
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-nlohmann::ordered_json Plane::to_json_data() const {
+nlohmann::ordered_json Plane::jsondump() const {
     auto clean_float = [](float val) -> double { 
         return static_cast<double>(std::round(val * 100.0f) / 100.0f); 
     };
@@ -218,10 +220,10 @@ nlohmann::ordered_json Plane::to_json_data() const {
         {"type", "Plane"},
         {"guid", guid},
         {"name", name},
-        {"origin", _origin.to_json_data()},
-        {"x_axis", _x_axis.to_json_data()},
-        {"y_axis", _y_axis.to_json_data()},
-        {"z_axis", _z_axis.to_json_data()},
+        {"origin", _origin.jsondump()},
+        {"x_axis", _x_axis.jsondump()},
+        {"y_axis", _y_axis.jsondump()},
+        {"z_axis", _z_axis.jsondump()},
         {"a", clean_float(_a)},
         {"b", clean_float(_b)},
         {"c", clean_float(_c)},
@@ -229,12 +231,12 @@ nlohmann::ordered_json Plane::to_json_data() const {
     };
 }
 
-Plane Plane::from_json_data(const nlohmann::json &data) {
+Plane Plane::jsonload(const nlohmann::json &data) {
     Plane plane;
-    plane._origin = Point::from_json_data(data["origin"]);
-    plane._x_axis = Vector::from_json_data(data["x_axis"]);
-    plane._y_axis = Vector::from_json_data(data["y_axis"]);
-    plane._z_axis = Vector::from_json_data(data["z_axis"]);
+    plane._origin = Point::jsonload(data["origin"]);
+    plane._x_axis = Vector::jsonload(data["x_axis"]);
+    plane._y_axis = Vector::jsonload(data["y_axis"]);
+    plane._z_axis = Vector::jsonload(data["z_axis"]);
     plane.guid = data["guid"];
     plane.name = data["name"];
     
@@ -245,17 +247,7 @@ Plane Plane::from_json_data(const nlohmann::json &data) {
     return plane;
 }
 
-void Plane::to_json(const std::string &filepath) const {
-    std::ofstream file(filepath);
-    file << to_json_data().dump(4);
-}
 
-Plane Plane::from_json(const std::string &filepath) {
-    std::ifstream file(filepath);
-    nlohmann::json data;
-    file >> data;
-    return from_json_data(data);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Details
