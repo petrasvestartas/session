@@ -22,6 +22,7 @@ from .cylinder import Cylinder
 from .arrow import Arrow
 from .boundingbox import BoundingBox
 from .pointcloud import PointCloud
+from .bvh import BVH, BVHNode
 
 __all__ = [
     "Color",
@@ -45,4 +46,6 @@ __all__ = [
     "Arrow",
     "BoundingBox",
     "PointCloud",
+    "BVH",
+    "BVHNode",
 ]

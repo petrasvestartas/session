@@ -1,6 +1,6 @@
 {
     "type": "Point",
-    "guid": "2f13288f-9907-4cf0-a272-5403b7fc0b4a",
+    "guid": "87ed6f97-6764-4b0d-88dc-b976130e8b1a",
     "name": "test_point",
     "x": 1.5,
     "y": 2.5,
@@ -8,7 +8,7 @@
     "width": 2.0,
     "pointcolor": {
         "type": "Color",
-        "guid": "9e9147e8-ee64-45e7-9ca5-e85cdfa58413",
+        "guid": "7d609b0d-2c81-484c-a833-de1a7c432565",
         "name": "my_color",
         "r": 255,
         "g": 128,
