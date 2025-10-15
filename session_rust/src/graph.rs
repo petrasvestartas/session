@@ -177,7 +177,7 @@ pub struct Graph {
     // Private fields (by Rust's default visibility)
     // std::map translates to HashMap in Rust.
     vertices: HashMap<String, Vertex>,
-    edges: HashMap<String, HashMap<String, Edge>>,
+    pub edges: HashMap<String, HashMap<String, Edge>>,
 }
 
 impl Default for Graph {

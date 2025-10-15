@@ -40,6 +40,8 @@ pub struct BVH {
     pub name: String,
     pub root: Option<Box<BVHNode>>,
     pub world_size: f32,
+    #[serde(skip)]
+    pub object_guids: Vec<String>, // Parallel array to boxes - maps indices to GUIDs
 }
 
 #[derive(Debug, Clone)]
@@ -49,18 +51,77 @@ struct ObjectInfo {
     bbox: BoundingBox,
 }
 
+impl Default for BVH {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BVH {
-    pub fn new(world_size: f32) -> Self {
+    pub fn new() -> Self {
         BVH {
             guid: Uuid::new_v4().to_string(),
             name: "my_bvh".to_string(),
             root: None,
-            world_size,
+            world_size: 1000.0, // Default, will be computed from boxes
+            object_guids: Vec::new(),
         }
     }
 
+    /// Compute world size from bounding boxes
+    fn compute_world_size(bounding_boxes: &[BoundingBox]) -> f32 {
+        if bounding_boxes.is_empty() {
+            return 1000.0;
+        }
+
+        let mut max_extent = 0.0f32;
+        for bbox in bounding_boxes {
+            // Find maximum absolute coordinate in any dimension
+            let x_extent = (bbox.center.x() + bbox.half_size.x())
+                .abs()
+                .max((bbox.center.x() - bbox.half_size.x()).abs());
+            let y_extent = (bbox.center.y() + bbox.half_size.y())
+                .abs()
+                .max((bbox.center.y() - bbox.half_size.y()).abs());
+            let z_extent = (bbox.center.z() + bbox.half_size.z())
+                .abs()
+                .max((bbox.center.z() - bbox.half_size.z()).abs());
+
+            max_extent = max_extent.max(x_extent).max(y_extent).max(z_extent);
+        }
+
+        // World size should be at least 2x the maximum extent, plus padding
+        (max_extent * 2.2).max(10.0)
+    }
+
+    /// Build BVH from bounding boxes with GUIDs
+    pub fn build_with_guids(&mut self, boxes_with_guids: &[(BoundingBox, String)]) {
+        if boxes_with_guids.is_empty() {
+            self.root = None;
+            self.object_guids.clear();
+            return;
+        }
+
+        // Extract boxes and GUIDs
+        let bounding_boxes: Vec<BoundingBox> = boxes_with_guids
+            .iter()
+            .map(|(bbox, _)| bbox.clone())
+            .collect();
+        self.object_guids = boxes_with_guids
+            .iter()
+            .map(|(_, guid)| guid.clone())
+            .collect();
+
+        // Auto-compute world size from bounding boxes
+        self.world_size = Self::compute_world_size(&bounding_boxes);
+
+        // Build the tree
+        self.build(&bounding_boxes);
+    }
+
     pub fn from_boxes(bounding_boxes: &[BoundingBox], world_size: f32) -> Self {
-        let mut bvh = Self::new(world_size);
+        let mut bvh = Self::new();
+        bvh.world_size = world_size;
         bvh.build(bounding_boxes);
         bvh
     }
@@ -293,6 +354,27 @@ impl BVH {
         colliding_indices.sort();
 
         (all_collisions, colliding_indices, total_checks)
+    }
+
+    /// Check for all collisions and return GUID pairs directly
+    /// Uses the internally stored object_guids from build_with_guids
+    pub fn check_all_collisions_guids(
+        &self,
+        bounding_boxes: &[BoundingBox],
+    ) -> Vec<(String, String)> {
+        let (collision_pairs, _, _) = self.check_all_collisions(bounding_boxes);
+
+        // Convert indices to GUIDs
+        collision_pairs
+            .iter()
+            .filter_map(|(i, j)| {
+                if *i < self.object_guids.len() && *j < self.object_guids.len() {
+                    Some((self.object_guids[*i].clone(), self.object_guids[*j].clone()))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
 

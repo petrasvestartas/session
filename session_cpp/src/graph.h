@@ -26,10 +26,10 @@ namespace session_cpp {
 class Graph {
 private:
   std::map<std::string, Vertex> vertices; /// node_name -> Vertex object
-  std::map<std::string, std::map<std::string, Edge>>
-      edges; /// node_name -> {neighbor_name -> Edge object}
 
 public:
+  std::map<std::string, std::map<std::string, Edge>>
+      edges; /// node_name -> {neighbor_name -> Edge object}
   std::string name = "my_graph"; ///< The name of the graph
   std::string guid = ::guid();   ///< The unique identifier of the graph
   int vertex_count = 0;          ///< Track next available vertex index

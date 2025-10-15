@@ -1,10 +1,13 @@
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from .objects import Objects
 from .point import Point
 from .tree import Tree
 from .treenode import TreeNode
 from .graph import Graph
+from .bvh import BVH
+from .boundingbox import BoundingBox
+from .tolerance import Tolerance
 
 
 class Session:
@@ -44,12 +47,12 @@ class Session:
         self.tree = Tree(name=f"{name}_tree")
         self.graph = Graph(name=f"{name}_graph")
 
+        # BVH for collision detection (auto-computed world size)
+        self.bvh = BVH()
+
         # Create empty root node with session name
         root_node = TreeNode(name=self.name)
         self.tree.add(root_node)
-
-        # ToDo:s
-        # - BVH Boundary Volume Hierarchy
 
     def __str__(self) -> str:
         return f"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})"
@@ -325,6 +328,138 @@ class Session:
             self.graph.remove_node(str(guid))
 
         return True
+
+    ###########################################################################################
+    # BVH Collision Detection
+    ###########################################################################################
+
+    @staticmethod
+    def _compute_bounding_box(geometry) -> BoundingBox:
+        """Compute bounding box for a geometry object, inflated by tolerance.
+
+        Parameters
+        ----------
+        geometry : object
+            Any geometry object (Point, Line, Mesh, etc.)
+
+        Returns
+        -------
+        BoundingBox
+            Inflated bounding box for collision detection.
+        """
+        inflate = Tolerance.APPROXIMATION
+
+        # Import geometry types
+        from .line import Line
+        from .polyline import Polyline
+        from .pointcloud import PointCloud
+        from .mesh import Mesh
+        from .plane import Plane
+        from .cylinder import Cylinder
+        from .arrow import Arrow
+
+        if isinstance(geometry, Point):
+            return BoundingBox.from_point(geometry, inflate)
+        elif isinstance(geometry, Line):
+            points = [geometry.start(), geometry.end()]
+            return BoundingBox.from_points(points, inflate)
+        elif isinstance(geometry, Polyline):
+            return BoundingBox.from_points(geometry.points, inflate)
+        elif isinstance(geometry, PointCloud):
+            return BoundingBox.from_points(geometry.points, inflate)
+        elif isinstance(geometry, Mesh):
+            # Extract vertices from mesh
+            points = [Point(v.x, v.y, v.z) for v in geometry.vertex.values()]
+            if not points:
+                return BoundingBox.from_point(Point(0, 0, 0), inflate)
+            return BoundingBox.from_points(points, inflate)
+        elif isinstance(geometry, BoundingBox):
+            # Inflate existing bounding box
+            from .vector import Vector
+
+            inflated = BoundingBox(
+                center=geometry.center,
+                x_axis=geometry.x_axis,
+                y_axis=geometry.y_axis,
+                z_axis=geometry.z_axis,
+                half_size=Vector(
+                    geometry.half_size.x + inflate,
+                    geometry.half_size.y + inflate,
+                    geometry.half_size.z + inflate,
+                ),
+            )
+            return inflated
+        elif isinstance(geometry, Plane):
+            # Create bounded box around plane origin
+            return BoundingBox.from_point(geometry.origin(), inflate * 10.0)
+        elif isinstance(geometry, Cylinder):
+            # Compute from cylinder line endpoints and radius
+            points = [geometry.line.start(), geometry.line.end()]
+            bbox = BoundingBox.from_points(points, inflate)
+            # Inflate by cylinder radius
+            from .vector import Vector
+
+            bbox.half_size = Vector(
+                bbox.half_size.x + geometry.radius,
+                bbox.half_size.y + geometry.radius,
+                bbox.half_size.z + geometry.radius,
+            )
+            return bbox
+        elif isinstance(geometry, Arrow):
+            # Compute from arrow line endpoints
+            points = [geometry.line.start(), geometry.line.end()]
+            bbox = BoundingBox.from_points(points, inflate)
+            # Inflate by arrow radius
+            from .vector import Vector
+
+            bbox.half_size = Vector(
+                bbox.half_size.x + geometry.radius,
+                bbox.half_size.y + geometry.radius,
+                bbox.half_size.z + geometry.radius,
+            )
+            return bbox
+        else:
+            # Fallback
+            return BoundingBox.from_point(Point(0, 0, 0), inflate)
+
+    def get_collisions(self) -> List[Tuple[str, str]]:
+        """Get all collision pairs using BVH and add them as graph edges.
+
+        Automatically:
+        - Computes bounding boxes for all objects with tolerance inflation
+        - Builds/rebuilds the BVH with auto-computed world size
+        - Detects all collision pairs
+        - Adds collision edges to the graph
+
+        Returns
+        -------
+        list of tuple
+            List of (guid1, guid2) tuples representing colliding geometry pairs.
+        """
+        # Collect all objects with their bounding boxes and GUIDs
+        boxes_with_guids = []
+
+        for guid, geometry in self.lookup.items():
+            bbox = self._compute_bounding_box(geometry)
+            boxes_with_guids.append((bbox, guid))
+
+        if not boxes_with_guids:
+            return []
+
+        # Build BVH with GUIDs (auto-computes world size)
+        self.bvh.build_with_guids(boxes_with_guids)
+
+        # Extract just the boxes for collision checking
+        boxes = [bbox for bbox, _ in boxes_with_guids]
+
+        # Get collision pairs as GUIDs directly
+        collision_pairs = self.bvh.check_all_collisions_guids(boxes)
+
+        # Add collision edges to graph
+        for guid1, guid2 in collision_pairs:
+            self.graph.add_edge(guid1, guid2, "bvh_collision")
+
+        return collision_pairs
 
     ###########################################################################################
     # Details - Tree

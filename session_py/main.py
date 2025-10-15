@@ -1,63 +1,26 @@
-from session_py import BVH, BoundingBox, Point, Vector
-import random
+from src.session_py.session import Session
+from src.session_py.point import Point
+from src.session_py.line import Line
+from src.session_py.boundingbox import BoundingBox
+from src.session_py.vector import Vector
 
-# Create 100 random boxes
-random.seed(42)  # For reproducible results
-boxes = []
-for i in range(1000):
-    # Random center position
-    center = Point(
-        random.uniform(-50, 50),
-        random.uniform(-50, 50),
-        random.uniform(-50, 50)
-    )
-    # Random half-size (dimensions)
-    half_size = Vector(
-        random.uniform(0.5, 3.0),
-        random.uniform(0.5, 3.0),
-        random.uniform(0.5, 3.0)
-    )
-    # Create axis-aligned bounding box
-    bbox = BoundingBox(
-        center,
-        Vector(1, 0, 0),  # X axis
-        Vector(0, 1, 0),  # Y axis
-        Vector(0, 0, 1),  # Z axis
-        half_size
-    )
-    boxes.append(bbox)
+session = Session("demo")
 
-# Print min/max corners using new API
-for i, box in enumerate(boxes, 1):
-    min_corner = box.min_point()
-    max_corner = box.max_point()
-    print(f"Box {i} - Min: ({min_corner.x}, {min_corner.y}, {min_corner.z}), Max: ({max_corner.x}, {max_corner.y}, {max_corner.z})")
+# Add geometry with some overlaps, some separated
+session.add_point(Point(0, 0, 0))                    # Point 1
+session.add_point(Point(0.0005, 0, 0))               # Point 2 - collides with Point 1
+session.add_line(Line(0, 0, 0, 0.1, 0.1, 0.1))       # Line 1 - collides with both points
+session.add_line(Line(5, 5, 5, 5.1, 5.1, 5.1))       # Line 2 - far away, no collision
+session.add_bbox(BoundingBox(Point(10, 10, 10), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(0.5, 0.5, 0.5)))  # Box - far away
 
-# Use BVH for collision detection
-bvh = BVH(boxes)
-collisions, colliding_indices, check_count = bvh.check_all_collisions(boxes)
+# Detect collisions
+collisions = session.get_collisions()
+print(f"Objects: {len(session.lookup)}, Collisions: {len(collisions)}")
 
-print(collisions)
-print(colliding_indices)
-print(check_count)
+# Print graph edges
+print("\nGraph edges:")
+for node, edges in session.graph.edges.items():
+    for neighbor_guid, edge in edges.items():
+        print(f"  {node[:8]}... -> {neighbor_guid[:8]}... [{edge.attribute}]")
+        
 
-from compas_viewer import Viewer, viewer
-from compas.geometry import Box
-from compas.colors import Color
-
-# Convert boxes to compas boxes using new API
-viewer = Viewer()
-for i, box in enumerate(boxes):
-    min_pt = box.min_point()
-    max_pt = box.max_point()
-    p0 = [min_pt.x, min_pt.y, min_pt.z]
-    p1 = [max_pt.x, max_pt.y, max_pt.z]
-    compas_box = Box.from_points([p0, p1])
-
-    color = Color.white()
-    print("index: ", i)
-    if i in colliding_indices:
-        color = Color.red()
-        print("index: ", i)
-    viewer.scene.add(compas_box, color=color, linecolor=Color.black())
-viewer.show()

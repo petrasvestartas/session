@@ -159,6 +159,116 @@ std::vector<std::string> Session::get_neighbours(const std::string &guid) {
   return graph.neighbors(guid);
 }
 
+// BVH Collision Detection
+
+BoundingBox Session::compute_bounding_box(const Geometry& geometry) {
+  float inflate = Tolerance::APPROXIMATION;
+  
+  return std::visit([inflate](auto&& geom_ptr) -> BoundingBox {
+    using T = std::decay_t<decltype(geom_ptr)>;
+    
+    if constexpr (std::is_same_v<T, std::shared_ptr<Point>>) {
+      return BoundingBox::from_point(*geom_ptr, inflate);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Line>>) {
+      std::vector<Point> points = {geom_ptr->start(), geom_ptr->end()};
+      return BoundingBox::from_points(points, inflate);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Polyline>>) {
+      return BoundingBox::from_points(geom_ptr->points, inflate);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<PointCloud>>) {
+      return BoundingBox::from_points(geom_ptr->points, inflate);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Mesh>>) {
+      // Extract vertices from mesh
+      std::vector<Point> points;
+      for (const auto& [key, vertex] : geom_ptr->vertex) {
+        points.push_back(Point(vertex.x, vertex.y, vertex.z));
+      }
+      if (points.empty()) {
+        return BoundingBox::from_point(Point(0, 0, 0), inflate);
+      }
+      return BoundingBox::from_points(points, inflate);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<BoundingBox>>) {
+      // Inflate existing bounding box
+      auto inflated = *geom_ptr;
+      inflated.half_size = Vector(
+        inflated.half_size.x() + inflate,
+        inflated.half_size.y() + inflate,
+        inflated.half_size.z() + inflate
+      );
+      return inflated;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Plane>>) {
+      // Create bounded box around plane origin
+      return BoundingBox::from_point(geom_ptr->origin(), inflate * 10.0f);
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Cylinder>>) {
+      // Compute from cylinder line endpoints and radius
+      std::vector<Point> points = {geom_ptr->line.start(), geom_ptr->line.end()};
+      auto bbox = BoundingBox::from_points(points, inflate);
+      // Inflate by cylinder radius
+      bbox.half_size = Vector(
+        bbox.half_size.x() + geom_ptr->radius,
+        bbox.half_size.y() + geom_ptr->radius,
+        bbox.half_size.z() + geom_ptr->radius
+      );
+      return bbox;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Arrow>>) {
+      // Compute from arrow line endpoints
+      std::vector<Point> points = {geom_ptr->line.start(), geom_ptr->line.end()};
+      auto bbox = BoundingBox::from_points(points, inflate);
+      // Inflate by arrow radius
+      bbox.half_size = Vector(
+        bbox.half_size.x() + geom_ptr->radius,
+        bbox.half_size.y() + geom_ptr->radius,
+        bbox.half_size.z() + geom_ptr->radius
+      );
+      return bbox;
+    }
+    else {
+      // Fallback
+      return BoundingBox::from_point(Point(0, 0, 0), inflate);
+    }
+  }, geometry);
+}
+
+std::vector<std::pair<std::string, std::string>> Session::get_collisions() {
+  // Collect all objects with their bounding boxes and GUIDs
+  std::vector<std::pair<BoundingBox, std::string>> boxes_with_guids;
+  
+  for (const auto& [guid, geometry] : lookup) {
+    BoundingBox bbox = compute_bounding_box(geometry);
+    boxes_with_guids.push_back({bbox, guid});
+  }
+  
+  if (boxes_with_guids.empty()) {
+    return {};
+  }
+  
+  // Build BVH with GUIDs (auto-computes world size)
+  bvh.build_with_guids(boxes_with_guids);
+  
+  // Extract just the boxes for collision checking
+  std::vector<BoundingBox> boxes;
+  for (const auto& [bbox, _] : boxes_with_guids) {
+    boxes.push_back(bbox);
+  }
+  
+  // Get collision pairs as GUIDs directly
+  auto collision_pairs = bvh.check_all_collisions_guids(boxes);
+  
+  // Add collision edges to graph
+  for (const auto& [guid1, guid2] : collision_pairs) {
+    graph.add_edge(guid1, guid2, "bvh_collision");
+  }
+  
+  return collision_pairs;
+}
+
 // JSON Serialization
 
 nlohmann::ordered_json Session::jsondump() const {

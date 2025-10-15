@@ -131,20 +131,84 @@ class BVH:
         Root node of the BVH tree.
     world_size : float
         Size of the world bounds for Morton code calculation.
+    object_guids : list of str
+        List of object GUIDs parallel to bounding boxes.
     """
 
-    def __init__(self, world_size: float):
+    def __init__(self, world_size: float = 1000.0):
         """Initialize an empty BVH.
 
         Parameters
         ----------
-        world_size : float
-            Size of the world bounds.
+        world_size : float, optional
+            Size of the world bounds. Defaults to 1000.0.
         """
         self.guid = str(uuid.uuid4())
         self.name = "my_bvh"
         self.root: Optional[BVHNode] = None
         self.world_size = world_size
+        self.object_guids: List[str] = []
+
+    @staticmethod
+    def _compute_world_size(bounding_boxes: List[BoundingBox]) -> float:
+        """Compute world size from bounding boxes.
+
+        Parameters
+        ----------
+        bounding_boxes : list of BoundingBox
+            List of bounding boxes.
+
+        Returns
+        -------
+        float
+            Computed world size.
+        """
+        if not bounding_boxes:
+            return 1000.0
+
+        max_extent = 0.0
+        for bbox in bounding_boxes:
+            # Find maximum absolute coordinate in any dimension
+            x_extent = max(
+                abs(bbox.center.x + bbox.half_size.x),
+                abs(bbox.center.x - bbox.half_size.x),
+            )
+            y_extent = max(
+                abs(bbox.center.y + bbox.half_size.y),
+                abs(bbox.center.y - bbox.half_size.y),
+            )
+            z_extent = max(
+                abs(bbox.center.z + bbox.half_size.z),
+                abs(bbox.center.z - bbox.half_size.z),
+            )
+
+            max_extent = max(max_extent, x_extent, y_extent, z_extent)
+
+        # World size should be at least 2x the maximum extent, plus padding
+        return max(max_extent * 2.2, 10.0)
+
+    def build_with_guids(self, boxes_with_guids: List[Tuple[BoundingBox, str]]):
+        """Build BVH from bounding boxes with GUIDs.
+
+        Parameters
+        ----------
+        boxes_with_guids : list of tuple
+            List of (BoundingBox, guid) tuples.
+        """
+        if not boxes_with_guids:
+            self.root = None
+            self.object_guids = []
+            return
+
+        # Extract boxes and GUIDs
+        bounding_boxes = [bbox for bbox, _ in boxes_with_guids]
+        self.object_guids = [guid for _, guid in boxes_with_guids]
+
+        # Auto-compute world size from bounding boxes
+        self.world_size = self._compute_world_size(bounding_boxes)
+
+        # Build the tree
+        self.build(bounding_boxes)
 
     @classmethod
     def from_boxes(cls, bounding_boxes: List[BoundingBox], world_size: float) -> "BVH":
@@ -446,3 +510,30 @@ class BVH:
                     colliding_objects.add(j)
 
         return all_collisions, sorted(list(colliding_objects)), total_checks
+
+    def check_all_collisions_guids(
+        self, bounding_boxes: List[BoundingBox]
+    ) -> List[Tuple[str, str]]:
+        """Check for all collisions and return GUID pairs directly.
+
+        Uses the internally stored object_guids from build_with_guids.
+
+        Parameters
+        ----------
+        bounding_boxes : list of BoundingBox
+            List of all bounding boxes to check.
+
+        Returns
+        -------
+        list of tuple
+            List of (guid1, guid2) tuples representing colliding pairs.
+        """
+        collisions, _, _ = self.check_all_collisions(bounding_boxes)
+
+        # Convert indices to GUIDs
+        guid_collisions = []
+        for i, j in collisions:
+            if i < len(self.object_guids) and j < len(self.object_guids):
+                guid_collisions.append((self.object_guids[i], self.object_guids[j]))
+
+        return guid_collisions

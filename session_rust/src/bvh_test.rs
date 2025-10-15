@@ -95,11 +95,11 @@ mod tests {
     #[test]
     fn test_bvh_creation() {
         // Test BVH creation.
-        let bvh = BVH::new(100.0);
+        let bvh = BVH::new();
         assert!(!bvh.guid.is_empty());
         assert_eq!(bvh.name, "my_bvh");
         assert!(bvh.root.is_none());
-        assert_eq!(bvh.world_size, 100.0);
+        assert_eq!(bvh.world_size, 1000.0); // Default value
     }
 
     #[test]
@@ -169,7 +169,7 @@ mod tests {
     #[test]
     fn test_bvh_aabb_intersect() {
         // Test AABB intersection detection.
-        let bvh = BVH::new(100.0);
+        let bvh = BVH::new();
 
         // Overlapping boxes
         let bbox1 = BoundingBox::new(
@@ -294,7 +294,7 @@ mod tests {
     #[test]
     fn test_bvh_merge_aabb() {
         // Test AABB merging.
-        let bvh = BVH::new(100.0);
+        let bvh = BVH::new();
 
         let bbox1 = BoundingBox::new(
             Point::new(0.0, 0.0, 0.0),

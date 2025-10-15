@@ -16,6 +16,8 @@
 #include "cylinder.h"
 #include "arrow.h"
 #include "tree.h"
+#include "bvh.h"
+#include "tolerance.h"
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -53,6 +55,7 @@ public:
                ///< ownership)
   Tree tree;   ///< Hierarchical tree structure
   Graph graph; ///< Graph structure for relationships
+  BVH bvh;     ///< Boundary Volume Hierarchy for spatial collision detection
 
   /**
    * @brief Constructor.
@@ -223,6 +226,30 @@ public:
    * @return List of connected GUIDs
    */
   std::vector<std::string> get_neighbours(const std::string &guid);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // BVH Collision Detection
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Compute bounding box for a geometry object, inflated by tolerance.
+   * @param geometry The geometry variant
+   * @return Inflated bounding box for collision detection
+   */
+  static BoundingBox compute_bounding_box(const Geometry& geometry);
+
+  /**
+   * @brief Get all collision pairs using BVH and add them as graph edges.
+   * 
+   * Automatically:
+   * - Computes bounding boxes for all objects with tolerance inflation
+   * - Builds/rebuilds the BVH with auto-computed world size
+   * - Detects all collision pairs
+   * - Adds collision edges to the graph
+   * 
+   * @return Vector of (guid1, guid2) pairs representing colliding geometry
+   */
+  std::vector<std::pair<std::string, std::string>> get_collisions();
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // JSON Serialization

@@ -21,11 +21,11 @@ echo -e "${YELLOW}Configuring project with Ninja...${NC}"
 
 # Check if Ninja is installed
 if command -v ninja &> /dev/null; then
-    cmake -G Ninja .. > /dev/null 2>&1
+    cmake -G Ninja .. 
     CMAKE_STATUS=$?
 else
     echo -e "${YELLOW}Ninja build system not found. Using default generator.${NC}"
-    cmake .. > /dev/null 2>&1
+    cmake .. 
     CMAKE_STATUS=$?
 fi
 
@@ -40,12 +40,13 @@ echo -e "${YELLOW}Building project...${NC}"
 # Get number of CPU cores for parallel builds
 NUM_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 
-# Build with parallel jobs
-cmake --build . --config Release -- -j${NUM_CORES} > /dev/null 2>&1
+# Build with parallel jobs - show errors if they occur
+cmake --build . --config Release -- -j${NUM_CORES}
 BUILD_STATUS=$?
 
 if [ $BUILD_STATUS -ne 0 ]; then
-    echo -e "${RED}Build failed!${NC}"
+    echo ""
+    echo -e "${RED}Build failed! See errors above.${NC}"
     exit $BUILD_STATUS
 fi
 

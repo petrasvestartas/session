@@ -48,6 +48,66 @@ uint32_t calculate_morton_code(float x, float y, float z, float world_size) {
 // BVH implementation
 BVH::BVH(float world_size) : guid(::guid()), name("my_bvh"), root(nullptr), world_size(world_size) {}
 
+float BVH::compute_world_size(const std::vector<BoundingBox>& bounding_boxes) {
+    if (bounding_boxes.empty()) {
+        return 1000.0f;
+    }
+    
+    float max_extent = 0.0f;
+    for (const auto& bbox : bounding_boxes) {
+        // Find maximum absolute coordinate in any dimension
+        float x_extent = std::max(std::abs(bbox.center.x() + bbox.half_size.x()), 
+                                   std::abs(bbox.center.x() - bbox.half_size.x()));
+        float y_extent = std::max(std::abs(bbox.center.y() + bbox.half_size.y()), 
+                                   std::abs(bbox.center.y() - bbox.half_size.y()));
+        float z_extent = std::max(std::abs(bbox.center.z() + bbox.half_size.z()), 
+                                   std::abs(bbox.center.z() - bbox.half_size.z()));
+        
+        max_extent = std::max({max_extent, x_extent, y_extent, z_extent});
+    }
+    
+    // World size should be at least 2x the maximum extent, plus padding
+    return std::max(max_extent * 2.2f, 10.0f);
+}
+
+void BVH::build_with_guids(const std::vector<std::pair<BoundingBox, std::string>>& boxes_with_guids) {
+    if (boxes_with_guids.empty()) {
+        root = nullptr;
+        object_guids.clear();
+        return;
+    }
+    
+    // Extract boxes and GUIDs
+    std::vector<BoundingBox> bounding_boxes;
+    object_guids.clear();
+    for (const auto& [bbox, guid] : boxes_with_guids) {
+        bounding_boxes.push_back(bbox);
+        object_guids.push_back(guid);
+    }
+    
+    // Auto-compute world size from bounding boxes
+    world_size = compute_world_size(bounding_boxes);
+    
+    // Build the tree
+    build(bounding_boxes);
+}
+
+std::vector<std::pair<std::string, std::string>> BVH::check_all_collisions_guids(const std::vector<BoundingBox>& bounding_boxes) {
+    auto [collision_pairs, colliding_indices, check_count] = check_all_collisions(bounding_boxes);
+    (void)colliding_indices;  // Unused
+    (void)check_count;  // Unused
+    
+    // Convert indices to GUIDs
+    std::vector<std::pair<std::string, std::string>> guid_collisions;
+    for (const auto& [i, j] : collision_pairs) {
+        if (i < object_guids.size() && j < object_guids.size()) {
+            guid_collisions.push_back(std::make_pair(object_guids[i], object_guids[j]));
+        }
+    }
+    
+    return guid_collisions;
+}
+
 BVH BVH::from_boxes(const std::vector<BoundingBox>& bounding_boxes, float world_size) {
     BVH bvh(world_size);
     bvh.build(bounding_boxes);

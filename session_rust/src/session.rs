@@ -1,6 +1,6 @@
 use crate::{
     Arrow, BoundingBox, Cylinder, Graph, Line, Mesh, Objects, Plane, Point, PointCloud, Polyline,
-    Tree, TreeNode,
+    Tolerance, Tree, TreeNode, BVH,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -64,6 +64,9 @@ pub struct Session {
     /// Graph structure for representing object relationships
     #[serde(rename = "graph")]
     pub graph: Graph,
+    /// Boundary Volume Hierarchy for spatial collision detection
+    #[serde(skip)]
+    pub bvh: BVH,
 }
 
 impl Default for Session {
@@ -93,6 +96,9 @@ impl Session {
         let root_node = TreeNode::new(name);
         tree.add(&root_node, None);
 
+        // Create boundary-volume-hierarchy, each time we add object we store inside bvh
+        let bvh = BVH::new();
+
         Self {
             guid,
             name: name.to_string(),
@@ -100,6 +106,7 @@ impl Session {
             lookup,
             tree,
             graph,
+            bvh,
         }
     }
 
@@ -189,6 +196,7 @@ impl Session {
             lookup,
             tree,
             graph,
+            bvh: BVH::new(),
         };
 
         Ok(session)
@@ -220,6 +228,120 @@ impl Session {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // BVH Collision Detection
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Compute bounding box for a geometry object, inflated by tolerance
+    fn compute_bounding_box(geometry: &Geometry) -> BoundingBox {
+        let inflate = Tolerance::APPROXIMATION as f32;
+        match geometry {
+            Geometry::Point(p) => BoundingBox::from_point(p.clone(), inflate),
+            Geometry::Line(l) => {
+                let points = vec![l.start(), l.end()];
+                BoundingBox::from_points(&points, inflate)
+            }
+            Geometry::Polyline(pl) => BoundingBox::from_points(&pl.points, inflate),
+            Geometry::PointCloud(pc) => BoundingBox::from_points(&pc.points, inflate),
+            Geometry::Mesh(m) => {
+                // Extract vertices from mesh vertex data
+                let points: Vec<Point> = m
+                    .vertex
+                    .values()
+                    .map(|v| Point::new(v.x, v.y, v.z))
+                    .collect();
+                if points.is_empty() {
+                    BoundingBox::from_point(Point::new(0.0, 0.0, 0.0), inflate)
+                } else {
+                    BoundingBox::from_points(&points, inflate)
+                }
+            }
+            Geometry::BoundingBox(bb) => {
+                // Inflate existing bounding box
+                let mut inflated = bb.clone();
+                inflated.half_size = crate::Vector::new(
+                    inflated.half_size.x() + inflate,
+                    inflated.half_size.y() + inflate,
+                    inflated.half_size.z() + inflate,
+                );
+                inflated
+            }
+            Geometry::Plane(p) => {
+                // Create a bounded box around plane origin
+                BoundingBox::from_point(p.origin(), inflate * 10.0)
+            }
+            Geometry::Cylinder(c) => {
+                // Compute bounding box from cylinder line endpoints and radius
+                let points = vec![c.line.start(), c.line.end()];
+                let mut bbox = BoundingBox::from_points(&points, inflate);
+                // Inflate by cylinder radius
+                let radius = c.radius;
+                bbox.half_size = crate::Vector::new(
+                    bbox.half_size.x() + radius,
+                    bbox.half_size.y() + radius,
+                    bbox.half_size.z() + radius,
+                );
+                bbox
+            }
+            Geometry::Arrow(a) => {
+                // Compute bounding box from arrow line endpoints
+                let points = vec![a.line.start(), a.line.end()];
+                let mut bbox = BoundingBox::from_points(&points, inflate);
+                // Inflate by arrow radius
+                let radius = a.radius;
+                bbox.half_size = crate::Vector::new(
+                    bbox.half_size.x() + radius,
+                    bbox.half_size.y() + radius,
+                    bbox.half_size.z() + radius,
+                );
+                bbox
+            }
+        }
+    }
+
+    /// Get all collision pairs using BVH and add them as graph edges.
+    ///
+    /// Automatically:
+    /// - Computes bounding boxes for all objects with tolerance inflation
+    /// - Builds/rebuilds the BVH with auto-computed world size
+    /// - Detects all collision pairs
+    /// - Adds collision edges to the graph
+    ///
+    /// # Returns
+    /// A vector of tuples (guid1, guid2) representing colliding geometry pairs
+    pub fn get_collisions(&mut self) -> Vec<(String, String)> {
+        // Collect all objects with their bounding boxes and GUIDs
+        let mut boxes_with_guids: Vec<(BoundingBox, String)> = Vec::new();
+
+        for (guid, geometry) in &self.lookup {
+            let bbox = Self::compute_bounding_box(geometry);
+            boxes_with_guids.push((bbox, guid.clone()));
+        }
+
+        if boxes_with_guids.is_empty() {
+            return Vec::new();
+        }
+
+        // Build BVH with GUIDs (auto-computes world size)
+        self.bvh.build_with_guids(&boxes_with_guids);
+
+        // Extract just the boxes for collision checking
+        let boxes: Vec<BoundingBox> = boxes_with_guids
+            .iter()
+            .map(|(bbox, _)| bbox.clone())
+            .collect();
+
+        // Get collision pairs as GUIDs directly
+        let collision_pairs = self.bvh.check_all_collisions_guids(&boxes);
+
+        // Add collision edges to graph
+        for (guid1, guid2) in &collision_pairs {
+            self.graph.add_edge(guid1, guid2, "bvh_collision");
+        }
+
+        collision_pairs
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // Details
     ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -236,87 +358,109 @@ impl Session {
     pub fn add_point(&mut self, point: Point) -> TreeNode {
         let point_guid = point.guid.clone();
         let point_name = point.name.clone();
-        self.objects.points.push(point.clone());
-        self.lookup
-            .insert(point_guid.clone(), Geometry::Point(point));
+        let geometry = Geometry::Point(point.clone());
+
+        self.objects.points.push(point);
+        self.lookup.insert(point_guid.clone(), geometry);
         self.graph
             .add_node(&point_guid, &format!("point_{point_name}"));
+
         TreeNode::new(&point_guid)
     }
 
     pub fn add_line(&mut self, line: Line) -> TreeNode {
         let guid = line.guid.clone();
         let name = line.name.clone();
-        self.objects.lines.push(line.clone());
-        self.lookup.insert(guid.clone(), Geometry::Line(line));
+        let geometry = Geometry::Line(line.clone());
+
+        self.objects.lines.push(line);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("line_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_plane(&mut self, plane: Plane) -> TreeNode {
         let guid = plane.guid.clone();
         let name = plane.name.clone();
-        self.objects.planes.push(plane.clone());
-        self.lookup.insert(guid.clone(), Geometry::Plane(plane));
+        let geometry = Geometry::Plane(plane.clone());
+
+        self.objects.planes.push(plane);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("plane_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_bbox(&mut self, bbox: BoundingBox) -> TreeNode {
         let guid = bbox.guid.clone();
         let name = bbox.name.clone();
-        self.objects.bboxes.push(bbox.clone());
-        self.lookup
-            .insert(guid.clone(), Geometry::BoundingBox(bbox));
+        let geometry = Geometry::BoundingBox(bbox.clone());
+
+        self.objects.bboxes.push(bbox);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("bbox_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_polyline(&mut self, polyline: Polyline) -> TreeNode {
         let guid = polyline.guid.clone();
         let name = polyline.name.clone();
-        self.objects.polylines.push(polyline.clone());
-        self.lookup
-            .insert(guid.clone(), Geometry::Polyline(polyline));
+        let geometry = Geometry::Polyline(polyline.clone());
+
+        self.objects.polylines.push(polyline);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("polyline_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_pointcloud(&mut self, pointcloud: PointCloud) -> TreeNode {
         let guid = pointcloud.guid.clone();
         let name = pointcloud.name.clone();
-        self.objects.pointclouds.push(pointcloud.clone());
-        self.lookup
-            .insert(guid.clone(), Geometry::PointCloud(pointcloud));
+        let geometry = Geometry::PointCloud(pointcloud.clone());
+
+        self.objects.pointclouds.push(pointcloud);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("pointcloud_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_mesh(&mut self, mesh: Mesh) -> TreeNode {
         let guid = mesh.guid.clone();
         let name = mesh.name.clone();
-        self.objects.meshes.push(mesh.clone());
-        self.lookup.insert(guid.clone(), Geometry::Mesh(mesh));
+        let geometry = Geometry::Mesh(mesh.clone());
+
+        self.objects.meshes.push(mesh);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("mesh_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_cylinder(&mut self, cylinder: Cylinder) -> TreeNode {
         let guid = cylinder.guid.clone();
         let name = cylinder.name.clone();
-        self.objects.cylinders.push(cylinder.clone());
-        self.lookup
-            .insert(guid.clone(), Geometry::Cylinder(cylinder));
+        let geometry = Geometry::Cylinder(cylinder.clone());
+
+        self.objects.cylinders.push(cylinder);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("cylinder_{name}"));
+
         TreeNode::new(&guid)
     }
 
     pub fn add_arrow(&mut self, arrow: Arrow) -> TreeNode {
         let guid = arrow.guid.clone();
         let name = arrow.name.clone();
-        self.objects.arrows.push(arrow.clone());
-        self.lookup.insert(guid.clone(), Geometry::Arrow(arrow));
+        let geometry = Geometry::Arrow(arrow.clone());
+
+        self.objects.arrows.push(arrow);
+        self.lookup.insert(guid.clone(), geometry);
         self.graph.add_node(&guid, &format!("arrow_{name}"));
+
         TreeNode::new(&guid)
     }
 
@@ -377,9 +521,16 @@ impl Session {
             return false;
         }
 
-        // Remove from points collection
-        // Note: In Rust, the field is `vec` but serialized as "points" in JSON
-        self.objects.points.retain(|point| point.guid != guid);
+        // Remove from all object collections
+        self.objects.points.retain(|p| p.guid != guid);
+        self.objects.lines.retain(|l| l.guid != guid);
+        self.objects.polylines.retain(|p| p.guid != guid);
+        self.objects.planes.retain(|p| p.guid != guid);
+        self.objects.bboxes.retain(|b| b.guid != guid);
+        self.objects.meshes.retain(|m| m.guid != guid);
+        self.objects.cylinders.retain(|c| c.guid != guid);
+        self.objects.arrows.retain(|a| a.guid != guid);
+        self.objects.pointclouds.retain(|p| p.guid != guid);
 
         // Remove from lookup table
         self.lookup.remove(guid);

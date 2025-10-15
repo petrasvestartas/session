@@ -28,7 +28,7 @@ session/
 - 12. Pointcloud
 - 13. Polyline
 - 14. Quaternion
-- 15. Session - 1) Implement BVH as attribute of the model, when you add geometry in add method you compute the boundingbox inflated by tolerance.PRECISION value 2) Session must have get_collision method that returns all collisions between objects via BVH and return pairs are added as graph edges of object guids to the session graph
+- 15. Session - 1) Implement BVH as attribute of the model, when you add geometry in add method you compute the boundingbox inflated by tolerance.PRECISION value 2) Session must have get_collision method that returns all collisions between objects via BVH and return pairs are added as graph edges of object guids to the session graph 3) Implement a method in session get_geometry, that gets all the geometry from the session but the geometry must be consequently transformed following the tree hierarchy xform attribute, the child of the tree must recursively be transformed by parent tree nodes
 - 16. Tolerance - no need to serialize
 - 17. Tree
 - 18. TreeNode
@@ -40,6 +40,25 @@ session/
 
 **Planned:**
 - Intesections - Create ray (point and vector) intersection with a mesh, 
+line-line
+plane-plane
+line-plane
+plane plane plane
+https://github.com/petrasvestartas/wood/blob/main/cmake/src/wood/include/cgal_intersection_util.cpp
+ray box
+https://github.com/libigl/libigl/blob/main/include/igl/ray_box_intersect.h
+https://github.com/libigl/libigl/blob/main/include/igl/ray_box_intersect.cpp
+ray sphere
+https://github.com/libigl/libigl/blob/main/include/igl/ray_sphere_intersect.h
+https://github.com/libigl/libigl/blob/main/include/igl/ray_sphere_intersect.cpp
+ray triangle
+https://github.com/libigl/libigl/blob/main/include/igl/ray_triangle_intersect.h
+https://github.com/libigl/libigl/blob/main/include/igl/ray_triangle_intersect.cpp
+https://github.com/libigl/libigl/blob/main/include/igl/raytri.c
+ray mesh
+https://github.com/libigl/libigl/blob/main/include/igl/ray_mesh_intersect.h
+https://github.com/libigl/libigl/blob/main/include/igl/ray_mesh_intersect.cpp
+
 - Protobuf
 - Beam, Plate elements
 - Curve

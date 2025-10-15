@@ -1,39 +1,31 @@
-#include "src/vector.h"
+#include "src/session.h"
 #include <iostream>
 
 using namespace session_cpp;
 
 int main() {
-    std::cout << "=== C++ Length Caching Demo ===" << std::endl;
+    Session session("demo");
     
-    // Create a vector
-    Vector v(3.0, 4.0, 5.0);
-    std::cout << "Created vector: (" << v.x() << ", " << v.y() << ", " << v.z() << ")" << std::endl;
+    // Add geometry with some overlaps, some separated
+    session.add_point(std::make_shared<Point>(0, 0, 0));                    // Point 1
+    session.add_point(std::make_shared<Point>(0.0005, 0, 0));               // Point 2 - collides with Point 1
+    session.add_line(std::make_shared<Line>(0, 0, 0, 0.1, 0.1, 0.1));       // Line 1 - collides with both points
+    session.add_line(std::make_shared<Line>(5, 5, 5, 5.1, 5.1, 5.1));       // Line 2 - far away
+    session.add_bbox(std::make_shared<BoundingBox>(
+        Point(10, 10, 10), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(0.5, 0.5, 0.5)));  // Box - far away
     
-    // First call to length() - will compute and cache
-    std::cout << "First magnitude() call - computes: " << v.magnitude() << std::endl;
+    // Detect collisions
+    auto collisions = session.get_collisions();
+    std::cout << "Objects: " << session.lookup.size() << ", Collisions: " << collisions.size() << std::endl;
     
-    // Second call to length() - uses cached value
-    std::cout << "Second magnitude() call - cached: " << v.magnitude() << std::endl;
-    
-    // Modify the vector - this invalidates the cache
-    v.set_x(6.0);
-    std::cout << "Modified x to 6.0" << std::endl;
-    
-    // Next call to length() - recomputes because cache was invalidated
-    std::cout << "After modification - recomputes: " << v.magnitude() << std::endl;
-    
-    // Use compound assignment - also invalidates cache
-    v *= 2.0;
-    std::cout << "After scaling by 2.0" << std::endl;
-    std::cout << "Magnitude after scaling: " << v.magnitude() << std::endl;
-    
-    // Test compute_length (always computes)
-    std::cout << "Using compute_length(): " << v.compute_length() << std::endl;
-    
-    std::cout << std::endl << "✅ Length caching working correctly!" << std::endl;
-    std::cout << "🔧 Cache is invalidated when coordinates change" << std::endl;
-    std::cout << "📈 Performance improved by avoiding repeated sqrt() calls" << std::endl;
+    // Print graph edges
+    std::cout << "\nGraph edges:" << std::endl;
+    for (const auto& [node, edges] : session.graph.edges) {
+        for (const auto& [neighbor, edge] : edges) {
+            std::cout << "  " << node.substr(0, 8) << "... -> " << neighbor.substr(0, 8) 
+                      << "... [" << edge.attribute << "]" << std::endl;
+        }
+    }
     
     return 0;
 }

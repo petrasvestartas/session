@@ -29,8 +29,19 @@ public:
     std::string name;
     std::shared_ptr<BVHNode> root;
     float world_size;
+    std::vector<std::string> object_guids;  // Parallel array to boxes - maps indices to GUIDs
 
-    BVH(float world_size);
+    BVH(float world_size = 1000.0f);
+    
+    // Compute world size from bounding boxes
+    static float compute_world_size(const std::vector<BoundingBox>& bounding_boxes);
+    
+    // Build BVH from bounding boxes with GUIDs (auto-computes world size)
+    void build_with_guids(const std::vector<std::pair<BoundingBox, std::string>>& boxes_with_guids);
+    
+    // Check all collisions and return GUID pairs directly
+    std::vector<std::pair<std::string, std::string>> check_all_collisions_guids(const std::vector<BoundingBox>& bounding_boxes);
+    
     static BVH from_boxes(const std::vector<BoundingBox>& bounding_boxes, float world_size);
     
     void build(const std::vector<BoundingBox>& bounding_boxes);
