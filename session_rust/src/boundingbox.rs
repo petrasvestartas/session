@@ -123,6 +123,22 @@ impl BoundingBox {
         )
     }
 
+    pub fn min_point(&self) -> Point {
+        Point::new(
+            self.center.x() - self.half_size.x(),
+            self.center.y() - self.half_size.y(),
+            self.center.z() - self.half_size.z(),
+        )
+    }
+
+    pub fn max_point(&self) -> Point {
+        Point::new(
+            self.center.x() + self.half_size.x(),
+            self.center.y() + self.half_size.y(),
+            self.center.z() + self.half_size.z(),
+        )
+    }
+
     pub fn corners(&self) -> [Point; 8] {
         [
             self.point_at(self.half_size.x(), self.half_size.y(), -self.half_size.z()),

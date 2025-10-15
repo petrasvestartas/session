@@ -563,14 +563,13 @@ class Plane:
         plane = cls(origin, x_axis, y_axis)
         plane.guid = guid if guid is not None else data.get("guid", plane.guid)
         plane.name = name if name is not None else data.get("name", plane.name)
-        
+
         # z_axis, a, b, c, d are computed automatically, but verify if provided
         if "z_axis" in data:
             z_axis_loaded = decode_node(data["z_axis"])
             # z_axis is already computed from cross product, just verify consistency
-        
 
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return plane

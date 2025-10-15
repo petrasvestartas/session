@@ -7,6 +7,9 @@
 
 pub mod arrow;
 pub mod boundingbox;
+pub mod bvh;
+#[cfg(test)]
+mod bvh_test;
 pub mod color;
 pub mod cylinder;
 pub mod edge;
@@ -30,6 +33,7 @@ pub mod xform;
 
 pub use arrow::Arrow;
 pub use boundingbox::BoundingBox;
+pub use bvh::BVH;
 pub use color::Color;
 pub use cylinder::Cylinder;
 pub use edge::Edge;

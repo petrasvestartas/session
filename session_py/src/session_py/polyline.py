@@ -635,14 +635,13 @@ class Polyline:
         polyline.plane = plane
         polyline.guid = guid
         polyline.name = name
-        
+
         if "width" in data:
             polyline.width = data["width"]
         if "linecolor" in data:
             polyline.linecolor = decode_node(data["linecolor"])
-        
 
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return polyline

@@ -325,22 +325,6 @@ impl Session {
     /// # Arguments
     /// * `node` - The TreeNode to add
     /// * `parent` - Optional parent TreeNode (defaults to root if None)
-    ///
-    /// # Examples
-    /// ```
-    /// use session_rust::{Session, TreeNode};
-    ///
-    /// let mut session = Session::new("my_session");
-    /// let node = TreeNode::new("my_node");
-    ///
-    /// // Add to root (pass None)
-    /// session.add(&node, None);
-    ///
-    /// // Add under parent (pass reference directly)
-    /// let parent = TreeNode::new("parent");
-    /// session.add(&parent, None);
-    /// session.add(&node, &parent);
-    /// ```
     pub fn add<'a>(&mut self, node: &TreeNode, parent: impl Into<Option<&'a TreeNode>>)
     where
         TreeNode: 'a,

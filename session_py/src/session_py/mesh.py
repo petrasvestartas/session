@@ -582,7 +582,7 @@ class Mesh:
             halfedge_data[str(u)] = {
                 str(v): face_key for v, face_key in neighbors.items()
             }
-        
+
         # Vertex data
         vertex_data = {}
         for key, vdata in self.vertex.items():
@@ -597,12 +597,12 @@ class Mesh:
         face_data = {}
         for key, vertices in self.face.items():
             face_data[str(key)] = vertices
-        
+
         # Face attributes
         facedata_json = {}
         for key, attrs in self.facedata.items():
             facedata_json[str(key)] = attrs
-        
+
         # Edge attributes
         edgedata_json = {}
         for (u, v), attrs in self.edgedata.items():
@@ -679,17 +679,17 @@ class Mesh:
                 mesh.face[key] = vertices
                 if key >= mesh._max_face:
                     mesh._max_face = key + 1
-        
+
         # Load face attributes
         if "facedata" in data:
             for key_str, attrs in data["facedata"].items():
                 key = int(key_str)
                 mesh.facedata[key] = attrs
-        
+
         # Load edge attributes
         if "edgedata" in data:
             for edge_str, attrs in data["edgedata"].items():
-                u, v = map(int, edge_str.split(','))
+                u, v = map(int, edge_str.split(","))
                 mesh.edgedata[(u, v)] = attrs
 
         if "default_vertex_attributes" in data:
@@ -698,16 +698,15 @@ class Mesh:
             mesh.default_face_attributes = data["default_face_attributes"]
         if "default_edge_attributes" in data:
             mesh.default_edge_attributes = data["default_edge_attributes"]
-        
+
         if "max_vertex" in data:
             mesh._max_vertex = data["max_vertex"]
         if "max_face" in data:
             mesh._max_face = data["max_face"]
 
-
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return mesh
 
     ###########################################################################################

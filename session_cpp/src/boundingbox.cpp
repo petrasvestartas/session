@@ -98,6 +98,22 @@ Point BoundingBox::point_at(float x, float y, float z) const {
     );
 }
 
+Point BoundingBox::min_point() const {
+    return Point(
+        center.x() - half_size.x(),
+        center.y() - half_size.y(),
+        center.z() - half_size.z()
+    );
+}
+
+Point BoundingBox::max_point() const {
+    return Point(
+        center.x() + half_size.x(),
+        center.y() + half_size.y(),
+        center.z() + half_size.z()
+    );
+}
+
 std::array<Point, 8> BoundingBox::corners() const {
     std::array<Point, 8> result;
     

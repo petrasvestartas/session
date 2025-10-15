@@ -89,7 +89,42 @@ class BoundingBox:
             self.center.z + x * self.x_axis.z + y * self.y_axis.z + z * self.z_axis.z,
         )
 
+    def min_point(self) -> Point:
+        """Get the minimum corner point of the axis-aligned bounding box.
+
+        Returns
+        -------
+        Point
+            The point with minimum x, y, z coordinates.
+        """
+        return Point(
+            self.center.x - self.half_size.x,
+            self.center.y - self.half_size.y,
+            self.center.z - self.half_size.z,
+        )
+
+    def max_point(self) -> Point:
+        """Get the maximum corner point of the axis-aligned bounding box.
+
+        Returns
+        -------
+        Point
+            The point with maximum x, y, z coordinates.
+        """
+        return Point(
+            self.center.x + self.half_size.x,
+            self.center.y + self.half_size.y,
+            self.center.z + self.half_size.z,
+        )
+
     def corners(self) -> List[Point]:
+        """Get all 8 corner points of the bounding box.
+
+        Returns
+        -------
+        List[Point]
+            List of 8 corner points in a specific order.
+        """
         return [
             self.point_at(self.half_size.x, self.half_size.y, -self.half_size.z),
             self.point_at(-self.half_size.x, self.half_size.y, -self.half_size.z),
@@ -228,5 +263,5 @@ class BoundingBox:
 
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return bbox

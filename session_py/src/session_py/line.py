@@ -393,19 +393,17 @@ class Line:
         from .encoders import decode_node
 
         line = cls(
-            data["x0"], data["y0"], data["z0"],
-            data["x1"], data["y1"], data["z1"]
+            data["x0"], data["y0"], data["z0"], data["x1"], data["y1"], data["z1"]
         )
         line.guid = guid if guid is not None else data.get("guid", line.guid)
         line.name = name if name is not None else data.get("name", line.name)
-        
+
         if "width" in data:
             line.width = data["width"]
         if "linecolor" in data:
             line.linecolor = decode_node(data["linecolor"])
-        
 
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return line

@@ -20,7 +20,7 @@ session/
 - 4. Cylinder
 - 5. Edge
 - 6. Graph
-- 7. Line - missing linecolor, width
+- 7. Line/
 - 8. Mesh
 - 9. Objects
 - 10. Plane
@@ -28,7 +28,7 @@ session/
 - 12. Pointcloud
 - 13. Polyline
 - 14. Quaternion
-- 15. Session
+- 15. Session - 1) Implement BVH as attribute of the model, when you add geometry in add method you compute the boundingbox inflated by tolerance.PRECISION value 2) Session must have get_collision method that returns all collisions between objects via BVH and return pairs are added as graph edges of object guids to the session graph
 - 16. Tolerance - no need to serialize
 - 17. Tree
 - 18. TreeNode
@@ -36,11 +36,10 @@ session/
 - 20. Vertex
 - 21. Xform
 - 22. Encoders
-
+- 23. BVH
 
 **Planned:**
-- BVH
-- Intesections
+- Intesections - Create ray (point and vector) intersection with a mesh, 
 - Protobuf
 - Beam, Plate elements
 - Curve

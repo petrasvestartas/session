@@ -41,6 +41,8 @@ public:
     static BoundingBox from_mesh(const Mesh& mesh, float inflate = 0.0f);
     static BoundingBox from_pointcloud(const PointCloud& pointcloud, float inflate = 0.0f);
     
+    Point min_point() const;
+    Point max_point() const;
     std::array<Point, 8> corners() const;
     std::array<Point, 10> two_rectangles() const;
     Point point_at(float x, float y, float z) const;

@@ -4,7 +4,7 @@ from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .point import Point
-    
+
 from .vector import Vector
 
 
@@ -432,6 +432,7 @@ class Xform:
 
     def transformed_point(self, point):
         from .point import Point
+
         x = point.x
         y = point.y
         z = point.z

@@ -265,5 +265,5 @@ class Arrow:
 
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return arrow

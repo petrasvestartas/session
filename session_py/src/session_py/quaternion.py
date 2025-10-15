@@ -112,7 +112,7 @@ class Quaternion:
             v = decode_node(data["v"])
         else:
             v = Vector(data["x"], data["y"], data["z"])
-        
+
         q = cls(data["s"], v)
         q.guid = guid
         q.name = name

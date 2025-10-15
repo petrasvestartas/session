@@ -363,8 +363,7 @@ class Point:
         pt.guid = guid
         pt.name = name
 
-
         if "xform" in data:
             obj.xform = decode_node(data["xform"])
-        
+
         return pt
