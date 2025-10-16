@@ -154,5 +154,6 @@ The main index.html is maintained here rather than inline in the workflow YAML, 
 
 ## 📚 Additional Documentation
 
+- **[API_COVERAGE.md](API_COVERAGE.md)** - Complete API documentation coverage report for all 23 classes/modules across all 3 languages
 - **[TRANSFORM_METHODS.md](TRANSFORM_METHODS.md)** - Complete documentation of the transform() and transformed() methods added to all 9 geometry types across all 3 languages
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Overview of the documentation system architecture and implementation
