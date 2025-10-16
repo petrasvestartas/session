@@ -114,6 +114,32 @@ alias rdoc='(cd /home/pv/brg/code_rust/session/session_rust && cargo doc)'
 alias pdoc='(cd /home/pv/brg/code_rust/session/session_py && ./doc.sh)'
 ```
 
+## Adding New Classes to Documentation
+
+### Python
+Add module to `session_py/docs/api.rst`:
+```rst
+NewClass Module
+---------------
+
+.. automodule:: session_py.newclass
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+### C++
+Add Doxygen comment to class in header file:
+```cpp
+/**
+ * @brief Brief description of the class
+ */
+class NewClass {
+```
+
+### Rust
+Rust docs auto-generate from `///` comments - no config needed.
+
 ## References
 
 - [Wood Library](https://github.com/petrasvestartas/wood/tree/main/cmake/src/wood/include)
