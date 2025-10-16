@@ -11,6 +11,12 @@
 
 namespace session_cpp {
 
+/**
+ * @brief A node in the Bounding Volume Hierarchy tree
+ * 
+ * Represents a single node in the BVH structure, containing either
+ * child nodes or a reference to a geometry object.
+ */
 class BVHNode {
 public:
     std::string guid;
@@ -23,6 +29,12 @@ public:
     bool is_leaf() const;
 };
 
+/**
+ * @brief Bounding Volume Hierarchy for efficient spatial queries and collision detection
+ * 
+ * A spatial data structure that organizes bounding boxes in a binary tree
+ * for fast collision detection and spatial queries using Morton codes.
+ */
 class BVH {
 public:
     std::string guid;

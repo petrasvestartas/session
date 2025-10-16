@@ -18,6 +18,12 @@ class Polyline;
 class Mesh;
 class PointCloud;
 
+/**
+ * @brief An oriented bounding box with collision detection capabilities
+ * 
+ * Represents an oriented bounding box (OBB) defined by a center point,
+ * three orthogonal axes, and half-size extents along each axis.
+ */
 class BoundingBox {
 public:
     Point center;

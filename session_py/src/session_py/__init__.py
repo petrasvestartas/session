@@ -23,6 +23,8 @@ from .arrow import Arrow
 from .boundingbox import BoundingBox
 from .pointcloud import PointCloud
 from .bvh import BVH, BVHNode
+from .tolerance import Tolerance
+from . import encoders
 
 __all__ = [
     "Color",
@@ -48,4 +50,6 @@ __all__ = [
     "PointCloud",
     "BVH",
     "BVHNode",
+    "Tolerance",
+    "encoders",
 ]
