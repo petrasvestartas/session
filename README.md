@@ -14,13 +14,13 @@ session/
 ## Implementation Status
 
 **Completed:**
-- 1. Arrow - xform
-- 2. BoundingBox - xform
+- 1. Arrow
+- 2. BoundingBox
 - 3. Color
 - 4. Cylinder
 - 5. Edge
 - 6. Graph
-- 7. Line/
+- 7. Line
 - 8. Mesh
 - 9. Objects
 - 10. Plane
@@ -29,7 +29,7 @@ session/
 - 13. Polyline
 - 14. Quaternion
 - 15. Session
-- 16. Tolerance - no need to serialize
+- 16. Tolerance
 - 17. Tree
 - 18. TreeNode
 - 19. Vector
