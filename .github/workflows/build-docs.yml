@@ -29,23 +29,47 @@ jobs:
       with:
         python-version: '3.11'
 
-    # Install Rust (needed by session_docs build script)
+    # Install Rust (for cargo doc)
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 
-    # Build all documentation using unified session_docs system
-    - name: Build Combined Documentation
-      working-directory: ./session_docs
+    # Build C++ Documentation
+    - name: Build C++ Documentation
+      working-directory: ./session_cpp/docs
+      run: doxygen Doxyfile
+      
+    # Build Rust Documentation
+    - name: Build Rust Documentation
+      working-directory: ./session_rust
+      run: cargo doc --no-deps
+      
+    # Build Python Documentation (if sphinx is set up)
+    - name: Install Python dependencies
+      working-directory: ./session_py
       run: |
-        chmod +x build_docs.sh
-        ./build_docs.sh
+        pip install -e .
+        
+    # Create combined docs directory
+    - name: Combine Documentation
+      run: |
+        mkdir -p combined_docs
+        mkdir -p combined_docs/cpp
+        mkdir -p combined_docs/rust
+        mkdir -p combined_docs/python
+        if [ -d "session_cpp/docs/html" ]; then
+          cp -r session_cpp/docs/html/* combined_docs/cpp/
+        fi
+        if [ -d "session_rust/target/doc" ]; then
+          cp -r session_rust/target/doc/* combined_docs/rust/
+        fi
+        echo '<html><body><h1>Session Library Documentation</h1><ul><li><a href="cpp/">C++ Documentation</a></li><li><a href="rust/">Rust Documentation</a></li><li><a href="python/">Python Documentation</a></li></ul></body></html>' > combined_docs/index.html
 
     # Upload combined documentation artifact
     - name: Upload Combined Documentation
       uses: actions/upload-artifact@v4
       with:
         name: all-documentation
-        path: session_docs/combined_docs/
+        path: combined_docs/
         
     # Deploy to GitHub Pages (only on main branch)
     - name: Deploy to GitHub Pages
@@ -53,8 +77,8 @@ jobs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./session_docs/combined_docs
-        publish_branch: docs
+        publish_dir: ./combined_docs
+        publish_branch: gh-pages
         force_orphan: true
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
