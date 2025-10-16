@@ -114,3 +114,75 @@ Tree Module
    :members:
    :undoc-members:
    :show-inheritance:
+
+TreeNode Module
+---------------
+
+.. automodule:: session_py.treenode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Vertex Module
+-------------
+
+.. automodule:: session_py.vertex
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Edge Module
+-----------
+
+.. automodule:: session_py.edge
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Mesh Module
+-----------
+
+.. automodule:: session_py.mesh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Arrow Module
+------------
+
+.. automodule:: session_py.arrow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Cylinder Module
+---------------
+
+.. automodule:: session_py.cylinder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+BoundingBox Module
+------------------
+
+.. automodule:: session_py.boundingbox
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+BVH Module
+----------
+
+.. automodule:: session_py.bvh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Encoders Module
+---------------
+
+.. automodule:: session_py.encoders
+   :members:
+   :undoc-members:
+   :show-inheritance:
