@@ -106,3 +106,61 @@ def test_session_serialization_with_all_geometry_types():
     loaded_tree_nodes = list(loaded.tree.nodes)
     assert len(loaded_tree_nodes) == len(original_tree_nodes)
     assert loaded.tree.root is not None
+
+
+def test_session_get_geometry_with_transformations():
+    from .xform import Xform
+
+    session = Session("transform_test")
+
+    # Create a simple hierarchy with transformations
+    # Root -> parent_node -> child_node
+
+    # Create two points
+    parent_point = Point(1.0, 0.0, 0.0)
+    parent_point.xform = Xform.translation(10.0, 0.0, 0.0)  # Translate by (10, 0, 0)
+
+    child_point = Point(1.0, 0.0, 0.0)
+    child_point.xform = Xform.translation(5.0, 0.0, 0.0)  # Translate by (5, 0, 0)
+
+    # Add to session
+    parent_node = session.add_point(parent_point)
+    child_node = session.add_point(child_point)
+
+    # Create hierarchy: root -> parent -> child
+    session.add(parent_node)
+    session.add(child_node, parent_node)
+
+    # Get transformed geometry
+    transformed = session.get_geometry()
+
+    # Should have 2 points
+    assert len(transformed.points) == 2
+
+    # Find parent and child in transformed objects
+    parent_transformed = next(
+        p for p in transformed.points if p.guid == parent_point.guid
+    )
+    child_transformed = next(
+        p for p in transformed.points if p.guid == child_point.guid
+    )
+
+    # Parent should be transformed to world coordinates
+    # Original: (1, 0, 0) + translation(10, 0, 0) = (11, 0, 0)
+    assert abs(parent_transformed.x - 11.0) < 1e-6
+    assert abs(parent_transformed.y - 0.0) < 1e-6
+    assert abs(parent_transformed.z - 0.0) < 1e-6
+
+    # Child should have composed transformation applied
+    # Original: (1, 0, 0) + parent_translation(10, 0, 0) + child_translation(5, 0, 0) = (16, 0, 0)
+    assert abs(child_transformed.x - 16.0) < 1e-6
+    assert abs(child_transformed.y - 0.0) < 1e-6
+    assert abs(child_transformed.z - 0.0) < 1e-6
+
+    # Transformations should be reset to identity (check translation components are 0)
+    assert abs(parent_transformed.xform.m[12]) < 1e-6
+    assert abs(parent_transformed.xform.m[13]) < 1e-6
+    assert abs(parent_transformed.xform.m[14]) < 1e-6
+    assert abs(child_transformed.xform.m[12]) < 1e-6
+    assert abs(child_transformed.xform.m[13]) < 1e-6
+    assert abs(child_transformed.xform.m[14]) < 1e-6

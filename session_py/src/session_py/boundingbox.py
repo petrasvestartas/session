@@ -230,6 +230,31 @@ class BoundingBox:
         )
 
     ###########################################################################################
+    # Transformation
+    ###########################################################################################
+
+    def transform(self):
+        """Apply the stored xform transformation to the bounding box.
+
+        Transforms the bounding box in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        self.xform.transform_point(self.center)
+        self.xform.transform_vector(self.x_axis)
+        self.xform.transform_vector(self.y_axis)
+        self.xform.transform_vector(self.z_axis)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the bounding box."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
+    ###########################################################################################
     # Polymorphic JSON Serialization (COMPAS-style)
     ###########################################################################################
 
@@ -262,6 +287,6 @@ class BoundingBox:
         bbox.name = name
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            bbox.xform = decode_node(data["xform"])
 
         return bbox

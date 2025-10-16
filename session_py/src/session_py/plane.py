@@ -3,6 +3,7 @@ import math
 from .point import Point
 from .vector import Vector
 from .tolerance import Tolerance
+from .xform import Xform
 
 
 class Plane:
@@ -289,6 +290,25 @@ class Plane:
     # Operators
     ###########################################################################################
 
+    def transform(self):
+        """Apply the stored xform transformation to the plane.
+
+        Transforms the plane in-place and resets xform to identity.
+        """
+        self.xform.transform_point(self._origin)
+        self.xform.transform_vector(self._x_axis)
+        self.xform.transform_vector(self._y_axis)
+        self.xform.transform_vector(self._z_axis)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the plane."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
     def __str__(self):
         return f"Plane(origin={self._origin}, x_axis={self._x_axis}, y_axis={self._y_axis}, z_axis={self._z_axis}, guid={self.guid}, name={self.name})"
 
@@ -570,6 +590,6 @@ class Plane:
             # z_axis is already computed from cross product, just verify consistency
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            plane.xform = decode_node(data["xform"])
 
         return plane

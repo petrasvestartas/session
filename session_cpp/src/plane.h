@@ -64,6 +64,16 @@ namespace session_cpp {
     /// Convert point to string representation
     std::string to_string() const;
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Transformation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Apply the stored xform transformation to the plane (in-place)
+    void transform();
+
+    /// Return a transformed copy of the plane
+    Plane transformed() const;
+
     /// Equality operator
     bool operator==(const Point &other) const;
 

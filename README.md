@@ -28,7 +28,7 @@ session/
 - 12. Pointcloud
 - 13. Polyline
 - 14. Quaternion
-- 15. Session - 1) Implement BVH as attribute of the model, when you add geometry in add method you compute the boundingbox inflated by tolerance.PRECISION value 2) Session must have get_collision method that returns all collisions between objects via BVH and return pairs are added as graph edges of object guids to the session graph 3) Implement a method in session get_geometry, that gets all the geometry from the session but the geometry must be consequently transformed following the tree hierarchy xform attribute, the child of the tree must recursively be transformed by parent tree nodes
+- 15. Session
 - 16. Tolerance - no need to serialize
 - 17. Tree
 - 18. TreeNode

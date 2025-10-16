@@ -278,6 +278,29 @@ impl fmt::Display for Line {
 }
 
 impl Line {
+    pub fn transform(&mut self) {
+        let mut start = Point::new(self._x0, self._y0, self._z0);
+        let mut end = Point::new(self._x1, self._y1, self._z1);
+
+        let xform = self.xform.clone();
+        xform.transform_point(&mut start);
+        xform.transform_point(&mut end);
+
+        self._x0 = start.x();
+        self._y0 = start.y();
+        self._z0 = start.z();
+        self._x1 = end.x();
+        self._y1 = end.y();
+        self._z1 = end.z();
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
     pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         Ok(serde_json::to_string_pretty(self)?)
     }

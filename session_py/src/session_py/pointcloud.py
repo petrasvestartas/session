@@ -46,6 +46,27 @@ class PointCloud:
     # Operators
     ###########################################################################################
 
+    def transform(self):
+        """Apply the stored xform transformation to the point cloud.
+
+        Transforms all points and normals in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        for pt in self.points:
+            self.xform.transform_point(pt)
+        for n in self.normals:
+            self.xform.transform_vector(n)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the point cloud."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
     def __str__(self):
         return f"PointCloud(points={len(self.points)}, normals={len(self.normals)}, colors={len(self.colors)}, guid={self.guid}, name={self.name})"
 

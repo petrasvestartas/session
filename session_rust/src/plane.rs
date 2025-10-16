@@ -444,6 +444,21 @@ impl std::fmt::Display for Plane {
 }
 
 impl Plane {
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        xform.transform_point(&mut self._origin);
+        xform.transform_vector(&mut self._x_axis);
+        xform.transform_vector(&mut self._y_axis);
+        xform.transform_vector(&mut self._z_axis);
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
     pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         Ok(serde_json::to_string_pretty(self)?)
     }

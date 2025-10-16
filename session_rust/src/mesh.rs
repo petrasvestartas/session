@@ -558,6 +558,28 @@ impl Mesh {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Transformation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        for v in self.vertex.values_mut() {
+            let mut pt = Point::new(v.x, v.y, v.z);
+            xform.transform_point(&mut pt);
+            v.x = pt.x();
+            v.y = pt.y();
+            v.z = pt.z();
+        }
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
 

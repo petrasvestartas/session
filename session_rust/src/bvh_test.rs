@@ -57,16 +57,8 @@ mod tests {
         let code3 = calculate_morton_code(-40.0, -40.0, -40.0, 100.0);
 
         // Nearby points should be closer in Morton space
-        let diff_nearby = if code1 > code2 {
-            code1 - code2
-        } else {
-            code2 - code1
-        };
-        let diff_far = if code1 > code3 {
-            code1 - code3
-        } else {
-            code3 - code1
-        };
+        let diff_nearby = code1.abs_diff(code2);
+        let diff_far = code1.abs_diff(code3);
         assert!(diff_nearby < diff_far);
     }
 
@@ -422,12 +414,9 @@ mod tests {
 
         println!("Collisions found: {}", collisions.len());
         println!("Colliding objects: {}", colliding_indices.len());
-        println!("BVH build time: {:?}", build_time);
-        println!(
-            "BVH collision time: {:?} ({} checks)",
-            collision_time, checks
-        );
-        println!("Naive would need: {} checks", naive_checks);
+        println!("BVH build time: {build_time:?}");
+        println!("BVH collision time: {collision_time:?} ({checks} checks)");
+        println!("Naive would need: {naive_checks} checks");
         println!(
             "Check reduction: {:.1}%",
             100.0 * (1.0 - checks as f32 / naive_checks as f32)

@@ -98,6 +98,35 @@ class Point:
         return not self == other
 
     ###########################################################################################
+    # Transformation
+    ###########################################################################################
+
+    def transform(self):
+        """Apply the stored xform transformation to the point coordinates.
+
+        Transforms the point in-place and resets xform to identity.
+        """
+        self.xform.transform_point(self)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the point.
+
+        Returns a new point with the transformation applied.
+        The original point and its xform remain unchanged.
+
+        Returns
+        -------
+        Point
+            A new transformed point.
+        """
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
+    ###########################################################################################
     # No-copy Operators
     ###########################################################################################
 
@@ -364,6 +393,6 @@ class Point:
         pt.name = name
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            pt.xform = decode_node(data["xform"])
 
         return pt

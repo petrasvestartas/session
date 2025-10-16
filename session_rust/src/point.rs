@@ -95,6 +95,18 @@ impl Point {
         Ok(())
     }
 
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        xform.transform_point(self);
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
     /// Deserializes a Point from a JSON file.
     pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let json = std::fs::read_to_string(filepath)?;

@@ -215,6 +215,28 @@ class Arrow:
         return mesh
 
     ###########################################################################################
+    # Transformation
+    ###########################################################################################
+
+    def transform(self):
+        """Apply the stored xform transformation to the arrow.
+
+        Transforms the line in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        self.line.transform()  # Transform the line component
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the arrow."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
+    ###########################################################################################
     # JSON
     ###########################################################################################
 
@@ -264,6 +286,6 @@ class Arrow:
         arrow.name = name
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            arrow.xform = decode_node(data["xform"])
 
         return arrow

@@ -336,6 +336,42 @@ class Line:
             self._z1 / factor,
         )
 
+    def transform(self):
+        """Apply the stored xform transformation to the line coordinates.
+
+        Transforms the line in-place and resets xform to identity.
+        """
+        start = Point(self._x0, self._y0, self._z0)
+        end = Point(self._x1, self._y1, self._z1)
+
+        self.xform.transform_point(start)
+        self.xform.transform_point(end)
+
+        self._x0 = start.x
+        self._y0 = start.y
+        self._z0 = start.z
+        self._x1 = end.x
+        self._y1 = end.y
+        self._z1 = end.z
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the line.
+
+        Returns a new line with the transformation applied.
+        The original line and its xform remain unchanged.
+
+        Returns
+        -------
+        Line
+            A new transformed line.
+        """
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
     def __str__(self):
         """String representation."""
         return f"Line({self._x0}, {self._y0}, {self._z0}, {self._x1}, {self._y1}, {self._z1})"
@@ -404,6 +440,6 @@ class Line:
             line.linecolor = decode_node(data["linecolor"])
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            line.xform = decode_node(data["xform"])
 
         return line

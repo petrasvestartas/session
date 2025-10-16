@@ -428,6 +428,23 @@ std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> Mesh::to_vertice
     return {vertices, faces};
 }
 
+void Mesh::transform() {
+  for (auto& [idx, vdata] : vertex) {
+    Point pt(vdata.x, vdata.y, vdata.z);
+    xform.transform_point(pt);
+    vdata.x = pt.x();
+    vdata.y = pt.y();
+    vdata.z = pt.z();
+  }
+  xform = Xform::identity();
+}
+
+Mesh Mesh::transformed() const {
+  Mesh result = *this;
+  result.transform();
+  return result;
+}
+
 nlohmann::ordered_json Mesh::jsondump() const {
     nlohmann::ordered_json data;
     data["type"] = "Mesh";

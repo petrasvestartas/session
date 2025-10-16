@@ -705,9 +705,32 @@ class Mesh:
             mesh._max_face = data["max_face"]
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            mesh.xform = decode_node(data["xform"])
 
         return mesh
+
+    ###########################################################################################
+    # Transformation
+    ###########################################################################################
+
+    def transform(self):
+        """Apply the stored xform transformation to the mesh.
+
+        Transforms all vertices in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        for v in self.vertices:
+            self.xform.transform_point(v)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the mesh."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
 
     ###########################################################################################
     # Color and Width Management

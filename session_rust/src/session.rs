@@ -600,6 +600,224 @@ impl Session {
     pub fn get_neighbours(&self, guid: &str) -> Vec<String> {
         self.graph.get_neighbors(guid)
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Details - Transformed Geometry
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Get all geometry with transformations applied from tree hierarchy.
+    ///
+    /// Recursively traverses the tree and applies parent transformations to children.
+    /// Each child's transformation is the composition of all ancestor transformations
+    /// multiplied by its own transformation.
+    ///
+    /// # Returns
+    /// Objects collection with transformed geometry
+    pub fn get_geometry(&self) -> Objects {
+        use crate::Xform;
+
+        // Deep copy all objects
+        let mut transformed_objects = self.objects.clone();
+
+        // Rebuild lookup from copied objects
+        let mut transformed_lookup: HashMap<String, Geometry> = HashMap::new();
+
+        for point in &transformed_objects.points {
+            transformed_lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));
+        }
+        for line in &transformed_objects.lines {
+            transformed_lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));
+        }
+        for plane in &transformed_objects.planes {
+            transformed_lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));
+        }
+        for bbox in &transformed_objects.bboxes {
+            transformed_lookup.insert(bbox.guid.clone(), Geometry::BoundingBox(bbox.clone()));
+        }
+        for polyline in &transformed_objects.polylines {
+            transformed_lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));
+        }
+        for pointcloud in &transformed_objects.pointclouds {
+            transformed_lookup.insert(
+                pointcloud.guid.clone(),
+                Geometry::PointCloud(pointcloud.clone()),
+            );
+        }
+        for mesh in &transformed_objects.meshes {
+            transformed_lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));
+        }
+        for cylinder in &transformed_objects.cylinders {
+            transformed_lookup.insert(cylinder.guid.clone(), Geometry::Cylinder(cylinder.clone()));
+        }
+        for arrow in &transformed_objects.arrows {
+            transformed_lookup.insert(arrow.guid.clone(), Geometry::Arrow(arrow.clone()));
+        }
+
+        fn transform_node(
+            node: &TreeNode,
+            parent_xform: &Xform,
+            transformed_lookup: &HashMap<String, Geometry>,
+            transformed_objects: &mut Objects,
+        ) {
+            // Get geometry from the lookup
+            let node_name = node.name();
+            let geometry = transformed_lookup.get(&node_name);
+
+            let current_xform = if let Some(geom) = geometry {
+                // Get mutable reference and transform in-place
+                let combined_xform = parent_xform
+                    * match geom {
+                        Geometry::Point(g) => &g.xform,
+                        Geometry::Line(g) => &g.xform,
+                        Geometry::Plane(g) => &g.xform,
+                        Geometry::BoundingBox(g) => &g.xform,
+                        Geometry::Polyline(g) => &g.xform,
+                        Geometry::PointCloud(g) => &g.xform,
+                        Geometry::Mesh(g) => &g.xform,
+                        Geometry::Cylinder(g) => &g.xform,
+                        Geometry::Arrow(g) => &g.xform,
+                    };
+
+                // Find and update the geometry in the collections
+                match geom {
+                    Geometry::Point(_) => {
+                        if let Some(g) = transformed_objects
+                            .points
+                            .iter_mut()
+                            .find(|p| p.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Line(_) => {
+                        if let Some(g) = transformed_objects
+                            .lines
+                            .iter_mut()
+                            .find(|l| l.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Plane(_) => {
+                        if let Some(g) = transformed_objects
+                            .planes
+                            .iter_mut()
+                            .find(|p| p.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::BoundingBox(_) => {
+                        if let Some(g) = transformed_objects
+                            .bboxes
+                            .iter_mut()
+                            .find(|b| b.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Polyline(_) => {
+                        if let Some(g) = transformed_objects
+                            .polylines
+                            .iter_mut()
+                            .find(|p| p.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::PointCloud(_) => {
+                        if let Some(g) = transformed_objects
+                            .pointclouds
+                            .iter_mut()
+                            .find(|p| p.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Mesh(_) => {
+                        if let Some(g) = transformed_objects
+                            .meshes
+                            .iter_mut()
+                            .find(|m| m.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Cylinder(_) => {
+                        if let Some(g) = transformed_objects
+                            .cylinders
+                            .iter_mut()
+                            .find(|c| c.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                    Geometry::Arrow(_) => {
+                        if let Some(g) = transformed_objects
+                            .arrows
+                            .iter_mut()
+                            .find(|a| a.guid == node_name)
+                        {
+                            g.xform = combined_xform.clone();
+                        }
+                    }
+                }
+
+                combined_xform
+            } else {
+                parent_xform.clone()
+            };
+
+            for child in node.children() {
+                transform_node(
+                    &child,
+                    &current_xform,
+                    transformed_lookup,
+                    transformed_objects,
+                );
+            }
+        }
+
+        if let Some(root) = self.tree.root() {
+            transform_node(
+                &root,
+                &Xform::identity(),
+                &transformed_lookup,
+                &mut transformed_objects,
+            );
+        }
+
+        // Apply accumulated transformations to actual geometry coordinates
+        for point in &mut transformed_objects.points {
+            point.transform();
+        }
+        for line in &mut transformed_objects.lines {
+            line.transform();
+        }
+        for plane in &mut transformed_objects.planes {
+            plane.transform();
+        }
+        for bbox in &mut transformed_objects.bboxes {
+            bbox.transform();
+        }
+        for polyline in &mut transformed_objects.polylines {
+            polyline.transform();
+        }
+        for pointcloud in &mut transformed_objects.pointclouds {
+            pointcloud.transform();
+        }
+        for mesh in &mut transformed_objects.meshes {
+            mesh.transform();
+        }
+        for cylinder in &mut transformed_objects.cylinders {
+            cylinder.transform();
+        }
+        for arrow in &mut transformed_objects.arrows {
+            arrow.transform();
+        }
+
+        transformed_objects
+    }
 }
 
 impl fmt::Display for Session {

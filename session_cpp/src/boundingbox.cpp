@@ -173,6 +173,20 @@ bool BoundingBox::separating_plane_exists(const Vector& relative_position, const
     return dot_rp > (proj1 + proj2);
 }
 
+void BoundingBox::transform() {
+  xform.transform_point(center);
+  xform.transform_vector(x_axis);
+  xform.transform_vector(y_axis);
+  xform.transform_vector(z_axis);
+  xform = Xform::identity();
+}
+
+BoundingBox BoundingBox::transformed() const {
+  BoundingBox result = *this;
+  result.transform();
+  return result;
+}
+
 bool BoundingBox::collides_with(const BoundingBox& other) const {
     Vector center_vec(center.x(), center.y(), center.z());
     Vector other_center_vec(other.center.x(), other.center.y(), other.center.z());

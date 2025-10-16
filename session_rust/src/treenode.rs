@@ -19,6 +19,16 @@ struct TreeNodeInner {
 }
 
 /// TreeNode with a clean, simple API
+///
+/// TreeNodes can represent either:
+/// - Geometry nodes: name is set to the geometry's GUID for lookup
+/// - Organizational nodes: name is a descriptive string (e.g., "folder", "group")
+///
+/// When adding geometry to a Session, the TreeNode.name is automatically set to
+/// the geometry.guid, allowing the tree hierarchy to reference geometry objects.
+///
+/// Note: TreeNode has its own guid (for identifying the node itself) and a name
+/// (which for geometry nodes, stores the geometry's GUID).
 #[derive(Debug, Clone)]
 pub struct TreeNode {
     inner: NodeRef,

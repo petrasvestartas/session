@@ -531,3 +531,76 @@ class Session:
             List of connected geometry GUIDs as strings.
         """
         return self.graph.get_neighbors(guid)
+
+    ###########################################################################################
+    # Details - Transformed Geometry
+    ###########################################################################################
+
+    def get_geometry(self) -> Objects:
+        """Get all geometry with transformations applied from tree hierarchy.
+
+        Recursively traverses the tree and applies parent transformations to children.
+        Each child's transformation is the composition of all ancestor transformations
+        multiplied by its own transformation.
+
+        Returns
+        -------
+        Objects
+            Collection of transformed geometry objects.
+        """
+        from .xform import Xform
+        import copy
+
+        # Deep copy all objects
+        transformed_objects = copy.deepcopy(self.objects)
+
+        # Rebuild lookup from copied objects
+        transformed_lookup = {}
+        for collection in [
+            transformed_objects.points,
+            transformed_objects.lines,
+            transformed_objects.planes,
+            transformed_objects.bboxes,
+            transformed_objects.polylines,
+            transformed_objects.pointclouds,
+            transformed_objects.meshes,
+            transformed_objects.cylinders,
+            transformed_objects.arrows,
+        ]:
+            for geom in collection:
+                transformed_lookup[geom.guid] = geom
+
+        def transform_node(node: TreeNode, parent_xform: Xform) -> None:
+            """Recursively transform geometry in tree node and its children."""
+
+            # Get geometry from the lookup,
+            geom = transformed_lookup.get(node.name)
+
+            if geom is not None:
+                geom.xform = parent_xform * geom.xform
+                current_xform = geom.xform
+            else:
+                current_xform = parent_xform
+
+            for child in node.children:
+                transform_node(child, current_xform)
+
+        if self.tree.root:
+            transform_node(self.tree.root, Xform.identity())
+
+        # Apply accumulated transformations to actual geometry coordinates
+        for collection in [
+            transformed_objects.points,
+            transformed_objects.lines,
+            transformed_objects.planes,
+            transformed_objects.bboxes,
+            transformed_objects.polylines,
+            transformed_objects.pointclouds,
+            transformed_objects.meshes,
+            transformed_objects.cylinders,
+            transformed_objects.arrows,
+        ]:
+            for geom in collection:
+                geom.transform()
+
+        return transformed_objects

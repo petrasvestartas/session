@@ -142,6 +142,20 @@ impl Polyline {
         reversed
     }
 
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        for pt in &mut self.points {
+            xform.transform_point(pt);
+        }
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
     /// Serializes the Polyline to a JSON string.
     pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut buf = Vec::new();

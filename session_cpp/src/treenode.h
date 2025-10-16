@@ -17,6 +17,13 @@ class Tree;
 /**
  * @class TreeNode
  * @brief A node of a tree data structure
+ * 
+ * TreeNodes can represent either:
+ * - Geometry nodes: name is set to the geometry's GUID for lookup
+ * - Organizational nodes: name is a descriptive string (e.g., "folder", "group")
+ * 
+ * When adding geometry to a Session, the TreeNode.name is automatically set to
+ * the geometry.guid, allowing the tree hierarchy to reference geometry objects.
  */
 class TreeNode : public std::enable_shared_from_this<TreeNode> {
   friend class Tree; // Allow Tree to access private members
@@ -29,8 +36,8 @@ private:
 public:
   TreeNode(std::string name = "my_node") { this->name = name; }
 
-  std::string guid = ::guid(); ///< Unique identifier for the node
-  std::string name;            ///< Node identifier/name
+  std::string guid = ::guid(); ///< Unique identifier for the tree node itself (distinct from geometry GUID)
+  std::string name;            ///< Node identifier/name. For geometry nodes, this is the geometry's GUID
 
   /// Convert point to string representation
   std::string to_string() const;

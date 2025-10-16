@@ -125,6 +125,17 @@ Mesh Cylinder::create_cylinder_mesh(const Line& line, float radius) {
     return transform_geometry(unit_cylinder, xform);
 }
 
+void Cylinder::transform() {
+  line.transform();
+  xform = Xform::identity();
+}
+
+Cylinder Cylinder::transformed() const {
+  Cylinder result = *this;
+  result.transform();
+  return result;
+}
+
 nlohmann::ordered_json Cylinder::jsondump() const {
     nlohmann::ordered_json data;
     data["type"] = "Cylinder";

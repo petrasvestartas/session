@@ -1,21 +1,29 @@
 import uuid
-from typing import Any, Optional
+from typing import Optional
 
 
 class TreeNode:
     """A node of a tree data structure.
 
+    TreeNodes can represent either:
+    - Geometry nodes: name is set to the geometry's GUID for lookup
+    - Organizational nodes: name is a descriptive string (e.g., "folder", "group")
+
+    When adding geometry to a Session, the TreeNode.name is automatically set to
+    the geometry.guid, allowing the tree hierarchy to reference geometry objects.
+
     Parameters
     ----------
     name : str, optional
-        The name of the tree node.
+        The name of the tree node. For geometry nodes, this should be the geometry's GUID.
+        For organizational nodes, this can be any descriptive string.
 
     Attributes
     ----------
     name : str
-        The name of the tree node.
+        The name of the tree node. For geometry nodes, this is the geometry's GUID.
     guid : UUID
-        The unique identifier of the tree node.
+        The unique identifier of the tree node itself (distinct from geometry GUID).
     parent : :class:`TreeNode`
         The parent node of the tree node.
     children : list[:class:`TreeNode`]

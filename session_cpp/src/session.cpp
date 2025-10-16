@@ -2,6 +2,7 @@
 #include "graph.h"
 #include "tree.h"
 #include <algorithm>
+#include <functional>
 
 namespace session_cpp {
 
@@ -267,6 +268,90 @@ std::vector<std::pair<std::string, std::string>> Session::get_collisions() {
   }
   
   return collision_pairs;
+}
+
+// Transformed Geometry
+
+Objects Session::get_geometry() const {
+  // Deep copy all objects
+  Objects transformed_objects = objects;
+  
+  // Rebuild lookup from copied objects
+  std::unordered_map<std::string, Geometry> transformed_lookup;
+  
+  auto add_to_lookup = [&](auto& collection) {
+    for (auto& geom : *collection) {
+      transformed_lookup[geom->guid] = geom;
+    }
+  };
+  
+  add_to_lookup(transformed_objects.points);
+  add_to_lookup(transformed_objects.lines);
+  add_to_lookup(transformed_objects.planes);
+  add_to_lookup(transformed_objects.bboxes);
+  add_to_lookup(transformed_objects.polylines);
+  add_to_lookup(transformed_objects.pointclouds);
+  add_to_lookup(transformed_objects.meshes);
+  add_to_lookup(transformed_objects.cylinders);
+  add_to_lookup(transformed_objects.arrows);
+  
+  // Helper lambda to recursively transform nodes
+  std::function<void(std::shared_ptr<TreeNode>, const Xform&)> transform_node = 
+    [&](std::shared_ptr<TreeNode> node, const Xform& parent_xform) {
+      // Get geometry from the lookup
+      auto it = transformed_lookup.find(node->name);
+      
+      Xform current_xform = parent_xform;
+      
+      if (it != transformed_lookup.end()) {
+        // Transform in-place
+        std::visit([&](auto&& geom_ptr) {
+          geom_ptr->xform = parent_xform * geom_ptr->xform;
+          current_xform = geom_ptr->xform;
+        }, it->second);
+      }
+      
+      // Recursively process children
+      for (auto* child : node->children()) {
+        transform_node(child->shared_from_this(), current_xform);
+      }
+    };
+  
+  // Start from root with identity transformation
+  if (tree.root()) {
+    transform_node(tree.root(), Xform::identity());
+  }
+  
+  // Apply accumulated transformations to actual geometry coordinates
+  for (auto& point : *transformed_objects.points) {
+    point->transform();
+  }
+  for (auto& line : *transformed_objects.lines) {
+    line->transform();
+  }
+  for (auto& plane : *transformed_objects.planes) {
+    plane->transform();
+  }
+  for (auto& bbox : *transformed_objects.bboxes) {
+    bbox->transform();
+  }
+  for (auto& polyline : *transformed_objects.polylines) {
+    polyline->transform();
+  }
+  for (auto& pointcloud : *transformed_objects.pointclouds) {
+    pointcloud->transform();
+  }
+  for (auto& mesh : *transformed_objects.meshes) {
+    mesh->transform();
+  }
+  for (auto& cylinder : *transformed_objects.cylinders) {
+    cylinder->transform();
+  }
+  for (auto& arrow : *transformed_objects.arrows) {
+    arrow->transform();
+  }
+  
+  return transformed_objects;
 }
 
 // JSON Serialization

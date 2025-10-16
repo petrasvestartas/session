@@ -252,6 +252,21 @@ public:
   std::vector<std::pair<std::string, std::string>> get_collisions();
 
   ///////////////////////////////////////////////////////////////////////////////////////////
+  // Transformed Geometry
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Get all geometry with transformations applied from tree hierarchy.
+   * 
+   * Recursively traverses the tree and applies parent transformations to children.
+   * Each child's transformation is the composition of all ancestor transformations
+   * multiplied by its own transformation.
+   * 
+   * @return Objects collection with transformed geometry
+   */
+  Objects get_geometry() const;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
   // JSON Serialization
   ///////////////////////////////////////////////////////////////////////////////////////////
 

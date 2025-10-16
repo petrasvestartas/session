@@ -55,7 +55,7 @@ fn main() {
 
     println!("\nNumber of collisions: {}", collisions.len());
     println!("Number of colliding objects: {}", colliding_indices.len());
-    println!("Check count: {}", check_count);
+    println!("Check count: {check_count}");
 
     // Print first 10 collisions
     println!("\nFirst 10 collisions:");
@@ -69,7 +69,7 @@ fn main() {
         if i > 0 {
             print!(", ");
         }
-        print!("{}", idx);
+        print!("{idx}");
     }
     println!("]");
 }

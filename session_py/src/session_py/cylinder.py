@@ -161,6 +161,28 @@ class Cylinder:
         return cls._transform_geometry(unit_cylinder, xform)
 
     ###########################################################################################
+    # Transformation
+    ###########################################################################################
+
+    def transform(self):
+        """Apply the stored xform transformation to the cylinder.
+
+        Transforms the line in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        self.line.transform()  # Transform the line component
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the cylinder."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
+    ###########################################################################################
     # JSON
     ###########################################################################################
 
@@ -210,6 +232,6 @@ class Cylinder:
         cylinder.name = name
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            Lcylinder.xform = decode_node(data["xform"])
 
         return cylinder

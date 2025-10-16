@@ -46,6 +46,27 @@ impl PointCloud {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Transformation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        for pt in &mut self.points {
+            xform.transform_point(pt);
+        }
+        for n in &mut self.normals {
+            xform.transform_vector(n);
+        }
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // JSON
     ///////////////////////////////////////////////////////////////////////////////////////////
 

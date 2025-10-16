@@ -152,6 +152,24 @@ std::string Plane::to_string() const {
                        _z_axis.to_string(), guid, name);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// Transformation
+///////////////////////////////////////////////////////////////////////////////////////////
+
+void Plane::transform() {
+  xform.transform_point(_origin);
+  xform.transform_vector(_x_axis);
+  xform.transform_vector(_y_axis);
+  xform.transform_vector(_z_axis);
+  xform = Xform::identity();
+}
+
+Plane Plane::transformed() const {
+  Plane result = *this;
+  result.transform();
+  return result;
+}
+
 bool Plane::operator==(const Point &other) const {
     return _origin == other;
 }

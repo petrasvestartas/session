@@ -271,6 +271,21 @@ impl BoundingBox {
             ))
     }
 
+    pub fn transform(&mut self) {
+        let xform = self.xform.clone();
+        xform.transform_point(&mut self.center);
+        xform.transform_vector(&mut self.x_axis);
+        xform.transform_vector(&mut self.y_axis);
+        xform.transform_vector(&mut self.z_axis);
+        self.xform = Xform::identity();
+    }
+
+    pub fn transformed(&self) -> Self {
+        let mut result = self.clone();
+        result.transform();
+        result
+    }
+
     pub fn jsondump(&self) -> Result<String, std::boxed::Box<dyn std::error::Error>> {
         let data = serde_json::json!({
             "type": "BoundingBox",

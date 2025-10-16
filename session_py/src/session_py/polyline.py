@@ -135,6 +135,25 @@ class Polyline:
         result -= vector
         return result
 
+    def transform(self):
+        """Apply the stored xform transformation to the polyline.
+
+        Transforms all points in-place and resets xform to identity.
+        """
+        from .xform import Xform
+
+        for pt in self.points:
+            self.xform.transform_point(pt)
+        self.xform = Xform.identity()
+
+    def transformed(self):
+        """Return a transformed copy of the polyline."""
+        import copy
+
+        result = copy.deepcopy(self)
+        result.transform()
+        return result
+
     def __str__(self) -> str:
         """Returns a string representation of the polyline."""
         return (
@@ -642,6 +661,6 @@ class Polyline:
             polyline.linecolor = decode_node(data["linecolor"])
 
         if "xform" in data:
-            obj.xform = decode_node(data["xform"])
+            polyline.xform = decode_node(data["xform"])
 
         return polyline

@@ -50,6 +50,9 @@ public:
     
     bool collides_with(const BoundingBox& other) const;
     
+    void transform();
+    BoundingBox transformed() const;
+    
     nlohmann::ordered_json jsondump() const;
     static BoundingBox jsonload(const nlohmann::json& data);
     
