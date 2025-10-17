@@ -2,8 +2,51 @@
 #include <algorithm>
 #include <set>
 #include <cmath>
+#include <limits>
 
 namespace session_cpp {
+
+static bool ray_aabb_intersect(const Point& origin,
+                               const Vector& direction,
+                               const BoundingBox& box,
+                               float& tmin_out,
+                               float& tmax_out)
+{
+    // AABB from center/half_size
+    float min_x = box.center.x() - box.half_size.x();
+    float max_x = box.center.x() + box.half_size.x();
+    float min_y = box.center.y() - box.half_size.y();
+    float max_y = box.center.y() + box.half_size.y();
+    float min_z = box.center.z() - box.half_size.z();
+    float max_z = box.center.z() + box.half_size.z();
+
+    auto inv = [](float v) {
+        return (v != 0.0f) ? (1.0f / v) : std::numeric_limits<float>::infinity();
+    };
+
+    float invx = inv(direction.x());
+    float invy = inv(direction.y());
+    float invz = inv(direction.z());
+
+    float tx1 = (min_x - origin.x()) * invx;
+    float tx2 = (max_x - origin.x()) * invx;
+    float tmin = std::min(tx1, tx2);
+    float tmax = std::max(tx1, tx2);
+
+    float ty1 = (min_y - origin.y()) * invy;
+    float ty2 = (max_y - origin.y()) * invy;
+    tmin = std::max(tmin, std::min(ty1, ty2));
+    tmax = std::min(tmax, std::max(ty1, ty2));
+
+    float tz1 = (min_z - origin.z()) * invz;
+    float tz2 = (max_z - origin.z()) * invz;
+    tmin = std::max(tmin, std::min(tz1, tz2));
+    tmax = std::min(tmax, std::max(tz1, tz2));
+
+    tmin_out = tmin;
+    tmax_out = tmax;
+    return tmax >= tmin;
+}
 
 // BVHNode implementation
 BVHNode::BVHNode() : guid(::guid()), left(nullptr), right(nullptr), object_id(-1) {}
@@ -100,7 +143,9 @@ std::vector<std::pair<std::string, std::string>> BVH::check_all_collisions_guids
     // Convert indices to GUIDs
     std::vector<std::pair<std::string, std::string>> guid_collisions;
     for (const auto& [i, j] : collision_pairs) {
-        if (i < object_guids.size() && j < object_guids.size()) {
+        if (i >= 0 && j >= 0 && 
+            static_cast<size_t>(i) < object_guids.size() && 
+            static_cast<size_t>(j) < object_guids.size()) {
             guid_collisions.push_back(std::make_pair(object_guids[i], object_guids[j]));
         }
     }
@@ -266,6 +311,69 @@ std::tuple<std::vector<std::pair<int, int>>, std::vector<int>, int> BVH::check_a
 
     std::vector<int> colliding_indices(colliding_objects.begin(), colliding_objects.end());
     return {all_collisions, colliding_indices, total_checks};
+}
+
+bool BVH::ray_cast(const Point& origin,
+                   const Vector& direction,
+                   std::vector<int>& candidate_leaf_ids,
+                   bool find_all) const
+{
+    candidate_leaf_ids.clear();
+    if (!root) return false;
+
+    struct StackItem {
+        std::shared_ptr<BVHNode> node;
+        float tmin;
+        float tmax;
+    };
+
+    std::vector<StackItem> stack;
+    stack.reserve(64);
+
+    float rtmin, rtmax;
+    if (!ray_aabb_intersect(origin, direction, root->aabb, rtmin, rtmax)) {
+        return false;
+    }
+    stack.push_back({root, rtmin, rtmax});
+
+    bool any = false;
+    while (!stack.empty()) {
+        // pop the item with smallest tmin (near first)
+        size_t best_i = stack.size() - 1;
+        for (size_t i = 0; i + 1 < stack.size(); ++i) {
+            if (stack[i].tmin < stack[best_i].tmin) best_i = i;
+        }
+        StackItem item = stack[best_i];
+        stack.erase(stack.begin() + best_i);
+
+        auto node = item.node;
+        if (!node) continue;
+
+        if (node->is_leaf()) {
+            candidate_leaf_ids.push_back(node->object_id);
+            any = true;
+            if (!find_all) {
+                // Do not early return here; correctness is maintained by exact phase later.
+            }
+            continue;
+        }
+
+        // Intersect children and push
+        if (node->left) {
+            float cmin, cmax;
+            if (ray_aabb_intersect(origin, direction, node->left->aabb, cmin, cmax)) {
+                stack.push_back({node->left, cmin, cmax});
+            }
+        }
+        if (node->right) {
+            float cmin, cmax;
+            if (ray_aabb_intersect(origin, direction, node->right->aabb, cmin, cmax)) {
+                stack.push_back({node->right, cmin, cmax});
+            }
+        }
+    }
+
+    return any;
 }
 
 }

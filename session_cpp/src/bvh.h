@@ -64,6 +64,12 @@ public:
     BoundingBox merge_aabb(const BoundingBox& aabb1, const BoundingBox& aabb2);
     bool aabb_intersect(const BoundingBox& aabb1, const BoundingBox& aabb2);
 
+    // Ray cast traversal over BVH nodes returning candidate leaf indices ordered by AABB entry t.
+    bool ray_cast(const Point& origin,
+                  const Vector& direction,
+                  std::vector<int>& candidate_leaf_ids,
+                  bool find_all = false) const;
+
 private:
     struct ObjectInfo {
         int id;

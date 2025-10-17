@@ -4,6 +4,8 @@
 #include "color.h"
 #include "xform.h"
 #include "xform.h"
+#include "boundingbox.h"
+#include "bvh.h"
 #include "tolerance.h"
 #include "json.h"
 #include <map>
@@ -12,6 +14,7 @@
 #include <string>
 #include <optional>
 #include <cmath>
+#include <tuple>
 
 namespace session_cpp {
 
@@ -105,6 +108,12 @@ private:
     size_t max_vertex = 0;                                               ///< Next vertex key
     size_t max_face = 0;                                                 ///< Next face key
     std::map<size_t, std::vector<std::array<size_t, 3>>> triangulation; ///< Cached triangulations
+
+    // Cached per-triangle data for BVH ray casting
+    mutable bool triangle_bvh_built = false;
+    mutable std::shared_ptr<BVH> triangle_bvh;  ///< BVH over cached triangle AABBs
+    mutable std::vector<BoundingBox> triangle_boxes_cache;  ///< Per-triangle AABBs
+    mutable std::vector<std::tuple<size_t, size_t, Point, Point, Point>> triangle_data_cache; ///< (face_idx, sub_idx, v0, v1, v2)
 
 public:
 
@@ -248,6 +257,22 @@ public:
     /// Serialize to JSON file
     
     /// Deserialize from JSON file
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Triangle BVH Cache
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Build or rebuild cached per-triangle AABBs and BVH (idempotent unless force=true)
+    void build_triangle_bvh(bool force = false) const;
+
+    /// Cast a ray against the cached triangle BVH to get candidate triangle IDs
+    bool triangle_bvh_ray_cast(const Point& origin, const Vector& direction, std::vector<int>& candidate_ids, bool find_all = false) const;
+
+    /// Retrieve triangle data by ID from cache
+    bool get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const;
+
+    /// Clear triangle BVH caches manually
+    void clear_triangle_bvh() const;
 };
 
 } // namespace session_cpp

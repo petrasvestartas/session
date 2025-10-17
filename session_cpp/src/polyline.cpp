@@ -559,6 +559,7 @@ void Polyline::move(const Vector& direction) {
 }
 
 bool Polyline::is_clockwise(const Plane& plane) const {
+    (void)plane;  // Reserved for future use - may project to plane
     if (points.size() < 3) return false;
 
     // Create a copy for transformation

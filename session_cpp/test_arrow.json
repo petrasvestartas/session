@@ -1,11 +1,11 @@
 {
   "type": "Arrow",
-  "guid": "7b3bdfe5-d94d-4c66-9fcb-246fdbf286f6",
+  "guid": "f68342d3-cb15-45ed-985c-99e41ea36226",
   "name": "test_arrow",
   "radius": 1.0,
   "line": {
     "type": "Line",
-    "guid": "281f83ba-c094-4fbf-b2a0-fe9a687e74e5",
+    "guid": "f8f5b683-95e2-4c9a-ad56-dce7f5f0e54e",
     "name": "my_line",
     "x0": 0.0,
     "y0": 0.0,
@@ -16,7 +16,7 @@
     "width": 1.0,
     "linecolor": {
       "type": "Color",
-      "guid": "b90e145b-b2f6-4f44-b66f-97199702fbf1",
+      "guid": "461924a3-9a91-43a7-928f-6e3899e04888",
       "name": "white",
       "r": 255,
       "g": 255,
@@ -26,7 +26,7 @@
   },
   "mesh": {
     "type": "Mesh",
-    "guid": "42986ec8-4ecc-47f2-aaf9-94162021f652",
+    "guid": "24fe2653-3510-47c7-987a-89d4acb06755",
     "name": "my_mesh",
     "halfedge": {
       "1": {
@@ -532,7 +532,7 @@
   },
   "xform": {
     "type": "Xform",
-    "guid": "8e4eadd6-51da-4e22-a041-6b888265e4bb",
+    "guid": "0fe9cc45-8dc0-4c57-91fb-7a2ccf5cb50f",
     "name": "my_xform",
     "m": [
       1.0,

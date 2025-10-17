@@ -215,7 +215,7 @@ public:
   /// -------
   /// float
   ///     Dot product value.
-  float dot(const Vector &other);
+  float dot(const Vector &other) const;
   
   /// Calculate cross product with another vector.
   ///
@@ -228,7 +228,7 @@ public:
   /// -------
   /// Vector
   ///     Cross product vector (orthogonal to inputs).
-  Vector cross(const Vector &other);
+  Vector cross(const Vector &other) const;
   
   /// Angle between this vector and another.
   ///

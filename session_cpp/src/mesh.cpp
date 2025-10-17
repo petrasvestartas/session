@@ -46,6 +46,10 @@ void Mesh::clear() {
     facecolors.clear();
     linecolors.clear();
     widths.clear();
+    triangle_bvh_built = false;
+    triangle_bvh.reset();
+    triangle_boxes_cache.clear();
+    triangle_data_cache.clear();
 }
 
 size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
@@ -58,6 +62,10 @@ size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
     vertex[vertex_key] = VertexData(position);
     halfedge[vertex_key] = {};
     pointcolors.push_back(Color::white());
+    triangle_bvh_built = false;
+    triangle_bvh.reset();
+    triangle_boxes_cache.clear();
+    triangle_data_cache.clear();
     return vertex_key;
 }
 
@@ -101,6 +109,10 @@ std::optional<size_t> Mesh::add_face(const std::vector<size_t>& vertices, std::o
             widths.push_back(1.0f);
         }
     }
+    triangle_bvh_built = false;
+    triangle_bvh.reset();
+    triangle_boxes_cache.clear();
+    triangle_data_cache.clear();
     return face_key;
 }
 
@@ -437,6 +449,10 @@ void Mesh::transform() {
     vdata.z = pt.z();
   }
   xform = Xform::identity();
+  triangle_bvh_built = false;
+  triangle_bvh.reset();
+  triangle_boxes_cache.clear();
+  triangle_data_cache.clear();
 }
 
 Mesh Mesh::transformed() const {
@@ -501,6 +517,26 @@ nlohmann::ordered_json Mesh::jsondump() const {
     data["default_edge_attributes"] = default_edge_attributes;
     data["max_vertex"] = max_vertex;
     data["max_face"] = max_face;
+
+    // Persist triangle BVH caches (optional)
+    data["triangle_bvh_built"] = triangle_bvh_built;
+    nlohmann::ordered_json tri_boxes = nlohmann::ordered_json::array();
+    for (const auto& box : triangle_boxes_cache) {
+        tri_boxes.push_back(box.jsondump());
+    }
+    data["triangle_boxes_cache"] = tri_boxes;
+
+    nlohmann::ordered_json tri_data = nlohmann::ordered_json::array();
+    for (const auto& tup : triangle_data_cache) {
+        nlohmann::ordered_json tri;
+        tri["face_idx"] = std::get<0>(tup);
+        tri["sub_idx"] = std::get<1>(tup);
+        tri["v0"] = std::get<2>(tup).jsondump();
+        tri["v1"] = std::get<3>(tup).jsondump();
+        tri["v2"] = std::get<4>(tup).jsondump();
+        tri_data.push_back(tri);
+    }
+    data["triangle_data_cache"] = tri_data;
     return data;
 }
 
@@ -587,9 +623,108 @@ Mesh Mesh::jsonload(const nlohmann::json& data) {
     if (data.contains("max_face")) {
         mesh.max_face = data["max_face"];
     }
+
+    // Load optional triangle BVH caches
+    if (data.contains("triangle_boxes_cache")) {
+        mesh.triangle_boxes_cache.clear();
+        for (const auto& box_json : data["triangle_boxes_cache"]) {
+            mesh.triangle_boxes_cache.push_back(BoundingBox::jsonload(box_json));
+        }
+    }
+    if (data.contains("triangle_data_cache")) {
+        mesh.triangle_data_cache.clear();
+        for (const auto& tri_json : data["triangle_data_cache"]) {
+            size_t face_idx = tri_json["face_idx"];
+            size_t sub_idx = tri_json["sub_idx"];
+            Point v0 = Point::jsonload(tri_json["v0"]);
+            Point v1 = Point::jsonload(tri_json["v1"]);
+            Point v2 = Point::jsonload(tri_json["v2"]);
+            mesh.triangle_data_cache.emplace_back(face_idx, sub_idx, v0, v1, v2);
+        }
+    }
+    bool bvh_built = false;
+    if (data.contains("triangle_bvh_built")) {
+        bvh_built = data["triangle_bvh_built"];
+    }
+    if (!mesh.triangle_boxes_cache.empty()) {
+        mesh.triangle_bvh = std::make_shared<BVH>();
+        mesh.triangle_bvh->build(mesh.triangle_boxes_cache);
+        mesh.triangle_bvh_built = true;
+    } else {
+        mesh.triangle_bvh_built = false;
+    }
     return mesh;
 }
 
+void Mesh::build_triangle_bvh(bool force) const {
+    if (triangle_bvh_built && !force) return;
 
+    triangle_boxes_cache.clear();
+    triangle_data_cache.clear();
+
+    // Build per-triangle AABBs from faces
+    // std::map iteration is key-sorted, which stabilizes tri_id order and matches to_vertices_and_faces()
+    size_t seq_face_index = 0;
+    for (const auto& [face_key, verts] : face) {
+        if (verts.size() < 3) continue;
+
+        auto get_pt = [&](size_t vk) -> std::optional<Point> {
+            auto it = vertex.find(vk);
+            if (it == vertex.end()) return std::nullopt;
+            return it->second.position();
+        };
+
+        auto p0_opt = get_pt(verts[0]);
+        if (!p0_opt) continue;
+        Point p0 = *p0_opt;
+
+        for (size_t j = 1; j + 1 < verts.size(); ++j) {
+            auto p1_opt = get_pt(verts[j]);
+            auto p2_opt = get_pt(verts[j + 1]);
+            if (!p1_opt || !p2_opt) continue;
+            Point p1 = *p1_opt;
+            Point p2 = *p2_opt;
+
+            // Store triangle data with sequential face index matching to_vertices_and_faces()
+            triangle_data_cache.emplace_back(seq_face_index, j, p0, p1, p2);
+
+            // Build AABB for triangle
+            std::vector<Point> tri_points = {p0, p1, p2};
+            BoundingBox tri_bbox = BoundingBox::from_points(tri_points, 0.001f);
+            triangle_boxes_cache.push_back(tri_bbox);
+        }
+        seq_face_index++;
+    }
+
+    triangle_bvh = std::make_shared<BVH>();
+    triangle_bvh->build(triangle_boxes_cache);
+    triangle_bvh_built = true;
+}
+
+bool Mesh::triangle_bvh_ray_cast(const Point& origin, const Vector& direction, std::vector<int>& candidate_ids, bool find_all) const {
+    build_triangle_bvh(false);
+    if (!triangle_bvh) return false;
+    return triangle_bvh->ray_cast(origin, direction, candidate_ids, find_all);
+}
+
+bool Mesh::get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const {
+    if (tri_id < 0) return false;
+    size_t id = static_cast<size_t>(tri_id);
+    if (id >= triangle_data_cache.size()) return false;
+    const auto& tup = triangle_data_cache[id];
+    face_idx = std::get<0>(tup);
+    sub_idx = std::get<1>(tup);
+    v0 = std::get<2>(tup);
+    v1 = std::get<3>(tup);
+    v2 = std::get<4>(tup);
+    return true;
+}
+
+void Mesh::clear_triangle_bvh() const {
+    triangle_bvh_built = false;
+    triangle_bvh.reset();
+    triangle_boxes_cache.clear();
+    triangle_data_cache.clear();
+}
 
 } // namespace session_cpp

@@ -248,7 +248,7 @@ int Vector::is_parallel_to(const Vector &other) {
   return result;
 }
 
-float Vector::dot(const Vector &other) {
+float Vector::dot(const Vector &other) const {
   float result = 0.0f;
   for (int i = 0; i < 3; ++i) {
     result += (*this)[i] * other[i];
@@ -256,7 +256,7 @@ float Vector::dot(const Vector &other) {
   return result;
 }
 
-Vector Vector::cross(const Vector &other) {
+Vector Vector::cross(const Vector &other) const {
   float cx = (*this)[1] * other[2] - (*this)[2] * other[1];
   float cy = (*this)[2] * other[0] - (*this)[0] * other[2];
   float cz = (*this)[0] * other[1] - (*this)[1] * other[0];
