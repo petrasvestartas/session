@@ -80,6 +80,16 @@ pub fn line_line_parameters(
     Some((t0, t1))
 }
 
+/// Find intersection point between two 3D lines.
+///
+/// # Arguments
+/// * `line0` - First line
+/// * `line1` - Second line
+/// * `tolerance` - Maximum distance between lines to consider them intersecting
+///
+/// # Returns
+/// * `Some(Point)` - Intersection point (midpoint of closest approach for skew lines)
+/// * `None` - If lines don't intersect within tolerance
 pub fn line_line(line0: &Line, line1: &Line, tolerance: f32) -> Option<Point> {
     let result = line_line_parameters(line0, line1, tolerance, true, false)?;
 
@@ -94,6 +104,15 @@ pub fn line_line(line0: &Line, line1: &Line, tolerance: f32) -> Option<Point> {
     ))
 }
 
+/// Find intersection line between two planes.
+///
+/// # Arguments
+/// * `plane0` - First plane
+/// * `plane1` - Second plane
+///
+/// # Returns
+/// * `Some(Line)` - Intersection line (infinite) if planes intersect
+/// * `None` - If planes are parallel
 pub fn plane_plane(plane0: &crate::Plane, plane1: &crate::Plane) -> Option<Line> {
     let d = plane1.z_axis().cross(&plane0.z_axis());
 
@@ -117,6 +136,78 @@ pub fn plane_plane(plane0: &crate::Plane, plane1: &crate::Plane) -> Option<Line>
         output_p.y() + d.y(),
         output_p.z() + d.z(),
     ))
+}
+
+fn plane_value_at(plane: &crate::Plane, point: &Point) -> f32 {
+    plane.a() * point.x() + plane.b() * point.y() + plane.c() * point.z() + plane.d()
+}
+
+/// Find intersection point between a line and a plane.
+///
+/// # Arguments
+/// * `line` - Line to intersect
+/// * `plane` - Plane to intersect
+/// * `is_finite` - If true, treat line as finite segment; if false, treat as infinite
+///
+/// # Returns
+/// * `Some(Point)` - Intersection point if exists
+/// * `None` - If line is parallel to plane or intersection is outside segment bounds
+pub fn line_plane(line: &Line, plane: &crate::Plane, is_finite: bool) -> Option<Point> {
+    let pt0 = line.start();
+    let pt1 = line.end();
+
+    let a = plane_value_at(plane, &pt0);
+    let b = plane_value_at(plane, &pt1);
+    let d = a - b;
+
+    let (t, rc) = if d == 0.0 {
+        let t = if a.abs() < b.abs() {
+            0.0
+        } else if b.abs() < a.abs() {
+            1.0
+        } else {
+            0.5
+        };
+        (t, false)
+    } else {
+        let d_inv = 1.0 / d;
+        let fd = d_inv.abs();
+        if fd > 1.0 && (a.abs() >= f32::MAX / fd || b.abs() >= f32::MAX / fd) {
+            (0.5, false)
+        } else {
+            (a / (a - b), true)
+        }
+    };
+
+    let s = 1.0 - t;
+
+    let output = Point::new(
+        if line.x0() == line.x1() {
+            line.x0()
+        } else {
+            s * line.x0() + t * line.x1()
+        },
+        if line.y0() == line.y1() {
+            line.y0()
+        } else {
+            s * line.y0() + t * line.y1()
+        },
+        if line.z0() == line.z1() {
+            line.z0()
+        } else {
+            s * line.z0() + t * line.z1()
+        },
+    );
+
+    if is_finite && !(0.0..=1.0).contains(&t) {
+        return None;
+    }
+
+    if rc {
+        Some(output)
+    } else {
+        None
+    }
 }
 
 pub fn plane_plane_plane(
@@ -144,89 +235,242 @@ pub fn plane_plane_plane(
     Some(Point::new(p.x(), p.y(), p.z()))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Tolerance;
+/// Find intersection points between a line and an axis-aligned bounding box.
+///
+/// # Arguments
+/// * `line` - Line to intersect
+/// * `box_` - Axis-aligned bounding box
+/// * `t0` - Minimum parameter value to consider (e.g., 0.0 for ray origin)
+/// * `t1` - Maximum parameter value to consider (e.g., 1000.0 for max distance)
+///
+/// # Returns
+/// * `Some(Vec<Point>)` - Vector of 2 points [entry, exit] if intersection exists
+/// * `None` - If no intersection within [t0, t1] range
+///
+/// # Note
+/// Points are sorted from line start (entry first, exit second)
+pub fn ray_box(line: &Line, box_: &crate::BoundingBox, t0: f32, t1: f32) -> Option<Vec<Point>> {
+    let origin = line.start();
+    let direction = line.to_vector();
 
-    #[test]
-    fn test_line_line_intersection() {
-        let l0 = Line::new(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
-        let l1 = Line::new(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
+    let box_min = box_.min_point();
+    let box_max = box_.max_point();
 
-        let p = line_line(&l0, &l1, Tolerance::APPROXIMATION).expect("Should find intersection");
+    // Calculate inverse direction (avoid division by zero)
+    let inv_dir_x = if direction.x() != 0.0 {
+        1.0 / direction.x()
+    } else {
+        f32::INFINITY
+    };
+    let inv_dir_y = if direction.y() != 0.0 {
+        1.0 / direction.y()
+    } else {
+        f32::INFINITY
+    };
+    let inv_dir_z = if direction.z() != 0.0 {
+        1.0 / direction.z()
+    } else {
+        f32::INFINITY
+    };
 
-        assert!((p.x() - 500.0).abs() < 0.1);
-        assert!((p.y() - 328.303).abs() < 0.1);
-        assert!((p.z() - 468.866).abs() < 0.1);
+    // Calculate intersections with X slabs
+    let tx1 = (box_min.x() - origin.x()) * inv_dir_x;
+    let tx2 = (box_max.x() - origin.x()) * inv_dir_x;
+
+    let mut tmin = tx1.min(tx2);
+    let mut tmax = tx1.max(tx2);
+
+    // Calculate intersections with Y slabs
+    let ty1 = (box_min.y() - origin.y()) * inv_dir_y;
+    let ty2 = (box_max.y() - origin.y()) * inv_dir_y;
+
+    tmin = tmin.max(ty1.min(ty2));
+    tmax = tmax.min(ty1.max(ty2));
+
+    // Calculate intersections with Z slabs
+    let tz1 = (box_min.z() - origin.z()) * inv_dir_z;
+    let tz2 = (box_max.z() - origin.z()) * inv_dir_z;
+
+    tmin = tmin.max(tz1.min(tz2));
+    tmax = tmax.min(tz1.max(tz2));
+
+    // Clip to valid range
+    tmin = tmin.max(t0);
+    tmax = tmax.min(t1);
+
+    // Check if intersection exists
+    if tmax < tmin {
+        return None;
     }
 
-    #[test]
-    fn test_line_line_parameters_with_tolerance() {
-        let l0 = Line::new(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
-        let l1 = Line::new(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
+    // Calculate actual intersection points
+    let entry = Point::new(
+        origin.x() + direction.x() * tmin,
+        origin.y() + direction.y() * tmin,
+        origin.z() + direction.z() * tmin,
+    );
 
-        let result = line_line_parameters(&l0, &l1, Tolerance::APPROXIMATION, true, false)
-            .expect("Should find parameters");
+    let exit = Point::new(
+        origin.x() + direction.x() * tmax,
+        origin.y() + direction.y() * tmax,
+        origin.z() + direction.z() * tmax,
+    );
 
-        let (t0, t1) = result;
-        assert!((0.0..=1.0).contains(&t0));
-        assert!((0.0..=1.0).contains(&t1));
+    Some(vec![entry, exit])
+}
+
+/// Find intersection points between a line and a sphere.
+///
+/// # Arguments
+/// * `line` - Line to intersect
+/// * `center` - Sphere center point
+/// * `radius` - Sphere radius
+///
+/// # Returns
+/// * `Some(Vec<Point>)` - Vector of 1 point (tangent) or 2 points (entry/exit)
+/// * `None` - If no intersection
+///
+/// # Note
+/// Points are sorted from line start
+pub fn ray_sphere(line: &Line, center: &Point, radius: f32) -> Option<Vec<Point>> {
+    let origin = line.start();
+    let direction = line.to_vector();
+
+    // Vector from origin to center
+    let o_x = origin.x() - center.x();
+    let o_y = origin.y() - center.y();
+    let o_z = origin.z() - center.z();
+
+    // Quadratic equation coefficients
+    let a = direction.x() * direction.x()
+        + direction.y() * direction.y()
+        + direction.z() * direction.z();
+    let b = 2.0 * (direction.x() * o_x + direction.y() * o_y + direction.z() * o_z);
+    let c = o_x * o_x + o_y * o_y + o_z * o_z - radius * radius;
+
+    // Discriminant
+    let disc = b * b - 4.0 * a * c;
+
+    if disc < 0.0 {
+        return None;
     }
 
-    #[test]
-    #[allow(clippy::excessive_precision)]
-    fn test_plane_plane_intersection() {
-        use crate::{Plane, Point, Vector};
+    // Calculate intersection parameters
+    let dist_sqrt = disc.sqrt();
+    let q = if b < 0.0 {
+        (-b - dist_sqrt) / 2.0
+    } else {
+        (-b + dist_sqrt) / 2.0
+    };
 
-        let plane_origin_0 = Point::new(213.787107, 513.797811, -24.743845);
-        let plane_xaxis_0 = Vector::new(0.907673, -0.258819, 0.330366);
-        let plane_yaxis_0 = Vector::new(0.272094, 0.96225, 0.006285);
-        let pl0 = Plane::new(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+    let mut t0 = q / a;
+    let mut t1 = c / q;
 
-        let plane_origin_1 = Point::new(247.17924, 499.115486, 59.619568);
-        let plane_xaxis_1 = Vector::new(0.552465, 0.816035, 0.16991);
-        let plane_yaxis_1 = Vector::new(0.172987, 0.087156, -0.98106);
-        let pl1 = Plane::new(plane_origin_1, plane_xaxis_1, plane_yaxis_1);
-
-        let intersection_line = plane_plane(&pl0, &pl1).expect("Should find intersection");
-
-        let start = intersection_line.start();
-        let end = intersection_line.end();
-
-        assert!((start.x() - 252.4632).abs() < 0.01);
-        assert!((start.y() - 495.32248).abs() < 0.01);
-        assert!((start.z() - (-10.002656)).abs() < 0.01);
-
-        assert!((end.x() - 253.01033).abs() < 0.01);
-        assert!((end.y() - 496.1218).abs() < 0.01);
-        assert!((end.z() - (-9.888727)).abs() < 0.01);
+    // Sort parameters
+    if t0 > t1 {
+        std::mem::swap(&mut t0, &mut t1);
     }
 
-    #[test]
-    #[allow(clippy::excessive_precision)]
-    fn test_plane_plane_plane_intersection() {
-        use crate::{Plane, Point, Vector};
+    // Calculate intersection points
+    let mut points = Vec::new();
 
-        let plane_origin_0 = Point::new(213.787107, 513.797811, -24.743845);
-        let plane_xaxis_0 = Vector::new(0.907673, -0.258819, 0.330366);
-        let plane_yaxis_0 = Vector::new(0.272094, 0.96225, 0.006285);
-        let pl0 = Plane::new(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+    // First intersection
+    let p0 = Point::new(
+        origin.x() + direction.x() * t0,
+        origin.y() + direction.y() * t0,
+        origin.z() + direction.z() * t0,
+    );
+    points.push(p0);
 
-        let plane_origin_1 = Point::new(247.17924, 499.115486, 59.619568);
-        let plane_xaxis_1 = Vector::new(0.552465, 0.816035, 0.16991);
-        let plane_yaxis_1 = Vector::new(0.172987, 0.087156, -0.98106);
-        let pl1 = Plane::new(plane_origin_1, plane_xaxis_1, plane_yaxis_1);
-
-        let plane_origin_2 = Point::new(221.399816, 605.893667, -54.000116);
-        let plane_xaxis_2 = Vector::new(0.903451, -0.360516, -0.231957);
-        let plane_yaxis_2 = Vector::new(0.172742, -0.189057, 0.966653);
-        let pl2 = Plane::new(plane_origin_2, plane_xaxis_2, plane_yaxis_2);
-
-        let ppp = plane_plane_plane(&pl0, &pl1, &pl2).expect("Should find intersection");
-
-        assert!((ppp.x() - 300.5).abs() < 0.1);
-        assert!((ppp.y() - 565.5).abs() < 0.1);
-        assert!((ppp.z() - 0.0).abs() < 0.1);
+    // Second intersection (if different from first)
+    if (t1 - t0).abs() > 1e-10 {
+        let p1 = Point::new(
+            origin.x() + direction.x() * t1,
+            origin.y() + direction.y() * t1,
+            origin.z() + direction.z() * t1,
+        );
+        points.push(p1);
     }
+
+    Some(points)
+}
+
+/// Find intersection point between a line and a triangle.
+///
+/// # Arguments
+/// * `line` - Line to intersect (start point used as origin, direction computed internally)
+/// * `v0` - First vertex of triangle
+/// * `v1` - Second vertex of triangle
+/// * `v2` - Third vertex of triangle
+/// * `epsilon` - Tolerance for parallel detection
+///
+/// # Returns
+/// * `Some(Point)` - Intersection point if exists
+/// * `None` - If no intersection (parallel or outside triangle)
+pub fn ray_triangle(
+    line: &Line,
+    v0: &Point,
+    v1: &Point,
+    v2: &Point,
+    epsilon: f32,
+) -> Option<Point> {
+    let origin = line.start();
+    let direction = line.to_vector();
+
+    // Möller-Trumbore algorithm
+    let edge1_x = v1.x() - v0.x();
+    let edge1_y = v1.y() - v0.y();
+    let edge1_z = v1.z() - v0.z();
+
+    let edge2_x = v2.x() - v0.x();
+    let edge2_y = v2.y() - v0.y();
+    let edge2_z = v2.z() - v0.z();
+
+    // pvec = direction.cross(edge2)
+    let pvec_x = direction.y() * edge2_z - direction.z() * edge2_y;
+    let pvec_y = direction.z() * edge2_x - direction.x() * edge2_z;
+    let pvec_z = direction.x() * edge2_y - direction.y() * edge2_x;
+
+    // det = edge1.dot(pvec)
+    let det = edge1_x * pvec_x + edge1_y * pvec_y + edge1_z * pvec_z;
+
+    if det > -epsilon && det < epsilon {
+        return None; // Parallel
+    }
+
+    let inv_det = 1.0 / det;
+
+    // tvec = origin - v0
+    let tvec_x = origin.x() - v0.x();
+    let tvec_y = origin.y() - v0.y();
+    let tvec_z = origin.z() - v0.z();
+
+    // u = tvec.dot(pvec) * inv_det
+    let u = (tvec_x * pvec_x + tvec_y * pvec_y + tvec_z * pvec_z) * inv_det;
+
+    if u < -epsilon || u > 1.0 + epsilon {
+        return None;
+    }
+
+    // qvec = tvec.cross(edge1)
+    let qvec_x = tvec_y * edge1_z - tvec_z * edge1_y;
+    let qvec_y = tvec_z * edge1_x - tvec_x * edge1_z;
+    let qvec_z = tvec_x * edge1_y - tvec_y * edge1_x;
+
+    // v = direction.dot(qvec) * inv_det
+    let v = (direction.x() * qvec_x + direction.y() * qvec_y + direction.z() * qvec_z) * inv_det;
+
+    if v < -epsilon || u + v > 1.0 + epsilon {
+        return None;
+    }
+
+    // t = edge2.dot(qvec) * inv_det
+    let t = (edge2_x * qvec_x + edge2_y * qvec_y + edge2_z * qvec_z) * inv_det;
+
+    // Calculate intersection point: origin + t * direction
+    Some(Point::new(
+        origin.x() + t * direction.x(),
+        origin.y() + t * direction.y(),
+        origin.z() + t * direction.z(),
+    ))
 }

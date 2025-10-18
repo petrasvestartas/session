@@ -1,11 +1,11 @@
 {
   "type": "Arrow",
-  "guid": "f68342d3-cb15-45ed-985c-99e41ea36226",
+  "guid": "13158460-8094-47d3-abab-86b8d534b74d",
   "name": "test_arrow",
   "radius": 1.0,
   "line": {
     "type": "Line",
-    "guid": "f8f5b683-95e2-4c9a-ad56-dce7f5f0e54e",
+    "guid": "cd057c93-4868-4dd9-a2e0-0dd1d3f091cf",
     "name": "my_line",
     "x0": 0.0,
     "y0": 0.0,
@@ -16,7 +16,7 @@
     "width": 1.0,
     "linecolor": {
       "type": "Color",
-      "guid": "461924a3-9a91-43a7-928f-6e3899e04888",
+      "guid": "9f16608f-c16f-4717-9b50-a5af4ec44c91",
       "name": "white",
       "r": 255,
       "g": 255,
@@ -26,7 +26,7 @@
   },
   "mesh": {
     "type": "Mesh",
-    "guid": "24fe2653-3510-47c7-987a-89d4acb06755",
+    "guid": "433aef6c-f001-42b8-aa6c-3910084a6db3",
     "name": "my_mesh",
     "halfedge": {
       "1": {
@@ -528,11 +528,14 @@
     "default_face_attributes": {},
     "default_edge_attributes": {},
     "max_vertex": 58,
-    "max_face": 56
+    "max_face": 56,
+    "triangle_bvh_built": false,
+    "triangle_boxes_cache": [],
+    "triangle_data_cache": []
   },
   "xform": {
     "type": "Xform",
-    "guid": "0fe9cc45-8dc0-4c57-91fb-7a2ccf5cb50f",
+    "guid": "e1777ebd-9e83-41c8-842d-2defaa7aa905",
     "name": "my_xform",
     "m": [
       1.0,

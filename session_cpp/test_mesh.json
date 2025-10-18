@@ -1,6 +1,6 @@
 {
   "type": "Mesh",
-  "guid": "e8bb2639-c2fa-402c-a5de-d7fe59001ea1",
+  "guid": "92698c33-5b2f-406a-bbd1-d91633307974",
   "name": "my_mesh",
   "halfedge": {
     "1": {
@@ -53,5 +53,8 @@
   "default_face_attributes": {},
   "default_edge_attributes": {},
   "max_vertex": 6,
-  "max_face": 2
+  "max_face": 2,
+  "triangle_bvh_built": false,
+  "triangle_boxes_cache": [],
+  "triangle_data_cache": []
 }

@@ -105,3 +105,143 @@ def test_plane_plane_plane_intersection():
     assert abs(ppp.z - 0.0) < 0.1
     
     print(f"✓ Python plane_plane_plane: {ppp.x}, {ppp.y}, {ppp.z}")
+
+
+def test_line_plane_intersection():
+    """Test line-plane intersection with real-world values"""
+    from . import Line
+    from . import Plane
+    from . import Point
+    from . import Vector
+    from . import intersection
+    
+    l0 = Line(500.000, -573.576, -819.152, 500.000, 573.576, 819.152)
+    
+    plane_origin_0 = Point(213.787107, 513.797811, -24.743845)
+    plane_xaxis_0 = Vector(0.907673, -0.258819, 0.330366)
+    plane_yaxis_0 = Vector(0.272094, 0.96225, 0.006285)
+    pl0 = Plane(plane_origin_0, plane_xaxis_0, plane_yaxis_0)
+    
+    lp = intersection.line_plane(l0, pl0, True)
+    
+    assert lp is not None
+    assert abs(lp.x - 500.0) < 0.1
+    assert abs(lp.y - 77.7531) < 0.01
+    assert abs(lp.z - 111.043) < 0.01
+
+
+def test_ray_box_intersection():
+    from . import Line
+    from . import BoundingBox
+    from . import Point
+    from . import intersection
+    
+    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)
+    min_p = Point(214.0, 192.0, 484.0)
+    max_p = Point(694.0, 567.0, 796.0)
+    box = BoundingBox.from_points([min_p, max_p])
+    
+    points = intersection.ray_box(l0, box, 0.0, 1000.0)
+    
+    assert points is not None
+    assert len(points) == 2
+    
+    # Entry point
+    assert abs(points[0].x - 500.0) < 0.1
+    assert abs(points[0].y - 338.9) < 0.1
+    assert abs(points[0].z - 484.0) < 0.1
+    
+    # Exit point
+    assert abs(points[1].x - 500.0) < 0.1
+    assert abs(points[1].y - 557.365) < 0.1
+    assert abs(points[1].z - 796.0) < 0.1
+
+
+def test_ray_box_no_intersection():
+    from . import Line
+    from . import BoundingBox
+    from . import Point
+    from . import intersection
+    
+    l0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    min_p = Point(10.0, 10.0, 10.0)
+    max_p = Point(20.0, 20.0, 20.0)
+    box = BoundingBox.from_points([min_p, max_p])
+    
+    points = intersection.ray_box(l0, box, 0.0, 1000.0)
+    
+    assert points is None
+
+
+def test_ray_sphere_intersection():
+    from . import Line
+    from . import Point
+    from . import intersection
+    
+    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)
+    sphere_center = Point(457.0, 192.0, 207.0)
+    radius = 265.0
+    
+    points = intersection.ray_sphere(l0, sphere_center, radius)
+    
+    assert points is not None
+    assert len(points) == 2
+    
+    # First intersection point
+    assert abs(points[0].x - 500.0) < 0.1
+    assert abs(points[0].y - 12.08) < 0.1
+    assert abs(points[0].z - 17.25) < 0.1
+    
+    # Second intersection point
+    assert abs(points[1].x - 500.0) < 0.1
+    assert abs(points[1].y - 308.77) < 0.1
+    assert abs(points[1].z - 440.97) < 0.1
+
+
+def test_ray_sphere_no_intersection():
+    from . import Line
+    from . import Point
+    from . import intersection
+    
+    l0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    sphere_center = Point(0.0, 10.0, 0.0)
+    radius = 5.0
+    
+    points = intersection.ray_sphere(l0, sphere_center, radius)
+    
+    assert points is None
+
+
+def test_ray_triangle_intersection():
+    from . import Line
+    from . import Point
+    from . import intersection
+    from . import Tolerance
+    
+    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)
+    p1 = Point(214.0, 567.0, 484.0)
+    p2 = Point(214.0, 192.0, 796.0)
+    p3 = Point(694.0, 192.0, 484.0)
+    
+    triangle_hit = intersection.ray_triangle(l0, p1, p2, p3, Tolerance.APPROXIMATION)
+    
+    assert triangle_hit is not None
+    assert abs(triangle_hit.x - 500.0) < 0.1
+    assert abs(triangle_hit.y - 340.616) < 0.01
+    assert abs(triangle_hit.z - 486.451) < 0.01
+
+
+def test_ray_triangle_no_intersection():
+    from . import Line
+    from . import Point
+    from . import intersection
+    from . import Tolerance
+    
+    l0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    p1 = Point(10.0, 10.0, 10.0)
+    p2 = Point(10.0, 20.0, 10.0)
+    p3 = Point(10.0, 15.0, 20.0)
+    
+    triangle_hit = intersection.ray_triangle(l0, p1, p2, p3, Tolerance.APPROXIMATION)
+    
+    assert triangle_hit is None

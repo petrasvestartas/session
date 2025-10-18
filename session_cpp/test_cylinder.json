@@ -1,11 +1,11 @@
 {
   "type": "Cylinder",
-  "guid": "5febefc9-3515-4128-9327-8edf5c4d03d2",
+  "guid": "336783b1-9ee6-4cc1-b110-f471f0f8c621",
   "name": "test_cylinder",
   "radius": 1.0,
   "line": {
     "type": "Line",
-    "guid": "ddd12793-a0df-446c-9b3f-f60e922a9c02",
+    "guid": "f878d922-753e-4376-89cd-8b0225157f29",
     "name": "my_line",
     "x0": 0.0,
     "y0": 0.0,
@@ -16,7 +16,7 @@
     "width": 1.0,
     "linecolor": {
       "type": "Color",
-      "guid": "5306de90-ff93-443e-8e8b-230aa88ce66b",
+      "guid": "c2f4e083-8685-43f6-995f-1e6c683a74d1",
       "name": "white",
       "r": 255,
       "g": 255,
@@ -26,7 +26,7 @@
   },
   "mesh": {
     "type": "Mesh",
-    "guid": "d04ee41d-70b7-45a6-a677-4a03a52831c6",
+    "guid": "75fd3c95-67ff-4dfd-ab1c-41cd9680ff23",
     "name": "my_mesh",
     "halfedge": {
       "1": {
@@ -384,6 +384,9 @@
     "default_face_attributes": {},
     "default_edge_attributes": {},
     "max_vertex": 40,
-    "max_face": 40
+    "max_face": 40,
+    "triangle_bvh_built": false,
+    "triangle_boxes_cache": [],
+    "triangle_data_cache": []
   }
 }

@@ -65,10 +65,8 @@ int main() {
     }
 
     // 4. line_plane
-    Line l2(0, 0, -1000, 0, 0, 1000);
-    Plane pl2 = Plane::from_point_normal(origin, vz);
     Point lp;
-    if (Intersection::line_plane(l2, pl2, lp)) {
+    if (Intersection::line_plane(l0, pl0, lp)) {
         std::cout << "4. line_plane: " << lp.x() << ", " << lp.y() << ", " << lp.z() << "\n";
     }
 
@@ -79,23 +77,42 @@ int main() {
     }
 
     // 6. ray_box
-    BoundingBox box(Point(1000, 1000, 1000), vx, vy, vz, Vector(500, 500, 500));
-    float tmin, tmax;
-    if (Intersection::ray_box(origin, dir, box, 0.0f, 1000.0f, tmin, tmax)) {
-        std::cout << "6. ray_box: tmin=" << tmin << ", tmax=" << tmax << "\n";
+    Point min(214, 192, 484);
+    Point max(694, 567, 796);
+    std::vector<Point> points {min, max};
+    BoundingBox box = BoundingBox::from_points(points);
+    
+
+    std::vector<Point> intersection_points;
+    if (Intersection::ray_box(l0, box, 0.0f, 1000.0f, intersection_points)) {
+        std::cout << "6. ray_box: entry=" << intersection_points[0] 
+                  << ", exit=" << intersection_points[1] << "\n";
     }
 
     // 7. ray_sphere
-    float ts0, ts1;
-    int hits = Intersection::ray_sphere(origin, vx, sphere_center, 1000.0f, ts0, ts1);
-    std::cout << "7. ray_sphere: hits=" << hits << ", t0=" << ts0 << ", t1=" << ts1 << "\n";
+    Point sphere_center_test(457.0, 192.0, 207.0);
+    std::vector<Point> sphere_points;
+    if (Intersection::ray_sphere(l0, sphere_center_test, 265.0f, sphere_points)) {
+        std::cout << "7. ray_sphere: " << sphere_points.size() << " hits";
+        for (size_t i = 0; i < sphere_points.size(); i++) {
+            std::cout << ", p" << i << "=" << sphere_points[i];
+        }
+        std::cout << "\n";
+    } else {
+        std::cout << "7. ray_sphere: 0 hits\n";
+    }
 
     // 8. ray_triangle
-    float t, u, v;
-    bool parallel;
-    if (Intersection::ray_triangle(origin, dir, p1, p2, p3, 1e-6f, t, u, v, parallel)) {
-        std::cout << "8. ray_triangle: t=" << t << ", u=" << u << ", v=" << v << "\n";
+    Point p1(214, 567, 484);
+    Point p2(214, 192, 796);
+    Point p3(694, 192, 484);
+
+    Point triangle_hit;
+    if (Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit)) {
+        std::cout << "8. ray_triangle: " << triangle_hit << "\n";
     }
+
+
 
     // 9. ray_mesh
     Mesh mesh;

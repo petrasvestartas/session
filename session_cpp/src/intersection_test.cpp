@@ -139,6 +139,23 @@ TEST_CASE("Line-Plane Parallel", "[intersection]") {
     REQUIRE_FALSE(result);
 }
 
+TEST_CASE("Line-Plane Real-World Intersection", "[intersection]") {
+    Line l0(500.000f, -573.576f, -819.152f, 500.000f, 573.576f, 819.152f);
+    
+    Point plane_origin_0(213.787107f, 513.797811f, -24.743845f);
+    Vector plane_xaxis_0(0.907673f, -0.258819f, 0.330366f);
+    Vector plane_yaxis_0(0.272094f, 0.96225f, 0.006285f);
+    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+    
+    Point lp;
+    bool result = Intersection::line_plane(l0, pl0, lp);
+    
+    REQUIRE(result);
+    REQUIRE(std::fabs(lp.x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(lp.y() - 77.7531f) < 0.01f);
+    REQUIRE(std::fabs(lp.z() - 111.043f) < 0.01f);
+}
+
 TEST_CASE("Plane-Plane-Plane Intersection", "[intersection]") {
     Point plane_origin_0(213.787107f, 513.797811f, -24.743845f);
     Vector plane_xaxis_0(0.907673f, -0.258819f, 0.330366f);
@@ -451,5 +468,66 @@ TEST_CASE("Ray-Mesh BVH vs Naive Comparison", "[intersection][bvh]") {
         REQUIRE(std::fabs(hits_naive[0].t - hits_bvh[0].t) < 1e-4f);
         REQUIRE(hits_naive[0].face_index == hits_bvh[0].face_index);
     }
+}
+
+TEST_CASE("Ray-Box Real-World Intersection", "[intersection]") {
+    Line l0(500.0f, -573.576f, -819.152f, 500.0f, 573.576f, 819.152f);
+    Point min(214.0f, 192.0f, 484.0f);
+    Point max(694.0f, 567.0f, 796.0f);
+    std::vector<Point> points {min, max};
+    BoundingBox box = BoundingBox::from_points(points);
+    
+    std::vector<Point> intersection_points;
+    bool result = Intersection::ray_box(l0, box, 0.0f, 1000.0f, intersection_points);
+    
+    REQUIRE(result);
+    REQUIRE(intersection_points.size() == 2);
+    
+    // Entry point
+    REQUIRE(std::fabs(intersection_points[0].x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(intersection_points[0].y() - 338.9f) < 0.1f);
+    REQUIRE(std::fabs(intersection_points[0].z() - 484.0f) < 0.1f);
+    
+    // Exit point
+    REQUIRE(std::fabs(intersection_points[1].x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(intersection_points[1].y() - 557.365f) < 0.1f);
+    REQUIRE(std::fabs(intersection_points[1].z() - 796.0f) < 0.1f);
+}
+
+TEST_CASE("Ray-Sphere Real-World Intersection", "[intersection]") {
+    Line l0(500.0f, -573.576f, -819.152f, 500.0f, 573.576f, 819.152f);
+    Point sphere_center(457.0f, 192.0f, 207.0f);
+    float radius = 265.0f;
+    
+    std::vector<Point> sphere_points;
+    bool result = Intersection::ray_sphere(l0, sphere_center, radius, sphere_points);
+    
+    REQUIRE(result);
+    REQUIRE(sphere_points.size() == 2);
+    
+    // First intersection point
+    REQUIRE(std::fabs(sphere_points[0].x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(sphere_points[0].y() - 12.08f) < 0.1f);
+    REQUIRE(std::fabs(sphere_points[0].z() - 17.25f) < 0.1f);
+    
+    // Second intersection point
+    REQUIRE(std::fabs(sphere_points[1].x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(sphere_points[1].y() - 308.77f) < 0.1f);
+    REQUIRE(std::fabs(sphere_points[1].z() - 440.97f) < 0.1f);
+}
+
+TEST_CASE("Ray-Triangle Real-World Intersection", "[intersection]") {
+    Line l0(500.0f, -573.576f, -819.152f, 500.0f, 573.576f, 819.152f);
+    Point p1(214.0f, 567.0f, 484.0f);
+    Point p2(214.0f, 192.0f, 796.0f);
+    Point p3(694.0f, 192.0f, 484.0f);
+    
+    Point triangle_hit;
+    bool result = Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit);
+    
+    REQUIRE(result);
+    REQUIRE(std::fabs(triangle_hit.x() - 500.0f) < 0.1f);
+    REQUIRE(std::fabs(triangle_hit.y() - 340.616f) < 0.01f);
+    REQUIRE(std::fabs(triangle_hit.z() - 486.451f) < 0.01f);
 }
 

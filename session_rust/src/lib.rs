@@ -16,6 +16,8 @@ pub mod edge;
 pub mod encoders;
 pub mod graph;
 pub mod intersection;
+#[cfg(test)]
+mod intersection_test;
 pub mod line;
 pub mod mesh;
 pub mod obj;

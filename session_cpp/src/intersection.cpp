@@ -455,6 +455,56 @@ bool Intersection::ray_box(
     return tmax >= tmin;
 }
 
+bool Intersection::ray_box(
+    const Line& line,
+    const BoundingBox& box,
+    float t0,
+    float t1,
+    float& tmin,
+    float& tmax) {
+    
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    return ray_box(origin, direction, box, t0, t1, tmin, tmax);
+}
+
+bool Intersection::ray_box(
+    const Line& line,
+    const BoundingBox& box,
+    float t0,
+    float t1,
+    std::vector<Point>& intersection_points) {
+    
+    float tmin, tmax;
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    bool hit = ray_box(origin, direction, box, t0, t1, tmin, tmax);
+    
+    if (hit) {
+        intersection_points.clear();
+        
+        // Entry point
+        Point entry(
+            origin.x() + direction.x() * tmin,
+            origin.y() + direction.y() * tmin,
+            origin.z() + direction.z() * tmin
+        );
+        intersection_points.push_back(entry);
+        
+        // Exit point
+        Point exit(
+            origin.x() + direction.x() * tmax,
+            origin.y() + direction.y() * tmax,
+            origin.z() + direction.z() * tmax
+        );
+        intersection_points.push_back(exit);
+    }
+    
+    return hit;
+}
+
 int Intersection::ray_sphere(
     const Point& origin,
     const Vector& direction,
@@ -503,6 +553,45 @@ int Intersection::ray_sphere(
     return 2;
 }
 
+bool Intersection::ray_sphere(
+    const Line& line,
+    const Point& center,
+    float radius,
+    std::vector<Point>& intersection_points) {
+    
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    float t0, t1;
+    int hits = ray_sphere(origin, direction, center, radius, t0, t1);
+    
+    if (hits == 0) {
+        return false;
+    }
+    
+    intersection_points.clear();
+    
+    // First intersection point
+    Point p0(
+        origin.x() + direction.x() * t0,
+        origin.y() + direction.y() * t0,
+        origin.z() + direction.z() * t0
+    );
+    intersection_points.push_back(p0);
+    
+    // Second intersection point (if exists)
+    if (hits == 2) {
+        Point p1(
+            origin.x() + direction.x() * t1,
+            origin.y() + direction.y() * t1,
+            origin.z() + direction.z() * t1
+        );
+        intersection_points.push_back(p1);
+    }
+    
+    return true;
+}
+
 bool Intersection::ray_triangle(
     const Point& origin,
     const Vector& direction,
@@ -544,6 +633,34 @@ bool Intersection::ray_triangle(
     }
     
     t = edge2.dot(qvec) * inv_det;
+    return true;
+}
+
+bool Intersection::ray_triangle(
+    const Line& line,
+    const Point& v0,
+    const Point& v1,
+    const Point& v2,
+    float epsilon,
+    Point& output) {
+    
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    float t, u, v;
+    bool parallel;
+    
+    if (!ray_triangle(origin, direction, v0, v1, v2, epsilon, t, u, v, parallel)) {
+        return false;
+    }
+    
+    // Calculate intersection point: origin + t * direction
+    output = Point(
+        origin.x() + t * direction.x(),
+        origin.y() + t * direction.y(),
+        origin.z() + t * direction.z()
+    );
+    
     return true;
 }
 
