@@ -28,14 +28,16 @@ int main() {
     Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
     Line l1(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
     Point p;
-    if (Intersection::line_line(l0, l1, p, 1e-3f)) {
+    if (Intersection::line_line(l0, l1, p, static_cast<float>(Tolerance::APPROXIMATION))) {
         std::cout << "1. line_line: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
     }
 
     // 2. line_line_parameters
     float t0, t1;
-    if (Intersection::line_line_parameters(l0, l1, t0, t1)) {
+    if (Intersection::line_line_parameters(l0, l1, t0, t1, static_cast<float>(Tolerance::APPROXIMATION))) {
         std::cout << "2. line_line_parameters: t0=" << t0 << ", t1=" << t1 << "\n";
+    } else {
+        std::cout << "2. line_line_parameters: No intersection\n";
     }
 
     // 3. plane_plane

@@ -1,4 +1,4 @@
-use crate::{Line, Point};
+use crate::{Line, Point, Tolerance};
 
 pub fn line_line_parameters(
     line0: &Line,
@@ -103,10 +103,30 @@ mod tests {
         let l0 = Line::new(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
         let l1 = Line::new(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
 
-        let p = line_line(&l0, &l1, 1e-3).expect("Should find intersection");
+        let p = line_line(&l0, &l1, Tolerance::APPROXIMATION as f32)
+            .expect("Should find intersection");
 
         assert!((p.x() - 500.0).abs() < 0.1);
         assert!((p.y() - 328.303).abs() < 0.1);
         assert!((p.z() - 468.866).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_line_line_parameters_with_tolerance() {
+        let l0 = Line::new(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
+        let l1 = Line::new(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
+
+        let result = line_line_parameters(
+            &l0,
+            &l1,
+            Tolerance::APPROXIMATION as f32,
+            true,
+            false,
+        )
+        .expect("Should find parameters");
+
+        let (t0, t1) = result;
+        assert!(t0 >= 0.0 && t0 <= 1.0);
+        assert!(t1 >= 0.0 && t1 <= 1.0);
     }
 }

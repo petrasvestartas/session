@@ -10,8 +10,8 @@
       "3": null
     },
     "1": {
-      "5": null,
-      "3": 1
+      "3": 1,
+      "5": null
     }
   },
   "vertex": {
@@ -52,11 +52,11 @@
   "default_edge_attributes": {},
   "max_vertex": 6,
   "max_face": 2,
-  "guid": "f6b60f3b-4a86-4bf2-988c-3260e8f864fe",
+  "guid": "cc37d3ea-701b-4aad-b383-6ac201e6695b",
   "name": "my_mesh",
   "xform": {
     "type": "Xform",
-    "guid": "200ecb47-82aa-46b3-9772-823c193a06d0",
+    "guid": "6cb90b3a-6977-423a-848f-907fc6a009f1",
     "name": "my_xform",
     "m": [
       1.0,

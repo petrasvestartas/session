@@ -43,8 +43,14 @@ pub fn read_obj(filepath: &str) -> io::Result<Mesh> {
                     continue;
                 }
                 let idx: i64 = first.parse().unwrap_or(0);
-                if idx == 0 { continue; }
-                let vidx = if idx > 0 { (idx - 1) as usize } else { (verts.len() as i64 + idx) as usize };
+                if idx == 0 {
+                    continue;
+                }
+                let vidx = if idx > 0 {
+                    (idx - 1) as usize
+                } else {
+                    (verts.len() as i64 + idx) as usize
+                };
                 face.push(vidx);
             }
             if face.len() >= 3 {

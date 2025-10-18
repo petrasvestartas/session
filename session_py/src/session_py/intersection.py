@@ -1,12 +1,13 @@
 from typing import Optional, Tuple
 from .line import Line
 from .point import Point
+from .tolerance import Tolerance
 
 
 def line_line_parameters(
     line0: Line,
     line1: Line,
-    tolerance: float = 1e-12,
+    tolerance: float = Tolerance.APPROXIMATION,
     intersect_segments: bool = True,
     near_parallel_as_closest: bool = False
 ) -> Optional[Tuple[float, float]]:
@@ -74,7 +75,7 @@ def line_line_parameters(
 def line_line(
     line0: Line,
     line1: Line,
-    tolerance: float = 1e-12
+    tolerance: float = Tolerance.APPROXIMATION
 ) -> Optional[Point]:
     result = line_line_parameters(line0, line1, tolerance, True, False)
     
