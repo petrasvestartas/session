@@ -202,4 +202,31 @@ mod tests {
         assert!((end.y() - 496.1218).abs() < 0.01);
         assert!((end.z() - (-9.888727)).abs() < 0.01);
     }
+
+    #[test]
+    #[allow(clippy::excessive_precision)]
+    fn test_plane_plane_plane_intersection() {
+        use crate::{Plane, Point, Vector};
+
+        let plane_origin_0 = Point::new(213.787107, 513.797811, -24.743845);
+        let plane_xaxis_0 = Vector::new(0.907673, -0.258819, 0.330366);
+        let plane_yaxis_0 = Vector::new(0.272094, 0.96225, 0.006285);
+        let pl0 = Plane::new(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+
+        let plane_origin_1 = Point::new(247.17924, 499.115486, 59.619568);
+        let plane_xaxis_1 = Vector::new(0.552465, 0.816035, 0.16991);
+        let plane_yaxis_1 = Vector::new(0.172987, 0.087156, -0.98106);
+        let pl1 = Plane::new(plane_origin_1, plane_xaxis_1, plane_yaxis_1);
+
+        let plane_origin_2 = Point::new(221.399816, 605.893667, -54.000116);
+        let plane_xaxis_2 = Vector::new(0.903451, -0.360516, -0.231957);
+        let plane_yaxis_2 = Vector::new(0.172742, -0.189057, 0.966653);
+        let pl2 = Plane::new(plane_origin_2, plane_xaxis_2, plane_yaxis_2);
+
+        let ppp = plane_plane_plane(&pl0, &pl1, &pl2).expect("Should find intersection");
+
+        assert!((ppp.x() - 300.5).abs() < 0.1);
+        assert!((ppp.y() - 565.5).abs() < 0.1);
+        assert!((ppp.z() - 0.0).abs() < 0.1);
+    }
 }

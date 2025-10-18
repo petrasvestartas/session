@@ -33,6 +33,12 @@ Vector plane_xaxis_1 (0.552465,0.816035,0.16991);
 Vector plane_yaxis_1 (0.172987,0.087156,-0.98106);
 Plane pl1 (plane_origin_1, plane_xaxis_1, plane_yaxis_1);
 
+Point plane_origin_2 (221.399816, 605.893667, -54.000116);
+Vector plane_xaxis_2 (0.903451,-0.360516,-0.231957);
+Vector plane_yaxis_2 (0.172742,-0.189057,0.966653);
+Plane pl2 (plane_origin_2, plane_xaxis_2, plane_yaxis_2);
+
+
 
 Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
 Line l1(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
@@ -66,12 +72,9 @@ int main() {
         std::cout << "4. line_plane: " << lp.x() << ", " << lp.y() << ", " << lp.z() << "\n";
     }
 
-    // 5. plane_plane_plane
-    Plane px = Plane::from_point_normal(origin, vx);
-    Plane py = Plane::from_point_normal(origin, vy);
-    Plane pz = Plane::from_point_normal(origin, vz);
+    // 5. plane_plane_plane {300.5, 565.5, -0}
     Point ppp;
-    if (Intersection::plane_plane_plane(px, py, pz, ppp)) {
+    if (Intersection::plane_plane_plane(pl0, pl1, pl2, ppp)) {
         std::cout << "5. plane_plane_plane: " << ppp.x() << ", " << ppp.y() << ", " << ppp.z() << "\n";
     }
 

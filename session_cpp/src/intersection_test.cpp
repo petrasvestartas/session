@@ -140,25 +140,28 @@ TEST_CASE("Line-Plane Parallel", "[intersection]") {
 }
 
 TEST_CASE("Plane-Plane-Plane Intersection", "[intersection]") {
-    Point p0(0.0f, 0.0f, 0.0f);
-    Vector n0(0.0f, 0.0f, 1.0f);
-    Plane plane0 = Plane::from_point_normal(p0, n0);
+    Point plane_origin_0(213.787107f, 513.797811f, -24.743845f);
+    Vector plane_xaxis_0(0.907673f, -0.258819f, 0.330366f);
+    Vector plane_yaxis_0(0.272094f, 0.96225f, 0.006285f);
+    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
     
-    Point p1(0.0f, 0.0f, 0.0f);
-    Vector n1(0.0f, 1.0f, 0.0f);
-    Plane plane1 = Plane::from_point_normal(p1, n1);
+    Point plane_origin_1(247.17924f, 499.115486f, 59.619568f);
+    Vector plane_xaxis_1(0.552465f, 0.816035f, 0.16991f);
+    Vector plane_yaxis_1(0.172987f, 0.087156f, -0.98106f);
+    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);
     
-    Point p2(0.0f, 0.0f, 0.0f);
-    Vector n2(1.0f, 0.0f, 0.0f);
-    Plane plane2 = Plane::from_point_normal(p2, n2);
+    Point plane_origin_2(221.399816f, 605.893667f, -54.000116f);
+    Vector plane_xaxis_2(0.903451f, -0.360516f, -0.231957f);
+    Vector plane_yaxis_2(0.172742f, -0.189057f, 0.966653f);
+    Plane pl2(plane_origin_2, plane_xaxis_2, plane_yaxis_2);
     
     Point output;
-    bool result = Intersection::plane_plane_plane(plane0, plane1, plane2, output);
+    bool result = Intersection::plane_plane_plane(pl0, pl1, pl2, output);
     
     REQUIRE(result);
-    REQUIRE(std::fabs(output.x() - 0.0f) < 1e-4f);
-    REQUIRE(std::fabs(output.y() - 0.0f) < 1e-4f);
-    REQUIRE(std::fabs(output.z() - 0.0f) < 1e-4f);
+    REQUIRE(std::fabs(output.x() - 300.5f) < 0.1f);
+    REQUIRE(std::fabs(output.y() - 565.5f) < 0.1f);
+    REQUIRE(std::fabs(output.z() - 0.0f) < 0.1f);
 }
 
 TEST_CASE("Plane-Plane-Plane Parallel", "[intersection]") {

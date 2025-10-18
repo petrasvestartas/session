@@ -74,3 +74,34 @@ def test_plane_plane_intersection():
     assert abs(end.z - (-9.888727)) < 0.01
     
     print(f"✓ Python plane_plane: {start.x}, {start.y}, {start.z} -> {end.x}, {end.y}, {end.z}")
+
+
+def test_plane_plane_plane_intersection():
+    """Test plane-plane-plane intersection with real-world values"""
+    from .plane import Plane
+    from .point import Point
+    from .vector import Vector
+    
+    plane_origin_0 = Point(213.787107, 513.797811, -24.743845)
+    plane_xaxis_0 = Vector(0.907673, -0.258819, 0.330366)
+    plane_yaxis_0 = Vector(0.272094, 0.96225, 0.006285)
+    pl0 = Plane(plane_origin_0, plane_xaxis_0, plane_yaxis_0)
+    
+    plane_origin_1 = Point(247.17924, 499.115486, 59.619568)
+    plane_xaxis_1 = Vector(0.552465, 0.816035, 0.16991)
+    plane_yaxis_1 = Vector(0.172987, 0.087156, -0.98106)
+    pl1 = Plane(plane_origin_1, plane_xaxis_1, plane_yaxis_1)
+    
+    plane_origin_2 = Point(221.399816, 605.893667, -54.000116)
+    plane_xaxis_2 = Vector(0.903451, -0.360516, -0.231957)
+    plane_yaxis_2 = Vector(0.172742, -0.189057, 0.966653)
+    pl2 = Plane(plane_origin_2, plane_xaxis_2, plane_yaxis_2)
+    
+    ppp = intersection.plane_plane_plane(pl0, pl1, pl2)
+    
+    assert ppp is not None
+    assert abs(ppp.x - 300.5) < 0.1
+    assert abs(ppp.y - 565.5) < 0.1
+    assert abs(ppp.z - 0.0) < 0.1
+    
+    print(f"✓ Python plane_plane_plane: {ppp.x}, {ppp.y}, {ppp.z}")
