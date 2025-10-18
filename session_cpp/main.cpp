@@ -5,8 +5,10 @@
 #include "src/plane.h"
 #include "src/mesh.h"
 #include "src/boundingbox.h"
+#include "src/obj.h"
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 using namespace session_cpp;
 
@@ -112,23 +114,38 @@ int main() {
         std::cout << "8. ray_triangle: " << triangle_hit << "\n";
     }
 
+    // 9. ray_mesh - Load bunny mesh
+    Mesh bunny = obj::read_obj("../../data/bunny.obj");
+    std::cout << "Loaded bunny mesh: " << bunny.number_of_vertices() << " vertices, " 
+              << bunny.number_of_faces() << " faces\n";
+    
+    Line zaxis(0.201, -0.212, 0.036, -0.326, 0.677, -0.060);
 
-
-    // 9. ray_mesh
-    Mesh mesh;
-    auto va = mesh.add_vertex(p1);
-    auto vb = mesh.add_vertex(p2);
-    auto vc = mesh.add_vertex(p3);
-    mesh.add_face({va, vb, vc});
-    std::vector<Intersection::RayHit> mesh_hits;
-    if (Intersection::ray_mesh(origin, dir, mesh, mesh_hits)) {
-        std::cout << "9. ray_mesh: " << mesh_hits.size() << " hits, t=" << mesh_hits[0].t << "\n";
+    // Test brute force (slower)
+    auto time2 = std::chrono::high_resolution_clock::now();
+    auto mesh_hits = Intersection::ray_mesh(zaxis, bunny, Tolerance::APPROXIMATION, true);
+    auto time3 = std::chrono::high_resolution_clock::now();
+    long long mesh_time = std::chrono::duration_cast<std::chrono::microseconds>(time3 - time2).count();
+    std::cout << "9. ray_mesh: " << mesh_hits.size() << " hits in " << mesh_time << " μs\n";
+    for (size_t i = 0; i < mesh_hits.size(); i++) {
+        std::cout << "    [" << i << "] " << mesh_hits[i] << "\n";
     }
+    
+    
+    // Test BVH (faster)
+    auto time0 = std::chrono::high_resolution_clock::now();
+    auto bvh_hits = Intersection::ray_mesh_bvh(zaxis, bunny, Tolerance::APPROXIMATION, true);
+    auto time1 = std::chrono::high_resolution_clock::now();
+    long long bvh_time = std::chrono::duration_cast<std::chrono::microseconds>(time1 - time0).count();
+    std::cout << "10. ray_mesh_bvh: " << bvh_hits.size() << " hits in " << bvh_time << " μs\n";
+    for (size_t i = 0; i < bvh_hits.size(); i++) {
+        std::cout << "    [" << i << "] " << bvh_hits[i] << "\n";
+    }
+    
 
-    // 10. ray_mesh_bvh
-    std::vector<Intersection::RayHit> bvh_hits;
-    if (Intersection::ray_mesh_bvh(origin, dir, mesh, bvh_hits)) {
-        std::cout << "10. ray_mesh_bvh: " << bvh_hits.size() << " hits, t=" << bvh_hits[0].t << "\n";
+    if (!bvh_hits.empty() && !mesh_hits.empty()) {
+        float speedup = (float)mesh_time / bvh_time;
+        std::cout << "Speedup: " << speedup << "x faster with BVH\n";
     }
 
     return 0;

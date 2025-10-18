@@ -798,4 +798,48 @@ bool Intersection::ray_mesh_bvh(
     return false;
 }
 
+std::vector<Point> Intersection::ray_mesh(
+    const Line& line,
+    const Mesh& mesh,
+    float epsilon,
+    bool find_all) {
+    
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    std::vector<RayHit> hits;
+    std::vector<Point> result;
+    
+    if (ray_mesh(origin, direction, mesh, hits, find_all)) {
+        result.reserve(hits.size());
+        for (const auto& hit : hits) {
+            result.push_back(hit.point);
+        }
+    }
+    
+    return result;
+}
+
+std::vector<Point> Intersection::ray_mesh_bvh(
+    const Line& line,
+    const Mesh& mesh,
+    float epsilon,
+    bool find_all) {
+    
+    Point origin = line.start();
+    Vector direction = line.to_vector();
+    
+    std::vector<RayHit> hits;
+    std::vector<Point> result;
+    
+    if (ray_mesh_bvh(origin, direction, mesh, hits, find_all)) {
+        result.reserve(hits.size());
+        for (const auto& hit : hits) {
+            result.push_back(hit.point);
+        }
+    }
+    
+    return result;
+}
+
 } // namespace session_cpp

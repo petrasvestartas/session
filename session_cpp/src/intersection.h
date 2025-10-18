@@ -284,6 +284,36 @@ public:
     bool find_all = false
   );
 
+  /**
+   * @brief Find intersection(s) of line with mesh (simplified API)
+   * @param line Line to intersect with mesh
+   * @param mesh Mesh to intersect
+   * @param epsilon Tolerance for intersection detection
+   * @param find_all If true, find all intersections; if false, return only closest
+   * @return Vector of intersection points sorted along the line (empty if no hits)
+   */
+  static std::vector<Point> ray_mesh(
+    const Line& line,
+    const Mesh& mesh,
+    float epsilon,
+    bool find_all = false
+  );
+
+  /**
+   * @brief Find intersection(s) of line with mesh using BVH (simplified API)
+   * @param line Line to intersect with mesh
+   * @param mesh Mesh to intersect
+   * @param epsilon Tolerance for intersection detection
+   * @param find_all If true, find all intersections; if false, return only closest
+   * @return Vector of intersection points sorted along the line (empty if no hits)
+   */
+  static std::vector<Point> ray_mesh_bvh(
+    const Line& line,
+    const Mesh& mesh,
+    float epsilon,
+    bool find_all = false
+  );
+
 private:
   static int solve_3x3(
     const float row0[3],

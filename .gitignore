@@ -16,7 +16,6 @@ session_cpp/build/Makefile
 
 # C++ build artifacts
 *.o
-*.obj
 *.exe
 *.dll
 *.so
