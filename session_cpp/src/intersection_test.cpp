@@ -9,7 +9,7 @@ TEST_CASE("Line-Line Intersection", "[intersection]") {
     Line line1(0.5f, -1.0f, 0.0f, 0.5f, 1.0f, 0.0f);
     
     Point output;
-    bool result = Intersection::line_line(line0, line1, output);
+    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);
     
     REQUIRE(result);
     REQUIRE(std::fabs(output.x() - 0.5f) < 1e-5f);
@@ -22,7 +22,7 @@ TEST_CASE("Line-Line Parallel", "[intersection]") {
     Line line1(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f);
     
     Point output;
-    bool result = Intersection::line_line(line0, line1, output);
+    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);
     
     REQUIRE_FALSE(result);
 }
@@ -32,7 +32,7 @@ TEST_CASE("Line-Line Parameters", "[intersection]") {
     Line line1(0.5f, -1.0f, 0.0f, 0.5f, 1.0f, 0.0f);
     
     float t0, t1;
-    bool result = Intersection::line_line_parameters(line0, line1, t0, t1);
+    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);
     
     REQUIRE(result);
     REQUIRE(std::fabs(t0 - 0.5f) < 1e-5f);
@@ -44,7 +44,7 @@ TEST_CASE("Line-Line Parameters Exact Endpoints", "[intersection]") {
     Line line1(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     
     float t0, t1;
-    bool result = Intersection::line_line_parameters(line0, line1, t0, t1);
+    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);
     
     REQUIRE(result);
     REQUIRE(t0 == 0.0f);
@@ -56,7 +56,7 @@ TEST_CASE("Line-Line Parameters Infinite Lines", "[intersection]") {
     Line line1(2.0f, -1.0f, 0.0f, 2.0f, 1.0f, 0.0f);
     
     float t0, t1;
-    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, 0.0f, false);
+    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, static_cast<float>(Tolerance::APPROXIMATION), false);
     
     REQUIRE(result);
     REQUIRE(std::fabs(t0 - 2.0f) < 1e-5f);
@@ -80,6 +80,34 @@ TEST_CASE("Plane-Plane Intersection", "[intersection]") {
     REQUIRE(std::fabs(std::fabs(line_dir.x()) - 1.0f) < 1e-4f);
     REQUIRE(std::fabs(line_dir.y()) < 1e-4f);
     REQUIRE(std::fabs(line_dir.z()) < 1e-4f);
+}
+
+TEST_CASE("Plane-Plane Intersection Complex", "[intersection]") {
+    Point plane_origin_0(213.787107f, 513.797811f, -24.743845f);
+    Vector plane_xaxis_0(0.907673f, -0.258819f, 0.330366f);
+    Vector plane_yaxis_0(0.272094f, 0.96225f, 0.006285f);
+    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+    
+    Point plane_origin_1(247.17924f, 499.115486f, 59.619568f);
+    Vector plane_xaxis_1(0.552465f, 0.816035f, 0.16991f);
+    Vector plane_yaxis_1(0.172987f, 0.087156f, -0.98106f);
+    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);
+    
+    Line intersection_line;
+    bool result = Intersection::plane_plane(pl0, pl1, intersection_line);
+    
+    REQUIRE(result);
+    
+    Point start = intersection_line.start();
+    Point end = intersection_line.end();
+    
+    REQUIRE(std::fabs(start.x() - 252.4632f) < 0.01f);
+    REQUIRE(std::fabs(start.y() - 495.32248f) < 0.01f);
+    REQUIRE(std::fabs(start.z() - (-10.002656f)) < 0.01f);
+    
+    REQUIRE(std::fabs(end.x() - 253.01033f) < 0.01f);
+    REQUIRE(std::fabs(end.y() - 496.1218f) < 0.01f);
+    REQUIRE(std::fabs(end.z() - (-9.888727f)) < 0.01f);
 }
 
 TEST_CASE("Line-Plane Intersection", "[intersection]") {

@@ -26,7 +26,7 @@ class Tolerance:
 
     SUPPORTED_UNITS = ["M", "MM"]
 
-    # Default tolerance values
+    # Default tolerance values (f32 only)
     ABSOLUTE = 1e-9
     RELATIVE = 1e-6
     ANGULAR = 1e-6
@@ -34,11 +34,7 @@ class Tolerance:
     PRECISION = 3
     LINEARDEFLECTION = 1e-3
     ANGULARDEFLECTION = 1e-1
-
-    # Angle tolerance in degrees
     ANGLE_TOLERANCE_DEGREES = 0.11
-
-    # Zero tolerance for comparisons
     ZERO_TOLERANCE = 1e-12
 
     def __new__(cls, *args, **kwargs):

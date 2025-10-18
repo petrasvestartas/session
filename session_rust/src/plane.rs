@@ -347,7 +347,7 @@ impl Plane {
             + plane1._d)
             .abs();
 
-        let tolerance = crate::tolerance::Tolerance::ZERO_TOLERANCE as f32;
+        let tolerance = crate::tolerance::Tolerance::ZERO_TOLERANCE;
         dist0 < tolerance && dist1 < tolerance
     }
 

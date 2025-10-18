@@ -312,7 +312,7 @@ impl Mesh {
 
         let mut normal = u.cross(&v);
         let len = normal.magnitude();
-        if len > Tolerance::ZERO_TOLERANCE as f32 {
+        if len > Tolerance::ZERO_TOLERANCE {
             Some(Vector::new(
                 normal.x() / len,
                 normal.y() / len,
@@ -356,7 +356,7 @@ impl Mesh {
         }
 
         let len = normal_acc.magnitude();
-        if len > Tolerance::ZERO_TOLERANCE as f32 {
+        if len > Tolerance::ZERO_TOLERANCE {
             Some(Vector::new(
                 normal_acc.x() / len,
                 normal_acc.y() / len,
@@ -415,7 +415,7 @@ impl Mesh {
         let u_len = u.magnitude();
         let v_len = v.magnitude();
 
-        if u_len < Tolerance::ZERO_TOLERANCE as f32 || v_len < Tolerance::ZERO_TOLERANCE as f32 {
+        if u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE {
             return Some(0.0);
         }
 

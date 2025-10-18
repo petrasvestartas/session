@@ -213,9 +213,9 @@ impl fmt::Display for Point {
         write!(
             f,
             "Point(x={}, y={}, z={})",
-            TOL.format_number(self._x as f64, None),
-            TOL.format_number(self._y as f64, None),
-            TOL.format_number(self._z as f64, None)
+            TOL.format_number(self._x, None),
+            TOL.format_number(self._y, None),
+            TOL.format_number(self._z, None)
         )
     }
 }

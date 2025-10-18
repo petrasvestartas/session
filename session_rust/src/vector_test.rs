@@ -196,13 +196,10 @@ mod vector_tests {
     fn test_vector_angle() {
         let v1 = Vector::new(1.0, 1.0, 0.0);
         let v2 = Vector::new(0.0, 1.0, 0.0);
-        assert!(
-            (v1.angle(&v2, false) - 45.0).abs()
-                < crate::tolerance::Tolerance::ZERO_TOLERANCE as f32
-        );
+        assert!((v1.angle(&v2, false) - 45.0).abs() < crate::tolerance::Tolerance::ZERO_TOLERANCE);
         assert!(
             (Vector::new(-1.0, 1.0, 0.0).angle(&v2, true) + 45.0).abs()
-                < crate::tolerance::Tolerance::ZERO_TOLERANCE as f32
+                < crate::tolerance::Tolerance::ZERO_TOLERANCE
         );
     }
 

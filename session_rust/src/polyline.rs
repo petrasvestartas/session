@@ -198,20 +198,20 @@ impl Polyline {
     }
 
     /// Calculate squared length of polyline (faster, no sqrt)
-    pub fn length_squared(&self) -> f64 {
-        let mut length = 0.0f64;
+    pub fn length_squared(&self) -> f32 {
+        let mut length = 0.0f32;
         for i in 0..self.segment_count() {
             let segment = self.points[i + 1].clone() - self.points[i].clone();
-            length += segment.length_squared() as f64;
+            length += segment.length_squared();
         }
         length
     }
 
     /// Get point at parameter t along a line segment (t=0 is start, t=1 is end)
-    pub fn point_at_parameter(start: &Point, end: &Point, t: f64) -> Point {
+    pub fn point_at_parameter(start: &Point, end: &Point, t: f32) -> Point {
         let s = 1.0 - t;
-        let t_f32 = t as f32;
-        let s_f32 = s as f32;
+        let t_f32 = t;
+        let s_f32 = s;
         Point::new(
             if start.x() == end.x() {
                 start.x()
@@ -232,19 +232,18 @@ impl Polyline {
     }
 
     /// Find closest point on line segment to given point, returns parameter t
-    pub fn closest_point_to_line(point: &Point, line_start: &Point, line_end: &Point) -> f64 {
+    pub fn closest_point_to_line(point: &Point, line_start: &Point, line_end: &Point) -> f32 {
         let d = line_end.clone() - line_start.clone();
         let dod = d.length_squared();
 
         if dod > 0.0 {
-            let t = if (point.clone() - line_start.clone()).length_squared()
+            if (point.clone() - line_start.clone()).length_squared()
                 <= (point.clone() - line_end.clone()).length_squared()
             {
                 (point.clone() - line_start.clone()).dot(&d) / dod
             } else {
                 1.0 + (point.clone() - line_end.clone()).dot(&d) / dod
-            };
-            t as f64
+            }
         } else {
             0.0
         }
@@ -353,7 +352,7 @@ impl Polyline {
             return None;
         }
 
-        let mut t_values: Vec<f64> = points
+        let mut t_values: Vec<f32> = points
             .iter()
             .map(|p| Self::closest_point_to_line(p, line_start, line_end))
             .collect();
@@ -372,16 +371,16 @@ impl Polyline {
     }
 
     /// Find closest distance and point from a point to this polyline
-    pub fn closest_distance_and_point(&self, point: &Point) -> (f64, usize, Point) {
+    pub fn closest_distance_and_point(&self, point: &Point) -> (f32, usize, Point) {
         let mut edge_id = 0;
-        let mut closest_distance = f64::MAX;
+        let mut closest_distance = f32::MAX;
         let mut best_t = 0.0;
 
         for i in 0..self.segment_count() {
             let t = Self::closest_point_to_line(point, &self.points[i], &self.points[i + 1]);
             let point_on_segment =
                 Self::point_at_parameter(&self.points[i], &self.points[i + 1], t);
-            let distance = point.distance(&point_on_segment) as f64;
+            let distance = point.distance(&point_on_segment);
 
             if distance < closest_distance {
                 closest_distance = distance;
@@ -408,7 +407,7 @@ impl Polyline {
             .first()
             .unwrap()
             .distance(self.points.last().unwrap())
-            < Tolerance::ZERO_TOLERANCE as f32
+            < Tolerance::ZERO_TOLERANCE
     }
 
     /// Calculate center point of polyline
@@ -498,31 +497,31 @@ impl Polyline {
     pub fn extend_line(
         line_start: &mut Point,
         line_end: &mut Point,
-        distance0: f64,
-        distance1: f64,
+        distance0: f32,
+        distance1: f32,
     ) {
         let mut v = line_end.clone() - line_start.clone();
         v.normalize_self();
 
-        *line_start = line_start.clone() - (v.clone() * distance0 as f32);
-        *line_end = line_end.clone() + (v * distance1 as f32);
+        *line_start = line_start.clone() - (v.clone() * distance0);
+        *line_end = line_end.clone() + (v * distance1);
     }
 
     /// Scale line segment inward by specified distance
-    pub fn scale_line(line_start: &mut Point, line_end: &mut Point, distance: f64) {
+    pub fn scale_line(line_start: &mut Point, line_end: &mut Point, distance: f32) {
         let v = line_end.clone() - line_start.clone();
-        *line_start = line_start.clone() + (v.clone() * distance as f32);
-        *line_end = line_end.clone() - (v * distance as f32);
+        *line_start = line_start.clone() + (v.clone() * distance);
+        *line_end = line_end.clone() - (v * distance);
     }
 
     /// Extend polyline segment
     pub fn extend_segment(
         &mut self,
         segment_id: usize,
-        dist0: f64,
-        dist1: f64,
-        proportion0: f64,
-        proportion1: f64,
+        dist0: f32,
+        dist1: f32,
+        proportion0: f32,
+        proportion1: f32,
     ) {
         if segment_id >= self.segment_count() {
             return;
@@ -533,12 +532,12 @@ impl Polyline {
         let v = p1.clone() - p0.clone();
 
         if proportion0 != 0.0 || proportion1 != 0.0 {
-            p0 -= v.clone() * proportion0 as f32;
-            p1 += v * proportion1 as f32;
+            p0 -= v.clone() * proportion0;
+            p1 += v * proportion1;
         } else {
             let v_norm = v.normalize();
-            p0 -= v_norm.clone() * dist0 as f32;
-            p1 += v_norm * dist1 as f32;
+            p0 -= v_norm.clone() * dist0;
+            p1 += v_norm * dist1;
         }
 
         self.points[segment_id] = p0;
@@ -560,8 +559,8 @@ impl Polyline {
     pub fn extend_segment_equally_static(
         segment_start: &mut Point,
         segment_end: &mut Point,
-        dist: f64,
-        proportion: f64,
+        dist: f32,
+        proportion: f32,
     ) {
         if dist == 0.0 && proportion == 0.0 {
             return;
@@ -570,18 +569,18 @@ impl Polyline {
         let v = segment_end.clone() - segment_start.clone();
 
         if proportion != 0.0 {
-            *segment_start = segment_start.clone() - (v.clone() * proportion as f32);
-            *segment_end = segment_end.clone() + (v * proportion as f32);
+            *segment_start = segment_start.clone() - (v.clone() * proportion);
+            *segment_end = segment_end.clone() + (v * proportion);
         } else {
             let mut v_norm = v;
             v_norm.normalize_self();
-            *segment_start = segment_start.clone() - (v_norm.clone() * dist as f32);
-            *segment_end = segment_end.clone() + (v_norm * dist as f32);
+            *segment_start = segment_start.clone() - (v_norm.clone() * dist);
+            *segment_end = segment_end.clone() + (v_norm * dist);
         }
     }
 
     /// Extend polyline segment equally
-    pub fn extend_segment_equally(&mut self, segment_id: usize, dist: f64, proportion: f64) {
+    pub fn extend_segment_equally(&mut self, segment_id: usize, dist: f32, proportion: f32) {
         if segment_id >= self.segment_count() {
             return;
         }
@@ -677,7 +676,7 @@ impl Polyline {
     pub fn tween_two_polylines(
         polyline0: &Polyline,
         polyline1: &Polyline,
-        weight: f64,
+        weight: f32,
     ) -> Polyline {
         if polyline0.points.len() != polyline1.points.len() {
             return polyline0.clone();
@@ -688,7 +687,7 @@ impl Polyline {
 
         for i in 0..polyline0.points.len() {
             let diff = polyline1.points[i].clone() - polyline0.points[i].clone();
-            let interpolated = polyline0.points[i].clone() + (diff * weight as f32);
+            let interpolated = polyline0.points[i].clone() + (diff * weight);
             result.points.push(interpolated);
         }
 

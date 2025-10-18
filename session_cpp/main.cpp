@@ -21,32 +21,41 @@ Vector vy(0, 1000, 0);
 Vector vz(0, 0, 1000);
 Vector dir(1000, 1000, 1000);
 
+
+Point plane_origin_0 (213.787107, 513.797811, -24.743845);
+Vector plane_xaxis_0 (0.907673,-0.258819,0.330366);
+Vector plane_yaxis_0 (0.272094,0.96225,0.006285);
+Plane pl0 (plane_origin_0, plane_xaxis_0, plane_yaxis_0);
+
+
+Point plane_origin_1 (247.17924, 499.115486, 59.619568);
+Vector plane_xaxis_1 (0.552465,0.816035,0.16991);
+Vector plane_yaxis_1 (0.172987,0.087156,-0.98106);
+Plane pl1 (plane_origin_1, plane_xaxis_1, plane_yaxis_1);
+
+
+Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
+Line l1(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
+
 int main() {
     std::cout << "=== Intersection Examples ===\n\n";
 
     // 1. line_line
-    Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
-    Line l1(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
     Point p;
-    if (Intersection::line_line(l0, l1, p, static_cast<float>(Tolerance::APPROXIMATION))) {
+    if (Intersection::line_line(l0, l1, p, Tolerance::APPROXIMATION)) {
         std::cout << "1. line_line: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
     }
 
     // 2. line_line_parameters
     float t0, t1;
-    if (Intersection::line_line_parameters(l0, l1, t0, t1, static_cast<float>(Tolerance::APPROXIMATION))) {
+    if (Intersection::line_line_parameters(l0, l1, t0, t1, Tolerance::APPROXIMATION)) {
         std::cout << "2. line_line_parameters: t0=" << t0 << ", t1=" << t1 << "\n";
-    } else {
-        std::cout << "2. line_line_parameters: No intersection\n";
     }
 
     // 3. plane_plane
-    Plane pl0 = Plane::from_point_normal(origin, vz);
-    Plane pl1 = Plane::from_point_normal(origin, vx);
     Line intersection_line;
     if (Intersection::plane_plane(pl0, pl1, intersection_line)) {
-        std::cout << "3. plane_plane: line from (" << intersection_line.start().x() << "," 
-                  << intersection_line.start().y() << "," << intersection_line.start().z() << ")\n";
+       printf("3. plane_plane: %s\n", intersection_line.to_string().c_str());
     }
 
     // 4. line_plane

@@ -156,7 +156,7 @@ impl Vector {
     /// Normalizes the vector in place.
     pub fn normalize_self(&mut self) {
         let len = self.magnitude();
-        if len > Tolerance::ZERO_TOLERANCE as f32 {
+        if len > Tolerance::ZERO_TOLERANCE {
             self._x /= len;
             self._y /= len;
             self._z /= len;
@@ -236,7 +236,7 @@ impl Vector {
         let dotp = self.dot(other);
         let len_product = self.compute_length() * other.compute_length();
 
-        if len_product < Tolerance::ZERO_TOLERANCE as f32 {
+        if len_product < Tolerance::ZERO_TOLERANCE {
             return 0.0;
         }
 
@@ -261,7 +261,7 @@ impl Vector {
     /// - perpendicular projected vector (self - projection)
     /// - perpendicular projected vector length
     pub fn projection(&self, onto: &Vector) -> (Vector, f32, Vector, f32) {
-        self.projection_with(onto, Tolerance::ZERO_TOLERANCE as f32)
+        self.projection_with(onto, Tolerance::ZERO_TOLERANCE)
     }
 
     /// Same as `projection` but allows specifying a tolerance.
@@ -305,7 +305,7 @@ impl Vector {
         }
 
         let cos_angle = self.dot(other) / len_product;
-        let angle_in_radians = Tolerance::ANGLE_TOLERANCE_DEGREES as f32 * TO_RADIANS as f32;
+        let angle_in_radians = Tolerance::ANGLE_TOLERANCE_DEGREES * TO_RADIANS as f32;
         let cos_tolerance = angle_in_radians.cos();
 
         if cos_angle >= cos_tolerance {
@@ -494,7 +494,7 @@ impl Vector {
     /// Computes coordinate direction angles (alpha, beta, gamma) in degrees.
     pub fn coordinate_direction_3angles(&self, degrees: bool) -> [f32; 3] {
         let length = self.compute_length();
-        if length < Tolerance::ZERO_TOLERANCE as f32 {
+        if length < Tolerance::ZERO_TOLERANCE {
             return [0.0, 0.0, 0.0];
         }
 
@@ -522,7 +522,7 @@ impl Vector {
         let length_xy = (self._x * self._x + self._y * self._y).sqrt();
         let length = self.compute_length();
 
-        if length < Tolerance::ZERO_TOLERANCE as f32 {
+        if length < Tolerance::ZERO_TOLERANCE {
             return [0.0, 0.0];
         }
 

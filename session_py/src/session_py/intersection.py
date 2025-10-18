@@ -7,7 +7,7 @@ from .tolerance import Tolerance
 def line_line_parameters(
     line0: Line,
     line1: Line,
-    tolerance: float = Tolerance.APPROXIMATION,
+    tolerance: float,
     intersect_segments: bool = True,
     near_parallel_as_closest: bool = False
 ) -> Optional[Tuple[float, float]]:
@@ -75,7 +75,7 @@ def line_line_parameters(
 def line_line(
     line0: Line,
     line1: Line,
-    tolerance: float = Tolerance.APPROXIMATION
+    tolerance: float
 ) -> Optional[Point]:
     result = line_line_parameters(line0, line1, tolerance, True, False)
     
@@ -91,3 +91,47 @@ def line_line(
         (p0.y + p1.y) * 0.5,
         (p0.z + p1.z) * 0.5
     )
+
+
+def plane_plane(plane0, plane1) -> Optional[Line]:
+    from .plane import Plane
+    
+    d = plane1.z_axis.cross(plane0.z_axis)
+    
+    p = Point(
+        (plane0.origin.x + plane1.origin.x) * 0.5,
+        (plane0.origin.y + plane1.origin.y) * 0.5,
+        (plane0.origin.z + plane1.origin.z) * 0.5
+    )
+    
+    plane2 = Plane.from_point_normal(p, d)
+    
+    output_p = plane_plane_plane(plane0, plane1, plane2)
+    if output_p is None:
+        return None
+    
+    return Line(
+        output_p.x, output_p.y, output_p.z,
+        output_p.x + d.x, output_p.y + d.y, output_p.z + d.z
+    )
+
+
+def plane_plane_plane(plane0, plane1, plane2) -> Optional[Point]:
+    from .plane import Plane
+    
+    n0 = plane0.z_axis
+    n1 = plane1.z_axis
+    n2 = plane2.z_axis
+    
+    det = n0.dot(n1.cross(n2))
+    
+    if abs(det) < 1e-10:
+        return None
+    
+    d0 = plane0.d
+    d1 = plane1.d
+    d2 = plane2.d
+    
+    p = (n1.cross(n2) * (-d0) + n2.cross(n0) * (-d1) + n0.cross(n1) * (-d2)) * (1.0 / det)
+    
+    return Point(p.x, p.y, p.z)

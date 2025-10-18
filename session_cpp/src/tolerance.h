@@ -20,20 +20,16 @@ constexpr double SCALE = 1e6;
  */
 class Tolerance {
 public:
-    // Default tolerance values
-    static constexpr double ABSOLUTE = 1e-9;
-    static constexpr double RELATIVE = 1e-6;
-    static constexpr double ANGULAR = 1e-6;
-    static constexpr double APPROXIMATION = 1e-3;
+    // Default tolerance values (f32 only)
+    static constexpr float ABSOLUTE = 1e-9f;
+    static constexpr float RELATIVE = 1e-6f;
+    static constexpr float ANGULAR = 1e-6f;
+    static constexpr float APPROXIMATION = 1e-3f;
     static constexpr int PRECISION = 3;
-    static constexpr double LINEARDEFLECTION = 1e-3;
-    static constexpr double ANGULARDEFLECTION = 1e-1;
-    
-    // Angle tolerance in degrees
-    static constexpr double ANGLE_TOLERANCE_DEGREES = 0.11;
-    
-    // Zero tolerance for comparisons
-    static constexpr double ZERO_TOLERANCE = 1e-12;
+    static constexpr float LINEARDEFLECTION = 1e-3f;
+    static constexpr float ANGULARDEFLECTION = 1e-1f;
+    static constexpr float ANGLE_TOLERANCE_DEGREES = 0.11f;
+    static constexpr float ZERO_TOLERANCE = 1e-12f;
 
 private:
     std::string _unit;

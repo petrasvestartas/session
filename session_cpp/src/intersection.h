@@ -32,7 +32,7 @@ public:
     const Line& line0,
     const Line& line1,
     Point& output,
-    float tolerance = static_cast<float>(Tolerance::APPROXIMATION)
+    float tolerance
   );
 
   static bool line_line_parameters(
@@ -40,7 +40,7 @@ public:
     const Line& line1,
     float& t0,
     float& t1,
-    float tolerance = static_cast<float>(Tolerance::APPROXIMATION),
+    float tolerance,
     bool intersect_segments = true,
     bool near_parallel_as_closest = false
   );

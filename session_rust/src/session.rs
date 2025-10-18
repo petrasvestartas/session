@@ -233,7 +233,7 @@ impl Session {
 
     /// Compute bounding box for a geometry object, inflated by tolerance
     fn compute_bounding_box(geometry: &Geometry) -> BoundingBox {
-        let inflate = Tolerance::APPROXIMATION as f32;
+        let inflate = Tolerance::APPROXIMATION;
         match geometry {
             Geometry::Point(p) => BoundingBox::from_point(p.clone(), inflate),
             Geometry::Line(l) => {
