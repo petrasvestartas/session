@@ -25,6 +25,8 @@ from .pointcloud import PointCloud
 from .bvh import BVH, BVHNode
 from .tolerance import Tolerance
 from . import encoders
+from .obj import load_obj, save_obj
+from . import intersection
 
 __all__ = [
     "Color",
@@ -52,4 +54,7 @@ __all__ = [
     "BVHNode",
     "Tolerance",
     "encoders",
+    "load_obj",
+    "save_obj",
+    "intersection",
 ]

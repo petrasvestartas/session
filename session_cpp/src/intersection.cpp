@@ -189,83 +189,22 @@ bool Intersection::line_line(
     Point& output,
     float tolerance) {
     
-    Point p0_0 = line0.start();
-    Point p0_1 = line0.end();
-    Point p1_0 = line1.start();
-    Point p1_1 = line1.end();
+    // Use the robust OpenNURBS-style line_line_parameters method
+    float t0, t1;
+    bool rc = line_line_parameters(line0, line1, t0, t1, tolerance, true, false);
     
-    Vector v0 = line0.to_vector();
-    Vector v1 = line1.to_vector();
-    Vector cross = v0.cross(v1);
-    
-    Vector plane_x = v0;
-    plane_x.normalize_self();
-    Vector plane_y = cross.cross(v0);
-    plane_y.normalize_self();
-    Vector plane_z = cross;
-    plane_z.normalize_self();
-    
-    Point origin_world(0.0f, 0.0f, 0.0f);
-    Vector x_world = Vector::x_axis();
-    Vector y_world = Vector::y_axis();
-    Vector z_world = Vector::z_axis();
-    
-    Xform xform = Xform::change_basis_alt(
-        origin_world, x_world, y_world, z_world,
-        p0_0, plane_x, plane_y, plane_z
-    );
-    
-    auto xform_inv_opt = xform.inverse();
-    if (!xform_inv_opt.has_value()) {
-        return false;
-    }
-    Xform xform_inv = xform_inv_opt.value();
-    
-    Point p0_0_t = xform.transformed_point(p0_0);
-    Point p0_1_t = xform.transformed_point(p0_1);
-    Point p1_0_t = xform.transformed_point(p1_0);
-    Point p1_1_t = xform.transformed_point(p1_1);
-    
-    float dx0 = p0_1_t.x() - p0_0_t.x();
-    float dy0 = p0_1_t.y() - p0_0_t.y();
-    float dx1 = p1_1_t.x() - p1_0_t.x();
-    float dy1 = p1_1_t.y() - p1_0_t.y();
-    
-    float denom = dx0 * dy1 - dy0 * dx1;
-    
-    // Check for parallel lines using epsilon relative to line lengths
-    float len0_sq = dx0 * dx0 + dy0 * dy0;
-    float len1_sq = dx1 * dx1 + dy1 * dy1;
-    float zero_tol = std::sqrt(std::max(len0_sq, len1_sq)) * std::numeric_limits<float>::epsilon();
-    
-    if (std::fabs(denom) < zero_tol) {
-        return false;
+    if (rc) {
+        // Compute the midpoint between the two closest points
+        Point p0 = line0.point_at(t0);
+        Point p1 = line1.point_at(t1);
+        output = Point(
+            (p0.x() + p1.x()) * 0.5f,
+            (p0.y() + p1.y()) * 0.5f,
+            (p0.z() + p1.z()) * 0.5f
+        );
     }
     
-    float t = ((p1_0_t.x() - p0_0_t.x()) * dy1 - (p1_0_t.y() - p0_0_t.y()) * dx1) / denom;
-    
-    Point result_2d(
-        p0_0_t.x() + t * dx0,
-        p0_0_t.y() + t * dy0,
-        p0_0_t.z()
-    );
-    
-    output = xform_inv.transformed_point(result_2d);
-    
-    // Check distance tolerance if specified
-    if (tolerance > 0.0f) {
-        // Compute the other line's parameter and check distance
-        float s = ((p1_0_t.x() - p0_0_t.x()) * dy0 - (p1_0_t.y() - p0_0_t.y()) * dx0) / denom;
-        Point pt1_2d(p1_0_t.x() + s * dx1, p1_0_t.y() + s * dy1, p1_0_t.z());
-        Point pt1 = xform_inv.transformed_point(pt1_2d);
-        
-        float dist = output.distance(pt1);
-        if (dist > tolerance) {
-            return false;
-        }
-    }
-    
-    return true;
+    return rc;
 }
 
 bool Intersection::line_line_parameters(
