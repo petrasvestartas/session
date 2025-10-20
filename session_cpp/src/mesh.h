@@ -112,8 +112,12 @@ private:
     // Cached per-triangle data for BVH ray casting
     mutable bool triangle_bvh_built = false;
     mutable std::shared_ptr<BVH> triangle_bvh;  ///< BVH over cached triangle AABBs
-    mutable std::vector<BoundingBox> triangle_boxes_cache;  ///< Per-triangle AABBs
-    mutable std::vector<std::tuple<size_t, size_t, Point, Point, Point>> triangle_data_cache; ///< (face_idx, sub_idx, v0, v1, v2)
+    mutable std::vector<BoundingBox> triangle_boxes_cache;  ///< Per-triangle AABBs (legacy, may be empty)
+    mutable std::vector<BvhAABB> triangle_aabbs_cache;      ///< Lightweight AABBs for fast BVH build
+    struct TriangleIndex { uint32_t i0, i1, i2; };
+    mutable std::vector<TriangleIndex> triangle_indices_cache; ///< Triangle vertex indices
+    mutable std::vector<std::pair<size_t, size_t>> triangle_face_subidx_cache; ///< (face_idx, sub_idx)
+    mutable std::vector<Point> vertices_cache; ///< Cached vertices for fast lookup
 
 public:
 

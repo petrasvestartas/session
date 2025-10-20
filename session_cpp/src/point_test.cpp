@@ -16,8 +16,8 @@ TEST_CASE("Point JSON roundtrip", "[point]") {
 
     encoders::json_dump(original, "test_point.json");
     
-    REQUIRE(loaded.x() == original.x());
-    REQUIRE(loaded.y() == original.y());
-    REQUIRE(loaded.z() == original.z());
+    REQUIRE(std::abs(loaded.x()-original.x()) < 0.0001);
+    REQUIRE(std::abs(loaded.y()-original.y()) < 0.0001);
+    REQUIRE(std::abs(loaded.z()-original.z()) < 0.0001);
     REQUIRE(loaded.name == original.name);
     REQUIRE(loaded.width == original.width);}

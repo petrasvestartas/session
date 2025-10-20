@@ -804,6 +804,8 @@ std::vector<Point> Intersection::ray_mesh(
     float epsilon,
     bool find_all) {
     
+    (void)epsilon;  // Unused - kept for API compatibility
+    
     Point origin = line.start();
     Vector direction = line.to_vector();
     
@@ -825,6 +827,8 @@ std::vector<Point> Intersection::ray_mesh_bvh(
     const Mesh& mesh,
     float epsilon,
     bool find_all) {
+    
+    (void)epsilon;  // Unused - kept for API compatibility
     
     Point origin = line.start();
     Vector direction = line.to_vector();

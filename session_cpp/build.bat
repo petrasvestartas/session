@@ -8,16 +8,21 @@ cd %~dp0
 
 REM Create a directory for the build files
 if not exist build mkdir build
-cd build
 
-REM Configure the project (always run to detect changes)
-cmake ..
+REM Configure the project (Release, out-of-source)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-REM Build the project with the specified configuration
-cmake --build . --config Release
+REM Build the project with the specified configuration (parallel if supported)
+cmake --build build --config Release -- /m
 
 REM Run the main executable
-.\Release\MyProject.exe
+IF EXIST .\build\Release\MyProject.exe (
+    .\build\Release\MyProject.exe
+) ELSE IF EXIST .\build\MyProject.exe (
+    .\build\MyProject.exe
+) ELSE (
+    echo Executable not found under build\
+)
 
 echo Current working directory: %cd%
 

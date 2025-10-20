@@ -11,6 +11,12 @@
 
 namespace session_cpp {
 
+// Lightweight axis-aligned bounding box used internally by BVH
+struct BvhAABB {
+    float cx, cy, cz; // center
+    float hx, hy, hz; // half-size
+};
+
 /**
  * @brief A node in the Bounding Volume Hierarchy tree
  * 
@@ -19,11 +25,10 @@ namespace session_cpp {
  */
 class BVHNode {
 public:
-    std::string guid;
-    std::shared_ptr<BVHNode> left;
-    std::shared_ptr<BVHNode> right;
+    BVHNode* left;
+    BVHNode* right;
     int object_id;
-    BoundingBox aabb;
+    BvhAABB aabb;
 
     BVHNode();
     bool is_leaf() const;
@@ -39,9 +44,12 @@ class BVH {
 public:
     std::string guid;
     std::string name;
-    std::shared_ptr<BVHNode> root;
+    BVHNode* root;
     float world_size;
     std::vector<std::string> object_guids;  // Parallel array to boxes - maps indices to GUIDs
+    
+    // Node arena to store all nodes contiguously (no per-node heap allocations)
+    std::vector<BVHNode> node_arena;
 
     BVH(float world_size = 1000.0f);
     
@@ -56,6 +64,11 @@ public:
     
     static BVH from_boxes(const std::vector<BoundingBox>& bounding_boxes, float world_size);
     
+    // Fast build accepting continuous array of boxes (no copies)
+    void build_from_boxes(const BoundingBox* boxes, size_t count, float world_size);
+    // Fast build accepting continuous array of lightweight AABBs (no BoundingBox construction)
+    void build_from_aabbs(const BvhAABB* aabbs, size_t count, float world_size);
+    
     void build(const std::vector<BoundingBox>& bounding_boxes);
     std::tuple<std::vector<std::pair<int, int>>, std::vector<int>, int> check_all_collisions(const std::vector<BoundingBox>& bounding_boxes);
     std::pair<std::vector<int>, int> find_collisions(int object_id, const BoundingBox& query_bbox, const std::vector<BoundingBox>& bounding_boxes);
@@ -63,6 +76,8 @@ public:
     // Public helper methods for testing
     BoundingBox merge_aabb(const BoundingBox& aabb1, const BoundingBox& aabb2);
     bool aabb_intersect(const BoundingBox& aabb1, const BoundingBox& aabb2);
+    bool aabb_intersect(const BvhAABB& aabb1, const BoundingBox& aabb2);
+    bool aabb_intersect(const BvhAABB& aabb1, const BvhAABB& aabb2);
 
     // Ray cast traversal over BVH nodes returning candidate leaf indices ordered by AABB entry t.
     bool ray_cast(const Point& origin,
@@ -74,11 +89,14 @@ private:
     struct ObjectInfo {
         int id;
         uint32_t morton_code;
-        BoundingBox bbox;
     };
 
-    std::shared_ptr<BVHNode> create_subtree(std::vector<ObjectInfo>& objects, int begin, int end);
-    void find_collisions_recursive(int object_id, const BoundingBox& query_bbox, std::shared_ptr<BVHNode> node, 
+    // Allocates a node in the arena and returns a raw pointer to it
+    BVHNode* alloc_node();
+
+    // Subtree creation using sorted object keys and read-only boxes array
+    BVHNode* create_subtree(std::vector<ObjectInfo>& objects, int begin, int end, const BoundingBox* boxes);
+    void find_collisions_recursive(int object_id, const BoundingBox& query_bbox, BVHNode* node, 
                                    const std::vector<BoundingBox>& bounding_boxes, std::vector<int>& collisions, int& check_count);
 };
 

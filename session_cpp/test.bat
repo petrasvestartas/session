@@ -8,11 +8,10 @@ echo Building and running all tests...
 
 :: Create a directory for the build files
 if not exist build mkdir build
-cd build
 
-:: Configure the project
-echo Configuring project...
-cmake .. >nul 2>&1
+:: Configure the project (Release, out-of-source)
+echo Configuring project (Release)...
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >nul 2>&1
 
 if !errorlevel! neq 0 (
     echo Configuration failed!
@@ -21,7 +20,7 @@ if !errorlevel! neq 0 (
 
 :: Build the project
 echo Building project...
-cmake --build . --config Release
+cmake --build build --config Release -- /m
 
 if !errorlevel! neq 0 (
     echo Build failed!
@@ -29,7 +28,10 @@ if !errorlevel! neq 0 (
 )
 
 :: Check if tests executable exists
-if not exist "Release\tests.exe" (
+set TEST_EXE=
+if exist "build\tests.exe" set TEST_EXE=build\tests.exe
+if exist "build\Release\tests.exe" set TEST_EXE=build\Release\tests.exe
+if not defined TEST_EXE (
     echo Tests executable not found!
     exit /b 1
 )
@@ -37,7 +39,7 @@ if not exist "Release\tests.exe" (
 :: Run all tests
 echo Running all tests...
 echo.
-Release\tests.exe --reporter compact
+"%TEST_EXE%" --reporter compact
 
 :: Check test results
 if !errorlevel! equ 0 (

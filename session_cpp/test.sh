@@ -14,18 +14,15 @@ echo -e "${BLUE}Building and running all tests...${NC}"
 
 # Create a directory for the build files
 mkdir -p build
-cd build
 
-# Configure the project with Ninja generator for faster builds
-echo -e "${YELLOW}Configuring project with Ninja...${NC}"
-
-# Check if Ninja is installed
+# Configure the project (Release, out-of-source)
+echo -e "${YELLOW}Configuring project (Release)...${NC}"
 if command -v ninja &> /dev/null; then
-    cmake -G Ninja .. 
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -march=native -DNDEBUG"
     CMAKE_STATUS=$?
 else
     echo -e "${YELLOW}Ninja build system not found. Using default generator.${NC}"
-    cmake .. 
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -march=native -DNDEBUG"
     CMAKE_STATUS=$?
 fi
 
@@ -41,7 +38,7 @@ echo -e "${YELLOW}Building project...${NC}"
 NUM_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 
 # Build with parallel jobs - show errors if they occur
-cmake --build . --config Release -- -j${NUM_CORES}
+cmake --build build --parallel ${NUM_CORES}
 BUILD_STATUS=$?
 
 if [ $BUILD_STATUS -ne 0 ]; then
@@ -51,7 +48,11 @@ if [ $BUILD_STATUS -ne 0 ]; then
 fi
 
 # Check if tests executable exists
-if [ ! -f "./tests" ]; then
+if [ -f "./build/tests" ]; then
+    TEST_EXE="./build/tests"
+elif [ -f "./build/Release/tests" ]; then
+    TEST_EXE="./build/Release/tests"
+else
     echo -e "${RED}Tests executable not found!${NC}"
     exit 1
 fi
@@ -59,7 +60,7 @@ fi
 # Run all tests
 echo -e "${GREEN}Running all tests...${NC}"
 echo ""
-./tests
+"${TEST_EXE}"
 
 # Check test results
 TEST_EXIT_CODE=$?

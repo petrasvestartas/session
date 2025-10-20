@@ -2,6 +2,9 @@
 #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
+#include <limits>
+#include <thread>
 
 namespace session_cpp {
 
@@ -49,7 +52,10 @@ void Mesh::clear() {
     triangle_bvh_built = false;
     triangle_bvh.reset();
     triangle_boxes_cache.clear();
-    triangle_data_cache.clear();
+    triangle_aabbs_cache.clear();
+    triangle_indices_cache.clear();
+    triangle_face_subidx_cache.clear();
+    vertices_cache.clear();
 }
 
 size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
@@ -65,7 +71,10 @@ size_t Mesh::add_vertex(const Point& position, std::optional<size_t> vkey) {
     triangle_bvh_built = false;
     triangle_bvh.reset();
     triangle_boxes_cache.clear();
-    triangle_data_cache.clear();
+    triangle_aabbs_cache.clear();
+    triangle_indices_cache.clear();
+    triangle_face_subidx_cache.clear();
+    vertices_cache.clear();
     return vertex_key;
 }
 
@@ -112,7 +121,10 @@ std::optional<size_t> Mesh::add_face(const std::vector<size_t>& vertices, std::o
     triangle_bvh_built = false;
     triangle_bvh.reset();
     triangle_boxes_cache.clear();
-    triangle_data_cache.clear();
+    triangle_aabbs_cache.clear();
+    triangle_indices_cache.clear();
+    triangle_face_subidx_cache.clear();
+    vertices_cache.clear();
     return face_key;
 }
 
@@ -452,7 +464,10 @@ void Mesh::transform() {
   triangle_bvh_built = false;
   triangle_bvh.reset();
   triangle_boxes_cache.clear();
-  triangle_data_cache.clear();
+  triangle_aabbs_cache.clear();
+  triangle_indices_cache.clear();
+  triangle_face_subidx_cache.clear();
+  vertices_cache.clear();
 }
 
 Mesh Mesh::transformed() const {
@@ -526,17 +541,7 @@ nlohmann::ordered_json Mesh::jsondump() const {
     }
     data["triangle_boxes_cache"] = tri_boxes;
 
-    nlohmann::ordered_json tri_data = nlohmann::ordered_json::array();
-    for (const auto& tup : triangle_data_cache) {
-        nlohmann::ordered_json tri;
-        tri["face_idx"] = std::get<0>(tup);
-        tri["sub_idx"] = std::get<1>(tup);
-        tri["v0"] = std::get<2>(tup).jsondump();
-        tri["v1"] = std::get<3>(tup).jsondump();
-        tri["v2"] = std::get<4>(tup).jsondump();
-        tri_data.push_back(tri);
-    }
-    data["triangle_data_cache"] = tri_data;
+    // Deprecated: triangle_data_cache removed in favor of index-based caches
     return data;
 }
 
@@ -631,21 +636,9 @@ Mesh Mesh::jsonload(const nlohmann::json& data) {
             mesh.triangle_boxes_cache.push_back(BoundingBox::jsonload(box_json));
         }
     }
-    if (data.contains("triangle_data_cache")) {
-        mesh.triangle_data_cache.clear();
-        for (const auto& tri_json : data["triangle_data_cache"]) {
-            size_t face_idx = tri_json["face_idx"];
-            size_t sub_idx = tri_json["sub_idx"];
-            Point v0 = Point::jsonload(tri_json["v0"]);
-            Point v1 = Point::jsonload(tri_json["v1"]);
-            Point v2 = Point::jsonload(tri_json["v2"]);
-            mesh.triangle_data_cache.emplace_back(face_idx, sub_idx, v0, v1, v2);
-        }
-    }
-    bool bvh_built = false;
-    if (data.contains("triangle_bvh_built")) {
-        bvh_built = data["triangle_bvh_built"];
-    }
+    // triangle_data_cache deprecated: no longer loaded
+    // Note: triangle_bvh_built is stored in JSON but not used during load
+    // BVH is rebuilt from triangle_boxes_cache if present
     if (!mesh.triangle_boxes_cache.empty()) {
         mesh.triangle_bvh = std::make_shared<BVH>();
         mesh.triangle_bvh->build(mesh.triangle_boxes_cache);
@@ -660,44 +653,99 @@ void Mesh::build_triangle_bvh(bool force) const {
     if (triangle_bvh_built && !force) return;
 
     triangle_boxes_cache.clear();
-    triangle_data_cache.clear();
+    triangle_aabbs_cache.clear();
+    triangle_indices_cache.clear();
+    triangle_face_subidx_cache.clear();
+    vertices_cache.clear();
 
-    // Build per-triangle AABBs from faces
-    // std::map iteration is key-sorted, which stabilizes tri_id order and matches to_vertices_and_faces()
-    size_t seq_face_index = 0;
-    for (const auto& [face_key, verts] : face) {
-        if (verts.size() < 3) continue;
+    auto vf = to_vertices_and_faces();
+    vertices_cache = vf.first;
+    const std::vector<std::vector<size_t>>& faces_vec = vf.second;
 
-        auto get_pt = [&](size_t vk) -> std::optional<Point> {
-            auto it = vertex.find(vk);
-            if (it == vertex.end()) return std::nullopt;
-            return it->second.position();
-        };
+    size_t tri_count = 0;
+    for (const auto& f : faces_vec) if (f.size() >= 3) tri_count += (f.size() - 2);
+    triangle_aabbs_cache.resize(tri_count);
+    triangle_indices_cache.resize(tri_count);
+    triangle_face_subidx_cache.resize(tri_count);
 
-        auto p0_opt = get_pt(verts[0]);
-        if (!p0_opt) continue;
-        Point p0 = *p0_opt;
+    struct TriTask { uint32_t i0, i1, i2; size_t face_idx; size_t sub_idx; size_t out_idx; };
+    std::vector<TriTask> tasks;
+    tasks.reserve(tri_count);
 
-        for (size_t j = 1; j + 1 < verts.size(); ++j) {
-            auto p1_opt = get_pt(verts[j]);
-            auto p2_opt = get_pt(verts[j + 1]);
-            if (!p1_opt || !p2_opt) continue;
-            Point p1 = *p1_opt;
-            Point p2 = *p2_opt;
-
-            // Store triangle data with sequential face index matching to_vertices_and_faces()
-            triangle_data_cache.emplace_back(seq_face_index, j, p0, p1, p2);
-
-            // Build AABB for triangle
-            std::vector<Point> tri_points = {p0, p1, p2};
-            BoundingBox tri_bbox = BoundingBox::from_points(tri_points, 0.001f);
-            triangle_boxes_cache.push_back(tri_bbox);
+    size_t out = 0;
+    for (size_t fi = 0; fi < faces_vec.size(); ++fi) {
+        const auto& fv = faces_vec[fi];
+        if (fv.size() < 3) continue;
+        for (size_t j = 1; j + 1 < fv.size(); ++j) {
+            tasks.push_back(TriTask{static_cast<uint32_t>(fv[0]), static_cast<uint32_t>(fv[j]), static_cast<uint32_t>(fv[j+1]), fi, j, out});
+            out++;
         }
-        seq_face_index++;
     }
 
+    auto worker = [&](size_t begin, size_t end){
+        for (size_t k = begin; k < end; ++k) {
+            const auto& t = tasks[k];
+            const Point& p0 = vertices_cache[t.i0];
+            const Point& p1 = vertices_cache[t.i1];
+            const Point& p2 = vertices_cache[t.i2];
+
+            float min_x = std::min({p0.x(), p1.x(), p2.x()}) - 0.001f;
+            float min_y = std::min({p0.y(), p1.y(), p2.y()}) - 0.001f;
+            float min_z = std::min({p0.z(), p1.z(), p2.z()}) - 0.001f;
+            float max_x = std::max({p0.x(), p1.x(), p2.x()}) + 0.001f;
+            float max_y = std::max({p0.y(), p1.y(), p2.y()}) + 0.001f;
+            float max_z = std::max({p0.z(), p1.z(), p2.z()}) + 0.001f;
+
+            float cx = (min_x + max_x) * 0.5f;
+            float cy = (min_y + max_y) * 0.5f;
+            float cz = (min_z + max_z) * 0.5f;
+            float hx = (max_x - min_x) * 0.5f;
+            float hy = (max_y - min_y) * 0.5f;
+            float hz = (max_z - min_z) * 0.5f;
+
+            BvhAABB bb{cx, cy, cz, hx, hy, hz};
+            triangle_aabbs_cache[t.out_idx] = bb;
+            triangle_indices_cache[t.out_idx] = TriangleIndex{t.i0, t.i1, t.i2};
+            triangle_face_subidx_cache[t.out_idx] = {t.face_idx, t.sub_idx};
+        }
+    };
+
+    unsigned int threads = std::max(1u, std::thread::hardware_concurrency());
+    size_t total = tasks.size();
+    size_t block = (total + threads - 1) / threads;
+    std::vector<std::thread> pool;
+    pool.reserve(threads);
+    size_t beginIdx = 0;
+    for (unsigned int ti = 0; ti < threads && beginIdx < total; ++ti) {
+        size_t endIdx = std::min(beginIdx + block, total);
+        pool.emplace_back(worker, beginIdx, endIdx);
+        beginIdx = endIdx;
+    }
+    for (auto& th : pool) th.join();
+
+    // Compute world size from object bounds (triangle AABBs)
+    float min_x = std::numeric_limits<float>::infinity();
+    float min_y = std::numeric_limits<float>::infinity();
+    float min_z = std::numeric_limits<float>::infinity();
+    float max_x = -std::numeric_limits<float>::infinity();
+    float max_y = -std::numeric_limits<float>::infinity();
+    float max_z = -std::numeric_limits<float>::infinity();
+    for (const auto& bb : triangle_aabbs_cache) {
+        float bx0 = bb.cx - bb.hx; float bx1 = bb.cx + bb.hx;
+        float by0 = bb.cy - bb.hy; float by1 = bb.cy + bb.hy;
+        float bz0 = bb.cz - bb.hz; float bz1 = bb.cz + bb.hz;
+        if (bx0 < min_x) min_x = bx0; if (bx1 > max_x) max_x = bx1;
+        if (by0 < min_y) min_y = by0; if (by1 > max_y) max_y = by1;
+        if (bz0 < min_z) min_z = bz0; if (bz1 > max_z) max_z = bz1;
+    }
+    float extent_x = std::max(std::fabs(min_x), std::fabs(max_x));
+    float extent_y = std::max(std::fabs(min_y), std::fabs(max_y));
+    float extent_z = std::max(std::fabs(min_z), std::fabs(max_z));
+    float max_extent = std::max({extent_x, extent_y, extent_z});
+    float world_size = std::max(2.2f * max_extent, 10.0f);
+
     triangle_bvh = std::make_shared<BVH>();
-    triangle_bvh->build(triangle_boxes_cache);
+    triangle_bvh->build_from_aabbs(triangle_aabbs_cache.data(), triangle_aabbs_cache.size(), world_size);
     triangle_bvh_built = true;
 }
 
@@ -710,13 +758,15 @@ bool Mesh::triangle_bvh_ray_cast(const Point& origin, const Vector& direction, s
 bool Mesh::get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const {
     if (tri_id < 0) return false;
     size_t id = static_cast<size_t>(tri_id);
-    if (id >= triangle_data_cache.size()) return false;
-    const auto& tup = triangle_data_cache[id];
-    face_idx = std::get<0>(tup);
-    sub_idx = std::get<1>(tup);
-    v0 = std::get<2>(tup);
-    v1 = std::get<3>(tup);
-    v2 = std::get<4>(tup);
+    if (id >= triangle_indices_cache.size() || id >= triangle_face_subidx_cache.size()) return false;
+    const auto& tri = triangle_indices_cache[id];
+    const auto& fs = triangle_face_subidx_cache[id];
+    face_idx = fs.first;
+    sub_idx = fs.second;
+    if (tri.i0 >= vertices_cache.size() || tri.i1 >= vertices_cache.size() || tri.i2 >= vertices_cache.size()) return false;
+    v0 = vertices_cache[tri.i0];
+    v1 = vertices_cache[tri.i1];
+    v2 = vertices_cache[tri.i2];
     return true;
 }
 
@@ -724,7 +774,10 @@ void Mesh::clear_triangle_bvh() const {
     triangle_bvh_built = false;
     triangle_bvh.reset();
     triangle_boxes_cache.clear();
-    triangle_data_cache.clear();
+    triangle_aabbs_cache.clear();
+    triangle_indices_cache.clear();
+    triangle_face_subidx_cache.clear();
+    vertices_cache.clear();
 }
 
 } // namespace session_cpp

@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 3.22)
 # Define the project and the languages used
 project(MyProject VERSION 1.0 LANGUAGES CXX)
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 # Enable compilation database generation for better IntelliSense
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -17,6 +22,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
     # Uncomment to enable more aggressive warnings
     # add_compile_options(-Werror)
+    # High optimization for Release builds
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -ffast-math -flto")
 elseif(MSVC)
     add_compile_options(/W4)
     add_compile_options(/utf-8)  # Enable UTF-8 support for fmt library

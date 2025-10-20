@@ -15,18 +15,17 @@ cd "$(dirname "$0")"
 
 # Create a directory for the build files
 mkdir -p build
-cd build
 
-# Configure the project with Ninja generator for faster builds
-echo -e "${BLUE}Configuring project with Ninja...${NC}"
+# Configure the project in Release mode (out-of-source)
+echo -e "${BLUE}Configuring project (Release)...${NC}"
 
 # Check if Ninja is installed
 if command -v ninja &> /dev/null; then
-    cmake -G Ninja .. 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -march=native -DNDEBUG" 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
     CMAKE_STATUS=$?
 else
     echo -e "${YELLOW}Ninja build system not found. Using default generator.${NC}"
-    cmake .. 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3 -march=native -DNDEBUG" 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
     CMAKE_STATUS=$?
 fi
 
@@ -42,7 +41,7 @@ echo -e "${BLUE}Building project...${NC}"
 NUM_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 
 # Build with parallel jobs
-cmake --build . --config Release -- -j${NUM_CORES} 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
+cmake --build build --parallel ${NUM_CORES} 2>&1 | sed "s/.*warning.*/${YELLOW}&${NC}/g; s/.*error.*/${RED}&${NC}/g"
 BUILD_STATUS=$?
 
 if [ $BUILD_STATUS -ne 0 ]; then
@@ -54,7 +53,13 @@ echo -e "${GREEN}Build successful!${NC}"
 
 # Run the main executable
 echo -e "${BLUE}Running main executable...${NC}"
-./MyProject
+if [ -x "./build/MyProject" ]; then
+    ./build/MyProject
+elif [ -x "./build/Release/MyProject" ]; then
+    ./build/Release/MyProject
+else
+    echo -e "${RED}Executable not found in build/.${NC}"
+fi
 
 # Run all executables in the examples directory and its subdirectories
 echo "Current working directory: $(pwd)"
