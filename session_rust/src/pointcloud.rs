@@ -169,7 +169,7 @@ impl Serialize for PointCloud {
         state.serialize_field("name", &self.name)?;
 
         // Flatten points to [x, y, z, x, y, z, ...]
-        let points_flat: Vec<f32> = self
+        let points_flat: Vec<f64> = self
             .points
             .iter()
             .flat_map(|p| vec![p.x(), p.y(), p.z()])
@@ -177,7 +177,7 @@ impl Serialize for PointCloud {
         state.serialize_field("points", &points_flat)?;
 
         // Flatten normals to [x, y, z, x, y, z, ...]
-        let normals_flat: Vec<f32> = self
+        let normals_flat: Vec<f64> = self
             .normals
             .iter()
             .flat_map(|n| vec![n.x(), n.y(), n.z()])
@@ -232,8 +232,8 @@ impl<'de> Deserialize<'de> for PointCloud {
             {
                 let mut guid = None;
                 let mut name = None;
-                let mut points_flat: Option<Vec<f32>> = None;
-                let mut normals_flat: Option<Vec<f32>> = None;
+                let mut points_flat: Option<Vec<f64>> = None;
+                let mut normals_flat: Option<Vec<f64>> = None;
                 let mut colors_flat: Option<Vec<u8>> = None;
                 let mut xform = None;
 

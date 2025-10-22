@@ -38,7 +38,7 @@ Point Point::transformed() const {
 
 /// Convert to JSON-serializable object
 nlohmann::ordered_json Point::jsondump() const {
-  auto clean_float = [](float val) -> double { return static_cast<double>(std::round(val * 100.0f) / 100.0f); };
+  auto clean_float = [](double val) -> double { return std::round(val * 100.0) / 100.0; };
   return nlohmann::ordered_json{
       {"type", "Point"}, {"guid", guid},
       {"name", name},    {"x", clean_float(_x)},
@@ -64,7 +64,7 @@ Point Point::jsonload(const nlohmann::json &data) {
 // No-copy Operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-float& Point::operator[](int index) {
+double& Point::operator[](int index) {
   if (index == 0) {
     return _x;
   } else if (index == 1) {
@@ -76,7 +76,7 @@ float& Point::operator[](int index) {
   }
 }
 
-const float &Point::operator[](int index) const{
+const double &Point::operator[](int index) const{
   if (index == 0) {
     return _x;
   } else if (index == 1) {
@@ -88,14 +88,14 @@ const float &Point::operator[](int index) const{
   }
 }
 
-Point &Point::operator*=(float factor) {
+Point &Point::operator*=(double factor) {
   _x *= factor;
   _y *= factor;
   _z *= factor;
   return *this;
 }
 
-Point &Point::operator/=(float factor) {
+Point &Point::operator/=(double factor) {
   _x /= factor;
   _y /= factor;
   _z /= factor;
@@ -119,13 +119,13 @@ Point& Point::operator-=(const Vector& other) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Copy Operators
 
-Point Point::operator*(float factor) const {
+Point Point::operator*(double factor) const {
   Point result = *this;
   result *= factor;
   return result;
 }
 
-Point Point::operator/(float factor) const {
+Point Point::operator/(double factor) const {
   Point result = *this;
   result /= factor;
   return result;
@@ -158,11 +158,11 @@ Point Point::mid_point(const Point& p) const {
     return Point((_x + p._x) / 2, (_y + p._y) / 2, (_z + p._z) / 2);
 }
 
-float Point::distance(const Point& p, float float_min) const {
-    float dx = std::abs((*this)[0] - p[0]);
-    float dy = std::abs((*this)[1] - p[1]);
-    float dz = std::abs((*this)[2] - p[2]);
-    float length = 0.0f;
+double Point::distance(const Point& p, double float_min) const {
+    double dx = std::abs((*this)[0] - p[0]);
+    double dy = std::abs((*this)[1] - p[1]);
+    double dz = std::abs((*this)[2] - p[2]);
+    double length = 0.0;
 
     // Reorder coordinates to put largest in dx
     if (dy >= dx && dy >= dz) {
@@ -174,26 +174,26 @@ float Point::distance(const Point& p, float float_min) const {
     if (dx > float_min) {
         dy /= dx;
         dz /= dx;
-        length = dx * std::sqrt(1.0f + dy * dy + dz * dz);
-    } else if (dx > 0.0f && std::isfinite(dx)) {
+        length = dx * std::sqrt(1.0 + dy * dy + dz * dz);
+    } else if (dx > 0.0 && std::isfinite(dx)) {
         length = dx;
     } else {
-        length = 0.0f;
+        length = 0.0;
     }
 
     return length;
 }
 
-float Point::area(const std::vector<Point>& points) {
+double Point::area(const std::vector<Point>& points) {
     size_t n = points.size();
-    float area = 0.0f;
+    double area = 0.0;
     
     for (size_t i = 0; i < n; ++i) {
         size_t j = (i + 1) % n;
         area += points[i][0] * points[j][1];
         area -= points[j][0] * points[i][1];
     }
-    return std::abs(area) / 2.0f;
+    return std::abs(area) / 2.0;
 }
 
 Point Point::centroid_quad(const std::vector<Point>& vertices) {
@@ -201,7 +201,7 @@ Point Point::centroid_quad(const std::vector<Point>& vertices) {
         throw std::invalid_argument("Polygon must have exactly 4 vertices.");
     }
     
-    float total_area = 0.0f;
+    double total_area = 0.0;
     Vector centroid_sum(0, 0, 0);
     
     for (int i = 0; i < 4; ++i) {
@@ -209,14 +209,14 @@ Point Point::centroid_quad(const std::vector<Point>& vertices) {
         const Point& p1 = vertices[(i + 1) % 4];
         const Point& p2 = vertices[(i + 2) % 4];
         
-        float tri_area = std::abs(p0[0] * (p1[1] - p2[1]) + 
+        double tri_area = std::abs(p0[0] * (p1[1] - p2[1]) + 
                                   p1[0] * (p2[1] - p0[1]) + 
-                                  p2[0] * (p0[1] - p1[1])) / 2.0f;
+                                  p2[0] * (p0[1] - p1[1])) / 2.0;
         total_area += tri_area;
         
-        Vector tri_centroid((p0[0] + p1[0] + p2[0]) / 3.0f,
-                          (p0[1] + p1[1] + p2[1]) / 3.0f,
-                          (p0[2] + p1[2] + p2[2]) / 3.0f);
+        Vector tri_centroid((p0[0] + p1[0] + p2[0]) / 3.0,
+                          (p0[1] + p1[1] + p2[1]) / 3.0,
+                          (p0[2] + p1[2] + p2[2]) / 3.0);
         centroid_sum += tri_centroid * tri_area;
     }
     

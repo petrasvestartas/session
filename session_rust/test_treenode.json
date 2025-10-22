@@ -1,16 +1,16 @@
 {
   "type": "TreeNode",
-  "guid": "7bacb1be-ce4d-4484-904c-143175593c25",
+  "guid": "26d36f1f-7294-4ffd-9490-30f72df0fe74",
   "name": "filesystem_root",
   "children": [
     {
       "type": "TreeNode",
-      "guid": "f1fc1c6f-954f-4915-a6fa-2ce8558b03ea",
+      "guid": "b0b981e4-286f-406a-9ed1-61419a3e16af",
       "name": "bin",
       "children": [
         {
           "type": "TreeNode",
-          "guid": "cd984212-db03-4eb8-a4a9-bc817e18572b",
+          "guid": "5b1e13cc-b6c2-4135-992c-ec624e4ab130",
           "name": "app.exe",
           "children": []
         }
@@ -18,12 +18,12 @@
     },
     {
       "type": "TreeNode",
-      "guid": "87099e01-459b-4e47-864a-b918126a5269",
+      "guid": "8b5e21cd-e2f0-4278-a126-317e5aa1289d",
       "name": "lib",
       "children": [
         {
           "type": "TreeNode",
-          "guid": "cff8be93-4a82-4a8b-a3ff-dfdc2201ebe7",
+          "guid": "184d33f3-7ea0-4a29-925b-2ac8a3c00347",
           "name": "config.dll",
           "children": []
         }

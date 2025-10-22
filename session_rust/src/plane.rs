@@ -16,13 +16,13 @@ pub struct Plane {
     #[serde(rename = "z_axis")]
     _z_axis: Vector,
     #[serde(rename = "a")]
-    _a: f32,
+    _a: f64,
     #[serde(rename = "b")]
-    _b: f32,
+    _b: f64,
     #[serde(rename = "c")]
-    _c: f32,
+    _c: f64,
     #[serde(rename = "d")]
-    _d: f32,
+    _d: f64,
     #[serde(default = "Xform::identity")]
     pub xform: Xform,
 }
@@ -268,19 +268,19 @@ impl Plane {
         self._z_axis.clone()
     }
 
-    pub fn a(&self) -> f32 {
+    pub fn a(&self) -> f64 {
         self._a
     }
 
-    pub fn b(&self) -> f32 {
+    pub fn b(&self) -> f64 {
         self._b
     }
 
-    pub fn c(&self) -> f32 {
+    pub fn c(&self) -> f64 {
         self._c
     }
 
-    pub fn d(&self) -> f32 {
+    pub fn d(&self) -> f64 {
         self._d
     }
 
@@ -295,7 +295,7 @@ impl Plane {
             -(self._a * self._origin.x() + self._b * self._origin.y() + self._c * self._origin.z());
     }
 
-    pub fn rotate(&mut self, angles_in_radians: f32) {
+    pub fn rotate(&mut self, angles_in_radians: f64) {
         let cos_angle = angles_in_radians.cos();
         let sin_angle = angles_in_radians.sin();
 
@@ -427,7 +427,7 @@ impl Plane {
         let mut normal = self._z_axis.clone();
         normal.normalize_self();
 
-        let new_origin = self._origin.clone() + (normal * distance as f32);
+        let new_origin = self._origin.clone() + (normal * distance);
 
         Plane::new(new_origin, self._x_axis.clone(), self._y_axis.clone())
     }

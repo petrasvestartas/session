@@ -11,7 +11,7 @@ use uuid::Uuid;
 pub struct Arrow {
     pub line: Line,
     pub mesh: Mesh,
-    pub radius: f32,
+    pub radius: f64,
     pub guid: String,
     pub name: String,
     #[serde(default = "Xform::identity")]
@@ -29,7 +29,7 @@ impl Arrow {
     /// # Returns
     ///
     /// A new `Arrow` with a cylinder body and cone head mesh
-    pub fn new(line: Line, radius: f32) -> Self {
+    pub fn new(line: Line, radius: f64) -> Self {
         let mesh = Self::create_arrow_mesh(&line, radius);
         Self {
             line,
@@ -41,7 +41,7 @@ impl Arrow {
         }
     }
 
-    fn create_arrow_mesh(line: &Line, radius: f32) -> Mesh {
+    fn create_arrow_mesh(line: &Line, radius: f64) -> Mesh {
         let start = line.start();
         let line_vec = line.to_vector();
         let length = line.length();

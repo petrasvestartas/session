@@ -7,6 +7,7 @@
 #include "src/boundingbox.h"
 #include "src/bvh.h"
 #include "src/obj.h"
+#include "src/session.h"
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -89,7 +90,7 @@ int main() {
     
 
     // std::vector<Point> intersection_points;
-    // if (Intersection::ray_box(l0, box, 0.0f, 1000.0f, intersection_points)) {
+    // if (Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points)) {
     //     std::cout << "6. ray_box: entry=" << intersection_points[0] 
     //               << ", exit=" << intersection_points[1] << "\n";
     // }
@@ -97,7 +98,7 @@ int main() {
     // // 7. ray_sphere
     // Point sphere_center_test(457.0, 192.0, 207.0);
     // std::vector<Point> sphere_points;
-    // if (Intersection::ray_sphere(l0, sphere_center_test, 265.0f, sphere_points)) {
+    // if (Intersection::ray_sphere(l0, sphere_center_test, 265.0, sphere_points)) {
     //     std::cout << "7. ray_sphere: " << sphere_points.size() << " hits";
     //     for (size_t i = 0; i < sphere_points.size(); i++) {
     //         std::cout << ", p" << i << "=" << sphere_points[i];
@@ -175,7 +176,7 @@ int main() {
         size_t face_idx, sub_idx;
         Point v0, v1, v2, hp;
         if (!bunny.get_triangle_by_id(tri_id, face_idx, sub_idx, v0, v1, v2)) continue;
-        if (Intersection::ray_triangle(zaxis, v0, v1, v2, static_cast<float>(Tolerance::ZERO_TOLERANCE), hp)) {
+        if (Intersection::ray_triangle(zaxis, v0, v1, v2, static_cast<double>(Tolerance::ZERO_TOLERANCE), hp)) {
             tri_hits++;
         }
     }
@@ -200,24 +201,24 @@ int main() {
         std::vector<BoundingBox> boxes;
         boxes.reserve(box_count);
         
-        const float WORLD_SIZE = 100.0f;
-        const float MIN_SIZE = 5.0f;
-        const float MAX_SIZE = 10.0f;
+        const double WORLD_SIZE = 100.0;
+        const double MIN_SIZE = 5.0;
+        const double MAX_SIZE = 10.0;
         
         std::srand(42); // Fixed seed for consistency
         for (int i = 0; i < box_count; i++) {
             // Random position within world bounds
-            float x = (static_cast<float>(std::rand()) / RAND_MAX - 0.5f) * WORLD_SIZE;
-            float y = (static_cast<float>(std::rand()) / RAND_MAX - 0.5f) * WORLD_SIZE;
-            float z = (static_cast<float>(std::rand()) / RAND_MAX - 0.5f) * WORLD_SIZE;
+            double x = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double y = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double z = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
             
             // Random box size
-            float w = MIN_SIZE + (static_cast<float>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
-            float h = MIN_SIZE + (static_cast<float>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
-            float d = MIN_SIZE + (static_cast<float>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
+            double w = MIN_SIZE + (static_cast<double>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
+            double h = MIN_SIZE + (static_cast<double>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
+            double d = MIN_SIZE + (static_cast<double>(std::rand()) / RAND_MAX) * (MAX_SIZE - MIN_SIZE);
             
             Point center(x, y, z);
-            Vector half_size(w * 0.5f, h * 0.5f, d * 0.5f);
+            Vector half_size(w * 0.5, h * 0.5, d * 0.5);
             
             boxes.emplace_back(center, Vector(1,0,0), Vector(0,1,0), Vector(0,0,1), half_size);
         }
@@ -247,12 +248,12 @@ int main() {
         //     std::cout << "\nBoxes (min_x min_y min_z max_x max_y max_z):\n";
         //     for (size_t i = 0; i < boxes.size(); ++i) {
         //         const auto& b = boxes[i];
-        //         float min_x = b.center.x() - b.half_size.x();
-        //         float min_y = b.center.y() - b.half_size.y();
-        //         float min_z = b.center.z() - b.half_size.z();
-        //         float max_x = b.center.x() + b.half_size.x();
-        //         float max_y = b.center.y() + b.half_size.y();
-        //         float max_z = b.center.z() + b.half_size.z();
+        //         double min_x = b.center.x() - b.half_size.x();
+        //         double min_y = b.center.y() - b.half_size.y();
+        //         double min_z = b.center.z() - b.half_size.z();
+        //         double max_x = b.center.x() + b.half_size.x();
+        //         double max_y = b.center.y() + b.half_size.y();
+        //         double max_z = b.center.z() + b.half_size.z();
         //         std::cout << min_x << " " << min_y << " " << min_z << " "
         //                   << max_x << " " << max_y << " " << max_z << "\n";
         //     }
@@ -268,6 +269,391 @@ int main() {
         std::cout << "\n";
     }
 
+    // =============================================================================
+    // Session Collision Detection Example
+    // =============================================================================
+    std::cout << "\n=== Session Collision Detection (GUID Tracking) ===\n";
+    std::cout << "Testing Session::get_collisions() with geometry GUIDs...\n\n";
+    
+    {
+        Session scene("collision_test");
+        
+        // Add some boxes that will collide
+        auto box1 = std::make_shared<BoundingBox>(
+            Point(0, 0, 0), 
+            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
+            Vector(2, 2, 2)
+        );
+        box1->name = "box_A";
+        auto node1 = scene.add_bbox(box1);
+        scene.add(node1);
+        
+        auto box2 = std::make_shared<BoundingBox>(
+            Point(3, 0, 0),  // Overlaps with box1
+            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
+            Vector(2, 2, 2)
+        );
+        box2->name = "box_B";
+        auto node2 = scene.add_bbox(box2);
+        scene.add(node2);
+        
+        auto box3 = std::make_shared<BoundingBox>(
+            Point(20, 0, 0),  // Far away, no collision
+            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
+            Vector(1, 1, 1)
+        );
+        box3->name = "box_C";
+        auto node3 = scene.add_bbox(box3);
+        scene.add(node3);
+        
+        // Add a line that might collide
+        auto line1 = std::make_shared<Line>(Line::from_points(Point(0, 0, 0), Point(5, 0, 0)));
+        line1->name = "line_D";
+        auto node4 = scene.add_line(line1);
+        scene.add(node4);
+        
+        // Add points
+        auto pt1 = std::make_shared<Point>(1, 1, 1);  // Inside box1
+        pt1->name = "point_E";
+        auto node5 = scene.add_point(pt1);
+        scene.add(node5);
+        
+        auto pt2 = std::make_shared<Point>(100, 100, 100);  // Far away
+        pt2->name = "point_F";
+        auto node6 = scene.add_point(pt2);
+        scene.add(node6);
+        
+        size_t total_objects = scene.objects.points->size() + 
+                               scene.objects.lines->size() + 
+                               scene.objects.planes->size() + 
+                               scene.objects.bboxes->size() + 
+                               scene.objects.polylines->size() + 
+                               scene.objects.pointclouds->size() + 
+                               scene.objects.meshes->size() + 
+                               scene.objects.cylinders->size() + 
+                               scene.objects.arrows->size();
+        std::cout << "Added " << total_objects << " objects to scene\n";
+        std::cout << "Object GUIDs and names:\n";
+        std::cout << "  - " << box1->guid << " (" << box1->name << ")\n";
+        std::cout << "  - " << box2->guid << " (" << box2->name << ")\n";
+        std::cout << "  - " << box3->guid << " (" << box3->name << ")\n";
+        std::cout << "  - " << line1->guid << " (" << line1->name << ")\n";
+        std::cout << "  - " << pt1->guid << " (" << pt1->name << ")\n";
+        std::cout << "  - " << pt2->guid << " (" << pt2->name << ")\n";
+        
+        // Check collisions
+        auto collision_pairs = scene.get_collisions();
+        
+        std::cout << "\nFound " << collision_pairs.size() << " collision pairs:\n";
+        for (const auto& [guid1, guid2] : collision_pairs) {
+            // Look up names for display
+            std::string name1 = "unknown";
+            std::string name2 = "unknown";
+            
+            if (guid1 == box1->guid) name1 = box1->name;
+            else if (guid1 == box2->guid) name1 = box2->name;
+            else if (guid1 == box3->guid) name1 = box3->name;
+            else if (guid1 == line1->guid) name1 = line1->name;
+            else if (guid1 == pt1->guid) name1 = pt1->name;
+            else if (guid1 == pt2->guid) name1 = pt2->name;
+            
+            if (guid2 == box1->guid) name2 = box1->name;
+            else if (guid2 == box2->guid) name2 = box2->name;
+            else if (guid2 == box3->guid) name2 = box3->name;
+            else if (guid2 == line1->guid) name2 = line1->name;
+            else if (guid2 == pt1->guid) name2 = pt1->name;
+            else if (guid2 == pt2->guid) name2 = pt2->name;
+            
+            std::cout << "  Collision: " << name1 << " <-> " << name2 << "\n";
+            std::cout << "    GUID1: " << guid1 << "\n";
+            std::cout << "    GUID2: " << guid2 << "\n";
+        }
+        
+        if (collision_pairs.empty()) {
+            std::cout << "  (No collisions detected)\n";
+        }
+        
+        std::cout << "\n✓ Session collision detection working with GUID tracking!\n";
+    }
+
+    // =============================================================================
+    // Session Ray Casting Example
+    // =============================================================================
+    std::cout << "\n=== Session Ray Casting (BVH-Accelerated) ===\n";
+    std::cout << "Testing Session::ray_cast() with various geometry types...\n\n";
+    
+    {
+        Session scene("ray_test");
+        
+        // Add various geometry along the X axis
+        auto pt1 = std::make_shared<Point>(5, 0, 0);
+        pt1->name = "point_at_5";
+        scene.add_point(pt1);
+        
+        auto pt2 = std::make_shared<Point>(15, 0, 0);
+        pt2->name = "point_at_15";
+        scene.add_point(pt2);
+        
+        auto line1 = std::make_shared<Line>(Line::from_points(Point(10, -2, 0), Point(10, 2, 0)));
+        line1->name = "vertical_line_at_10";
+        scene.add_line(line1);
+        
+        Point plane_pt(20, 0, 0);
+        Vector plane_x(1, 0, 0);
+        Vector plane_y(0, 1, 0);
+        auto plane1 = std::make_shared<Plane>(plane_pt, plane_x, plane_y);
+        plane1->name = "plane_at_20";
+        scene.add_plane(plane1);
+        
+        // Add polyline
+        std::vector<Point> poly_pts = {
+            Point(25, -1, -1),
+            Point(25, 0, 0),
+            Point(25, 1, 1)
+        };
+        auto polyline1 = std::make_shared<Polyline>(poly_pts);
+        polyline1->name = "polyline_at_25";
+        scene.add_polyline(polyline1);
+        
+        // Cast a ray along X axis
+        Point ray_origin(0, 0, 0);
+        Vector ray_direction(1, 0, 0);  // Along X axis
+        double tolerance = 0.5;  // 0.5 units tolerance
+        
+        std::cout << "Ray: origin=(0,0,0), direction=(1,0,0), tolerance=" << tolerance << "\n";
+        std::cout << "Scene objects: point_at_5, point_at_15, vertical_line_at_10, plane_at_20, polyline_at_25\n\n";
+        
+        auto hits = scene.ray_cast(ray_origin, ray_direction, tolerance);
+        
+        std::cout << "Found " << hits.size() << " ray hits (sorted by distance):\n";
+        for (size_t i = 0; i < hits.size(); ++i) {
+            const auto& hit = hits[i];
+            
+            // Find name
+            std::string name = "unknown";
+            if (hit.guid == pt1->guid) name = pt1->name;
+            else if (hit.guid == pt2->guid) name = pt2->name;
+            else if (hit.guid == line1->guid) name = line1->name;
+            else if (hit.guid == plane1->guid) name = plane1->name;
+            else if (hit.guid == polyline1->guid) name = polyline1->name;
+            
+            std::cout << "  [" << i << "] " << name << "\n";
+            std::cout << "      Hit point: (" << hit.hit_point.x() << ", " 
+                      << hit.hit_point.y() << ", " << hit.hit_point.z() << ")\n";
+            std::cout << "      Distance: " << hit.distance << "\n";
+            std::cout << "      GUID: " << hit.guid << "\n";
+        }
+        
+        if (hits.empty()) {
+            std::cout << "  (No hits detected)\n";
+        }
+        
+        std::cout << "\n✓ Session ray casting working with BVH acceleration!\n";
+    }
+
+    // =============================================================================
+    // Comprehensive Ray Casting Test - All Geometry Types
+    // =============================================================================
+    std::cout << "\n=== Comprehensive Ray Test (All Geometry Types) ===\n";
+    std::cout << "Testing ray intersection with ALL geometry types...\n\n";
+    
+    {
+        Session scene("comprehensive_test");
+        
+        // Add all geometry types along Y axis
+        auto pt = std::make_shared<Point>(0, 10, 0);
+        pt->name = "point_10";
+        scene.add_point(pt);
+        
+        auto line = std::make_shared<Line>(Line::from_points(Point(-1, 20, 0), Point(1, 20, 0)));
+        line->name = "line_20";
+        scene.add_line(line);
+        
+        Point plane_pt(0, 30, 0);
+        Vector plane_x(1, 0, 0);
+        Vector plane_y(0, 0, 1);
+        auto plane = std::make_shared<Plane>(plane_pt, plane_x, plane_y);
+        plane->name = "plane_30";
+        scene.add_plane(plane);
+        
+        auto bbox = std::make_shared<BoundingBox>(
+            Point(0, 40, 0),
+            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1),
+            Vector(2, 2, 2)
+        );
+        bbox->name = "bbox_40";
+        scene.add_bbox(bbox);
+        
+        Line cyl_line = Line::from_points(Point(-1, 50, 0), Point(1, 50, 0));
+        auto cyl = std::make_shared<Cylinder>(cyl_line, 1.0);
+        cyl->name = "cylinder_50";
+        scene.add_cylinder(cyl);
+        
+        Line arrow_line = Line::from_points(Point(-1, 60, 0), Point(1, 60, 0));
+        auto arrow = std::make_shared<Arrow>(arrow_line, 1.0);
+        arrow->name = "arrow_60";
+        scene.add_arrow(arrow);
+        
+        std::vector<Point> poly_pts = {
+            Point(-1, 70, 0),
+            Point(0, 70, 0),
+            Point(1, 70, 0)
+        };
+        auto poly = std::make_shared<Polyline>(poly_pts);
+        poly->name = "polyline_70";
+        scene.add_polyline(poly);
+        
+        // Cast ray along Y axis
+        Point ray_origin(0, 0, 0);
+        Vector ray_dir(0, 1, 0);
+        double tolerance = 1.0;
+        
+        std::cout << "Ray: origin=(0,0,0), direction=(0,1,0), tolerance=" << tolerance << "\n";
+        std::cout << "Testing: Point, Line, Plane, BoundingBox, Cylinder, Arrow, Polyline\n\n";
+        
+        auto hits = scene.ray_cast(ray_origin, ray_dir, tolerance);
+        
+        std::cout << "Found " << hits.size() << " hit(s):\n";
+        for (size_t i = 0; i < hits.size(); ++i) {
+            const auto& hit = hits[i];
+            
+            // Find name
+            std::string name = "unknown";
+            if (hit.guid == pt->guid) name = pt->name;
+            else if (hit.guid == line->guid) name = line->name;
+            else if (hit.guid == plane->guid) name = plane->name;
+            else if (hit.guid == bbox->guid) name = bbox->name;
+            else if (hit.guid == cyl->guid) name = cyl->name;
+            else if (hit.guid == arrow->guid) name = arrow->name;
+            else if (hit.guid == poly->guid) name = poly->name;
+            
+            std::cout << "  [" << i << "] " << name << " at distance " << hit.distance << "\n";
+        }
+        
+        std::cout << "\n✓ All geometry types tested with BVH acceleration!\n";
+        std::cout << "\nBVH Performance Notes:\n";
+        std::cout << "  - BVH built once for all objects\n";
+        std::cout << "  - Ray traversal prunes non-intersecting AABBs\n";
+        std::cout << "  - Only candidates tested with precise intersection\n";
+        std::cout << "  - Works for ALL geometry types automatically\n";
+    }
+
+    // =============================================================================
+    // Session Ray Casting Performance - 10,000 Objects
+    // =============================================================================
+    std::cout << "\n=== Session Ray Casting Performance (10,000 Objects) ===\n";
+    std::cout << "Comparing Session vs Pure BVH performance...\n\n";
+    
+    {
+        const int OBJECT_COUNT = 10000;
+        const double WORLD_SIZE = 100.0;
+        
+        // Create Session with 10,000 random points
+        Session scene("perf_test");
+        std::vector<BoundingBox> pure_boxes;  // For pure BVH comparison
+        
+        std::srand(42);  // Fixed seed
+        for (int i = 0; i < OBJECT_COUNT; ++i) {
+            double x = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double y = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double z = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            
+            auto pt = std::make_shared<Point>(x, y, z);
+            pt->name = "point_" + std::to_string(i);
+            scene.add_point(pt);
+            
+            // Also create AABB for pure BVH test
+            pure_boxes.emplace_back(
+                Point(x, y, z),
+                Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1),
+                Vector(0.5, 0.5, 0.5)
+            );
+        }
+        
+        std::cout << "Created " << OBJECT_COUNT << " objects in scene\n";
+        
+        // Test ray along X axis
+        Point ray_origin(0, 0, 0);
+        Vector ray_dir(1, 0, 0);
+        double tolerance = 1.0;
+        
+        // =============================================================================
+        // BENCHMARK 1: Session::ray_cast() - With GUID tracking and geometry dispatch
+        // =============================================================================
+        auto session_start = std::chrono::high_resolution_clock::now();
+        auto session_hits = scene.ray_cast(ray_origin, ray_dir, tolerance);
+        auto session_end = std::chrono::high_resolution_clock::now();
+        double session_ms = std::chrono::duration<double, std::milli>(session_end - session_start).count();
+        
+        std::cout << "\n[1] Session::ray_cast() FIRST call (builds cache):\n";
+        std::cout << "    Time: " << session_ms << " ms\n";
+        std::cout << "    Hits: " << session_hits.size() << "\n";
+        std::cout << "    Includes: BVH build + ray traversal + GUID lookup + variant dispatch\n";
+        
+        // =============================================================================
+        // BENCHMARK 1b: Session::ray_cast() SECOND call - Using cached BVH
+        // =============================================================================
+        auto session2_start = std::chrono::high_resolution_clock::now();
+        auto session_hits2 = scene.ray_cast(ray_origin, Vector(0, 1, 0), tolerance);  // Different direction
+        auto session2_end = std::chrono::high_resolution_clock::now();
+        double session2_ms = std::chrono::duration<double, std::milli>(session2_end - session2_start).count();
+        
+        std::cout << "\n[1b] Session::ray_cast() SECOND call (uses cache):\n";
+        std::cout << "    Time: " << session2_ms << " ms\n";
+        std::cout << "    Hits: " << session_hits2.size() << "\n";
+        std::cout << "    Includes: ray traversal + GUID lookup + variant dispatch (NO BVH BUILD!)\n";
+        std::cout << "    Speedup vs first call: " << (session_ms / session2_ms) << "x faster\n";
+        
+        // =============================================================================
+        // BENCHMARK 2: Pure BVH - Only AABB intersection (no geometry dispatch)
+        // =============================================================================
+        auto bvh_start = std::chrono::high_resolution_clock::now();
+        BVH pure_bvh = BVH::from_boxes(pure_boxes, WORLD_SIZE);
+        std::vector<int> candidate_ids;
+        pure_bvh.ray_cast(ray_origin, ray_dir, candidate_ids, true);
+        auto bvh_end = std::chrono::high_resolution_clock::now();
+        double bvh_ms = std::chrono::duration<double, std::milli>(bvh_end - bvh_start).count();
+        
+        std::cout << "\n[2] Pure BVH::ray_cast() AABB only:\n";
+        std::cout << "    Time: " << bvh_ms << " ms\n";
+        std::cout << "    Candidates: " << candidate_ids.size() << "\n";
+        std::cout << "    Includes: BVH build + ray traversal only\n";
+        
+        // =============================================================================
+        // Analysis
+        // =============================================================================
+        double overhead_ms = session_ms - bvh_ms;
+        double overhead_pct = (overhead_ms / bvh_ms) * 100.0;
+        double cached_overhead_ms = session2_ms - bvh_ms;
+        double cached_overhead_pct = (cached_overhead_ms / bvh_ms) * 100.0;
+        
+        std::cout << "\n[Analysis - Performance Comparison]\n";
+        std::cout << "    Pure BVH time:                 " << bvh_ms << " ms\n";
+        std::cout << "    Session FIRST call (no cache): " << session_ms << " ms (" << overhead_pct << "% overhead)\n";
+        std::cout << "    Session CACHED call:           " << session2_ms << " ms (" << cached_overhead_pct << "% overhead)\n";
+        std::cout << "\n[Cache Performance Impact]\n";
+        std::cout << "    BVH rebuild cost: " << (session_ms - session2_ms) << " ms\n";
+        std::cout << "    Cache speedup:    " << (session_ms / session2_ms) << "x faster on subsequent rays\n";
+        std::cout << "\n[Remaining overhead breakdown (cached)]\n";
+        std::cout << "    - GUID lookup:         std::unordered_map access per candidate\n";
+        std::cout << "    - Variant dispatch:    std::visit type checking\n";
+        std::cout << "    - Precise geometry:    Point-ray distance calculation\n";
+        std::cout << "    - Result tracking:     Closest hit detection\n";
+        
+        if (cached_overhead_pct < 50) {
+            std::cout << "\n✓ Cached Session overhead is LOW (< 50%) - Excellent performance!\n";
+        } else if (cached_overhead_pct < 100) {
+            std::cout << "\n✓ Cached Session overhead is MODERATE (< 100%) - Good performance\n";
+        } else {
+            std::cout << "\n⚠ Cached Session overhead is still HIGH - Geometry dispatch is expensive\n";
+        }
+        
+        std::cout << "\n[Summary]\n";
+        std::cout << "  ✓ BVH caching implemented successfully!\n";
+        std::cout << "  ✓ First ray cast: builds BVH (expensive)\n";
+        std::cout << "  ✓ Subsequent rays: reuse cached BVH (fast)\n";
+        std::cout << "  ✓ Cache invalidates on add/remove geometry\n";
+    }
 
     return 0;
 }

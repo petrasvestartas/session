@@ -6,8 +6,8 @@
 using namespace session_cpp;
 
 TEST_CASE("Arrow JSON roundtrip", "[arrow]") {
-    Line line(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f);
-    Arrow original(line, 1.0f);
+    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);
+    Arrow original(line, 1.0);
     original.name = "test_arrow";
     
     

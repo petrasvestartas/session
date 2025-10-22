@@ -38,21 +38,21 @@ public:
 
     BoundingBox();
     BoundingBox(const Point& center, const Vector& x_axis, const Vector& y_axis, const Vector& z_axis, const Vector& half_size);
-    BoundingBox(const Plane&plane, float dx, float dy, float dz);
+    BoundingBox(const Plane&plane, double dx, double dy, double dz);
     
-    static BoundingBox from_point(const Point& point, float inflate = 0.0f);
-    static BoundingBox from_points(const std::vector<Point>& points, float inflate = 0.0f);
-    static BoundingBox from_line(const Line& line, float inflate = 0.0f);
-    static BoundingBox from_polyline(const Polyline& polyline, float inflate = 0.0f);
-    static BoundingBox from_mesh(const Mesh& mesh, float inflate = 0.0f);
-    static BoundingBox from_pointcloud(const PointCloud& pointcloud, float inflate = 0.0f);
+    static BoundingBox from_point(const Point& point, double inflate = 0.0);
+    static BoundingBox from_points(const std::vector<Point>& points, double inflate = 0.0);
+    static BoundingBox from_line(const Line& line, double inflate = 0.0);
+    static BoundingBox from_polyline(const Polyline& polyline, double inflate = 0.0);
+    static BoundingBox from_mesh(const Mesh& mesh, double inflate = 0.0);
+    static BoundingBox from_pointcloud(const PointCloud& pointcloud, double inflate = 0.0);
     
     Point min_point() const;
     Point max_point() const;
     std::array<Point, 8> corners() const;
     std::array<Point, 10> two_rectangles() const;
-    Point point_at(float x, float y, float z) const;
-    void inflate(float amount);
+    Point point_at(double x, double y, double z) const;
+    void inflate(double amount);
     
     bool collides_with(const BoundingBox& other) const;
     

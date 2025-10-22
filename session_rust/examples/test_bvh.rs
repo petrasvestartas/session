@@ -4,8 +4,8 @@ use std::fs;
 
 #[derive(Deserialize)]
 struct BoxData {
-    center: [f32; 3],
-    half_size: [f32; 3],
+    center: [f64; 3],
+    half_size: [f64; 3],
 }
 
 fn main() {

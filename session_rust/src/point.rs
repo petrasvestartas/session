@@ -11,12 +11,12 @@ pub struct Point {
     pub guid: String, // Unique identifier
     pub name: String, // Name of the point
     #[serde(rename = "x")]
-    _x: f32, // X coordinate (private)
+    _x: f64, // X coordinate (private)
     #[serde(rename = "y")]
-    _y: f32, // Y coordinate (private)
+    _y: f64, // Y coordinate (private)
     #[serde(rename = "z")]
-    _z: f32, // Z coordinate (private)
-    pub width: f32,   // Width of the point
+    _z: f64, // Z coordinate (private)
+    pub width: f64,   // Width of the point
     pub pointcolor: Color, // Color of the point
     #[serde(default = "Xform::identity")]
     pub xform: Xform, // Transformation matrix
@@ -39,7 +39,7 @@ impl Default for Point {
 
 impl Point {
     /// Creates a new Point with specified coordinates.
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self {
             _x: x,
             _y: y,
@@ -49,24 +49,24 @@ impl Point {
     }
 
     /// Getters for coordinates
-    pub fn x(&self) -> f32 {
+    pub fn x(&self) -> f64 {
         self._x
     }
-    pub fn y(&self) -> f32 {
+    pub fn y(&self) -> f64 {
         self._y
     }
-    pub fn z(&self) -> f32 {
+    pub fn z(&self) -> f64 {
         self._z
     }
 
     /// Setters for coordinates
-    pub fn set_x(&mut self, v: f32) {
+    pub fn set_x(&mut self, v: f64) {
         self._x = v;
     }
-    pub fn set_y(&mut self, v: f32) {
+    pub fn set_y(&mut self, v: f64) {
         self._y = v;
     }
-    pub fn set_z(&mut self, v: f32) {
+    pub fn set_z(&mut self, v: f64) {
         self._z = v;
     }
 
@@ -132,12 +132,12 @@ impl Point {
     }
 
     /// Calculate the distance between this point and another point.
-    pub fn distance(&self, p: &Point) -> f32 {
+    pub fn distance(&self, p: &Point) -> f64 {
         self.distance_with_min(p, 1e-12)
     }
 
     /// Calculate the distance between this point and another point with custom minimum.
-    pub fn distance_with_min(&self, p: &Point, double_min: f32) -> f32 {
+    pub fn distance_with_min(&self, p: &Point, double_min: f64) -> f64 {
         let mut dx = (self[0] - p[0]).abs();
         let mut dy = (self[1] - p[1]).abs();
         let mut dz = (self[2] - p[2]).abs();
@@ -161,7 +161,7 @@ impl Point {
     }
 
     /// Calculate the area of a polygon.
-    pub fn area(points: &[Point]) -> f32 {
+    pub fn area(points: &[Point]) -> f64 {
         let n = points.len();
         let mut area = 0.0;
 
@@ -236,7 +236,7 @@ impl PartialEq for Point {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 impl Index<usize> for Point {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
@@ -263,16 +263,16 @@ impl IndexMut<usize> for Point {
 // No-copy operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-impl MulAssign<f32> for Point {
-    fn mul_assign(&mut self, rhs: f32) {
+impl MulAssign<f64> for Point {
+    fn mul_assign(&mut self, rhs: f64) {
         self._x *= rhs;
         self._y *= rhs;
         self._z *= rhs;
     }
 }
 
-impl DivAssign<f32> for Point {
-    fn div_assign(&mut self, rhs: f32) {
+impl DivAssign<f64> for Point {
+    fn div_assign(&mut self, rhs: f64) {
         self._x /= rhs;
         self._y /= rhs;
         self._z /= rhs;
@@ -299,18 +299,18 @@ impl SubAssign<Vector> for Point {
 // Copy operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-impl Mul<f32> for Point {
+impl Mul<f64> for Point {
     type Output = Point;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Point::new(self._x * rhs, self._y * rhs, self._z * rhs)
     }
 }
 
-impl Div<f32> for Point {
+impl Div<f64> for Point {
     type Output = Point;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: f64) -> Self::Output {
         Point::new(self._x / rhs, self._y / rhs, self._z / rhs)
     }
 }

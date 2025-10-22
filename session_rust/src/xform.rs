@@ -13,7 +13,7 @@ pub struct Xform {
     pub guid: String,
     pub name: String,
     /// The matrix elements stored in column-major order as a flattened array
-    pub m: [f32; 16],
+    pub m: [f64; 16],
 }
 
 impl Xform {
@@ -25,7 +25,7 @@ impl Xform {
         Self::identity()
     }
 
-    pub fn from_matrix(matrix: [f32; 16]) -> Self {
+    pub fn from_matrix(matrix: [f64; 16]) -> Self {
         Xform {
             typ: "Xform".to_string(),
             guid: Uuid::new_v4().to_string(),
@@ -66,7 +66,7 @@ impl Xform {
     // Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    pub fn translation(x: f32, y: f32, z: f32) -> Self {
+    pub fn translation(x: f64, y: f64, z: f64) -> Self {
         let mut xform = Self::identity();
         xform.m[12] = x;
         xform.m[13] = y;
@@ -74,7 +74,7 @@ impl Xform {
         xform
     }
 
-    pub fn scaling(x: f32, y: f32, z: f32) -> Self {
+    pub fn scaling(x: f64, y: f64, z: f64) -> Self {
         let mut xform = Self::identity();
         xform.m[0] = x;
         xform.m[5] = y;
@@ -82,7 +82,7 @@ impl Xform {
         xform
     }
 
-    pub fn rotation_x(angle_radians: f32) -> Self {
+    pub fn rotation_x(angle_radians: f64) -> Self {
         let mut xform = Self::identity();
 
         let cos_angle = angle_radians.cos();
@@ -96,7 +96,7 @@ impl Xform {
         xform
     }
 
-    pub fn rotation_y(angle_radians: f32) -> Self {
+    pub fn rotation_y(angle_radians: f64) -> Self {
         let mut xform = Self::identity();
 
         let cos_angle = angle_radians.cos();
@@ -110,7 +110,7 @@ impl Xform {
         xform
     }
 
-    pub fn rotation_z(angle_radians: f32) -> Self {
+    pub fn rotation_z(angle_radians: f64) -> Self {
         let mut xform = Self::identity();
         let cos_angle = angle_radians.cos();
         let sin_angle = angle_radians.sin();
@@ -123,7 +123,7 @@ impl Xform {
         xform
     }
 
-    pub fn rotation(axis: &Vector, angle_radians: f32) -> Self {
+    pub fn rotation(axis: &Vector, angle_radians: f64) -> Self {
         let axis = axis.normalize();
 
         let mut xform = Self::identity();
@@ -572,7 +572,7 @@ impl Xform {
         &t * &f
     }
 
-    pub fn scale_xyz(scale_x: f32, scale_y: f32, scale_z: f32) -> Self {
+    pub fn scale_xyz(scale_x: f64, scale_y: f64, scale_z: f64) -> Self {
         let mut xform = Self::identity();
         xform.m[0] = scale_x;
         xform.m[5] = scale_y;
@@ -580,21 +580,21 @@ impl Xform {
         xform
     }
 
-    pub fn scale_uniform(origin: &Point, scale_value: f32) -> Self {
+    pub fn scale_uniform(origin: &Point, scale_value: f64) -> Self {
         let t0 = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let t1 = Self::scaling(scale_value, scale_value, scale_value);
         let t2 = Self::translation(origin.x(), origin.y(), origin.z());
         &t2 * &(&t1 * &t0)
     }
 
-    pub fn scale_non_uniform(origin: &Point, scale_x: f32, scale_y: f32, scale_z: f32) -> Self {
+    pub fn scale_non_uniform(origin: &Point, scale_x: f64, scale_y: f64, scale_z: f64) -> Self {
         let t0 = Self::translation(-origin.x(), -origin.y(), -origin.z());
         let t1 = Self::scale_xyz(scale_x, scale_y, scale_z);
         let t2 = Self::translation(origin.x(), origin.y(), origin.z());
         &t2 * &(&t1 * &t0)
     }
 
-    pub fn axis_rotation(angle: f32, axis: &Vector) -> Self {
+    pub fn axis_rotation(angle: f64, axis: &Vector) -> Self {
         let c = angle.cos();
         let s = angle.sin();
         let ux = axis.x();
@@ -682,7 +682,7 @@ impl Default for Xform {
 
 // Implement Index trait for accessing matrix elements with [(row, col)] syntax
 impl Index<(usize, usize)> for Xform {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, idx: (usize, usize)) -> &Self::Output {
         let (row, col) = idx;

@@ -6,7 +6,7 @@
 using namespace session_cpp;
 
 TEST_CASE("Line JSON roundtrip", "[line]") {
-    Line original(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f);
+    Line original(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     original.name = "test_line";
     
     

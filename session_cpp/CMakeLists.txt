@@ -19,9 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add compiler warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-    # Uncomment to enable more aggressive warnings
-    # add_compile_options(-Werror)
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
     # High optimization for Release builds
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -ffast-math -flto")
 elseif(MSVC)

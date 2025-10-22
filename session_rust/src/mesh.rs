@@ -17,11 +17,11 @@ pub struct Mesh {
     pub halfedge: HashMap<usize, HashMap<usize, Option<usize>>>, // Halfedge connectivity
     pub vertex: HashMap<usize, VertexData>,                      // Vertex data
     pub face: HashMap<usize, Vec<usize>>,                        // Face vertex lists
-    pub facedata: HashMap<usize, HashMap<String, f32>>,          // Face attributes
-    pub edgedata: HashMap<(usize, usize), HashMap<String, f32>>, // Edge attributes
-    pub default_vertex_attributes: HashMap<String, f32>,         // Default vertex attrs
-    pub default_face_attributes: HashMap<String, f32>,           // Default face attrs
-    pub default_edge_attributes: HashMap<String, f32>,           // Default edge attrs
+    pub facedata: HashMap<usize, HashMap<String, f64>>,          // Face attributes
+    pub edgedata: HashMap<(usize, usize), HashMap<String, f64>>, // Edge attributes
+    pub default_vertex_attributes: HashMap<String, f64>,         // Default vertex attrs
+    pub default_face_attributes: HashMap<String, f64>,           // Default face attrs
+    pub default_edge_attributes: HashMap<String, f64>,           // Default edge attrs
     #[serde(skip)]
     pub triangulation: HashMap<usize, Vec<[usize; 3]>>, // Cached triangulations
     max_vertex: usize,                                           // Next vertex key
@@ -35,7 +35,7 @@ pub struct Mesh {
     #[serde(skip)]
     pub linecolors: Vec<Color>,                // Edge colors
     #[serde(skip)]
-    pub widths: Vec<f32>,                      // Edge widths
+    pub widths: Vec<f64>,                      // Edge widths
     #[serde(default = "Xform::identity")]
     pub xform: Xform,   // Transformation matrix
 }
@@ -43,10 +43,10 @@ pub struct Mesh {
 /// Vertex data containing position and attributes
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VertexData {
-    pub x: f32,                           // X coordinate
-    pub y: f32,                           // Y coordinate
-    pub z: f32,                           // Z coordinate
-    pub attributes: HashMap<String, f32>, // Vertex attributes
+    pub x: f64,                           // X coordinate
+    pub y: f64,                           // Y coordinate
+    pub z: f64,                           // Z coordinate
+    pub attributes: HashMap<String, f64>, // Vertex attributes
 }
 
 impl VertexData {
@@ -69,7 +69,7 @@ impl VertexData {
         self.z = point.z();
     }
 
-    pub fn color(&self) -> [f32; 3] {
+    pub fn color(&self) -> [f64; 3] {
         [
             self.attributes.get("r").copied().unwrap_or(0.5),
             self.attributes.get("g").copied().unwrap_or(0.5),
@@ -77,20 +77,20 @@ impl VertexData {
         ]
     }
 
-    pub fn set_color(&mut self, r: f32, g: f32, b: f32) {
+    pub fn set_color(&mut self, r: f64, g: f64, b: f64) {
         self.attributes.insert("r".to_string(), r);
         self.attributes.insert("g".to_string(), g);
         self.attributes.insert("b".to_string(), b);
     }
 
-    pub fn normal(&self) -> Option<[f32; 3]> {
+    pub fn normal(&self) -> Option<[f64; 3]> {
         let nx = self.attributes.get("nx")?;
         let ny = self.attributes.get("ny")?;
         let nz = self.attributes.get("nz")?;
         Some([*nx, *ny, *nz])
     }
 
-    pub fn set_normal(&mut self, nx: f32, ny: f32, nz: f32) {
+    pub fn set_normal(&mut self, nx: f64, ny: f64, nz: f64) {
         self.attributes.insert("nx".to_string(), nx);
         self.attributes.insert("ny".to_string(), ny);
         self.attributes.insert("nz".to_string(), nz);
@@ -367,7 +367,7 @@ impl Mesh {
         }
     }
 
-    pub fn face_area(&self, face_key: usize) -> Option<f32> {
+    pub fn face_area(&self, face_key: usize) -> Option<f64> {
         let vertices = self.face.get(&face_key)?;
         if vertices.len() < 3 {
             return Some(0.0);
@@ -389,7 +389,7 @@ impl Mesh {
         Some(area)
     }
 
-    pub fn vertex_angle_in_face(&self, vertex_key: usize, face_key: usize) -> Option<f32> {
+    pub fn vertex_angle_in_face(&self, vertex_key: usize, face_key: usize) -> Option<f64> {
         let vertices = self.face.get(&face_key)?;
         let vertex_index = vertices.iter().position(|&v| v == vertex_key)?;
 
@@ -480,7 +480,7 @@ impl Mesh {
         (vertices, faces)
     }
 
-    pub fn from_polygons(polygons: Vec<Vec<Point>>, precision: Option<f32>) -> Self {
+    pub fn from_polygons(polygons: Vec<Vec<Point>>, precision: Option<f64>) -> Self {
         let mut mesh = Mesh::new();
         let mut map_eps: HashMap<(i64, i64, i64), usize> = HashMap::new();
         let mut map_exact: HashMap<(u64, u64, u64), usize> = HashMap::new();
@@ -500,11 +500,7 @@ impl Mesh {
                 map_eps.insert(key, vk);
                 vk
             } else {
-                let key = (
-                    p.x().to_bits() as u64,
-                    p.y().to_bits() as u64,
-                    p.z().to_bits() as u64,
-                );
+                let key = (p.x().to_bits(), p.y().to_bits(), p.z().to_bits());
                 if let Some(&vk) = map_exact.get(&key) {
                     return vk;
                 }
@@ -551,7 +547,7 @@ impl Mesh {
         }
     }
 
-    pub fn set_edge_width(&mut self, index: usize, width: f32) {
+    pub fn set_edge_width(&mut self, index: usize, width: f64) {
         if index < self.widths.len() {
             self.widths[index] = width;
         }
@@ -709,10 +705,7 @@ impl Mesh {
         }
 
         if let Some(widths) = data.get("widths").and_then(|v| v.as_array()) {
-            mesh.widths = widths
-                .iter()
-                .filter_map(|v| v.as_f64().map(|n| n as f32))
-                .collect();
+            mesh.widths = widths.iter().filter_map(|v| v.as_f64()).collect();
         }
 
         Some(mesh)

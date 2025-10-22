@@ -25,7 +25,7 @@ public:
     std::string name = "my_polyline";
     std::vector<Point> points;
     Plane plane;
-    float width = 1.0f;
+    double width = 1.0;
     Color linecolor = Color::white();
 
     Xform xform;
@@ -46,7 +46,7 @@ public:
     size_t segment_count() const;
 
     /// Calculates the total length of the polyline
-    float length() const;
+    double length() const;
 
     /// Returns a pointer to the point at the given index (nullptr if out of bounds)
     Point* get_point(size_t index);

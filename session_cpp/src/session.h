@@ -28,6 +28,15 @@
 
 namespace session_cpp {
 
+/**
+ * WHEN ADDING A NEW GEOMETRY TYPE:
+ * 1. Add it to this Geometry variant below
+ * 2. See complete checklist in session.cpp (top of file)
+ * 3. Update Objects class collections (objects.h/cpp)
+ * 4. Add Session::add_XXX() method
+ * 5. Update visitor patterns: compute_bounding_box(), ray_intersect_geometry()
+ */
+
 // All geometry types as a variant
 using Geometry = std::variant<
     std::shared_ptr<Arrow>,
@@ -39,6 +48,7 @@ using Geometry = std::variant<
     std::shared_ptr<Point>,
     std::shared_ptr<PointCloud>,
     std::shared_ptr<Polyline>
+    // ADD NEW GEOMETRY TYPE HERE (e.g., std::shared_ptr<Sphere>)
 >;
 
 /**
@@ -51,11 +61,16 @@ public:
   std::string guid = ::guid();     ///< The unique identifier of the session
   Objects objects;                 ///< Collection of geometry objects
   std::unordered_map<std::string, Geometry>
-      lookup;  ///< Fast GUID-based lookup for heterogeneous geometry (shared
-               ///< ownership)
-  Tree tree;   ///< Hierarchical tree structure
+      lookup; ///< Fast lookup table for objects by GUID
+  Tree tree;  ///< Tree structure for hierarchy
   Graph graph; ///< Graph structure for relationships
-  BVH bvh;     ///< Boundary Volume Hierarchy for spatial collision detection
+  BVH bvh;    ///< Bounding volume hierarchy for collision detection
+  
+  // BVH caching for ray casting performance
+  BVH cached_ray_bvh;                           ///< Cached BVH for ray casting
+  std::vector<std::string> cached_guids;        ///< GUID mapping for cached BVH
+  std::vector<BoundingBox> cached_boxes;        ///< Cached AABBs (avoid recomputing)
+  bool bvh_cache_dirty = true;                  ///< Flag to rebuild BVH cache
 
   /**
    * @brief Constructor.
@@ -252,6 +267,34 @@ public:
   std::vector<std::pair<std::string, std::string>> get_collisions();
 
   ///////////////////////////////////////////////////////////////////////////////////////////
+  // Ray Intersection
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Result of a ray intersection with geometry.
+   */
+  struct RayHit {
+    std::string guid;      ///< GUID of hit object
+    Point hit_point;       ///< Intersection point
+    double distance;        ///< Distance from ray origin
+  };
+
+  /**
+   * @brief Cast a ray through the scene and find the closest intersecting geometry.
+   * 
+   * Uses BVH for acceleration:
+   * - Phase 1: BVH ray traversal to get candidate objects (fast, conservative)
+   * - Phase 2: Precise geometry intersection tests (slower, exact)
+   * - Optimization: Tracks closest hit distance and only keeps nearest hits
+   * 
+   * @param origin Ray origin point
+   * @param direction Ray direction vector
+   * @param tolerance Intersection tolerance for proximity tests
+   * @return Vector of closest hit(s) - typically one hit, may be multiple if at same distance
+   */
+  std::vector<RayHit> ray_cast(const Point& origin, const Vector& direction, double tolerance = 1e-3);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
   // Transformed Geometry
   ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -293,6 +336,34 @@ public:
    * @param filepath Path to the JSON file to load.
    * @return Session instance loaded from the file.
    */
+
+private:
+  /**
+   * @brief Test ray intersection with a specific geometry object.
+   * @param ray The ray to test
+   * @param geometry The geometry variant to test against
+   * @param tolerance Intersection tolerance
+   * @return Hit point if intersection found, nullopt otherwise
+   */
+  std::optional<Point> ray_intersect_geometry(const Line& ray, const Geometry& geometry, double tolerance);
+  
+  /**
+   * @brief Rebuild the cached BVH for ray casting.
+   * Called automatically when BVH cache is dirty.
+   */
+  void rebuild_ray_bvh_cache();
+  
+  /**
+   * @brief Invalidate the BVH cache (call when geometry is added/removed).
+   */
+  void invalidate_bvh_cache() { bvh_cache_dirty = true; }
+  
+  /**
+   * @brief Add a geometry's AABB to the cache incrementally.
+   * @param guid The GUID of the geometry
+   * @param geometry The geometry variant
+   */
+  void cache_geometry_aabb(const std::string& guid, const Geometry& geometry);
 };
 /**
  * @brief  To use this operator, you can do:

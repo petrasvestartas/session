@@ -26,34 +26,34 @@ class Xform {
 public:
     std::string guid = ::guid();      ///< Unique identifier generated on construction
     std::string name = "my_xform";   ///< Human-readable name
-    std::array<float, 16> m;          ///< Column-major 4x4 matrix values
+    std::array<double, 16> m;          ///< Column-major 4x4 matrix values
 
     /// Default constructor (identity)
     Xform();
     /// Construct from matrix values (column-major)
-    Xform(const std::array<float, 16>& matrix);
+    Xform(const std::array<double, 16>& matrix);
 
     /// Identity matrix
     static Xform identity();
     /// Build from array values (column-major)
-    static Xform from_matrix(const std::array<float, 16>& matrix);
+    static Xform from_matrix(const std::array<double, 16>& matrix);
     
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Transformations
     ///////////////////////////////////////////////////////////////////////////////////////////
     
     /// Translation by x, y, z
-    static Xform translation(float x, float y, float z);
+    static Xform translation(double x, double y, double z);
     /// Non-uniform scale by x, y, z
-    static Xform scaling(float x, float y, float z);
+    static Xform scaling(double x, double y, double z);
     /// Rotation around X axis (radians)
-    static Xform rotation_x(float angle_radians);
+    static Xform rotation_x(double angle_radians);
     /// Rotation around Y axis (radians)
-    static Xform rotation_y(float angle_radians);
+    static Xform rotation_y(double angle_radians);
     /// Rotation around Z axis (radians)
-    static Xform rotation_z(float angle_radians);
+    static Xform rotation_z(double angle_radians);
     /// Rotation around arbitrary axis (radians)
-    static Xform rotation(Vector& axis, float angle_radians);
+    static Xform rotation(Vector& axis, double angle_radians);
     /// Change of basis from origin and axes
     static Xform change_basis(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis);
     /// Alternative change of basis (explicit from/to bases)
@@ -67,13 +67,13 @@ public:
     /// Transform from XY to a plane coordinate system
     static Xform xy_to_plane(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis);
     /// Scale along XYZ about the world origin
-    static Xform scale_xyz(float scale_x, float scale_y, float scale_z);
+    static Xform scale_xyz(double scale_x, double scale_y, double scale_z);
     /// Uniform scale about a point
-    static Xform scale_uniform(Point& origin, float scale_value);
+    static Xform scale_uniform(Point& origin, double scale_value);
     /// Non-uniform scale about a point
-    static Xform scale_non_uniform(Point& origin, float scale_x, float scale_y, float scale_z);
+    static Xform scale_non_uniform(Point& origin, double scale_x, double scale_y, double scale_z);
     /// Axis-angle rotation using Rodrigues' formula
-    static Xform axis_rotation(float angle, Vector& axis);
+    static Xform axis_rotation(double angle, Vector& axis);
     /// Right-handed look-at matrix
     static Xform look_at_rh(const Point& eye, const Point& target, const Vector& up);
 
@@ -104,9 +104,9 @@ public:
     Xform& operator*=(const Xform& other);
 
     /// Matrix element (row, col) mutable accessor
-    float& operator()(int row, int col);
+    double& operator()(int row, int col);
     /// Matrix element (row, col) const accessor
-    const float& operator()(int row, int col) const;
+    const double& operator()(int row, int col) const;
 
 };
 

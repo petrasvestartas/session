@@ -8466,7 +8466,7 @@ namespace Detail {
     bool WithinUlpsMatcher::match(double const& matchee) const {
         switch (m_type) {
         case Detail::FloatingPointKind::Float:
-            return almostEqualUlps<float>(static_cast<float>(matchee), static_cast<float>(m_target), m_ulps);
+            return almostEqualUlps<float>(static_cast<double>(matchee), static_cast<double>(m_target), m_ulps);
         case Detail::FloatingPointKind::Double:
             return almostEqualUlps<double>(matchee, m_target, m_ulps);
         default:
@@ -8484,7 +8484,7 @@ namespace Detail {
         ret << "is within " << m_ulps << " ULPs of ";
 
         if (m_type == Detail::FloatingPointKind::Float) {
-            write(ret, static_cast<float>(m_target));
+            write(ret, static_cast<double>(m_target));
             ret << 'f';
         } else {
             write(ret, m_target);
@@ -8502,15 +8502,15 @@ namespace Detail {
                          std::numeric_limits<double>::infinity(),
                          m_ulps ) );
         } else {
-            // We have to cast INFINITY to float because of MinGW, see #1782
+            // We have to cast INFINITY to double because of MinGW, see #1782
             write( ret,
-                   step( static_cast<float>( m_target ),
-                         -std::numeric_limits<float>::infinity(),
+                   step( static_cast<double>( m_target ),
+                         -std::numeric_limits<double>::infinity(),
                          m_ulps ) );
             ret << ", ";
             write( ret,
-                   step( static_cast<float>( m_target ),
-                         std::numeric_limits<float>::infinity(),
+                   step( static_cast<double>( m_target ),
+                         std::numeric_limits<double>::infinity(),
                          m_ulps ) );
         }
         ret << "])";

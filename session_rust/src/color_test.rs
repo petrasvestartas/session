@@ -105,7 +105,10 @@ mod tests {
     fn test_color_to_float_array() {
         let color = Color::new(255, 128, 64, 255);
         let float_array = color.to_float_array();
-        assert_eq!(float_array, [1.0, 0.5019608, 0.2509804, 1.0]);
+        assert_eq!(
+            float_array,
+            [1.0, 0.5019607843137255, 0.25098039215686274, 1.0]
+        );
     }
 
     #[test]

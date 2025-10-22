@@ -36,7 +36,7 @@ Mesh read_obj(const std::string& filepath) {
         if (line.empty() || line[0] == '#') continue;
         if (line.rfind("v ", 0) == 0) {
             std::istringstream iss(line);
-            char v; float x, y, z; iss >> v >> x >> y >> z;
+            char v; double x, y, z; iss >> v >> x >> y >> z;
             verts.emplace_back(x, y, z);
         } else if (line.rfind("f ", 0) == 0) {
             std::istringstream iss(line.substr(2));

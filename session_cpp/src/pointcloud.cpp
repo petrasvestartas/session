@@ -63,7 +63,7 @@ PointCloud PointCloud::transformed() const {
 
 nlohmann::ordered_json PointCloud::jsondump() const {
     // Flatten points to [x, y, z, x, y, z, ...]
-    std::vector<float> points_flat;
+    std::vector<double> points_flat;
     points_flat.reserve(points.size() * 3);
     for (const auto& p : points) {
         points_flat.push_back(p.x());
@@ -72,7 +72,7 @@ nlohmann::ordered_json PointCloud::jsondump() const {
     }
 
     // Flatten normals to [x, y, z, x, y, z, ...]
-    std::vector<float> normals_flat;
+    std::vector<double> normals_flat;
     normals_flat.reserve(normals.size() * 3);
     for (const auto& n : normals) {
         normals_flat.push_back(n.x());

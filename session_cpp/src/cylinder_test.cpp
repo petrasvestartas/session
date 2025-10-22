@@ -6,8 +6,8 @@
 using namespace session_cpp;
 
 TEST_CASE("Cylinder JSON roundtrip", "[cylinder]") {
-    Line line(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f);
-    Cylinder original(line, 1.0f);
+    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);
+    Cylinder original(line, 1.0);
     original.name = "test_cylinder";
     
     

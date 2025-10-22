@@ -10,18 +10,18 @@ pub struct Line {
     pub guid: String,
     pub name: String,
     #[serde(rename = "x0")]
-    _x0: f32,
+    _x0: f64,
     #[serde(rename = "y0")]
-    _y0: f32,
+    _y0: f64,
     #[serde(rename = "z0")]
-    _z0: f32,
+    _z0: f64,
     #[serde(rename = "x1")]
-    _x1: f32,
+    _x1: f64,
     #[serde(rename = "y1")]
-    _y1: f32,
+    _y1: f64,
     #[serde(rename = "z1")]
-    _z1: f32,
-    pub width: f32,
+    _z1: f64,
+    pub width: f64,
     pub linecolor: Color,
     #[serde(default = "Xform::identity")]
     pub xform: Xform,
@@ -46,7 +46,7 @@ impl Default for Line {
 }
 
 impl Line {
-    pub fn new(x0: f32, y0: f32, z0: f32, x1: f32, y1: f32, z1: f32) -> Self {
+    pub fn new(x0: f64, y0: f64, z0: f64, x1: f64, y1: f64, z1: f64) -> Self {
         Self {
             _x0: x0,
             _y0: y0,
@@ -62,7 +62,7 @@ impl Line {
         Self::new(p1.x(), p1.y(), p1.z(), p2.x(), p2.y(), p2.z())
     }
 
-    pub fn with_name(name: &str, x0: f32, y0: f32, z0: f32, x1: f32, y1: f32, z1: f32) -> Self {
+    pub fn with_name(name: &str, x0: f64, y0: f64, z0: f64, x1: f64, y1: f64, z1: f64) -> Self {
         Self {
             name: name.to_string(),
             _x0: x0,
@@ -75,52 +75,52 @@ impl Line {
         }
     }
 
-    pub fn x0(&self) -> f32 {
+    pub fn x0(&self) -> f64 {
         self._x0
     }
-    pub fn y0(&self) -> f32 {
+    pub fn y0(&self) -> f64 {
         self._y0
     }
-    pub fn z0(&self) -> f32 {
+    pub fn z0(&self) -> f64 {
         self._z0
     }
-    pub fn x1(&self) -> f32 {
+    pub fn x1(&self) -> f64 {
         self._x1
     }
-    pub fn y1(&self) -> f32 {
+    pub fn y1(&self) -> f64 {
         self._y1
     }
-    pub fn z1(&self) -> f32 {
+    pub fn z1(&self) -> f64 {
         self._z1
     }
 
-    pub fn set_x0(&mut self, v: f32) {
+    pub fn set_x0(&mut self, v: f64) {
         self._x0 = v;
     }
-    pub fn set_y0(&mut self, v: f32) {
+    pub fn set_y0(&mut self, v: f64) {
         self._y0 = v;
     }
-    pub fn set_z0(&mut self, v: f32) {
+    pub fn set_z0(&mut self, v: f64) {
         self._z0 = v;
     }
-    pub fn set_x1(&mut self, v: f32) {
+    pub fn set_x1(&mut self, v: f64) {
         self._x1 = v;
     }
-    pub fn set_y1(&mut self, v: f32) {
+    pub fn set_y1(&mut self, v: f64) {
         self._y1 = v;
     }
-    pub fn set_z1(&mut self, v: f32) {
+    pub fn set_z1(&mut self, v: f64) {
         self._z1 = v;
     }
 
-    pub fn length(&self) -> f32 {
+    pub fn length(&self) -> f64 {
         let dx = self._x1 - self._x0;
         let dy = self._y1 - self._y0;
         let dz = self._z1 - self._z0;
         (dx * dx + dy * dy + dz * dz).sqrt()
     }
 
-    pub fn squared_length(&self) -> f32 {
+    pub fn squared_length(&self) -> f64 {
         let dx = self._x1 - self._x0;
         let dy = self._y1 - self._y0;
         let dz = self._z1 - self._z0;
@@ -135,7 +135,7 @@ impl Line {
         )
     }
 
-    pub fn point_at(&self, t: f32) -> Point {
+    pub fn point_at(&self, t: f64) -> Point {
         let s = 1.0 - t;
         Point::new(
             s * self._x0 + t * self._x1,
@@ -154,7 +154,7 @@ impl Line {
 }
 
 impl Index<usize> for Line {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
@@ -205,8 +205,8 @@ impl SubAssign<&Vector> for Line {
     }
 }
 
-impl MulAssign<f32> for Line {
-    fn mul_assign(&mut self, factor: f32) {
+impl MulAssign<f64> for Line {
+    fn mul_assign(&mut self, factor: f64) {
         self._x0 *= factor;
         self._y0 *= factor;
         self._z0 *= factor;
@@ -216,8 +216,8 @@ impl MulAssign<f32> for Line {
     }
 }
 
-impl DivAssign<f32> for Line {
-    fn div_assign(&mut self, factor: f32) {
+impl DivAssign<f64> for Line {
+    fn div_assign(&mut self, factor: f64) {
         self._x0 /= factor;
         self._y0 /= factor;
         self._z0 /= factor;
@@ -247,20 +247,20 @@ impl Sub<&Vector> for Line {
     }
 }
 
-impl Mul<f32> for Line {
+impl Mul<f64> for Line {
     type Output = Line;
 
-    fn mul(self, factor: f32) -> Line {
+    fn mul(self, factor: f64) -> Line {
         let mut result = self;
         result *= factor;
         result
     }
 }
 
-impl Div<f32> for Line {
+impl Div<f64> for Line {
     type Output = Line;
 
-    fn div(self, factor: f32) -> Line {
+    fn div(self, factor: f64) -> Line {
         let mut result = self;
         result /= factor;
         result

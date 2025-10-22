@@ -10,14 +10,14 @@ namespace session_cpp {
 
 Plane::Plane() {
     xform = Xform::identity();
-    _origin = Point(0.0f, 0.0f, 0.0f);
+    _origin = Point(0.0, 0.0, 0.0);
     _x_axis = Vector::x_axis();
     _y_axis = Vector::y_axis();
     _z_axis = Vector::z_axis();
-    _a = 0.0f;
-    _b = 0.0f;
-    _c = 1.0f;
-    _d = 0.0f;
+    _a = 0.0;
+    _b = 0.0;
+    _c = 1.0;
+    _d = 0.0;
 }
 
 Plane::Plane(Point& point, Vector& x_axis, Vector& y_axis, std::string name) {
@@ -103,42 +103,42 @@ Plane Plane::from_two_points(Point& point1, Point& point2) {
 Plane Plane::xy_plane() {
     Plane plane;
     plane.name = "xy_plane";
-    plane._origin = Point(0.0f, 0.0f, 0.0f);
+    plane._origin = Point(0.0, 0.0, 0.0);
     plane._x_axis = Vector::x_axis();
     plane._y_axis = Vector::y_axis();
     plane._z_axis = Vector::z_axis();
-    plane._a = 0.0f;
-    plane._b = 0.0f;
-    plane._c = 1.0f;
-    plane._d = 0.0f;
+    plane._a = 0.0;
+    plane._b = 0.0;
+    plane._c = 1.0;
+    plane._d = 0.0;
     return plane;
 }
 
 Plane Plane::yz_plane() {
     Plane plane;
     plane.name = "yz_plane";
-    plane._origin = Point(0.0f, 0.0f, 0.0f);
+    plane._origin = Point(0.0, 0.0, 0.0);
     plane._x_axis = Vector::y_axis();
     plane._y_axis = Vector::z_axis();
     plane._z_axis = Vector::x_axis();
-    plane._a = 1.0f;
-    plane._b = 0.0f;
-    plane._c = 0.0f;
-    plane._d = 0.0f;
+    plane._a = 1.0;
+    plane._b = 0.0;
+    plane._c = 0.0;
+    plane._d = 0.0;
     return plane;
 }
 
 Plane Plane::xz_plane() {
     Plane plane;
     plane.name = "xz_plane";
-    plane._origin = Point(0.0f, 0.0f, 0.0f);
+    plane._origin = Point(0.0, 0.0, 0.0);
     plane._x_axis = Vector::x_axis();
-    plane._y_axis = Vector(0.0f, 0.0f, -1.0f);
-    plane._z_axis = Vector(0.0f, 1.0f, 0.0f);
-    plane._a = 0.0f;
-    plane._b = 1.0f;
-    plane._c = 0.0f;
-    plane._d = 0.0f;
+    plane._y_axis = Vector(0.0, 0.0, -1.0);
+    plane._z_axis = Vector(0.0, 1.0, 0.0);
+    plane._a = 0.0;
+    plane._b = 1.0;
+    plane._c = 0.0;
+    plane._d = 0.0;
     return plane;
 }
 
@@ -231,8 +231,8 @@ Plane Plane::operator-(const Vector &other) const {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 nlohmann::ordered_json Plane::jsondump() const {
-    auto clean_float = [](float val) -> double { 
-        return static_cast<double>(std::round(val * 100.0f) / 100.0f); 
+    auto clean_float = [](double val) -> double { 
+        return static_cast<double>(std::round(val * 100.0) / 100.0); 
     };
     return nlohmann::ordered_json{
         {"type", "Plane"},
@@ -283,9 +283,9 @@ void Plane::reverse() {
     _d = -(_a * _origin.x() + _b * _origin.y() + _c * _origin.z());
 }
 
-void Plane::rotate(float angles_in_radians) {
-    float cos_angle = std::cos(angles_in_radians);
-    float sin_angle = std::sin(angles_in_radians);
+void Plane::rotate(double angles_in_radians) {
+    double cos_angle = std::cos(angles_in_radians);
+    double sin_angle = std::sin(angles_in_radians);
     
     Vector new_x = _x_axis * cos_angle + _y_axis * sin_angle;
     Vector new_y = _y_axis * cos_angle - _x_axis * sin_angle;
@@ -304,8 +304,8 @@ bool Plane::is_right_hand() const {
     Vector y_copy = _y_axis;
     Vector z_copy = _z_axis;
     Vector cross = x_copy.cross(y_copy);
-    float dot_product = cross.dot(z_copy);
-    return dot_product > 0.999f;
+    double dot_product = cross.dot(z_copy);
+    return dot_product > 0.999;
 }
 
 bool Plane::is_same_direction(const Plane &plane0, const Plane &plane1, bool can_be_flipped) {
@@ -322,17 +322,17 @@ bool Plane::is_same_direction(const Plane &plane0, const Plane &plane1, bool can
 }
 
 bool Plane::is_same_position(const Plane &plane0, const Plane &plane1) {
-    float dist0 = std::abs(plane0._a * plane1._origin.x() + 
+    double dist0 = std::abs(plane0._a * plane1._origin.x() + 
                            plane0._b * plane1._origin.y() + 
                            plane0._c * plane1._origin.z() + 
                            plane0._d);
     
-    float dist1 = std::abs(plane1._a * plane0._origin.x() + 
+    double dist1 = std::abs(plane1._a * plane0._origin.x() + 
                            plane1._b * plane0._origin.y() + 
                            plane1._c * plane0._origin.z() + 
                            plane1._d);
     
-    float tolerance = static_cast<float>(session_cpp::Tolerance::ZERO_TOLERANCE);
+    double tolerance = static_cast<double>(session_cpp::Tolerance::ZERO_TOLERANCE);
     return dist0 < tolerance && dist1 < tolerance;
 }
 
@@ -341,7 +341,7 @@ bool Plane::is_coplanar(const Plane &plane0, const Plane plane1, bool can_be_fli
            is_same_position(plane0, plane1);
 }
 
-Plane Plane::translate_by_normal(float distance) const {
+Plane Plane::translate_by_normal(double distance) const {
     // Get normalized normal vector (z_axis)
     Vector normal = _z_axis;
     normal.normalize_self();

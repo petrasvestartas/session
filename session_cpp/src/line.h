@@ -23,36 +23,36 @@ class Line {
 public:
     std::string guid = ::guid();       ///< Unique identifier for the line
     std::string name = "my_line";      ///< Line identifier/name
-    float width = 1.0f;                ///< Line width in pixels
+    double width = 1.0;                ///< Line width in pixels
     Color linecolor = Color::white();  ///< Color of the line
     Xform xform;   ///< Transformation matrix
     // Mesh mesh;                      ///< Mesh for visualization (pipe) - TODO: implement later
 
 private:
-    float _x0 = 0.0f;                  ///< X coordinate of start point
-    float _y0 = 0.0f;                  ///< Y coordinate of start point
-    float _z0 = 0.0f;                  ///< Z coordinate of start point
-    float _x1 = 0.0f;                  ///< X coordinate of end point
-    float _y1 = 0.0f;                  ///< Y coordinate of end point
-    float _z1 = 1.0f;                  ///< Z coordinate of end point
+    double _x0 = 0.0;                  ///< X coordinate of start point
+    double _y0 = 0.0;                  ///< Y coordinate of start point
+    double _z0 = 0.0;                  ///< Z coordinate of start point
+    double _x1 = 0.0;                  ///< X coordinate of end point
+    double _y1 = 0.0;                  ///< Y coordinate of end point
+    double _z1 = 1.0;                  ///< Z coordinate of end point
 
 public:
 
     /// Getters for coordinates
-    float x0() const { return _x0; }
-    float y0() const { return _y0; }
-    float z0() const { return _z0; }
-    float x1() const { return _x1; }
-    float y1() const { return _y1; }
-    float z1() const { return _z1; }
+    double x0() const { return _x0; }
+    double y0() const { return _y0; }
+    double z0() const { return _z0; }
+    double x1() const { return _x1; }
+    double y1() const { return _y1; }
+    double z1() const { return _z1; }
 
     /// Setters for coordinates
-    void set_x0(float v) { _x0 = v; }
-    void set_y0(float v) { _y0 = v; }
-    void set_z0(float v) { _z0 = v; }
-    void set_x1(float v) { _x1 = v; }
-    void set_y1(float v) { _y1 = v; }
-    void set_z1(float v) { _z1 = v; }
+    void set_x0(double v) { _x0 = v; }
+    void set_y0(double v) { _y0 = v; }
+    void set_z0(double v) { _z0 = v; }
+    void set_x1(double v) { _x1 = v; }
+    void set_y1(double v) { _y1 = v; }
+    void set_z1(double v) { _z1 = v; }
 
     /**
      * @brief Default constructor.
@@ -68,7 +68,7 @@ public:
      * @param y1 second point y coordinate.
      * @param z1 second point z coordinate.
      */
-    Line(float x0, float y0, float z0, float x1, float y1, float z1);
+    Line(double x0, double y0, double z0, double x1, double y1, double z1);
 
     /**
      * @brief Constructor from two points.
@@ -87,7 +87,7 @@ public:
      * @param y1 second point y coordinate.
      * @param z1 second point z coordinate.
      */
-    static Line with_name(const std::string& name, float x0, float y0, float z0, float x1, float y1, float z1);
+    static Line with_name(const std::string& name, double x0, double y0, double z0, double x1, double y1, double z1);
 
     /// Convert line to string representation
     std::string to_string() const;
@@ -125,24 +125,24 @@ public:
      * @param index The index (0=x0, 1=y0, 2=z0, 3=x1, 4=y1, 5=z1).
      * @return A reference to the coordinate.
      */
-    float& operator[](int index);
+    double& operator[](int index);
 
     /**
      * @brief Subscript operator for const access.
      * @param index The index (0=x0, 1=y0, 2=z0, 3=x1, 4=y1, 5=z1).
      * @return A const reference to the coordinate.
      */
-    const float& operator[](int index) const;
+    const double& operator[](int index) const;
 
     Line& operator+=(const Vector& other);
     Line& operator-=(const Vector& other);
-    Line& operator*=(float factor);
-    Line& operator/=(float factor);
+    Line& operator*=(double factor);
+    Line& operator/=(double factor);
 
     Line operator+(const Vector& other) const;
     Line operator-(const Vector& other) const;
-    Line operator*(float factor) const;
-    Line operator/(float factor) const;
+    Line operator*(double factor) const;
+    Line operator/(double factor) const;
 
     Vector to_vector() const;
 
@@ -154,20 +154,20 @@ public:
      * @brief Calculates the length of the line.
      * @return The length of the line.
      */
-    float length() const;
+    double length() const;
 
     /**
      * @brief Calculates the squared length of the line.
      * @return The squared length of the line.
      */
-    float squared_length() const;
+    double squared_length() const;
 
     /**
      * @brief Calculates the point at a given parameter t.
      * @param t The parameter value.
      * @return The point at the given parameter value.
      */
-    Point point_at(float t) const;
+    Point point_at(double t) const;
 
     /**
      * @brief Get start point.

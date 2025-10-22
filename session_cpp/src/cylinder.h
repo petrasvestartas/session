@@ -24,7 +24,7 @@ class Cylinder {
 public:
     std::string guid = ::guid();
     std::string name = "my_cylinder";
-    float radius;
+    double radius;
     Line line;
     Mesh mesh;
 
@@ -36,7 +36,7 @@ public:
      * @param radius The radius of the cylinder
      * @return A new Cylinder with a generated 10-sided cylinder mesh
      */
-    Cylinder(const Line& line, float radius);
+    Cylinder(const Line& line, double radius);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Transformation
@@ -60,9 +60,9 @@ public:
     /// Deserializes a Cylinder from a JSON file
 
 private:
-    static Mesh create_cylinder_mesh(const Line& line, float radius);
+    static Mesh create_cylinder_mesh(const Line& line, double radius);
     static std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> unit_cylinder_geometry();
-    static Xform line_to_cylinder_transform(const Line& line, float radius);
+    static Xform line_to_cylinder_transform(const Line& line, double radius);
     static Mesh transform_geometry(const std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>>& geometry, const Xform& xform);
 };
 

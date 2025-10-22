@@ -130,7 +130,7 @@ mod vector_tests {
     fn test_vector_length() {
         let v = Vector::new(5.5697, -9.84, 1.587);
         let length = v.compute_length();
-        assert_eq!(length, 11.417_781);
+        assert_eq!(length, 11.4177811806848);
     }
 
     #[test]
@@ -179,7 +179,7 @@ mod vector_tests {
         let dot = v1.dot(&v2);
         let mag = v1.compute_length() * v2.compute_length();
         if mag > 0.0 {
-            let angle_deg = (dot / mag).acos() * crate::tolerance::TO_DEGREES as f32;
+            let angle_deg = (dot / mag).acos() * crate::tolerance::TO_DEGREES;
             assert_eq!(angle_deg, 90.0);
         }
     }
@@ -229,8 +229,8 @@ mod vector_tests {
 
     #[test]
     fn test_vector_angle_between_vector_xy_components() {
-        let v1 = Vector::new(3.0_f32.sqrt(), 1.0, 0.0);
-        let v2 = Vector::new(1.0, 3.0_f32.sqrt(), 0.0);
+        let v1 = Vector::new(3.0_f64.sqrt(), 1.0, 0.0);
+        let v2 = Vector::new(1.0, 3.0_f64.sqrt(), 0.0);
         assert_eq!(
             (Vector::angle_between_vector_xy_components(&v1) * 100.0).round() / 100.0,
             30.0
@@ -259,7 +259,7 @@ mod vector_tests {
         assert!((abg[1] - 69.274_2).abs() < 1e-4);
         assert!((abg[2] - 30.032058).abs() < 1e-4);
 
-        let pt = Vector::new(1.0, 1.0, 2.0_f32.sqrt()).coordinate_direction_2angles(true);
+        let pt = Vector::new(1.0, 1.0, 2.0_f64.sqrt()).coordinate_direction_2angles(true);
         assert!((pt[0] - 45.0).abs() < 1e-6);
         assert!((pt[1] - 45.0).abs() < 1e-6);
     }

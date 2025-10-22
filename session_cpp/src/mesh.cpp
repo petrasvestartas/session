@@ -10,9 +10,9 @@ namespace session_cpp {
 
 Mesh::Mesh() {
     xform = Xform::identity();
-    default_vertex_attributes["x"] = 0.0f;
-    default_vertex_attributes["y"] = 0.0f;
-    default_vertex_attributes["z"] = 0.0f;
+    default_vertex_attributes["x"] = 0.0;
+    default_vertex_attributes["y"] = 0.0;
+    default_vertex_attributes["z"] = 0.0;
 }
 
 size_t Mesh::number_of_edges() const {
@@ -115,7 +115,7 @@ std::optional<size_t> Mesh::add_face(const std::vector<size_t>& vertices, std::o
         if (is_new_edge) {
             halfedge[v][u] = std::nullopt;
             linecolors.push_back(Color::white());
-            widths.push_back(1.0f);
+            widths.push_back(1.0);
         }
     }
     triangle_bvh_built = false;
@@ -209,7 +209,7 @@ std::optional<Vector> Mesh::face_normal(size_t face_key) const {
     Vector v(p2.x() - p0.x(), p2.y() - p0.y(), p2.z() - p0.z());
     
     Vector normal = u.cross(v);
-    float len = normal.magnitude();
+    double len = normal.magnitude();
     
     if (len > Tolerance::ZERO_TOLERANCE) {
         return Vector(normal.x() / len, normal.y() / len, normal.z() / len);
@@ -227,24 +227,24 @@ std::optional<Vector> Mesh::vertex_normal_weighted(size_t vertex_key, NormalWeig
         return std::nullopt;
     }
     
-    Vector normal_acc(0.0f, 0.0f, 0.0f);
+    Vector normal_acc(0.0, 0.0, 0.0);
     
     for (size_t face_key : faces) {
         auto face_normal_opt = face_normal(face_key);
         if (!face_normal_opt) continue;
         
         const auto& fn = *face_normal_opt;
-        float weight = 1.0f;
+        double weight = 1.0;
         
         switch (weighting) {
             case NormalWeighting::Area:
-                weight = face_area(face_key).value_or(1.0f);
+                weight = face_area(face_key).value_or(1.0);
                 break;
             case NormalWeighting::Angle:
-                weight = vertex_angle_in_face(vertex_key, face_key).value_or(1.0f);
+                weight = vertex_angle_in_face(vertex_key, face_key).value_or(1.0);
                 break;
             case NormalWeighting::Uniform:
-                weight = 1.0f;
+                weight = 1.0;
                 break;
         }
         
@@ -253,21 +253,21 @@ std::optional<Vector> Mesh::vertex_normal_weighted(size_t vertex_key, NormalWeig
         normal_acc.set_z(normal_acc.z() + fn.z() * weight);
     }
     
-    float len = normal_acc.magnitude();
+    double len = normal_acc.magnitude();
     if (len > Tolerance::ZERO_TOLERANCE) {
         return Vector(normal_acc.x() / len, normal_acc.y() / len, normal_acc.z() / len);
     }
     return std::nullopt;
 }
 
-std::optional<float> Mesh::face_area(size_t face_key) const {
+std::optional<double> Mesh::face_area(size_t face_key) const {
     auto vertices_opt = face_vertices(face_key);
     if (!vertices_opt.has_value() || vertices_opt->size() < 3) {
-        return 0.0f;
+        return 0.0;
     }
     
     const auto& vertices = *vertices_opt;
-    float area = 0.0f;
+    double area = 0.0;
     auto p0_opt = vertex_position(vertices[0]);
     if (!p0_opt) return std::nullopt;
     const auto& p0 = *p0_opt;
@@ -283,12 +283,12 @@ std::optional<float> Mesh::face_area(size_t face_key) const {
         Vector u(p1.x() - p0.x(), p1.y() - p0.y(), p1.z() - p0.z());
         Vector v(p2.x() - p0.x(), p2.y() - p0.y(), p2.z() - p0.z());
         
-        area += u.cross(v).magnitude() * 0.5f;
+        area += u.cross(v).magnitude() * 0.5;
     }
     return area;
 }
 
-std::optional<float> Mesh::vertex_angle_in_face(size_t vertex_key, size_t face_key) const {
+std::optional<double> Mesh::vertex_angle_in_face(size_t vertex_key, size_t face_key) const {
     auto vertices_opt = face_vertices(face_key);
     if (!vertices_opt) return std::nullopt;
     
@@ -314,15 +314,15 @@ std::optional<float> Mesh::vertex_angle_in_face(size_t vertex_key, size_t face_k
     Vector u(prev_pos.x() - center.x(), prev_pos.y() - center.y(), prev_pos.z() - center.z());
     Vector v(next_pos.x() - center.x(), next_pos.y() - center.y(), next_pos.z() - center.z());
     
-    float u_len = u.magnitude();
-    float v_len = v.magnitude();
+    double u_len = u.magnitude();
+    double v_len = v.magnitude();
     
     if (u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE) {
-        return 0.0f;
+        return 0.0;
     }
     
-    float cos_angle = u.dot(v) / (u_len * v_len);
-    cos_angle = std::clamp(cos_angle, -1.0f, 1.0f);
+    double cos_angle = u.dot(v) / (u_len * v_len);
+    cos_angle = std::clamp(cos_angle, -1.0, 1.0);
     return std::acos(cos_angle);
 }
 
@@ -352,7 +352,7 @@ std::map<size_t, Vector> Mesh::vertex_normals_weighted(NormalWeighting weighting
     return normals;
 }
 
-Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<float> precision) {
+Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision) {
     Mesh mesh;
     
     std::map<std::tuple<int64_t, int64_t, int64_t>, size_t> map_eps;
@@ -360,7 +360,7 @@ Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::o
     
     auto get_vkey = [&](const Point& p) -> size_t {
         if (precision.has_value()) {
-            float eps = *precision;
+            double eps = *precision;
             int64_t kx = static_cast<int64_t>(std::round(p.x() / eps));
             int64_t ky = static_cast<int64_t>(std::round(p.y() / eps));
             int64_t kz = static_cast<int64_t>(std::round(p.z() / eps));
@@ -374,13 +374,9 @@ Mesh Mesh::from_polygons(const std::vector<std::vector<Point>>& polygons, std::o
             map_eps[key] = vk;
             return vk;
         } else {
-            union { float f; uint32_t i; } ux, uy, uz;
+            union { double f; uint64_t i; } ux, uy, uz;
             ux.f = p.x(); uy.f = p.y(); uz.f = p.z();
-            auto key = std::make_tuple(
-                static_cast<uint64_t>(ux.i),
-                static_cast<uint64_t>(uy.i),
-                static_cast<uint64_t>(uz.i)
-            );
+            auto key = std::make_tuple(ux.i, uy.i, uz.i);
             
             auto it = map_exact.find(key);
             if (it != map_exact.end()) {
@@ -576,7 +572,7 @@ Mesh Mesh::jsonload(const nlohmann::json& data) {
             vertex_data.y = vdata["y"];
             vertex_data.z = vdata["z"];
             if (vdata.contains("attributes")) {
-                vertex_data.attributes = vdata["attributes"].get<std::map<std::string, float>>();
+                vertex_data.attributes = vdata["attributes"].get<std::map<std::string, double>>();
             }
             mesh.vertex[key] = vertex_data;
             if (!data.contains("halfedge")) {
@@ -599,7 +595,7 @@ Mesh Mesh::jsonload(const nlohmann::json& data) {
     if (data.contains("facedata")) {
         for (const auto& [key_str, attrs] : data["facedata"].items()) {
             size_t key = std::stoull(key_str);
-            mesh.facedata[key] = attrs.get<std::map<std::string, float>>();
+            mesh.facedata[key] = attrs.get<std::map<std::string, double>>();
         }
     }
     
@@ -609,7 +605,7 @@ Mesh Mesh::jsonload(const nlohmann::json& data) {
             size_t comma_pos = edge_str.find(',');
             size_t u = std::stoull(edge_str.substr(0, comma_pos));
             size_t v = std::stoull(edge_str.substr(comma_pos + 1));
-            mesh.edgedata[{u, v}] = attrs.get<std::map<std::string, float>>();
+            mesh.edgedata[{u, v}] = attrs.get<std::map<std::string, double>>();
         }
     }
     
@@ -689,19 +685,19 @@ void Mesh::build_triangle_bvh(bool force) const {
             const Point& p1 = vertices_cache[t.i1];
             const Point& p2 = vertices_cache[t.i2];
 
-            float min_x = std::min({p0.x(), p1.x(), p2.x()}) - 0.001f;
-            float min_y = std::min({p0.y(), p1.y(), p2.y()}) - 0.001f;
-            float min_z = std::min({p0.z(), p1.z(), p2.z()}) - 0.001f;
-            float max_x = std::max({p0.x(), p1.x(), p2.x()}) + 0.001f;
-            float max_y = std::max({p0.y(), p1.y(), p2.y()}) + 0.001f;
-            float max_z = std::max({p0.z(), p1.z(), p2.z()}) + 0.001f;
+            double min_x = std::min({p0.x(), p1.x(), p2.x()}) - 0.001;
+            double min_y = std::min({p0.y(), p1.y(), p2.y()}) - 0.001;
+            double min_z = std::min({p0.z(), p1.z(), p2.z()}) - 0.001;
+            double max_x = std::max({p0.x(), p1.x(), p2.x()}) + 0.001;
+            double max_y = std::max({p0.y(), p1.y(), p2.y()}) + 0.001;
+            double max_z = std::max({p0.z(), p1.z(), p2.z()}) + 0.001;
 
-            float cx = (min_x + max_x) * 0.5f;
-            float cy = (min_y + max_y) * 0.5f;
-            float cz = (min_z + max_z) * 0.5f;
-            float hx = (max_x - min_x) * 0.5f;
-            float hy = (max_y - min_y) * 0.5f;
-            float hz = (max_z - min_z) * 0.5f;
+            double cx = (min_x + max_x) * 0.5;
+            double cy = (min_y + max_y) * 0.5;
+            double cz = (min_z + max_z) * 0.5;
+            double hx = (max_x - min_x) * 0.5;
+            double hy = (max_y - min_y) * 0.5;
+            double hz = (max_z - min_z) * 0.5;
 
             BvhAABB bb{cx, cy, cz, hx, hy, hz};
             triangle_aabbs_cache[t.out_idx] = bb;
@@ -724,25 +720,25 @@ void Mesh::build_triangle_bvh(bool force) const {
     for (auto& th : pool) th.join();
 
     // Compute world size from object bounds (triangle AABBs)
-    float min_x = std::numeric_limits<float>::infinity();
-    float min_y = std::numeric_limits<float>::infinity();
-    float min_z = std::numeric_limits<float>::infinity();
-    float max_x = -std::numeric_limits<float>::infinity();
-    float max_y = -std::numeric_limits<float>::infinity();
-    float max_z = -std::numeric_limits<float>::infinity();
+    double min_x = std::numeric_limits<double>::infinity();
+    double min_y = std::numeric_limits<double>::infinity();
+    double min_z = std::numeric_limits<double>::infinity();
+    double max_x = -std::numeric_limits<double>::infinity();
+    double max_y = -std::numeric_limits<double>::infinity();
+    double max_z = -std::numeric_limits<double>::infinity();
     for (const auto& bb : triangle_aabbs_cache) {
-        float bx0 = bb.cx - bb.hx; float bx1 = bb.cx + bb.hx;
-        float by0 = bb.cy - bb.hy; float by1 = bb.cy + bb.hy;
-        float bz0 = bb.cz - bb.hz; float bz1 = bb.cz + bb.hz;
+        double bx0 = bb.cx - bb.hx; double bx1 = bb.cx + bb.hx;
+        double by0 = bb.cy - bb.hy; double by1 = bb.cy + bb.hy;
+        double bz0 = bb.cz - bb.hz; double bz1 = bb.cz + bb.hz;
         if (bx0 < min_x) min_x = bx0; if (bx1 > max_x) max_x = bx1;
         if (by0 < min_y) min_y = by0; if (by1 > max_y) max_y = by1;
         if (bz0 < min_z) min_z = bz0; if (bz1 > max_z) max_z = bz1;
     }
-    float extent_x = std::max(std::fabs(min_x), std::fabs(max_x));
-    float extent_y = std::max(std::fabs(min_y), std::fabs(max_y));
-    float extent_z = std::max(std::fabs(min_z), std::fabs(max_z));
-    float max_extent = std::max({extent_x, extent_y, extent_z});
-    float world_size = std::max(2.2f * max_extent, 10.0f);
+    double extent_x = std::max(std::fabs(min_x), std::fabs(max_x));
+    double extent_y = std::max(std::fabs(min_y), std::fabs(max_y));
+    double extent_z = std::max(std::fabs(min_z), std::fabs(max_z));
+    double max_extent = std::max({extent_x, extent_y, extent_z});
+    double world_size = std::max(2.2 * max_extent, 10.0);
 
     triangle_bvh = std::make_shared<BVH>();
     triangle_bvh->build_from_aabbs(triangle_aabbs_cache.data(), triangle_aabbs_cache.size(), world_size);

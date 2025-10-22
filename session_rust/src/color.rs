@@ -190,17 +190,17 @@ impl Color {
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     /// Convert to float array [0-1].
-    pub fn to_float_array(&self) -> [f32; 4] {
+    pub fn to_float_array(&self) -> [f64; 4] {
         [
-            self.r as f32 / 255.0,
-            self.g as f32 / 255.0,
-            self.b as f32 / 255.0,
-            self.a as f32 / 255.0,
+            self.r as f64 / 255.0,
+            self.g as f64 / 255.0,
+            self.b as f64 / 255.0,
+            self.a as f64 / 255.0,
         ]
     }
 
     /// Create from float values [0-1].
-    pub fn from_float(r: f32, g: f32, b: f32, a: f32) -> Self {
+    pub fn from_float(r: f64, g: f64, b: f64, a: f64) -> Self {
         Color::new(
             (r * 255.0).round() as u8,
             (g * 255.0).round() as u8,

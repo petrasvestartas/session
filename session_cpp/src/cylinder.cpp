@@ -4,32 +4,32 @@
 
 namespace session_cpp {
 
-Cylinder::Cylinder(const Line& line, float radius) 
+Cylinder::Cylinder(const Line& line, double radius) 
     : radius(radius), line(line), mesh(create_cylinder_mesh(line, radius)) {
 }
 
 std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Cylinder::unit_cylinder_geometry() {
     std::vector<Point> vertices = {
-        Point(0.5f, 0.0f, -0.5f),
-        Point(0.404508f, 0.293893f, -0.5f),
-        Point(0.154508f, 0.475528f, -0.5f),
-        Point(-0.154508f, 0.475528f, -0.5f),
-        Point(-0.404508f, 0.293893f, -0.5f),
-        Point(-0.5f, 0.0f, -0.5f),
-        Point(-0.404508f, -0.293893f, -0.5f),
-        Point(-0.154508f, -0.475528f, -0.5f),
-        Point(0.154508f, -0.475528f, -0.5f),
-        Point(0.404508f, -0.293893f, -0.5f),
-        Point(0.5f, 0.0f, 0.5f),
-        Point(0.404508f, 0.293893f, 0.5f),
-        Point(0.154508f, 0.475528f, 0.5f),
-        Point(-0.154508f, 0.475528f, 0.5f),
-        Point(-0.404508f, 0.293893f, 0.5f),
-        Point(-0.5f, 0.0f, 0.5f),
-        Point(-0.404508f, -0.293893f, 0.5f),
-        Point(-0.154508f, -0.475528f, 0.5f),
-        Point(0.154508f, -0.475528f, 0.5f),
-        Point(0.404508f, -0.293893f, 0.5f),
+        Point(0.5, 0.0, -0.5),
+        Point(0.404508, 0.293893, -0.5),
+        Point(0.154508, 0.475528, -0.5),
+        Point(-0.154508, 0.475528, -0.5),
+        Point(-0.404508, 0.293893, -0.5),
+        Point(-0.5, 0.0, -0.5),
+        Point(-0.404508, -0.293893, -0.5),
+        Point(-0.154508, -0.475528, -0.5),
+        Point(0.154508, -0.475528, -0.5),
+        Point(0.404508, -0.293893, -0.5),
+        Point(0.5, 0.0, 0.5),
+        Point(0.404508, 0.293893, 0.5),
+        Point(0.154508, 0.475528, 0.5),
+        Point(-0.154508, 0.475528, 0.5),
+        Point(-0.404508, 0.293893, 0.5),
+        Point(-0.5, 0.0, 0.5),
+        Point(-0.404508, -0.293893, 0.5),
+        Point(-0.154508, -0.475528, 0.5),
+        Point(0.154508, -0.475528, 0.5),
+        Point(0.404508, -0.293893, 0.5),
     };
 
     std::vector<std::array<size_t, 3>> triangles = {
@@ -48,28 +48,28 @@ std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Cylinder::unit
     return {vertices, triangles};
 }
 
-Xform Cylinder::line_to_cylinder_transform(const Line& line, float radius) {
+Xform Cylinder::line_to_cylinder_transform(const Line& line, double radius) {
     Point start = line.start();
     Point end = line.end();
     Vector line_vec = line.to_vector();
-    float length = line.length();
+    double length = line.length();
 
     Vector z_axis = line_vec;
     z_axis.normalize_self();
     
     Vector x_axis;
-    if (std::abs(z_axis.z()) < 0.9f) {
-        x_axis = Vector(0.0f, 0.0f, 1.0f).cross(z_axis);
+    if (std::abs(z_axis.z()) < 0.9) {
+        x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis);
         x_axis.normalize_self();
     } else {
-        x_axis = Vector(1.0f, 0.0f, 0.0f).cross(z_axis);
+        x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis);
         x_axis.normalize_self();
     }
     
     Vector y_axis = z_axis.cross(x_axis);
     y_axis.normalize_self();
 
-    Xform scale = Xform::scale_xyz(radius * 2.0f, radius * 2.0f, length);
+    Xform scale = Xform::scale_xyz(radius * 2.0, radius * 2.0, length);
     
     // Create rotation matrix from column vectors
     Xform rotation;
@@ -84,9 +84,9 @@ Xform Cylinder::line_to_cylinder_transform(const Line& line, float radius) {
     rotation.m[10] = z_axis.z();
     
     Point center(
-        (start.x() + end.x()) * 0.5f,
-        (start.y() + end.y()) * 0.5f,
-        (start.z() + end.z()) * 0.5f
+        (start.x() + end.x()) * 0.5,
+        (start.y() + end.y()) * 0.5,
+        (start.z() + end.z()) * 0.5
     );
     Xform translation = Xform::translation(center.x(), center.y(), center.z());
 
@@ -119,7 +119,7 @@ Mesh Cylinder::transform_geometry(
     return mesh;
 }
 
-Mesh Cylinder::create_cylinder_mesh(const Line& line, float radius) {
+Mesh Cylinder::create_cylinder_mesh(const Line& line, double radius) {
     auto unit_cylinder = unit_cylinder_geometry();
     Xform xform = line_to_cylinder_transform(line, radius);
     return transform_geometry(unit_cylinder, xform);
@@ -149,7 +149,7 @@ nlohmann::ordered_json Cylinder::jsondump() const {
 
 Cylinder Cylinder::jsonload(const nlohmann::json& data) {
     Line line = Line::jsonload(data["line"]);
-    float radius = data["radius"];
+    double radius = data["radius"];
     Cylinder cylinder(line, radius);
     
     if (data.contains("guid")) {

@@ -3,8 +3,8 @@ mod xform_tests {
     use crate::encoders::{json_dump, json_load};
     use crate::{Point, Vector, Xform};
 
-    fn approx_f32(a: f32, b: f32) -> bool {
-        (a as f64 - b as f64).abs() < 1e-5
+    fn approx_f32(a: f64, b: f64) -> bool {
+        (a - b).abs() < 1e-5
     }
 
     fn matrices_close(a: &Xform, b: &Xform) -> bool {
@@ -69,7 +69,7 @@ mod xform_tests {
 
     #[test]
     fn test_xform_rotation_z() {
-        let r = Xform::rotation_z(std::f32::consts::FRAC_PI_2);
+        let r = Xform::rotation_z(std::f64::consts::FRAC_PI_2);
         let p = Point::new(1.0, 0.0, 0.0);
         let rp = r.transformed_point(&p);
         assert!(approx_f32(rp.x(), 0.0));
@@ -80,8 +80,8 @@ mod xform_tests {
     #[test]
     fn test_xform_axis_rotation() {
         let axis = Vector::new(0.0, 0.0, 1.0);
-        let r1 = Xform::rotation_z(std::f32::consts::FRAC_PI_2);
-        let r2 = Xform::axis_rotation(std::f32::consts::FRAC_PI_2, &axis);
+        let r1 = Xform::rotation_z(std::f64::consts::FRAC_PI_2);
+        let r2 = Xform::axis_rotation(std::f64::consts::FRAC_PI_2, &axis);
         let p = Point::new(1.0, 0.0, 0.0);
         let p1 = r1.transformed_point(&p);
         let p2 = r2.transformed_point(&p);
@@ -184,7 +184,7 @@ mod xform_tests {
 
     #[test]
     fn test_xform_rotation_x() {
-        let r = Xform::rotation_x(std::f32::consts::FRAC_PI_2);
+        let r = Xform::rotation_x(std::f64::consts::FRAC_PI_2);
         let p = Point::new(0.0, 1.0, 0.0);
         let rp = r.transformed_point(&p);
         assert!(approx_f32(rp.x(), 0.0));
@@ -194,7 +194,7 @@ mod xform_tests {
 
     #[test]
     fn test_xform_rotation_y() {
-        let r = Xform::rotation_y(std::f32::consts::FRAC_PI_2);
+        let r = Xform::rotation_y(std::f64::consts::FRAC_PI_2);
         let p = Point::new(1.0, 0.0, 0.0);
         let rp = r.transformed_point(&p);
         assert!(approx_f32(rp.x(), 0.0));
@@ -205,7 +205,7 @@ mod xform_tests {
     #[test]
     fn test_xform_rotation() {
         let axis = Vector::new(0.0, 0.0, 1.0);
-        let r = Xform::rotation(&axis, std::f32::consts::FRAC_PI_2);
+        let r = Xform::rotation(&axis, std::f64::consts::FRAC_PI_2);
         let p = Point::new(1.0, 0.0, 0.0);
         let rp = r.transformed_point(&p);
         assert!(approx_f32(rp.x(), 0.0));

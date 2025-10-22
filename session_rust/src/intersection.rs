@@ -3,10 +3,10 @@ use crate::{Line, Point};
 pub fn line_line_parameters(
     line0: &Line,
     line1: &Line,
-    tolerance: f32,
+    tolerance: f64,
     intersect_segments: bool,
     near_parallel_as_closest: bool,
-) -> Option<(f32, f32)> {
+) -> Option<(f64, f64)> {
     let p0_start = line0.start();
     let p0_end = line0.end();
     let p1_start = line1.start();
@@ -37,7 +37,7 @@ pub fn line_line_parameters(
 
     let det = aa * bb - ab * ab;
 
-    let zero_tol = aa.max(bb) * f32::EPSILON;
+    let zero_tol = aa.max(bb) * f64::EPSILON;
     if det.abs() < zero_tol {
         if !near_parallel_as_closest {
             return None;
@@ -90,7 +90,7 @@ pub fn line_line_parameters(
 /// # Returns
 /// * `Some(Point)` - Intersection point (midpoint of closest approach for skew lines)
 /// * `None` - If lines don't intersect within tolerance
-pub fn line_line(line0: &Line, line1: &Line, tolerance: f32) -> Option<Point> {
+pub fn line_line(line0: &Line, line1: &Line, tolerance: f64) -> Option<Point> {
     let result = line_line_parameters(line0, line1, tolerance, true, false)?;
 
     let (t0, t1) = result;
@@ -138,7 +138,7 @@ pub fn plane_plane(plane0: &crate::Plane, plane1: &crate::Plane) -> Option<Line>
     ))
 }
 
-fn plane_value_at(plane: &crate::Plane, point: &Point) -> f32 {
+fn plane_value_at(plane: &crate::Plane, point: &Point) -> f64 {
     plane.a() * point.x() + plane.b() * point.y() + plane.c() * point.z() + plane.d()
 }
 
@@ -172,7 +172,7 @@ pub fn line_plane(line: &Line, plane: &crate::Plane, is_finite: bool) -> Option<
     } else {
         let d_inv = 1.0 / d;
         let fd = d_inv.abs();
-        if fd > 1.0 && (a.abs() >= f32::MAX / fd || b.abs() >= f32::MAX / fd) {
+        if fd > 1.0 && (a.abs() >= f64::MAX / fd || b.abs() >= f64::MAX / fd) {
             (0.5, false)
         } else {
             (a / (a - b), true)
@@ -249,7 +249,7 @@ pub fn plane_plane_plane(
 ///
 /// # Note
 /// Points are sorted from line start (entry first, exit second)
-pub fn ray_box(line: &Line, box_: &crate::BoundingBox, t0: f32, t1: f32) -> Option<Vec<Point>> {
+pub fn ray_box(line: &Line, box_: &crate::BoundingBox, t0: f64, t1: f64) -> Option<Vec<Point>> {
     let origin = line.start();
     let direction = line.to_vector();
 
@@ -260,17 +260,17 @@ pub fn ray_box(line: &Line, box_: &crate::BoundingBox, t0: f32, t1: f32) -> Opti
     let inv_dir_x = if direction.x() != 0.0 {
         1.0 / direction.x()
     } else {
-        f32::INFINITY
+        f64::INFINITY
     };
     let inv_dir_y = if direction.y() != 0.0 {
         1.0 / direction.y()
     } else {
-        f32::INFINITY
+        f64::INFINITY
     };
     let inv_dir_z = if direction.z() != 0.0 {
         1.0 / direction.z()
     } else {
-        f32::INFINITY
+        f64::INFINITY
     };
 
     // Calculate intersections with X slabs
@@ -332,7 +332,7 @@ pub fn ray_box(line: &Line, box_: &crate::BoundingBox, t0: f32, t1: f32) -> Opti
 ///
 /// # Note
 /// Points are sorted from line start
-pub fn ray_sphere(line: &Line, center: &Point, radius: f32) -> Option<Vec<Point>> {
+pub fn ray_sphere(line: &Line, center: &Point, radius: f64) -> Option<Vec<Point>> {
     let origin = line.start();
     let direction = line.to_vector();
 
@@ -412,7 +412,7 @@ pub fn ray_triangle(
     v0: &Point,
     v1: &Point,
     v2: &Point,
-    epsilon: f32,
+    epsilon: f64,
 ) -> Option<Point> {
     let origin = line.start();
     let direction = line.to_vector();

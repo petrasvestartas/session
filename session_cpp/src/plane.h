@@ -31,10 +31,10 @@ namespace session_cpp {
         Vector _x_axis = Vector::x_axis(); ///< X axis (private)
         Vector _y_axis = Vector::y_axis(); ///< Y axis (private)
         Vector _z_axis = Vector::z_axis(); ///< Z axis (private)
-        float _a = 0.0f; ///< X coordinate (private)
-        float _b = 0.0f; ///< Y coordinate (private)
-        float _c = 1.0f; ///< Z coordinate (private)
-        float _d = 0.0f; ///< W coordinate (private)
+        double _a = 0.0; ///< X coordinate (private)
+        double _b = 0.0; ///< Y coordinate (private)
+        double _c = 1.0; ///< Z coordinate (private)
+        double _d = 0.0; ///< W coordinate (private)
 
         public:
 
@@ -43,10 +43,10 @@ namespace session_cpp {
         const Vector& x_axis() const { return _x_axis; } 
         const Vector& y_axis() const { return _y_axis; }
         const Vector& z_axis() const { return _z_axis; }
-        float a() const { return _a; }
-        float b() const { return _b; }
-        float c() const { return _c; }
-        float d() const { return _d; }
+        double a() const { return _a; }
+        double b() const { return _b; }
+        double c() const { return _c; }
+        double d() const { return _d; }
 
         Plane();
         Plane(Point& point, Vector& x_axis, Vector& y_axis, std::string name = "my_plane");
@@ -126,7 +126,7 @@ namespace session_cpp {
    * 
    * @param angles_in_radians The rotation angle in radians.
    */
-  void rotate(float angles_in_radians);
+  void rotate(double angles_in_radians);
 
   /**
    * @brief Check if the plane follows the right-hand rule.
@@ -170,7 +170,7 @@ namespace session_cpp {
    * @param distance Distance to move the plane along its normal (positive = normal direction, negative = opposite).
    * @return New plane translated by the specified distance.
    */
-  Plane translate_by_normal(float distance) const;
+  Plane translate_by_normal(double distance) const;
 
   
 }; // End of Plane class

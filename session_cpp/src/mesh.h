@@ -28,10 +28,10 @@ enum class NormalWeighting {
 
 /// Vertex data containing position and attributes
 struct VertexData {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-    std::map<std::string, float> attributes;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    std::map<std::string, double> attributes;
 
     VertexData() = default;
     VertexData(const Point& p) : x(p.x()), y(p.y()), z(p.z()) {}
@@ -47,25 +47,25 @@ struct VertexData {
     }
 
     /// Get vertex color as RGB array
-    std::array<float, 3> color() const {
+    std::array<double, 3> color() const {
         return {
-            attributes.count("r") ? attributes.at("r") : 0.5f,
-            attributes.count("g") ? attributes.at("g") : 0.5f,
-            attributes.count("b") ? attributes.at("b") : 0.5f
+            attributes.count("r") ? attributes.at("r") : 0.5,
+            attributes.count("g") ? attributes.at("g") : 0.5,
+            attributes.count("b") ? attributes.at("b") : 0.5
         };
     }
 
     /// Set vertex color
-    void set_color(float r, float g, float b) {
+    void set_color(double r, double g, double b) {
         attributes["r"] = r;
         attributes["g"] = g;
         attributes["b"] = b;
     }
 
     /// Get vertex normal if set
-    std::optional<std::array<float, 3>> normal() const {
+    std::optional<std::array<double, 3>> normal() const {
         if (attributes.count("nx") && attributes.count("ny") && attributes.count("nz")) {
-            return std::array<float, 3>{
+            return std::array<double, 3>{
                 attributes.at("nx"),
                 attributes.at("ny"),
                 attributes.at("nz")
@@ -75,7 +75,7 @@ struct VertexData {
     }
 
     /// Set vertex normal
-    void set_normal(float nx, float ny, float nz) {
+    void set_normal(double nx, double ny, double nz) {
         attributes["nx"] = nx;
         attributes["ny"] = ny;
         attributes["nz"] = nz;
@@ -91,17 +91,17 @@ public:
     std::map<size_t, std::map<size_t, std::optional<size_t>>> halfedge;  ///< Halfedge connectivity
     std::map<size_t, VertexData> vertex;                                  ///< Vertex data
     std::map<size_t, std::vector<size_t>> face;                          ///< Face vertex lists
-    std::map<size_t, std::map<std::string, float>> facedata;             ///< Face attributes
-    std::map<std::pair<size_t, size_t>, std::map<std::string, float>> edgedata;  ///< Edge attributes
-    std::map<std::string, float> default_vertex_attributes;              ///< Default vertex attrs
-    std::map<std::string, float> default_face_attributes;                ///< Default face attrs
-    std::map<std::string, float> default_edge_attributes;                ///< Default edge attrs
+    std::map<size_t, std::map<std::string, double>> facedata;             ///< Face attributes
+    std::map<std::pair<size_t, size_t>, std::map<std::string, double>> edgedata;  ///< Edge attributes
+    std::map<std::string, double> default_vertex_attributes;              ///< Default vertex attrs
+    std::map<std::string, double> default_face_attributes;                ///< Default face attrs
+    std::map<std::string, double> default_edge_attributes;                ///< Default edge attrs
     std::string guid = ::guid();                                         ///< Unique identifier
     std::string name = "my_mesh";                                        ///< Mesh name
     std::vector<Color> pointcolors;                                      ///< Vertex colors
     std::vector<Color> facecolors;                                       ///< Face colors
     std::vector<Color> linecolors;                                       ///< Edge colors
-    std::vector<float> widths;                                           ///< Edge widths
+    std::vector<double> widths;                                           ///< Edge widths
     Xform xform;                                     ///< Transformation matrix
 
 private:
@@ -199,10 +199,10 @@ public:
     std::optional<Vector> vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting) const;
     
     /// Calculate the area of a face
-    std::optional<float> face_area(size_t face_key) const;
+    std::optional<double> face_area(size_t face_key) const;
     
     /// Calculate the angle at a vertex in a face
-    std::optional<float> vertex_angle_in_face(size_t vertex_key, size_t face_key) const;
+    std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key) const;
 
     /// Calculate normals for all faces
     std::map<size_t, Vector> face_normals() const;
@@ -239,7 +239,7 @@ public:
      * @param precision Optional precision for vertex merging.
      * @return The constructed mesh.
      */
-    static Mesh from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<float> precision = std::nullopt);
+    static Mesh from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Transformation

@@ -1,6 +1,6 @@
 use crate::encoders::{json_dump, json_load};
 use crate::{Plane, Point, Vector};
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 
 #[test]
 fn test_plane_default_constructor() {

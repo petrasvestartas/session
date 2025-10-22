@@ -13,8 +13,8 @@ namespace session_cpp {
 
 // Lightweight axis-aligned bounding box used internally by BVH
 struct BvhAABB {
-    float cx, cy, cz; // center
-    float hx, hy, hz; // half-size
+    double cx, cy, cz; // center
+    double hx, hy, hz; // half-size
 };
 
 /**
@@ -45,38 +45,29 @@ public:
     std::string guid;
     std::string name;
     BVHNode* root;
-    float world_size;
-    std::vector<std::string> object_guids;  // Parallel array to boxes - maps indices to GUIDs
+    double world_size;
     
     // Node arena to store all nodes contiguously (no per-node heap allocations)
     std::vector<BVHNode> node_arena;
 
-    BVH(float world_size = 1000.0f);
+    BVH(double world_size = 1000.0);
     
     // Compute world size from bounding boxes
-    static float compute_world_size(const std::vector<BoundingBox>& bounding_boxes);
+    static double compute_world_size(const std::vector<BoundingBox>& bounding_boxes);
     
-    // Build BVH from bounding boxes with GUIDs (auto-computes world size)
-    void build_with_guids(const std::vector<std::pair<BoundingBox, std::string>>& boxes_with_guids);
-    
-    // Check all collisions and return GUID pairs directly
-    std::vector<std::pair<std::string, std::string>> check_all_collisions_guids(const std::vector<BoundingBox>& bounding_boxes);
-    
-    static BVH from_boxes(const std::vector<BoundingBox>& bounding_boxes, float world_size);
+    static BVH from_boxes(const std::vector<BoundingBox>& bounding_boxes, double world_size);
     
     // Fast build accepting continuous array of boxes (no copies)
-    void build_from_boxes(const BoundingBox* boxes, size_t count, float world_size);
+    void build_from_boxes(const BoundingBox* boxes, size_t count, double world_size);
     // Fast build accepting continuous array of lightweight AABBs (no BoundingBox construction)
-    void build_from_aabbs(const BvhAABB* aabbs, size_t count, float world_size);
+    void build_from_aabbs(const BvhAABB* aabbs, size_t count, double world_size);
     
     void build(const std::vector<BoundingBox>& bounding_boxes);
     std::tuple<std::vector<std::pair<int, int>>, std::vector<int>, int> check_all_collisions(const std::vector<BoundingBox>& bounding_boxes);
-    std::pair<std::vector<int>, int> find_collisions(int object_id, const BoundingBox& query_bbox, const std::vector<BoundingBox>& bounding_boxes);
 
     // Public helper methods for testing
     BoundingBox merge_aabb(const BoundingBox& aabb1, const BoundingBox& aabb2);
     bool aabb_intersect(const BoundingBox& aabb1, const BoundingBox& aabb2);
-    bool aabb_intersect(const BvhAABB& aabb1, const BoundingBox& aabb2);
     bool aabb_intersect(const BvhAABB& aabb1, const BvhAABB& aabb2);
 
     // Ray cast traversal over BVH nodes returning candidate leaf indices ordered by AABB entry t.
@@ -96,12 +87,10 @@ private:
 
     // Subtree creation using sorted object keys and read-only boxes array
     BVHNode* create_subtree(std::vector<ObjectInfo>& objects, int begin, int end, const BoundingBox* boxes);
-    void find_collisions_recursive(int object_id, const BoundingBox& query_bbox, BVHNode* node, 
-                                   const std::vector<BoundingBox>& bounding_boxes, std::vector<int>& collisions, int& check_count);
 };
 
 // Morton code functions
 uint32_t expand_bits(uint32_t v);
-uint32_t calculate_morton_code(float x, float y, float z, float world_size = 100.0f);
+uint32_t calculate_morton_code(double x, double y, double z, double world_size = 100.0);
 
 }

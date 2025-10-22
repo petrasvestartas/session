@@ -5,24 +5,24 @@
 
 namespace session_cpp {
 
-Quaternion::Quaternion() : typ("Quaternion"), guid(::guid()), name("my_quaternion"), s(1.0f), v(0.0f, 0.0f, 0.0f) {}
+Quaternion::Quaternion() : typ("Quaternion"), guid(::guid()), name("my_quaternion"), s(1.0), v(0.0, 0.0, 0.0) {}
 
-Quaternion::Quaternion(float s, const Vector& v) 
+Quaternion::Quaternion(double s, const Vector& v) 
     : typ("Quaternion"), guid(::guid()), name("my_quaternion"), s(s), v(v) {}
 
 Quaternion Quaternion::identity() {
-    return Quaternion(1.0f, Vector(0.0f, 0.0f, 0.0f));
+    return Quaternion(1.0, Vector(0.0, 0.0, 0.0));
 }
 
-Quaternion Quaternion::from_sv(float s, float x, float y, float z) {
+Quaternion Quaternion::from_sv(double s, double x, double y, double z) {
     return Quaternion(s, Vector(x, y, z));
 }
 
-Quaternion Quaternion::from_axis_angle(const Vector& axis, float angle) {
+Quaternion Quaternion::from_axis_angle(const Vector& axis, double angle) {
     Vector normalized_axis = axis;
     normalized_axis.normalize_self();
-    float half_angle = angle * 0.5f;
-    float s = std::cos(half_angle);
+    double half_angle = angle * 0.5;
+    double s = std::cos(half_angle);
     Vector v = normalized_axis * std::sin(half_angle);
     return Quaternion(s, v);
 }
@@ -32,16 +32,16 @@ Vector Quaternion::rotate_vector(const Vector& vec) const {
     Vector vec_copy = vec;
     Vector uv = qv.cross(vec_copy);
     Vector uuv = qv.cross(uv);
-    return vec_copy + (uv * s + uuv) * 2.0f;
+    return vec_copy + (uv * s + uuv) * 2.0;
 }
 
-float Quaternion::magnitude() const {
+double Quaternion::magnitude() const {
     return std::sqrt(s * s + v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
 }
 
 Quaternion Quaternion::normalize() const {
-    float mag = magnitude();
-    if (mag > 1e-10f) {
+    double mag = magnitude();
+    if (mag > 1e-10) {
         Quaternion q(s / mag, v / mag);
         q.typ = typ;
         q.guid = guid;
@@ -53,7 +53,7 @@ Quaternion Quaternion::normalize() const {
 }
 
 Quaternion Quaternion::conjugate() const {
-    Quaternion q(s, v * -1.0f);
+    Quaternion q(s, v * -1.0);
     q.typ = typ;
     q.guid = guid;
     q.name = name;
@@ -63,7 +63,7 @@ Quaternion Quaternion::conjugate() const {
 Quaternion Quaternion::operator*(const Quaternion& other) const {
     Vector v_copy = v;
     Vector other_v_copy = other.v;
-    float new_s = s * other.s - v_copy.dot(other_v_copy);
+    double new_s = s * other.s - v_copy.dot(other_v_copy);
     Vector new_v = other_v_copy * s + v_copy * other.s + v_copy.cross(other_v_copy);
     return Quaternion(new_s, new_v);
 }
@@ -81,7 +81,7 @@ nlohmann::ordered_json Quaternion::jsondump() const {
 }
 
 Quaternion Quaternion::jsonload(const nlohmann::json& data) {
-    Quaternion q(data["s"].get<float>(), Vector(data["x"].get<float>(), data["y"].get<float>(), data["z"].get<float>()));
+    Quaternion q(data["s"].get<double>(), Vector(data["x"].get<double>(), data["y"].get<double>(), data["z"].get<double>()));
     q.typ = data.value("type", "Quaternion");
     q.guid = data["guid"].get<std::string>();
     q.name = data["name"].get<std::string>();

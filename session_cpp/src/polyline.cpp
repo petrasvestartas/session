@@ -21,8 +21,8 @@ size_t Polyline::segment_count() const {
     return points.size() > 1 ? points.size() - 1 : 0;
 }
 
-float Polyline::length() const {
-    float total_length = 0.0f;
+double Polyline::length() const {
+    double total_length = 0.0;
     for (size_t i = 0; i < segment_count(); i++) {
         Vector segment_vector = points[i + 1] - points[i];
         total_length += segment_vector.magnitude();
@@ -228,9 +228,9 @@ double Polyline::length_squared() const {
 Point Polyline::point_at_parameter(const Point& start, const Point& end, double t) {
     const double s = 1.0 - t;
     return Point(
-        (start.x() == end.x()) ? start.x() : static_cast<float>(s * start.x() + t * end.x()),
-        (start.y() == end.y()) ? start.y() : static_cast<float>(s * start.y() + t * end.y()),
-        (start.z() == end.z()) ? start.z() : static_cast<float>(s * start.z() + t * end.z())
+        (start.x() == end.x()) ? start.x() : static_cast<double>(s * start.x() + t * end.x()),
+        (start.y() == end.y()) ? start.y() : static_cast<double>(s * start.y() + t * end.y()),
+        (start.z() == end.z()) ? start.z() : static_cast<double>(s * start.z() + t * end.z())
     );
 }
 
@@ -283,15 +283,15 @@ void Polyline::line_line_average(const Point& line0_start, const Point& line0_en
                                 const Point& line1_start, const Point& line1_end,
                                 Point& output_start, Point& output_end) {
     output_start = Point(
-        (line0_start.x() + line1_start.x()) * 0.5f,
-        (line0_start.y() + line1_start.y()) * 0.5f,
-        (line0_start.z() + line1_start.z()) * 0.5f
+        (line0_start.x() + line1_start.x()) * 0.5,
+        (line0_start.y() + line1_start.y()) * 0.5,
+        (line0_start.z() + line1_start.z()) * 0.5
     );
     
     output_end = Point(
-        (line0_end.x() + line1_end.x()) * 0.5f,
-        (line0_end.y() + line1_end.y()) * 0.5f,
-        (line0_end.z() + line1_end.z()) * 0.5f
+        (line0_end.x() + line1_end.x()) * 0.5,
+        (line0_end.y() + line1_end.y()) * 0.5,
+        (line0_end.z() + line1_end.z()) * 0.5
     );
 }
 
@@ -307,25 +307,25 @@ void Polyline::line_line_overlap_average(const Point& line0_start, const Point& 
 
     // Construct middle lines, in case the first one is flipped
     Point mid_line0_start(
-        (lineA_start.x() + lineB_start.x()) * 0.5f,
-        (lineA_start.y() + lineB_start.y()) * 0.5f,
-        (lineA_start.z() + lineB_start.z()) * 0.5f
+        (lineA_start.x() + lineB_start.x()) * 0.5,
+        (lineA_start.y() + lineB_start.y()) * 0.5,
+        (lineA_start.z() + lineB_start.z()) * 0.5
     );
     Point mid_line0_end(
-        (lineA_end.x() + lineB_end.x()) * 0.5f,
-        (lineA_end.y() + lineB_end.y()) * 0.5f,
-        (lineA_end.z() + lineB_end.z()) * 0.5f
+        (lineA_end.x() + lineB_end.x()) * 0.5,
+        (lineA_end.y() + lineB_end.y()) * 0.5,
+        (lineA_end.z() + lineB_end.z()) * 0.5
     );
     
     Point mid_line1_start(
-        (lineA_start.x() + lineB_end.x()) * 0.5f,
-        (lineA_start.y() + lineB_end.y()) * 0.5f,
-        (lineA_start.z() + lineB_end.z()) * 0.5f
+        (lineA_start.x() + lineB_end.x()) * 0.5,
+        (lineA_start.y() + lineB_end.y()) * 0.5,
+        (lineA_start.z() + lineB_end.z()) * 0.5
     );
     Point mid_line1_end(
-        (lineA_end.x() + lineB_start.x()) * 0.5f,
-        (lineA_end.y() + lineB_start.y()) * 0.5f,
-        (lineA_end.z() + lineB_start.z()) * 0.5f
+        (lineA_end.x() + lineB_start.x()) * 0.5,
+        (lineA_end.y() + lineB_start.y()) * 0.5,
+        (lineA_end.z() + lineB_start.z()) * 0.5
     );
 
     // The diagonal is always longer, so return the longer
@@ -396,7 +396,7 @@ double Polyline::closest_distance_and_point(const Point& point, size_t& edge_id,
 
 bool Polyline::is_closed() const {
     if (points.size() < 2) return false;
-    return points.front().distance(points.back()) < static_cast<float>(Tolerance::ZERO_TOLERANCE);
+    return points.front().distance(points.back()) < static_cast<double>(Tolerance::ZERO_TOLERANCE);
 }
 
 Point Polyline::center() const {
@@ -415,7 +415,7 @@ Point Polyline::center() const {
     y /= n;
     z /= n;
 
-    return Point(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+    return Point(static_cast<double>(x), static_cast<double>(y), static_cast<double>(z));
 }
 
 Vector Polyline::center_vec() const {
@@ -463,15 +463,15 @@ void Polyline::get_middle_line(const Point& line0_start, const Point& line0_end,
                               const Point& line1_start, const Point& line1_end,
                               Point& output_start, Point& output_end) {
     output_start = Point(
-        (line0_start.x() + line1_start.x()) * 0.5f,
-        (line0_start.y() + line1_start.y()) * 0.5f,
-        (line0_start.z() + line1_start.z()) * 0.5f
+        (line0_start.x() + line1_start.x()) * 0.5,
+        (line0_start.y() + line1_start.y()) * 0.5,
+        (line0_start.z() + line1_start.z()) * 0.5
     );
 
     output_end = Point(
-        (line0_end.x() + line1_end.x()) * 0.5f,
-        (line0_end.y() + line1_end.y()) * 0.5f,
-        (line0_end.z() + line1_end.z()) * 0.5f
+        (line0_end.x() + line1_end.x()) * 0.5,
+        (line0_end.y() + line1_end.y()) * 0.5,
+        (line0_end.z() + line1_end.z()) * 0.5
     );
 }
 
@@ -479,14 +479,14 @@ void Polyline::extend_line(Point& line_start, Point& line_end, double distance0,
     Vector v = line_end - line_start;
     v.normalize_self();
 
-    line_start = line_start - v * static_cast<float>(distance0);
-    line_end = line_end + v * static_cast<float>(distance1);
+    line_start = line_start - v * static_cast<double>(distance0);
+    line_end = line_end + v * static_cast<double>(distance1);
 }
 
 void Polyline::scale_line(Point& line_start, Point& line_end, double distance) {
     Vector v = line_end - line_start;
-    Point p0 = line_start + v * static_cast<float>(distance);
-    Point p1 = line_end - v * static_cast<float>(distance);
+    Point p0 = line_start + v * static_cast<double>(distance);
+    Point p1 = line_end - v * static_cast<double>(distance);
     line_start = p0;
     line_end = p1;
 }
@@ -501,12 +501,12 @@ void Polyline::extend_segment(int segment_id, double dist0, double dist1,
     Vector v = p1 - p0;
 
     if (proportion0 != 0 || proportion1 != 0) {
-        p0 = p0 - v * static_cast<float>(proportion0);
-        p1 = p1 + v * static_cast<float>(proportion1);
+        p0 = p0 - v * static_cast<double>(proportion0);
+        p1 = p1 + v * static_cast<double>(proportion1);
     } else {
         v.normalize_self();
-        p0 = p0 - v * static_cast<float>(dist0);
-        p1 = p1 + v * static_cast<float>(dist1);
+        p0 = p0 - v * static_cast<double>(dist0);
+        p1 = p1 + v * static_cast<double>(dist1);
     }
 
     points[segment_id] = p0;
@@ -528,12 +528,12 @@ void Polyline::extend_segment_equally(Point& segment_start, Point& segment_end, 
     Vector v = segment_end - segment_start;
 
     if (proportion != 0) {
-        segment_start = segment_start - v * static_cast<float>(proportion);
-        segment_end = segment_end + v * static_cast<float>(proportion);
+        segment_start = segment_start - v * static_cast<double>(proportion);
+        segment_end = segment_end + v * static_cast<double>(proportion);
     } else {
         v.normalize_self();
-        segment_start = segment_start - v * static_cast<float>(dist);
-        segment_end = segment_end + v * static_cast<float>(dist);
+        segment_start = segment_start - v * static_cast<double>(dist);
+        segment_end = segment_end + v * static_cast<double>(dist);
     }
 }
 
@@ -626,7 +626,7 @@ Polyline Polyline::tween_two_polylines(const Polyline& polyline0, const Polyline
 
     for (size_t i = 0; i < polyline0.points.size(); i++) {
         Vector diff = polyline1.points[i] - polyline0.points[i];
-        Point interpolated = polyline0.points[i] + diff * static_cast<float>(weight);
+        Point interpolated = polyline0.points[i] + diff * static_cast<double>(weight);
         result.points.push_back(interpolated);
     }
 
@@ -641,7 +641,7 @@ void Polyline::average_normal(Vector& average_normal) const {
     }
 
     // Check if closed
-    bool closed = (points.front().distance(points.back()) < static_cast<float>(Tolerance::ZERO_TOLERANCE));
+    bool closed = (points.front().distance(points.back()) < static_cast<double>(Tolerance::ZERO_TOLERANCE));
     if (closed && len > 1) len = len - 1;
 
     average_normal = Vector(0, 0, 0);

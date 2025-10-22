@@ -419,7 +419,7 @@ mod tests {
         println!("Naive would need: {naive_checks} checks");
         println!(
             "Check reduction: {:.1}%",
-            100.0 * (1.0 - checks as f32 / naive_checks as f32)
+            100.0 * (1.0 - checks as f64 / naive_checks as f64)
         );
 
         // Should find some collisions

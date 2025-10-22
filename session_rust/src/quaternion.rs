@@ -8,7 +8,7 @@ pub struct Quaternion {
     pub typ: String,
     pub guid: String,
     pub name: String,
-    pub s: f32,
+    pub s: f64,
     pub v: Vector,
 }
 
@@ -43,10 +43,10 @@ impl<'de> Deserialize<'de> for Quaternion {
             typ: String,
             guid: String,
             name: String,
-            s: f32,
-            x: f32,
-            y: f32,
-            z: f32,
+            s: f64,
+            x: f64,
+            y: f64,
+            z: f64,
         }
 
         let helper = QuaternionHelper::deserialize(deserializer)?;
@@ -61,7 +61,7 @@ impl<'de> Deserialize<'de> for Quaternion {
 }
 
 impl Quaternion {
-    pub fn new(s: f32, v: Vector) -> Self {
+    pub fn new(s: f64, v: Vector) -> Self {
         Quaternion {
             typ: "Quaternion".to_string(),
             guid: Uuid::new_v4().to_string(),
@@ -71,7 +71,7 @@ impl Quaternion {
         }
     }
 
-    pub fn from_sv(s: f32, x: f32, y: f32, z: f32) -> Self {
+    pub fn from_sv(s: f64, x: f64, y: f64, z: f64) -> Self {
         Quaternion {
             typ: "Quaternion".to_string(),
             guid: Uuid::new_v4().to_string(),
@@ -91,7 +91,7 @@ impl Quaternion {
         }
     }
 
-    pub fn from_axis_angle(axis: Vector, angle: f32) -> Self {
+    pub fn from_axis_angle(axis: Vector, angle: f64) -> Self {
         let axis = axis.normalize();
         let half_angle = angle * 0.5;
         let s = half_angle.cos();
@@ -112,7 +112,7 @@ impl Quaternion {
         v + (uv * self.s + uuv) * 2.0
     }
 
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> f64 {
         (self.s * self.s
             + self.v.x() * self.v.x()
             + self.v.y() * self.v.y()

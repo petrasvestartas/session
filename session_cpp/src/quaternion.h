@@ -17,7 +17,7 @@ private:
 public:
     std::string guid;  ///< Unique identifier generated on construction
     std::string name;  ///< Human-readable name
-    float s;           ///< Scalar component
+    double s;          ///< Scalar component
     Vector v;          ///< Vector component (x, y, z)
 
     /**
@@ -30,7 +30,7 @@ public:
      * @param s Scalar component.
      * @param v Vector component.
      */
-    Quaternion(float s, const Vector& v);
+    Quaternion(double s, const Vector& v);
     
     /// Get the type tag (always "Quaternion")
     const std::string& type() const { return typ; }
@@ -38,14 +38,14 @@ public:
     /// Create identity quaternion (no rotation)
     static Quaternion identity();
     /// Create quaternion from scalar and vector components
-    static Quaternion from_sv(float s, float x, float y, float z);
+    static Quaternion from_sv(double s, double x, double y, double z);
     /// Create quaternion from rotation axis and angle (radians)
-    static Quaternion from_axis_angle(const Vector& axis, float angle);
+    static Quaternion from_axis_angle(const Vector& axis, double angle);
 
     /// Rotate a vector by this quaternion
     Vector rotate_vector(const Vector& vec) const;
     /// Magnitude (norm) of the quaternion
-    float magnitude() const;
+    double magnitude() const;
     /// Normalized quaternion (unit length)
     Quaternion normalize() const;
     /// Conjugate of the quaternion

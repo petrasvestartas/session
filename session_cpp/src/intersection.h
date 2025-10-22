@@ -20,14 +20,14 @@ public:
    * @brief Ray-mesh intersection result containing hit information
    */
   struct RayHit {
-    float t;           ///< Parameter along ray where intersection occurs
+    double t;           ///< Parameter along ray where intersection occurs
     Point point;       ///< 3D intersection point
-    float u;           ///< Barycentric coordinate u
-    float v;           ///< Barycentric coordinate v
+    double u;           ///< Barycentric coordinate u
+    double v;           ///< Barycentric coordinate v
     int face_index;    ///< Index of the intersected face
     
-    RayHit() : t(0.0f), point(), u(0.0f), v(0.0f), face_index(-1) {}
-    RayHit(float t_, const Point& p, float u_ = 0.0f, float v_ = 0.0f, int face_idx = -1)
+    RayHit() : t(0.0), point(), u(0.0), v(0.0), face_index(-1) {}
+    RayHit(double t_, const Point& p, double u_ = 0.0, double v_ = 0.0, int face_idx = -1)
       : t(t_), point(p), u(u_), v(v_), face_index(face_idx) {}
   };
 
@@ -43,7 +43,7 @@ public:
     const Line& line0,
     const Line& line1,
     Point& output,
-    float tolerance
+    double tolerance
   );
 
   /**
@@ -60,9 +60,9 @@ public:
   static bool line_line_parameters(
     const Line& line0,
     const Line& line1,
-    float& t0,
-    float& t1,
-    float tolerance,
+    double& t0,
+    double& t1,
+    double tolerance,
     bool intersect_segments = true,
     bool near_parallel_as_closest = false
   );
@@ -125,10 +125,10 @@ public:
     const Point& origin,
     const Vector& direction,
     const BoundingBox& box,
-    float t0,
-    float t1,
-    float& tmin,
-    float& tmax
+    double t0,
+    double t1,
+    double& tmin,
+    double& tmax
   );
 
   /**
@@ -144,10 +144,10 @@ public:
   static bool ray_box(
     const Line& line,
     const BoundingBox& box,
-    float t0,
-    float t1,
-    float& tmin,
-    float& tmax
+    double t0,
+    double t1,
+    double& tmin,
+    double& tmax
   );
 
   /**
@@ -163,8 +163,8 @@ public:
   static bool ray_box(
     const Line& line,
     const BoundingBox& box,
-    float t0,
-    float t1,
+    double t0,
+    double t1,
     std::vector<Point>& intersection_points
   );
 
@@ -182,9 +182,9 @@ public:
     const Point& origin,
     const Vector& direction,
     const Point& center,
-    float radius,
-    float& t0,
-    float& t1
+    double radius,
+    double& t0,
+    double& t1
   );
 
   /**
@@ -199,7 +199,7 @@ public:
   static bool ray_sphere(
     const Line& line,
     const Point& center,
-    float radius,
+    double radius,
     std::vector<Point>& intersection_points
   );
 
@@ -223,10 +223,10 @@ public:
     const Point& v0,
     const Point& v1,
     const Point& v2,
-    float epsilon,
-    float& t,
-    float& u,
-    float& v,
+    double epsilon,
+    double& t,
+    double& u,
+    double& v,
     bool& parallel
   );
 
@@ -245,7 +245,7 @@ public:
     const Point& v0,
     const Point& v1,
     const Point& v2,
-    float epsilon,
+    double epsilon,
     Point& output
   );
 
@@ -295,7 +295,7 @@ public:
   static std::vector<Point> ray_mesh(
     const Line& line,
     const Mesh& mesh,
-    float epsilon,
+    double epsilon,
     bool find_all = false
   );
 
@@ -310,20 +310,20 @@ public:
   static std::vector<Point> ray_mesh_bvh(
     const Line& line,
     const Mesh& mesh,
-    float epsilon,
+    double epsilon,
     bool find_all = false
   );
 
 private:
   static int solve_3x3(
-    const float row0[3],
-    const float row1[3],
-    const float row2[3],
-    float d0, float d1, float d2,
-    float& x, float& y, float& z,
-    float& pivot_ratio
+    const double row0[3],
+    const double row1[3],
+    const double row2[3],
+    double d0, double d1, double d2,
+    double& x, double& y, double& z,
+    double& pivot_ratio
   );
-  static float plane_value_at(const Plane& plane, const Point& point);
+  static double plane_value_at(const Plane& plane, const Point& point);
 };
 
 } // namespace session_cpp

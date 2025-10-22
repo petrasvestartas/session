@@ -11,7 +11,7 @@ use uuid::Uuid;
 pub struct Cylinder {
     pub guid: String,
     pub name: String,
-    pub radius: f32,
+    pub radius: f64,
     pub line: Line,
     pub mesh: Mesh,
     #[serde(default = "Xform::identity")]
@@ -29,7 +29,7 @@ impl Cylinder {
     /// # Returns
     ///
     /// A new `Cylinder` with a generated 10-sided cylinder mesh
-    pub fn new(line: Line, radius: f32) -> Self {
+    pub fn new(line: Line, radius: f64) -> Self {
         let mesh = Self::create_cylinder_mesh(&line, radius);
         Self {
             guid: Uuid::new_v4().to_string(),
@@ -41,7 +41,7 @@ impl Cylinder {
         }
     }
 
-    fn create_cylinder_mesh(line: &Line, radius: f32) -> Mesh {
+    fn create_cylinder_mesh(line: &Line, radius: f64) -> Mesh {
         let unit_cylinder = Self::unit_cylinder_geometry();
         let xform = Self::line_to_cylinder_transform(line, radius);
         Self::transform_geometry(&unit_cylinder, &xform)
@@ -97,7 +97,7 @@ impl Cylinder {
         (vertices, triangles)
     }
 
-    fn line_to_cylinder_transform(line: &Line, radius: f32) -> Xform {
+    fn line_to_cylinder_transform(line: &Line, radius: f64) -> Xform {
         let start = line.start();
         let end = line.end();
         let line_vec = line.to_vector();

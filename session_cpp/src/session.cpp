@@ -1,8 +1,44 @@
 #include "session.h"
 #include "graph.h"
 #include "tree.h"
+#include "intersection.h"
 #include <algorithm>
 #include <functional>
+
+/**
+ * ADDING NEW GEOMETRY TYPES - CHECKLIST
+ * =====================================
+ * 
+ * When adding a new geometry type (e.g., Sphere, Cone, etc.), update:
+ * 
+ * 1. SESSION.H:
+ *    - Add to Geometry variant (e.g., std::shared_ptr<Sphere>)
+ *    - Add collection to Objects class (e.g., std::shared_ptr<std::vector<std::shared_ptr<Sphere>>> spheres)
+ *    - Add to Objects constructor initialization
+ *    - Declare Session::add_XXX() method
+ * 
+ * 2. SESSION.CPP:
+ *    - Implement Session::add_XXX() method
+ *    - Add case in Session::compute_bounding_box() visitor
+ *    - Add case in Session::ray_intersect_geometry() visitor
+ *    - Add collection to Session::get_geometry() transformation loop
+ *    - Add collection to Session::jsonload() rebuild lookup
+ * 
+ * 3. OBJECTS.H/CPP:
+ *    - Add collection member and initialization
+ *    - Add to Objects::jsondump()
+ *    - Add to Objects::jsonload()
+ *    - Add to Objects::to_string()
+ * 
+ * 4. INTERSECTION.H/CPP (if needed):
+ *    - Implement ray-geometry intersection method
+ *    - Consider adding to existing methods if applicable
+ * 
+ * Critical visitor patterns to update:
+ * - compute_bounding_box(): Define AABB for collision detection
+ * - ray_intersect_geometry(): Define precise ray intersection logic
+ * - get_geometry(): Apply transformations to new type
+ */
 
 namespace session_cpp {
 
@@ -17,6 +53,7 @@ std::shared_ptr<TreeNode> Session::add_point(std::shared_ptr<Point> point) {
   objects.points->push_back(point);
   lookup[point->guid] = point;
   graph.add_node(point->guid, "point_" + point->name);
+  cache_geometry_aabb(point->guid, point);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(point->guid);
   return tree_node;
 }
@@ -25,6 +62,7 @@ std::shared_ptr<TreeNode> Session::add_line(std::shared_ptr<Line> line) {
   objects.lines->push_back(line);
   lookup[line->guid] = line;
   graph.add_node(line->guid, "line_" + line->name);
+  cache_geometry_aabb(line->guid, line);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(line->guid);
   return tree_node;
 }
@@ -33,6 +71,7 @@ std::shared_ptr<TreeNode> Session::add_plane(std::shared_ptr<Plane> plane) {
   objects.planes->push_back(plane);
   lookup[plane->guid] = plane;
   graph.add_node(plane->guid, "plane_" + plane->name);
+  cache_geometry_aabb(plane->guid, plane);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(plane->guid);
   return tree_node;
 }
@@ -41,6 +80,7 @@ std::shared_ptr<TreeNode> Session::add_bbox(std::shared_ptr<BoundingBox> bbox) {
   objects.bboxes->push_back(bbox);
   lookup[bbox->guid] = bbox;
   graph.add_node(bbox->guid, "bbox_" + bbox->name);
+  cache_geometry_aabb(bbox->guid, bbox);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(bbox->guid);
   return tree_node;
 }
@@ -49,6 +89,7 @@ std::shared_ptr<TreeNode> Session::add_polyline(std::shared_ptr<Polyline> polyli
   objects.polylines->push_back(polyline);
   lookup[polyline->guid] = polyline;
   graph.add_node(polyline->guid, "polyline_" + polyline->name);
+  cache_geometry_aabb(polyline->guid, polyline);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(polyline->guid);
   return tree_node;
 }
@@ -57,6 +98,7 @@ std::shared_ptr<TreeNode> Session::add_pointcloud(std::shared_ptr<PointCloud> po
   objects.pointclouds->push_back(pointcloud);
   lookup[pointcloud->guid] = pointcloud;
   graph.add_node(pointcloud->guid, "pointcloud_" + pointcloud->name);
+  cache_geometry_aabb(pointcloud->guid, pointcloud);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(pointcloud->guid);
   return tree_node;
 }
@@ -65,6 +107,7 @@ std::shared_ptr<TreeNode> Session::add_mesh(std::shared_ptr<Mesh> mesh) {
   objects.meshes->push_back(mesh);
   lookup[mesh->guid] = mesh;
   graph.add_node(mesh->guid, "mesh_" + mesh->name);
+  cache_geometry_aabb(mesh->guid, mesh);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(mesh->guid);
   return tree_node;
 }
@@ -73,6 +116,7 @@ std::shared_ptr<TreeNode> Session::add_cylinder(std::shared_ptr<Cylinder> cylind
   objects.cylinders->push_back(cylinder);
   lookup[cylinder->guid] = cylinder;
   graph.add_node(cylinder->guid, "cylinder_" + cylinder->name);
+  cache_geometry_aabb(cylinder->guid, cylinder);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(cylinder->guid);
   return tree_node;
 }
@@ -81,6 +125,7 @@ std::shared_ptr<TreeNode> Session::add_arrow(std::shared_ptr<Arrow> arrow) {
   objects.arrows->push_back(arrow);
   lookup[arrow->guid] = arrow;
   graph.add_node(arrow->guid, "arrow_" + arrow->name);
+  cache_geometry_aabb(arrow->guid, arrow);  // Incremental AABB caching
   auto tree_node = std::make_shared<TreeNode>(arrow->guid);
   return tree_node;
 }
@@ -104,6 +149,8 @@ bool Session::remove_object(const std::string &guid) {
   if (it == lookup.end()) {
     return false;
   }
+
+  invalidate_bvh_cache();
 
   // Determine type and remove from typed collection
   std::visit(
@@ -162,8 +209,9 @@ std::vector<std::string> Session::get_neighbours(const std::string &guid) {
 
 // BVH Collision Detection
 
+// ADD NEW GEOMETRY TYPES HERE: Add bounding box computation for collision detection
 BoundingBox Session::compute_bounding_box(const Geometry& geometry) {
-  float inflate = Tolerance::APPROXIMATION;
+  double inflate = Tolerance::APPROXIMATION;
   
   return std::visit([inflate](auto&& geom_ptr) -> BoundingBox {
     using T = std::decay_t<decltype(geom_ptr)>;
@@ -204,7 +252,7 @@ BoundingBox Session::compute_bounding_box(const Geometry& geometry) {
     }
     else if constexpr (std::is_same_v<T, std::shared_ptr<Plane>>) {
       // Create bounded box around plane origin
-      return BoundingBox::from_point(geom_ptr->origin(), inflate * 10.0f);
+      return BoundingBox::from_point(geom_ptr->origin(), inflate * 10.0);
     }
     else if constexpr (std::is_same_v<T, std::shared_ptr<Cylinder>>) {
       // Compute from cylinder line endpoints and radius
@@ -231,7 +279,7 @@ BoundingBox Session::compute_bounding_box(const Geometry& geometry) {
       return bbox;
     }
     else {
-      // Fallback
+      // Fallback - ADD YOUR NEW GEOMETRY TYPE ABOVE THIS LINE
       return BoundingBox::from_point(Point(0, 0, 0), inflate);
     }
   }, geometry);
@@ -239,35 +287,44 @@ BoundingBox Session::compute_bounding_box(const Geometry& geometry) {
 
 std::vector<std::pair<std::string, std::string>> Session::get_collisions() {
   // Collect all objects with their bounding boxes and GUIDs
-  std::vector<std::pair<BoundingBox, std::string>> boxes_with_guids;
+  std::vector<BoundingBox> boxes;
+  std::vector<std::string> guids;
+  boxes.reserve(lookup.size());
+  guids.reserve(lookup.size());
   
   for (const auto& [guid, geometry] : lookup) {
     BoundingBox bbox = compute_bounding_box(geometry);
-    boxes_with_guids.push_back({bbox, guid});
+    boxes.push_back(bbox);
+    guids.push_back(guid);
   }
   
-  if (boxes_with_guids.empty()) {
+  if (boxes.empty()) {
     return {};
   }
   
-  // Build BVH with GUIDs (auto-computes world size)
-  bvh.build_with_guids(boxes_with_guids);
+  // Build BVH and check collisions
+  double world_size = BVH::compute_world_size(boxes);
+  bvh = BVH::from_boxes(boxes, world_size);
+  auto [collision_pairs, colliding_indices, checks] = bvh.check_all_collisions(boxes);
+  (void)colliding_indices;
+  (void)checks;
   
-  // Extract just the boxes for collision checking
-  std::vector<BoundingBox> boxes;
-  for (const auto& [bbox, _] : boxes_with_guids) {
-    boxes.push_back(bbox);
+  // Map index pairs to GUID pairs
+  std::vector<std::pair<std::string, std::string>> guid_pairs;
+  guid_pairs.reserve(collision_pairs.size());
+  for (const auto& [i, j] : collision_pairs) {
+    if (i >= 0 && i < static_cast<int>(guids.size()) && 
+        j >= 0 && j < static_cast<int>(guids.size())) {
+      guid_pairs.emplace_back(guids[i], guids[j]);
+    }
   }
   
-  // Get collision pairs as GUIDs directly
-  auto collision_pairs = bvh.check_all_collisions_guids(boxes);
-  
   // Add collision edges to graph
-  for (const auto& [guid1, guid2] : collision_pairs) {
+  for (const auto& [guid1, guid2] : guid_pairs) {
     graph.add_edge(guid1, guid2, "bvh_collision");
   }
   
-  return collision_pairs;
+  return guid_pairs;
 }
 
 // Transformed Geometry
@@ -415,6 +472,224 @@ Session Session::jsonload(const nlohmann::json &data) {
   }
 
   return session;
+}
+
+// Ray Intersection
+
+void Session::cache_geometry_aabb(const std::string& guid, const Geometry& geometry) {
+  // Compute and cache bounding box incrementally
+  cached_boxes.push_back(compute_bounding_box(geometry));
+  cached_guids.push_back(guid);
+  bvh_cache_dirty = true;  // Mark BVH as needing rebuild
+}
+
+void Session::rebuild_ray_bvh_cache() {
+  // Fast rebuild: just reconstruct BVH from already-cached boxes
+  // (AABBs were computed incrementally when geometry was added)
+  
+  if (cached_boxes.size() != lookup.size()) {
+    // Cache is invalid (geometry removed or cache empty), full rebuild needed
+    cached_boxes.clear();
+    cached_guids.clear();
+    cached_boxes.reserve(lookup.size());
+    cached_guids.reserve(lookup.size());
+    
+    // Compute and cache all bounding boxes
+    for (const auto& [guid, geometry] : lookup) {
+      cached_boxes.push_back(compute_bounding_box(geometry));
+      cached_guids.push_back(guid);
+    }
+  }
+  
+  // Build BVH from cached boxes (FAST: ~1ms for 10k boxes)
+  if (!cached_boxes.empty()) {
+    double world_size = BVH::compute_world_size(cached_boxes);
+    cached_ray_bvh = BVH::from_boxes(cached_boxes, world_size);
+  }
+}
+
+std::vector<Session::RayHit> Session::ray_cast(const Point& origin, const Vector& direction, double tolerance) {
+  // Rebuild BVH cache if dirty (geometry added/removed)
+  if (bvh_cache_dirty) {
+    rebuild_ray_bvh_cache();
+    bvh_cache_dirty = false;
+  }
+  
+  if (cached_guids.empty()) return {};
+  
+  // BVH OPTIMIZATION: Get candidate indices from CACHED BVH ray traversal
+  // This prunes objects whose AABBs don't intersect the ray, providing
+  // acceleration for ALL geometry types (Point, Line, Mesh, Cylinder, etc.)
+  std::vector<int> candidate_ids;
+  cached_ray_bvh.ray_cast(origin, direction, candidate_ids, true);
+  
+  // Test candidates with precise geometry intersection and track closest hit
+  std::vector<RayHit> hits;
+  Line ray = Line::from_points(origin, origin + direction * 10000.0);  // Long ray
+  double closest_dist = std::numeric_limits<double>::infinity();
+  
+  for (int idx : candidate_ids) {
+    const std::string& guid = cached_guids[idx];
+    const Geometry& geom = lookup[guid];
+    
+    std::optional<Point> hit = ray_intersect_geometry(ray, geom, tolerance);
+    if (hit) {
+      double dist = origin.distance(*hit);
+      
+      // Only keep hits closer than current closest
+      if (dist < closest_dist) {
+        // Clear previous hits if this is closer
+        if (dist < closest_dist - tolerance) {
+          hits.clear();
+        }
+        hits.push_back({guid, *hit, dist});
+        closest_dist = dist;
+      }
+    }
+  }
+  
+  // Already sorted by discovery order (closest first)
+  return hits;
+}
+
+// ADD NEW GEOMETRY TYPES HERE: Add ray intersection logic for precise ray casting
+std::optional<Point> Session::ray_intersect_geometry(const Line& ray, const Geometry& geometry, double tolerance) {
+  return std::visit([&](auto&& geom_ptr) -> std::optional<Point> {
+    using T = std::decay_t<decltype(geom_ptr)>;
+    
+    if constexpr (std::is_same_v<T, std::shared_ptr<Point>>) {
+      // Ray-point: parametric distance calculation
+      Vector ray_dir = ray.end() - ray.start();
+      Vector to_point = *geom_ptr - ray.start();
+      double t = to_point.dot(ray_dir) / ray_dir.dot(ray_dir);
+      if (t < 0) return std::nullopt;  // Point is behind ray
+      Point closest = ray.start() + ray_dir * t;
+      double dist = geom_ptr->distance(closest);
+      return (dist <= tolerance) ? std::optional{closest} : std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Line>>) {
+      // Ray-line intersection
+      Point hit;
+      if (Intersection::line_line(ray, *geom_ptr, hit, tolerance)) {
+        return hit;
+      }
+      return std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Plane>>) {
+      // Ray-plane intersection
+      Point hit;
+      if (Intersection::line_plane(ray, *geom_ptr, hit, tolerance)) {
+        return hit;
+      }
+      return std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Polyline>>) {
+      // Ray-polyline: test each segment, return closest
+      std::optional<Point> closest_hit;
+      double min_dist = std::numeric_limits<double>::infinity();
+      
+      for (size_t i = 0; i < geom_ptr->segment_count(); ++i) {
+        const Point& p0 = geom_ptr->points[i];
+        const Point& p1 = geom_ptr->points[i + 1];
+        Line seg = Line::from_points(p0, p1);
+        Point hit;
+        if (Intersection::line_line(ray, seg, hit, tolerance)) {
+          double dist = ray.start().distance(hit);
+          if (dist < min_dist) {
+            min_dist = dist;
+            closest_hit = hit;
+          }
+        }
+      }
+      return closest_hit;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<PointCloud>>) {
+      // Ray-pointcloud: find closest point within tolerance
+      std::optional<Point> closest_hit;
+      double min_dist = std::numeric_limits<double>::infinity();
+      Vector ray_dir = ray.end() - ray.start();
+      
+      for (const Point& pt : geom_ptr->points) {
+        Vector to_point = pt - ray.start();
+        double t = to_point.dot(ray_dir) / ray_dir.dot(ray_dir);
+        if (t < 0) continue;  // Point is behind ray
+        Point closest = ray.start() + ray_dir * t;
+        double dist = pt.distance(closest);
+        if (dist <= tolerance && dist < min_dist) {
+          min_dist = dist;
+          closest_hit = closest;
+        }
+      }
+      return closest_hit;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Mesh>>) {
+      // Ray-mesh: use triangle BVH
+      std::vector<Point> hits = Intersection::ray_mesh_bvh(ray, *geom_ptr, tolerance, true);
+      if (!hits.empty()) {
+        return hits[0];  // Return closest
+      }
+      return std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<BoundingBox>>) {
+      // Ray-bbox: use slab test to find entry point
+      double tmin, tmax;
+      if (Intersection::ray_box(ray.start(), ray.end() - ray.start(), *geom_ptr, 0.0, 1.0, tmin, tmax)) {
+        // Return entry point (closest intersection)
+        Vector ray_dir = ray.end() - ray.start();
+        Point hit = ray.start() + ray_dir * tmin;
+        return hit;
+      }
+      return std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Cylinder>>) {
+      // Ray-cylinder: check distance to cylinder axis
+      const Line& cyl_axis = geom_ptr->line;
+      double radius = geom_ptr->radius;
+      
+      // Find closest points between ray and cylinder axis
+      double t_ray, t_cyl;
+      if (Intersection::line_line_parameters(ray, cyl_axis, t_ray, t_cyl, tolerance, true, false)) {
+        // Check if within cylinder bounds
+        if (t_cyl >= 0.0 && t_cyl <= 1.0) {
+          Point point_on_ray = ray.point_at(t_ray);
+          Point point_on_axis = cyl_axis.point_at(t_cyl);
+          double dist = point_on_ray.distance(point_on_axis);
+          
+          if (dist <= radius + tolerance) {
+            return point_on_ray;
+          }
+        }
+      }
+      
+      return std::nullopt;
+    }
+    else if constexpr (std::is_same_v<T, std::shared_ptr<Arrow>>) {
+      // Ray-arrow: same logic as cylinder
+      const Line& arrow_axis = geom_ptr->line;
+      double radius = geom_ptr->radius;
+      
+      // Find closest points between ray and arrow axis
+      double t_ray, t_arrow;
+      if (Intersection::line_line_parameters(ray, arrow_axis, t_ray, t_arrow, tolerance, true, false)) {
+        // Check if within arrow bounds
+        if (t_arrow >= 0.0 && t_arrow <= 1.0) {
+          Point point_on_ray = ray.point_at(t_ray);
+          Point point_on_axis = arrow_axis.point_at(t_arrow);
+          double dist = point_on_ray.distance(point_on_axis);
+          
+          if (dist <= radius + tolerance) {
+            return point_on_ray;
+          }
+        }
+      }
+      
+      return std::nullopt;
+    }
+    else {
+      // ADD YOUR NEW GEOMETRY TYPE ABOVE THIS LINE
+      return std::nullopt;
+    }
+  }, geometry);
 }
 
 std::ostream &operator<<(std::ostream &os, const Session &session) {

@@ -4,16 +4,16 @@
 
 namespace session_cpp {
 
-Line::Line() : _x0(0.0f), _y0(0.0f), _z0(0.0f), _x1(0.0f), _y1(0.0f), _z1(1.0f) {}
+Line::Line() : _x0(0.0), _y0(0.0), _z0(0.0), _x1(0.0), _y1(0.0), _z1(1.0) {}
 
-Line::Line(float x0, float y0, float z0, float x1, float y1, float z1) 
+Line::Line(double x0, double y0, double z0, double x1, double y1, double z1) 
     : _x0(x0), _y0(y0), _z0(z0), _x1(x1), _y1(y1), _z1(z1) {}
 
 Line Line::from_points(const Point& p1, const Point& p2) {
     return Line(p1.x(), p1.y(), p1.z(), p2.x(), p2.y(), p2.z());
 }
 
-Line Line::with_name(const std::string& name, float x0, float y0, float z0, float x1, float y1, float z1) {
+Line Line::with_name(const std::string& name, double x0, double y0, double z0, double x1, double y1, double z1) {
     Line line(x0, y0, z0, x1, y1, z1);
     line.name = name;
     return line;
@@ -83,7 +83,7 @@ Line Line::jsonload(const nlohmann::json& data) {
 // Operators
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-float& Line::operator[](int index) {
+double& Line::operator[](int index) {
     switch(index) {
         case 0: return _x0;
         case 1: return _y0;
@@ -95,7 +95,7 @@ float& Line::operator[](int index) {
     }
 }
 
-const float& Line::operator[](int index) const {
+const double& Line::operator[](int index) const {
     switch(index) {
         case 0: return _x0;
         case 1: return _y0;
@@ -127,7 +127,7 @@ Line& Line::operator-=(const Vector& other) {
     return *this;
 }
 
-Line& Line::operator*=(float factor) {
+Line& Line::operator*=(double factor) {
     _x0 *= factor;
     _y0 *= factor;
     _z0 *= factor;
@@ -137,7 +137,7 @@ Line& Line::operator*=(float factor) {
     return *this;
 }
 
-Line& Line::operator/=(float factor) {
+Line& Line::operator/=(double factor) {
     _x0 /= factor;
     _y0 /= factor;
     _z0 /= factor;
@@ -159,13 +159,13 @@ Line Line::operator-(const Vector& other) const {
     return result;
 }
 
-Line Line::operator*(float factor) const {
+Line Line::operator*(double factor) const {
     Line result = *this;
     result *= factor;
     return result;
 }
 
-Line Line::operator/(float factor) const {
+Line Line::operator/(double factor) const {
     Line result = *this;
     result /= factor;
     return result;
@@ -179,22 +179,22 @@ Vector Line::to_vector() const {
 // Geometry Methods
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-float Line::length() const {
-    float dx = _x1 - _x0;
-    float dy = _y1 - _y0;
-    float dz = _z1 - _z0;
+double Line::length() const {
+    double dx = _x1 - _x0;
+    double dy = _y1 - _y0;
+    double dz = _z1 - _z0;
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-float Line::squared_length() const {
-    float dx = _x1 - _x0;
-    float dy = _y1 - _y0;
-    float dz = _z1 - _z0;
+double Line::squared_length() const {
+    double dx = _x1 - _x0;
+    double dy = _y1 - _y0;
+    double dz = _z1 - _z0;
     return dx * dx + dy * dy + dz * dz;
 }
 
-Point Line::point_at(float t) const {
-    float s = 1.0f - t;
+Point Line::point_at(double t) const {
+    double s = 1.0 - t;
     return Point(s * _x0 + t * _x1, s * _y0 + t * _y1, s * _z0 + t * _z1);
 }
 

@@ -24,7 +24,7 @@ class Arrow {
 public:
     std::string guid = ::guid();
     std::string name = "my_arrow";
-    float radius;
+    double radius;
     Line line;
     Mesh mesh;
     Xform xform;
@@ -35,7 +35,7 @@ public:
      * @param radius The radius of the arrow body
      * @return A new Arrow with a cylinder body and cone head mesh
      */
-    Arrow(const Line& line, float radius);
+    Arrow(const Line& line, double radius);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Transformation
@@ -59,7 +59,7 @@ public:
     /// Deserializes an Arrow from a JSON file
 
 private:
-    static Mesh create_arrow_mesh(const Line& line, float radius);
+    static Mesh create_arrow_mesh(const Line& line, double radius);
     static std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> unit_cylinder_geometry();
     static std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> unit_cone_geometry();
 };

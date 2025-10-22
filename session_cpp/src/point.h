@@ -22,25 +22,25 @@ class Point {
 public:
   std::string guid = ::guid();       ///< Unique identifier for the point
   std::string name = "my_point";     ///< Point identifier/name
-  float width = 1.0f;                ///< Point diameter in pixels
+  double width = 1.0;                ///< Point diameter in pixels
   Color pointcolor = Color::white(); ///< Color of the point
   Xform xform = Xform::identity();   ///< Transformation matrix
 
 private:
-  float _x = 0.0f;                   ///< X coordinate (private)
-  float _y = 0.0f;                   ///< Y coordinate (private)
-  float _z = 0.0f;                   ///< Z coordinate (private)
+  double _x = 0.0;                   ///< X coordinate (private)
+  double _y = 0.0;                   ///< Y coordinate (private)
+  double _z = 0.0;                   ///< Z coordinate (private)
 
 public:
   /// Getters for coordinates
-  float x() const { return _x; }
-  float y() const { return _y; }
-  float z() const { return _z; }
+  double x() const { return _x; }
+  double y() const { return _y; }
+  double z() const { return _z; }
 
   /// Setters for coordinates
-  void set_x(float v) { _x = v; }
-  void set_y(float v) { _y = v; }
-  void set_z(float v) { _z = v; }
+  void set_x(double v) { _x = v; }
+  void set_y(double v) { _y = v; }
+  void set_z(double v) { _z = v; }
 
   /**
    * @brief Constructor.
@@ -48,8 +48,8 @@ public:
    * @param y The Y coordinate of the point.
    * @param z The Z coordinate of the point.
    */
-  Point(float x, float y, float z) : _x(x), _y(y), _z(z) {}
-  Point() : _x(0.0f), _y(0.0f), _z(0.0f) {}
+  Point(double x, double y, double z) : _x(x), _y(y), _z(z) {}
+  Point() : _x(0.0), _y(0.0), _z(0.0) {}
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Operators - const because they oinly read values, dont modify them
@@ -92,13 +92,13 @@ public:
   // No-copy Operators
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  float &operator[](int index);
+  double &operator[](int index);
 
-  const float &operator[](int index) const;
+  const double &operator[](int index) const;
 
-  Point &operator*=(float factor);
+  Point &operator*=(double factor);
   
-  Point &operator/=(float factor);
+  Point &operator/=(double factor);
 
   Point &operator+=(const Vector &other);
 
@@ -108,9 +108,9 @@ public:
   // Copy Operators
   ///////////////////////////////////////////////////////////////////////////////////////////
 
-  Point operator*(float factor) const;
+  Point operator*(double factor) const;
 
-  Point operator/(float factor) const;
+  Point operator/(double factor) const;
 
   Point operator+(const Vector& other) const;
 
@@ -147,7 +147,7 @@ public:
    * @param float_min The minimum value for the distance. Defaults to 1e-12.
    * @return The distance between this point and the other point.
    */
-  float distance(const Point& p, float float_min = 1e-12f) const;
+  double distance(const Point& p, double float_min = 1e-12) const;
 
   /**
    * @brief Calculate the area of a polygon.
@@ -155,7 +155,7 @@ public:
    * @param points The points of the polygon.
    * @return The area of the polygon.
    */
-  static float area(const std::vector<Point>& points);
+  static double area(const std::vector<Point>& points);
 
   /**
    * @brief Calculate the centroid of a quadrilateral.

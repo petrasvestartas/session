@@ -4,32 +4,32 @@
 
 namespace session_cpp {
 
-Arrow::Arrow(const Line& line, float radius) 
+Arrow::Arrow(const Line& line, double radius) 
     : radius(radius), line(line), mesh(create_arrow_mesh(line, radius)) {
 }
 
 std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Arrow::unit_cylinder_geometry() {
     std::vector<Point> vertices = {
-        Point(0.5f, 0.0f, -0.5f),
-        Point(0.404508f, 0.293893f, -0.5f),
-        Point(0.154508f, 0.475528f, -0.5f),
-        Point(-0.154508f, 0.475528f, -0.5f),
-        Point(-0.404508f, 0.293893f, -0.5f),
-        Point(-0.5f, 0.0f, -0.5f),
-        Point(-0.404508f, -0.293893f, -0.5f),
-        Point(-0.154508f, -0.475528f, -0.5f),
-        Point(0.154508f, -0.475528f, -0.5f),
-        Point(0.404508f, -0.293893f, -0.5f),
-        Point(0.5f, 0.0f, 0.5f),
-        Point(0.404508f, 0.293893f, 0.5f),
-        Point(0.154508f, 0.475528f, 0.5f),
-        Point(-0.154508f, 0.475528f, 0.5f),
-        Point(-0.404508f, 0.293893f, 0.5f),
-        Point(-0.5f, 0.0f, 0.5f),
-        Point(-0.404508f, -0.293893f, 0.5f),
-        Point(-0.154508f, -0.475528f, 0.5f),
-        Point(0.154508f, -0.475528f, 0.5f),
-        Point(0.404508f, -0.293893f, 0.5f)
+        Point(0.5, 0.0, -0.5),
+        Point(0.404508, 0.293893, -0.5),
+        Point(0.154508, 0.475528, -0.5),
+        Point(-0.154508, 0.475528, -0.5),
+        Point(-0.404508, 0.293893, -0.5),
+        Point(-0.5, 0.0, -0.5),
+        Point(-0.404508, -0.293893, -0.5),
+        Point(-0.154508, -0.475528, -0.5),
+        Point(0.154508, -0.475528, -0.5),
+        Point(0.404508, -0.293893, -0.5),
+        Point(0.5, 0.0, 0.5),
+        Point(0.404508, 0.293893, 0.5),
+        Point(0.154508, 0.475528, 0.5),
+        Point(-0.154508, 0.475528, 0.5),
+        Point(-0.404508, 0.293893, 0.5),
+        Point(-0.5, 0.0, 0.5),
+        Point(-0.404508, -0.293893, 0.5),
+        Point(-0.154508, -0.475528, 0.5),
+        Point(0.154508, -0.475528, 0.5),
+        Point(0.404508, -0.293893, 0.5)
     };
 
     std::vector<std::array<size_t, 3>> triangles = {
@@ -50,15 +50,15 @@ std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Arrow::unit_cy
 
 std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Arrow::unit_cone_geometry() {
     std::vector<Point> vertices = {
-        Point(0.0f, 0.0f, 0.5f),
-        Point(0.5f, 0.0f, -0.5f),
-        Point(0.353553f, -0.353553f, -0.5f),
-        Point(0.0f, -0.5f, -0.5f),
-        Point(-0.353553f, -0.353553f, -0.5f),
-        Point(-0.5f, 0.0f, -0.5f),
-        Point(-0.353553f, 0.353553f, -0.5f),
-        Point(0.0f, 0.5f, -0.5f),
-        Point(0.353553f, 0.353553f, -0.5f)
+        Point(0.0, 0.0, 0.5),
+        Point(0.5, 0.0, -0.5),
+        Point(0.353553, -0.353553, -0.5),
+        Point(0.0, -0.5, -0.5),
+        Point(-0.353553, -0.353553, -0.5),
+        Point(-0.5, 0.0, -0.5),
+        Point(-0.353553, 0.353553, -0.5),
+        Point(0.0, 0.5, -0.5),
+        Point(0.353553, 0.353553, -0.5)
     };
 
     std::vector<std::array<size_t, 3>> triangles = {
@@ -75,46 +75,46 @@ std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> Arrow::unit_co
     return {vertices, triangles};
 }
 
-Mesh Arrow::create_arrow_mesh(const Line& line, float radius) {
+Mesh Arrow::create_arrow_mesh(const Line& line, double radius) {
     Point start = line.start();
     Vector line_vec = line.to_vector();
-    float length = line.length();
+    double length = line.length();
 
     Vector z_axis = line_vec;
     z_axis.normalize_self();
     Vector x_axis;
-    if (std::abs(z_axis.z()) < 0.9f) {
-        x_axis = Vector(0.0f, 0.0f, 1.0f).cross(z_axis);
+    if (std::abs(z_axis.z()) < 0.9) {
+        x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis);
         x_axis.normalize_self();
     } else {
-        x_axis = Vector(1.0f, 0.0f, 0.0f).cross(z_axis);
+        x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis);
         x_axis.normalize_self();
     }
     Vector y_axis = z_axis.cross(x_axis);
     y_axis.normalize_self();
 
-    float cone_length = length * 0.2f;
-    float body_length = length * 0.8f;
+    double cone_length = length * 0.2;
+    double body_length = length * 0.8;
 
     Point body_center(
-        start.x() + line_vec.x() * 0.4f,
-        start.y() + line_vec.y() * 0.4f,
-        start.z() + line_vec.z() * 0.4f
+        start.x() + line_vec.x() * 0.4,
+        start.y() + line_vec.y() * 0.4,
+        start.z() + line_vec.z() * 0.4
     );
 
     Point cone_base_center(
-        start.x() + line_vec.x() * 0.9f,
-        start.y() + line_vec.y() * 0.9f,
-        start.z() + line_vec.z() * 0.9f
+        start.x() + line_vec.x() * 0.9,
+        start.y() + line_vec.y() * 0.9,
+        start.z() + line_vec.z() * 0.9
     );
 
-    Xform body_scale = Xform::scale_xyz(radius * 2.0f, radius * 2.0f, body_length);
-    Point origin(0.0f, 0.0f, 0.0f);
+    Xform body_scale = Xform::scale_xyz(radius * 2.0, radius * 2.0, body_length);
+    Point origin(0.0, 0.0, 0.0);
     Xform rotation = Xform::change_basis(origin, x_axis, y_axis, z_axis);
     Xform body_translation = Xform::translation(body_center.x(), body_center.y(), body_center.z());
     Xform body_xform = body_translation * rotation * body_scale;
 
-    Xform cone_scale = Xform::scale_xyz(radius * 3.0f, radius * 3.0f, cone_length);
+    Xform cone_scale = Xform::scale_xyz(radius * 3.0, radius * 3.0, cone_length);
     Xform cone_translation = Xform::translation(cone_base_center.x(), cone_base_center.y(), cone_base_center.z());
     Xform cone_xform = cone_translation * rotation * cone_scale;
 
@@ -189,7 +189,7 @@ nlohmann::ordered_json Arrow::jsondump() const {
 
 Arrow Arrow::jsonload(const nlohmann::json& data) {
     Line line = Line::jsonload(data["line"]);
-    float radius = data["radius"];
+    double radius = data["radius"];
     Arrow arrow(line, radius);
     
     if (data.contains("guid")) {

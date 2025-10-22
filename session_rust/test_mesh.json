@@ -1,26 +1,20 @@
 {
   "type": "Mesh",
   "halfedge": {
+    "1": {
+      "5": null,
+      "3": 1
+    },
     "3": {
       "5": 1,
       "1": null
     },
-    "1": {
-      "3": 1,
-      "5": null
-    },
     "5": {
-      "3": null,
-      "1": 1
+      "1": 1,
+      "3": null
     }
   },
   "vertex": {
-    "5": {
-      "x": 0.0,
-      "y": 1.0,
-      "z": 0.0,
-      "attributes": {}
-    },
     "1": {
       "x": 0.0,
       "y": 0.0,
@@ -30,6 +24,12 @@
     "3": {
       "x": 1.0,
       "y": 0.0,
+      "z": 0.0,
+      "attributes": {}
+    },
+    "5": {
+      "x": 0.0,
+      "y": 1.0,
       "z": 0.0,
       "attributes": {}
     }
@@ -45,18 +45,18 @@
   "edgedata": {},
   "default_vertex_attributes": {
     "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "z": 0.0,
+    "y": 0.0
   },
   "default_face_attributes": {},
   "default_edge_attributes": {},
   "max_vertex": 6,
   "max_face": 2,
-  "guid": "8a76f122-2513-43ca-915d-7e009083173f",
+  "guid": "d800ef99-6bc3-4e69-adb7-efd5e863510a",
   "name": "my_mesh",
   "xform": {
     "type": "Xform",
-    "guid": "1b911774-e983-4406-8374-9912373fe040",
+    "guid": "35a15fe6-2902-42e0-884a-353995b9f584",
     "name": "my_xform",
     "m": [
       1.0,

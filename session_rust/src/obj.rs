@@ -29,9 +29,9 @@ pub fn read_obj(filepath: &str) -> io::Result<Mesh> {
         if line.starts_with("v ") {
             let mut parts = line.split_whitespace();
             let _ = parts.next();
-            let x: f32 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
-            let y: f32 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
-            let z: f32 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
+            let x: f64 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
+            let y: f64 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
+            let z: f64 = parts.next().unwrap_or("0").parse().unwrap_or(0.0);
             verts.push(Point::new(x, y, z));
         } else if line.starts_with("f ") {
             let mut parts = line.split_whitespace();

@@ -39,7 +39,7 @@ pub struct BVH {
     pub guid: String,
     pub name: String,
     pub root: Option<Box<BVHNode>>,
-    pub world_size: f32,
+    pub world_size: f64,
     #[serde(skip)]
     pub object_guids: Vec<String>, // Parallel array to boxes - maps indices to GUIDs
 }
@@ -69,12 +69,12 @@ impl BVH {
     }
 
     /// Compute world size from bounding boxes
-    fn compute_world_size(bounding_boxes: &[BoundingBox]) -> f32 {
+    fn compute_world_size(bounding_boxes: &[BoundingBox]) -> f64 {
         if bounding_boxes.is_empty() {
             return 1000.0;
         }
 
-        let mut max_extent = 0.0f32;
+        let mut max_extent = 0.0f64;
         for bbox in bounding_boxes {
             // Find maximum absolute coordinate in any dimension
             let x_extent = (bbox.center.x() + bbox.half_size.x())
@@ -119,7 +119,7 @@ impl BVH {
         self.build(&bounding_boxes);
     }
 
-    pub fn from_boxes(bounding_boxes: &[BoundingBox], world_size: f32) -> Self {
+    pub fn from_boxes(bounding_boxes: &[BoundingBox], world_size: f64) -> Self {
         let mut bvh = Self::new();
         bvh.world_size = world_size;
         bvh.build(bounding_boxes);
@@ -388,7 +388,7 @@ pub fn expand_bits(v: u32) -> u32 {
     v
 }
 
-pub fn calculate_morton_code(x: f32, y: f32, z: f32, world_size: f32) -> u32 {
+pub fn calculate_morton_code(x: f64, y: f64, z: f64, world_size: f64) -> u32 {
     // Normalize coordinates to [0,1] range
     let nx = (x + world_size / 2.0) / world_size;
     let ny = (y + world_size / 2.0) / world_size;

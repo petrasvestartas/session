@@ -16751,7 +16751,7 @@ class binary_writer
         {
             for (const auto& el : value.at(key))
             {
-                write_number(static_cast<float>(el.m_data.m_value.number_float), true);
+                write_number(static_cast<double>(el.m_data.m_value.number_float), true);
             }
         }
         else if (dtype == 'D')
@@ -16806,12 +16806,12 @@ class binary_writer
 #endif
         if (static_cast<double>(n) >= static_cast<double>(std::numeric_limits<float>::lowest()) &&
                 static_cast<double>(n) <= static_cast<double>((std::numeric_limits<float>::max)()) &&
-                static_cast<double>(static_cast<float>(n)) == static_cast<double>(n))
+                static_cast<double>(static_cast<double>(n)) == static_cast<double>(n))
         {
             oa->write_character(format == detail::input_format_t::cbor
-                                ? get_cbor_float_prefix(static_cast<float>(n))
-                                : get_msgpack_float_prefix(static_cast<float>(n)));
-            write_number(static_cast<float>(n));
+                                ? get_cbor_float_prefix(static_cast<double>(n))
+                                : get_msgpack_float_prefix(static_cast<double>(n)));
+            write_number(static_cast<double>(n));
         }
         else
         {

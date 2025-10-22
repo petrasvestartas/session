@@ -36,7 +36,7 @@ impl BoundingBox {
         }
     }
 
-    pub fn from_plane(plane: &Plane, dx: f32, dy: f32, dz: f32) -> Self {
+    pub fn from_plane(plane: &Plane, dx: f64, dy: f64, dz: f64) -> Self {
         BoundingBox {
             center: plane.origin(),
             x_axis: plane.x_axis(),
@@ -49,7 +49,7 @@ impl BoundingBox {
         }
     }
 
-    pub fn from_point(point: Point, inflate: f32) -> Self {
+    pub fn from_point(point: Point, inflate: f64) -> Self {
         BoundingBox {
             center: point,
             x_axis: Vector::new(1.0, 0.0, 0.0),
@@ -62,17 +62,17 @@ impl BoundingBox {
         }
     }
 
-    pub fn from_points(points: &[Point], inflate: f32) -> Self {
+    pub fn from_points(points: &[Point], inflate: f64) -> Self {
         if points.is_empty() {
             return BoundingBox::default();
         }
 
-        let mut min_x = f32::MAX;
-        let mut min_y = f32::MAX;
-        let mut min_z = f32::MAX;
-        let mut max_x = f32::MIN;
-        let mut max_y = f32::MIN;
-        let mut max_z = f32::MIN;
+        let mut min_x = f64::MAX;
+        let mut min_y = f64::MAX;
+        let mut min_z = f64::MAX;
+        let mut max_x = f64::MIN;
+        let mut max_y = f64::MIN;
+        let mut max_z = f64::MIN;
 
         for pt in points {
             min_x = min_x.min(pt.x());
@@ -106,16 +106,16 @@ impl BoundingBox {
         }
     }
 
-    pub fn from_line(line: &crate::line::Line, inflate: f32) -> Self {
+    pub fn from_line(line: &crate::line::Line, inflate: f64) -> Self {
         let points = vec![line.start(), line.end()];
         Self::from_points(&points, inflate)
     }
 
-    pub fn from_polyline(polyline: &crate::polyline::Polyline, inflate: f32) -> Self {
+    pub fn from_polyline(polyline: &crate::polyline::Polyline, inflate: f64) -> Self {
         Self::from_points(&polyline.points, inflate)
     }
 
-    pub fn point_at(&self, x: f32, y: f32, z: f32) -> Point {
+    pub fn point_at(&self, x: f64, y: f64, z: f64) -> Point {
         Point::new(
             self.center.x() + x * self.x_axis.x() + y * self.y_axis.x() + z * self.z_axis.x(),
             self.center.y() + x * self.x_axis.y() + y * self.y_axis.y() + z * self.z_axis.y(),
@@ -175,7 +175,7 @@ impl BoundingBox {
         ]
     }
 
-    pub fn inflate(&mut self, amount: f32) {
+    pub fn inflate(&mut self, amount: f64) {
         self.half_size = Vector::new(
             self.half_size.x() + amount,
             self.half_size.y() + amount,

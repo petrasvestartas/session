@@ -2,9 +2,9 @@
 mod quaternion_tests {
     use crate::encoders::{json_dump, json_load};
     use crate::{Quaternion, Vector};
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
-    fn approx_f32(a: f32, b: f32) -> bool {
+    fn approx_f32(a: f64, b: f64) -> bool {
         (a - b).abs() < 1e-5
     }
 

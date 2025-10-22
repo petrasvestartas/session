@@ -2,6 +2,7 @@ from typing import List
 from .mesh import Mesh
 from .point import Point
 
+
 def write_obj(mesh: Mesh, filepath: str):
     vertices, faces = mesh.to_vertices_and_faces()
     with open(filepath, "w") as f:

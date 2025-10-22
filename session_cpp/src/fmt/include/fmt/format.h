@@ -3384,7 +3384,7 @@ FMT_CONSTEXPR20 auto format_float(Float value, int precision,
   }
   if (use_dragon) {
     auto f = basic_fp<uint128_t>();
-    bool is_predecessor_closer = binary32 ? f.assign(static_cast<float>(value))
+    bool is_predecessor_closer = binary32 ? f.assign(static_cast<double>(value))
                                           : f.assign(converted_value);
     if (is_predecessor_closer)
       dragon_flags |= dragon::predecessor_closer;
