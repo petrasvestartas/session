@@ -1,11 +1,11 @@
 {
   "type": "Tree",
-  "guid": "742f5d86-882f-44a9-94de-b76aefbebdb9",
+  "guid": "e38d6ec1-601a-45fe-889f-df4b7156d454",
   "name": "test_tree",
   "root": {
     "type": "TreeNode",
-    "guid": "7b695aa2-dde2-44b9-949c-ddbd51de8c9c",
-    "name": "74eea011-c990-4b75-8f23-2ef419524bde",
+    "guid": "07c1966e-ccff-4cf0-9158-e8edad125ded",
+    "name": "29fb8726-268e-4402-8065-e90a4134de23",
     "children": []
   }
 }
