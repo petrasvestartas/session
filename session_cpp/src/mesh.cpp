@@ -730,9 +730,12 @@ void Mesh::build_triangle_bvh(bool force) const {
         double bx0 = bb.cx - bb.hx; double bx1 = bb.cx + bb.hx;
         double by0 = bb.cy - bb.hy; double by1 = bb.cy + bb.hy;
         double bz0 = bb.cz - bb.hz; double bz1 = bb.cz + bb.hz;
-        if (bx0 < min_x) min_x = bx0; if (bx1 > max_x) max_x = bx1;
-        if (by0 < min_y) min_y = by0; if (by1 > max_y) max_y = by1;
-        if (bz0 < min_z) min_z = bz0; if (bz1 > max_z) max_z = bz1;
+        if (bx0 < min_x) min_x = bx0;
+        if (bx1 > max_x) max_x = bx1;
+        if (by0 < min_y) min_y = by0;
+        if (by1 > max_y) max_y = by1;
+        if (bz0 < min_z) min_z = bz0;
+        if (bz1 > max_z) max_z = bz1;
     }
     double extent_x = std::max(std::fabs(min_x), std::fabs(max_x));
     double extent_y = std::max(std::fabs(min_y), std::fabs(max_y));
