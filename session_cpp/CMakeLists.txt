@@ -20,8 +20,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Add compiler warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
-    # High optimization for Release builds
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -ffast-math -flto")
+    # High optimization for Release builds (removed -ffast-math to allow infinity/NaN)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -flto")
 elseif(MSVC)
     add_compile_options(/W4)
     add_compile_options(/utf-8)  # Enable UTF-8 support for fmt library
