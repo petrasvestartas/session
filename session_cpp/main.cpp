@@ -130,15 +130,14 @@ int main() {
         return 1;
     }
     
-    std::cout << "Loaded bunny mesh: " << bunny.number_of_vertices() << " vertices, " 
+    std::cout << "Bunny: " << bunny.number_of_vertices() << " vertices, " 
               << bunny.number_of_faces() << " faces\n";
     
-    // Prebuild and time BVH construction (done once, cached for all queries)
     auto bvh_build_start = std::chrono::high_resolution_clock::now();
     bunny.build_triangle_bvh();
     auto bvh_build_end = std::chrono::high_resolution_clock::now();
     double bvh_build_time_ms = std::chrono::duration<double, std::milli>(bvh_build_end - bvh_build_start).count();
-    std::cout << "BVH build time: " << bvh_build_time_ms << " ms\n";
+    std::cout << "BVH build: " << bvh_build_time_ms << " ms\n";
     
     Line zaxis(0.201, -0.212, 0.036, -0.326, 0.677, -0.060);
 
@@ -147,51 +146,21 @@ int main() {
     auto mesh_hits = Intersection::ray_mesh(zaxis, bunny, Tolerance::APPROXIMATION, true);
     auto time3 = std::chrono::high_resolution_clock::now();
     double mesh_time_ms = std::chrono::duration<double, std::milli>(time3 - time2).count();
-    std::cout << "9. ray_mesh: " << mesh_hits.size() << " hits in " << mesh_time_ms << " ms\n";
-    for (size_t i = 0; i < mesh_hits.size(); i++) {
-        std::cout << "    [" << i << "] " << mesh_hits[i] << "\n";
-    }
+    std::cout << "Ray-mesh (brute): " << mesh_hits.size() << " hits, " << mesh_time_ms << " ms\n";
     
-    
-    // Test BVH (faster)
     auto time0 = std::chrono::high_resolution_clock::now();
     auto bvh_hits = Intersection::ray_mesh_bvh(zaxis, bunny, Tolerance::APPROXIMATION, true);
     auto time1 = std::chrono::high_resolution_clock::now();
     double bvh_time_ms = std::chrono::duration<double, std::milli>(time1 - time0).count();
-    std::cout << "10. ray_mesh_bvh: " << bvh_hits.size() << " hits in " << bvh_time_ms << " ms\n";
-    for (size_t i = 0; i < bvh_hits.size(); i++) {
-        std::cout << "    [" << i << "] " << bvh_hits[i] << "\n";
-    }
-    // Detailed timings: BVH traversal vs triangle tests
-    Point o = zaxis.start();
-    Vector d = zaxis.to_vector();
-    std::vector<int> candidate_ids;
-    auto trav0 = std::chrono::high_resolution_clock::now();
-    bunny.triangle_bvh_ray_cast(o, d, candidate_ids, true);
-    auto trav1 = std::chrono::high_resolution_clock::now();
-    double trav_ms = std::chrono::duration<double, std::milli>(trav1 - trav0).count();
-    auto tri0 = std::chrono::high_resolution_clock::now();
-    size_t tri_hits = 0;
-    for (int tri_id : candidate_ids) {
-        size_t face_idx, sub_idx;
-        Point v0, v1, v2, hp;
-        if (!bunny.get_triangle_by_id(tri_id, face_idx, sub_idx, v0, v1, v2)) continue;
-        if (Intersection::ray_triangle(zaxis, v0, v1, v2, static_cast<double>(Tolerance::ZERO_TOLERANCE), hp)) {
-            tri_hits++;
-        }
-    }
-    auto tri1 = std::chrono::high_resolution_clock::now();
-    double tri_ms = std::chrono::duration<double, std::milli>(tri1 - tri0).count();
-    std::cout << "    BVH traversal: " << trav_ms << " ms, triangle tests: " << tri_ms << " ms (candidates = " << candidate_ids.size() << ", tri_hits = " << tri_hits << ")\n";
+    std::cout << "Ray-mesh (BVH):   " << bvh_hits.size() << " hits, " << bvh_time_ms << " ms";
     
-    // Show speedup
     if (bvh_time_ms > 0 && mesh_time_ms > 0) {
-        double speedup = mesh_time_ms / bvh_time_ms;
-        std::cout << "\nSpeedup: " << speedup << "x (BVH is " << speedup << "x faster)\n";
+        std::cout << " (" << (mesh_time_ms / bvh_time_ms) << "x faster)\n";
+    } else {
+        std::cout << "\n";
     }
     
-    std::cout << "\n=== Direct BVH Benchmark (Like JavaScript) ===\n";
-    std::cout << "Testing pure BVH performance without mesh conversion overhead...\n\n";
+    std::cout << "\n=== BVH Collision Detection ===\n";
     
     // Test with different box counts to compare with JavaScript (5ms for 10k boxes)
     std::vector<int> box_counts = {100, 5000, 10000};
@@ -229,19 +198,12 @@ int main() {
         auto bvh_end = std::chrono::high_resolution_clock::now();
         double bvh_build_ms = std::chrono::duration<double, std::milli>(bvh_end - bvh_start).count();
         
-        std::cout << box_count << " boxes: BVH build time = " << bvh_build_ms << " ms";
-        
-        // Compare to JavaScript (5ms for 10k boxes)
-        if (box_count == 10000) {
-            std::cout << " (JavaScript: ~5ms, C++ is " << (bvh_build_ms / 5.0) << "x slower)";
-        }
-
         auto coll_start = std::chrono::high_resolution_clock::now();
         auto [pairs, colliding_indices, checks] = bvh.check_all_collisions(boxes);
         auto coll_end = std::chrono::high_resolution_clock::now();
         double coll_ms = std::chrono::duration<double, std::milli>(coll_end - coll_start).count();
-        (void)colliding_indices; // not printed
-        std::cout << ", collision check time = " << coll_ms << " ms (pairs = " << pairs.size() << ", checks = " << checks << ")";
+        (void)colliding_indices;
+        std::cout << box_count << " boxes: build=" << bvh_build_ms << "ms, collisions=" << coll_ms << "ms (" << pairs.size() << " pairs, " << checks << " checks)";
 
         // // For 1000 boxes: print AABBs (six numbers per line) and collision pairs
         // if (box_count == 100) {
@@ -269,11 +231,7 @@ int main() {
         std::cout << "\n";
     }
 
-    // =============================================================================
-    // Session Collision Detection Example
-    // =============================================================================
-    std::cout << "\n=== Session Collision Detection (GUID Tracking) ===\n";
-    std::cout << "Testing Session::get_collisions() with geometry GUIDs...\n\n";
+    std::cout << "\n\n=== Session Collision Detection ===\n";
     
     {
         Session scene("collision_test");
@@ -323,28 +281,9 @@ int main() {
         auto node6 = scene.add_point(pt2);
         scene.add(node6);
         
-        size_t total_objects = scene.objects.points->size() + 
-                               scene.objects.lines->size() + 
-                               scene.objects.planes->size() + 
-                               scene.objects.bboxes->size() + 
-                               scene.objects.polylines->size() + 
-                               scene.objects.pointclouds->size() + 
-                               scene.objects.meshes->size() + 
-                               scene.objects.cylinders->size() + 
-                               scene.objects.arrows->size();
-        std::cout << "Added " << total_objects << " objects to scene\n";
-        std::cout << "Object GUIDs and names:\n";
-        std::cout << "  - " << box1->guid << " (" << box1->name << ")\n";
-        std::cout << "  - " << box2->guid << " (" << box2->name << ")\n";
-        std::cout << "  - " << box3->guid << " (" << box3->name << ")\n";
-        std::cout << "  - " << line1->guid << " (" << line1->name << ")\n";
-        std::cout << "  - " << pt1->guid << " (" << pt1->name << ")\n";
-        std::cout << "  - " << pt2->guid << " (" << pt2->name << ")\n";
-        
-        // Check collisions
         auto collision_pairs = scene.get_collisions();
         
-        std::cout << "\nFound " << collision_pairs.size() << " collision pairs:\n";
+        std::cout << "Found " << collision_pairs.size() << " collision(s):\n";
         for (const auto& [guid1, guid2] : collision_pairs) {
             // Look up names for display
             std::string name1 = "unknown";
@@ -364,23 +303,11 @@ int main() {
             else if (guid2 == pt1->guid) name2 = pt1->name;
             else if (guid2 == pt2->guid) name2 = pt2->name;
             
-            std::cout << "  Collision: " << name1 << " <-> " << name2 << "\n";
-            std::cout << "    GUID1: " << guid1 << "\n";
-            std::cout << "    GUID2: " << guid2 << "\n";
+            std::cout << "  " << name1 << " <-> " << name2 << "\n";
         }
-        
-        if (collision_pairs.empty()) {
-            std::cout << "  (No collisions detected)\n";
-        }
-        
-        std::cout << "\n✓ Session collision detection working with GUID tracking!\n";
     }
 
-    // =============================================================================
-    // Session Ray Casting Example
-    // =============================================================================
-    std::cout << "\n=== Session Ray Casting (BVH-Accelerated) ===\n";
-    std::cout << "Testing Session::ray_cast() with various geometry types...\n\n";
+    std::cout << "\n=== Session Ray Casting ===\n";
     
     {
         Session scene("ray_test");
@@ -415,17 +342,13 @@ int main() {
         polyline1->name = "polyline_at_25";
         scene.add_polyline(polyline1);
         
-        // Cast a ray along X axis
         Point ray_origin(0, 0, 0);
-        Vector ray_direction(1, 0, 0);  // Along X axis
-        double tolerance = 0.5;  // 0.5 units tolerance
-        
-        std::cout << "Ray: origin=(0,0,0), direction=(1,0,0), tolerance=" << tolerance << "\n";
-        std::cout << "Scene objects: point_at_5, point_at_15, vertical_line_at_10, plane_at_20, polyline_at_25\n\n";
+        Vector ray_direction(1, 0, 0);
+        double tolerance = 0.5;
         
         auto hits = scene.ray_cast(ray_origin, ray_direction, tolerance);
         
-        std::cout << "Found " << hits.size() << " ray hits (sorted by distance):\n";
+        std::cout << hits.size() << " hit(s):\n";
         for (size_t i = 0; i < hits.size(); ++i) {
             const auto& hit = hits[i];
             
@@ -437,25 +360,11 @@ int main() {
             else if (hit.guid == plane1->guid) name = plane1->name;
             else if (hit.guid == polyline1->guid) name = polyline1->name;
             
-            std::cout << "  [" << i << "] " << name << "\n";
-            std::cout << "      Hit point: (" << hit.hit_point.x() << ", " 
-                      << hit.hit_point.y() << ", " << hit.hit_point.z() << ")\n";
-            std::cout << "      Distance: " << hit.distance << "\n";
-            std::cout << "      GUID: " << hit.guid << "\n";
+            std::cout << "  " << name << " (dist=" << hit.distance << ")\n";
         }
-        
-        if (hits.empty()) {
-            std::cout << "  (No hits detected)\n";
-        }
-        
-        std::cout << "\n✓ Session ray casting working with BVH acceleration!\n";
     }
 
-    // =============================================================================
-    // Comprehensive Ray Casting Test - All Geometry Types
-    // =============================================================================
-    std::cout << "\n=== Comprehensive Ray Test (All Geometry Types) ===\n";
-    std::cout << "Testing ray intersection with ALL geometry types...\n\n";
+    std::cout << "\n=== All Geometry Types Test ===\n";
     
     {
         Session scene("comprehensive_test");
@@ -503,17 +412,13 @@ int main() {
         poly->name = "polyline_70";
         scene.add_polyline(poly);
         
-        // Cast ray along Y axis
         Point ray_origin(0, 0, 0);
         Vector ray_dir(0, 1, 0);
         double tolerance = 1.0;
         
-        std::cout << "Ray: origin=(0,0,0), direction=(0,1,0), tolerance=" << tolerance << "\n";
-        std::cout << "Testing: Point, Line, Plane, BoundingBox, Cylinder, Arrow, Polyline\n\n";
-        
         auto hits = scene.ray_cast(ray_origin, ray_dir, tolerance);
         
-        std::cout << "Found " << hits.size() << " hit(s):\n";
+        std::cout << hits.size() << " hit(s):\n";
         for (size_t i = 0; i < hits.size(); ++i) {
             const auto& hit = hits[i];
             
@@ -527,22 +432,11 @@ int main() {
             else if (hit.guid == arrow->guid) name = arrow->name;
             else if (hit.guid == poly->guid) name = poly->name;
             
-            std::cout << "  [" << i << "] " << name << " at distance " << hit.distance << "\n";
+            std::cout << "  " << name << " (dist=" << hit.distance << ")\n";
         }
-        
-        std::cout << "\n✓ All geometry types tested with BVH acceleration!\n";
-        std::cout << "\nBVH Performance Notes:\n";
-        std::cout << "  - BVH built once for all objects\n";
-        std::cout << "  - Ray traversal prunes non-intersecting AABBs\n";
-        std::cout << "  - Only candidates tested with precise intersection\n";
-        std::cout << "  - Works for ALL geometry types automatically\n";
     }
 
-    // =============================================================================
-    // Session Ray Casting Performance - 10,000 Objects
-    // =============================================================================
-    std::cout << "\n=== Session Ray Casting Performance (10,000 Objects) ===\n";
-    std::cout << "Comparing Session vs Pure BVH performance...\n\n";
+    std::cout << "\n=== Performance Test (10k Objects) ===\n";
     
     {
         const int OBJECT_COUNT = 10000;
@@ -570,43 +464,20 @@ int main() {
             );
         }
         
-        std::cout << "Created " << OBJECT_COUNT << " objects in scene\n";
-        
-        // Test ray along X axis
         Point ray_origin(0, 0, 0);
         Vector ray_dir(1, 0, 0);
         double tolerance = 1.0;
         
-        // =============================================================================
-        // BENCHMARK 1: Session::ray_cast() - With GUID tracking and geometry dispatch
-        // =============================================================================
         auto session_start = std::chrono::high_resolution_clock::now();
         auto session_hits = scene.ray_cast(ray_origin, ray_dir, tolerance);
         auto session_end = std::chrono::high_resolution_clock::now();
         double session_ms = std::chrono::duration<double, std::milli>(session_end - session_start).count();
         
-        std::cout << "\n[1] Session::ray_cast() FIRST call (builds cache):\n";
-        std::cout << "    Time: " << session_ms << " ms\n";
-        std::cout << "    Hits: " << session_hits.size() << "\n";
-        std::cout << "    Includes: BVH build + ray traversal + GUID lookup + variant dispatch\n";
-        
-        // =============================================================================
-        // BENCHMARK 1b: Session::ray_cast() SECOND call - Using cached BVH
-        // =============================================================================
         auto session2_start = std::chrono::high_resolution_clock::now();
-        auto session_hits2 = scene.ray_cast(ray_origin, Vector(0, 1, 0), tolerance);  // Different direction
+        auto session_hits2 = scene.ray_cast(ray_origin, Vector(0, 1, 0), tolerance);
         auto session2_end = std::chrono::high_resolution_clock::now();
         double session2_ms = std::chrono::duration<double, std::milli>(session2_end - session2_start).count();
         
-        std::cout << "\n[1b] Session::ray_cast() SECOND call (uses cache):\n";
-        std::cout << "    Time: " << session2_ms << " ms\n";
-        std::cout << "    Hits: " << session_hits2.size() << "\n";
-        std::cout << "    Includes: ray traversal + GUID lookup + variant dispatch (NO BVH BUILD!)\n";
-        std::cout << "    Speedup vs first call: " << (session_ms / session2_ms) << "x faster\n";
-        
-        // =============================================================================
-        // BENCHMARK 2: Pure BVH - Only AABB intersection (no geometry dispatch)
-        // =============================================================================
         auto bvh_start = std::chrono::high_resolution_clock::now();
         BVH pure_bvh = BVH::from_boxes(pure_boxes, WORLD_SIZE);
         std::vector<int> candidate_ids;
@@ -614,45 +485,10 @@ int main() {
         auto bvh_end = std::chrono::high_resolution_clock::now();
         double bvh_ms = std::chrono::duration<double, std::milli>(bvh_end - bvh_start).count();
         
-        std::cout << "\n[2] Pure BVH::ray_cast() AABB only:\n";
-        std::cout << "    Time: " << bvh_ms << " ms\n";
-        std::cout << "    Candidates: " << candidate_ids.size() << "\n";
-        std::cout << "    Includes: BVH build + ray traversal only\n";
-        
-        // =============================================================================
-        // Analysis
-        // =============================================================================
-        double overhead_ms = session_ms - bvh_ms;
-        double overhead_pct = (overhead_ms / bvh_ms) * 100.0;
-        double cached_overhead_ms = session2_ms - bvh_ms;
-        double cached_overhead_pct = (cached_overhead_ms / bvh_ms) * 100.0;
-        
-        std::cout << "\n[Analysis - Performance Comparison]\n";
-        std::cout << "    Pure BVH time:                 " << bvh_ms << " ms\n";
-        std::cout << "    Session FIRST call (no cache): " << session_ms << " ms (" << overhead_pct << "% overhead)\n";
-        std::cout << "    Session CACHED call:           " << session2_ms << " ms (" << cached_overhead_pct << "% overhead)\n";
-        std::cout << "\n[Cache Performance Impact]\n";
-        std::cout << "    BVH rebuild cost: " << (session_ms - session2_ms) << " ms\n";
-        std::cout << "    Cache speedup:    " << (session_ms / session2_ms) << "x faster on subsequent rays\n";
-        std::cout << "\n[Remaining overhead breakdown (cached)]\n";
-        std::cout << "    - GUID lookup:         std::unordered_map access per candidate\n";
-        std::cout << "    - Variant dispatch:    std::visit type checking\n";
-        std::cout << "    - Precise geometry:    Point-ray distance calculation\n";
-        std::cout << "    - Result tracking:     Closest hit detection\n";
-        
-        if (cached_overhead_pct < 50) {
-            std::cout << "\n✓ Cached Session overhead is LOW (< 50%) - Excellent performance!\n";
-        } else if (cached_overhead_pct < 100) {
-            std::cout << "\n✓ Cached Session overhead is MODERATE (< 100%) - Good performance\n";
-        } else {
-            std::cout << "\n⚠ Cached Session overhead is still HIGH - Geometry dispatch is expensive\n";
-        }
-        
-        std::cout << "\n[Summary]\n";
-        std::cout << "  ✓ BVH caching implemented successfully!\n";
-        std::cout << "  ✓ First ray cast: builds BVH (expensive)\n";
-        std::cout << "  ✓ Subsequent rays: reuse cached BVH (fast)\n";
-        std::cout << "  ✓ Cache invalidates on add/remove geometry\n";
+        std::cout << "Session (first):  " << session_ms << "ms (" << session_hits.size() << " hits)\n";
+        std::cout << "Session (cached): " << session2_ms << "ms (" << session_hits2.size() << " hits, " 
+                  << (session_ms / session2_ms) << "x faster)\n";
+        std::cout << "Pure BVH:         " << bvh_ms << "ms (" << candidate_ids.size() << " candidates)\n";
     }
 
     return 0;
