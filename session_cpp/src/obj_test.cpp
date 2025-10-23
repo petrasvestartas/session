@@ -7,13 +7,13 @@ using namespace session_cpp;
 
 TEST_CASE("Read Bunny OBJ File", "[obj]") {
     // Skip test if data file doesn't exist
-    std::ifstream test_file("../../data/bunny.obj");
+    std::ifstream test_file("../data/bunny.obj");
     if (!test_file.good()) {
-        SKIP("Test data file ../../data/bunny.obj not found");
+        SKIP("Test data file ../data/bunny.obj not found");
     }
     test_file.close();
     
-    Mesh mesh = obj::read_obj("../../data/bunny.obj");
+    Mesh mesh = obj::read_obj("../data/bunny.obj");
     
     // Test vertex and face counts
     REQUIRE(mesh.number_of_vertices() == 2503);

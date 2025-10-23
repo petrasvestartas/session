@@ -491,5 +491,8 @@ int main() {
         std::cout << "Pure BVH:         " << bvh_ms << "ms (" << candidate_ids.size() << " candidates)\n";
     }
 
+    // Tree transformation example moved to session_test.cpp
+    // See TEST_CASE("Session tree transformation hierarchy.")
+
     return 0;
 }

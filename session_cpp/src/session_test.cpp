@@ -121,4 +121,135 @@ TEST_CASE("Session file I/O comprehensive.") {
   std::filesystem::remove(filename);
 }
 
+TEST_CASE("Session tree transformation hierarchy.") {
+  Session scene("tree_transformation_test");
+  
+  // Helper to create box mesh
+  auto create_box = [](const Point& center, double size) -> std::shared_ptr<Mesh> {
+    auto mesh = std::make_shared<Mesh>();
+    double h = size * 0.5;
+    std::vector<Point> verts = {
+      Point(center.x() - h, center.y() - h, center.z() - h),
+      Point(center.x() + h, center.y() - h, center.z() - h),
+      Point(center.x() + h, center.y() + h, center.z() - h),
+      Point(center.x() - h, center.y() + h, center.z() - h),
+      Point(center.x() - h, center.y() - h, center.z() + h),
+      Point(center.x() + h, center.y() - h, center.z() + h),
+      Point(center.x() + h, center.y() + h, center.z() + h),
+      Point(center.x() - h, center.y() + h, center.z() + h)
+    };
+    for (size_t i = 0; i < verts.size(); ++i) mesh->add_vertex(verts[i], i);
+    std::vector<std::vector<size_t>> faces = {
+      {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}
+    };
+    for (const auto& f : faces) mesh->add_face(f);
+    return mesh;
+  };
+  
+  // Create boxes at same location
+  auto box1 = create_box(Point(0, 0, 0), 2.0);
+  box1->name = "box_1";
+  auto box1_node = scene.add_mesh(box1);
+  
+  auto box2 = create_box(Point(0, 0, 0), 2.0);
+  box2->name = "box_2";
+  auto box2_node = scene.add_mesh(box2);
+  
+  auto box3 = create_box(Point(0, 0, 0), 2.0);
+  box3->name = "box_3";
+  auto box3_node = scene.add_mesh(box3);
+  
+  // Setup tree hierarchy
+  scene.add(box1_node);
+  scene.add(box2_node, box1_node);
+  scene.add(box3_node, box2_node);
+  
+  // Apply transformations
+  Point box1_top(0, 0, 1.0);
+  Vector normal(0, 0, 1), x(1, 0, 0), y(0, 1, 0);
+  Point xy_origin(0, 0, 0);
+  Vector xy_x(1, 0, 0), xy_y(0, 1, 0), xy_z(0, 0, 1);
+  
+  Xform xy_to_top = Xform::plane_to_plane(xy_origin, xy_x, xy_y, xy_z,
+                                           box1_top, x, y, normal);
+  box1->xform = Xform::rotation_z(M_PI / 1.5) * xy_to_top;
+  
+  box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(M_PI / 6.0);
+  box3->xform = Xform::translation(2.0, 0, 0);
+  
+  // Extract transformed geometry
+  Objects transformed = scene.get_geometry();
+  
+  REQUIRE(transformed.meshes->size() == 3);
+  
+  // Expected vertices for box_1
+  std::vector<std::array<double, 3>> expected_box1 = {
+    {1.36603, -0.366025, 0}, {0.366025, 1.36603, 0}, {-1.36603, 0.366025, 0},
+    {-0.366025, -1.36603, 0}, {1.36603, -0.366025, 2}, {0.366025, 1.36603, 2},
+    {-1.36603, 0.366025, 2}, {-0.366025, -1.36603, 2}
+  };
+  
+  // Expected vertices for box_2
+  std::vector<std::array<double, 3>> expected_box2 = {
+    {0.366025, 2.09808, 0}, {-1.36603, 3.09808, 0}, {-2.36603, 1.36603, 0},
+    {-0.633975, 0.366025, 0}, {0.366025, 2.09808, 2}, {-1.36603, 3.09808, 2},
+    {-2.36603, 1.36603, 2}, {-0.633975, 0.366025, 2}
+  };
+  
+  // Expected vertices for box_3
+  std::vector<std::array<double, 3>> expected_box3 = {
+    {-1.36603, 3.09808, 0}, {-3.09808, 4.09808, 0}, {-4.09808, 2.36603, 0},
+    {-2.36603, 1.36603, 0}, {-1.36603, 3.09808, 2}, {-3.09808, 4.09808, 2},
+    {-4.09808, 2.36603, 2}, {-2.36603, 1.36603, 2}
+  };
+  
+  // Expected faces (same for all boxes)
+  std::vector<std::vector<size_t>> expected_faces = {
+    {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}
+  };
+  
+  // Validate box_1
+  auto& m1 = (*transformed.meshes)[0];
+  REQUIRE(m1->vertex.size() == 8);
+  for (size_t i = 0; i < 8; ++i) {
+    const auto& v = m1->vertex.at(i);
+    REQUIRE(std::abs(v.x - expected_box1[i][0]) < 1e-4);
+    REQUIRE(std::abs(v.y - expected_box1[i][1]) < 1e-4);
+    REQUIRE(std::abs(v.z - expected_box1[i][2]) < 1e-4);
+  }
+  
+  // Validate box_2
+  auto& m2 = (*transformed.meshes)[1];
+  REQUIRE(m2->vertex.size() == 8);
+  for (size_t i = 0; i < 8; ++i) {
+    const auto& v = m2->vertex.at(i);
+    REQUIRE(std::abs(v.x - expected_box2[i][0]) < 1e-4);
+    REQUIRE(std::abs(v.y - expected_box2[i][1]) < 1e-4);
+    REQUIRE(std::abs(v.z - expected_box2[i][2]) < 1e-4);
+  }
+  
+  // Validate box_3
+  auto& m3 = (*transformed.meshes)[2];
+  REQUIRE(m3->vertex.size() == 8);
+  for (size_t i = 0; i < 8; ++i) {
+    const auto& v = m3->vertex.at(i);
+    REQUIRE(std::abs(v.x - expected_box3[i][0]) < 1e-4);
+    REQUIRE(std::abs(v.y - expected_box3[i][1]) < 1e-4);
+    REQUIRE(std::abs(v.z - expected_box3[i][2]) < 1e-4);
+  }
+  
+  // Validate faces (all boxes have same topology)
+  for (auto* mesh : {&m1, &m2, &m3}) {
+    REQUIRE((*mesh)->face.size() == 6);
+    size_t face_idx = 0;
+    for (const auto& [key, face] : (*mesh)->face) {
+      REQUIRE(face.size() == expected_faces[face_idx].size());
+      for (size_t i = 0; i < face.size(); ++i) {
+        REQUIRE(face[i] == expected_faces[face_idx][i]);
+      }
+      face_idx++;
+    }
+  }
+}
+
 } // namespace session_cpp
