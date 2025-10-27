@@ -8,8 +8,9 @@ including lines, planes, rays, boxes, spheres, triangles, and meshes.
 from typing import Optional, Tuple, List
 from .line import Line
 from .point import Point
-from .tolerance import Tolerance
 from .boundingbox import BoundingBox
+from .mesh import Mesh
+from .bvh import BVH
 
 
 def line_line_parameters(
@@ -215,8 +216,6 @@ def plane_plane_plane(plane0, plane1, plane2) -> Optional[Point]:
     Returns:
         Intersection point if planes intersect at a point, None if parallel or degenerate
     """
-    from .plane import Plane
-
     n0 = plane0.z_axis
     n1 = plane1.z_axis
     n2 = plane2.z_axis
@@ -454,3 +453,97 @@ def ray_triangle(
         origin.y + t * direction.y,
         origin.z + t * direction.z,
     )
+
+
+def _mesh_triangles(mesh: Mesh) -> List[Tuple[Point, Point, Point]]:
+    vertices, faces = mesh.to_vertices_and_faces()
+    tris: List[Tuple[Point, Point, Point]] = []
+    for face in faces:
+        if len(face) < 3:
+            continue
+        v0 = vertices[face[0]]
+        for i in range(1, len(face) - 1):
+            v1 = vertices[face[i]]
+            v2 = vertices[face[i + 1]]
+            tris.append((v0, v1, v2))
+    return tris
+
+
+def ray_mesh(
+    line: Line, mesh: Mesh, epsilon: float = 1e-6, find_all: bool = True
+) -> Optional[List[Point]]:
+    tris = _mesh_triangles(mesh)
+    if not tris:
+        return None
+
+    hits: List[Tuple[float, Point]] = []
+    origin = line.start()
+    direction = line.to_vector().normalize()
+
+    for v0, v1, v2 in tris:
+        p = ray_triangle(line, v0, v1, v2, epsilon)
+        if p is None:
+            continue
+        t = (
+            (p.x - origin.x) * direction.x
+            + (p.y - origin.y) * direction.y
+            + (p.z - origin.z) * direction.z
+        )
+        if t >= 0.0:
+            hits.append((t, p))
+
+    if not hits:
+        return None
+
+    hits.sort(key=lambda tp: tp[0])
+    if find_all:
+        return [p for _, p in hits]
+    else:
+        return [hits[0][1]]
+
+
+def ray_mesh_bvh(
+    line: Line, mesh: Mesh, epsilon: float = 1e-6, find_all: bool = True
+) -> Optional[List[Point]]:
+    tris = _mesh_triangles(mesh)
+    if not tris:
+        return None
+
+    # Build AABBs for triangles
+    tri_boxes: List[BoundingBox] = []
+    for v0, v1, v2 in tris:
+        tri_boxes.append(BoundingBox.from_points([v0, v1, v2]))
+
+    world_size = BVH.compute_world_size(tri_boxes)
+    bvh = BVH.from_boxes(tri_boxes, world_size)
+
+    origin = line.start()
+    direction = line.to_vector().normalize()
+    candidate_ids: List[int] = []
+    found = bvh.ray_cast(origin, direction, candidate_ids, True)
+    if not found:
+        return None
+
+    hits: List[Tuple[float, Point]] = []
+    for idx in candidate_ids:
+        if 0 <= idx < len(tris):
+            v0, v1, v2 = tris[idx]
+            p = ray_triangle(line, v0, v1, v2, epsilon)
+            if p is None:
+                continue
+            t = (
+                (p.x - origin.x) * direction.x
+                + (p.y - origin.y) * direction.y
+                + (p.z - origin.z) * direction.z
+            )
+            if t >= 0.0:
+                hits.append((t, p))
+
+    if not hits:
+        return None
+
+    hits.sort(key=lambda tp: tp[0])
+    if find_all:
+        return [p for _, p in hits]
+    else:
+        return [hits[0][1]]

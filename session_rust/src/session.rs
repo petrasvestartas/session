@@ -67,6 +67,25 @@ pub struct Session {
     /// Boundary Volume Hierarchy for spatial collision detection
     #[serde(skip)]
     pub bvh: BVH,
+    /// Cached BVH for ray casting (indices map to cached_guids)
+    #[serde(skip)]
+    pub cached_ray_bvh: Option<BVH>,
+    /// Cached GUIDs corresponding to cached_boxes order
+    #[serde(skip)]
+    pub cached_guids: Vec<String>,
+    /// Cached AABBs for ray-casting BVH
+    #[serde(skip)]
+    pub cached_boxes: Vec<BoundingBox>,
+    /// Dirty flag for cached ray BVH
+    #[serde(skip)]
+    pub bvh_cache_dirty: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct RayHit {
+    pub guid: String,
+    pub point: Point,
+    pub distance: f64,
 }
 
 impl Default for Session {
@@ -107,6 +126,10 @@ impl Session {
             tree,
             graph,
             bvh,
+            cached_ray_bvh: None,
+            cached_guids: Vec::new(),
+            cached_boxes: Vec::new(),
+            bvh_cache_dirty: true,
         }
     }
 
@@ -197,6 +220,10 @@ impl Session {
             tree,
             graph,
             bvh: BVH::new(),
+            cached_ray_bvh: None,
+            cached_guids: Vec::new(),
+            cached_boxes: Vec::new(),
+            bvh_cache_dirty: true,
         };
 
         Ok(session)
@@ -266,7 +293,8 @@ impl Session {
                 inflated
             }
             Geometry::Plane(p) => {
-                // Create a bounded box around plane origin
+                // Create a bounded box around plane origin (finite, test-safe)
+                // Keeping the same semantics as Python/C++ default for now.
                 BoundingBox::from_point(p.origin(), inflate * 10.0)
             }
             Geometry::Cylinder(c) => {
@@ -342,6 +370,223 @@ impl Session {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Ray BVH Cache
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    fn cache_geometry_aabb(&mut self, guid: &str, geometry: &Geometry) {
+        let bbox = Self::compute_bounding_box(geometry);
+        self.cached_boxes.push(bbox);
+        self.cached_guids.push(guid.to_string());
+        self.bvh_cache_dirty = true;
+    }
+
+    fn rebuild_ray_bvh_cache(&mut self) {
+        if self.cached_boxes.len() != self.lookup.len() {
+            self.cached_boxes.clear();
+            self.cached_guids.clear();
+            self.cached_boxes.reserve(self.lookup.len());
+            self.cached_guids.reserve(self.lookup.len());
+            for (guid, geometry) in &self.lookup {
+                let bbox = Self::compute_bounding_box(geometry);
+                self.cached_boxes.push(bbox);
+                self.cached_guids.push(guid.clone());
+            }
+        }
+        if !self.cached_boxes.is_empty() {
+            let world_size = BVH::compute_world_size(&self.cached_boxes);
+            self.cached_ray_bvh = Some(BVH::from_boxes(&self.cached_boxes, world_size));
+        } else {
+            self.cached_ray_bvh = None;
+        }
+    }
+
+    fn invalidate_bvh_cache(&mut self) {
+        self.bvh_cache_dirty = true;
+    }
+
+    pub fn ray_cast(
+        &mut self,
+        origin: &Point,
+        direction: &crate::Vector,
+        tolerance: f64,
+    ) -> Vec<RayHit> {
+        let dir_len = direction.compute_length();
+        if dir_len <= 0.0 {
+            return Vec::new();
+        }
+        let dir_unit = crate::Vector::new(
+            direction.x() / dir_len,
+            direction.y() / dir_len,
+            direction.z() / dir_len,
+        );
+
+        let far = 1e6f64;
+        let ray_end = Point::new(
+            origin.x() + dir_unit.x() * far,
+            origin.y() + dir_unit.y() * far,
+            origin.z() + dir_unit.z() * far,
+        );
+        let ray_line = Line::from_points(origin, &ray_end);
+
+        // Use cached BVH for ray casting
+        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {
+            self.rebuild_ray_bvh_cache();
+            self.bvh_cache_dirty = false;
+        }
+        let bvh = match &self.cached_ray_bvh {
+            Some(b) => b,
+            None => return Vec::new(),
+        };
+
+        let mut candidates: Vec<usize> = Vec::new();
+        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);
+
+        let mut hits_all: Vec<RayHit> = Vec::new();
+
+        for idx in candidates {
+            if idx >= self.cached_guids.len() {
+                continue;
+            }
+            let guid = self.cached_guids[idx].clone();
+            let geom = match self.lookup.get_mut(&guid) {
+                Some(g) => g,
+                None => continue,
+            };
+
+            let mut hit_point: Option<Point> = None;
+
+            match geom {
+                Geometry::BoundingBox(bb) => {
+                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {
+                        if !pts.is_empty() {
+                            hit_point = Some(pts[0].clone());
+                        }
+                    }
+                }
+                Geometry::Plane(pl) => {
+                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Line(l) => {
+                    if let Some(p) =
+                        crate::intersection::line_line(&ray_line, l, Tolerance::APPROXIMATION)
+                    {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Polyline(pl) => {
+                    let mut best_t = f64::INFINITY;
+                    let mut best_p: Option<Point> = None;
+                    if pl.points.len() >= 2 {
+                        for i in 0..(pl.points.len() - 1) {
+                            let seg = Line::from_points(&pl.points[i], &pl.points[i + 1]);
+                            if let Some(p) = crate::intersection::line_line(
+                                &ray_line,
+                                &seg,
+                                Tolerance::APPROXIMATION,
+                            ) {
+                                let dx = p.x() - origin.x();
+                                let dy = p.y() - origin.y();
+                                let dz = p.z() - origin.z();
+                                let t = dx * dir_unit.x() + dy * dir_unit.y() + dz * dir_unit.z();
+                                if t >= 0.0 && t < best_t {
+                                    best_t = t;
+                                    best_p = Some(p);
+                                }
+                            }
+                        }
+                    }
+                    if let Some(p) = best_p {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Mesh(m) => {
+                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Cylinder(cy) => {
+                    if let Some(p) = crate::intersection::line_line(
+                        &ray_line,
+                        &cy.line,
+                        Tolerance::APPROXIMATION,
+                    ) {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Arrow(ar) => {
+                    if let Some(p) = crate::intersection::line_line(
+                        &ray_line,
+                        &ar.line,
+                        Tolerance::APPROXIMATION,
+                    ) {
+                        hit_point = Some(p);
+                    }
+                }
+                Geometry::Point(p) => {
+                    let vx = p.x() - origin.x();
+                    let vy = p.y() - origin.y();
+                    let vz = p.z() - origin.z();
+                    let cross_x = vy * dir_unit.z() - vz * dir_unit.y();
+                    let cross_y = vz * dir_unit.x() - vx * dir_unit.z();
+                    let cross_z = vx * dir_unit.y() - vy * dir_unit.x();
+                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();
+                    if dist <= tolerance {
+                        let t = vx * dir_unit.x() + vy * dir_unit.y() + vz * dir_unit.z();
+                        if t >= 0.0 {
+                            let hp = Point::new(
+                                origin.x() + dir_unit.x() * t,
+                                origin.y() + dir_unit.y() * t,
+                                origin.z() + dir_unit.z() * t,
+                            );
+                            hit_point = Some(hp);
+                        }
+                    }
+                }
+                Geometry::PointCloud(_) => {}
+            }
+
+            if let Some(hp) = hit_point {
+                let dx = hp.x() - origin.x();
+                let dy = hp.y() - origin.y();
+                let dz = hp.z() - origin.z();
+                let forward = dx * dir_unit.x() + dy * dir_unit.y() + dz * dir_unit.z();
+                if forward >= 0.0 {
+                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+                    hits_all.push(RayHit {
+                        guid: guid.clone(),
+                        point: hp,
+                        distance: dist,
+                    });
+                }
+            }
+        }
+
+        if hits_all.is_empty() {
+            return Vec::new();
+        }
+
+        let mut min_d = f64::INFINITY;
+        for h in &hits_all {
+            if h.distance < min_d {
+                min_d = h.distance;
+            }
+        }
+        let eps = tolerance;
+        let mut hits: Vec<RayHit> = hits_all
+            .into_iter()
+            .filter(|h| (h.distance - min_d).abs() <= eps)
+            .collect();
+        hits.sort_by(|a, b| {
+            a.distance
+                .partial_cmp(&b.distance)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        hits
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // Details
     ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -362,6 +607,9 @@ impl Session {
 
         self.objects.points.push(point);
         self.lookup.insert(point_guid.clone(), geometry);
+        if let Some(Geometry::Point(p)) = self.lookup.get(&point_guid) {
+            self.cache_geometry_aabb(&point_guid, &Geometry::Point(p.clone()));
+        }
         self.graph
             .add_node(&point_guid, &format!("point_{point_name}"));
 
@@ -375,6 +623,9 @@ impl Session {
 
         self.objects.lines.push(line);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Line(l)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Line(l.clone()));
+        }
         self.graph.add_node(&guid, &format!("line_{name}"));
 
         TreeNode::new(&guid)
@@ -387,6 +638,9 @@ impl Session {
 
         self.objects.planes.push(plane);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Plane(p)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Plane(p.clone()));
+        }
         self.graph.add_node(&guid, &format!("plane_{name}"));
 
         TreeNode::new(&guid)
@@ -399,6 +653,9 @@ impl Session {
 
         self.objects.bboxes.push(bbox);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::BoundingBox(b)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::BoundingBox(b.clone()));
+        }
         self.graph.add_node(&guid, &format!("bbox_{name}"));
 
         TreeNode::new(&guid)
@@ -411,6 +668,9 @@ impl Session {
 
         self.objects.polylines.push(polyline);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Polyline(p)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Polyline(p.clone()));
+        }
         self.graph.add_node(&guid, &format!("polyline_{name}"));
 
         TreeNode::new(&guid)
@@ -423,6 +683,9 @@ impl Session {
 
         self.objects.pointclouds.push(pointcloud);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::PointCloud(p)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::PointCloud(p.clone()));
+        }
         self.graph.add_node(&guid, &format!("pointcloud_{name}"));
 
         TreeNode::new(&guid)
@@ -435,6 +698,9 @@ impl Session {
 
         self.objects.meshes.push(mesh);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Mesh(m)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Mesh(m.clone()));
+        }
         self.graph.add_node(&guid, &format!("mesh_{name}"));
 
         TreeNode::new(&guid)
@@ -447,6 +713,9 @@ impl Session {
 
         self.objects.cylinders.push(cylinder);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Cylinder(c)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Cylinder(c.clone()));
+        }
         self.graph.add_node(&guid, &format!("cylinder_{name}"));
 
         TreeNode::new(&guid)
@@ -459,6 +728,9 @@ impl Session {
 
         self.objects.arrows.push(arrow);
         self.lookup.insert(guid.clone(), geometry);
+        if let Some(Geometry::Arrow(a)) = self.lookup.get(&guid) {
+            self.cache_geometry_aabb(&guid, &Geometry::Arrow(a.clone()));
+        }
         self.graph.add_node(&guid, &format!("arrow_{name}"));
 
         TreeNode::new(&guid)
@@ -534,6 +806,7 @@ impl Session {
 
         // Remove from lookup table
         self.lookup.remove(guid);
+        self.invalidate_bvh_cache();
 
         // Remove from tree - find node by GUID and remove it
         if let Some(node) = self.tree.find_node_by_guid(&guid.to_string()) {

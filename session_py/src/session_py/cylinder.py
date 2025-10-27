@@ -232,6 +232,6 @@ class Cylinder:
         cylinder.name = name
 
         if "xform" in data:
-            Lcylinder.xform = decode_node(data["xform"])
+            cylinder.xform = decode_node(data["xform"])
 
         return cylinder

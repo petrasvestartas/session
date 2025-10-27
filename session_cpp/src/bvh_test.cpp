@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <utility>
+#include <iostream>
 
 using namespace session_cpp;
 
@@ -19,6 +20,31 @@ TEST_CASE("Expand bits for Morton codes", "[bvh]") {
     // After expansion, should have pattern with zeros inserted
     uint32_t result = expand_bits(1023);
     REQUIRE(result > 0);  // Should be non-zero
+}
+
+TEST_CASE("BVH Collision Detection scaling", "[perf][bvh]") {
+    std::cout << "\n=== BVH Collision Detection (test) ===\n";
+    auto run_case = [&](int N) {
+        std::mt19937 gen(42);
+        std::uniform_real_distribution<double> pos(-40.0, 40.0);
+        std::uniform_real_distribution<double> sz(0.5, 2.0);
+        std::vector<BoundingBox> boxes; boxes.reserve(N);
+        for (int i = 0; i < N; ++i) {
+            Point c(pos(gen), pos(gen), pos(gen));
+            Vector h(sz(gen), sz(gen), sz(gen));
+            boxes.emplace_back(c, Vector(1,0,0), Vector(0,1,0), Vector(0,0,1), h);
+        }
+        auto t0 = std::chrono::high_resolution_clock::now();
+        BVH bvh = BVH::from_boxes(boxes, 100.0);
+        auto [pairs, idxs, checks] = bvh.check_all_collisions(boxes);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        std::cout << N << " boxes: build+collisions=" << ms << "ms (" << pairs.size() << " pairs, " << checks << " checks)\n";
+        REQUIRE(checks >= 0);
+    };
+    run_case(100);
+    run_case(5000);
+    run_case(10000);
 }
 
 TEST_CASE("Morton code at origin", "[bvh]") {

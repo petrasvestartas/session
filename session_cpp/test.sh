@@ -60,7 +60,7 @@ fi
 # Run all tests
 echo -e "${GREEN}Running all tests...${NC}"
 echo ""
-"${TEST_EXE}"
+"${TEST_EXE}" -r compact -s -d yes
 
 # Check test results
 TEST_EXIT_CODE=$?

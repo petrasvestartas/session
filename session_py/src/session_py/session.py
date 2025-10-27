@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional, NamedTuple
 from .objects import Objects
 from .point import Point
 from .tree import Tree
@@ -8,6 +8,12 @@ from .graph import Graph
 from .bvh import BVH
 from .boundingbox import BoundingBox
 from .tolerance import Tolerance
+
+
+class RayHit(NamedTuple):
+    guid: str
+    point: Point
+    distance: float
 
 
 class Session:
@@ -391,7 +397,7 @@ class Session:
             return inflated
         elif isinstance(geometry, Plane):
             # Create bounded box around plane origin
-            return BoundingBox.from_point(geometry.origin(), inflate * 10.0)
+            return BoundingBox.from_point(geometry.origin, inflate * 10.0)
         elif isinstance(geometry, Cylinder):
             # Compute from cylinder line endpoints and radius
             points = [geometry.line.start(), geometry.line.end()]
@@ -460,6 +466,145 @@ class Session:
             self.graph.add_edge(guid1, guid2, "bvh_collision")
 
         return collision_pairs
+
+    def ray_cast(
+        self, origin: Point, direction, tolerance: float = 1e-3
+    ) -> List[RayHit]:
+        from .line import Line
+        from .vector import Vector
+        from .polyline import Polyline
+        from .plane import Plane
+        from .boundingbox import BoundingBox
+        from .mesh import Mesh
+        from .cylinder import Cylinder
+        from .arrow import Arrow
+        from .intersection import line_line, line_plane, ray_box, ray_mesh_bvh
+
+        dir_vec = Vector(direction.x, direction.y, direction.z)
+        if dir_vec.magnitude() <= 0.0:
+            return []
+        dir_unit = dir_vec.normalize()
+
+        FAR = 1e6
+        ray_line = Line(
+            origin.x,
+            origin.y,
+            origin.z,
+            origin.x + dir_unit.x * FAR,
+            origin.y + dir_unit.y * FAR,
+            origin.z + dir_unit.z * FAR,
+        )
+
+        boxes_with_guids: List[Tuple[BoundingBox, str]] = []
+        for guid, geometry in self.lookup.items():
+            bbox = self._compute_bounding_box(geometry)
+            boxes_with_guids.append((bbox, guid))
+        if not boxes_with_guids:
+            return []
+
+        self.bvh.build_with_guids(boxes_with_guids)
+
+        candidates: List[int] = []
+        self.bvh.ray_cast(origin, dir_unit, candidates, True)
+
+        hits_all: List[RayHit] = []
+
+        def point_hit(p: Point) -> Tuple[bool, Point, float]:
+            vx = p.x - origin.x
+            vy = p.y - origin.y
+            vz = p.z - origin.z
+            cx = vy * dir_unit.z - vz * dir_unit.y
+            cy = vz * dir_unit.x - vx * dir_unit.z
+            cz = vx * dir_unit.y - vy * dir_unit.x
+            dist = (cx * cx + cy * cy + cz * cz) ** 0.5
+            if dist > tolerance:
+                return False, origin, 0.0
+            t = vx * dir_unit.x + vy * dir_unit.y + vz * dir_unit.z
+            if t < 0.0:
+                return False, origin, 0.0
+            hp = Point(
+                origin.x + dir_unit.x * t,
+                origin.y + dir_unit.y * t,
+                origin.z + dir_unit.z * t,
+            )
+            return True, hp, t
+
+        for idx in candidates:
+            if idx < 0 or idx >= len(self.bvh.object_guids):
+                continue
+            guid = self.bvh.object_guids[idx]
+            geom = self.lookup.get(guid)
+            if geom is None:
+                continue
+
+            hit_point: Optional[Point] = None
+
+            if isinstance(geom, BoundingBox):
+                pts = ray_box(ray_line, geom, 0.0, FAR)
+                if pts:
+                    hit_point = pts[0]
+            elif isinstance(geom, Plane):
+                hp = line_plane(ray_line, geom, True)
+                if hp is not None:
+                    hit_point = hp
+            elif hasattr(geom, "start") and hasattr(geom, "end"):
+                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)
+                if hp is not None:
+                    hit_point = hp
+            elif isinstance(geom, Polyline):
+                best_t = float("inf")
+                best_p: Optional[Point] = None
+                for i in range(len(geom.points) - 1):
+                    seg = Line.from_points(geom.points[i], geom.points[i + 1])
+                    hp = line_line(ray_line, seg, Tolerance.APPROXIMATION)
+                    if hp is None:
+                        continue
+                    t = (
+                        (hp.x - origin.x) * dir_unit.x
+                        + (hp.y - origin.y) * dir_unit.y
+                        + (hp.z - origin.z) * dir_unit.z
+                    )
+                    if t >= 0.0 and t < best_t:
+                        best_t = t
+                        best_p = hp
+                if best_p is not None:
+                    hit_point = best_p
+            elif isinstance(geom, Mesh):
+                pts = ray_mesh_bvh(ray_line, geom, 1e-6, False)
+                if pts:
+                    hit_point = pts[0]
+            elif isinstance(geom, Cylinder):
+                hp = line_line(ray_line, geom.line, Tolerance.APPROXIMATION)
+                if hp is not None:
+                    hit_point = hp
+            elif isinstance(geom, Arrow):
+                hp = line_line(ray_line, geom.line, Tolerance.APPROXIMATION)
+                if hp is not None:
+                    hit_point = hp
+            elif isinstance(geom, Point):
+                ok, hp, t = point_hit(geom)
+                if ok:
+                    hit_point = hp
+
+            if hit_point is None:
+                continue
+
+            d = (
+                (hit_point.x - origin.x) * dir_unit.x
+                + (hit_point.y - origin.y) * dir_unit.y
+                + (hit_point.z - origin.z) * dir_unit.z
+            )
+            if d >= 0.0:
+                hits_all.append(RayHit(guid, hit_point, d))
+
+        if not hits_all:
+            return []
+
+        min_d = min(h.distance for h in hits_all)
+        eps = max(1e-6, tolerance * 1e-3)
+        hits = [h for h in hits_all if abs(h.distance - min_d) <= eps]
+        hits.sort(key=lambda h: h.distance)
+        return hits
 
     ###########################################################################################
     # Details - Tree

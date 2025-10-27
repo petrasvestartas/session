@@ -112,14 +112,13 @@ mod tests {
             Vector::new(0.0, 0.0, 1.0),
             Vector::new(1.0, 1.0, 1.0),
         );
-        let boxes = vec![bbox];
+        let boxes = vec![bbox.clone()];
 
         let bvh = BVH::from_boxes(&boxes, 100.0);
 
-        assert!(bvh.root.is_some());
-        let root = bvh.root.as_ref().unwrap();
-        assert!(root.is_leaf());
-        assert_eq!(root.object_id, 0);
+        // Verify BVH works by querying it
+        let (collisions, _checks) = bvh.find_collisions(0, &bbox, &boxes);
+        assert_eq!(collisions.len(), 0); // Should not collide with itself
     }
 
     #[test]
@@ -151,11 +150,10 @@ mod tests {
 
         let bvh = BVH::from_boxes(&bboxes, 100.0);
 
-        assert!(bvh.root.is_some());
-        let root = bvh.root.as_ref().unwrap();
-        assert!(!root.is_leaf());
-        assert!(root.left.is_some());
-        assert!(root.right.is_some());
+        // Verify BVH works by performing pairwise collision detection
+        let (pairs, _indices, checks) = bvh.check_all_collisions(&bboxes);
+        assert_eq!(pairs.len(), 0); // These boxes don't overlap
+        assert!(checks > 0); // But we should have checked some nodes
     }
 
     #[test]

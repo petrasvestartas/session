@@ -1,13 +1,12 @@
 #include "src/intersection.h"
-#include "src/point.h"
-#include "src/vector.h"
-#include "src/line.h"
+#include "src/session.h"
+#include "src/bvh.h"
+#include <iostream>
+#include <chrono>
 #include "src/plane.h"
 #include "src/mesh.h"
 #include "src/boundingbox.h"
-#include "src/bvh.h"
 #include "src/obj.h"
-#include "src/session.h"
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -50,73 +49,73 @@ Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);
 Line l1(13.195, 234.832, 534.315, 986.805, 421.775, 403.416);
 
 int main() {
-    // std::cout << "=== Intersection Examples ===\n\n";
+    std::cout << "=== Intersection Examples ===\n\n";
 
-    // // 1. line_line
-    // Point p;
-    // if (Intersection::line_line(l0, l1, p, Tolerance::APPROXIMATION)) {
-    //     std::cout << "1. line_line: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
-    // }
+    // 1. line_line
+    Point p;
+    if (Intersection::line_line(l0, l1, p, Tolerance::APPROXIMATION)) {
+        std::cout << "1. line_line: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
+    }
 
-    // // 2. line_line_parameters
-    // float t0, t1;
-    // if (Intersection::line_line_parameters(l0, l1, t0, t1, Tolerance::APPROXIMATION)) {
-    //     std::cout << "2. line_line_parameters: t0=" << t0 << ", t1=" << t1 << "\n";
-    // }
+    // 2. line_line_parameters
+    double t0, t1;
+    if (Intersection::line_line_parameters(l0, l1, t0, t1, Tolerance::APPROXIMATION)) {
+        std::cout << "2. line_line_parameters: t0=" << t0 << ", t1=" << t1 << "\n";
+    }
 
-    // // 3. plane_plane
-    // Line intersection_line;
-    // if (Intersection::plane_plane(pl0, pl1, intersection_line)) {
-    //    printf("3. plane_plane: %s\n", intersection_line.to_string().c_str());
-    // }
+    // 3. plane_plane
+    Line intersection_line;
+    if (Intersection::plane_plane(pl0, pl1, intersection_line)) {
+       printf("3. plane_plane: %s\n", intersection_line.to_string().c_str());
+    }
 
-    // // 4. line_plane
-    // Point lp;
-    // if (Intersection::line_plane(l0, pl0, lp)) {
-    //     std::cout << "4. line_plane: " << lp.x() << ", " << lp.y() << ", " << lp.z() << "\n";
-    // }
+    // 4. line_plane
+    Point lp;
+    if (Intersection::line_plane(l0, pl0, lp)) {
+        std::cout << "4. line_plane: " << lp.x() << ", " << lp.y() << ", " << lp.z() << "\n";
+    }
 
-    // // 5. plane_plane_plane {300.5, 565.5, -0}
-    // Point ppp;
-    // if (Intersection::plane_plane_plane(pl0, pl1, pl2, ppp)) {
-    //     std::cout << "5. plane_plane_plane: " << ppp.x() << ", " << ppp.y() << ", " << ppp.z() << "\n";
-    // }
+    // 5. plane_plane_plane {300.5, 565.5, -0}
+    Point ppp;
+    if (Intersection::plane_plane_plane(pl0, pl1, pl2, ppp)) {
+        std::cout << "5. plane_plane_plane: " << ppp.x() << ", " << ppp.y() << ", " << ppp.z() << "\n";
+    }
 
-    // // 6. ray_box
-    // Point min(214, 192, 484);
-    // Point max(694, 567, 796);
-    // std::vector<Point> points {min, max};
-    // BoundingBox box = BoundingBox::from_points(points);
+    // 6. ray_box
+    Point min(214, 192, 484);
+    Point max(694, 567, 796);
+    std::vector<Point> points {min, max};
+    BoundingBox box = BoundingBox::from_points(points);
     
 
-    // std::vector<Point> intersection_points;
-    // if (Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points)) {
-    //     std::cout << "6. ray_box: entry=" << intersection_points[0] 
-    //               << ", exit=" << intersection_points[1] << "\n";
-    // }
+    std::vector<Point> intersection_points;
+    if (Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points)) {
+        std::cout << "6. ray_box: entry=" << intersection_points[0] 
+                  << ", exit=" << intersection_points[1] << "\n";
+    }
 
-    // // 7. ray_sphere
-    // Point sphere_center_test(457.0, 192.0, 207.0);
-    // std::vector<Point> sphere_points;
-    // if (Intersection::ray_sphere(l0, sphere_center_test, 265.0, sphere_points)) {
-    //     std::cout << "7. ray_sphere: " << sphere_points.size() << " hits";
-    //     for (size_t i = 0; i < sphere_points.size(); i++) {
-    //         std::cout << ", p" << i << "=" << sphere_points[i];
-    //     }
-    //     std::cout << "\n";
-    // } else {
-    //     std::cout << "7. ray_sphere: 0 hits\n";
-    // }
+    // 7. ray_sphere
+    Point sphere_center_test(457.0, 192.0, 207.0);
+    std::vector<Point> sphere_points;
+    if (Intersection::ray_sphere(l0, sphere_center_test, 265.0, sphere_points)) {
+        std::cout << "7. ray_sphere: " << sphere_points.size() << " hits";
+        for (size_t i = 0; i < sphere_points.size(); i++) {
+            std::cout << ", p" << i << "=" << sphere_points[i];
+        }
+        std::cout << "\n";
+    } else {
+        std::cout << "7. ray_sphere: 0 hits\n";
+    }
 
-    // // 8. ray_triangle
-    // Point p1(214, 567, 484);
-    // Point p2(214, 192, 796);
-    // Point p3(694, 192, 484);
+    // 8. ray_triangle
+    Point p1(214, 567, 484);
+    Point p2(214, 192, 796);
+    Point p3(694, 192, 484);
 
-    // Point triangle_hit;
-    // if (Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit)) {
-    //     std::cout << "8. ray_triangle: " << triangle_hit << "\n";
-    // }
+    Point triangle_hit;
+    if (Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit)) {
+        std::cout << "8. ray_triangle: " << triangle_hit << "\n";
+    }
 
     // 9. ray_mesh - Load bunny mesh
     // Try both paths (run from build/ or from session_cpp/)
@@ -231,81 +230,182 @@ int main() {
         std::cout << "\n";
     }
 
-    std::cout << "\n\n=== Session Collision Detection ===\n";
+    std::cout << "\n\n=== Comprehensive 10k Mixed Geometry Test ===\n";
     
     {
-        Session scene("collision_test");
+        const int OBJECT_COUNT = 10000;
+        const double WORLD_SIZE = 50.0;
         
-        // Add some boxes that will collide
-        auto box1 = std::make_shared<BoundingBox>(
-            Point(0, 0, 0), 
-            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
-            Vector(2, 2, 2)
-        );
-        box1->name = "box_A";
-        auto node1 = scene.add_bbox(box1);
-        scene.add(node1);
+        Session scene("comprehensive_test");
+        std::vector<BoundingBox> aabb_boxes;
+        std::vector<BoundingBox> oobb_boxes;
+        aabb_boxes.reserve(OBJECT_COUNT);
+        oobb_boxes.reserve(OBJECT_COUNT);
         
-        auto box2 = std::make_shared<BoundingBox>(
-            Point(3, 0, 0),  // Overlaps with box1
-            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
-            Vector(2, 2, 2)
-        );
-        box2->name = "box_B";
-        auto node2 = scene.add_bbox(box2);
-        scene.add(node2);
+        std::srand(42);
         
-        auto box3 = std::make_shared<BoundingBox>(
-            Point(20, 0, 0),  // Far away, no collision
-            Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 
-            Vector(1, 1, 1)
-        );
-        box3->name = "box_C";
-        auto node3 = scene.add_bbox(box3);
-        scene.add(node3);
+        std::cout << "Creating " << OBJECT_COUNT << " mixed geometry objects..." << std::endl;
         
-        // Add a line that might collide
-        auto line1 = std::make_shared<Line>(Line::from_points(Point(0, 0, 0), Point(5, 0, 0)));
-        line1->name = "line_D";
-        auto node4 = scene.add_line(line1);
-        scene.add(node4);
-        
-        // Add points
-        auto pt1 = std::make_shared<Point>(1, 1, 1);  // Inside box1
-        pt1->name = "point_E";
-        auto node5 = scene.add_point(pt1);
-        scene.add(node5);
-        
-        auto pt2 = std::make_shared<Point>(100, 100, 100);  // Far away
-        pt2->name = "point_F";
-        auto node6 = scene.add_point(pt2);
-        scene.add(node6);
-        
-        auto collision_pairs = scene.get_collisions();
-        
-        std::cout << "Found " << collision_pairs.size() << " collision(s):\n";
-        for (const auto& [guid1, guid2] : collision_pairs) {
-            // Look up names for display
-            std::string name1 = "unknown";
-            std::string name2 = "unknown";
+        for (int i = 0; i < OBJECT_COUNT; ++i) {
+            double x = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double y = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
+            double z = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * WORLD_SIZE;
             
-            if (guid1 == box1->guid) name1 = box1->name;
-            else if (guid1 == box2->guid) name1 = box2->name;
-            else if (guid1 == box3->guid) name1 = box3->name;
-            else if (guid1 == line1->guid) name1 = line1->name;
-            else if (guid1 == pt1->guid) name1 = pt1->name;
-            else if (guid1 == pt2->guid) name1 = pt2->name;
+            int geom_type = i % 7;
             
-            if (guid2 == box1->guid) name2 = box1->name;
-            else if (guid2 == box2->guid) name2 = box2->name;
-            else if (guid2 == box3->guid) name2 = box3->name;
-            else if (guid2 == line1->guid) name2 = line1->name;
-            else if (guid2 == pt1->guid) name2 = pt1->name;
-            else if (guid2 == pt2->guid) name2 = pt2->name;
-            
-            std::cout << "  " << name1 << " <-> " << name2 << "\n";
+            if (geom_type == 0) {
+                auto pt = std::make_shared<Point>(x, y, z);
+                scene.add_point(pt);
+                aabb_boxes.push_back(BoundingBox::from_point(*pt, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_point(*pt, 0.1));
+            } else if (geom_type == 1) {
+                double dx = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 5.0;
+                double dy = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 5.0;
+                double dz = (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 5.0;
+                auto line = std::make_shared<Line>(Line::from_points(Point(x, y, z), Point(x + dx, y + dy, z + dz)));
+                scene.add_line(line);
+                
+                aabb_boxes.push_back(BoundingBox::from_line(*line, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_line(*line, 0.1));
+            } else if (geom_type == 2) {
+                Point plane_pt(x, y, z);
+                Vector plane_x(1, 0, 0);
+                Vector plane_y(0, 1, 0);
+                auto plane = std::make_shared<Plane>(plane_pt, plane_x, plane_y);
+                scene.add_plane(plane);
+                aabb_boxes.push_back(BoundingBox(*plane, 2.0, 2.0, 0.1));
+                oobb_boxes.push_back(BoundingBox(*plane, 2.0, 2.0, 0.1));
+            } else if (geom_type == 3) {
+                std::vector<Point> pts;
+                int num_pts = 3 + (i % 5);
+                for (int j = 0; j < num_pts; ++j) {
+                    double jx = x + (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 3.0;
+                    double jy = y + (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 3.0;
+                    double jz = z + (static_cast<double>(std::rand()) / RAND_MAX - 0.5) * 3.0;
+                    pts.emplace_back(jx, jy, jz);
+                }
+                auto poly = std::make_shared<Polyline>(pts);
+                scene.add_polyline(poly);
+                
+                Point poly_origin;
+                Vector poly_x, poly_y, poly_z;
+                poly->get_average_plane(poly_origin, poly_x, poly_y, poly_z);
+                Plane fit_plane(poly_origin, poly_x, poly_y);
+                aabb_boxes.push_back(BoundingBox::from_polyline(*poly, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_polyline(*poly, fit_plane, 0.1));
+            } else if (geom_type == 4) {
+                auto mesh = std::make_shared<Mesh>();
+                double h = 0.5;
+                std::vector<Point> verts = {
+                    Point(x - h, y - h, z - h), Point(x + h, y - h, z - h),
+                    Point(x + h, y + h, z - h), Point(x - h, y + h, z - h),
+                    Point(x - h, y - h, z + h), Point(x + h, y - h, z + h),
+                    Point(x + h, y + h, z + h), Point(x - h, y + h, z + h)
+                };
+                for (size_t vi = 0; vi < verts.size(); ++vi) mesh->add_vertex(verts[vi], vi);
+                mesh->add_face({0,1,2,3});
+                mesh->add_face({4,7,6,5});
+                scene.add_mesh(mesh);
+                
+                Point mesh_pt(x, y, z);
+                Vector mesh_x(1, 0, 0);
+                Vector mesh_y(0, 1, 0);
+                Plane mesh_plane(mesh_pt, mesh_x, mesh_y);
+                aabb_boxes.push_back(BoundingBox::from_mesh(*mesh, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_mesh(*mesh, mesh_plane, 0.1));
+            } else if (geom_type == 5) {
+                Line cyl_line = Line::from_points(Point(x - 1, y, z), Point(x + 1, y, z));
+                auto cyl = std::make_shared<Cylinder>(cyl_line, 0.3);
+                scene.add_cylinder(cyl);
+                
+                Point cyl_pt(x, y, z);
+                Vector cyl_x(1, 0, 0);
+                Vector cyl_y(0, 1, 0);
+                Plane cyl_plane(cyl_pt, cyl_x, cyl_y);
+                aabb_boxes.push_back(BoundingBox::from_cylinder(*cyl, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_cylinder(*cyl, cyl_plane, 0.1));
+            } else {
+                Line arrow_line = Line::from_points(Point(x - 1, y, z), Point(x + 1, y, z));
+                auto arrow = std::make_shared<Arrow>(arrow_line, 0.3);
+                scene.add_arrow(arrow);
+                
+                Point arrow_pt(x, y, z);
+                Vector arrow_x(1, 0, 0);
+                Vector arrow_y(0, 1, 0);
+                Plane arrow_plane(arrow_pt, arrow_x, arrow_y);
+                aabb_boxes.push_back(BoundingBox::from_arrow(*arrow, 0.1));
+                oobb_boxes.push_back(BoundingBox::from_arrow(*arrow, arrow_plane, 0.1));
+            }
         }
+        
+        std::cout << "\n(a) AABB BVH Collision Detection:\n";
+        auto aabb_start = std::chrono::high_resolution_clock::now();
+        BVH aabb_bvh = BVH::from_boxes(aabb_boxes, WORLD_SIZE);
+        auto [aabb_collisions, aabb_indices, aabb_checks] = aabb_bvh.check_all_collisions(aabb_boxes);
+        auto aabb_end = std::chrono::high_resolution_clock::now();
+        double aabb_ms = std::chrono::duration<double, std::milli>(aabb_end - aabb_start).count();
+        (void)aabb_indices;
+        (void)aabb_checks;
+        
+        std::cout << "  Build + query: " << aabb_ms << "ms\n";
+        std::cout << "  Collision pairs: " << aabb_collisions.size() << "\n";
+        
+        std::cout << "\n(b) Ray BVH Intersection:\n";
+        Point ray_origin(0, 0, 0);
+        Vector ray_dir(1, 0, 0);
+        
+        auto ray_start = std::chrono::high_resolution_clock::now();
+        std::vector<int> ray_candidates;
+        aabb_bvh.ray_cast(ray_origin, ray_dir, ray_candidates, true);
+        auto ray_end = std::chrono::high_resolution_clock::now();
+        double ray_ms = std::chrono::duration<double, std::milli>(ray_end - ray_start).count();
+        
+        std::cout << "  Query: " << ray_ms << "ms\n";
+        std::cout << "  Candidates: " << ray_candidates.size() << "\n";
+        
+        std::cout << "\n(c) OOBB BVH Collision Detection (Optimized):\n";
+        auto oobb_start = std::chrono::high_resolution_clock::now();
+        
+        BVH oobb_bvh = BVH::from_boxes(oobb_boxes, WORLD_SIZE);
+        auto [oobb_candidates, oobb_indices, oobb_checks] = oobb_bvh.check_all_collisions(oobb_boxes);
+        (void)oobb_indices;
+        (void)oobb_checks;
+        
+        std::cout << "  BVH broad-phase: " << oobb_candidates.size() << " candidates\n";
+        
+        auto sat_start = std::chrono::high_resolution_clock::now();
+        double bvh_ms = std::chrono::duration<double, std::milli>(sat_start - oobb_start).count();
+        std::cout << "  BVH build + query: " << bvh_ms << "ms\n";
+        
+        std::cout << "  Running SAT...\n";
+        int true_oobb_collisions = 0;
+        size_t report_interval = std::max<size_t>(1, oobb_candidates.size() / 10);  // every 10%
+        for (size_t idx = 0; idx < oobb_candidates.size(); ++idx) {
+            const auto& [i, j] = oobb_candidates[idx];
+            if (oobb_boxes[i].collides_with(oobb_boxes[j])) {
+                true_oobb_collisions++;
+            }
+            if (idx > 0 && idx % report_interval == 0) {
+                int progress = (idx * 100) / oobb_candidates.size();
+                std::cout << "    Progress: " << progress << "% (" << idx << "/" << oobb_candidates.size() << ")\n";
+            }
+        }
+        auto sat_end = std::chrono::high_resolution_clock::now();
+        double sat_ms = std::chrono::duration<double, std::milli>(sat_end - sat_start).count();
+        
+        std::cout << "  SAT: " << sat_ms << "ms\n";
+        std::cout << "  BVH candidate pairs: " << oobb_candidates.size() << "\n";
+        std::cout << "  True OOBB collisions: " << true_oobb_collisions << "\n";
+        std::cout << "  Final precision: " << (100.0 * true_oobb_collisions / std::max(1, static_cast<int>(oobb_candidates.size()))) << "%\n";
+        
+        std::cout << "\nComparison:\n";
+        std::cout << "  AABB collisions: " << aabb_collisions.size() << "\n";
+        std::cout << "  OOBB collisions: " << true_oobb_collisions << "\n";
+        std::cout << "  Tightness improvement: " << (100.0 * (1.0 - static_cast<double>(true_oobb_collisions) / std::max(1, static_cast<int>(aabb_collisions.size())))) << "%\n";
+        std::cout << "\nOptimization impact:\n";
+        std::cout << "  Using optimized RTCD SAT; no redundant AABB recheck\n";
     }
+
 
     std::cout << "\n=== Session Ray Casting ===\n";
     

@@ -1,11 +1,11 @@
 {
     "type": "Objects",
-    "guid": "30aeacbe-ae15-4aa9-8b57-6517b799c3f6",
+    "guid": "c5531b0b-cc7e-4588-a63d-2cb9308aa66d",
     "name": "test_objects",
     "points": [
         {
             "type": "Point",
-            "guid": "53310d8b-9435-4302-bf8c-d3c869105ba7",
+            "guid": "cbc1d00e-1c85-44f6-b7ce-9f7789fe58f2",
             "name": "my_point",
             "x": 1.0,
             "y": 2.0,
@@ -13,7 +13,7 @@
             "width": 1.0,
             "pointcolor": {
                 "type": "Color",
-                "guid": "4548ccca-e871-466f-9f8d-925beaae7bd7",
+                "guid": "4ebacb8f-3be2-4931-8bb4-03eec95128b1",
                 "name": "white",
                 "r": 255,
                 "g": 255,

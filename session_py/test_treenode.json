@@ -1,16 +1,16 @@
 {
     "type": "TreeNode",
-    "guid": "2423ae1e-4b15-40d8-b89a-bb5b78c2e92d",
+    "guid": "d1aeba93-70e3-438e-8429-deedb7c9e6ca",
     "name": "project_root",
     "children": [
         {
             "type": "TreeNode",
-            "guid": "1e5ab070-32d3-4461-b522-8f1bb63c2caf",
+            "guid": "ffffdd35-3a18-40ba-8397-889e5519dace",
             "name": "src",
             "children": [
                 {
                     "type": "TreeNode",
-                    "guid": "b24ab9f3-3576-4732-8952-848ffac01f0e",
+                    "guid": "b86dc090-dfdb-4b3f-9dff-f2dc98b7ad0f",
                     "name": "main.py",
                     "children": []
                 }
@@ -18,12 +18,12 @@
         },
         {
             "type": "TreeNode",
-            "guid": "644ec627-b01a-4f55-8175-086a50e02f2b",
+            "guid": "5ca7a7fb-391b-42cc-bfe3-0e482c388b87",
             "name": "docs",
             "children": [
                 {
                     "type": "TreeNode",
-                    "guid": "16f8c188-435b-4bcd-99bb-34ab8c4acaac",
+                    "guid": "9899f009-055d-478c-9925-80181d9db7e5",
                     "name": "README.md",
                     "children": []
                 }

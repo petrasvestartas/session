@@ -15,7 +15,9 @@ session/
 
 **Completed:**
 - 1. Arrow
-- 2. BoundingBox
+- 2. BoundingBox, for all from method add a plane attribute, that will orient geometry from that plane to xy plane create a box and orient back to the plane. In this way we will create tight bounding box.
+
+Is it possible to compute boundingbox using Principal Component Analysis without external libraries like eigen it should be standalone: https://github.com/petrasvestartas/opennest_2/blob/782381d5fc549acf88f33022d05a0d2fed8a1eb7/src/minkowski/src/boundingbox.cc
 - 3. Color
 - 4. Cylinder
 - 5. Edge
@@ -36,7 +38,7 @@ session/
 - 20. Vertex
 - 21. Xform
 - 22. Encoders
-- 23. BVH
+- 23. BVH - speed up bvh by using oriented bounding box
 
 **Planned:**
 - Intesections - Create ray (point and vector) intersection with a mesh, 

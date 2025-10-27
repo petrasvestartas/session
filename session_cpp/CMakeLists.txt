@@ -12,10 +12,10 @@ endif()
 # Enable compilation database generation for better IntelliSense
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
-# Specify the C++ standard
+# Specify the C++ standard (C++17+ for parallel algorithms)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+message(STATUS "Using C++ standard library parallel execution (std::execution::par)")
 
 # Add compiler warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -48,6 +48,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/src/json/include       # JSON library headers
     ${PROJECT_SOURCE_DIR}/src/guid/include       # GUID library headers
 )
+
 #############################################################################################
 # Create Catch2 library - optimized static library
 #############################################################################################

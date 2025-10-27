@@ -17,6 +17,8 @@ class Line;
 class Polyline;
 class Mesh;
 class PointCloud;
+class Arrow;
+class Cylinder;
 
 /**
  * @brief An oriented bounding box with collision detection capabilities
@@ -42,11 +44,21 @@ public:
     
     static BoundingBox from_point(const Point& point, double inflate = 0.0);
     static BoundingBox from_points(const std::vector<Point>& points, double inflate = 0.0);
+    static BoundingBox from_points(const std::vector<Point>& points, const Plane& plane, double inflate = 0.0);
     static BoundingBox from_line(const Line& line, double inflate = 0.0);
+    static BoundingBox from_line(const Line& line, const Plane& plane, double inflate = 0.0);
     static BoundingBox from_polyline(const Polyline& polyline, double inflate = 0.0);
+    static BoundingBox from_polyline(const Polyline& polyline, const Plane& plane, double inflate = 0.0);
     static BoundingBox from_mesh(const Mesh& mesh, double inflate = 0.0);
+    static BoundingBox from_mesh(const Mesh& mesh, const Plane& plane, double inflate = 0.0);
     static BoundingBox from_pointcloud(const PointCloud& pointcloud, double inflate = 0.0);
+    static BoundingBox from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate = 0.0);
+    static BoundingBox from_arrow(const Arrow& arrow, double inflate = 0.0);
+    static BoundingBox from_arrow(const Arrow& arrow, const Plane& plane, double inflate = 0.0);
+    static BoundingBox from_cylinder(const Cylinder& cylinder, double inflate = 0.0);
+    static BoundingBox from_cylinder(const Cylinder& cylinder, const Plane& plane, double inflate = 0.0);
     
+    BoundingBox aabb() const;
     Point min_point() const;
     Point max_point() const;
     std::array<Point, 8> corners() const;
@@ -55,6 +67,8 @@ public:
     void inflate(double amount);
     
     bool collides_with(const BoundingBox& other) const;
+    bool collides_with_rtcd(const BoundingBox& other) const;
+    bool collides_with_naive(const BoundingBox& other) const;
     
     void transform();
     BoundingBox transformed() const;

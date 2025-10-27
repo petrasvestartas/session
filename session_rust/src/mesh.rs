@@ -1,4 +1,4 @@
-use crate::{Color, Point, Tolerance, Vector, Xform};
+use crate::{BoundingBox, Color, Line, Point, Tolerance, Vector, Xform, BVH};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -38,6 +38,13 @@ pub struct Mesh {
     pub widths: Vec<f64>,                      // Edge widths
     #[serde(default = "Xform::identity")]
     pub xform: Xform,   // Transformation matrix
+    // Cached triangle BVH for ray queries (not serialized)
+    #[serde(skip)]
+    pub tri_bvh: Option<BVH>,
+    #[serde(skip)]
+    pub tri_tris: Vec<[usize; 3]>,
+    #[serde(skip)]
+    pub tri_vertices: Vec<Point>,
 }
 
 /// Vertex data containing position and attributes
@@ -130,6 +137,9 @@ impl Mesh {
             linecolors: Vec::new(),
             widths: Vec::new(),
             xform: Xform::identity(),
+            tri_bvh: None,
+            tri_tris: Vec::new(),
+            tri_vertices: Vec::new(),
         }
     }
 
@@ -150,6 +160,7 @@ impl Mesh {
         self.facecolors.clear();
         self.linecolors.clear();
         self.widths.clear();
+        self.invalidate_triangle_bvh();
     }
 
     pub fn number_of_vertices(&self) -> usize {
@@ -199,6 +210,7 @@ impl Mesh {
         self.vertex.insert(vertex_key, vertex_data);
         self.halfedge.entry(vertex_key).or_default();
         self.pointcolors.push(Color::white());
+        self.invalidate_triangle_bvh();
 
         vertex_key
     }
@@ -231,6 +243,7 @@ impl Mesh {
         self.face.insert(face_key, vertices.clone());
         self.triangulation.remove(&face_key);
         self.facecolors.push(Color::white());
+        self.invalidate_triangle_bvh();
 
         for i in 0..vertices.len() {
             let u = vertices[i];
@@ -526,6 +539,103 @@ impl Mesh {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    // Triangle BVH cache and ray casting
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    fn invalidate_triangle_bvh(&mut self) {
+        self.tri_bvh = None;
+        self.tri_tris.clear();
+        self.tri_vertices.clear();
+    }
+
+    fn ensure_triangle_bvh(&mut self) {
+        if self.tri_bvh.is_some() && !self.tri_tris.is_empty() && !self.tri_vertices.is_empty() {
+            return;
+        }
+
+        let (vertices, faces) = self.to_vertices_and_faces();
+        let mut tris: Vec<[usize; 3]> = Vec::new();
+        let mut tri_boxes: Vec<BoundingBox> = Vec::new();
+
+        for face in faces {
+            if face.len() < 3 {
+                continue;
+            }
+            let v0 = face[0];
+            for i in 1..(face.len() - 1) {
+                let t = [v0, face[i], face[i + 1]];
+                tris.push(t);
+                let pts = [
+                    vertices[t[0]].clone(),
+                    vertices[t[1]].clone(),
+                    vertices[t[2]].clone(),
+                ];
+                tri_boxes.push(BoundingBox::from_points(&pts, 0.0));
+            }
+        }
+
+        if tris.is_empty() {
+            self.tri_bvh = None;
+            self.tri_tris.clear();
+            self.tri_vertices = vertices; // keep for consistency
+            return;
+        }
+
+        let world_size = BVH::compute_world_size(&tri_boxes);
+        let bvh = BVH::from_boxes(&tri_boxes, world_size);
+        self.tri_vertices = vertices;
+        self.tri_tris = tris;
+        self.tri_bvh = Some(bvh);
+    }
+
+    pub fn ray_cast_bvh(&mut self, ray: &Line, epsilon: f64) -> Option<Point> {
+        self.ensure_triangle_bvh();
+        let bvh = match &self.tri_bvh {
+            Some(b) => b,
+            None => return None,
+        };
+
+        let origin = ray.start();
+        let dir = ray.to_vector();
+        let len = dir.compute_length();
+        if len <= Tolerance::ZERO_TOLERANCE {
+            return None;
+        }
+        let dir_unit = Vector::new(dir.x() / len, dir.y() / len, dir.z() / len);
+
+        let mut candidate_ids: Vec<usize> = Vec::new();
+        bvh.ray_cast(&origin, &dir_unit, &mut candidate_ids, true);
+        if candidate_ids.is_empty() {
+            return None;
+        }
+
+        let mut best_t = f64::INFINITY;
+        let mut best_p: Option<Point> = None;
+
+        for idx in candidate_ids {
+            if idx >= self.tri_tris.len() {
+                continue;
+            }
+            let tri = self.tri_tris[idx];
+            let v0 = &self.tri_vertices[tri[0]];
+            let v1 = &self.tri_vertices[tri[1]];
+            let v2 = &self.tri_vertices[tri[2]];
+            if let Some(p) = crate::intersection::ray_triangle(ray, v0, v1, v2, epsilon) {
+                let dx = p.x() - origin.x();
+                let dy = p.y() - origin.y();
+                let dz = p.z() - origin.z();
+                let t = dx * dir_unit.x() + dy * dir_unit.y() + dz * dir_unit.z();
+                if t >= 0.0 && t < best_t {
+                    best_t = t;
+                    best_p = Some(p);
+                }
+            }
+        }
+
+        best_p
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     // Color and Width Management
     ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -567,6 +677,7 @@ impl Mesh {
             v.z = pt.z();
         }
         self.xform = Xform::identity();
+        self.invalidate_triangle_bvh();
     }
 
     pub fn transformed(&self) -> Self {

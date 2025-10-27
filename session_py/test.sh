@@ -19,7 +19,7 @@ echo -e "${BLUE}Running Python tests...${NC}"
 # Check if pytest is available
 if command -v pytest &> /dev/null; then
     echo -e "${YELLOW}Using pytest to run tests...${NC}"
-    pytest src/session_py/*_test.py -v
+    pytest -s -v src/session_py/*_test.py
     test_result=$?
 else
     echo -e "${YELLOW}pytest not found, using python -m unittest...${NC}"

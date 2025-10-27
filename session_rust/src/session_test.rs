@@ -3,7 +3,7 @@ mod tests {
     use crate::encoders::{json_dump, json_load};
     use crate::{
         Arrow, BoundingBox, Cylinder, Line, Mesh, Plane, Point, PointCloud, Polyline, Session,
-        TreeNode, Vector,
+        TreeNode, Vector, BVH,
     };
 
     #[test]
@@ -131,5 +131,250 @@ mod tests {
         json_dump(&my_session, "test_session.json", true).unwrap();
         let from_file: Session = json_load("test_session.json").unwrap();
         assert!(!from_file.objects.points.is_empty());
+    }
+
+    #[test]
+    fn test_session_ray_cast_sanity() {
+        let mut scene = Session::new("ray_test_rs");
+
+        let pt1 = Point::new(5.0, 0.0, 0.0);
+        scene.add_point(pt1.clone());
+        let pt2 = Point::new(15.0, 0.0, 0.0);
+        scene.add_point(pt2.clone());
+        let line1 = Line::from_points(&Point::new(10.0, -2.0, 0.0), &Point::new(10.0, 2.0, 0.0));
+        scene.add_line(line1.clone());
+        let plane1 = Plane::new(
+            Point::new(20.0, 0.0, 0.0),
+            Vector::new(1.0, 0.0, 0.0),
+            Vector::new(0.0, 1.0, 0.0),
+        );
+        scene.add_plane(plane1.clone());
+        let poly = Polyline::new(vec![
+            Point::new(25.0, -1.0, -1.0),
+            Point::new(25.0, 0.0, 0.0),
+            Point::new(25.0, 1.0, 1.0),
+        ]);
+        scene.add_polyline(poly);
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 0.5);
+        println!("Session Ray Casting (rs): {} hit(s)", hits.len());
+        assert!(!hits.is_empty());
+    }
+
+    #[test]
+    fn test_all_geometry_types_ray_cast_subset() {
+        let mut scene = Session::new("all_geom_rs");
+        scene.add_point(Point::new(0.0, 10.0, 0.0));
+        scene.add_line(Line::from_points(
+            &Point::new(-1.0, 20.0, 0.0),
+            &Point::new(1.0, 20.0, 0.0),
+        ));
+        scene.add_plane(Plane::new(
+            Point::new(0.0, 30.0, 0.0),
+            Vector::new(1.0, 0.0, 0.0),
+            Vector::new(0.0, 0.0, 1.0),
+        ));
+        scene.add_bbox(BoundingBox::new(
+            Point::new(0.0, 40.0, 0.0),
+            Vector::new(1.0, 0.0, 0.0),
+            Vector::new(0.0, 1.0, 0.0),
+            Vector::new(0.0, 0.0, 1.0),
+            Vector::new(2.0, 2.0, 2.0),
+        ));
+        scene.add_polyline(Polyline::new(vec![
+            Point::new(-1.0, 70.0, 0.0),
+            Point::new(0.0, 70.0, 0.0),
+            Point::new(1.0, 70.0, 0.0),
+        ]));
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(0.0, 1.0, 0.0);
+
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 1.0);
+        println!(
+            "All Geometry Types (subset) Ray Casting (rs): {} hit(s)",
+            hits.len()
+        );
+        assert!(!hits.is_empty());
+    }
+
+    #[test]
+    fn test_performance_points_vs_pure_bvh_rs() {
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let object_count = 2000;
+        let world_size = 100.0f64;
+
+        let mut scene = Session::new("perf_points_rs");
+        let mut pure_boxes: Vec<BoundingBox> = Vec::with_capacity(object_count);
+
+        for _ in 0..object_count {
+            let x = (rng.gen::<f64>() - 0.5) * world_size;
+            let y = (rng.gen::<f64>() - 0.5) * world_size;
+            let z = (rng.gen::<f64>() - 0.5) * world_size;
+            let pt = Point::new(x, y, z);
+            scene.add_point(pt.clone());
+            pure_boxes.push(BoundingBox::new(
+                pt.clone(),
+                Vector::new(1.0, 0.0, 0.0),
+                Vector::new(0.0, 1.0, 0.0),
+                Vector::new(0.0, 0.0, 1.0),
+                Vector::new(0.5, 0.5, 0.5),
+            ));
+        }
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let t0 = std::time::Instant::now();
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 1.0);
+        let session_ms = t0.elapsed().as_secs_f64() * 1000.0;
+
+        let t2 = std::time::Instant::now();
+        let bvh = BVH::from_boxes(&pure_boxes, world_size);
+        let mut candidates: Vec<usize> = Vec::new();
+        bvh.ray_cast(&ray_origin, &ray_dir, &mut candidates, true);
+        let bvh_ms = t2.elapsed().as_secs_f64() * 1000.0;
+
+        println!("Session (rs): {:.3} ms ({} hits)", session_ms, hits.len());
+        println!(
+            "Pure BVH (rs): {:.3} ms ({} candidates)",
+            bvh_ms,
+            candidates.len()
+        );
+        assert!(session_ms >= 0.0 && bvh_ms >= 0.0);
+    }
+
+    #[test]
+    fn test_ray_cast_mesh_bvh_hit() {
+        let mut scene = Session::new("mesh_bvh_hit");
+        let tri = vec![
+            Point::new(30.0, -1.0, -1.0),
+            Point::new(30.0, 1.0, -1.0),
+            Point::new(30.0, 0.0, 1.0),
+        ];
+        let mesh = Mesh::from_polygons(vec![tri], None);
+        let mesh_guid = mesh.guid.clone();
+        scene.add_mesh(mesh);
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 1e-3);
+        assert!(!hits.is_empty());
+        assert!(hits.iter().any(|h| h.guid == mesh_guid));
+    }
+
+    #[test]
+    fn test_ray_cast_cache_invalidation_remove() {
+        let mut scene = Session::new("cache_invalidate_remove");
+        let line = Line::from_points(&Point::new(10.0, -2.0, 0.0), &Point::new(10.0, 2.0, 0.0));
+        let guid = line.guid.clone();
+        scene.add_line(line);
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let hits_before = scene.ray_cast(&ray_origin, &ray_dir, 1e-3);
+        assert!(!hits_before.is_empty());
+
+        scene.remove_object(&guid);
+
+        let hits_after = scene.ray_cast(&ray_origin, &ray_dir, 1e-3);
+        assert!(hits_after.is_empty());
+    }
+
+    #[test]
+    fn test_ray_cast_closest_multi_same_distance() {
+        let mut scene = Session::new("closest_multi");
+
+        let line = Line::from_points(&Point::new(10.0, -2.0, 0.0), &Point::new(10.0, 2.0, 0.0));
+        let line_guid = line.guid.clone();
+        scene.add_line(line);
+
+        let plane = Plane::new(
+            Point::new(10.0, 0.0, 0.0),
+            Vector::new(0.0, 1.0, 0.0),
+            Vector::new(0.0, 0.0, 1.0),
+        );
+        let plane_guid = plane.guid.clone();
+        scene.add_plane(plane);
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 1e-3);
+        let guids: Vec<String> = hits.iter().map(|h| h.guid.clone()).collect();
+        assert!(guids.contains(&line_guid));
+        assert!(guids.contains(&plane_guid));
+    }
+
+    #[test]
+    fn test_point_tolerance_hit() {
+        let mut scene = Session::new("point_tol");
+        let p = Point::new(5.0, 5e-4, 0.0);
+        scene.add_point(p);
+
+        let ray_origin = Point::new(0.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        let hits = scene.ray_cast(&ray_origin, &ray_dir, 1e-3);
+        assert_eq!(hits.len(), 1);
+        assert!(hits[0].distance > 4.9 && hits[0].distance < 5.1);
+    }
+
+    #[test]
+    fn test_ray_cast_cached_vs_uncached_repeated() {
+        use rand::prelude::*;
+        let mut rng = StdRng::seed_from_u64(123);
+
+        let object_count = 3000usize;
+        let world_size = 200.0f64;
+        let repeats = 50usize;
+
+        let mut scene = Session::new("ray_cache_bench");
+        // Add random points and some lines to populate BVH
+        for _ in 0..object_count {
+            let x = (rng.gen::<f64>() - 0.5) * world_size;
+            let y = (rng.gen::<f64>() - 0.5) * world_size;
+            let z = (rng.gen::<f64>() - 0.5) * world_size;
+            scene.add_point(Point::new(x, y, z));
+        }
+        for i in 0..100 {
+            let x = -50.0 + i as f64 * 1.0;
+            scene.add_line(Line::from_points(
+                &Point::new(x, -10.0, 0.0),
+                &Point::new(x, 10.0, 0.0),
+            ));
+        }
+
+        let ray_origin = Point::new(-100.0, 0.0, 0.0);
+        let ray_dir = Vector::new(1.0, 0.0, 0.0);
+
+        // First call (uncached or cache rebuild)
+        let t0 = std::time::Instant::now();
+        let hits0 = scene.ray_cast(&ray_origin, &ray_dir, 1.0);
+        let t_first = t0.elapsed().as_secs_f64() * 1000.0;
+
+        // Repeated cached calls
+        let t1 = std::time::Instant::now();
+        let mut total_hits = 0usize;
+        for _ in 0..repeats {
+            let hits = scene.ray_cast(&ray_origin, &ray_dir, 1.0);
+            total_hits += hits.len();
+        }
+        let t_cached = t1.elapsed().as_secs_f64() * 1000.0;
+        let avg_cached = t_cached / repeats as f64;
+
+        println!(
+            "Ray cast cache bench: first={:.3} ms, cached_avg={:.3} ms (hits0={}, total_cached_hits={})",
+            t_first, avg_cached, hits0.len(), total_hits
+        );
+
+        assert!(t_first >= 0.0 && avg_cached >= 0.0);
     }
 }

@@ -79,8 +79,170 @@ class BoundingBox:
         return cls.from_points(points, inflate)
 
     @classmethod
-    def from_polyline(cls, polyline, inflate: float = 0.0):
+    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):
+        """Create bounding box from polyline.
+
+        Parameters
+        ----------
+        polyline : Polyline
+            The polyline to bound.
+        inflate : float, optional
+            Amount to inflate the bounding box (default 0.0).
+        plane : Plane, optional
+            If provided, creates an OOBB aligned to the plane.
+
+        Returns
+        -------
+        BoundingBox
+            Axis-aligned or oriented bounding box containing the polyline.
+        """
+        if plane is not None:
+            return cls.from_points(polyline.points, plane, inflate)
         return cls.from_points(polyline.points, inflate)
+
+    @classmethod
+    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):
+        """Create bounding box from mesh.
+
+        Parameters
+        ----------
+        mesh : Mesh
+            The mesh to bound.
+        inflate : float, optional
+            Amount to inflate the bounding box (default 0.0).
+        plane : Plane, optional
+            If provided, creates an OOBB aligned to the plane.
+
+        Returns
+        -------
+        BoundingBox
+            Axis-aligned or oriented bounding box containing the mesh.
+        """
+        vertices, faces = mesh.to_vertices_and_faces()
+        if plane is not None:
+            return cls.from_points(vertices, plane, inflate)
+        return cls.from_points(vertices, inflate)
+
+    @classmethod
+    def from_cylinder(cls, cylinder, inflate: float = 0.0, plane=None):
+        """Create bounding box from cylinder.
+
+        Parameters
+        ----------
+        cylinder : Cylinder
+            The cylinder to bound.
+        inflate : float, optional
+            Amount to inflate the bounding box (default 0.0).
+        plane : Plane, optional
+            If provided, creates an OOBB aligned to the plane.
+
+        Returns
+        -------
+        BoundingBox
+            Axis-aligned or oriented bounding box containing the cylinder.
+        """
+        ln = cylinder.line
+        p0 = ln.start()
+        p1 = ln.end()
+        c = Point((p0.x + p1.x) * 0.5, (p0.y + p1.y) * 0.5, (p0.z + p1.z) * 0.5)
+        axis = ln.to_vector()
+        L = ln.length()
+
+        if plane is not None:
+            # OOBB aligned to plane
+            direction = axis
+            if L > 0.0:
+                direction = direction.normalize()
+            r = cylinder.radius
+            Ux = plane.x_axis  # Already a Vector
+            Uy = plane.y_axis  # Already a Vector
+            Uz = plane.z_axis  # Already a Vector
+
+            def proj_half(U):
+                d = abs(direction.dot(U))
+                radial = r * (max(0.0, 1.0 - d * d) ** 0.5)
+                return (L * 0.5) * d + radial + inflate
+
+            half = Vector(proj_half(Ux), proj_half(Uy), proj_half(Uz))
+            return cls(c, Ux, Uy, Uz, half)
+        else:
+            # AABB - cylinder-aligned box
+            if L <= 0.0:
+                axis = Vector(1.0, 0.0, 0.0)
+            else:
+                axis = axis.normalize()
+
+            ux = axis
+            # Create perpendicular axes
+            if abs(ux.z) < 0.9:
+                uy = Vector(0.0, 0.0, 1.0).cross(ux).normalize()
+            else:
+                uy = Vector(1.0, 0.0, 0.0).cross(ux).normalize()
+            uz = ux.cross(uy).normalize()
+
+            r = cylinder.radius
+            half = Vector((L * 0.5) + inflate, r + inflate, r + inflate)
+            return cls(c, ux, uy, uz, half)
+
+    @classmethod
+    def from_arrow(cls, arrow, inflate: float = 0.0, plane=None):
+        """Create bounding box from arrow.
+
+        Parameters
+        ----------
+        arrow : Arrow
+            The arrow to bound.
+        inflate : float, optional
+            Amount to inflate the bounding box (default 0.0).
+        plane : Plane, optional
+            If provided, creates an OOBB aligned to the plane.
+
+        Returns
+        -------
+        BoundingBox
+            Axis-aligned or oriented bounding box containing the arrow.
+        """
+        ln = arrow.line
+        p0 = ln.start()
+        p1 = ln.end()
+        c = Point((p0.x + p1.x) * 0.5, (p0.y + p1.y) * 0.5, (p0.z + p1.z) * 0.5)
+        axis = ln.to_vector()
+        L = ln.length()
+        r_eff = arrow.radius * 1.5  # Account for arrow head
+
+        if plane is not None:
+            # OOBB aligned to plane
+            direction = axis
+            if L > 0.0:
+                direction = direction.normalize()
+            Ux = plane.x_axis
+            Uy = plane.y_axis
+            Uz = plane.z_axis
+
+            def proj_half(U):
+                d = abs(direction.dot(U))
+                radial = r_eff * (max(0.0, 1.0 - d * d) ** 0.5)
+                return (L * 0.5) * d + radial + inflate
+
+            half = Vector(proj_half(Ux), proj_half(Uy), proj_half(Uz))
+            return cls(c, Ux, Uy, Uz, half)
+        else:
+            # AABB - arrow-aligned box
+            if L <= 0.0:
+                axis = Vector(1.0, 0.0, 0.0)
+            else:
+                axis = axis.normalize()
+
+            ux = axis
+            # Create perpendicular axes
+            if abs(ux.z) < 0.9:
+                uy = Vector(0.0, 0.0, 1.0).cross(ux).normalize()
+            else:
+                uy = Vector(1.0, 0.0, 0.0).cross(ux).normalize()
+            uz = ux.cross(uy).normalize()
+
+            half = Vector((L * 0.5) + inflate, r_eff + inflate, r_eff + inflate)
+            return cls(c, ux, uy, uz, half)
 
     def point_at(self, x: float, y: float, z: float) -> Point:
         return Point(

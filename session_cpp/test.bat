@@ -36,10 +36,15 @@ if not defined TEST_EXE (
     exit /b 1
 )
 
-:: Run all tests
-echo Running all tests...
+:: List all test cases first
+echo Listing all tests...
+"%TEST_EXE%" --list-tests
+
+:: Run all tests in verbose mode with prints
 echo.
-"%TEST_EXE%" --reporter compact
+echo Running all tests (verbose)...
+echo.
+"%TEST_EXE%" -r compact -s -d yes
 
 :: Check test results
 if !errorlevel! equ 0 (

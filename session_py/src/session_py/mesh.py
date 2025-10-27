@@ -720,8 +720,12 @@ class Mesh:
         """
         from .xform import Xform
 
-        for v in self.vertices:
-            self.xform.transform_point(v)
+        for vdata in self.vertex.values():
+            pos = vdata.position()
+            self.xform.transform_point(pos)
+            vdata.x = pos.x
+            vdata.y = pos.y
+            vdata.z = pos.z
         self.xform = Xform.identity()
 
     def transformed(self):

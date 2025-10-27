@@ -1,11 +1,11 @@
 {
   "type": "Polyline",
-  "guid": "3a8fb07e-815c-4d05-ae3b-99463c5876a0",
+  "guid": "fed8be37-9ee8-4c08-b365-c51bd4ed660f",
   "name": "my_polyline",
   "points": [
     {
       "type": "Point",
-      "guid": "877687bb-2631-49c8-9f78-312ec19144ac",
+      "guid": "7fc0a7d0-8853-4bdc-8030-1030a7aca4c8",
       "name": "my_point",
       "x": 1.0,
       "y": 2.0,
@@ -13,7 +13,7 @@
       "width": 1.0,
       "pointcolor": {
         "type": "Color",
-        "guid": "0d444921-89d6-4e86-9639-823b07d1722b",
+        "guid": "a2575b7a-3a41-4606-b779-8f4640db99be",
         "name": "white",
         "r": 255,
         "g": 255,
@@ -22,7 +22,7 @@
       },
       "xform": {
         "type": "Xform",
-        "guid": "0e5297b5-1be8-4120-9cf5-0bea698099d7",
+        "guid": "f2137ef8-f169-45f2-81af-be5032e933aa",
         "name": "my_xform",
         "m": [
           1.0,
@@ -46,7 +46,7 @@
     },
     {
       "type": "Point",
-      "guid": "d2d21d6f-a784-4fdd-a771-878f42e23d8f",
+      "guid": "1bf755c5-d781-42e9-8380-8c87238a957c",
       "name": "my_point",
       "x": 4.0,
       "y": 5.0,
@@ -54,7 +54,7 @@
       "width": 1.0,
       "pointcolor": {
         "type": "Color",
-        "guid": "a737ce8c-bc83-4081-bd32-82269d3d25cd",
+        "guid": "558ac1c1-9f12-40cc-96b5-f502c3871cbc",
         "name": "white",
         "r": 255,
         "g": 255,
@@ -63,7 +63,7 @@
       },
       "xform": {
         "type": "Xform",
-        "guid": "9dc685bb-5ea4-44cd-8b1d-9b6e16f2e78f",
+        "guid": "1ca7436c-c2a5-4fe8-a75c-e1862cc6eedb",
         "name": "my_xform",
         "m": [
           1.0,
@@ -87,7 +87,7 @@
     },
     {
       "type": "Point",
-      "guid": "f6301d82-8f72-42b2-b7ab-0158bbb8c3e4",
+      "guid": "0233a784-6d4c-4d38-9e9f-02a5a5f588d4",
       "name": "my_point",
       "x": 7.0,
       "y": 8.0,
@@ -95,7 +95,7 @@
       "width": 1.0,
       "pointcolor": {
         "type": "Color",
-        "guid": "a30e9fcf-5842-45ba-b748-2579f2a573c4",
+        "guid": "4d3cf53e-0926-4649-a9d3-5f2e3fb843d1",
         "name": "white",
         "r": 255,
         "g": 255,
@@ -104,7 +104,7 @@
       },
       "xform": {
         "type": "Xform",
-        "guid": "a97ba47f-17b3-4eb8-82fb-a941d12a9f4f",
+        "guid": "b5f92ce8-7075-4605-ba57-495f83e5f079",
         "name": "my_xform",
         "m": [
           1.0,
@@ -129,11 +129,11 @@
   ],
   "plane": {
     "type": "Plane",
-    "guid": "d3306fb9-639f-4b18-974a-449360413247",
+    "guid": "5e71557a-52fb-45ed-8aff-f9005be162a9",
     "name": "my_plane",
     "origin": {
       "type": "Point",
-      "guid": "877687bb-2631-49c8-9f78-312ec19144ac",
+      "guid": "7fc0a7d0-8853-4bdc-8030-1030a7aca4c8",
       "name": "my_point",
       "x": 1.0,
       "y": 2.0,
@@ -141,7 +141,7 @@
       "width": 1.0,
       "pointcolor": {
         "type": "Color",
-        "guid": "0d444921-89d6-4e86-9639-823b07d1722b",
+        "guid": "a2575b7a-3a41-4606-b779-8f4640db99be",
         "name": "white",
         "r": 255,
         "g": 255,
@@ -150,7 +150,7 @@
       },
       "xform": {
         "type": "Xform",
-        "guid": "0e5297b5-1be8-4120-9cf5-0bea698099d7",
+        "guid": "f2137ef8-f169-45f2-81af-be5032e933aa",
         "name": "my_xform",
         "m": [
           1.0,
@@ -174,7 +174,7 @@
     },
     "x_axis": {
       "type": "Vector",
-      "guid": "63d02196-52fa-4aa9-83d8-6d45fcc8df83",
+      "guid": "8a8899d5-b75d-44ba-beab-b44786944f0e",
       "name": "my_vector",
       "x": -0.0,
       "y": 0.0,
@@ -182,7 +182,7 @@
     },
     "y_axis": {
       "type": "Vector",
-      "guid": "f928c6f3-89ff-4e2d-9e3e-88792ffb05fa",
+      "guid": "ae53c7ad-143e-4934-85c6-e720c7b66d3d",
       "name": "my_vector",
       "x": 0.0,
       "y": -0.0,
@@ -190,7 +190,7 @@
     },
     "z_axis": {
       "type": "Vector",
-      "guid": "4b3f7b21-0b67-4688-834b-513973db6741",
+      "guid": "aec2f444-896d-45ad-9fe5-788146f2a391",
       "name": "my_vector",
       "x": 0.0,
       "y": 0.0,
@@ -202,7 +202,7 @@
     "d": -0.0,
     "xform": {
       "type": "Xform",
-      "guid": "6e4e6bf8-27f4-4ac4-a88a-5089704a4d62",
+      "guid": "acf2d02b-8df7-41e0-818c-5c6de64b075d",
       "name": "my_xform",
       "m": [
         1.0,
@@ -227,7 +227,7 @@
   "width": 1.0,
   "linecolor": {
     "type": "Color",
-    "guid": "634587f3-4b57-44b3-a63a-b9ea99c09c1d",
+    "guid": "818e4c53-923e-4b81-a028-591d8629f023",
     "name": "white",
     "r": 255,
     "g": 255,
@@ -236,7 +236,7 @@
   },
   "xform": {
     "type": "Xform",
-    "guid": "560a7720-a089-43b7-8aa4-de2056da7b02",
+    "guid": "45c73583-c0ea-4fc0-a405-d97f854757de",
     "name": "my_xform",
     "m": [
       1.0,
