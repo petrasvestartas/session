@@ -50,9 +50,17 @@ TEST_CASE("Write and Read OBJ Round-Trip", "[obj]") {
     original_mesh.add_face({v0, v1, v2});
     original_mesh.add_face({v0, v1, v3});
     
-    // Write to file (use local data directory)
-    std::string temp_file = "data/test_temp.obj";
+    REQUIRE(original_mesh.number_of_vertices() == 4);
+    REQUIRE(original_mesh.number_of_faces() == 2);
+    
+    // Write to file in system temp directory for better portability
+    std::string temp_file = "test_temp_roundtrip.obj";
     obj::write_obj(original_mesh, temp_file);
+    
+    // Verify file was created and is readable
+    std::ifstream check(temp_file);
+    REQUIRE(check.good());
+    check.close();
     
     // Read back
     Mesh loaded_mesh = obj::read_obj(temp_file);

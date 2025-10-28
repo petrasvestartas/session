@@ -13,6 +13,10 @@ void write_obj(const Mesh& mesh, const std::string& filepath) {
     const auto& faces = vf.second;
 
     std::ofstream out(filepath);
+    if (!out.is_open()) {
+        return; // Failed to open file
+    }
+    
     for (const auto& p : vertices) {
         out << "v " << p.x() << " " << p.y() << " " << p.z() << "\n";
     }
@@ -24,6 +28,8 @@ void write_obj(const Mesh& mesh, const std::string& filepath) {
         }
         out << "\n";
     }
+    
+    out.close(); // Explicitly close and flush
 }
 
 Mesh read_obj(const std::string& filepath) {
