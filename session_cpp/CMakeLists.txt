@@ -169,15 +169,30 @@ function(LINK_PROTOBUF_LIBRARIES target_name)
     # Find all Abseil libraries automatically
     file(GLOB ABSEIL_LIBS "$ENV{INSTALL}/abseil/lib/libabsl_*.a")
     
-    target_link_libraries(${target_name} PRIVATE
-        $<TARGET_OBJECTS:proto-objects>
-        $ENV{INSTALL}/protobuf/lib/libprotobuf.a
-        $ENV{INSTALL}/protobuf/lib/libutf8_range.a
-        $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
-        ${ABSEIL_LIBS}  # All Abseil libraries found in lib directory
-        pthread
-        dl
-    )
+    # On macOS, we need to link Abseil libraries multiple times to resolve circular dependencies
+    if(APPLE)
+        target_link_libraries(${target_name} PRIVATE
+            $<TARGET_OBJECTS:proto-objects>
+            $ENV{INSTALL}/protobuf/lib/libprotobuf.a
+            $ENV{INSTALL}/protobuf/lib/libutf8_range.a
+            $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
+            ${ABSEIL_LIBS}  # First pass
+            ${ABSEIL_LIBS}  # Second pass to resolve circular deps
+            pthread
+        )
+    else()
+        target_link_libraries(${target_name} PRIVATE
+            $<TARGET_OBJECTS:proto-objects>
+            $ENV{INSTALL}/protobuf/lib/libprotobuf.a
+            $ENV{INSTALL}/protobuf/lib/libutf8_range.a
+            $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
+            -Wl,--start-group
+            ${ABSEIL_LIBS}
+            -Wl,--end-group
+            pthread
+            dl
+        )
+    endif()
 endfunction()
 
     # Register proto files (add your .proto files here)
