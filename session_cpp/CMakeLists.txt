@@ -80,6 +80,8 @@ if(ENABLE_PROTOBUF)
         -DABSL_PROPAGATE_CXX_STD=ON
         -DCMAKE_CXX_STANDARD=17
         -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}  # Pass architecture to avoid SSE on ARM
+        -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}  # macOS architecture
 )
 
 # Step 2: Build protobuf with static linking (depends on Abseil)
@@ -101,6 +103,8 @@ ExternalProject_Add(
         -Dprotobuf_ABSL_PROVIDER=package
         -DCMAKE_PREFIX_PATH=$ENV{INSTALL}/abseil
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}  # Pass architecture
+        -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}  # macOS architecture
     BUILD_BYPRODUCTS
         $ENV{INSTALL}/protobuf/lib/libprotobuf.a
         $ENV{INSTALL}/protobuf/bin/protoc
