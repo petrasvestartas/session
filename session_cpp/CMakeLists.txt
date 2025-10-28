@@ -68,10 +68,11 @@ endif()
 
 if(ENABLE_PROTOBUF)
     # Step 1: Build Abseil (required for protobuf v22+)
+    # Using newer version 20240722.0 for better ARM64/Apple Silicon support
     ExternalProject_Add(
     abseil_external
     GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_TAG 20240116.2
+    GIT_TAG 20240722.0
     UPDATE_COMMAND ""  # Don't check for updates after initial clone
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=$ENV{INSTALL}/abseil
@@ -80,8 +81,9 @@ if(ENABLE_PROTOBUF)
         -DABSL_PROPAGATE_CXX_STD=ON
         -DCMAKE_CXX_STANDARD=17
         -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}  # Pass architecture to avoid SSE on ARM
-        -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}  # macOS architecture
+        -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+        -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+        -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
 )
 
 # Step 2: Build protobuf with static linking (depends on Abseil)
