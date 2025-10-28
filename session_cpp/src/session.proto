@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Color message matching Color class
+message Color {
+  int32 r = 1;  // Red component (0-255)
+  int32 g = 2;  // Green component (0-255)
+  int32 b = 3;  // Blue component (0-255)
+  int32 a = 4;  // Alpha component (0-255)
+}
+
+// Xform message matching Xform transformation matrix (4x4)
+message Xform {
+  repeated double matrix = 1;  // 16 values in column-major order
+}
+
+// Point message matching Point class structure
+message Point {
+  string guid = 1;        // Unique identifier
+  string name = 2;        // Point identifier/name
+  double x = 3;           // X coordinate
+  double y = 4;           // Y coordinate
+  double z = 5;           // Z coordinate
+  double width = 6;       // Point diameter in pixels
+  Color pointcolor = 7;   // Color of the point
+  Xform xform = 8;        // Transformation matrix
+}
+
+// Vector message matching Vector class
+message Vector {
+  double x = 1;  // X component
+  double y = 2;  // Y component
+  double z = 3;  // Z component
+}
+
+// Line message for potential future use
+message Line {
+  Point start = 1;  // Start point
+  Point end = 2;    // End point
+}
+
+// Polyline message for potential future use
+message Polyline {
+  repeated Point points = 1;  // List of points
+  string guid = 2;            // Unique identifier
+  string name = 3;            // Polyline name
+}

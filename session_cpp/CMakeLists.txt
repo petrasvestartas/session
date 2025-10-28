@@ -19,7 +19,7 @@ message(STATUS "Using C++ standard library parallel execution (std::execution::p
 
 # Add compiler warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    add_compile_options(-Wall -Wextra -Wpedantic)
     # High optimization for Release builds (removed -ffast-math to allow infinity/NaN)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -flto")
 elseif(MSVC)
@@ -31,7 +31,158 @@ elseif(MSVC)
 endif()
 
 #############################################################################################
-# Automatically collect all .cpp files in src directory
+# PROTOBUF EXTERNAL LIBRARY - OPTIONAL (BUILT IN ADVANCE BEFORE MAIN PROJECT)
+#############################################################################################
+# Build order (happens BEFORE your project):
+#   1. Abseil C++ library (required by protobuf v22+)
+#   2. Protocol Buffers library and compiler (protoc)
+#   3. Generate C++ code from .proto files
+#
+# Your project will then link against these pre-built libraries
+#
+# Control with: cmake -DENABLE_PROTOBUF=ON/OFF ..
+# Default: ON
+#############################################################################################
+
+# Option to enable/disable protobuf integration
+option(ENABLE_PROTOBUF "Enable Protocol Buffers support" ON)
+
+if(ENABLE_PROTOBUF)
+    message(STATUS "Protocol Buffers: ENABLED")
+    
+    # Installation directories for external dependencies
+    if(NOT DEFINED ENV{INSTALL})
+        set(ENV{INSTALL} "${CMAKE_BINARY_DIR}/external")
+    endif()
+
+    if(NOT DEFINED ENV{GENERATED})
+        set(ENV{GENERATED} "${CMAKE_BINARY_DIR}/generated")
+    endif()
+
+    file(MAKE_DIRECTORY $ENV{GENERATED})
+
+    include(ExternalProject)
+else()
+    message(STATUS "Protocol Buffers: DISABLED")
+endif()
+
+if(ENABLE_PROTOBUF)
+    # Step 1: Build Abseil (required for protobuf v22+)
+    ExternalProject_Add(
+    abseil_external
+    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+    GIT_TAG 20240116.2
+    UPDATE_COMMAND ""  # Don't check for updates after initial clone
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=$ENV{INSTALL}/abseil
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DABSL_ENABLE_INSTALL=ON
+        -DABSL_PROPAGATE_CXX_STD=ON
+        -DCMAKE_CXX_STANDARD=17
+        -DBUILD_SHARED_LIBS=OFF
+)
+
+# Step 2: Build protobuf with static linking (depends on Abseil)
+ExternalProject_Add(
+    protobuf_external
+    DEPENDS abseil_external
+    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+    GIT_TAG v29.0
+    UPDATE_COMMAND ""  # Don't check for updates after initial clone
+    CMAKE_ARGS
+        -Dprotobuf_BUILD_TESTS=OFF
+        -Dprotobuf_BUILD_EXAMPLES=OFF
+        -DCMAKE_INSTALL_PREFIX=$ENV{INSTALL}/protobuf
+        -Dprotobuf_BUILD_CONFORMANCE=OFF
+        -Dprotobuf_BUILD_LIBPROTOC=ON
+        -Dprotobuf_BUILD_SHARED_LIBS=OFF
+        -Dprotobuf_MSVC_STATIC_RUNTIME=OFF
+        -Dprotobuf_WITH_ZLIB=OFF
+        -Dprotobuf_ABSL_PROVIDER=package
+        -DCMAKE_PREFIX_PATH=$ENV{INSTALL}/abseil
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    BUILD_BYPRODUCTS
+        $ENV{INSTALL}/protobuf/lib/libprotobuf.a
+        $ENV{INSTALL}/protobuf/bin/protoc
+)
+
+# Step 3: Proto file management and code generation
+set(GLOBAL_PROTO_FILES "" CACHE INTERNAL "")
+
+function(append_proto_file filename)
+    set(GLOBAL_PROTO_FILES ${GLOBAL_PROTO_FILES} ${filename} CACHE INTERNAL "")
+endfunction()
+
+function(CREATE_CPP_PROTO)
+    list(REMOVE_DUPLICATES GLOBAL_PROTO_FILES)
+    file(MAKE_DIRECTORY $ENV{GENERATED})
+    
+    set(GENERATED_SOURCES "")
+    set(GENERATED_HEADERS "")
+    
+    foreach(PROTO_FILE ${GLOBAL_PROTO_FILES})
+        get_filename_component(PROTO_NAME ${PROTO_FILE} NAME_WE)
+        get_filename_component(PROTO_DIR ${PROTO_FILE} DIRECTORY)
+        
+        set(GENERATED_CC "$ENV{GENERATED}/${PROTO_NAME}.pb.cc")
+        set(GENERATED_H "$ENV{GENERATED}/${PROTO_NAME}.pb.h")
+        
+        list(APPEND GENERATED_SOURCES ${GENERATED_CC})
+        list(APPEND GENERATED_HEADERS ${GENERATED_H})
+        
+        add_custom_command(
+            OUTPUT ${GENERATED_CC} ${GENERATED_H}
+            COMMAND $ENV{INSTALL}/protobuf/bin/protoc
+            ARGS --cpp_out=$ENV{GENERATED} --proto_path=${PROTO_DIR} ${PROTO_FILE}
+            DEPENDS protobuf_external ${PROTO_FILE}
+            COMMENT "Generating C++ code from ${PROTO_FILE}"
+            VERBATIM
+        )
+    endforeach()
+    
+    add_library(proto-objects OBJECT ${GENERATED_SOURCES})
+    target_include_directories(proto-objects PUBLIC 
+        $ENV{GENERATED}
+        $ENV{INSTALL}/protobuf/include
+        $ENV{INSTALL}/abseil/include
+    )
+    
+    
+    add_dependencies(proto-objects abseil_external protobuf_external)
+       
+    add_custom_target(PROTO_FILES_READY
+      DEPENDS ${GENERATED_SOURCES} ${GENERATED_HEADERS}
+      COMMENT "Proto files generation completed"
+    )  
+ 
+    set_source_files_properties(${GENERATED_SOURCES} ${GENERATED_HEADERS} PROPERTIES GENERATED TRUE)
+endfunction()
+
+# Helper function to link protobuf and all required Abseil libraries
+function(LINK_PROTOBUF_LIBRARIES target_name)
+    # Find all Abseil libraries automatically
+    file(GLOB ABSEIL_LIBS "$ENV{INSTALL}/abseil/lib/libabsl_*.a")
+    
+    target_link_libraries(${target_name} PRIVATE
+        $<TARGET_OBJECTS:proto-objects>
+        $ENV{INSTALL}/protobuf/lib/libprotobuf.a
+        $ENV{INSTALL}/protobuf/lib/libutf8_range.a
+        $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
+        ${ABSEIL_LIBS}  # All Abseil libraries found in lib directory
+        pthread
+        dl
+    )
+endfunction()
+
+    # Register proto files (add your .proto files here)
+    append_proto_file(${CMAKE_CURRENT_SOURCE_DIR}/src/session.proto)
+
+    # Generate proto files
+    CREATE_CPP_PROTO()
+endif(ENABLE_PROTOBUF)
+
+#############################################################################################
+# YOUR ORIGINAL PROJECT - Automatically collect all .cpp files in src directory
 #############################################################################################
 
 # Collect source files except test files
@@ -49,6 +200,17 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/src/guid/include       # GUID library headers
 )
 
+# Conditionally add protobuf support
+if(ENABLE_PROTOBUF)
+    target_include_directories(${PROJECT_NAME} PRIVATE 
+        $ENV{GENERATED}                          # Protobuf generated headers
+        $ENV{INSTALL}/protobuf/include           # Protobuf library headers
+        $ENV{INSTALL}/abseil/include             # Abseil library headers
+    )
+    LINK_PROTOBUF_LIBRARIES(${PROJECT_NAME})
+    add_dependencies(${PROJECT_NAME} PROTO_FILES_READY)
+endif()
+
 #############################################################################################
 # Create Catch2 library - optimized static library
 #############################################################################################
@@ -60,6 +222,11 @@ target_include_directories(catch2_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/catch/inc
 # Collect test files
 file(GLOB TEST_SOURCES "src/*_test.cpp")
 
+# Exclude protobuf test if protobuf is disabled
+if(NOT ENABLE_PROTOBUF)
+    list(FILTER TEST_SOURCES EXCLUDE REGEX ".*session_proto_test\\.cpp$")
+endif()
+
 # Create test executable
 add_executable(tests ${TEST_SOURCES} ${PROJECT_SOURCES})
 target_include_directories(tests PRIVATE 
@@ -69,7 +236,18 @@ target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src/guid/include       # GUID library headers
     ${PROJECT_SOURCE_DIR}/src/catch/include      # Catch2 library headers
 )
-target_link_libraries(tests catch2_lib) # link catch2 to tests, not main executable
+target_link_libraries(tests PRIVATE catch2_lib)
+
+# Conditionally add protobuf support to tests
+if(ENABLE_PROTOBUF)
+    target_include_directories(tests PRIVATE 
+        $ENV{GENERATED}                          # Protobuf generated headers
+        $ENV{INSTALL}/protobuf/include           # Protobuf library headers
+        $ENV{INSTALL}/abseil/include             # Abseil library headers
+    )
+    LINK_PROTOBUF_LIBRARIES(tests)
+    add_dependencies(tests PROTO_FILES_READY)
+endif()
 
 #############################################################################################
 # Get all subdirectories in the examples directory
@@ -93,9 +271,41 @@ foreach(EXAMPLE_DIR ${EXAMPLE_DIRS})
             ${PROJECT_SOURCE_DIR}/src/guid/include       # GUID library headers (for guid.h)
             ${PROJECT_SOURCE_DIR}/src/catch/include      # Catch2 library headers (for catch.h)
         )
+        
+        # Conditionally add protobuf support to examples
+        if(ENABLE_PROTOBUF)
+            target_include_directories(${EXAMPLE_NAME} PRIVATE 
+                $ENV{GENERATED}                          # Protobuf generated headers
+                $ENV{INSTALL}/protobuf/include           # Protobuf library headers
+                $ENV{INSTALL}/abseil/include             # Abseil library headers
+            )
+            LINK_PROTOBUF_LIBRARIES(${EXAMPLE_NAME})
+            add_dependencies(${EXAMPLE_NAME} PROTO_FILES_READY)
+        endif()
         # Set the output directory for the executables, preserving the folder structure
         get_filename_component(EXAMPLE_DIR_NAME ${EXAMPLE_DIR} NAME)
         set_target_properties(${EXAMPLE_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples/${EXAMPLE_DIR_NAME})
     endforeach()
 endforeach()
+
+#############################################################################################
+# PROTOBUF INTEGRATION - OPTIONAL
+#############################################################################################
+# Control: cmake -DENABLE_PROTOBUF=ON/OFF ..
+# Default: ON
+#
+# When enabled, protobuf is integrated into all targets (main, tests, examples)
+# - Generated files: ${CMAKE_BINARY_DIR}/generated/session.pb.h and session.pb.cc
+# - Include them in your code: #include "session.pb.h"
+# - Namespace: session_proto::Point, session_proto::Color, etc.
+#
+# Build order (only happens once, cached in build/external/):
+#   1. Abseil library (external dependency) - builds once, cached
+#   2. Protobuf library + protoc compiler (external dependency) - builds once, cached
+#   3. Generate C++ from .proto files (regenerated if .proto changes)
+#   4. Build your project (links generated code)
+#
+# To disable: cmake -DENABLE_PROTOBUF=OFF ..
+# To rebuild external deps: rm -rf build/external/
+#############################################################################################

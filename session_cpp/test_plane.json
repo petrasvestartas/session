@@ -1,10 +1,10 @@
 {
   "type": "Plane",
-  "guid": "63a8e0cc-4157-459e-a1cb-3ade6d6816e3",
+  "guid": "cf7b5fdb-5320-41fb-901e-2c0c9b56126e",
   "name": "test_plane",
   "origin": {
     "type": "Point",
-    "guid": "becd499b-8049-4c6b-a6ca-71f3efdeb305",
+    "guid": "261e8267-9949-4f1c-8a97-3b4ece971bc2",
     "name": "my_point",
     "x": 0.0,
     "y": 0.0,
@@ -12,7 +12,7 @@
     "width": 1.0,
     "pointcolor": {
       "type": "Color",
-      "guid": "c52ba778-edac-4ea6-b50f-dde5d87b0385",
+      "guid": "fd99a1aa-ecab-4e71-90a7-95a1d1337f67",
       "name": "white",
       "r": 255,
       "g": 255,
@@ -22,7 +22,7 @@
   },
   "x_axis": {
     "type": "Vector",
-    "guid": "d4f567f3-6359-4664-a000-ff25ad85a417",
+    "guid": "17b9ebfa-7bac-4460-958d-259f98284b94",
     "name": "my_vector",
     "x": 1.0,
     "y": 0.0,
@@ -30,7 +30,7 @@
   },
   "y_axis": {
     "type": "Vector",
-    "guid": "f48e1ef9-45b2-447d-89b0-fd9a84da8771",
+    "guid": "b94153cb-9eab-4df8-b154-969c8100688e",
     "name": "my_vector",
     "x": 0.0,
     "y": 1.0,
@@ -38,7 +38,7 @@
   },
   "z_axis": {
     "type": "Vector",
-    "guid": "b6c477bd-23a2-4e88-90a6-b1c3be026339",
+    "guid": "104251df-28ec-497c-b063-3d16dc2eb4c7",
     "name": "my_vector",
     "x": 0.0,
     "y": 0.0,
