@@ -233,7 +233,7 @@ int Vector::is_parallel_to(const Vector &other) {
   
   if (ll > 0.0) {
     const double cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;
-    const double angle_in_radians = static_cast<double>(session_cpp::Tolerance::ANGLE_TOLERANCE_DEGREES) * static_cast<double>(session_cpp::TO_RADIANS);
+    const double angle_in_radians = static_cast<double>(Tolerance::ANGLE_TOLERANCE_DEGREES) * static_cast<double>(Tolerance::TO_RADIANS);
     const double cos_tol = std::cos(angle_in_radians);
     if (cos_angle >= cos_tol)
       result = 1;  // Parallel
@@ -280,7 +280,7 @@ double Vector::angle(const Vector &other, bool sign_by_cross_product, bool degre
     if (cp._z < 0)
       ang = -ang;
   }
-  double to_degrees = degrees ? static_cast<double>(session_cpp::TO_DEGREES) : 1.0;
+  double to_degrees = degrees ? static_cast<double>(Tolerance::TO_DEGREES) : 1.0;
   return ang * to_degrees;
 }
 
@@ -297,23 +297,23 @@ Vector Vector::get_leveled_vector(double &vertical_height) {
 }
 
 double Vector::cosine_law(double &a, double &b, double &ang_between, bool degrees) {
-  double to_rad = degrees ? static_cast<double>(session_cpp::TO_RADIANS) : 1.0;
+  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;
   return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));
 }
 
 double Vector::sine_law_angle(double &a, double &A, double &b, bool degrees) {
-  double to_rad = degrees ? static_cast<double>(session_cpp::TO_RADIANS) : 1.0;
-  double to_deg = degrees ? static_cast<double>(session_cpp::TO_DEGREES) : 1.0;
+  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;
+  double to_deg = degrees ? static_cast<double>(Tolerance::TO_DEGREES) : 1.0;
   return std::asin((b * std::sin(A * to_rad)) / a) * to_deg;
 }
 
 double Vector::sine_law_length(double &a, double &A, double &B, bool degrees) {
-  double to_rad = degrees ? static_cast<double>(session_cpp::TO_RADIANS) : 1.0;
+  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;
   return (a * std::sin(B * to_rad)) / std::sin(A * to_rad);
 }
 
 double Vector::angle_between_vector_xy_components(Vector &vector) {
-  return std::atan2(vector[1], vector[0]) * static_cast<double>(session_cpp::TO_DEGREES);
+  return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);
 }
 
 Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {
@@ -347,9 +347,9 @@ std::array<double, 3> Vector::coordinate_direction_3angles(bool degrees) {
   double gamma = std::acos(z_proportion);
   
   if (degrees) {
-    alpha = alpha * static_cast<double>(session_cpp::TO_DEGREES);
-    beta = beta * static_cast<double>(session_cpp::TO_DEGREES);
-    gamma = gamma * static_cast<double>(session_cpp::TO_DEGREES);
+    alpha = alpha * static_cast<double>(Tolerance::TO_DEGREES);
+    beta = beta * static_cast<double>(Tolerance::TO_DEGREES);
+    gamma = gamma * static_cast<double>(Tolerance::TO_DEGREES);
   }
   
   return {alpha, beta, gamma};
@@ -370,8 +370,8 @@ std::array<double, 2> Vector::coordinate_direction_2angles(bool degrees) {
   double theta = std::atan2(y_coord, x_coord);
   
   if (degrees) {
-    phi = phi * static_cast<double>(session_cpp::TO_DEGREES);
-    theta = theta * static_cast<double>(session_cpp::TO_DEGREES);
+    phi = phi * static_cast<double>(Tolerance::TO_DEGREES);
+    theta = theta * static_cast<double>(Tolerance::TO_DEGREES);
   }
   
   return {phi, theta};

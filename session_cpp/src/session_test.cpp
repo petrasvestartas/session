@@ -175,9 +175,9 @@ TEST_CASE("Session tree transformation hierarchy.") {
   
   Xform xy_to_top = Xform::plane_to_plane(xy_origin, xy_x, xy_y, xy_z,
                                            box1_top, x, y, normal);
-  box1->xform = Xform::rotation_z(M_PI / 1.5) * xy_to_top;
+  box1->xform = Xform::rotation_z(Tolerance::PI / 1.5) * xy_to_top;
   
-  box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(M_PI / 6.0);
+  box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(Tolerance::PI / 6.0);
   box3->xform = Xform::translation(2.0, 0, 0);
   
   // Extract transformed geometry

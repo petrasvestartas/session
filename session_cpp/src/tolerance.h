@@ -6,11 +6,6 @@
 
 namespace session_cpp {
 
-// Mathematical constants
-constexpr double PI = 3.14159265358979323846;
-constexpr double TO_DEGREES = 180.0 / PI;
-constexpr double TO_RADIANS = PI / 180.0;
-
 // Scale factor
 constexpr double SCALE = 1e6;
 
@@ -20,6 +15,11 @@ constexpr double SCALE = 1e6;
  */
 class Tolerance {
 public:
+    // Mathematical constants (moved from namespace level for MSVC compatibility)
+    static constexpr double PI = 3.14159265358979323846;
+    static constexpr double TO_DEGREES = 180.0 / PI;
+    static constexpr double TO_RADIANS = PI / 180.0;
+    
     // Default tolerance values (double precision)
     static constexpr double ABSOLUTE = 1e-9;
     static constexpr double RELATIVE = 1e-6;
