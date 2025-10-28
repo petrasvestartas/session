@@ -405,7 +405,7 @@ TEST_CASE("Comprehensive 10k Mixed Geometry", "[perf][integration][oobb]") {
     const auto& [i, j] = oobb_candidates[idx];
     if (oobb_boxes[i].collides_with(oobb_boxes[j])) true_oobb_collisions++;
     if (idx > 0 && idx % report_interval == 0) {
-      int progress = (idx * 100) / oobb_candidates.size();
+      int progress = static_cast<int>((idx * 100) / oobb_candidates.size());
       std::cout << "    Progress: " << progress << "% (" << idx << "/" << oobb_candidates.size() << ")\n";
     }
   }

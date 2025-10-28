@@ -27,9 +27,18 @@ jobs:
 
     - name: Run tests
       working-directory: ./session_cpp
+      shell: bash
       run: |
-        cd build
-        ctest --output-on-failure
+        if [ -f "build/tests" ]; then
+          ./build/tests -r compact -s -d yes
+        elif [ -f "build/Release/tests.exe" ]; then
+          ./build/Release/tests.exe -r compact -s -d yes
+        elif [ -f "build/Debug/tests.exe" ]; then
+          ./build/Debug/tests.exe -r compact -s -d yes
+        else
+          echo "Tests executable not found!"
+          exit 1
+        fi
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4

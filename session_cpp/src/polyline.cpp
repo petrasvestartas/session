@@ -205,7 +205,7 @@ void Polyline::shift(int times) {
     if (!points.empty() && times != 0) {
         size_t n = points.size();
         times = times % static_cast<int>(n);
-        if (times < 0) times += n;
+        if (times < 0) times += static_cast<int>(n);
         
         std::rotate(points.begin(), points.begin() + times, points.end());
     }
@@ -443,10 +443,10 @@ void Polyline::get_average_plane(Point& origin, Vector& x_axis, Vector& y_axis, 
     y_axis.normalize_self();
 }
 
-void Polyline::get_fast_plane(Point& origin, Plane& plane) const {
+void Polyline::get_fast_plane(Point& origin, Plane& pln) const {
     if (points.empty()) {
         origin = Point(0, 0, 0);
-        plane = Plane();
+        pln = Plane();
         return;
     }
 
@@ -456,7 +456,7 @@ void Polyline::get_fast_plane(Point& origin, Plane& plane) const {
     average_normal(normal);
     
     // Create plane from point and normal
-    plane = Plane::from_point_normal(origin, normal);
+    pln = Plane::from_point_normal(origin, normal);
 }
 
 void Polyline::get_middle_line(const Point& line0_start, const Point& line0_end,
@@ -558,8 +558,8 @@ void Polyline::move(const Vector& direction) {
     }
 }
 
-bool Polyline::is_clockwise(const Plane& plane) const {
-    (void)plane;  // Reserved for future use - may project to plane
+bool Polyline::is_clockwise(const Plane& pln) const {
+    (void)pln;  // Reserved for future use - may project to plane
     if (points.size() < 3) return false;
 
     // Create a copy for transformation

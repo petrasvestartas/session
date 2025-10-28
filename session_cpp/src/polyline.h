@@ -157,7 +157,7 @@ public:
     void get_average_plane(Point& origin, Vector& x_axis, Vector& y_axis, Vector& z_axis) const;
 
     /// Get fast plane calculation from polyline
-    void get_fast_plane(Point& origin, Plane& plane) const;
+    void get_fast_plane(Point& origin, Plane& pln) const;
 
     /// Calculate middle line between two line segments
     static void get_middle_line(const Point& line0_start, const Point& line0_end,
@@ -186,7 +186,7 @@ public:
     void move(const Vector& direction);
 
     /// Check if polyline is clockwise oriented
-    bool is_clockwise(const Plane& plane) const;
+    bool is_clockwise(const Plane& pln) const;
 
     /// Flip polyline direction (reverse point order)
     void flip();

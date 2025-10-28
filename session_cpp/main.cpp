@@ -108,12 +108,12 @@ int main() {
     }
 
     // 8. ray_triangle
-    Point p1(214, 567, 484);
-    Point p2(214, 192, 796);
-    Point p3(694, 192, 484);
+    Point tri_p1(214, 567, 484);
+    Point tri_p2(214, 192, 796);
+    Point tri_p3(694, 192, 484);
 
     Point triangle_hit;
-    if (Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit)) {
+    if (Intersection::ray_triangle(l0, tri_p1, tri_p2, tri_p3, Tolerance::APPROXIMATION, triangle_hit)) {
         std::cout << "8. ray_triangle: " << triangle_hit << "\n";
     }
 
@@ -386,7 +386,7 @@ int main() {
                 true_oobb_collisions++;
             }
             if (idx > 0 && idx % report_interval == 0) {
-                int progress = (idx * 100) / oobb_candidates.size();
+                int progress = static_cast<int>((idx * 100) / oobb_candidates.size());
                 std::cout << "    Progress: " << progress << "% (" << idx << "/" << oobb_candidates.size() << ")\n";
             }
         }

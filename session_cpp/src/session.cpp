@@ -144,8 +144,8 @@ void Session::add_edge(const std::string &guid1, const std::string &guid2,
   graph.add_edge(guid1, guid2, attribute);
 }
 
-bool Session::remove_object(const std::string &guid) {
-  auto it = lookup.find(guid);
+bool Session::remove_object(const std::string &obj_guid) {
+  auto it = lookup.find(obj_guid);
   if (it == lookup.end()) {
     return false;
   }
@@ -171,14 +171,14 @@ bool Session::remove_object(const std::string &guid) {
   lookup.erase(it);
 
   // Remove from tree
-  auto tree_node = tree.find_node_by_guid(guid);
+  auto tree_node = tree.find_node_by_guid(obj_guid);
   if (tree_node) {
     tree.remove(tree_node);
   }
 
   // Remove from graph
-  if (graph.has_node(guid)) {
-    graph.remove_node(guid);
+  if (graph.has_node(obj_guid)) {
+    graph.remove_node(obj_guid);
   }
 
   return true;
@@ -191,8 +191,8 @@ bool Session::add_hierarchy(const std::string &parent_guid,
   return tree.add_child_by_guid(parent_guid, child_guid);
 }
 
-std::vector<std::string> Session::get_children(const std::string &guid) const {
-  return tree.get_children_guids(guid);
+std::vector<std::string> Session::get_children(const std::string &obj_guid) const {
+  return tree.get_children_guids(obj_guid);
 }
 
 // Graph Operations
@@ -203,8 +203,8 @@ void Session::add_relationship(const std::string &from_guid,
   graph.add_edge(from_guid, to_guid, relationship_type);
 }
 
-std::vector<std::string> Session::get_neighbours(const std::string &guid) {
-  return graph.neighbors(guid);
+std::vector<std::string> Session::get_neighbours(const std::string &obj_guid) {
+  return graph.neighbors(obj_guid);
 }
 
 // BVH Collision Detection
@@ -292,10 +292,10 @@ std::vector<std::pair<std::string, std::string>> Session::get_collisions() {
   boxes.reserve(lookup.size());
   guids.reserve(lookup.size());
   
-  for (const auto& [guid, geometry] : lookup) {
+  for (const auto& [g, geometry] : lookup) {
     BoundingBox bbox = compute_bounding_box(geometry);
     boxes.push_back(bbox);
-    guids.push_back(guid);
+    guids.push_back(g);
   }
   
   if (boxes.empty()) {
@@ -476,10 +476,10 @@ Session Session::jsonload(const nlohmann::json &data) {
 
 // Ray Intersection
 
-void Session::cache_geometry_aabb(const std::string& guid, const Geometry& geometry) {
+void Session::cache_geometry_aabb(const std::string& obj_guid, const Geometry& geometry) {
   // Compute and cache bounding box incrementally
   cached_boxes.push_back(compute_bounding_box(geometry));
-  cached_guids.push_back(guid);
+  cached_guids.push_back(obj_guid);
   bvh_cache_dirty = true;  // Mark BVH as needing rebuild
 }
 
@@ -495,9 +495,9 @@ void Session::rebuild_ray_bvh_cache() {
     cached_guids.reserve(lookup.size());
     
     // Compute and cache all bounding boxes
-    for (const auto& [guid, geometry] : lookup) {
+    for (const auto& [g, geometry] : lookup) {
       cached_boxes.push_back(compute_bounding_box(geometry));
-      cached_guids.push_back(guid);
+      cached_guids.push_back(g);
     }
   }
   
@@ -529,8 +529,8 @@ std::vector<Session::RayHit> Session::ray_cast(const Point& origin, const Vector
   double closest_dist = std::numeric_limits<double>::infinity();
   
   for (int idx : candidate_ids) {
-    const std::string& guid = cached_guids[idx];
-    const Geometry& geom = lookup[guid];
+    const std::string& obj_guid = cached_guids[idx];
+    const Geometry& geom = lookup[obj_guid];
     
     std::optional<Point> hit = ray_intersect_geometry(ray, geom, tolerance);
     if (hit) {

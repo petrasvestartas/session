@@ -58,9 +58,9 @@ public:
     static BVH from_boxes(const std::vector<BoundingBox>& bounding_boxes, double world_size);
     
     // Fast build accepting continuous array of boxes (no copies)
-    void build_from_boxes(const BoundingBox* boxes, size_t count, double world_size);
+    void build_from_boxes(const BoundingBox* boxes, size_t count, double ws);
     // Fast build accepting continuous array of lightweight AABBs (no BoundingBox construction)
-    void build_from_aabbs(const BvhAABB* aabbs, size_t count, double world_size);
+    void build_from_aabbs(const BvhAABB* aabbs, size_t count, double ws);
     
     void build(const std::vector<BoundingBox>& bounding_boxes);
     std::tuple<std::vector<std::pair<int, int>>, std::vector<int>, int> check_all_collisions(const std::vector<BoundingBox>& bounding_boxes);

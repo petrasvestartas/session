@@ -28,14 +28,14 @@ bool BVH::aabb_intersect(const BvhAABB& aabb1, const BvhAABB& aabb2) {
             min1_z <= max2_z && max1_z >= min2_z);
 }
 
-void BVH::build_from_aabbs(const BvhAABB* aabbs, size_t count, double world_size) {
+void BVH::build_from_aabbs(const BvhAABB* aabbs, size_t count, double ws) {
     if (count == 0) {
         root = nullptr;
         node_arena.clear();
         return;
     }
 
-    this->world_size = world_size;
+    this->world_size = ws;
 
     std::vector<ObjectInfo> objects;
     objects.reserve(count);
@@ -321,14 +321,14 @@ void BVH::build(const std::vector<BoundingBox>& bounding_boxes) {
     build_from_boxes(bounding_boxes.data(), bounding_boxes.size(), world_size);
 }
 
-void BVH::build_from_boxes(const BoundingBox* boxes, size_t count, double world_size) {
+void BVH::build_from_boxes(const BoundingBox* boxes, size_t count, double ws) {
     if (count == 0) {
         root = nullptr;
         node_arena.clear();
         return;
     }
 
-    this->world_size = world_size;
+    this->world_size = ws;
 
     // Create list of objects with Morton codes (pre-allocate)
     std::vector<ObjectInfo> objects;

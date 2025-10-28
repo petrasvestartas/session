@@ -195,11 +195,11 @@ public:
                 const std::string &attribute = "");
 
   /**
-   * @brief Remove a geometry object by GUID.
-   * @param guid The GUID of the object to remove
+   * @brief Remove an object from the session
+   * @param obj_guid The GUID of the object to remove
    * @return True if removed, false if not found
    */
-  bool remove_object(const std::string &guid);
+  bool remove_object(const std::string &obj_guid);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Tree Operations
@@ -215,11 +215,11 @@ public:
                      const std::string &child_guid);
 
   /**
-   * @brief Get children GUIDs of an object in the tree.
-   * @param guid The GUID to search for
+   * @brief Get the children of a parent GUID
+   * @param obj_guid The GUID to search for
    * @return List of children GUIDs
    */
-  std::vector<std::string> get_children(const std::string &guid) const;
+  std::vector<std::string> get_children(const std::string &obj_guid) const;
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // Graph Operations
@@ -236,11 +236,11 @@ public:
                         const std::string &relationship_type = "default");
 
   /**
-   * @brief Get all GUIDs connected to the given GUID in the graph.
-   * @param guid The GUID to find connections for
+   * @brief Get the neighbours of a GUID
+   * @param obj_guid The GUID to find connections for
    * @return List of connected GUIDs
    */
-  std::vector<std::string> get_neighbours(const std::string &guid);
+  std::vector<std::string> get_neighbours(const std::string &obj_guid);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   // BVH Collision Detection
@@ -359,11 +359,11 @@ private:
   void invalidate_bvh_cache() { bvh_cache_dirty = true; }
   
   /**
-   * @brief Add a geometry's AABB to the cache incrementally.
-   * @param guid The GUID of the geometry
+   * @brief Cache geometry bounding box incrementally
+   * @param obj_guid The GUID of the geometry
    * @param geometry The geometry variant
    */
-  void cache_geometry_aabb(const std::string& guid, const Geometry& geometry);
+  void cache_geometry_aabb(const std::string& obj_guid, const Geometry& geometry);
 };
 /**
  * @brief  To use this operator, you can do:
