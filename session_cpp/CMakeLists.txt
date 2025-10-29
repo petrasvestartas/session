@@ -95,6 +95,18 @@ if(APPLE)
         COMMENT "Creating monolithic Abseil archive for macOS"
     )
     add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
+elseif(WIN32)
+    # Windows: Use lib.exe to combine static libraries
+    # Generate a response file with all library paths at build time
+    add_custom_command(
+        OUTPUT $ENV{INSTALL}/abseil/lib/absl_all.lib
+        COMMAND ${CMAKE_COMMAND} -E chdir $ENV{INSTALL}/abseil/lib ${CMAKE_COMMAND} -E echo "Combining Abseil libraries..."
+        COMMAND powershell -Command "Get-ChildItem -Path '$ENV{INSTALL}/abseil/lib' -Filter 'absl_*.lib' | ForEach-Object { $_.FullName } | Out-File -FilePath '$ENV{INSTALL}/abseil/lib/abseil_libs.txt' -Encoding ASCII"
+        COMMAND lib.exe /OUT:$ENV{INSTALL}/abseil/lib/absl_all.lib @$ENV{INSTALL}/abseil/lib/abseil_libs.txt
+        DEPENDS abseil_external
+        COMMENT "Creating monolithic Abseil archive for Windows"
+    )
+    add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/absl_all.lib)
 else()
     # Linux: Create combined archive by extracting and recombining object files
     add_custom_command(
@@ -196,6 +208,15 @@ function(LINK_PROTOBUF_LIBRARIES target_name)
             $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
             -Wl,-force_load,$ENV{INSTALL}/abseil/lib/libabsl_all.a
             pthread
+        )
+    elseif(WIN32)
+        # Windows: lib.exe already includes all symbols, no special flags needed
+        target_link_libraries(${target_name} PRIVATE
+            $<TARGET_OBJECTS:proto-objects>
+            $ENV{INSTALL}/protobuf/lib/libprotobuf.lib
+            $ENV{INSTALL}/protobuf/lib/utf8_range.lib
+            $ENV{INSTALL}/protobuf/lib/utf8_validity.lib
+            $ENV{INSTALL}/abseil/lib/absl_all.lib
         )
     else()
         # Linux: use --whole-archive with monolithic library
