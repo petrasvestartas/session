@@ -49,6 +49,7 @@ option(ENABLE_PROTOBUF "Enable Protocol Buffers support" ON)
 
 if(ENABLE_PROTOBUF)
     message(STATUS "Protocol Buffers: ENABLED")
+    add_compile_definitions(ENABLE_PROTOBUF)
     
     # Installation directories for external dependencies
     if(NOT DEFINED ENV{INSTALL})
@@ -236,8 +237,11 @@ function(LINK_PROTOBUF_LIBRARIES target_name)
     add_dependencies(${target_name} abseil_monolith protobuf_external)
 endfunction()
 
-    # Register proto files (add your .proto files here)
-    append_proto_file(${CMAKE_CURRENT_SOURCE_DIR}/src/session.proto)
+    # Register proto files from session_proto directory
+    file(GLOB PROTO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../session_proto/*.proto")
+    foreach(PROTO_FILE ${PROTO_FILES})
+        append_proto_file(${PROTO_FILE})
+    endforeach()
 
     # Generate proto files
     CREATE_CPP_PROTO()
