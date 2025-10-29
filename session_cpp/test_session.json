@@ -1,10 +1,10 @@
 {
   "type": "Session",
   "name": "my_session",
-  "guid": "eb42525b-072c-4e12-852d-fd79add117b0",
+  "guid": "735b2dfc-877f-4ae9-8d76-73e093208a2e",
   "objects": {
     "type": "Objects",
-    "guid": "29f46b91-2d3b-4da5-a8cf-d35daf56a55c",
+    "guid": "60503cbd-abd3-47f1-ba3c-51d52bca23bf",
     "name": "my_objects",
     "arrows": [],
     "bboxes": [],
@@ -15,7 +15,7 @@
     "points": [
       {
         "type": "Point",
-        "guid": "faf8a62a-d7fd-438e-9082-90bf5a398f5e",
+        "guid": "3b42f5e8-4172-4d5b-99e7-fd488a6de55d",
         "name": "my_point",
         "x": 1.0,
         "y": 2.0,
@@ -23,7 +23,7 @@
         "width": 1.0,
         "pointcolor": {
           "type": "Color",
-          "guid": "c06ed58a-9094-48da-8c05-54274e81e55c",
+          "guid": "24042b76-6dde-4923-bf2a-18944bd6deea",
           "name": "white",
           "r": 255,
           "g": 255,
@@ -33,7 +33,7 @@
       },
       {
         "type": "Point",
-        "guid": "6a8ef5c2-bf1a-4468-8c74-0f177a916f1b",
+        "guid": "91e136a6-1945-4119-85fc-63488cca61e0",
         "name": "my_point",
         "x": 4.0,
         "y": 5.0,
@@ -41,7 +41,7 @@
         "width": 1.0,
         "pointcolor": {
           "type": "Color",
-          "guid": "af804c73-a7ad-49ae-a2c3-56c0fffcc4b9",
+          "guid": "7ca724c9-6cb8-4768-a96e-148d21b654eb",
           "name": "white",
           "r": 255,
           "g": 255,
@@ -55,11 +55,11 @@
   },
   "tree": {
     "type": "Tree",
-    "guid": "b37b4dfd-822e-42f6-b2db-2969d0cd2515",
+    "guid": "c30861b6-dfdd-4e73-b019-3ce68315434b",
     "name": "my_session_tree",
     "root": {
       "type": "TreeNode",
-      "guid": "cab03991-4df7-4170-b0c4-6ef31c4ac61f",
+      "guid": "59a900ac-6827-4e94-a9ce-f03a3dcd007c",
       "name": "my_session",
       "children": []
     }
@@ -67,30 +67,30 @@
   "graph": {
     "type": "Graph",
     "name": "my_session_graph",
-    "guid": "dcf19b0b-a432-40e5-99e8-47a9b1297247",
+    "guid": "63eaf83c-8298-4e85-9373-d80dbe6ed435",
     "vertices": [
       {
         "type": "Vertex",
-        "name": "6a8ef5c2-bf1a-4468-8c74-0f177a916f1b",
-        "guid": "499c8613-79d8-4654-bd0b-c025cbff8d84",
+        "name": "3b42f5e8-4172-4d5b-99e7-fd488a6de55d",
+        "guid": "91195cda-5b36-4478-bfba-d0fff8fdd67d",
         "attribute": "point_my_point",
-        "index": 1
+        "index": 0
       },
       {
         "type": "Vertex",
-        "name": "faf8a62a-d7fd-438e-9082-90bf5a398f5e",
-        "guid": "722b9b70-d7db-4612-b0c5-81b7d6b816ce",
+        "name": "91e136a6-1945-4119-85fc-63488cca61e0",
+        "guid": "97d35019-4603-4916-a6c4-70e1a76de59d",
         "attribute": "point_my_point",
-        "index": 0
+        "index": 1
       }
     ],
     "edges": [
       {
         "type": "Edge",
-        "guid": "70a88574-a43c-4891-9fa5-ac5630120203",
+        "guid": "422d367c-d215-4ae7-9a05-fa74fe6bf3ab",
         "name": "my_edge",
-        "v0": "faf8a62a-d7fd-438e-9082-90bf5a398f5e",
-        "v1": "6a8ef5c2-bf1a-4468-8c74-0f177a916f1b",
+        "v0": "3b42f5e8-4172-4d5b-99e7-fd488a6de55d",
+        "v1": "91e136a6-1945-4119-85fc-63488cca61e0",
         "attribute": "connection",
         "index": 0
       }

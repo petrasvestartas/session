@@ -85,12 +85,13 @@ alias r='(cd /Users/petras/brg/code_rust/session/session_rust && cargo run)'
 alias p='(cd /Users/petras/brg/code_rust/session/session_py && conda activate session && python main.py)'
 ```
 
-**Windows:**
+**Windows (Command Prompt only):**
 ```cmd
-doskey c=cd /d "c:\brg\code_rust\session\session_cpp" ^& build.bat
-doskey r=cd /d "c:\brg\code_rust\session\session_rust" ^& cargo run
-doskey p=cd /d "c:\brg\code_rust\session\session_py" ^& conda activate session ^& python main.py
+doskey c=cd /d "c:\pc\3_code\code_rust\session\session_cpp" ^& build.bat
+doskey r=cd /d "c:\pc\3_code\code_rust\session\session_rust" ^& cargo run
+doskey p=cd /d "c:\pc\3_code\code_rust\session\session_py" ^& conda activate session ^& python main.py
 ```
+*Note: Run these commands in each new Command Prompt session. They don't work in PowerShell.*
 
 ### Test Aliases
 
@@ -101,11 +102,11 @@ alias rt='(cd /home/pv/brg/code_rust/session/session_rust && ./test.sh)'
 alias pt='(cd /home/pv/brg/code_rust/session/session_py && ./test.sh)'
 ```
 
-**Windows:**
+**Windows (Command Prompt only):**
 ```cmd
-doskey ct=cd /d "c:\brg\code_rust\session\session_cpp" ^& test.bat
-doskey rt=cd /d "c:\brg\code_rust\session\session_rust" ^& test.bat
-doskey pt=cd /d "c:\brg\code_rust\session\session_py" ^& test.bat
+doskey ct=cd /d "c:\pc\3_code\code_rust\session\session_cpp" ^& test.bat
+doskey rt=cd /d "c:\pc\3_code\code_rust\session\session_rust" ^& test.bat
+doskey pt=cd /d "c:\pc\3_code\code_rust\session\session_py" ^& test.bat
 ```
 
 ### Documentation Aliases
