@@ -86,6 +86,37 @@ if(ENABLE_PROTOBUF)
         -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
 )
 
+# Create monolithic Abseil archive to avoid configure-time GLOB issues
+if(APPLE)
+    add_custom_command(
+        OUTPUT $ENV{INSTALL}/abseil/lib/libabsl_all.a
+        COMMAND bash -c "libtool -static -o $ENV{INSTALL}/abseil/lib/libabsl_all.a $ENV{INSTALL}/abseil/lib/libabsl_*.a"
+        DEPENDS abseil_external
+        COMMENT "Creating monolithic Abseil archive for macOS"
+    )
+    add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
+else()
+    # Linux: Create combined archive using ar
+    add_custom_command(
+        OUTPUT $ENV{INSTALL}/abseil/lib/libabsl_all.a
+        COMMAND ${CMAKE_COMMAND} -E echo "Combining Abseil archives..."
+        COMMAND bash -c "cd $ENV{INSTALL}/abseil/lib && ar -M < ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri"
+        DEPENDS abseil_external ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri
+        COMMENT "Creating monolithic Abseil archive for Linux"
+        VERBATIM
+    )
+    
+    # Generate MRI script for ar at configure time (this is safe - just creates a script)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri
+        "CREATE libabsl_all.a\n"
+        "ADDLIB libabsl_*.a\n"
+        "SAVE\n"
+        "END\n"
+    )
+    
+    add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
+endif()
+
 # Step 2: Build protobuf with static linking (depends on Abseil)
 ExternalProject_Add(
     protobuf_external
@@ -166,39 +197,33 @@ endfunction()
 
 # Helper function to link protobuf and all required Abseil libraries
 function(LINK_PROTOBUF_LIBRARIES target_name)
-    # Find all Abseil libraries automatically
-    file(GLOB ABSEIL_LIBS "$ENV{INSTALL}/abseil/lib/libabsl_*.a")
-    
-    # On macOS, use -force_load to ensure all symbols are available
+    # Use monolithic Abseil archive (created at build time, not configure time)
     if(APPLE)
-        # Build force_load flags for each Abseil library
-        set(ABSEIL_FORCE_LOAD "")
-        foreach(lib ${ABSEIL_LIBS})
-            list(APPEND ABSEIL_FORCE_LOAD "-Wl,-force_load,${lib}")
-        endforeach()
-        
         target_link_libraries(${target_name} PRIVATE
             $<TARGET_OBJECTS:proto-objects>
             $ENV{INSTALL}/protobuf/lib/libprotobuf.a
             $ENV{INSTALL}/protobuf/lib/libutf8_range.a
             $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
-            ${ABSEIL_FORCE_LOAD}
+            -Wl,-force_load,$ENV{INSTALL}/abseil/lib/libabsl_all.a
             pthread
         )
     else()
-        # Linux/Windows: use --whole-archive
+        # Linux: use --whole-archive with monolithic library
         target_link_libraries(${target_name} PRIVATE
             $<TARGET_OBJECTS:proto-objects>
             $ENV{INSTALL}/protobuf/lib/libprotobuf.a
             $ENV{INSTALL}/protobuf/lib/libutf8_range.a
             $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
             -Wl,--whole-archive
-            ${ABSEIL_LIBS}
+            $ENV{INSTALL}/abseil/lib/libabsl_all.a
             -Wl,--no-whole-archive
             pthread
             dl
         )
     endif()
+    
+    # Ensure the monolithic archive is built before linking
+    add_dependencies(${target_name} abseil_monolith protobuf_external)
 endfunction()
 
     # Register proto files (add your .proto files here)
