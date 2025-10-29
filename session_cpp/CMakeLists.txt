@@ -96,22 +96,12 @@ if(APPLE)
     )
     add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
 else()
-    # Linux: Create combined archive using ar
+    # Linux: Create combined archive by extracting and recombining object files
     add_custom_command(
         OUTPUT $ENV{INSTALL}/abseil/lib/libabsl_all.a
-        COMMAND ${CMAKE_COMMAND} -E echo "Combining Abseil archives..."
-        COMMAND bash -c "cd $ENV{INSTALL}/abseil/lib && ar -M < ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri"
-        DEPENDS abseil_external ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri
+        COMMAND bash -c "cd $ENV{INSTALL}/abseil/lib && mkdir -p abseil_tmp && cd abseil_tmp && for lib in ../libabsl_*.a; do ar -x \"$$lib\"; done && ar -qcs ../libabsl_all.a *.o && cd .. && rm -rf abseil_tmp"
+        DEPENDS abseil_external
         COMMENT "Creating monolithic Abseil archive for Linux"
-        VERBATIM
-    )
-    
-    # Generate MRI script for ar at configure time (this is safe - just creates a script)
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/abseil_combine.mri
-        "CREATE libabsl_all.a\n"
-        "ADDLIB libabsl_*.a\n"
-        "SAVE\n"
-        "END\n"
     )
     
     add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
