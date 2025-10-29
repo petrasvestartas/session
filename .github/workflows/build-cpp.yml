@@ -17,9 +17,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Cache third-party dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/install
+          session_cpp/build/external
+        key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('session_cpp/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ runner.arch }}-deps-
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ matrix.build_type }}
+
     - name: Configure CMake
       working-directory: ./session_cpp
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      shell: bash
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Build
       working-directory: ./session_cpp
@@ -39,6 +59,10 @@ jobs:
           echo "Tests executable not found!"
           exit 1
         fi
+
+    - name: Print ccache statistics
+      shell: bash
+      run: ccache -s || echo "ccache stats not available"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
