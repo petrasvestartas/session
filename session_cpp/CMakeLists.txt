@@ -169,26 +169,32 @@ function(LINK_PROTOBUF_LIBRARIES target_name)
     # Find all Abseil libraries automatically
     file(GLOB ABSEIL_LIBS "$ENV{INSTALL}/abseil/lib/libabsl_*.a")
     
-    # On macOS, we need to link Abseil libraries multiple times to resolve circular dependencies
+    # On macOS, use -force_load to ensure all symbols are available
     if(APPLE)
+        # Build force_load flags for each Abseil library
+        set(ABSEIL_FORCE_LOAD "")
+        foreach(lib ${ABSEIL_LIBS})
+            list(APPEND ABSEIL_FORCE_LOAD "-Wl,-force_load,${lib}")
+        endforeach()
+        
         target_link_libraries(${target_name} PRIVATE
             $<TARGET_OBJECTS:proto-objects>
             $ENV{INSTALL}/protobuf/lib/libprotobuf.a
             $ENV{INSTALL}/protobuf/lib/libutf8_range.a
             $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
-            ${ABSEIL_LIBS}  # First pass
-            ${ABSEIL_LIBS}  # Second pass to resolve circular deps
+            ${ABSEIL_FORCE_LOAD}
             pthread
         )
     else()
+        # Linux/Windows: use --whole-archive
         target_link_libraries(${target_name} PRIVATE
             $<TARGET_OBJECTS:proto-objects>
             $ENV{INSTALL}/protobuf/lib/libprotobuf.a
             $ENV{INSTALL}/protobuf/lib/libutf8_range.a
             $ENV{INSTALL}/protobuf/lib/libutf8_validity.a
-            -Wl,--start-group
+            -Wl,--whole-archive
             ${ABSEIL_LIBS}
-            -Wl,--end-group
+            -Wl,--no-whole-archive
             pthread
             dl
         )
