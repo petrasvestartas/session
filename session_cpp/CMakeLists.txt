@@ -108,31 +108,13 @@ elseif(WIN32)
     )
     add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/absl_all.lib)
 else()
-    # Linux: Create combined archive by extracting and recombining object files
-    # Write a shell script to avoid quoting issues
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/combine_abseil.sh
-"#!/bin/bash
-set -e
-cd ${CMAKE_CURRENT_BINARY_DIR}/external/abseil/lib
-rm -rf abseil_tmp
-mkdir -p abseil_tmp
-cd abseil_tmp
-for lib in ../libabsl_*.a; do
-    ar -x \"$lib\"
-done
-ar -qcs ../libabsl_all.a *.o
-cd ..
-rm -rf abseil_tmp
-")
-    
+    # Linux: Use ar to create thin archive (similar to macOS libtool approach)
     add_custom_command(
         OUTPUT $ENV{INSTALL}/abseil/lib/libabsl_all.a
-        COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/combine_abseil.sh
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/combine_abseil.sh
+        COMMAND bash -c "ar -rcT $ENV{INSTALL}/abseil/lib/libabsl_all.a $ENV{INSTALL}/abseil/lib/libabsl_*.a"
         DEPENDS abseil_external
         COMMENT "Creating monolithic Abseil archive for Linux"
     )
-    
     add_custom_target(abseil_monolith DEPENDS $ENV{INSTALL}/abseil/lib/libabsl_all.a)
 endif()
 

@@ -1,6 +1,6 @@
 {
   "type": "PointCloud",
-  "guid": "8cdda9aa-aefc-46cd-9460-2039cc45f1ab",
+  "guid": "b7404e9d-1139-4cab-862a-4dee2634d202",
   "name": "test_cloud",
   "points": [
     1.0,
@@ -14,7 +14,7 @@
   "colors": [],
   "xform": {
     "type": "Xform",
-    "guid": "a1144fae-37ca-4b41-ac5d-f36707af76e0",
+    "guid": "7c3a8ce7-be05-45fb-acb3-662cc7f90f1a",
     "name": "my_xform",
     "m": [
       1.0,
