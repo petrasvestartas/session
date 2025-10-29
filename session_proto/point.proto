@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "color.proto";
+import "xform.proto";
+
+// Point message representing a 3D point with metadata
+message Point {
+  string guid = 1;        // Unique identifier
+  string name = 2;        // Point identifier/name
+  double x = 3;           // X coordinate
+  double y = 4;           // Y coordinate
+  double z = 5;           // Z coordinate
+  double width = 6;       // Point diameter in pixels for display
+  Color pointcolor = 7;   // Color of the point
+  Xform xform = 8;        // Transformation matrix
+}

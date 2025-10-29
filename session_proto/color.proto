@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Color message with RGBA components
+message Color {
+  int32 r = 1;  // Red component (0-255)
+  int32 g = 2;  // Green component (0-255)
+  int32 b = 3;  // Blue component (0-255)
+  int32 a = 4;  // Alpha component (0-255)
+  string name = 5;  // Optional color name
+}

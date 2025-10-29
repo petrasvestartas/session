@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Edge message representing a graph edge
+message Edge {
+  string guid = 1;       // Unique identifier
+  string name = 2;       // Edge name
+  string v0 = 3;         // First vertex identifier
+  string v1 = 4;         // Second vertex identifier
+  string attribute = 5;  // Edge attribute data as string
+  int32 index = 6;       // Integer index for the edge
+}

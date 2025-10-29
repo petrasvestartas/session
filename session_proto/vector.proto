@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Vector message representing a 3D vector
+message Vector {
+  double x = 1;  // X component
+  double y = 2;  // Y component
+  double z = 3;  // Z component
+  string name = 4;  // Optional vector name
+}

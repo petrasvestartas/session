@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "xform.proto";
+
+// Line message representing a line segment
+message Line {
+  Point start = 1;    // Start point
+  Point end = 2;      // End point
+  string guid = 3;    // Unique identifier
+  string name = 4;    // Line name
+  Xform xform = 5;    // Transformation matrix
+}

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "color.proto";
+import "xform.proto";
+
+// Vertex data for mesh
+message VertexData {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  map<string, double> attributes = 4;  // Custom vertex attributes
+}
+
+// Halfedge connectivity (stored as nested maps)
+message HalfedgeMap {
+  map<uint64, uint64> neighbors = 1;  // vertex_key -> halfedge_key
+}
+
+// Face data
+message FaceData {
+  repeated uint64 vertices = 1;  // Vertex indices in face
+  map<string, double> attributes = 2;  // Custom face attributes
+}
+
+// Edge data
+message EdgeData {
+  uint64 vertex1 = 1;
+  uint64 vertex2 = 2;
+  map<string, double> attributes = 3;  // Custom edge attributes
+}
+
+// Mesh message representing a halfedge mesh data structure
+message Mesh {
+  string guid = 1;                              // Unique identifier
+  string name = 2;                              // Mesh name
+  map<uint64, VertexData> vertices = 3;         // vertex_key -> VertexData
+  map<uint64, FaceData> faces = 4;              // face_key -> FaceData
+  map<uint64, HalfedgeMap> halfedges = 5;       // Halfedge connectivity
+  repeated EdgeData edge_data = 6;              // Edge custom data
+  map<string, double> default_vertex_attributes = 7;  // Default vertex attrs
+  map<string, double> default_face_attributes = 8;    // Default face attrs
+  map<string, double> default_edge_attributes = 9;    // Default edge attrs
+  repeated Color pointcolors = 10;              // Vertex colors
+  repeated Color facecolors = 11;               // Face colors
+  repeated Color linecolors = 12;               // Edge colors
+  repeated double widths = 13;                  // Edge widths
+  Xform xform = 14;                             // Transformation matrix
+}

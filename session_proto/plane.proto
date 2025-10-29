@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "vector.proto";
+import "xform.proto";
+
+// Plane message representing a 3D plane
+message Plane {
+  Point origin = 1;     // Origin point on the plane
+  Vector x_axis = 2;    // X-axis direction
+  Vector y_axis = 3;    // Y-axis direction
+  Vector z_axis = 4;    // Normal direction (Z-axis)
+  string guid = 5;      // Unique identifier
+  string name = 6;      // Plane name
+  Xform xform = 7;      // Transformation matrix
+}

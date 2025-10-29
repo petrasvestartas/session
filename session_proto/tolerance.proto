@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Tolerance message for geometric comparisons
+message Tolerance {
+  string unit = 1;                 // Unit system (e.g., "M", "MM")
+  double absolute = 2;             // Absolute tolerance value
+  double relative = 3;             // Relative tolerance value
+  double angular = 4;              // Angular tolerance in radians
+  double approximation = 5;        // Approximation tolerance
+  int32 precision = 6;             // Decimal precision for formatting
+  double lineardeflection = 7;     // Linear deflection value
+  double angulardeflection = 8;    // Angular deflection value
+}

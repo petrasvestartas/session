@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "xform.proto";
+
+// Polyline message representing a connected sequence of points
+message Polyline {
+  repeated Point points = 1;  // List of points defining the polyline
+  string guid = 2;            // Unique identifier
+  string name = 3;            // Polyline name
+  Xform xform = 4;            // Transformation matrix
+}
