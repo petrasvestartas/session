@@ -29,3 +29,12 @@ jobs:
       with:
         name: session-mini-tests-website
         path: session_tests/website
+
+    - name: Deploy mini-test website to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./session_tests/website
+        publish_branch: docs
+        force_orphan: true
