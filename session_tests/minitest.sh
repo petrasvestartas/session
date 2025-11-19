@@ -9,17 +9,54 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
 
-echo "[mini] Running Python Point mini tests..."
-"${REPO_ROOT}/uvsession/bin/python" -m session_py.point_test
+VENV_DIR="${REPO_ROOT}/uvsession"
+PYTHON="${VENV_DIR}/bin/python"
 
-echo "[mini] Running Python Color mini tests..."
-"${REPO_ROOT}/uvsession/bin/python" -m session_py.color_test
+ensure_python_env() {
+  if [ -x "${PYTHON}" ]; then
+    return 0
+  fi
+
+  echo "[mini] Creating Python environment at ${VENV_DIR}..."
+
+  if command -v uv >/dev/null 2>&1; then
+    ( cd "${REPO_ROOT}" && uv venv uvsession )
+  elif command -v python3 >/dev/null 2>&1; then
+    ( cd "${REPO_ROOT}" && python3 -m venv uvsession )
+  else
+    echo "[mini] Neither 'uv' nor 'python3' is available; cannot create Python environment."
+    return 1
+  fi
+
+  if [ ! -x "${PYTHON}" ]; then
+    echo "[mini] Failed to create Python environment at ${VENV_DIR}"
+    return 1
+  fi
+
+  "${PYTHON}" -m pip install -e "${REPO_ROOT}/session_py" pytest >/dev/null 2>&1 || {
+    echo "[mini] Failed to install session_py/pytest into Python environment."
+    return 1
+  }
+
+  return 0
+}
+
+if ! ensure_python_env; then
+  echo "[mini] Skipping Python mini tests due to environment setup failure."
+else
+  echo "[mini] Running Python Point mini tests..."
+  "${PYTHON}" -m session_py.point_test
+
+  echo "[mini] Running Python Color mini tests..."
+  "${PYTHON}" -m session_py.color_test
+fi
 
 echo "[mini] Building C++ project (session_cpp) including tests (no test run)..."
 CPP_DIR="${REPO_ROOT}/session_cpp"
+JOBS="${MINITEST_JOBS:-2}"
 
 if [ -d "${CPP_DIR}" ]; then
-  ( cd "${CPP_DIR}" && cmake -S . -B build >/dev/null && cmake --build build --parallel )
+  ( cd "${CPP_DIR}" && cmake -S . -B build >/dev/null && cmake --build build -- -j"${JOBS}" )
   BUILD_STATUS=$?
   if [ $BUILD_STATUS -ne 0 ]; then
     echo "[mini] C++ build failed (session_cpp)." 

@@ -9,6 +9,8 @@ on:
 jobs:
   minitest:
     runs-on: ubuntu-latest
+    env:
+      MINITEST_JOBS: "2"
 
     steps:
     - name: Checkout repo with submodules
@@ -21,3 +23,9 @@ jobs:
       run: |
         chmod +x session_tests/minitest.sh
         ./session_tests/minitest.sh
+
+    - name: Upload mini-test website as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: session-mini-tests-website
+        path: session_tests/website
