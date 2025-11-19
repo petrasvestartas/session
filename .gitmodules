@@ -1,0 +1,12 @@
+[submodule "session_cpp"]
+	path = session_cpp
+	url = https://github.com/petrasvestartas/session_cpp.git
+[submodule "session_py"]
+	path = session_py
+	url = https://github.com/petrasvestartas/session_py.git
+[submodule "session_rust"]
+	path = session_rust
+	url = https://github.com/petrasvestartas/session_rust.git
+[submodule "session_data"]
+	path = session_data
+	url = https://github.com/petrasvestartas/session_data.git
