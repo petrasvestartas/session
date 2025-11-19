@@ -69,6 +69,11 @@ echo "[mini] Opening results website (if possible)..."
 PORT=8765
 
 start_http_server() {
+  if command -v pkill >/dev/null 2>&1; then
+    pkill -f "python3 -m http.server ${PORT}" >/dev/null 2>&1 || true
+    pkill -f "python -m http.server ${PORT}" >/dev/null 2>&1 || true
+  fi
+
   # Prefer python3, fall back to python
   if command -v python3 >/dev/null 2>&1; then
     ( cd "${SCRIPT_DIR}" && python3 -m http.server "${PORT}" >/dev/null 2>&1 & )
