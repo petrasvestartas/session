@@ -1,0 +1,23 @@
+name: Session mini tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  minitest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo with submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Run mini tests (C++ + Rust, optional Python)
+      shell: bash
+      run: |
+        chmod +x session_tests/minitest.sh
+        ./session_tests/minitest.sh
