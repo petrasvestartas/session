@@ -1,0 +1,87 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 41,
+    "code": "    let mut point = Point::new(1.0, 2.0, 3.0);\n    point[0] = 10.0;",
+    "checks": [
+      {
+        "line": 51,
+        "code_line": "point.name == \"my_point\"",
+        "passed": true
+      },
+      {
+        "line": 52,
+        "code_line": "!point.guid.is_empty()",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "point.x() == 10.0",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "point.y() == 2.0",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "point.z() == 3.0",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "point.width == 1.0",
+        "passed": true
+      },
+      {
+        "line": 57,
+        "code_line": "point.pointcolor == Color::white()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_equal",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 83,
+    "code": "    let p1 = Point::new(1.0, 2.0, 3.0);\n    let p2 = Point::new(1.0, 2.0, 3.0);\n\n    let eq_result = p1 == p2;\n    let neq_result = p1 != p2;",
+    "checks": [
+      {
+        "line": 96,
+        "code_line": "eq_result == true",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "neq_result == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_not_equal",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 123,
+    "code": "    let p3 = Point::new(1.0, 2.0, 3.0);\n    let p4 = Point::new(1.1, 2.0, 3.0);\n\n    let eq_result = p3 == p4;\n    let neq_result = p3 != p4;",
+    "checks": [
+      {
+        "line": 136,
+        "code_line": "eq_result == false",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "neq_result == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

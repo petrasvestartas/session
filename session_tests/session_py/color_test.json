@@ -1,0 +1,82 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 5,
+    "code": "    red = Color(255, 0, 0, 255, \"red\")",
+    "checks": [
+      {
+        "line": 8,
+        "code_line": "red.name == \"red\"",
+        "passed": true
+      },
+      {
+        "line": 9,
+        "code_line": "red.guid != \"\"",
+        "passed": true
+      },
+      {
+        "line": 10,
+        "code_line": "red.r == 255",
+        "passed": true
+      },
+      {
+        "line": 11,
+        "code_line": "red.g == 0",
+        "passed": true
+      },
+      {
+        "line": 12,
+        "code_line": "red.b == 0",
+        "passed": true
+      },
+      {
+        "line": 13,
+        "code_line": "red.a == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_equal",
+    "passed": true,
+    "time_ms": 0.029,
+    "line": 16,
+    "code": "    c1 = Color(0, 100, 50, 200)\n    c2 = Color(0, 100, 50, 200)\n\n    eq_result = (c1 == c2)\n    neq_result = (c1 != c2)",
+    "checks": [
+      {
+        "line": 24,
+        "code_line": "eq_result == True",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "neq_result == False",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_not_equal",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 28,
+    "code": "    c3 = Color(0, 100, 50, 200)\n    c4 = Color(1, 100, 50, 200)\n\n    eq_result = (c3 == c4)\n    neq_result = (c3 != c4)",
+    "checks": [
+      {
+        "line": 36,
+        "code_line": "eq_result == False",
+        "passed": true
+      },
+      {
+        "line": 37,
+        "code_line": "neq_result == True",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 163,
+    "code": "    let mut red = Color::new(255, 0, 0, 255);\n    red.name = \"red\".to_string();",
+    "checks": [
+      {
+        "line": 173,
+        "code_line": "red.name == \"red\"",
+        "passed": true
+      },
+      {
+        "line": 174,
+        "code_line": "!red.guid.to_string().is_empty()",
+        "passed": true
+      },
+      {
+        "line": 175,
+        "code_line": "red.r == 255",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "red.g == 0",
+        "passed": true
+      },
+      {
+        "line": 177,
+        "code_line": "red.b == 0",
+        "passed": true
+      },
+      {
+        "line": 178,
+        "code_line": "red.a == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 204,
+    "code": "    let mut original = Color::new(128, 64, 192, 255);\n    original.name = \"purple\".to_string();\n    let json_string = original.jsondump()?;\n    let restored = Color::jsonload(&json_string)?;",
+    "checks": [
+      {
+        "line": 217,
+        "code_line": "restored.r == original.r",
+        "passed": true
+      },
+      {
+        "line": 218,
+        "code_line": "restored.g == original.g",
+        "passed": true
+      },
+      {
+        "line": 219,
+        "code_line": "restored.b == original.b",
+        "passed": true
+      },
+      {
+        "line": 220,
+        "code_line": "restored.a == original.a",
+        "passed": true
+      },
+      {
+        "line": 221,
+        "code_line": "restored.name == original.name",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.127,
+    "line": 9,
+    "code": "   Color original(100, 150, 200, 255);\n   original.name = \"test_color\";\n\n   encoders::json_dump(original, \"test_color.json\");\n   Color loaded = encoders::json_load<Color>(\"test_color.json\");\n",
+    "checks": [
+      {
+        "line": 16,
+        "code_line": "loaded.r == original.r",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "loaded.g == original.g",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "loaded.b == original.b",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "loaded.a == original.a",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

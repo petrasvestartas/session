@@ -1,0 +1,87 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.054,
+    "line": 9,
+    "code": "    from .point import Point\n    point = Point(1.0, 2.0, 3.0)\n    point[0] = 10.0",
+    "checks": [
+      {
+        "line": 14,
+        "code_line": "point.name == \"my_point\"",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "bool(point.guid)",
+        "passed": true
+      },
+      {
+        "line": 16,
+        "code_line": "point.x == 10.0",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "point.y == 2.0",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "point.z == 3.0",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "point.width == 1.0",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "point.pointcolor == Color.white()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_equal",
+    "passed": true,
+    "time_ms": 0.035,
+    "line": 23,
+    "code": "    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(1.0, 2.0, 3.0)\n\n    eq_result = (p1 == p2)\n    neq_result = (p1 != p2)",
+    "checks": [
+      {
+        "line": 31,
+        "code_line": "eq_result == True",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "neq_result == False",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "equality_not_equal",
+    "passed": true,
+    "time_ms": 0.031,
+    "line": 35,
+    "code": "    p3 = Point(1.0, 2.0, 3.0)\n    p4 = Point(1.1, 2.0, 3.0)\n\n    eq_result = (p3 == p4)\n    neq_result = (p3 != p4)",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "eq_result == False",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "neq_result == True",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]
