@@ -38,6 +38,6 @@ jobs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./session_tests/website
+        publish_dir: ./session_tests
         publish_branch: docs
         force_orphan: true
