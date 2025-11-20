@@ -21,5 +21,5 @@ The repository is split between 5 submodules:
 - `session_rust` → Rust Kernel <https://github.com/petrasvestartas/session_rust.git>
 - `session_cpp` → C++ Kernel <https://github.com/petrasvestartas/session_cpp.git>
 - `session_data` → Geometry Dataset <https://github.com/petrasvestartas/session_data.git>
-- `session_proto` → Protocol Buffers definitions for file transfer (although library also supports JSON format) <https://github.com/petrasvestartas/session_proto.git>
+- `session_proto` → Schemas <https://github.com/petrasvestartas/session_proto.git>
 
