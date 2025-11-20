@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.072,
     "line": 9,
     "code": "    #include \"point.h\"\n    Point p(1.0, 2.0, 3.0);\n    p[0] = 10.0;\n",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "equality_equal",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.048,
     "line": 24,
     "code": "    Point p1(1.0, 2.0, 3.0);\n    Point p2(1.0, 2.0, 3.0);\n\n    bool eq_result = (p1 == p2);\n    bool neq_result = (p1 != p2);\n",
     "checks": [
@@ -67,7 +67,7 @@
   {
     "test_name": "equality_not_equal",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.013,
     "line": 35,
     "code": "    Point p3(1.0, 2.0, 3.0);\n    Point p4(1.1, 2.0, 3.0);\n\n    bool eq_result = (p3 == p4);\n    bool neq_result = (p3 != p4);\n",
     "checks": [

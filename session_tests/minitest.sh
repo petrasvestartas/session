@@ -101,39 +101,96 @@ echo "  Color  Python: ${REPO_ROOT}/session_tests/session_py/color_test.json"
 echo "         C++   : ${REPO_ROOT}/session_tests/session_cpp/color_test.json"
 echo "         Rust  : ${REPO_ROOT}/session_tests/session_rust/color_test.json"
 
-echo "[mini] Opening results website (if possible)..."
-# Start a simple HTTP server in session_tests on a dedicated port (best-effort)
-PORT=8765
-
-start_http_server() {
-  if command -v pkill >/dev/null 2>&1; then
-    pkill -f "python3 -m http.server ${PORT}" >/dev/null 2>&1 || true
-    pkill -f "python -m http.server ${PORT}" >/dev/null 2>&1 || true
-  fi
-
-  # Prefer python3, fall back to python
-  if command -v python3 >/dev/null 2>&1; then
-    ( cd "${SCRIPT_DIR}" && python3 -m http.server "${PORT}" >/dev/null 2>&1 & )
-    return 0
-  elif command -v python >/dev/null 2>&1; then
-    ( cd "${SCRIPT_DIR}" && python -m http.server "${PORT}" >/dev/null 2>&1 & )
-    return 0
-  else
-    echo "[mini] Could not start HTTP server: neither python3 nor python was found in PATH."
-    return 1
-  fi
+echo "[mini] Generating consolidated testData.js..."
+generate_test_data_js() {
+  # Create public directory if it doesn't exist
+  mkdir -p "${SCRIPT_DIR}/public"
+  
+  local OUTPUT="${SCRIPT_DIR}/public/testData.js"
+  
+  echo "// Auto-generated test data - Do not edit manually" > "${OUTPUT}"
+  echo "// Generated at: $(date)" >> "${OUTPUT}"
+  echo "window.TEST_DATA = {" >> "${OUTPUT}"
+  
+  # Array to track which files we process
+  local SOURCES=(
+    "session_py/point_test.json:python"
+    "session_cpp/point_test.json:cpp"
+    "session_rust/point_test.json:rust"
+    "session_py/color_test.json:python"
+    "session_cpp/color_test.json:cpp"
+    "session_rust/color_test.json:rust"
+  )
+  
+  local FIRST=true
+  for SOURCE in "${SOURCES[@]}"; do
+    local FILE_PATH="${SOURCE%%:*}"
+    local LANG="${SOURCE##*:}"
+    local FULL_PATH="${SCRIPT_DIR}/${FILE_PATH}"
+    
+    if [ -f "${FULL_PATH}" ]; then
+      local FILE_NAME=$(basename "${FILE_PATH}")
+      local KEY="${FILE_NAME%.json}_${LANG}"
+      
+      if [ "${FIRST}" = false ]; then
+        echo "," >> "${OUTPUT}"
+      fi
+      FIRST=false
+      
+      echo -n "  \"${KEY}\": " >> "${OUTPUT}"
+      cat "${FULL_PATH}" >> "${OUTPUT}"
+    fi
+  done
+  
+  echo "" >> "${OUTPUT}"
+  echo "};" >> "${OUTPUT}"
+  
+  echo "[mini] testData.js generated at ${OUTPUT}"
+  
+  # Also copy to root for backward compatibility
+  cp "${OUTPUT}" "${SCRIPT_DIR}/testData.js"
 }
 
-start_http_server
-sleep 1
+generate_test_data_js
 
-# When served from session_tests/, the site root serves index.html
-WEBSITE_URL="http://localhost:${PORT}/"
-WEBSITE_FILE="${SCRIPT_DIR}/index.html"
-
-if command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || \
-  xdg-open "${WEBSITE_FILE}" >/dev/null 2>&1 || true
-else
-  echo "[mini] Please open ${WEBSITE_FILE} in a browser (preferably via an HTTP server in session_tests)."
+echo "[mini] Setting up Vue.js application..."
+# Install npm dependencies if needed
+if [ ! -d "${SCRIPT_DIR}/node_modules" ]; then
+  echo "[mini] Installing npm dependencies (first time only)..."
+  ( cd "${SCRIPT_DIR}" && npm install )
+  if [ $? -ne 0 ]; then
+    echo "[mini] Failed to install npm dependencies."
+    exit 1
+  fi
 fi
+
+# Build the Vue application
+echo "[mini] Building Vue application..."
+( cd "${SCRIPT_DIR}" && npm run build >/dev/null 2>&1 )
+if [ $? -ne 0 ]; then
+  echo "[mini] Failed to build Vue application."
+  exit 1
+fi
+
+echo "[mini] Starting development server..."
+PORT=8769
+
+# Kill any existing dev server on this port
+if command -v pkill >/dev/null 2>&1; then
+  pkill -f "vite.*${PORT}" >/dev/null 2>&1 || true
+fi
+
+# Start Vite dev server in background (uses port from vite.config: 8769)
+( cd "${SCRIPT_DIR}" && npm run dev >/dev/null 2>&1 & )
+sleep 2
+
+WEBSITE_URL="http://localhost:${PORT}/"
+
+echo "[mini] Opening results website at ${WEBSITE_URL}..."
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+else
+  echo "[mini] Please open ${WEBSITE_URL} in a browser."
+fi
+
+echo "[mini] Development server is running. Press Ctrl+C to stop."
