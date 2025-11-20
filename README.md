@@ -1,5 +1,7 @@
 # Session 
- 
+
+![Python](https://img.shields.io/badge/Python-3670A0?logo=python&logoColor=ffdd54) ![C++](https://img.shields.io/badge/C++-00599C?logo=cplusplus&logoColor=white) ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
+
 Python, C++ and Rust geometry kernel.
 
 ## Goal
