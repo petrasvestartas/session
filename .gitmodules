@@ -7,9 +7,3 @@
 [submodule "session_rust"]
 	path = session_rust
 	url = https://github.com/petrasvestartas/session_rust.git
-[submodule "session_data"]
-	path = session_data
-	url = https://github.com/petrasvestartas/session_data.git
-[submodule "session_proto"]
-	path = session_proto
-	url = https://github.com/petrasvestartas/session_proto.git
