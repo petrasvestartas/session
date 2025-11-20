@@ -42,7 +42,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 204,
     "code": "    let mut original = Color::new(128, 64, 192, 255);\n    original.name = \"purple\".to_string();\n    let json_string = original.jsondump()?;\n    let restored = Color::jsonload(&json_string)?;",
     "checks": [

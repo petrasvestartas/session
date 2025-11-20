@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.008,
     "line": 41,
     "code": "    let mut point = Point::new(1.0, 2.0, 3.0);\n    point[0] = 10.0;",
     "checks": [
@@ -18,17 +18,17 @@
       },
       {
         "line": 53,
-        "code_line": "point.x() == 10.0",
+        "code_line": "point[0] == 10.0",
         "passed": true
       },
       {
         "line": 54,
-        "code_line": "point.y() == 2.0",
+        "code_line": "point[1] == 2.0",
         "passed": true
       },
       {
         "line": 55,
-        "code_line": "point.z() == 3.0",
+        "code_line": "point[2] == 3.0",
         "passed": true
       },
       {
@@ -47,7 +47,7 @@
   {
     "test_name": "equality_equal",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 83,
     "code": "    let p1 = Point::new(1.0, 2.0, 3.0);\n    let p2 = Point::new(1.0, 2.0, 3.0);\n\n    let eq_result = p1 == p2;\n    let neq_result = p1 != p2;",
     "checks": [
@@ -67,7 +67,7 @@
   {
     "test_name": "equality_not_equal",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 123,
     "code": "    let p3 = Point::new(1.0, 2.0, 3.0);\n    let p4 = Point::new(1.1, 2.0, 3.0);\n\n    let eq_result = p3 == p4;\n    let neq_result = p3 != p4;",
     "checks": [

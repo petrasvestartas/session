@@ -26,6 +26,22 @@
                       line {{ c.line }}: <code :class="codeClass(g.python)" v-html="highlightedCheck(c, 'python')"></code>
                     </li>
                   </ul>
+
+                  <div v-if="hasFailures(g.python)" class="exceptions">
+                    <div><strong>Errors / Exceptions:</strong></div>
+                    <ul>
+                      <li
+                        v-for="f in errorFailures(g.python)"
+                        :key="'py-err-' + g.name + ':' + (f.line || 0) + ':' + (f.file || '')"
+                      >
+                        <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
+                        <div v-if="f.code_line">
+                          <code :class="codeClass(g.python)" v-html="highlightedFailureCode(f, 'python')"></code>
+                        </div>
+                        <div class="error-message" v-if="f.error">{{ f.error }}</div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <div v-else class="missing">– {{ g.name }}</div>
@@ -46,6 +62,22 @@
                       line {{ c.line }}: <code :class="codeClass(g.cpp)" v-html="highlightedCheck(c, 'cpp')"></code>
                     </li>
                   </ul>
+
+                  <div v-if="hasFailures(g.cpp)" class="exceptions">
+                    <div><strong>Errors / Exceptions:</strong></div>
+                    <ul>
+                      <li
+                        v-for="f in errorFailures(g.cpp)"
+                        :key="'cpp-err-' + g.name + ':' + (f.line || 0) + ':' + (f.file || '')"
+                      >
+                        <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
+                        <div v-if="f.code_line">
+                          <code :class="codeClass(g.cpp)" v-html="highlightedFailureCode(f, 'cpp')"></code>
+                        </div>
+                        <div class="error-message" v-if="f.error">{{ f.error }}</div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <div v-else class="missing">– {{ g.name }}</div>
@@ -66,6 +98,22 @@
                       line {{ c.line }}: <code :class="codeClass(g.rust)" v-html="highlightedCheck(c, 'rust')"></code>
                     </li>
                   </ul>
+
+                  <div v-if="hasFailures(g.rust)" class="exceptions">
+                    <div><strong>Errors / Exceptions:</strong></div>
+                    <ul>
+                      <li
+                        v-for="f in errorFailures(g.rust)"
+                        :key="'rs-err-' + g.name + ':' + (f.line || 0) + ':' + (f.file || '')"
+                      >
+                        <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
+                        <div v-if="f.code_line">
+                          <code :class="codeClass(g.rust)" v-html="highlightedFailureCode(f, 'rust')"></code>
+                        </div>
+                        <div class="error-message" v-if="f.error">{{ f.error }}</div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <div v-else class="missing">– {{ g.name }}</div>
@@ -193,6 +241,25 @@ const failingChecks = (t) => {
   if (!t.checks) return []
   return t.checks.filter(c => c && c.passed === false)
 }
+
+const hasFailures = (t) => {
+  return !!(t && Array.isArray(t.failures) && t.failures.length > 0)
+}
+
+const errorFailures = (t) => {
+  if (!t || !Array.isArray(t.failures)) return []
+  return t.failures
+}
+
+const highlightedFailureCode = (failure, lang) => {
+  if (!failure || !failure.code_line) return ""
+  try {
+    const result = hljs.highlight(failure.code_line, { language: lang })
+    return result.value
+  } catch (e) {
+    return failure.code_line
+  }
+}
 </script>
 
 <style scoped>
@@ -243,6 +310,7 @@ table {
   border-collapse: collapse;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  table-layout: fixed; /* ensure 3 equal-width columns regardless of content */
 }
 th, td {
   padding: 0.5rem 0.75rem;
@@ -274,15 +342,25 @@ th:last-child, td:last-child {
 }
 pre {
   margin: 0.25rem 0 0.5rem 0;
-  max-height: 240px;
-  overflow: auto;
   background: #ffffff;
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
 }
+.test-card pre code {
+  white-space: pre-wrap;      /* allow wrapping of long lines */
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
 .failures {
   margin-top: 0.35rem;
   color: #b00020;
+}
+.exceptions {
+  margin-top: 0.35rem;
+}
+.error-message {
+  margin-top: 0.15rem;
+  font-family: monospace;
 }
 .test-card {
   display: flex;

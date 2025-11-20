@@ -12,20 +12,58 @@ REPO_ROOT="${SCRIPT_DIR}/.."
 VENV_DIR="${REPO_ROOT}/uvsession"
 PYTHON="${VENV_DIR}/bin/python"
 
+# Remove old JSON test result files so each run produces fresh results
+cleanup_json() {
+  rm -f \
+    "${SCRIPT_DIR}/session_py/point_test.json" \
+    "${SCRIPT_DIR}/session_cpp/point_test.json" \
+    "${SCRIPT_DIR}/session_rust/point_test.json" \
+    "${SCRIPT_DIR}/session_py/color_test.json" \
+    "${SCRIPT_DIR}/session_cpp/color_test.json" \
+    "${SCRIPT_DIR}/session_rust/color_test.json"
+}
+
+cleanup_json
+
 ensure_python_env() {
-  if [ -x "${PYTHON}" ]; then
+  # Prefer uv: create/manage environment from pyproject.toml manifest
+  if command -v uv >/dev/null 2>&1; then
+    # Create uv-managed virtual environment if it does not exist yet
+    if [ ! -x "${PYTHON}" ]; then
+      echo "[mini] Creating Python environment with uv at ${VENV_DIR}..."
+      ( cd "${REPO_ROOT}" && uv venv uvsession ) || {
+        echo "[mini] uv failed to create virtual environment."
+        return 1
+      }
+    fi
+
+    if [ ! -x "${PYTHON}" ]; then
+      echo "[mini] Failed to create Python environment at ${VENV_DIR}"
+      return 1
+    fi
+
+    echo "[mini] Installing Python dependencies from pyproject.toml with uv..."
+    # Use uv to install session_py (and its dependencies) into this environment
+    ( cd "${REPO_ROOT}/session_py" && uv pip install --python "${PYTHON}" -e . pytest ) || {
+      echo "[mini] Failed to install Python dependencies with uv."
+      return 1
+    }
+
     return 0
   fi
 
-  echo "[mini] Creating Python environment at ${VENV_DIR}..."
-
-  if command -v uv >/dev/null 2>&1; then
-    ( cd "${REPO_ROOT}" && uv venv uvsession )
-  elif command -v python3 >/dev/null 2>&1; then
-    ( cd "${REPO_ROOT}" && python3 -m venv uvsession )
-  else
-    echo "[mini] Neither 'uv' nor 'python3' is available; cannot create Python environment."
-    return 1
+  # Fallback: use system python3 + venv + pip if uv is not available
+  if [ ! -x "${PYTHON}" ]; then
+    echo "[mini] Creating Python environment at ${VENV_DIR} with python3 -m venv..."
+    if command -v python3 >/dev/null 2>&1; then
+      ( cd "${REPO_ROOT}" && python3 -m venv uvsession ) || {
+        echo "[mini] python3 -m venv failed."
+        return 1
+      }
+    else
+      echo "[mini] Neither 'uv' nor 'python3' is available; cannot create Python environment."
+      return 1
+    fi
   fi
 
   if [ ! -x "${PYTHON}" ]; then
@@ -33,6 +71,7 @@ ensure_python_env() {
     return 1
   fi
 
+  echo "[mini] Installing session_py and pytest into Python environment (pip)..."
   "${PYTHON}" -m pip install -e "${REPO_ROOT}/session_py" pytest >/dev/null 2>&1 || {
     echo "[mini] Failed to install session_py/pytest into Python environment."
     return 1
@@ -184,7 +223,8 @@ fi
 ( cd "${SCRIPT_DIR}" && npm run dev >/dev/null 2>&1 & )
 sleep 2
 
-WEBSITE_URL="http://localhost:${PORT}/"
+# Use the configured Vite base path so refresh works without warnings
+WEBSITE_URL="http://localhost:${PORT}/session/tests?suite=point_test"
 
 echo "[mini] Opening results website at ${WEBSITE_URL}..."
 if command -v xdg-open >/dev/null 2>&1; then
