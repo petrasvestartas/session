@@ -2,10 +2,457 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Session mini tests</title>
-  <meta http-equiv="refresh" content="0; url=./website/" />
+  <title>Mini Test Results Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Minimal styling -->
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      background: #f5f5f7;
+      color: #222;
+      font-size: 14px; /* base size for all text */
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: inherit;
+    }
+    .subtitle {
+      margin-bottom: 1rem;
+      color: #555;
+      font-size: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    th, td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #e0e0e0;
+      border-right: 1px solid #e0e0e0;  /* vertical separators */
+      vertical-align: top;
+      font-size: inherit;
+    }
+    th {
+      background: #fafafa;
+      text-align: left;
+      font-weight: 600;
+    }
+    th:last-child,
+    td:last-child {
+      border-right: none;  /* no extra line on far right edge */
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: inherit;
+      font-weight: 600;
+      text-transform: none;
+    }
+    .tag-lang {
+      background: #eef;
+      color: #334;
+    }
+    .tag-pass {
+      background: #e3f9e5;
+      color: #000000;
+    }
+    .tag-fail {
+      background: #fdecea;
+      color: #b00020;
+    }
+    pre {
+      margin: 0.25rem 0 0.5rem 0;
+      max-height: 240px;
+      overflow: auto;
+      background: #ffffff; /* pure white */
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      font-size: inherit;
+    }
+    code {
+      font-family: inherit;
+      font-size: inherit;
+    }
+    pre code {
+      font-family: inherit;
+      font-size: inherit;
+    }
+    .failures {
+      margin-top: 0.35rem;
+      font-size: inherit;
+      color: #b00020;
+    }
+    .failures table {
+      box-shadow: none;
+      background: transparent;
+    }
+    .failures th, .failures td {
+      border-bottom: none;
+      padding: 0.15rem 0.25rem;
+    }
+    .filters {
+      margin-bottom: 0.75rem;
+      font-size: inherit;
+      color: #555;
+    }
+    .layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .sidebar {
+      width: 180px;
+      flex-shrink: 0;
+    }
+    .sidebar-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .suite-pill {
+      display: block;
+      padding: 0.2rem 0.6rem;
+      margin-bottom: 0.25rem;
+      border-radius: 0.25rem; /* square-ish, like status tags */
+      border: 1px solid #d0d0d0; /* soft grey border */
+      background: #f0f0f0;      /* light grey */
+      color: #000000;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .suite-pill.active {
+      background: #2563eb;    /* stronger blue for active */
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+    .main {
+      padding-top: 1.3rem;
+      flex: 1;
+    }
+    .lang-col {
+      width: 33.33%;
+    }
+    .test-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .test-card .tag {
+      align-self: flex-end;
+      text-align: right;
+    }
+    .file-name {
+      font-size: inherit;
+      color: #777;
+    }
+    .missing {
+      font-size: 0.8rem;
+      color: #bbb;
+      font-style: italic;
+    }
+
+    /* Force highlight.js to use only blue shades (override theme colors) */
+    .hljs {
+      color: #002050 !important; /* base text in code blocks */
+    }
+
+    .hljs-keyword,
+    .hljs-built_in,
+    .hljs-type,
+    .hljs-title,
+    .hljs-title.class_,
+    .hljs-title.function_,
+    .hljs-variable.language_ {
+      /* Primary strong blue for keywords/types */
+      color: #0050d7 !important;
+      font-weight: 600;
+    }
+
+    .hljs-property,
+    .hljs-variable,
+    .hljs-attribute,
+    .hljs-attr,
+    .hljs-params,
+    .hljs-symbol,
+    .hljs-meta {
+      /* Slightly darker blue for names / properties / meta */
+      color: #003c99 !important;
+    }
+
+    .hljs-string,
+    .hljs-char,
+    .hljs-template-variable {
+      /* Softer blue for strings and template vars */
+      color: #1a66cc !important;
+    }
+
+    .hljs-number,
+    .hljs-literal,
+    .hljs-operator {
+      /* Lighter blue for numeric / boolean literals and operators */
+      color: #3399ff !important;
+    }
+
+    .hljs-comment {
+      /* Muted blue-grey for comments */
+      color: #5c6f91 !important;
+      font-style: italic;
+    }
+  </style>
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- highlight.js (Atom One light theme, more colorful) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-  <p>Redirecting to <a href="./website/">Session mini-test viewer</a>...</p>
+  <div id="app">
+    <div class="layout">
+      <aside class="sidebar" v-if="suites.length">
+        <div class="sidebar-title">Tests</div>
+        <div>
+          <div v-for="s in suites" :key="s"
+               :class="['suite-pill', { active: s === activeSuite }]"
+               @click="activeSuite = s">
+            {{ s }}
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+
+        <table v-if="groupedTests.length">
+          <thead>
+            <tr>
+              <th>Python</th>
+              <th>C++</th>
+              <th>Rust</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="g in groupedTests" :key="g.name">
+          <!-- Python column -->
+          <td class="lang-col">
+            <div v-if="g.python" class="test-card">
+              <div><strong>{{ g.name }}</strong></div>
+              <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
+                {{ g.python.passed ? 'passed' : 'failed' }} ({{ g.python.time_ms.toFixed ? g.python.time_ms.toFixed(3) : g.python.time_ms }} ms)
+              </div>
+              <pre v-if="g.python.code">
+<code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code>
+              </pre>
+              <div class="failures" v-if="!g.python.passed">
+                <div><strong>Failing checks:</strong></div>
+                <ul>
+                  <li v-for="c in failingChecks(g.python)" :key="'py-' + g.name + ':' + c.line + ':' + c.code_line">
+                    line {{ c.line }}:
+                    <code :class="codeClass(g.python)" v-html="highlightedCheck(c, 'python')"></code>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="missing">– {{ g.name }}</div>
+          </td>
+
+          <!-- C++ column -->
+          <td class="lang-col">
+            <div v-if="g.cpp" class="test-card">
+              <div><strong>{{ g.name }}</strong></div>
+              <div :class="['tag', g.cpp.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'cpp')">
+                {{ g.cpp.passed ? 'passed' : 'failed' }} ({{ g.cpp.time_ms.toFixed ? g.cpp.time_ms.toFixed(3) : g.cpp.time_ms }} ms)
+              </div>
+              <pre v-if="g.cpp.code">
+<code :class="codeClass(g.cpp)" v-html="highlightedCode(g.cpp)"></code>
+              </pre>
+              <div class="failures" v-if="!g.cpp.passed">
+                <div><strong>Failing checks:</strong></div>
+                <ul>
+                  <li v-for="c in failingChecks(g.cpp)" :key="'cpp-' + g.name + ':' + c.line + ':' + c.code_line">
+                    line {{ c.line }}:
+                    <code :class="codeClass(g.cpp)" v-html="highlightedCheck(c, 'cpp')"></code>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="missing">– {{ g.name }}</div>
+          </td>
+
+          <!-- Rust column -->
+          <td class="lang-col">
+            <div v-if="g.rust" class="test-card">
+              <div><strong>{{ g.name }}</strong></div>
+              <div :class="['tag', g.rust.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'rust')">
+                {{ g.rust.passed ? 'passed' : 'failed' }} ({{ g.rust.time_ms.toFixed ? g.rust.time_ms.toFixed(3) : g.rust.time_ms }} ms)
+              </div>
+              <pre v-if="g.rust.code">
+<code :class="codeClass(g.rust)" v-html="highlightedCode(g.rust)"></code>
+              </pre>
+              <div class="failures" v-if="!g.rust.passed">
+                <div><strong>Failing checks:</strong></div>
+                <ul>
+                  <li v-for="c in failingChecks(g.rust)" :key="'rs-' + g.name + ':' + c.line + ':' + c.code_line">
+                    line {{ c.line }}:
+                    <code :class="codeClass(g.rust)" v-html="highlightedCheck(c, 'rust')"></code>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="missing">– {{ g.name }}</div>
+          </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div v-else>
+          No test results loaded yet. Make sure you ran <code>session_tests/minitest.sh</code> and that your browser is serving this folder via HTTP (not directly from file://).
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const tests = ref([]);
+        const activeSuite = ref("point_test");
+
+        const sources = [
+          { path: "./session_py/point_test.json", language: "python" },
+          { path: "./session_cpp/point_test.json", language: "cpp" },
+          { path: "./session_rust/point_test.json", language: "rust" },
+          { path: "./session_py/color_test.json", language: "python" },
+          { path: "./session_cpp/color_test.json", language: "cpp" },
+          { path: "./session_rust/color_test.json", language: "rust" },
+        ];
+
+        const load = async () => {
+          const all = [];
+
+          for (const src of sources) {
+            try {
+              const resp = await fetch(src.path);
+              if (!resp.ok) continue;
+              const data = await resp.json();
+              const fileName = src.path.split("/").pop() || src.path;
+
+              (data || []).forEach((t, idx) => {
+                const suite = fileName.replace(/\.json$/i, "");
+                all.push({
+                  id: `${fileName}:${t.test_name}:${idx}`,
+                  fileName,
+                  suite,
+                  language: src.language,
+                  ...t,
+                });
+              });
+            } catch (e) {
+              console.error("Failed to load", src.path, e);
+            }
+          }
+
+          tests.value = all;
+        };
+
+        const suites = computed(() => {
+          const set = new Set();
+          for (const t of tests.value) {
+            if (t.suite) set.add(t.suite);
+          }
+          return Array.from(set.values());
+        });
+
+        const groupedTests = computed(() => {
+          const byName = new Map();
+          for (const t of tests.value) {
+            if (t.suite !== activeSuite.value) continue;
+            const name = t.test_name || "(unnamed)";
+            if (!byName.has(name)) {
+              byName.set(name, { name, python: null, cpp: null, rust: null });
+            }
+            const entry = byName.get(name);
+            if (t.language === "python") entry.python = t;
+            if (t.language === "cpp") entry.cpp = t;
+            if (t.language === "rust") entry.rust = t;
+          }
+          return Array.from(byName.values());
+        });
+
+        const codeClass = (t) => {
+          // Add 'hljs' so the highlight.js theme CSS applies colors
+          if (!t || !t.language) return "hljs";
+          if (t.language === "python") return "hljs language-python";
+          if (t.language === "cpp") return "hljs language-cpp";
+          if (t.language === "rust") return "hljs language-rust";
+          return "hljs";
+        };
+
+        const highlightedCode = (t) => {
+          if (!t || !t.code) return "";
+          try {
+            const lang = t.language || "";
+            if (!lang) return t.code;
+            const result = hljs.highlight(t.code, { language: lang });
+            return result.value;
+          } catch (e) {
+            return t.code;
+          }
+        };
+
+        const timeStyle = (group, lang) => {
+          const t = group[lang];
+          if (!t || typeof t.time_ms !== "number") return {};
+
+          const times = [group.python, group.cpp, group.rust]
+            .filter(x => x && typeof x.time_ms === "number")
+            .map(x => x.time_ms);
+          if (!times.length) return {};
+
+          const min = Math.min(...times);
+          const max = Math.max(...times);
+
+          // If all times equal, use a neutral very light green
+          if (max === min) {
+            return { background: "hsl(140, 60%, 92%)" };
+          }
+
+          const value = t.time_ms;
+          let ratio = (value - min) / (max - min); // 0 fastest .. 1 slowest
+          if (ratio < 0) ratio = 0;
+          if (ratio > 1) ratio = 1;
+
+          // Simple gradient: green (fastest) -> blue (slowest)
+          const start = { h: 140, s: 60,  l: 90 }; // green
+          const end   = { h: 210, s: 80,  l: 88 }; // blue
+
+          const h = start.h + (end.h - start.h) * ratio;
+          const s = start.s + (end.s - start.s) * ratio;
+          const l = start.l + (end.l - start.l) * ratio;
+
+          return { background: `hsl(${h}, ${s}%, ${l}%)` };
+        };
+
+        const failingChecks = (t) => {
+          if (!t.checks) return [];
+          return t.checks.filter(c => c && c.passed === false);
+        };
+
+        onMounted(load);
+
+        return { tests, groupedTests, codeClass, highlightedCode, timeStyle, failingChecks, activeSuite, suites };
+      },
+    }).mount("#app");
+  </script>
 </body>
 </html>

@@ -127,9 +127,9 @@ start_http_server() {
 start_http_server
 sleep 1
 
-# When served from session_tests/, the site is at /website/
-WEBSITE_URL="http://localhost:${PORT}/website/"
-WEBSITE_FILE="${SCRIPT_DIR}/website/index.html"
+# When served from session_tests/, the site root serves index.html
+WEBSITE_URL="http://localhost:${PORT}/"
+WEBSITE_FILE="${SCRIPT_DIR}/index.html"
 
 if command -v xdg-open >/dev/null 2>&1; then
   xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || \
