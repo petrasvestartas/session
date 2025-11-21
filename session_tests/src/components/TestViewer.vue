@@ -10,15 +10,30 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="g in groupedTests" :key="g.name">
-            <!-- Python column -->
-            <td class="lang-col">
+          <template v-for="g in groupedTests" :key="g.name">
+            <tr class="test-name-row">
+              <td :colspan="3">
+                <strong>{{ g.name }}</strong>
+              </td>
+            </tr>
+            <tr>
+              <!-- Python column -->
+              <td class="lang-col">
               <div v-if="g.python" class="test-card">
-                <div><strong>{{ g.name }}</strong></div>
                 <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
                   {{ g.python.passed ? 'passed' : 'failed' }} ({{ formatTime(g.python.time_ms) }} ms)
                 </div>
-                <pre v-if="g.python.code"><code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code></pre>
+                <div v-if="g.python.code" class="code-shell">
+                  <button
+                    class="code-copy-btn"
+                    type="button"
+                    @click="copyCode(g.python)"
+                    title="Copy code"
+                    aria-label="Copy code"
+                  >
+                  </button>
+                  <pre><code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code></pre>
+                </div>
                 <div class="failures" v-if="!g.python.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
@@ -44,17 +59,26 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="missing">– {{ g.name }}</div>
+              <div v-else class="missing">–</div>
             </td>
 
             <!-- C++ column -->
             <td class="lang-col">
               <div v-if="g.cpp" class="test-card">
-                <div><strong>{{ g.name }}</strong></div>
                 <div :class="['tag', g.cpp.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'cpp')">
                   {{ g.cpp.passed ? 'passed' : 'failed' }} ({{ formatTime(g.cpp.time_ms) }} ms)
                 </div>
-                <pre v-if="g.cpp.code"><code :class="codeClass(g.cpp)" v-html="highlightedCode(g.cpp)"></code></pre>
+                <div v-if="g.cpp.code" class="code-shell">
+                  <button
+                    class="code-copy-btn"
+                    type="button"
+                    @click="copyCode(g.cpp)"
+                    title="Copy code"
+                    aria-label="Copy code"
+                  >
+                  </button>
+                  <pre><code :class="codeClass(g.cpp)" v-html="highlightedCode(g.cpp)"></code></pre>
+                </div>
                 <div class="failures" v-if="!g.cpp.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
@@ -80,17 +104,26 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="missing">– {{ g.name }}</div>
+              <div v-else class="missing">–</div>
             </td>
 
             <!-- Rust column -->
             <td class="lang-col">
               <div v-if="g.rust" class="test-card">
-                <div><strong>{{ g.name }}</strong></div>
                 <div :class="['tag', g.rust.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'rust')">
                   {{ g.rust.passed ? 'passed' : 'failed' }} ({{ formatTime(g.rust.time_ms) }} ms)
                 </div>
-                <pre v-if="g.rust.code"><code :class="codeClass(g.rust)" v-html="highlightedCode(g.rust)"></code></pre>
+                <div v-if="g.rust.code" class="code-shell">
+                  <button
+                    class="code-copy-btn"
+                    type="button"
+                    @click="copyCode(g.rust)"
+                    title="Copy code"
+                    aria-label="Copy code"
+                  >
+                  </button>
+                  <pre><code :class="codeClass(g.rust)" v-html="highlightedCode(g.rust)"></code></pre>
+                </div>
                 <div class="failures" v-if="!g.rust.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
@@ -116,9 +149,10 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="missing">– {{ g.name }}</div>
+              <div v-else class="missing">–</div>
             </td>
           </tr>
+          </template>
         </tbody>
       </table>
 
@@ -178,18 +212,32 @@ const formatTime = (time_ms) => {
 
 const normalizeForDisplay = (code) => {
   if (!code) return ""
-  return code
-    .split('\n')
-    .map((line) => {
-      const m = line.match(/^(\s*)\/\/\s*uncomment\s+(.*)$/)
-      if (m) {
-        const indent = m[1]
-        const rest = m[2]
-        return indent + rest
-      }
-      return line
-    })
-    .join('\n')
+
+  // First, apply any inline transformations (e.g. uncomment markers)
+  const lines = code.split('\n').map((line) => {
+    const m = line.match(/^(\s*)\/\/\s*uncomment\s+(.*)$/)
+    if (m) {
+      const indent = m[1]
+      const rest = m[2]
+      return indent + rest
+    }
+    return line
+  })
+
+  // Then, strip the common leading indentation so code is visually flush-left
+  let minIndent = Infinity
+  for (const line of lines) {
+    if (!line.trim()) continue
+    const m = line.match(/^(\s*)/)
+    const indent = m ? m[1].length : 0
+    if (indent < minIndent) minIndent = indent
+  }
+
+  if (!Number.isFinite(minIndent) || minIndent === 0) {
+    return lines.join('\n')
+  }
+
+  return lines.map((line) => (line.length >= minIndent ? line.slice(minIndent) : line)).join('\n')
 }
 
 const codeClass = (t) => {
@@ -277,6 +325,18 @@ const highlightedFailureCode = (failure, lang) => {
     return failure.code_line
   }
 }
+
+const copyCode = (t) => {
+  if (!t || !t.code) return
+  const text = normalizeForDisplay(t.code)
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+    }
+  } catch (e) {
+    console.error('Failed to copy code', e)
+  }
+}
 </script>
 
 <style scoped>
@@ -327,7 +387,7 @@ table {
   border-collapse: collapse;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  table-layout: fixed; /* ensure 3 equal-width columns regardless of content */
+  table-layout: fixed;
 }
 th, td {
   padding: 0.5rem 0.75rem;
@@ -358,15 +418,49 @@ th:last-child, td:last-child {
   color: #b00020;
 }
 pre {
-  margin: 0.25rem 0 0.5rem 0;
-  background: #ffffff;
-  border-radius: 4px;
-  padding: 0.5rem 0.75rem;
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
 }
 .test-card pre code {
   white-space: pre-wrap;      /* allow wrapping of long lines */
   word-wrap: break-word;
   overflow-wrap: anywhere;
+}
+.code-shell {
+  position: relative;
+  margin: 0.25rem 0 0.5rem 0;
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.code-shell pre {
+  margin: 0;
+  padding: 0;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: #2563eb; /* same blue as sidebar/top layout */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0;
+  line-height: 0;
+}
+
+.code-copy-btn:hover {
+  background: #1d4ed8; /* slightly darker blue on hover */
 }
 .failures {
   margin-top: 0.35rem;
@@ -391,6 +485,10 @@ pre {
   font-size: 0.8rem;
   color: #bbb;
   font-style: italic;
+}
+.test-name-row td {
+  padding-top: 0.75rem;
+  font-weight: 600;
 }
 .lang-col {
   width: 33.33%;
