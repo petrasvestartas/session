@@ -1,84 +1,79 @@
 [
   {
-    "test_name": "constructor",
+    "test_name": "constructor, setters, getters, string, copy, operators",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.065,
     "line": 9,
-    "code": "    #include \"point.h\"\n    Point p(1.0, 2.0, 3.0);\n    p[0] = 10.0;\n",
+    "code": "    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    using namespace session_cpp;\n\n    // Constructor\n    Point p(1.0, 2.0, 3.0);\n\n    // Setters\n    p[0] = 10.0;\n    p[1] = 20.0;\n    p[2] = 30.0;\n\n    // Getters\n    double x = p[0];\n    double y = p[1];\n    double z = p[2];\n\n    // String representation\n    std::string pstr = p.str(); \n    std::string prepr = p.repr();\n\n    // Copy (duplicate everything but guid)\n    Point pcopy = p;\n    Point pother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Point pmult = p;\n    pmult *= 2.0;\n    Point pdiv = p;\n    pdiv /= 2.0;\n    Point padd = p;\n    padd += Vector(1.0, 1.0, 1.0);\n    Point psub = p;\n    psub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Point result_mul = p * 2.0;\n    Point result_div = p / 2.0;\n    Point result_add = p + Vector(1.0, 1.0, 1.0); // Only Vector\n    Point diff_point = p - Vector(1.0, 1.0, 1.0); // Only Vector\n",
     "checks": [
       {
-        "line": 15,
-        "code_line": "p.name == \"my_point\"",
+        "line": 52,
+        "code_line": "p.name == \"my_point\" && p[0] == 10.0 && p[1] == 20.0 && p[2] == 30.0 && p.width == 1.0 && p.pointcolor == Color::blue() && !p.guid.empty()",
         "passed": true
       },
       {
-        "line": 16,
-        "code_line": "!p.guid.empty()",
+        "line": 62,
+        "code_line": "x == 10.0 && y == 20.0 && z == 30.0",
         "passed": true
       },
       {
-        "line": 17,
-        "code_line": "p[0] == 10.0",
+        "line": 64,
+        "code_line": "pstr == \"10.000000, 20.000000, 30.000000\"",
         "passed": true
       },
       {
-        "line": 18,
-        "code_line": "p[1] == 2.0",
+        "line": 65,
+        "code_line": "prepr == \"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 255, 255), 1.000000)\"",
         "passed": true
       },
       {
-        "line": 19,
-        "code_line": "p[2] == 3.0",
+        "line": 66,
+        "code_line": "pcopy == p && pcopy.guid != p.guid",
         "passed": true
       },
       {
-        "line": 20,
-        "code_line": "p.width == 1.0",
+        "line": 67,
+        "code_line": "pother != p",
         "passed": true
       },
       {
-        "line": 21,
-        "code_line": "p.pointcolor == Color::white()",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "equality_equal",
-    "passed": true,
-    "time_ms": 0.016,
-    "line": 24,
-    "code": "    Point p1(1.0, 2.0, 3.0);\n    Point p2(1.0, 2.0, 3.0);\n\n    bool eq_result = (p1 == p2);\n    bool neq_result = (p1 != p2);\n",
-    "checks": [
-      {
-        "line": 31,
-        "code_line": "eq_result == true",
+        "line": 69,
+        "code_line": "pmult[0] == 20.0 && pmult[1] == 40.0 && pmult[2] == 60.0",
         "passed": true
       },
       {
-        "line": 32,
-        "code_line": "neq_result == false",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "equality_not_equal",
-    "passed": true,
-    "time_ms": 0.014,
-    "line": 35,
-    "code": "    Point p3(1.0, 2.0, 3.0);\n    Point p4(1.1, 2.0, 3.0);\n\n    bool eq_result = (p3 == p4);\n    bool neq_result = (p3 != p4);\n",
-    "checks": [
-      {
-        "line": 42,
-        "code_line": "eq_result == false",
+        "line": 70,
+        "code_line": "pdiv[0] == 5.0 && pdiv[1] == 10.0 && pdiv[2] == 15.0",
         "passed": true
       },
       {
-        "line": 43,
-        "code_line": "neq_result == true",
+        "line": 71,
+        "code_line": "padd[0] == 11.0 && padd[1] == 21.0 && padd[2] == 31.0",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "psub[0] == 9.0 && psub[1] == 19.0 && psub[2] == 29.0",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "diff_point[0] == 9.0 && diff_point[1] == 19.0 && diff_point[2] == 29.0",
         "passed": true
       }
     ],

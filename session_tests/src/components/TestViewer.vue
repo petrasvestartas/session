@@ -176,6 +176,22 @@ const formatTime = (time_ms) => {
   return typeof time_ms === 'number' && time_ms.toFixed ? time_ms.toFixed(3) : time_ms
 }
 
+const normalizeForDisplay = (code) => {
+  if (!code) return ""
+  return code
+    .split('\n')
+    .map((line) => {
+      const m = line.match(/^(\s*)\/\/\s*uncomment\s+(.*)$/)
+      if (m) {
+        const indent = m[1]
+        const rest = m[2]
+        return indent + rest
+      }
+      return line
+    })
+    .join('\n')
+}
+
 const codeClass = (t) => {
   if (!t || !t.language) return "hljs"
   if (t.language === "python") return "hljs language-python"
@@ -186,13 +202,14 @@ const codeClass = (t) => {
 
 const highlightedCode = (t) => {
   if (!t || !t.code) return ""
+  const displayCode = normalizeForDisplay(t.code)
   try {
     const lang = t.language || ""
-    if (!lang) return t.code
-    const result = hljs.highlight(t.code, { language: lang })
+    if (!lang) return displayCode
+    const result = hljs.highlight(displayCode, { language: lang })
     return result.value
   } catch (e) {
-    return t.code
+    return displayCode
   }
 }
 
