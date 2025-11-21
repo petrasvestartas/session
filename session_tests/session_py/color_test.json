@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.016,
     "line": 5,
     "code": "    red = Color(255, 0, 0, 255, \"red\")",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "equality_equal",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.017,
     "line": 16,
     "code": "    c1 = Color(0, 100, 50, 200)\n    c2 = Color(0, 100, 50, 200)\n\n    eq_result = (c1 == c2)\n    neq_result = (c1 != c2)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "equality_not_equal",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 28,
     "code": "    c3 = Color(0, 100, 50, 200)\n    c4 = Color(1, 100, 50, 200)\n\n    eq_result = (c3 == c4)\n    neq_result = (c3 != c4)",
     "checks": [
