@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.065,
     "line": 15,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str(); \n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0); // Only Vector\n        Point diff_point = p - Vector(1.0, 1.0, 1.0); // Only Vector\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.009,
     "line": 85,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Point p(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        Point p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
@@ -107,9 +107,9 @@
   {
     "test_name": "is_ccw",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.007,
     "line": 99,
-    "code": "        // Points must be oriented to xy plane.\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(1.0, 0.0, 0.0);\n        Point p2(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        bool is_counter_clock_wise = Point::is_ccw(p0, p1, p2);\n        bool is_clock_wise = Point::is_ccw(p2, p1, p0);\n",
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(1.0, 0.0, 0.0);\n        Point p2(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        bool is_counter_clock_wise = Point::is_ccw(p0, p1, p2);\n        bool is_clock_wise = Point::is_ccw(p2, p1, p0);\n",
     "checks": [
       {
         "line": 110,
@@ -127,7 +127,7 @@
   {
     "test_name": "mid_point",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.007,
     "line": 114,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);\n",
     "checks": [
@@ -142,12 +142,12 @@
   {
     "test_name": "distance",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.006,
     "line": 124,
-    "code": "        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double d = std::round(Point::distance(p0, p1) * factor) / factor;\n",
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double d = std::round(Point::distance(p0, p1) * factor) / factor;\n",
     "checks": [
       {
-        "line": 132,
+        "line": 134,
         "code_line": "d == 3.741657",
         "passed": true
       }
@@ -157,12 +157,12 @@
   {
     "test_name": "squared_distance",
     "passed": true,
-    "time_ms": 0.014,
-    "line": 135,
-    "code": "        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double d = std::round(Point::squared_distance(p0, p1) * factor) / factor;\n",
+    "time_ms": 0.005,
+    "line": 137,
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double d = std::round(Point::squared_distance(p0, p1) * factor) / factor;\n",
     "checks": [
       {
-        "line": 143,
+        "line": 147,
         "code_line": "d == 14.0",
         "passed": true
       }
@@ -172,12 +172,12 @@
   {
     "test_name": "area",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 146,
-    "code": "        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        double area = Point::area(pts);\n",
+    "time_ms": 0.011,
+    "line": 150,
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include <vector>\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        double area = Point::area(pts);\n",
     "checks": [
       {
-        "line": 156,
+        "line": 162,
         "code_line": "area == 4.0",
         "passed": true
       }
@@ -187,12 +187,12 @@
   {
     "test_name": "centroid_quad",
     "passed": true,
-    "time_ms": 0.073,
-    "line": 159,
-    "code": "        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        Point centroid = Point::centroid_quad(pts);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double x = std::round(centroid[0] * factor) / factor;\n        double y = std::round(centroid[1] * factor) / factor;\n        double z = std::round(centroid[2] * factor) / factor;\n",
+    "time_ms": 0.021,
+    "line": 165,
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n        // uncomment #include <vector>\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        Point centroid = Point::centroid_quad(pts);\n\n        double factor = std::pow(10.0, static_cast<int>(Tolerance::ROUNDING));\n        double x = std::round(centroid[0] * factor) / factor;\n        double y = std::round(centroid[1] * factor) / factor;\n        double z = std::round(centroid[2] * factor) / factor;\n",
     "checks": [
       {
-        "line": 174,
+        "line": 183,
         "code_line": "x == 1.0 && y == 1.0 && z == 1.0",
         "passed": true
       }
@@ -202,52 +202,107 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.088,
-    "line": 177,
-    "code": "        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point_cpp.json\";\n        encoders::json_dump(p, filename);\n        Point loaded = encoders::json_load<Point>(filename);\n",
+    "time_ms": 0.144,
+    "line": 186,
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include \"encoders.h\"\n        // uncomment #include <filesystem>\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.json\";\n        encoders::json_dump(p, filename);\n        Point loaded = encoders::json_load<Point>(filename);\n",
     "checks": [
       {
-        "line": 188,
+        "line": 201,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 189,
+        "line": 202,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 190,
+        "line": 203,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 191,
+        "line": 204,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 192,
+        "line": 205,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 193,
+        "line": 206,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 194,
+        "line": 207,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 195,
+        "line": 208,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 209,
+        "code_line": "loaded.pointcolor.a == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 0.09,
+    "line": 214,
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.bin\";\n        p.protobuf_dump(filename);\n        Point loaded = Point::protobuf_load(filename);\n",
+    "checks": [
+      {
+        "line": 227,
+        "code_line": "loaded.name == p.name",
+        "passed": true
+      },
+      {
+        "line": 228,
+        "code_line": "loaded[0] == p[0]",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "loaded[1] == p[1]",
+        "passed": true
+      },
+      {
+        "line": 230,
+        "code_line": "loaded[2] == p[2]",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "loaded.width == p.width",
+        "passed": true
+      },
+      {
+        "line": 232,
+        "code_line": "loaded.pointcolor.r == 255",
+        "passed": true
+      },
+      {
+        "line": 233,
+        "code_line": "loaded.pointcolor.g == 128",
+        "passed": true
+      },
+      {
+        "line": 234,
+        "code_line": "loaded.pointcolor.b == 64",
+        "passed": true
+      },
+      {
+        "line": 235,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }

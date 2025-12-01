@@ -159,6 +159,42 @@
       <div v-else>
         No test results loaded yet. Make sure you ran <code>minitest.sh</code>.
       </div>
+
+      <!-- JSON Artifacts Section -->
+      <div v-if="hasArtifacts" class="artifacts-section">
+        <h3>JSON Output (test_point.json)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Python</th>
+              <th>C++</th>
+              <th>Rust</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="lang-col">
+                <div v-if="artifacts.python" class="artifact-card">
+                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.python)"></code></pre>
+                </div>
+                <div v-else class="missing">–</div>
+              </td>
+              <td class="lang-col">
+                <div v-if="artifacts.cpp" class="artifact-card">
+                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.cpp)"></code></pre>
+                </div>
+                <div v-else class="missing">–</div>
+              </td>
+              <td class="lang-col">
+                <div v-if="artifacts.rust" class="artifact-card">
+                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.rust)"></code></pre>
+                </div>
+                <div v-else class="missing">–</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
   </div>
 </template>
@@ -169,11 +205,13 @@ import hljs from 'highlight.js/lib/core'
 import python from 'highlight.js/lib/languages/python'
 import cpp from 'highlight.js/lib/languages/cpp'
 import rust from 'highlight.js/lib/languages/rust'
+import json from 'highlight.js/lib/languages/json'
 
 // Register languages
 hljs.registerLanguage('python', python)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('json', json)
 
 const props = defineProps({
   tests: { type: Array, required: true },
@@ -337,6 +375,37 @@ const copyCode = (t) => {
     console.error('Failed to copy code', e)
   }
 }
+
+// JSON artifacts (test_point.json files from each language)
+const artifacts = computed(() => {
+  if (typeof window.TEST_DATA === 'undefined') return { python: null, cpp: null, rust: null }
+  const data = window.TEST_DATA
+  
+  // Get artifact based on active suite (e.g., point_test -> test_point)
+  const suiteName = props.activeSuite.replace('_test', '')
+  const artifactName = `test_${suiteName}`
+  
+  return {
+    python: data[`artifact_${artifactName}_python`] || null,
+    cpp: data[`artifact_${artifactName}_cpp`] || null,
+    rust: data[`artifact_${artifactName}_rust`] || null
+  }
+})
+
+const hasArtifacts = computed(() => {
+  return artifacts.value.python || artifacts.value.cpp || artifacts.value.rust
+})
+
+const formatJson = (obj) => {
+  if (!obj) return ''
+  try {
+    const jsonStr = JSON.stringify(obj, null, 2)
+    const result = hljs.highlight(jsonStr, { language: 'json' })
+    return result.value
+  } catch (e) {
+    return String(obj)
+  }
+}
 </script>
 
 <style scoped>
@@ -492,6 +561,27 @@ pre {
 }
 .lang-col {
   width: 33.33%;
+}
+.artifacts-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e0e0e0;
+}
+.artifacts-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+.artifact-card {
+  background: #fafafa;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+.artifact-card pre {
+  margin: 0;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 </style>
 
