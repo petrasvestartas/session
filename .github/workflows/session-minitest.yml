@@ -24,8 +24,8 @@ jobs:
     - name: Run mini tests (C++ + Rust, optional Python)
       shell: bash
       run: |
-        chmod +x session_tests/minitest.sh
-        ./session_tests/minitest.sh
+        chmod +x minitest.sh
+        ./minitest.sh
 
     - name: Upload mini-test website as artifact
       uses: actions/upload-artifact@v4
