@@ -2,7 +2,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.197,
+    "time_ms": 0.123,
     "line": 9,
     "code": "   Color original(100, 150, 200, 255);\n   original.name = \"test_color\";\n\n   encoders::json_dump(original, \"test_color.json\");\n   Color loaded = encoders::json_load<Color>(\"test_color.json\");\n",
     "checks": [

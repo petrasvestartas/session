@@ -42,7 +42,7 @@
   {
     "test_name": "equality_equal",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.026,
     "line": 16,
     "code": "    c1 = Color(0, 100, 50, 200)\n    c2 = Color(0, 100, 50, 200)\n\n    eq_result = (c1 == c2)\n    neq_result = (c1 != c2)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "equality_not_equal",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.015,
     "line": 28,
     "code": "    c3 = Color(0, 100, 50, 200)\n    c4 = Color(1, 100, 50, 200)\n\n    eq_result = (c3 == c4)\n    neq_result = (c3 != c4)",
     "checks": [

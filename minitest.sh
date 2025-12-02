@@ -204,6 +204,25 @@ generate_test_data_js() {
     fi
   done
   
+  # Add proto schema files (shared across all languages)
+  local PROTO_DIR="${REPO_ROOT}/session_py/session_proto"
+  local PROTO_FILES=(
+    "point.proto"
+    "color.proto"
+    "xform.proto"
+  )
+  
+  for PROTO_FILE in "${PROTO_FILES[@]}"; do
+    local FULL_PATH="${PROTO_DIR}/${PROTO_FILE}"
+    if [ -f "${FULL_PATH}" ]; then
+      local KEY="proto_${PROTO_FILE%.proto}"
+      echo "," >> "${OUTPUT}"
+      # Escape the proto content for JSON string
+      local CONTENT=$(cat "${FULL_PATH}" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+      echo -n "  \"${KEY}\": \"${CONTENT}\"" >> "${OUTPUT}"
+    fi
+  done
+  
   echo "" >> "${OUTPUT}"
   echo "};" >> "${OUTPUT}"
   

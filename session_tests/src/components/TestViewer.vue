@@ -1,6 +1,7 @@
 <template>
   <div class="test-layout">
     <main class="test-main">
+      <h3 v-if="groupedTests.length" class="section-title">Tests</h3>
       <table v-if="groupedTests.length">
         <thead>
           <tr>
@@ -162,7 +163,7 @@
 
       <!-- JSON Artifacts Section -->
       <div v-if="hasArtifacts" class="artifacts-section">
-        <h3>JSON Output (test_point.json)</h3>
+        <h3 class="section-title">Serialization JSON</h3>
         <table>
           <thead>
             <tr>
@@ -175,18 +176,21 @@
             <tr>
               <td class="lang-col">
                 <div v-if="artifacts.python" class="artifact-card">
+                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.python)" title="Copy JSON"></button>
                   <pre><code class="hljs language-json" v-html="formatJson(artifacts.python)"></code></pre>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
               <td class="lang-col">
                 <div v-if="artifacts.cpp" class="artifact-card">
+                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.cpp)" title="Copy JSON"></button>
                   <pre><code class="hljs language-json" v-html="formatJson(artifacts.cpp)"></code></pre>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
               <td class="lang-col">
                 <div v-if="artifacts.rust" class="artifact-card">
+                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.rust)" title="Copy JSON"></button>
                   <pre><code class="hljs language-json" v-html="formatJson(artifacts.rust)"></code></pre>
                 </div>
                 <div v-else class="missing">–</div>
@@ -194,6 +198,15 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Proto Schema Section -->
+      <div v-if="hasProtoSchemas" class="artifacts-section">
+        <h3 class="section-title">Serialization Protobuf</h3>
+        <div class="artifact-card">
+          <button class="code-copy-btn" type="button" @click="copyProto(protoSchemas[0]?.content)" title="Copy Proto"></button>
+          <pre><code class="hljs language-protobuf" v-html="formatProto(protoSchemas[0]?.content)"></code></pre>
+        </div>
       </div>
     </main>
   </div>
@@ -206,12 +219,14 @@ import python from 'highlight.js/lib/languages/python'
 import cpp from 'highlight.js/lib/languages/cpp'
 import rust from 'highlight.js/lib/languages/rust'
 import json from 'highlight.js/lib/languages/json'
+import protobuf from 'highlight.js/lib/languages/protobuf'
 
 // Register languages
 hljs.registerLanguage('python', python)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('rust', rust)
 hljs.registerLanguage('json', json)
+hljs.registerLanguage('protobuf', protobuf)
 
 const props = defineProps({
   tests: { type: Array, required: true },
@@ -406,6 +421,57 @@ const formatJson = (obj) => {
     return String(obj)
   }
 }
+
+// Proto schemas (shared across all languages)
+const protoSchemas = computed(() => {
+  if (typeof window.TEST_DATA === 'undefined') return []
+  const data = window.TEST_DATA
+  
+  // Get proto schema based on active suite (e.g., point_test -> point.proto)
+  const suiteName = props.activeSuite.replace('_test', '')
+  const schemas = []
+  
+  if (data[`proto_${suiteName}`]) {
+    schemas.push({ name: `${suiteName}.proto`, content: data[`proto_${suiteName}`] })
+  }
+  
+  return schemas
+})
+
+const hasProtoSchemas = computed(() => protoSchemas.value.length > 0)
+
+const formatProto = (content) => {
+  if (!content) return ''
+  try {
+    const result = hljs.highlight(content, { language: 'protobuf' })
+    return result.value
+  } catch (e) {
+    return content
+  }
+}
+
+const copyJson = (obj) => {
+  if (!obj) return
+  try {
+    const text = JSON.stringify(obj, null, 2)
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+    }
+  } catch (e) {
+    console.error('Failed to copy JSON', e)
+  }
+}
+
+const copyProto = (content) => {
+  if (!content) return
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(content)
+    }
+  } catch (e) {
+    console.error('Failed to copy proto', e)
+  }
+}
 </script>
 
 <style scoped>
@@ -567,12 +633,20 @@ pre {
   padding-top: 1rem;
   border-top: 2px solid #e0e0e0;
 }
-.artifacts-section h3 {
+.section-title {
+  background: #2563eb;
+  color: white;
+  padding: 0.5rem 0.75rem;
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
-  color: #333;
+  font-weight: 600;
+  border-radius: 4px;
+}
+.artifacts-section h3 {
+  margin: 0 0 1rem 0;
 }
 .artifact-card {
+  position: relative;
   background: #fafafa;
   border-radius: 4px;
   padding: 0.5rem;
