@@ -2,78 +2,38 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.053,
     "line": 5,
-    "code": "    red = Color(255, 0, 0, 255, \"red\")",
+    "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
     "checks": [
       {
-        "line": 8,
+        "line": 32,
         "code_line": "red.name == \"red\"",
         "passed": true
       },
       {
-        "line": 9,
+        "line": 33,
         "code_line": "red.guid != \"\"",
         "passed": true
       },
       {
-        "line": 10,
-        "code_line": "red.r == 255",
+        "line": 34,
+        "code_line": "red[0] == 255",
         "passed": true
       },
       {
-        "line": 11,
-        "code_line": "red.g == 0",
+        "line": 35,
+        "code_line": "red[1] == 0",
         "passed": true
       },
-      {
-        "line": 12,
-        "code_line": "red.b == 0",
-        "passed": true
-      },
-      {
-        "line": 13,
-        "code_line": "red.a == 255",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "equality_equal",
-    "passed": true,
-    "time_ms": 0.026,
-    "line": 16,
-    "code": "    c1 = Color(0, 100, 50, 200)\n    c2 = Color(0, 100, 50, 200)\n\n    eq_result = (c1 == c2)\n    neq_result = (c1 != c2)",
-    "checks": [
-      {
-        "line": 24,
-        "code_line": "eq_result == True",
-        "passed": true
-      },
-      {
-        "line": 25,
-        "code_line": "neq_result == False",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "equality_not_equal",
-    "passed": true,
-    "time_ms": 0.015,
-    "line": 28,
-    "code": "    c3 = Color(0, 100, 50, 200)\n    c4 = Color(1, 100, 50, 200)\n\n    eq_result = (c3 == c4)\n    neq_result = (c3 != c4)",
-    "checks": [
       {
         "line": 36,
-        "code_line": "eq_result == False",
+        "code_line": "red[2] == 0",
         "passed": true
       },
       {
         "line": 37,
-        "code_line": "neq_result == True",
+        "code_line": "red[3] == 255",
         "passed": true
       }
     ],

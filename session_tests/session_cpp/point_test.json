@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.064,
+    "time_ms": 0.056,
     "line": 15,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str(); \n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0); // Only Vector\n        Point diff_point = p - Vector(1.0, 1.0, 1.0); // Only Vector\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.013,
     "line": 85,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Point p(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        Point p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "mid_point",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 114,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);\n",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.116,
+    "time_ms": 0.112,
     "line": 186,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include \"encoders.h\"\n        // uncomment #include <filesystem>\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.json\";\n        encoders::json_dump(p, filename);\n        Point loaded = encoders::json_load<Point>(filename);\n",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.074,
+    "time_ms": 0.078,
     "line": 214,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.bin\";\n        p.protobuf_dump(filename);\n        Point loaded = Point::protobuf_load(filename);\n",
     "checks": [
