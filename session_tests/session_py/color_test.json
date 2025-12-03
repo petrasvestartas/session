@@ -2,38 +2,258 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.077,
     "line": 5,
     "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
     "checks": [
       {
         "line": 32,
-        "code_line": "red.name == \"red\"",
+        "code_line": "red.name == \"red\" and",
         "passed": true
       },
       {
-        "line": 33,
-        "code_line": "red.guid != \"\"",
+        "line": 40,
+        "code_line": "r == 255 and g == 0 and b == 0 and a == 255",
         "passed": true
       },
       {
-        "line": 34,
-        "code_line": "red[0] == 255",
+        "line": 41,
+        "code_line": "cstr == \"255 == 0",
         "passed": true
       },
       {
-        "line": 35,
-        "code_line": "red[1] == 0",
+        "line": 42,
+        "code_line": "crepr == \"Color(red == 255",
         "passed": true
       },
       {
-        "line": 36,
-        "code_line": "red[2] == 0",
+        "line": 43,
+        "code_line": "ccopy == cother",
         "passed": true
       },
       {
-        "line": 37,
-        "code_line": "red[3] == 255",
+        "line": 44,
+        "code_line": "ccopy.guid != red.guid",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "conversion",
+    "passed": true,
+    "time_ms": 0.044,
+    "line": 47,
+    "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_float_array()\n    ints = Color.from_float(flts[0], flts[1], flts[2], flts[3])",
+    "checks": [
+      {
+        "line": 54,
+        "code_line": "[round(flts[0] == 3)",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "ints == color",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "presets",
+    "passed": true,
+    "time_ms": 0.203,
+    "line": 57,
+    "code": "    from session_py import Color\n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
+    "checks": [
+      {
+        "line": 82,
+        "code_line": "white == Color(255 == 255",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "black == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 84,
+        "code_line": "grey == Color(128 == 128",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "red == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 86,
+        "code_line": "orange == Color(255 == 128",
+        "passed": true
+      },
+      {
+        "line": 87,
+        "code_line": "yellow == Color(255 == 255",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "lime == Color(128 == 255",
+        "passed": true
+      },
+      {
+        "line": 89,
+        "code_line": "green == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "mint == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 91,
+        "code_line": "cyan == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 92,
+        "code_line": "azure == Color(0 == 128",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "blue == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "violet == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "magenta == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "pink == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "maroon == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 98,
+        "code_line": "brown == Color(128 == 64",
+        "passed": true
+      },
+      {
+        "line": 99,
+        "code_line": "olive == Color(128 == 128",
+        "passed": true
+      },
+      {
+        "line": 100,
+        "code_line": "teal == Color(0 == 128",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "navy == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "purple == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "silver == Color(192 == 192",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.38,
+    "line": 106,
+    "code": "    from session_py import Color\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255)\n    color.name = \"test_color\"\n    color.width = 2.0\n    color.color = Color(255, 128, 64, 255)\n\n    path = Path(__file__).resolve().parents[2] / \"test_color.json\"\n    json_dump(color, path)\n    loaded = json_load(path)",
+    "checks": [
+      {
+        "line": 121,
+        "code_line": "isinstance(loaded == Color)",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "loaded.name == \"test_color\"",
+        "passed": true
+      },
+      {
+        "line": 123,
+        "code_line": "loaded[0] == 255",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "loaded[1] == 128",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "loaded[2] == 64",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "loaded[3] == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 20.573,
+    "line": 128,
+    "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255)\n    color.name = \"test_color\"\n    color.width = 2.0\n    color.color = Color(255, 128, 64, 255)\n\n    path = Path(__file__).resolve().parents[2] / \"test_color.bin\"\n    color.protobuf_dump(path)\n    loaded = Color.protobuf_load(path)",
+    "checks": [
+      {
+        "line": 142,
+        "code_line": "isinstance(loaded == Color)",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "loaded.name == \"test_color\"",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "loaded[0] == 255",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "loaded[1] == 128",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "loaded[2] == 64",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "loaded[3] == 255",
         "passed": true
       }
     ],

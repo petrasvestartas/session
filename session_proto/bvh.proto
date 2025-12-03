@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "boundingbox.proto";
+
+// Lightweight AABB for BVH internal use
+message BvhAABB {
+  double cx = 1;  // Center X
+  double cy = 2;  // Center Y
+  double cz = 3;  // Center Z
+  double hx = 4;  // Half-size X
+  double hy = 5;  // Half-size Y
+  double hz = 6;  // Half-size Z
+}
+
+// BVH Node representing a node in the tree
+message BVHNode {
+  int32 left_index = 1;     // Index of left child (-1 if none)
+  int32 right_index = 2;    // Index of right child (-1 if none)
+  int32 object_id = 3;      // Object ID for leaf nodes (-1 for internal nodes)
+  BvhAABB aabb = 4;         // Axis-aligned bounding box
+}
+
+// BVH message representing a spatial acceleration structure
+message BVH {
+  string guid = 1;                  // Unique identifier
+  string name = 2;                  // BVH name
+  repeated BVHNode nodes = 3;       // Flat array of nodes
+  int32 root_index = 4;             // Index of root node
+  double world_size = 5;            // World size for normalization
+  repeated BoundingBox boxes = 6;   // Referenced bounding boxes
+}

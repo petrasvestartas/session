@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Vertex message representing a graph vertex
+message Vertex {
+  string name = 1;       // Vertex name
+  string guid = 2;       // Unique identifier
+  string attribute = 3;  // Vertex attribute data as string
+  int32 index = 4;       // Integer index for the vertex
+}

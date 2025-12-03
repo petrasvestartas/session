@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Xform message representing a 4x4 transformation matrix
+message Xform {
+  repeated double matrix = 1;  // 16 values in column-major order
+  string name = 2;  // Optional transformation name
+}

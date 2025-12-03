@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "line.proto";
+import "plane.proto";
+import "boundingbox.proto";
+import "polyline.proto";
+import "pointcloud.proto";
+import "mesh.proto";
+import "cylinder.proto";
+import "arrow.proto";
+
+// Objects message representing a collection of all geometry types
+message Objects {
+  string name = 1;                          // Objects collection name
+  string guid = 2;                          // Unique identifier
+  repeated Point points = 3;                // Collection of points
+  repeated Line lines = 4;                  // Collection of lines
+  repeated Plane planes = 5;                // Collection of planes
+  repeated BoundingBox bboxes = 6;          // Collection of bounding boxes
+  repeated Polyline polylines = 7;          // Collection of polylines
+  repeated PointCloud pointclouds = 8;      // Collection of point clouds
+  repeated Mesh meshes = 9;                 // Collection of meshes
+  repeated Cylinder cylinders = 10;         // Collection of cylinders
+  repeated Arrow arrows = 11;               // Collection of arrows
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Encoders message for serialization metadata and options
+message EncoderOptions {
+  bool pretty = 1;           // Pretty-print format (for JSON compatibility)
+  int32 indent = 2;          // Indentation level
+  string format = 3;         // Format type ("json", "protobuf", etc.)
+  bool compress = 4;         // Enable compression
+}
+
+// Generic serialized data container
+message SerializedData {
+  string type = 1;                // Type name of serialized object
+  bytes data = 2;                 // Serialized binary data
+  EncoderOptions options = 3;     // Encoding options used
+  string version = 4;             // Serialization format version
+}

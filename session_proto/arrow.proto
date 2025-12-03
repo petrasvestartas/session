@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "line.proto";
+import "mesh.proto";
+import "xform.proto";
+
+// Arrow message representing an arrow geometry
+message Arrow {
+  string guid = 1;      // Unique identifier
+  string name = 2;      // Arrow name
+  double radius = 3;    // Radius of arrow body
+  Line line = 4;        // Centerline of the arrow
+  Mesh mesh = 5;        // Generated arrow mesh (cylinder body + cone head)
+  Xform xform = 6;      // Transformation matrix
+}

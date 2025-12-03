@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "xform.proto";
+
+// PointCloud message representing a collection of points
+message PointCloud {
+  repeated Point points = 1;  // List of points
+  string guid = 2;            // Unique identifier
+  string name = 3;            // Point cloud name
+  Xform xform = 4;            // Transformation matrix
+}

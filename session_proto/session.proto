@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "objects.proto";
+import "tree.proto";
+import "graph.proto";
+import "boundingbox.proto";
+
+// Session message representing a complete session with geometry and hierarchy
+message Session {
+  string name = 1;          // Session name
+  string guid = 2;          // Unique identifier
+  Objects objects = 3;      // Collection of all geometry objects
+  Tree tree = 4;            // Tree hierarchy structure
+  Graph graph = 5;          // Graph relationships
+  repeated BoundingBox bvh_boxes = 6;  // Simplified BVH representation (AABBs)
+}

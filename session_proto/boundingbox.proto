@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "point.proto";
+import "vector.proto";
+import "xform.proto";
+
+// BoundingBox message representing an oriented bounding box
+message BoundingBox {
+  Point center = 1;       // Center point of the box
+  Vector x_axis = 2;      // X-axis direction (orthogonal)
+  Vector y_axis = 3;      // Y-axis direction (orthogonal)
+  Vector z_axis = 4;      // Z-axis direction (orthogonal)
+  Vector half_size = 5;   // Half-extents along each axis
+  string guid = 6;        // Unique identifier
+  string name = 7;        // Bounding box name
+  Xform xform = 8;        // Transformation matrix
+}

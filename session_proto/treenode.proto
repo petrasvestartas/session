@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package session_proto;
+
+// TreeNode message representing a node in a tree hierarchy
+message TreeNode {
+  string guid = 1;                      // Unique identifier for the node itself
+  string name = 2;                      // Node name (or geometry GUID if it's a geometry node)
+  string parent_guid = 3;               // GUID of parent node (empty for root)
+  repeated TreeNode children = 4;       // Child nodes
+}

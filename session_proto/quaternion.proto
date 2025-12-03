@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Quaternion message for representing rotations
+message Quaternion {
+  double a = 1;  // Scalar/real part
+  double b = 2;  // i component
+  double c = 3;  // j component
+  double d = 4;  // k component
+  string name = 5;  // Optional quaternion name
+}

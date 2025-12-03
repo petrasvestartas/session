@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "treenode.proto";
+
+// Tree message representing a hierarchical tree structure
+message Tree {
+  string guid = 1;          // Unique identifier
+  string name = 2;          // Tree name
+  TreeNode root = 3;        // Root node of the tree
+}

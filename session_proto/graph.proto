@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "vertex.proto";
+import "edge.proto";
+
+// Graph message representing a graph data structure
+message Graph {
+  string name = 1;                      // Graph name
+  string guid = 2;                      // Unique identifier
+  map<string, Vertex> vertices = 3;     // vertex_name -> Vertex
+  repeated Edge edges = 4;              // List of edges
+  int32 vertex_count = 5;               // Vertex counter
+  int32 edge_count = 6;                 // Edge counter
+}

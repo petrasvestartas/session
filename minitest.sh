@@ -26,6 +26,51 @@ cleanup_json() {
 
 cleanup_json
 
+# Regenerate Python protobuf bindings from shared session_proto folder
+regenerate_python_protos() {
+  local PROTO_DIR="${REPO_ROOT}/session_proto"
+  local PY_PROTO_OUT="${REPO_ROOT}/session_py/src/session_py/proto"
+  
+  if ! command -v protoc >/dev/null 2>&1; then
+    echo "[mini] Warning: protoc not found, skipping Python protobuf regeneration"
+    return 0
+  fi
+  
+  # Check if proto files exist
+  if [ ! -d "${PROTO_DIR}" ]; then
+    echo "[mini] Warning: ${PROTO_DIR} not found, skipping Python protobuf regeneration"
+    return 0
+  fi
+  
+  # Create output directory if needed
+  mkdir -p "${PY_PROTO_OUT}"
+  
+  # Regenerate Python bindings for all proto files used by Python
+  echo "[mini] Regenerating Python protobuf bindings from session_proto/..."
+  protoc --python_out="${PY_PROTO_OUT}" \
+         -I "${PROTO_DIR}" \
+         "${PROTO_DIR}/color.proto" \
+         "${PROTO_DIR}/point.proto" \
+         "${PROTO_DIR}/xform.proto" || {
+    echo "[mini] Warning: Failed to regenerate Python protobuf bindings"
+    return 1
+  }
+  
+  # Fix imports: protoc generates absolute imports but we need relative imports
+  # since the files are in a package (session_py.proto)
+  echo "[mini] Fixing Python protobuf imports to use relative imports..."
+  for pb_file in "${PY_PROTO_OUT}"/*_pb2.py; do
+    if [ -f "$pb_file" ]; then
+      # Replace "import xxx_pb2" with "from . import xxx_pb2"
+      sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
+    fi
+  done
+  
+  return 0
+}
+
+regenerate_python_protos
+
 ensure_python_env() {
   # Prefer uv: create/manage environment from pyproject.toml manifest
   if command -v uv >/dev/null 2>&1; then
