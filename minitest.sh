@@ -227,11 +227,14 @@ generate_test_data_js() {
     fi
   done
   
-  # Add JSON artifact files (test_point.json, etc.) from each language
+  # Add JSON artifact files (test_point.json, test_color.json, etc.) from each language
   local ARTIFACTS=(
     "session_py/test_point.json:python"
     "session_cpp/test_point.json:cpp"
     "session_rust/test_point.json:rust"
+    "session_py/test_color.json:python"
+    "session_cpp/test_color.json:cpp"
+    "session_rust/test_color.json:rust"
   )
   
   for ARTIFACT in "${ARTIFACTS[@]}"; do
@@ -250,7 +253,7 @@ generate_test_data_js() {
   done
   
   # Add proto schema files (shared across all languages)
-  local PROTO_DIR="${REPO_ROOT}/session_py/session_proto"
+  local PROTO_DIR="${REPO_ROOT}/session_proto"
   local PROTO_FILES=(
     "point.proto"
     "color.proto"
