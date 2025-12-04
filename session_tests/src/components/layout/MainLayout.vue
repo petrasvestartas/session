@@ -8,31 +8,29 @@
         Viewer
       </router-link>
 
-      <div class="tests-tab-wrapper">
-        <div 
-          class="tab-button tab-button-tests" 
-          :class="{ active: currentRoute === 'tests' }"
-          @click="toggleTestsMenu">
-          <span>Tests</span>
-          <span class="tests-tab-caret">▾</span>
-        </div>
-
-        <div
-          v-if="testsMenuOpen && testsSuites.length"
-          class="tests-tab-menu"
-          @click.stop>
-          <button
-            v-for="s in testsSuites"
-            :key="s"
-            type="button"
-            class="tests-tab-menu-item"
-            :class="{ active: s === selectedSuite }"
-            @click="selectSuite(s)">
-            {{ s }}
-          </button>
-        </div>
+      <div 
+        class="tab-button tab-button-tests" 
+        :class="{ active: currentRoute === 'tests' }"
+        @click="openTestsMenu">
+        <span>Tests</span>
+        <span class="tests-tab-caret">▾</span>
       </div>
     </nav>
+
+    <div
+      v-if="testsMenuOpen && testsSuites.length"
+      class="tests-suite-bar"
+      @click.stop>
+      <button
+        v-for="s in testsSuites"
+        :key="s"
+        type="button"
+        class="tests-suite-button tab-button"
+        :class="{ active: s === selectedSuite }"
+        @click="selectSuite(s)">
+        {{ suiteLabel(s) }}
+      </button>
+    </div>
 
     <div class="tab-content">
       <!-- CLI Interface (top panel for all tabs, resizable) -->
@@ -103,17 +101,29 @@ const syncSelectedSuiteWithRoute = () => {
   }
 };
 
-const toggleTestsMenu = () => {
+const openTestsMenu = () => {
   if (!testsSuites.value.length) {
     loadSuitesFromTestData();
     syncSelectedSuiteWithRoute();
   }
-  testsMenuOpen.value = !testsMenuOpen.value;
+  testsMenuOpen.value = true;
+  if (currentRoute.value !== 'tests') {
+    const suiteToShow =
+      selectedSuite.value ||
+      (testsSuites.value.length ? testsSuites.value[0] : '');
+    router.push({
+      path: '/tests',
+      query: suiteToShow ? { suite: suiteToShow } : undefined,
+    });
+  }
+};
+
+const suiteLabel = (suite) => {
+  return suite.replace(/_test$/i, '');
 };
 
 const selectSuite = (suite) => {
   selectedSuite.value = suite;
-  testsMenuOpen.value = false;
   router.push({ path: '/tests', query: { suite } });
 };
 
@@ -130,7 +140,9 @@ watch(
 );
 
 watch(currentRoute, (val) => {
-  if (val !== 'tests') {
+  if (val === 'tests' && testsSuites.value.length) {
+    testsMenuOpen.value = true;
+  } else {
     testsMenuOpen.value = false;
   }
 });
@@ -204,54 +216,44 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.12); /* lighter, like submenu */
 }
 
-.tests-tab-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
 .tests-tab-caret {
   font-size: 10px;
 }
 
-.tests-tab-menu {
-  position: static;
+.tests-suite-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.35rem;
-  padding: 0.35rem 0.5rem 0.5rem;
-  background: rgba(37, 99, 235, 0.9);
-  border-radius: 0 0 0.5rem 0.5rem;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  background: #2563eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.tests-tab-menu::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 4px;
-  bottom: -4px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
-}
-
-.tests-tab-menu-item {
-  padding: 0.35rem 0.9rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.92);
+.tests-suite-button {
+  flex: 0 1 160px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.85);
   font: inherit;
+  font-weight: 600;
+  text-transform: capitalize;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.tests-tab-menu-item:hover,
-.tests-tab-menu-item.active {
-  background: rgba(255, 255, 255, 0.12);
+.tests-suite-button:hover {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tests-suite-button.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .tab-content {
