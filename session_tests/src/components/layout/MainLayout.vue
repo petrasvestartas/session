@@ -8,12 +8,14 @@
         Viewer
       </router-link>
 
-      <div 
-        class="tab-button tab-button-tests" 
-        :class="{ active: currentRoute === 'tests' }"
-        @click="toggleTestsMenu">
-        <span>Tests</span>
-        <span class="tests-tab-caret">▾</span>
+      <div class="tests-tab-wrapper">
+        <div 
+          class="tab-button tab-button-tests" 
+          :class="{ active: currentRoute === 'tests' }"
+          @click="toggleTestsMenu">
+          <span>Tests</span>
+          <span class="tests-tab-caret">▾</span>
+        </div>
 
         <div
           v-if="testsMenuOpen && testsSuites.length"
@@ -202,31 +204,48 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.12); /* lighter, like submenu */
 }
 
+.tests-tab-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .tests-tab-caret {
   font-size: 10px;
 }
 
 .tests-tab-menu {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem 0.5rem;
+  background: rgba(37, 99, 235, 0.9);
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.tests-tab-menu::after {
+  content: '';
   position: absolute;
-  top: 100%;
   left: 0;
-  background: #2563eb;
-  box-shadow: 0 4px 8px rgba(15, 23, 42, 0.25);
-  padding: 0.25rem 0;
-  min-width: 140px;
-  z-index: 20;
+  right: 0;
+  height: 4px;
+  bottom: -4px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
 }
 
 .tests-tab-menu-item {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: none;
-  text-align: left;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 0.35rem 0.9rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
   font: inherit;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .tests-tab-menu-item:hover,
