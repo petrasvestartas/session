@@ -150,17 +150,18 @@ ${context}
 
 Please answer the question based on this code context.`
 
-  // Build headers - include API key only in development (proxy handles it in production)
+  // Build headers - production uses minimal headers (proxy adds the rest)
   const headers = {
-    'Content-Type': 'application/json',
-    'anthropic-version': '2023-06-01'
+    'Content-Type': 'application/json'
   }
   
   if (!import.meta.env.PROD) {
+    // Development: call Claude directly
     if (!apiKey.value) {
       return { error: 'No API key configured.' }
     }
     headers['x-api-key'] = apiKey.value
+    headers['anthropic-version'] = '2023-06-01'
     headers['anthropic-dangerous-direct-browser-access'] = 'true'
   }
 
