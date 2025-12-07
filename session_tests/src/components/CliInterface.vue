@@ -124,21 +124,23 @@ const searchConcepts = (query, maxResults = 3) => {
   return { results, error: null, langFilter }
 }
 
+// Determine API endpoint - use Cloudflare Worker proxy in production, direct in development
+const CLAUDE_ENDPOINT = import.meta.env.PROD 
+  ? 'https://session-claude-proxy.petrasvestartas.workers.dev'
+  : 'https://api.anthropic.com/v1/messages'
+
 // Call Claude API with streaming support
 const callClaudeAPIStreaming = async (question, context, onChunk) => {
-  if (!apiKey.value) {
-    return { error: 'No API key configured. Type "key" to set your Anthropic API key.' }
-  }
-
   const systemPrompt = `You are a coding assistant for the Session geometry library (Python, C++, Rust).
 
 RULES:
-- Be VERY concise - 2-4 sentences max, then show code
-- Skip explanations users can infer from code
-- One code example per language requested (not multiple examples)
-- No bullet lists of "default properties" or "parameters" - just show usage
-- No "From file.py:line" citations unless asked
-- Get straight to the point like Stack Overflow's top answers`
+- Start with ONE sentence describing what the method does
+- Show SIMPLE usage examples for ALL THREE languages (Python, C++, Rust)
+- Format: **Python:** then code block, **C++:** then code block, **Rust:** then code block
+- Each example should be 1-3 lines max, showing practical usage
+- Do NOT explain parameters unless asked
+- Do NOT show internal implementation details
+- Do NOT cite file names or line numbers`
 
   const userMessage = `Question: ${question}
 
@@ -148,17 +150,26 @@ ${context}
 
 Please answer the question based on this code context.`
 
+  // Build headers - include API key only in development (proxy handles it in production)
+  const headers = {
+    'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01'
+  }
+  
+  if (!import.meta.env.PROD) {
+    if (!apiKey.value) {
+      return { error: 'No API key configured.' }
+    }
+    headers['x-api-key'] = apiKey.value
+    headers['anthropic-dangerous-direct-browser-access'] = 'true'
+  }
+
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch(CLAUDE_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey.value,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 1024,
         stream: true,
         system: systemPrompt,
@@ -235,26 +246,102 @@ const buildContext = (concepts) => {
   return parts.join('\n')
 }
 
-// Generate answer from concept results (fallback without Claude)
+// Generate clean answer from concepts (works without Claude)
 const generateAnswer = (query, concepts) => {
   if (!concepts || concepts.length === 0) {
     return `No results found for "${query}". Try: "distance", "Point", "Color", "create", "to_protobuf"`
   }
 
-  const lines = []
-  for (const concept of concepts) {
-    lines.push(`## ${concept.name}\n`)
-    for (const lang of ['python', 'cpp', 'rust']) {
-      const impl = concept.implementations[lang]
-      if (!impl) continue
-      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-      lines.push(`**${langName}:** \`${impl.sig}\``)
-      lines.push('```' + lang)
-      lines.push(impl.code.split('\n').slice(0, 10).join('\n'))
-      lines.push('```\n')
-    }
+  const best = concepts[0]
+  const methodName = best.name.split('.')[1] || best.name
+  const className = best.name.split('.')[0]
+  
+  // Generate clean usage examples
+  const examples = {
+    python: generateExample('python', className, methodName, best.implementations.python),
+    cpp: generateExample('cpp', className, methodName, best.implementations.cpp),
+    rust: generateExample('rust', className, methodName, best.implementations.rust),
   }
+  
+  const lines = [`Use \`${best.name}\` to ${describeMethod(methodName)}:\n`]
+  
+  for (const lang of ['python', 'cpp', 'rust']) {
+    if (!examples[lang]) continue
+    const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+    lines.push(`**${langName}:**`)
+    lines.push('```' + lang)
+    lines.push(examples[lang])
+    lines.push('```\n')
+  }
+  
   return lines.join('\n')
+}
+
+// Generate clean usage example for a method
+const generateExample = (lang, cls, method, impl) => {
+  if (!impl) return null
+  
+  // Common patterns
+  if (method === 'distance' || method === 'squared_distance') {
+    if (lang === 'python') return `p1 = Point(1.0, 2.0, 3.0)\np2 = Point(4.0, 5.0, 6.0)\ndist = p1.${method}(p2)`
+    if (lang === 'cpp') return `Point p1(1.0, 2.0, 3.0);\nPoint p2(4.0, 5.0, 6.0);\ndouble dist = p1.${method}(p2);`
+    if (lang === 'rust') return `let p1 = Point::new(1.0, 2.0, 3.0);\nlet p2 = Point::new(4.0, 5.0, 6.0);\nlet dist = p1.${method}(&p2, None);`
+  }
+  if (method === '__init__' || method === 'new') {
+    if (lang === 'python') return `p = ${cls}(1.0, 2.0, 3.0)`
+    if (lang === 'cpp') return `${cls} p(1.0, 2.0, 3.0);`
+    if (lang === 'rust') return `let p = ${cls}::new(1.0, 2.0, 3.0);`
+  }
+  if (method === 'duplicate') {
+    if (lang === 'python') return `copy = original.duplicate()`
+    if (lang === 'cpp') return `auto copy = original.duplicate();`
+    if (lang === 'rust') return `let copy = original.duplicate();`
+  }
+  if (method === 'to_protobuf') {
+    if (lang === 'python') return `data = obj.to_protobuf()`
+    if (lang === 'cpp') return `std::string data = obj.to_protobuf();`
+    if (lang === 'rust') return `let data: Vec<u8> = obj.to_protobuf();`
+  }
+  if (method === 'from_protobuf') {
+    if (lang === 'python') return `obj = ${cls}.from_protobuf(data)`
+    if (lang === 'cpp') return `auto obj = ${cls}::from_protobuf(data);`
+    if (lang === 'rust') return `let obj = ${cls}::from_protobuf(&data);`
+  }
+  if (method === 'transform') {
+    if (lang === 'python') return `point.transform(matrix)`
+    if (lang === 'cpp') return `point.transform(matrix);`
+    if (lang === 'rust') return `point.transform(&matrix);`
+  }
+  // Color presets
+  if (['white','black','red','green','blue','yellow','cyan','magenta'].includes(method)) {
+    if (lang === 'python') return `c = Color.${method}()`
+    if (lang === 'cpp') return `Color c = Color::${method}();`
+    if (lang === 'rust') return `let c = Color::${method}();`
+  }
+  
+  // Fallback: show signature
+  return `// ${impl.sig}`
+}
+
+// Describe what a method does
+const describeMethod = (method) => {
+  const descriptions = {
+    'distance': 'calculate distance between two points',
+    'squared_distance': 'calculate squared distance (faster, no sqrt)',
+    '__init__': 'create a new instance',
+    'new': 'create a new instance',
+    'duplicate': 'create a copy',
+    'transform': 'apply a transformation matrix',
+    'to_protobuf': 'serialize to protobuf format',
+    'from_protobuf': 'deserialize from protobuf',
+    'to_json': 'convert to JSON',
+    'from_json': 'load from JSON',
+    'white': 'create white color',
+    'black': 'create black color',
+    'red': 'create red color',
+    'blue': 'create blue color',
+  }
+  return descriptions[method] || `use ${method}`
 }
 
 // Format answer text with HTML styling
