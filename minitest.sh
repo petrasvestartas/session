@@ -282,6 +282,15 @@ generate_test_data_js() {
 
 generate_test_data_js
 
+echo "[mini] Generating static search index for client-side search..."
+if [ -f "${TESTS_DIR}/rag/generate_search_index.py" ]; then
+  python3 "${TESTS_DIR}/rag/generate_search_index.py" || {
+    echo "[mini] Warning: Failed to generate search index"
+  }
+else
+  echo "[mini] Warning: generate_search_index.py not found, skipping"
+fi
+
 echo "[mini] Setting up Vue.js application..."
 
 ensure_node_env() {
@@ -366,6 +375,52 @@ if [ $BUILD_STATUS -ne 0 ]; then
     echo "[mini] Failed to build Vue application after reinstall."
     exit 1
   fi
+fi
+
+# Check if running in CI environment (GitHub Actions, etc.)
+if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+  echo "[mini] CI environment detected - skipping dev server and browser."
+  echo "[mini] Build complete. Dist folder ready for deployment."
+  echo "[mini] Done."
+  exit 0
+fi
+
+# === LOCAL DEVELOPMENT ONLY (below this line) ===
+
+echo "[mini] Starting RAG API server..."
+RAG_PORT=8770
+RAG_DIR="${TESTS_DIR}/rag"
+
+# Kill any existing RAG API server on this port
+if command -v pkill >/dev/null 2>&1; then
+  pkill -f "rag_api.py" >/dev/null 2>&1 || true
+fi
+
+# Wait a moment for the port to be released
+sleep 1
+
+# Start RAG API server in background on port 8770
+if [ -x "/home/pv/anaconda3/bin/python3" ] && [ -f "${RAG_DIR}/rag_api.py" ]; then
+  cd "${RAG_DIR}" && nohup /home/pv/anaconda3/bin/python3 rag_api.py > /tmp/rag_api.log 2>&1 &
+  RAG_PID=$!
+  cd "${REPO_ROOT}"
+
+  # Wait for server to start and verify it's running
+  sleep 2
+  if lsof -i :${RAG_PORT} >/dev/null 2>&1; then
+    echo "[mini] RAG API server started on http://localhost:${RAG_PORT} (PID: ${RAG_PID})"
+  else
+    echo "[mini] Warning: RAG API server may have failed to start. Check /tmp/rag_api.log"
+  fi
+else
+  echo "[mini] Warning: Could not start RAG API server"
+  if [ ! -x "/home/pv/anaconda3/bin/python3" ]; then
+    echo "[mini]   - anaconda python3 not found"
+  fi
+  if [ ! -f "${RAG_DIR}/rag_api.py" ]; then
+    echo "[mini]   - ${RAG_DIR}/rag_api.py not found"
+  fi
+  echo "[mini] RAG queries in the CLI will not work without the API server"
 fi
 
 echo "[mini] Starting development server..."

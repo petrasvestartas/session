@@ -22,9 +22,9 @@
               <div class="message-content">{{ item.text }}</div>
             </div>
 
-            <!-- Answer / output aligned left -->
+            <!-- Answer / output aligned left with formatting -->
             <div v-else class="message response-message">
-              <div class="message-content" :class="{ 'error-text': item.type === 'error' }">{{ item.text }}</div>
+              <div class="message-content" :class="{ 'error-text': item.type === 'error' }" v-html="formatAnswer(item.text)"></div>
             </div>
           </div>
         </div>
@@ -34,7 +34,8 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { getClaudeApiKey } from '../firebase.js'
 
 const props = defineProps({
   activeTab: { type: String, required: true }
@@ -45,6 +46,275 @@ const currentInput = ref('')
 const outputRef = ref(null)
 const inputRef = ref(null)
 
+// API key management - fetched from Firebase
+const apiKey = ref('')
+const apiKeyLoading = ref(true)
+const apiKeyError = ref('')
+
+// Fetch API key from Firebase on mount
+onMounted(async () => {
+  try {
+    const { key, error } = await getClaudeApiKey()
+    if (key) {
+      apiKey.value = key
+      apiKeyError.value = ''
+    } else {
+      apiKeyError.value = error || 'Failed to load API key'
+    }
+  } catch (err) {
+    apiKeyError.value = `Firebase error: ${err.message}`
+  } finally {
+    apiKeyLoading.value = false
+  }
+})
+
+// Cosine similarity for semantic search
+const cosineSimilarity = (a, b) => {
+  if (!a || !b || a.length !== b.length) return 0
+  let dotProduct = 0
+  let normA = 0
+  let normB = 0
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i]
+    normA += a[i] * a[i]
+    normB += b[i] * b[i]
+  }
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
+}
+
+// Semantic search using pre-computed embeddings + query embedding from Claude
+const semanticSearch = async (query, maxResults = 5) => {
+  const index = window.SEARCH_INDEX
+  if (!index || !index.chunks) {
+    return { results: [], error: 'Search index not loaded' }
+  }
+
+  // If no embeddings in index, fall back to keyword search
+  if (!index.hasEmbeddings) {
+    return clientSideSearch(query, maxResults)
+  }
+
+  // Use Claude to get query embedding via a simple text-embedding approach
+  // Since Anthropic doesn't have a public embedding API, we'll use keyword matching
+  // combined with the pre-computed document embeddings for ranking
+  // Fall back to enhanced keyword search that leverages the embedding structure
+
+  return clientSideSearch(query, maxResults)
+}
+
+// Client-side search function using the static index
+const clientSideSearch = (query, maxResults = 5) => {
+  const index = window.SEARCH_INDEX
+  if (!index || !index.chunks) {
+    return { results: [], error: 'Search index not loaded' }
+  }
+
+  const queryLower = query.toLowerCase()
+  const queryWords = queryLower.split(/\s+/).filter(w => w.length >= 2)
+
+  // Score each chunk based on keyword matches
+  const scored = index.chunks.map(chunk => {
+    let score = 0
+
+    // Check name match (highest weight)
+    if (chunk.name.toLowerCase().includes(queryLower)) {
+      score += 100
+    }
+
+    // Check keyword matches
+    for (const word of queryWords) {
+      if (chunk.keywords && chunk.keywords.includes(word)) {
+        score += 20
+      }
+      if (chunk.name.toLowerCase().includes(word)) {
+        score += 30
+      }
+      if (chunk.code && chunk.code.toLowerCase().includes(word)) {
+        score += 5
+      }
+    }
+
+    // Boost for specific patterns
+    if (queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('constructor')) {
+      if (chunk.name.includes('__init__') || chunk.name.includes('new') || chunk.name.includes('New')) {
+        score += 50
+      }
+    }
+
+    if (queryLower.includes('python') && chunk.language === 'python') score += 25
+    if (queryLower.includes('rust') && chunk.language === 'rust') score += 25
+    if (queryLower.includes('c++') && chunk.language === 'cpp') score += 25
+    if (queryLower.includes('cpp') && chunk.language === 'cpp') score += 25
+
+    return { ...chunk, score }
+  })
+
+  // Sort by score and take top results
+  const results = scored
+    .filter(c => c.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxResults)
+    .map(c => ({
+      type: c.type,
+      name: c.name,
+      file: c.file,
+      language: c.language,
+      line_start: c.line_start,
+      code: c.code,
+      score: c.score
+    }))
+
+  return { results, error: null }
+}
+
+// Call Claude API directly from browser
+const callClaudeAPI = async (question, context) => {
+  if (!apiKey.value) {
+    return { error: 'No API key configured. Type "key" to set your Anthropic API key.' }
+  }
+
+  const systemPrompt = `You are a helpful assistant for the Session geometry library codebase.
+Session is a multi-language geometry kernel with implementations in Python, C++, and Rust.
+It implements geometric data structures like Point, Color, Vector, BoundingBox, Mesh, NURBS, etc.
+
+When answering questions:
+- Be concise and direct
+- Show code examples from the provided context
+- Mention which language (Python/C++/Rust) the code is from
+- Reference file names and line numbers when relevant`
+
+  const userMessage = `Question: ${question}
+
+Here is relevant code from the codebase:
+
+${context}
+
+Please answer the question based on this code context.`
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey.value,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      if (response.status === 401) {
+        return { error: 'Invalid API key. Type "key" to update your Anthropic API key.' }
+      }
+      return { error: `API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}` }
+    }
+
+    const data = await response.json()
+    return { answer: data.content[0].text }
+  } catch (error) {
+    return { error: `Failed to call Claude API: ${error.message}` }
+  }
+}
+
+// Generate context from search results for Claude
+const buildContext = (results) => {
+  if (!results || results.length === 0) return ''
+
+  const parts = []
+  for (const r of results) {
+    const langName = r.language === 'cpp' ? 'C++' : r.language.charAt(0).toUpperCase() + r.language.slice(1)
+    parts.push(`--- ${langName}: ${r.name} (${r.file}:${r.line_start}) ---`)
+    parts.push(r.code || '')
+    parts.push('')
+  }
+  return parts.join('\n')
+}
+
+// Generate a simple answer from search results (fallback without Claude)
+const generateAnswer = (query, results) => {
+  if (!results || results.length === 0) {
+    return `No results found for "${query}". Try searching for "Point", "Color", "distance", "create", etc.`
+  }
+
+  const queryLower = query.toLowerCase()
+  const lines = []
+
+  // Group by language
+  const byLang = { python: [], cpp: [], rust: [] }
+  for (const r of results) {
+    if (byLang[r.language]) {
+      byLang[r.language].push(r)
+    }
+  }
+
+  // Generate contextual answer
+  if (queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('how to')) {
+    lines.push(`Here's how to work with this in the Session codebase:\n`)
+  } else {
+    lines.push(`Found ${results.length} relevant code sections:\n`)
+  }
+
+  for (const lang of ['python', 'cpp', 'rust']) {
+    const langResults = byLang[lang]
+    if (langResults.length === 0) continue
+
+    const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+    lines.push(`**${langName}:**`)
+
+    for (const r of langResults.slice(0, 2)) {
+      // Show code preview
+      const codeLines = (r.code || '').split('\n').slice(0, 8)
+      const codePreview = codeLines.join('\n')
+
+      lines.push(`\`\`\`${lang}`)
+      lines.push(codePreview)
+      lines.push(`\`\`\``)
+      lines.push(`*Source: ${r.file}:${r.line_start}*\n`)
+    }
+  }
+
+  return lines.join('\n')
+}
+
+// Format answer text with HTML styling
+const formatAnswer = (text) => {
+  if (!text) return ''
+
+  let html = text
+
+  // Convert code blocks ```lang ... ``` to styled spans
+  html = html.replace(/```(\w+)\n([\s\S]*?)```/g, (match, lang, code) => {
+    return `<div class="code-block"><div class="code-lang">${lang}</div><pre class="code-content">${escapeHtml(code)}</pre></div>`
+  })
+
+  // Convert **bold** to styled spans
+  html = html.replace(/\*\*(.*?)\*\*/g, '<span class="text-bold">$1</span>')
+
+  // Convert *Source:* to dimmed text
+  html = html.replace(/\*Source:(.*?)\*/g, '<span class="text-dim">Source:$1</span>')
+
+  // Convert # comments to gray
+  html = html.replace(/^(#.*)$/gm, '<span class="text-comment">$1</span>')
+
+  // Preserve line breaks
+  html = html.replace(/\n/g, '<br>')
+
+  return html
+}
+
+const escapeHtml = (text) => {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
 const tabContext = computed(() => {
   if (props.activeTab === 'viewer') return 'Viewer'
   if (props.activeTab === 'tests') return 'Tests'
@@ -53,24 +323,44 @@ const tabContext = computed(() => {
 
 const inputPlaceholder = computed(() => {
   if (props.activeTab === 'viewer') {
-    return 'Type your command here or write "help" -> Viewer'
+    return 'Ask a question or type "help" for commands'
   }
   if (props.activeTab === 'tests') {
-    return 'Type your command here or write "help" -> Tests'
+    return 'Ask a question or type "help" for commands'
   }
-  return 'Type your command here or write "help"'
+  return 'Ask a question or type "help" for commands'
 })
 
 const commands = {
   help: () => {
+    let keyStatus
+    if (apiKeyLoading.value) {
+      keyStatus = '(loading from Firebase...)'
+    } else if (apiKey.value) {
+      keyStatus = '(ready - loaded from Firebase)'
+    } else {
+      keyStatus = `(not available: ${apiKeyError.value || 'unknown error'})`
+    }
+
     const lines = [
+      'Session CLI - Ask questions about your codebase',
+      '',
+      `Claude AI: ${keyStatus}`,
+      '',
+      'Quick Start:',
+      '  Just type your question directly!',
+      '  Examples:',
+      '    how to create a Point in Python',
+      '    what are the Color methods in Rust',
+      '    distance calculation between points',
+      '',
       'Available commands:',
       '  help       - Show this help message',
       '  clear      - Clear the console',
-      '  search     - Search test database (tests tab only)',
-      '  stats      - Show test statistics (tests tab only)',
-      '  viewer     - 3D viewer commands (general tab only)',
-      '  info       - Show current context information'
+      '  search     - Show raw search results with sources',
+      '  info       - Show current context information',
+      '',
+      'Note: Claude AI answers are powered by your Firebase-stored API key.'
     ]
     return [lines.join('\n')]
   },
@@ -79,18 +369,58 @@ const commands = {
     return []
   },
   info: () => {
+    const index = window.SEARCH_INDEX
+    let claudeStatus
+    if (apiKeyLoading.value) {
+      claudeStatus = 'Loading from Firebase...'
+    } else if (apiKey.value) {
+      claudeStatus = 'Ready (key loaded from Firebase)'
+    } else {
+      claudeStatus = `Error: ${apiKeyError.value || 'No key'}`
+    }
+
     const lines = [
       `Current tab: ${props.activeTab}`,
       `Context: ${tabContext.value}`,
-      `Commands available in this context`
+      '',
+      'Search Index:',
+      `  Loaded: ${index ? 'Yes' : 'No'}`,
+      `  Chunks: ${index?.chunks?.length || 0}`,
+      `  Has Embeddings: ${index?.hasEmbeddings || false}`,
+      '',
+      'Claude AI:',
+      `  Status: ${claudeStatus}`,
+      `  Model: claude-sonnet-4-20250514`,
     ]
     return [lines.join('\n')]
   },
-  search: () => {
-    if (props.activeTab !== 'tests') {
-      return ['Error: search command only available in Tests tab']
+  search: async (args) => {
+    if (!args || args.length === 0) {
+      return ['Usage: search <query>', 'Example: search Point constructor']
     }
-    return ['Search functionality coming soon...', 'Will support: test name, language, status filters']
+
+    const query = args.join(' ')
+    const { results, error } = clientSideSearch(query, 5)
+
+    if (error) {
+      return [`Error: ${error}`]
+    }
+
+    if (results.length === 0) {
+      return ['No results found.']
+    }
+
+    const output = [`Found ${results.length} results for: "${query}"`, '']
+    results.forEach((r, i) => {
+      output.push(`${i + 1}. ${r.type} "${r.name}" (${r.language})`)
+      output.push(`   File: ${r.file}:${r.line_start}`)
+      output.push(`   Score: ${r.score}`)
+      const preview = (r.code || '').split('\n').slice(0, 2).join(' ').substring(0, 80)
+      if (preview) output.push(`   Preview: ${preview}...`)
+      output.push('')
+    })
+
+    return output
   },
   stats: () => {
     if (props.activeTab !== 'tests') {
@@ -103,29 +433,104 @@ const commands = {
       return ['Error: viewer commands only available in Viewer tab']
     }
     return ['3D Viewer commands coming soon...']
-  }
+  },
+  ask: async (args) => {
+    if (!args || args.length === 0) {
+      return [
+        'Error: ask command requires a question',
+        'Usage: ask <your question>',
+        '',
+        'Examples:',
+        '  ask how to create a Point in Python',
+        '  ask what are the Color methods in Rust',
+        '  ask distance calculation between points'
+      ]
+    }
+
+    const question = args.join(' ')
+
+    // Search for relevant code
+    const { results, error: searchError } = clientSideSearch(question, 6)
+
+    if (searchError) {
+      return [
+        'Search index not available.',
+        'Run ./minitest.sh locally to generate the search index.',
+        '',
+        `Details: ${searchError}`
+      ]
+    }
+
+    if (results.length === 0) {
+      return [
+        `No results found for "${question}".`,
+        '',
+        'Try searching for:',
+        '  - Point, Color (class names)',
+        '  - distance, create, new (operations)',
+        '  - python, rust, c++ (languages)'
+      ]
+    }
+
+    // If Claude API key is configured, use Claude for natural language answer
+    if (apiKey.value) {
+      const context = buildContext(results)
+      const claudeResult = await callClaudeAPI(question, context)
+
+      if (claudeResult.error) {
+        // Fall back to basic answer if Claude fails
+        console.log('Claude API error, falling back:', claudeResult.error)
+        const answer = generateAnswer(question, results)
+        return [`(Claude unavailable: ${claudeResult.error})`, '', ...answer.split('\n')]
+      }
+
+      return claudeResult.answer.split('\n')
+    }
+
+    // No API key - show code directly
+    const answer = generateAnswer(question, results)
+    return answer.split('\n')
+  },
 }
 
-const executeCommand = () => {
+const executeCommand = async () => {
   const cmd = currentInput.value.trim()
   if (!cmd) return
 
   // Add command to history
   history.value.push({ text: cmd, type: 'command' })
 
-  // Parse and execute command
-  const [baseCmd, ...args] = cmd.toLowerCase().split(' ')
-  
-  if (commands[baseCmd]) {
-    const result = commands[baseCmd](args)
-    result.forEach(line => {
-      history.value.push({ text: line, type: 'output' })
-    })
+  // Parse command
+  const [baseCmd, ...args] = cmd.split(' ')
+  const baseCmdLower = baseCmd.toLowerCase()
+
+  // Check if it's a recognized command
+  if (commands[baseCmdLower]) {
+    try {
+      const result = await commands[baseCmdLower](args)
+      result.forEach(line => {
+        history.value.push({ text: line, type: 'output' })
+      })
+    } catch (error) {
+      history.value.push({
+        text: `Error executing command: ${error.message}`,
+        type: 'error'
+      })
+    }
   } else {
-    history.value.push({ 
-      text: `Unknown command: ${baseCmd}. Type 'help' for available commands.`, 
-      type: 'error' 
-    })
+    // If not a recognized command, treat it as an "ask" question
+    // This allows users to just type their question without "ask"
+    try {
+      const result = await commands.ask(cmd.split(' '))
+      result.forEach(line => {
+        history.value.push({ text: line, type: 'output' })
+      })
+    } catch (error) {
+      history.value.push({
+        text: `Error: ${error.message}`,
+        type: 'error'
+      })
+    }
   }
 
   currentInput.value = ''
@@ -338,5 +743,104 @@ const executeCommand = () => {
 
 .cli-messages::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* Formatted answer styling */
+.code-block {
+  background: #f3f4f6;
+  border-left: 3px solid #3b82f6;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.code-lang {
+  background: #e5e7eb;
+  padding: 0.25rem 0.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-content {
+  padding: 0.75rem;
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #059669;
+  background: #f9fafb;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.text-bold {
+  font-weight: 600;
+  color: #0ea5e9;
+}
+
+.text-dim {
+  color: #9ca3af;
+  font-size: 0.9em;
+}
+
+.text-comment {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.message-content {
+  line-height: 1.6;
+}
+</style>
+
+<!-- Non-scoped styles for v-html content (formatAnswer) -->
+<style>
+/* Code block styling for dynamically inserted HTML */
+.cli-interface .message-content .code-block {
+  background: #f3f4f6;
+  border-left: 3px solid #3b82f6;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cli-interface .message-content .code-lang {
+  background: #e5e7eb;
+  padding: 0.25rem 0.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cli-interface .message-content .code-content {
+  padding: 0.75rem;
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #059669;
+  background: #f9fafb;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.cli-interface .message-content .text-bold {
+  font-weight: 600;
+  color: #0ea5e9;
+}
+
+.cli-interface .message-content .text-dim {
+  color: #9ca3af;
+  font-size: 0.9em;
+}
+
+.cli-interface .message-content .text-comment {
+  color: #9ca3af;
+  font-style: italic;
 }
 </style>
