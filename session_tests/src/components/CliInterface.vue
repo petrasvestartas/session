@@ -167,8 +167,8 @@ const clientSideSearch = (query, maxResults = 5) => {
   return { results, error: null }
 }
 
-// Call Claude API directly from browser
-const callClaudeAPI = async (question, context) => {
+// Call Claude API with streaming support
+const callClaudeAPIStreaming = async (question, context, onChunk) => {
   if (!apiKey.value) {
     return { error: 'No API key configured. Type "key" to set your Anthropic API key.' }
   }
@@ -203,6 +203,7 @@ Please answer the question based on this code context.`
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
+        stream: true,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }]
       })
@@ -216,8 +217,42 @@ Please answer the question based on this code context.`
       return { error: `API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}` }
     }
 
-    const data = await response.json()
-    return { answer: data.content[0].text }
+    // Read streaming response
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ''
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      
+      // Process SSE events in buffer
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || '' // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+          
+          try {
+            const parsed = JSON.parse(data)
+            // Handle content_block_delta events
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              fullText += parsed.delta.text
+              onChunk(fullText) // Update UI with accumulated text
+            }
+          } catch (e) {
+            // Skip malformed JSON
+          }
+        }
+      }
+    }
+
+    return { answer: fullText }
   } catch (error) {
     return { error: `Failed to call Claude API: ${error.message}` }
   }
@@ -472,19 +507,49 @@ const commands = {
       ]
     }
 
-    // If Claude API key is configured, use Claude for natural language answer
+    // If Claude API key is configured, use Claude with streaming
     if (apiKey.value) {
       const context = buildContext(results)
-      const claudeResult = await callClaudeAPI(question, context)
+      
+      // Add a placeholder response that we'll update
+      const responseIndex = history.value.length
+      history.value.push({ text: '▌', type: 'output', streaming: true })
+      
+      // Scroll to show the streaming response
+      nextTick(() => {
+        if (outputRef.value) {
+          outputRef.value.scrollTop = outputRef.value.scrollHeight
+        }
+      })
+
+      const claudeResult = await callClaudeAPIStreaming(question, context, (partialText) => {
+        // Update the response in place as chunks arrive
+        if (history.value[responseIndex]) {
+          history.value[responseIndex].text = partialText + ' ▌'
+          // Auto-scroll as content streams in
+          nextTick(() => {
+            if (outputRef.value) {
+              outputRef.value.scrollTop = outputRef.value.scrollHeight
+            }
+          })
+        }
+      })
 
       if (claudeResult.error) {
-        // Fall back to basic answer if Claude fails
+        // Remove placeholder and show error
+        history.value.splice(responseIndex, 1)
         console.log('Claude API error, falling back:', claudeResult.error)
         const answer = generateAnswer(question, results)
         return [`(Claude unavailable: ${claudeResult.error})`, '', ...answer.split('\n')]
       }
 
-      return claudeResult.answer.split('\n')
+      // Finalize the streamed response (remove cursor)
+      if (history.value[responseIndex]) {
+        history.value[responseIndex].text = claudeResult.answer
+        history.value[responseIndex].streaming = false
+      }
+      
+      return [] // Already added to history via streaming
     }
 
     // No API key - show code directly
@@ -842,5 +907,16 @@ const executeCommand = async () => {
 .cli-interface .message-content .text-comment {
   color: #9ca3af;
   font-style: italic;
+}
+
+/* Streaming cursor animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cli-interface .streaming-cursor {
+  animation: blink 1s infinite;
+  color: #2563eb;
 }
 </style>
