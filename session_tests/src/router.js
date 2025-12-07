@@ -1,12 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 import GeneralView from './views/GeneralView.vue';
 import TestsView from './views/TestsView.vue';
 
-// Use the same base URL as Vite (see vite.config.js: base: '/session/')
-// so that routes live under /session and browser refresh works correctly.
+// Use hash mode for GitHub Pages compatibility
+// URLs: /session/#/viewer, /session/#/tests
+// This allows F5 refresh to work since the server always serves index.html
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/viewer' },
     { path: '/viewer', component: GeneralView },
