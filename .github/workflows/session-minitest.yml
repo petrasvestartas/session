@@ -13,13 +13,47 @@ jobs:
   minitest:
     runs-on: ubuntu-latest
     env:
-      MINITEST_JOBS: "2"
+      MINITEST_JOBS: "4"
 
     steps:
     - name: Checkout repo with submodules
       uses: actions/checkout@v4
       with:
         submodules: recursive
+
+    # ============ CACHING (saves ~12+ minutes) ============
+    
+    # Cache C++ external dependencies (abseil + protobuf) - BIGGEST time saver
+    - name: Cache C++ Dependencies (abseil + protobuf)
+      uses: actions/cache@v4
+      id: cache-cpp
+      with:
+        path: session_cpp/build/external
+        key: cpp-deps-${{ runner.os }}-v1
+        restore-keys: cpp-deps-${{ runner.os }}-
+
+    # Cache Rust cargo
+    - name: Cache Rust Cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          session_rust/target/
+        key: rust-${{ runner.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
+        restore-keys: rust-${{ runner.os }}-
+
+    # Cache Python pip
+    - name: Cache Python pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-${{ hashFiles('session_py/pyproject.toml') }}
+        restore-keys: pip-${{ runner.os }}-
+
+    # ============ SETUP ============
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -43,6 +77,21 @@ jobs:
     - name: Install npm dependencies (including Firebase)
       working-directory: session_tests
       run: npm ci || npm install
+
+    # ============ PRE-BUILD C++ DEPS IF NOT CACHED ============
+    
+    - name: Build C++ Dependencies (if not cached)
+      if: steps.cache-cpp.outputs.cache-hit != 'true'
+      working-directory: session_cpp
+      run: |
+        echo "Cache miss - building abseil and protobuf from source..."
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_PROTOBUF=ON
+        cmake --build build --target abseil_external -j4
+        cmake --build build --target abseil_monolith -j4 || true
+        cmake --build build --target protobuf_external -j4
+        echo "C++ dependencies built and will be cached."
+
+    # ============ RUN TESTS ============
 
     - name: Run mini tests (Python + C++ + Rust)
       shell: bash
