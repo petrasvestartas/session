@@ -21,63 +21,71 @@ To add a new class (for example `Color`) to the mini-test + website pipeline:
 
 ---
 
-## RAG Code Assistant (AI-Powered Code Search)
+## Deployment
 
-The RAG system provides semantic search over your codebase with Claude AI-powered answers. Users can ask questions like "how to create a point" or "what color methods are available" directly in the Vue web interface command line.
+The Session Test Viewer is deployed as a static site with a serverless Claude API proxy.
 
-**Location**: All RAG files are in `session_tests/rag/`
+| Component | URL | Platform |
+|-----------|-----|----------|
+| **Website** | https://petrasvestartas.github.io/session/ | GitHub Pages |
+| **Claude Proxy** | https://session-claude-proxy.petrasvestartas.workers.dev | Cloudflare Workers |
 
-### Adding New Classes to RAG
+### Architecture
 
-When you add a new geometry class (e.g., `Vector`, `Mesh`, `BoundingBox`), follow these steps to make it searchable:
-
-#### 1. Edit the Ingest List
-
-Open `session_tests/rag/rag_pipeline.py` and find the `files_to_ingest` list around **line 306**. Add your new class files for all three languages:
-
-```python
-files_to_ingest = [
-    # Python
-    (self.repo_root / "session_py/src/session_py/point.py", "python"),
-    (self.repo_root / "session_py/src/session_py/color.py", "python"),
-    (self.repo_root / "session_py/src/session_py/vector.py", "python"),  # NEW
-
-    # C++
-    (self.repo_root / "session_cpp/src/point.h", "cpp"),
-    (self.repo_root / "session_cpp/src/point.cpp", "cpp"),
-    (self.repo_root / "session_cpp/src/color.h", "cpp"),
-    (self.repo_root / "session_cpp/src/color.cpp", "cpp"),
-    (self.repo_root / "session_cpp/src/vector.h", "cpp"),  # NEW
-
-    # Rust
-    (self.repo_root / "session_rust/src/point.rs", "rust"),
-    (self.repo_root / "session_rust/src/color.rs", "rust"),
-    (self.repo_root / "session_rust/src/vector.rs", "rust"),  # NEW
-]
+```
+GitHub Pages (static)          Cloudflare Worker (API proxy)
+        ↓                              ↓
+   Vue.js App  ─── Claude API ───→  Worker ───→ Anthropic API
+                   requests              (hides API key)
 ```
 
-#### 2. Reingest the Code
-
-Clear the old database and rebuild with new files:
+### Deploy Website (GitHub Pages)
 
 ```bash
-cd session_tests/rag
-python3 rag_pipeline.py clear
-python3 rag_pipeline.py ingest
+cd session_tests
+npm run build
+git add -A && git commit -m "Update build" && git push
 ```
 
-#### 3. Restart RAG API
+GitHub Actions automatically deploys `dist/` to GitHub Pages.
+
+### Deploy Claude Proxy (Cloudflare Workers)
 
 ```bash
-pkill -f rag_api.py
-./session_tests/rag/start.sh
+cd session_tests/worker
+wrangler deploy
 ```
 
-Or simply run `./minitest.sh` from the repository root, which automatically starts the RAG API.
+To update the API key:
+```bash
+wrangler secret put ANTHROPIC_API_KEY
+```
 
-**That's it!** Now you can ask about your new class in the Vue command line interface at http://localhost:8769/session/
+### Local Development
 
-📖 **For detailed RAG documentation** (performance tuning, troubleshooting, architecture), see [session_tests/rag/README.md](rag/README.md)
+```bash
+cd session_tests
+npm install
+npm run dev
+# Opens http://localhost:8769/session/
+```
+
+In development, Claude API is called directly (requires API key from Firebase).
+
+---
+
+## CLI Interface
+
+The web app includes a command-line interface for querying the Session API:
+
+| Command | Description |
+|---------|-------------|
+| `ask <question>` | Ask about the API (e.g., "how to measure distance") |
+| `search <term>` | Search API methods |
+| `list` | List all available concepts |
+| `help` | Show available commands |
+
+Works offline with pre-built examples. Claude AI enhances answers when online.
 
 ---
 
