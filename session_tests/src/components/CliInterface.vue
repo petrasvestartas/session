@@ -68,103 +68,60 @@ onMounted(async () => {
   }
 })
 
-// Cosine similarity for semantic search
-const cosineSimilarity = (a, b) => {
-  if (!a || !b || a.length !== b.length) return 0
-  let dotProduct = 0
-  let normA = 0
-  let normB = 0
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
-  }
-  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
-}
-
-// Semantic search using pre-computed embeddings + query embedding from Claude
-const semanticSearch = async (query, maxResults = 5) => {
-  const index = window.SEARCH_INDEX
-  if (!index || !index.chunks) {
-    return { results: [], error: 'Search index not loaded' }
-  }
-
-  // If no embeddings in index, fall back to keyword search
-  if (!index.hasEmbeddings) {
-    return clientSideSearch(query, maxResults)
-  }
-
-  // Use Claude to get query embedding via a simple text-embedding approach
-  // Since Anthropic doesn't have a public embedding API, we'll use keyword matching
-  // combined with the pre-computed document embeddings for ranking
-  // Fall back to enhanced keyword search that leverages the embedding structure
-
-  return clientSideSearch(query, maxResults)
-}
-
-// Client-side search function using the static index
-const clientSideSearch = (query, maxResults = 5) => {
-  const index = window.SEARCH_INDEX
-  if (!index || !index.chunks) {
-    return { results: [], error: 'Search index not loaded' }
+// Concept-based search - returns unified API concepts with all languages
+const searchConcepts = (query, maxResults = 3) => {
+  const index = window.API_INDEX
+  if (!index || !index.concepts) {
+    return { results: [], error: 'API index not loaded. Run: python mcp/generate_browser_index.py' }
   }
 
   const queryLower = query.toLowerCase()
   const queryWords = queryLower.split(/\s+/).filter(w => w.length >= 2)
 
-  // Score each chunk based on keyword matches
-  const scored = index.chunks.map(chunk => {
+  // Detect language filter
+  let langFilter = null
+  if (queryLower.includes('python')) langFilter = 'python'
+  else if (queryLower.includes('rust')) langFilter = 'rust'
+  else if (queryLower.includes('c++') || queryLower.includes('cpp')) langFilter = 'cpp'
+
+  // Score each concept
+  const scored = index.concepts.map(concept => {
     let score = 0
+    const nameLower = concept.name.toLowerCase()
+    const methodName = concept.name.split('.')[1] || ''
 
-    // Check name match (highest weight)
-    if (chunk.name.toLowerCase().includes(queryLower)) {
-      score += 100
-    }
-
-    // Check keyword matches
+    // Exact method name match
+    if (methodName && queryLower.includes(methodName.toLowerCase())) score += 100
+    // Class name match
+    if (nameLower.split('.')[0] && queryLower.includes(nameLower.split('.')[0])) score += 30
+    // Partial name match
     for (const word of queryWords) {
-      if (chunk.keywords && chunk.keywords.includes(word)) {
-        score += 20
-      }
-      if (chunk.name.toLowerCase().includes(word)) {
-        score += 30
-      }
-      if (chunk.code && chunk.code.toLowerCase().includes(word)) {
-        score += 5
-      }
+      if (nameLower.includes(word)) score += 40
+    }
+    // Constructor patterns
+    if ((queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('how to')) &&
+        (methodName === '__init__' || methodName === 'new' || methodName === 'with_name')) {
+      score += 50
     }
 
-    // Boost for specific patterns
-    if (queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('constructor')) {
-      if (chunk.name.includes('__init__') || chunk.name.includes('new') || chunk.name.includes('New')) {
-        score += 50
-      }
-    }
-
-    if (queryLower.includes('python') && chunk.language === 'python') score += 25
-    if (queryLower.includes('rust') && chunk.language === 'rust') score += 25
-    if (queryLower.includes('c++') && chunk.language === 'cpp') score += 25
-    if (queryLower.includes('cpp') && chunk.language === 'cpp') score += 25
-
-    return { ...chunk, score }
+    return { ...concept, score }
   })
 
-  // Sort by score and take top results
-  const results = scored
+  // Sort and filter
+  let results = scored
     .filter(c => c.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, maxResults)
-    .map(c => ({
-      type: c.type,
-      name: c.name,
-      file: c.file,
-      language: c.language,
-      line_start: c.line_start,
-      code: c.code,
-      score: c.score
-    }))
 
-  return { results, error: null }
+  // Apply language filter if specified
+  if (langFilter) {
+    results = results.map(c => ({
+      ...c,
+      implementations: { [langFilter]: c.implementations[langFilter] }
+    })).filter(c => Object.keys(c.implementations).length > 0 && c.implementations[langFilter])
+  }
+
+  return { results, error: null, langFilter }
 }
 
 // Call Claude API with streaming support
@@ -258,63 +215,45 @@ Please answer the question based on this code context.`
   }
 }
 
-// Generate context from search results for Claude
-const buildContext = (results) => {
-  if (!results || results.length === 0) return ''
+// Generate context from concept results for Claude
+const buildContext = (concepts) => {
+  if (!concepts || concepts.length === 0) return ''
 
   const parts = []
-  for (const r of results) {
-    const langName = r.language === 'cpp' ? 'C++' : r.language.charAt(0).toUpperCase() + r.language.slice(1)
-    parts.push(`--- ${langName}: ${r.name} (${r.file}:${r.line_start}) ---`)
-    parts.push(r.code || '')
+  for (const concept of concepts) {
+    parts.push(`## ${concept.name}`)
+    for (const [lang, impl] of Object.entries(concept.implementations)) {
+      if (!impl) continue
+      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+      parts.push(`\n### ${langName}: ${impl.sig}`)
+      parts.push('```' + lang)
+      parts.push(impl.code)
+      parts.push('```')
+    }
     parts.push('')
   }
   return parts.join('\n')
 }
 
-// Generate a simple answer from search results (fallback without Claude)
-const generateAnswer = (query, results) => {
-  if (!results || results.length === 0) {
-    return `No results found for "${query}". Try searching for "Point", "Color", "distance", "create", etc.`
+// Generate answer from concept results (fallback without Claude)
+const generateAnswer = (query, concepts) => {
+  if (!concepts || concepts.length === 0) {
+    return `No results found for "${query}". Try: "distance", "Point", "Color", "create", "to_protobuf"`
   }
 
-  const queryLower = query.toLowerCase()
   const lines = []
-
-  // Group by language
-  const byLang = { python: [], cpp: [], rust: [] }
-  for (const r of results) {
-    if (byLang[r.language]) {
-      byLang[r.language].push(r)
+  for (const concept of concepts) {
+    lines.push(`## ${concept.name}\n`)
+    for (const lang of ['python', 'cpp', 'rust']) {
+      const impl = concept.implementations[lang]
+      if (!impl) continue
+      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+      lines.push(`**${langName}:** \`${impl.sig}\``)
+      lines.push('```' + lang)
+      lines.push(impl.code.split('\n').slice(0, 10).join('\n'))
+      lines.push('```\n')
     }
   }
-
-  // Generate contextual answer
-  if (queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('how to')) {
-    lines.push(`Here's how to work with this in the Session codebase:\n`)
-  } else {
-    lines.push(`Found ${results.length} relevant code sections:\n`)
-  }
-
-  for (const lang of ['python', 'cpp', 'rust']) {
-    const langResults = byLang[lang]
-    if (langResults.length === 0) continue
-
-    const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-    lines.push(`**${langName}:**`)
-
-    for (const r of langResults.slice(0, 2)) {
-      // Show code preview
-      const codeLines = (r.code || '').split('\n').slice(0, 8)
-      const codePreview = codeLines.join('\n')
-
-      lines.push(`\`\`\`${lang}`)
-      lines.push(codePreview)
-      lines.push(`\`\`\``)
-      lines.push(`*Source: ${r.file}:${r.line_start}*\n`)
-    }
-  }
-
   return lines.join('\n')
 }
 
@@ -484,13 +423,13 @@ const commands = {
 
     const question = args.join(' ')
 
-    // Search for relevant code
-    const { results, error: searchError } = clientSideSearch(question, 6)
+    // Search for relevant concepts (unified across all languages)
+    const { results, error: searchError } = searchConcepts(question, 3)
 
     if (searchError) {
       return [
-        'Search index not available.',
-        'Run ./minitest.sh locally to generate the search index.',
+        'API index not available.',
+        'Run: python mcp/generate_browser_index.py',
         '',
         `Details: ${searchError}`
       ]
@@ -501,9 +440,9 @@ const commands = {
         `No results found for "${question}".`,
         '',
         'Try searching for:',
-        '  - Point, Color (class names)',
-        '  - distance, create, new (operations)',
-        '  - python, rust, c++ (languages)'
+        '  - distance, duplicate, transform (methods)',
+        '  - Point, Color (classes)',
+        '  - "distance in rust" (specific language)'
       ]
     }
 
