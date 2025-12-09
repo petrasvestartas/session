@@ -39,16 +39,20 @@ SOURCE_FILES = {
     'python': [
         REPO_ROOT / "session_py/src/session_py/point.py",
         REPO_ROOT / "session_py/src/session_py/color.py",
+        REPO_ROOT / "session_py/src/session_py/vector.py",
     ],
     'cpp': [
         REPO_ROOT / "session_cpp/src/point.h",
         REPO_ROOT / "session_cpp/src/point.cpp",
         REPO_ROOT / "session_cpp/src/color.h",
         REPO_ROOT / "session_cpp/src/color.cpp",
+        REPO_ROOT / "session_cpp/src/vector.h",
+        REPO_ROOT / "session_cpp/src/vector.cpp",
     ],
     'rust': [
         REPO_ROOT / "session_rust/src/point.rs",
         REPO_ROOT / "session_rust/src/color.rs",
+        REPO_ROOT / "session_rust/src/vector.rs",
     ],
 }
 

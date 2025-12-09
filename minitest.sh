@@ -21,7 +21,10 @@ cleanup_json() {
     "${TESTS_DIR}/session_rust/point_test.json" \
     "${TESTS_DIR}/session_py/color_test.json" \
     "${TESTS_DIR}/session_cpp/color_test.json" \
-    "${TESTS_DIR}/session_rust/color_test.json"
+    "${TESTS_DIR}/session_rust/color_test.json" \
+    "${TESTS_DIR}/session_py/vector_test.json" \
+    "${TESTS_DIR}/session_cpp/vector_test.json" \
+    "${TESTS_DIR}/session_rust/vector_test.json"
 }
 
 cleanup_json
@@ -134,6 +137,9 @@ else
 
   echo "[mini] Running Python Color mini tests..."
   "${PYTHON}" -m session_py.color_test
+
+  echo "[mini] Running Python Vector mini tests..."
+  "${PYTHON}" -m session_py.vector_test
 fi
 
 echo "[mini] Building C++ project (session_cpp) including tests (no test run)..."
@@ -178,6 +184,16 @@ else
   exit 1
 fi
 
+echo "[mini] Building and running Rust Vector mini tests (vector_minitest)..."
+if [ -d "${RUST_DIR}" ]; then
+  ( cd "${RUST_DIR}" && cargo run --release --bin vector_minitest )
+  RUST_STATUS=$?
+  if [ $RUST_STATUS -ne 0 ]; then
+    echo "[mini] Rust vector_minitest failed."
+    exit $RUST_STATUS
+  fi
+fi
+
 echo "[mini] Done. JSON results:"
 echo "  Point  Python: ${TESTS_DIR}/session_py/point_test.json"
 echo "         C++   : ${TESTS_DIR}/session_cpp/point_test.json"
@@ -185,6 +201,9 @@ echo "         Rust  : ${TESTS_DIR}/session_rust/point_test.json"
 echo "  Color  Python: ${TESTS_DIR}/session_py/color_test.json"
 echo "         C++   : ${TESTS_DIR}/session_cpp/color_test.json"
 echo "         Rust  : ${TESTS_DIR}/session_rust/color_test.json"
+echo "  Vector Python: ${TESTS_DIR}/session_py/vector_test.json"
+echo "         C++   : ${TESTS_DIR}/session_cpp/vector_test.json"
+echo "         Rust  : ${TESTS_DIR}/session_rust/vector_test.json"
 
 echo "[mini] Generating consolidated testData.js..."
 generate_test_data_js() {
@@ -205,6 +224,9 @@ generate_test_data_js() {
     "session_py/color_test.json:python"
     "session_cpp/color_test.json:cpp"
     "session_rust/color_test.json:rust"
+    "session_py/vector_test.json:python"
+    "session_cpp/vector_test.json:cpp"
+    "session_rust/vector_test.json:rust"
   )
   
   local FIRST=true
@@ -235,6 +257,9 @@ generate_test_data_js() {
     "session_py/test_color.json:python"
     "session_cpp/test_color.json:cpp"
     "session_rust/test_color.json:rust"
+    "session_py/test_vector.json:python"
+    "session_cpp/test_vector.json:cpp"
+    "session_rust/test_vector.json:rust"
   )
   
   for ARTIFACT in "${ARTIFACTS[@]}"; do

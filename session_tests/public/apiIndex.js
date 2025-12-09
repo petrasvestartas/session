@@ -26,7 +26,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "duplicate()",
-          "code": "def duplicate(self):\n\n        \"\"\"Duplicate the point.\"\"\"\n        return copy.deepcopy(self)\n\n    def __str__(self):\n        return f\"{self[0]}, {self[1]}, {self[2]}\"\n\n    def __repr__(self):\n        return f\"Point({self.name}, {self[0]}, {self[1]}, {self[2]}, {repr(self.pointcolor)}, {self.width})\"\n\n    def __eq__(self, other):\n        return ("
+          "code": "def duplicate(self):\n\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        return copy.deepcopy(self)\n\n    def __str__(self):"
         },
         "rust": {
           "sig": "duplicate() -> Self",
@@ -66,7 +66,46 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y"
+          "code": "def __ne__(self, other):\n\n        return not self == other\n\n    ###########################################################################################\n    # Coordinate Properties\n    ###########################################################################################\n\n    @property\n    def x(self):\n        \"\"\"Get the X coordinate.\"\"\"\n        return self._x"
+        }
+      }
+    },
+    {
+      "name": "Point.x",
+      "implementations": {
+        "python": {
+          "sig": "x(value)",
+          "code": "def x(self, value):\n\n        \"\"\"Set the X coordinate.\"\"\"\n        self._x = value\n\n    @property\n    def y(self):\n        \"\"\"Get the Y coordinate.\"\"\"\n        return self._y\n\n    @y.setter\n    def y(self, value):\n        \"\"\"Set the Y coordinate.\"\"\""
+        },
+        "rust": {
+          "sig": "x() -> f64",
+          "code": "pub fn x(&self) -> f64 {\n        self._x\n    }"
+        }
+      }
+    },
+    {
+      "name": "Point.y",
+      "implementations": {
+        "python": {
+          "sig": "y(value)",
+          "code": "def y(self, value):\n\n        \"\"\"Set the Y coordinate.\"\"\"\n        self._y = value\n\n    @property\n    def z(self):\n        \"\"\"Get the Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set the Z coordinate.\"\"\""
+        },
+        "rust": {
+          "sig": "y() -> f64",
+          "code": "pub fn y(&self) -> f64 {\n        self._y\n    }"
+        }
+      }
+    },
+    {
+      "name": "Point.z",
+      "implementations": {
+        "python": {
+          "sig": "z(value)",
+          "code": "def z(self, value):\n\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:"
+        },
+        "rust": {
+          "sig": "z() -> f64",
+          "code": "pub fn z(&self) -> f64 {\n        self._z\n    }"
         }
       }
     },
@@ -102,7 +141,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__itruediv__(other)",
-          "code": "def __itruediv__(self, other):\n\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other.x\n            self._y += other.y\n            self._z += other.z\n        else:"
+          "code": "def __itruediv__(self, other):\n\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:"
         }
       }
     },
@@ -111,7 +150,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__iadd__(other)",
-          "code": "def __iadd__(self, other):\n\n        if isinstance(other, Vector):\n            self._x += other.x\n            self._y += other.y\n            self._z += other.z\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other.x"
+          "code": "def __iadd__(self, other):\n\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]"
         }
       }
     },
@@ -120,7 +159,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__isub__(other)",
-          "code": "def __isub__(self, other):\n\n        if isinstance(other, Vector):\n            self._x -= other.x\n            self._y -= other.y\n            self._z -= other.z\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################"
+          "code": "def __isub__(self, other):\n\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################"
         }
       }
     },
@@ -319,7 +358,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_protobuf()",
-          "code": "def to_protobuf(self):\n\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import point_pb2\n        \n        proto = point_pb2.Point()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.x = self[0]\n        proto.y = self[1]\n        proto.z = self[2]\n        proto.width = self.width"
+          "code": "def to_protobuf(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import point_pb2\n        \n        proto = point_pb2.Point()"
         },
         "cpp": {
           "sig": "std::string to_protobuf()",
@@ -336,7 +375,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_protobuf(cls, data)",
-          "code": "def from_protobuf(cls, data):\n\n        \"\"\"Create Point from protobuf binary data.\"\"\"\n        from .proto import point_pb2\n        from .color import Color\n        from .xform import Xform\n        \n        proto = point_pb2.Point()\n        proto.ParseFromString(data)\n        \n        pt = cls(proto.x, proto.y, proto.z)\n        pt.guid = proto.guid\n        pt.name = proto.name"
+          "code": "def from_protobuf(cls, data):\n\n        \"\"\"Create Point from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded point data.\n\n        Returns\n        -------\n        :class:`Point`\n            The deserialized Point."
         },
         "cpp": {
           "sig": "Point from_protobuf(const std::string& data)",
@@ -353,7 +392,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "protobuf_dump(filepath)",
-          "code": "def protobuf_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.to_protobuf()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def protobuf_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.from_protobuf(data)"
+          "code": "def protobuf_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.to_protobuf()\n        with open(filepath, 'wb') as f:\n            f.write(data)"
         },
         "cpp": {
           "sig": "void protobuf_dump(const std::string& filename)",
@@ -370,7 +409,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "protobuf_load(cls, filepath)",
-          "code": "def protobuf_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.from_protobuf(data)"
+          "code": "def protobuf_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Point`\n            The deserialized Point."
         },
         "cpp": {
           "sig": "Point protobuf_load(const std::string& filename)",
@@ -405,7 +444,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "duplicate()",
-          "code": "def duplicate(self) -> \"Color\":\n\n        \"\"\"Duplicate the color.\"\"\"\n        return copy.deepcopy(self)\n\n    def __str__(self) -> str:\n        \"\"\"String representation.\"\"\"\n        return f\"{self[0]}, {self[1]}, {self[2]}, {self[3]}\"\n\n    def __repr__(self) -> str:\n        return f\"Color({self.name}, {self[0]}, {self[1]}, {self[2]}, {self[3]})\"\n\n    def __eq__(self, other) -> bool:"
+          "code": "def duplicate(self) -> \"Color\":\n\n        \"\"\"Create a deep copy of this color with a new GUID.\n\n        Returns\n        -------\n        :class:`Color`\n            A new Color with identical RGBA values but a different GUID.\n\n        \"\"\"\n        return copy.deepcopy(self)\n\n    def __str__(self) -> str:"
         },
         "cpp": {
           "sig": "Color duplicate()",
@@ -476,7 +515,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_unified_array()",
-          "code": "def to_unified_array(self) -> list[float]:\n\n        \"\"\"Convert to normalized float array [0-1] (matches Rust implementation).\"\"\"\n        return [self[0] / 255.0, self[1] / 255.0, self[2] / 255.0, self[3] / 255.0]\n\n    @classmethod\n    def from_unified_array(cls, arr) -> \"Color\":\n        \"\"\"Create color from normalized float values [0-1].\"\"\"\n        return cls(int(arr[0] * 255.0 + 0.5), int(arr[1] * 255.0 + 0.5), int(arr[2] * 255.0 + 0.5), int(arr[3] * 255.0 + 0.5))\n\n    ###########################################################################################\n    # Presets\n    ###########################################################################################"
+          "code": "def to_unified_array(self) -> list[float]:\n\n        \"\"\"Convert to normalized float array [0-1].\n\n        Returns\n        -------\n        list[float]\n            Array [r, g, b, a] with values normalized to [0.0, 1.0].\n\n        \"\"\"\n        return [self[0] / 255.0, self[1] / 255.0, self[2] / 255.0, self[3] / 255.0]\n\n    @classmethod"
         }
       }
     },
@@ -485,7 +524,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_unified_array(cls, arr)",
-          "code": "def from_unified_array(cls, arr) -> \"Color\":\n\n        \"\"\"Create color from normalized float values [0-1].\"\"\"\n        return cls(int(arr[0] * 255.0 + 0.5), int(arr[1] * 255.0 + 0.5), int(arr[2] * 255.0 + 0.5), int(arr[3] * 255.0 + 0.5))\n\n    ###########################################################################################\n    # Presets\n    ###########################################################################################\n\n    @classmethod\n    def white(cls) -> \"Color\":\n        \"\"\"Create a white color.\"\"\"\n        color = cls(255, 255, 255, 255)"
+          "code": "def from_unified_array(cls, arr) -> \"Color\":\n\n        \"\"\"Create color from normalized float values [0-1].\n\n        Parameters\n        ----------\n        arr : list[float]\n            Array [r, g, b, a] with values in [0.0, 1.0] range.\n\n        Returns\n        -------\n        :class:`Color`\n            A new Color with values converted to 0-255 range."
         },
         "cpp": {
           "sig": "Color from_unified_array(std::array<double, 4> arr)",
@@ -890,7 +929,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_protobuf()",
-          "code": "def to_protobuf(self):\n\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        if not _HAS_PROTOBUF:\n            raise ImportError(\"protobuf not available\")\n        proto = color_pb2.Color()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.r = self[0]\n        proto.g = self[1]\n        proto.b = self[2]\n        proto.a = self[3]\n        return proto.SerializeToString()"
+          "code": "def to_protobuf(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        Raises\n        ------\n        ImportError\n            If protobuf module is not available."
         },
         "cpp": {
           "sig": "std::string to_protobuf()",
@@ -907,7 +946,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_protobuf(cls, data)",
-          "code": "def from_protobuf(cls, data):\n\n        \"\"\"Create color from protobuf binary data.\"\"\"\n        if not _HAS_PROTOBUF:\n            raise ImportError(\"protobuf not available\")\n        proto = color_pb2.Color()\n        proto.ParseFromString(data)\n        \n        color = cls(proto.r, proto.g, proto.b, proto.a)\n        color.guid = proto.guid\n        color.name = proto.name\n        return color"
+          "code": "def from_protobuf(cls, data):\n\n        \"\"\"Create color from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded color data.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color."
         },
         "cpp": {
           "sig": "Color from_protobuf(const std::string& data)",
@@ -924,7 +963,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "protobuf_dump(filepath)",
-          "code": "def protobuf_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.to_protobuf()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def protobuf_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.from_protobuf(data)"
+          "code": "def protobuf_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.to_protobuf()\n        with open(filepath, 'wb') as f:\n            f.write(data)"
         },
         "cpp": {
           "sig": "void protobuf_dump(const std::string& filename)",
@@ -941,7 +980,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "protobuf_load(cls, filepath)",
-          "code": "def protobuf_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.from_protobuf(data)"
+          "code": "def protobuf_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color."
         },
         "cpp": {
           "sig": "Color protobuf_load(const std::string& filename)",
@@ -950,6 +989,551 @@ window.API_INDEX = {
         "rust": {
           "sig": "protobuf_load(filepath: &str) -> Self",
           "code": "pub fn protobuf_load(filepath: &str) -> Self {\n        let data = std::fs::read(filepath).expect(\"Failed to read protobuf file\");\n        Self::from_protobuf(&data).expect(\"Failed to parse protobuf\")\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__(x=0.0, y=0.0, z=0.0)",
+          "code": "def __init__(self, x=0.0, y=0.0, z=0.0):\n\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_vector\"\n        self._x = x\n        self._y = y\n        self._z = z\n        self._length = 0.0\n        self._has_length = False\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\""
+        }
+      }
+    },
+    {
+      "name": "Vector.__str__",
+      "implementations": {
+        "python": {
+          "sig": "__str__()",
+          "code": "def __str__(self):\n\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)"
+        }
+      }
+    },
+    {
+      "name": "Vector.__repr__",
+      "implementations": {
+        "python": {
+          "sig": "__repr__()",
+          "code": "def __repr__(self):\n\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):"
+        }
+      }
+    },
+    {
+      "name": "Vector.__eq__",
+      "implementations": {
+        "python": {
+          "sig": "__eq__(other)",
+          "code": "def __eq__(self, other):\n\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):\n        return not self == other\n\n    ###########################################################################################"
+        }
+      }
+    },
+    {
+      "name": "Vector.__ne__",
+      "implementations": {
+        "python": {
+          "sig": "__ne__(other)",
+          "code": "def __ne__(self, other):\n\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:"
+        }
+      }
+    },
+    {
+      "name": "Vector.__getitem__",
+      "implementations": {
+        "python": {
+          "sig": "__getitem__(index)",
+          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):"
+        }
+      }
+    },
+    {
+      "name": "Vector.__setitem__",
+      "implementations": {
+        "python": {
+          "sig": "__setitem__(index, value)",
+          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_length = False"
+        }
+      }
+    },
+    {
+      "name": "Vector.__imul__",
+      "implementations": {
+        "python": {
+          "sig": "__imul__(other)",
+          "code": "def __imul__(self, other):\n\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_length = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_length = False"
+        }
+      }
+    },
+    {
+      "name": "Vector.__itruediv__",
+      "implementations": {
+        "python": {
+          "sig": "__itruediv__(other)",
+          "code": "def __itruediv__(self, other):\n\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_length = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_length = False"
+        }
+      }
+    },
+    {
+      "name": "Vector.__iadd__",
+      "implementations": {
+        "python": {
+          "sig": "__iadd__(other)",
+          "code": "def __iadd__(self, other):\n\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_length = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_length = False"
+        }
+      }
+    },
+    {
+      "name": "Vector.__isub__",
+      "implementations": {
+        "python": {
+          "sig": "__isub__(other)",
+          "code": "def __isub__(self, other):\n\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_length = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):"
+        }
+      }
+    },
+    {
+      "name": "Vector.__mul__",
+      "implementations": {
+        "python": {
+          "sig": "__mul__(other)",
+          "code": "def __mul__(self, other):\n\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)"
+        }
+      }
+    },
+    {
+      "name": "Vector.__truediv__",
+      "implementations": {
+        "python": {
+          "sig": "__truediv__(other)",
+          "code": "def __truediv__(self, other):\n\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################"
+        }
+      }
+    },
+    {
+      "name": "Vector.__add__",
+      "implementations": {
+        "python": {
+          "sig": "__add__(other)",
+          "code": "def __add__(self, other):\n\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def x_axis():"
+        }
+      }
+    },
+    {
+      "name": "Vector.__sub__",
+      "implementations": {
+        "python": {
+          "sig": "__sub__(other)",
+          "code": "def __sub__(self, other):\n\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns"
+        }
+      }
+    },
+    {
+      "name": "Vector.x_axis",
+      "implementations": {
+        "python": {
+          "sig": "x_axis()",
+          "code": "def x_axis():\n\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod"
+        },
+        "cpp": {
+          "sig": "Vector x_axis()",
+          "code": "Vector Vector::x_axis() { return Vector(1.0, 0.0, 0.0); }"
+        },
+        "rust": {
+          "sig": "x_axis() -> Self",
+          "code": "pub fn x_axis() -> Self {\n        Self::new(1.0, 0.0, 0.0)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.y_axis",
+      "implementations": {
+        "python": {
+          "sig": "y_axis()",
+          "code": "def y_axis():\n\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod"
+        },
+        "cpp": {
+          "sig": "Vector y_axis()",
+          "code": "Vector Vector::y_axis() { return Vector(0.0, 1.0, 0.0); }"
+        },
+        "rust": {
+          "sig": "y_axis() -> Self",
+          "code": "pub fn y_axis() -> Self {\n        Self::new(0.0, 1.0, 0.0)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.z_axis",
+      "implementations": {
+        "python": {
+          "sig": "z_axis()",
+          "code": "def z_axis():\n\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod"
+        },
+        "cpp": {
+          "sig": "Vector z_axis()",
+          "code": "Vector Vector::z_axis() { return Vector(0.0, 0.0, 1.0); }"
+        },
+        "rust": {
+          "sig": "z_axis() -> Self",
+          "code": "pub fn z_axis() -> Self {\n        Self::new(0.0, 0.0, 1.0)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.from_start_and_end",
+      "implementations": {
+        "python": {
+          "sig": "from_start_and_end(start, end)",
+          "code": "def from_start_and_end(start, end):\n\n        \"\"\"Vector from start to end (end - start).\n\n        Parameters\n        ----------\n        start : :class:`Vector`\n            Start vector.\n        end : :class:`Vector`\n            End vector.\n\n        Returns\n        -------"
+        },
+        "cpp": {
+          "sig": "Vector from_start_and_end(const Vector &start, const Vector &end)",
+          "code": "Vector Vector::from_start_and_end(const Vector &start, const Vector &end) {\n  return Vector(end._x - start._x, end._y - start._y, end._z - start._z);\n}"
+        },
+        "rust": {
+          "sig": "from_start_and_end(start: &Vector, end: &Vector) -> Self",
+          "code": "pub fn from_start_and_end(start: &Vector, end: &Vector) -> Self {\n        Self::new(end._x - start._x, end._y - start._y, end._z - start._z)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.reverse",
+      "implementations": {
+        "python": {
+          "sig": "reverse()",
+          "code": "def reverse(self):\n\n        \"\"\"Reverse the vector (negate all components).\n\n        Returns\n        -------\n        :class:`Vector`\n            Self.\n\n        \"\"\"\n        self._x = -self._x\n        self._y = -self._y\n        self._z = -self._z"
+        },
+        "cpp": {
+          "sig": "void reverse()",
+          "code": "void Vector::reverse() {\n  _x = -_x;\n  _y = -_y;\n  _z = -_z;\n  // Length magnitude stays the same, no need to invalidate cache\n}"
+        },
+        "rust": {
+          "sig": "reverse()",
+          "code": "pub fn reverse(&mut self) {\n        self._x = -self._x;\n        self._y = -self._y;\n        self._z = -self._z;\n        // Length magnitude stays the same, no need to invalidate cache\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.compute_length",
+      "implementations": {
+        "python": {
+          "sig": "compute_length()",
+          "code": "def compute_length(self):\n\n        \"\"\"Compute the length of the vector using optimized algorithm.\n\n        Returns\n        -------\n        float\n            The length of the vector.\n        \"\"\"\n        length = 0.0\n\n        x = abs(self._x)\n        y = abs(self._y)"
+        },
+        "cpp": {
+          "sig": "double compute_length()",
+          "code": "double Vector::compute_length() const {\n  double len = 0.0;\n\n  double ax = std::abs(_x);\n  double ay = std::abs(_y);\n  double az = std::abs(_z);\n\n  const bool x_zero = ax < static_cast<double>(session_cpp::Tolerance::ZERO_TOLERANCE);\n  const bool y_zero = ay < static_cast<double>(session_cpp::Tolerance::ZERO_TOLERANCE);\n  const bool z_zero = az < static_cast<double>(session_cpp::Tolerance::ZERO_TOLERANCE);\n\n  if (x_zero && y_zero && z_zero)\n    return 0.0;\n  else if (x_zero && y_zero)\n    retur"
+        },
+        "rust": {
+          "sig": "compute_length() -> f64",
+          "code": "pub fn compute_length(&self) -> f64 {\n        (self._x * self._x + self._y * self._y + self._z * self._z).sqrt()\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.magnitude",
+      "implementations": {
+        "python": {
+          "sig": "magnitude()",
+          "code": "def magnitude(self):\n\n        \"\"\"Get the cached magnitude of the vector, computing it if necessary.\n\n        Returns\n        -------\n        float\n            The magnitude (length) of the vector.\n        \"\"\"\n        if not self._has_length:\n            self._length = self.compute_length()\n            self._has_length = True"
+        },
+        "cpp": {
+          "sig": "double magnitude()",
+          "code": "double Vector::magnitude() const { return cached_length(); }"
+        },
+        "rust": {
+          "sig": "magnitude() -> f64",
+          "code": "pub fn magnitude(&mut self) -> f64 {\n        if !self._has_length {\n            self._length = self.compute_length();\n            self._has_length = true;\n        }\n        self._length\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.length_squared",
+      "implementations": {
+        "python": {
+          "sig": "length_squared()",
+          "code": "def length_squared(self):\n\n        \"\"\"Get the squared length of the vector (avoids sqrt for performance).\n\n        Returns\n        -------\n        float\n            The squared length of the vector.\n        \"\"\"\n        return self._x * self._x + self._y * self._y + self._z * self._z\n\n    def normalize_self(self):\n        \"\"\"Normalize the vector in place (make it unit length)."
+        },
+        "cpp": {
+          "sig": "double length_squared()",
+          "code": "double Vector::length_squared() const {\n  return _x * _x + _y * _y + _z * _z;\n}"
+        },
+        "rust": {
+          "sig": "length_squared() -> f64",
+          "code": "pub fn length_squared(&self) -> f64 {\n        self._x * self._x + self._y * self._y + self._z * self._z\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.normalize_self",
+      "implementations": {
+        "python": {
+          "sig": "normalize_self()",
+          "code": "def normalize_self(self):\n\n        \"\"\"Normalize the vector in place (make it unit length).\n\n        Returns\n        -------\n        bool\n            True if successful, False if vector has zero length.\n        \"\"\"\n        d = self.magnitude()\n        if d > 0.0:\n            self._x /= d\n            self._y /= d"
+        },
+        "cpp": {
+          "sig": "bool normalize_self()",
+          "code": "bool Vector::normalize_self() {\n  double d = compute_length();\n  if (d > 0.0) {\n    (*this)[0] = _x / d;\n    (*this)[1] = _y / d;\n    (*this)[2] = _z / d;\n    return true;\n  }"
+        },
+        "rust": {
+          "sig": "normalize_self()",
+          "code": "pub fn normalize_self(&mut self) {\n        let len = self.magnitude();\n        if len > Tolerance::ZERO_TOLERANCE {\n            self._x /= len;\n            self._y /= len;\n            self._z /= len;\n            self.invalidate_length_cache();\n        }\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.normalize",
+      "implementations": {
+        "python": {
+          "sig": "normalize()",
+          "code": "def normalize(self):\n\n        \"\"\"Return a normalized copy of the vector.\n\n        Returns\n        -------\n        Vector\n            A new vector that is the unit vector of this vector.\n        \"\"\"\n        normalized_vector = Vector(self._x, self._y, self._z)\n        normalized_vector.normalize_self()\n        return normalized_vector"
+        },
+        "rust": {
+          "sig": "normalize() -> Self",
+          "code": "pub fn normalize(&self) -> Self {\n        let mut result = self.clone();\n        result.normalize_self();\n        result\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.dot",
+      "implementations": {
+        "python": {
+          "sig": "dot(other)",
+          "code": "def dot(self, other):\n\n        \"\"\"Calculate dot product with another vector.\n\n        Parameters\n        ----------\n        other : :class:`Vector`\n            Other vector.\n\n        Returns\n        -------\n        float\n            Dot product value."
+        },
+        "cpp": {
+          "sig": "double dot(const Vector &other)",
+          "code": "double Vector::dot(const Vector &other) const {\n  double result = 0.0;\n  for (int i = 0; i < 3; ++i) {\n    result += (*this)[i] * other[i];\n  }"
+        },
+        "rust": {
+          "sig": "dot(other: &Vector) -> f64",
+          "code": "pub fn dot(&self, other: &Vector) -> f64 {\n        self._x * other._x + self._y * other._y + self._z * other._z\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.cross",
+      "implementations": {
+        "python": {
+          "sig": "cross(other)",
+          "code": "def cross(self, other):\n\n        \"\"\"Calculate cross product with another vector.\n\n        Parameters\n        ----------\n        other : :class:`Vector`\n            Other vector.\n\n        Returns\n        -------\n        :class:`Vector`\n            Cross product vector (orthogonal to inputs)."
+        },
+        "cpp": {
+          "sig": "Vector cross(const Vector &other)",
+          "code": "Vector Vector::cross(const Vector &other) const {\n  double cx = (*this)[1] * other[2] - (*this)[2] * other[1];\n  double cy = (*this)[2] * other[0] - (*this)[0] * other[2];\n  double cz = (*this)[0] * other[1] - (*this)[1] * other[0];\n  return Vector(cx, cy, cz);\n}"
+        },
+        "rust": {
+          "sig": "cross(other: &Vector) -> Vector",
+          "code": "pub fn cross(&self, other: &Vector) -> Vector {\n        Vector::new(\n            self._y * other._z - self._z * other._y,\n            self._z * other._x - self._x * other._z,\n            self._x * other._y - self._y * other._x,\n        )\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.is_parallel_to",
+      "implementations": {
+        "python": {
+          "sig": "is_parallel_to(v)",
+          "code": "def is_parallel_to(self, v):\n\n        \"\"\"Check if this vector is parallel/antiparallel to another.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Other vector.\n\n        Returns\n        -------\n        int\n            1 if parallel, -1 if antiparallel, 0 otherwise."
+        },
+        "cpp": {
+          "sig": "int is_parallel_to(const Vector &other)",
+          "code": "int Vector::is_parallel_to(const Vector &other) {\n  double ll = cached_length() * other.cached_length();\n  int result;\n  \n  if (ll > 0.0) {\n    const double cos_angle = ((*this)[0] * other[0] + (*this)[1] * other[1] + (*this)[2] * other[2]) / ll;\n    const double angle_in_radians = static_cast<double>(Tolerance::ANGLE_TOLERANCE_DEGREES) * static_cast<double>(Tolerance::TO_RADIANS);\n    const double cos_tol = std::cos(angle_in_radians);\n    if (cos_angle >= cos_tol)\n      result = 1;  // Paralle"
+        },
+        "rust": {
+          "sig": "is_parallel_to(other: &Vector) -> i32",
+          "code": "pub fn is_parallel_to(&self, other: &Vector) -> i32 {\n        let len_product = self.compute_length() * other.compute_length();\n\n        if len_product <= 0.0 {\n            return 0;\n        }\n\n        let cos_angle = self.dot(other) / len_product;\n        let angle_in_radians = Tolerance::ANGLE_TOLERANCE_DEGREES * TO_RADIANS;\n        let cos_tolerance = angle_in_radians.cos();\n\n        if cos_angle >= cos_tolerance {\n            1 // Parallel\n        } else if cos_angle <= -cos_tolerance {"
+        }
+      }
+    },
+    {
+      "name": "Vector.angle",
+      "implementations": {
+        "python": {
+          "sig": "angle(other, sign_by_cross_product=False, degrees=True, tolerance=1e-12)",
+          "code": "def angle(self, other, sign_by_cross_product=False, degrees=True, tolerance=1e-12):\n\n        \"\"\"Angle between this vector and another.\n\n        Parameters\n        ----------\n        other : :class:`Vector`\n            The other vector.\n        sign_by_cross_product : bool, optional\n            If True, sign the angle using the z-component of the cross product.\n        degrees : bool, optional\n            If True (default), return angle in degrees; otherwise radians.\n        tolerance : float, optional"
+        },
+        "cpp": {
+          "sig": "double angle(const Vector &other, bool sign_by_cross_product, bool degrees,\n                     double tolerance)",
+          "code": "double Vector::angle(const Vector &other, bool sign_by_cross_product, bool degrees,\n                     double tolerance) {\n  double dotp = this->dot(other);\n  double len0 = this->cached_length();\n  double len1 = other.cached_length();\n  double denom = len0 * len1;\n  if (denom < tolerance) {\n    return 0.0;\n  }"
+        },
+        "rust": {
+          "sig": "angle(other: &Vector, sign_by_cross_product: bool) -> f64",
+          "code": "pub fn angle(&self, other: &Vector, sign_by_cross_product: bool) -> f64 {\n        let dotp = self.dot(other);\n        let len_product = self.compute_length() * other.compute_length();\n\n        if len_product < Tolerance::ZERO_TOLERANCE {\n            return 0.0;\n        }\n\n        let cos_angle = (dotp / len_product).clamp(-1.0, 1.0);\n        let mut angle = cos_angle.acos() * TO_DEGREES;\n\n        if sign_by_cross_product {\n            let cp = self.cross(other);\n            if cp[2] < 0.0 {"
+        }
+      }
+    },
+    {
+      "name": "Vector.projection",
+      "implementations": {
+        "python": {
+          "sig": "projection(projection_vector, tolerance=1e-12)",
+          "code": "def projection(self, projection_vector, tolerance=1e-12):\n\n        \"\"\"Project this vector onto another vector.\n\n        Parameters\n        ----------\n        projection_vector : :class:`Vector`\n            Vector to project onto.\n        tolerance : float, optional\n            Treat `projection_vector` length below this as zero.\n\n        Returns\n        -------"
+        },
+        "rust": {
+          "sig": "projection(onto: &Vector) -> (Vector, f64, Vector, f64)",
+          "code": "pub fn projection(&self, onto: &Vector) -> (Vector, f64, Vector, f64) {\n        self.projection_with(onto, Tolerance::ZERO_TOLERANCE)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.get_leveled_vector",
+      "implementations": {
+        "python": {
+          "sig": "get_leveled_vector(vertical_height)",
+          "code": "def get_leveled_vector(self, vertical_height):\n\n        \"\"\"Get a copy scaled by a vertical height along the Z-axis.\n\n        Parameters\n        ----------\n        vertical_height : float\n            Target vertical height.\n\n        Returns\n        -------\n        :class:`Vector`\n            Scaled copy matching the C++ implementation."
+        },
+        "cpp": {
+          "sig": "Vector get_leveled_vector(double &vertical_height)",
+          "code": "Vector Vector::get_leveled_vector(double &vertical_height) {\n  Vector copy(_x, _y, _z);\n  if (copy.normalize_self()) {\n    Vector reference(0, 0, 1);\n    double angle = copy.angle(reference, true); // returns degrees\n    // CRITICAL: statics bug - passes degrees directly to cos (expects radians)\n    double inclined_offset_by_vertical_distance = vertical_height / std::cos(angle);\n    copy *= inclined_offset_by_vertical_distance;\n  }"
+        },
+        "rust": {
+          "sig": "get_leveled_vector(vertical_height: f64) -> Vector",
+          "code": "pub fn get_leveled_vector(&self, vertical_height: f64) -> Vector {\n        let mut copy = self.clone();\n        copy.normalize_self();\n\n        if vertical_height != 0.0 {\n            let reference = Vector::z_axis();\n            let angle = copy.angle(&reference, true); // returns degrees\n                                                      // CRITICAL: statics bug - passes degrees directly to cos (expects radians)\n            let inclined_offset_by_vertical_distance = vertical_height / an"
+        }
+      }
+    },
+    {
+      "name": "Vector.cosine_law",
+      "implementations": {
+        "python": {
+          "sig": "cosine_law(\n        triangle_edge_length_a,\n        triangle_edge_length_b,\n        angle_in_between_edges,\n        degrees=True,\n    )",
+          "code": "def cosine_law(\n        triangle_edge_length_a,\n        triangle_edge_length_b,\n        angle_in_between_edges,\n        degrees=True,\n    ):\n\n        \"\"\"Calculate third side of triangle using the cosine law.\n\n        Parameters\n        ----------\n        triangle_edge_length_a : float\n            Length of side a.\n        triangle_edge_length_b : float\n            Length of side b.\n        angle_in_between_edges : float\n            Angle between a and b.\n        degrees : bool, optional"
+        },
+        "cpp": {
+          "sig": "double cosine_law(double &a, double &b, double &ang_between, bool degrees)",
+          "code": "double Vector::cosine_law(double &a, double &b, double &ang_between, bool degrees) {\n  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;\n  return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}"
+        },
+        "rust": {
+          "sig": "cosine_law(\n        triangle_edge_length_a: f64,\n        triangle_edge_length_b: f64,\n        angle_in_degrees_between_edges: f64,\n        degrees: bool,\n    ) -> f64",
+          "code": "pub fn cosine_law(\n        triangle_edge_length_a: f64,\n        triangle_edge_length_b: f64,\n        angle_in_degrees_between_edges: f64,\n        degrees: bool,\n    ) -> f64 {\n        let angle = if degrees {\n            angle_in_degrees_between_edges * TO_RADIANS\n        } else {\n            angle_in_degrees_between_edges\n        };\n\n        (triangle_edge_length_a.powi(2) + triangle_edge_length_b.powi(2)\n            - 2.0 * triangle_edge_length_a * triangle_edge_length_b * angle.cos())"
+        }
+      }
+    },
+    {
+      "name": "Vector.sine_law_angle",
+      "implementations": {
+        "python": {
+          "sig": "sine_law_angle(\n        triangle_edge_length_a,\n        angle_in_front_of_a,\n        triangle_edge_length_b,\n        degrees=True,\n    )",
+          "code": "def sine_law_angle(\n        triangle_edge_length_a,\n        angle_in_front_of_a,\n        triangle_edge_length_b,\n        degrees=True,\n    ):\n\n        \"\"\"Calculate angle using the sine law.\n\n        Parameters\n        ----------\n        triangle_edge_length_a : float\n            Length of side a.\n        angle_in_front_of_a : float\n            Angle opposite to side a.\n        triangle_edge_length_b : float\n            Length of side b.\n        degrees : bool, optional"
+        },
+        "cpp": {
+          "sig": "double sine_law_angle(double &a, double &A, double &b, bool degrees)",
+          "code": "double Vector::sine_law_angle(double &a, double &A, double &b, bool degrees) {\n  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;\n  double to_deg = degrees ? static_cast<double>(Tolerance::TO_DEGREES) : 1.0;\n  return std::asin((b * std::sin(A * to_rad)) / a) * to_deg;\n}"
+        },
+        "rust": {
+          "sig": "sine_law_angle(\n        triangle_edge_length_a: f64,\n        angle_in_degrees_in_front_of_a: f64,\n        triangle_edge_length_b: f64,\n        degrees: bool,\n    ) -> f64",
+          "code": "pub fn sine_law_angle(\n        triangle_edge_length_a: f64,\n        angle_in_degrees_in_front_of_a: f64,\n        triangle_edge_length_b: f64,\n        degrees: bool,\n    ) -> f64 {\n        let angle_a = if degrees {\n            angle_in_degrees_in_front_of_a * TO_RADIANS\n        } else {\n            angle_in_degrees_in_front_of_a\n        };\n\n        let sin_b = (triangle_edge_length_b * angle_a.sin()) / triangle_edge_length_a;\n        let angle_b = sin_b.asin();\n\n        if degrees {"
+        }
+      }
+    },
+    {
+      "name": "Vector.sine_law_length",
+      "implementations": {
+        "python": {
+          "sig": "sine_law_length(\n        triangle_edge_length_a, angle_in_front_of_a, angle_in_front_of_b, degrees=True\n    )",
+          "code": "def sine_law_length(\n        triangle_edge_length_a, angle_in_front_of_a, angle_in_front_of_b, degrees=True\n    ):\n\n        \"\"\"Calculate side length using the sine law.\n\n        Parameters\n        ----------\n        triangle_edge_length_a : float\n            Length of side a.\n        angle_in_front_of_a : float\n            Angle opposite to side a.\n        angle_in_front_of_b : float\n            Angle opposite to side b.\n        degrees : bool, optional"
+        },
+        "cpp": {
+          "sig": "double sine_law_length(double &a, double &A, double &B, bool degrees)",
+          "code": "double Vector::sine_law_length(double &a, double &A, double &B, bool degrees) {\n  double to_rad = degrees ? static_cast<double>(Tolerance::TO_RADIANS) : 1.0;\n  return (a * std::sin(B * to_rad)) / std::sin(A * to_rad);\n}"
+        },
+        "rust": {
+          "sig": "sine_law_length(\n        triangle_edge_length_a: f64,\n        angle_in_degrees_in_front_of_a: f64,\n        angle_in_degrees_in_front_of_b: f64,\n        degrees: bool,\n    ) -> f64",
+          "code": "pub fn sine_law_length(\n        triangle_edge_length_a: f64,\n        angle_in_degrees_in_front_of_a: f64,\n        angle_in_degrees_in_front_of_b: f64,\n        degrees: bool,\n    ) -> f64 {\n        let angle_a = if degrees {\n            angle_in_degrees_in_front_of_a * TO_RADIANS\n        } else {\n            angle_in_degrees_in_front_of_a\n        };\n\n        let angle_b = if degrees {\n            angle_in_degrees_in_front_of_b * TO_RADIANS\n        } else {\n            angle_in_degrees_in_fron"
+        }
+      }
+    },
+    {
+      "name": "Vector.angle_between_vector_xy_components",
+      "implementations": {
+        "python": {
+          "sig": "angle_between_vector_xy_components(vector, degrees=True)",
+          "code": "def angle_between_vector_xy_components(vector, degrees=True):\n\n        \"\"\"Angle between the vector's XY components.\n\n        Parameters\n        ----------\n        vector : :class:`Vector`\n            Input vector.\n        degrees : bool, optional\n            If True, return degrees; otherwise radians.\n\n        Returns\n        -------"
+        },
+        "cpp": {
+          "sig": "double angle_between_vector_xy_components(Vector &vector)",
+          "code": "double Vector::angle_between_vector_xy_components(Vector &vector) {\n  return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);\n}"
+        },
+        "rust": {
+          "sig": "angle_between_vector_xy_components(vector: &Vector) -> f64",
+          "code": "pub fn angle_between_vector_xy_components(vector: &Vector) -> f64 {\n        vector._y.atan2(vector._x) * TO_DEGREES\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.sum_of_vectors",
+      "implementations": {
+        "python": {
+          "sig": "sum_of_vectors(vectors)",
+          "code": "def sum_of_vectors(vectors):\n\n        \"\"\"Sum a list of vectors (component-wise).\n\n        Parameters\n        ----------\n        vectors : list[:class:`Vector`]\n            Vectors to sum.\n\n        Returns\n        -------\n        :class:`Vector`\n            The component-wise sum."
+        },
+        "cpp": {
+          "sig": "Vector sum_of_vectors(std::vector<Vector> &vectors)",
+          "code": "Vector Vector::sum_of_vectors(std::vector<Vector> &vectors) {\n  double sx = 0, sy = 0, sz = 0;\n  for (const auto &v : vectors) {\n    sx += v[0];\n    sy += v[1];\n    sz += v[2];\n  }"
+        },
+        "rust": {
+          "sig": "sum_of_vectors(vectors: &[Vector]) -> Vector",
+          "code": "pub fn sum_of_vectors(vectors: &[Vector]) -> Vector {\n        let mut result = Vector::zero();\n        for vector in vectors {\n            result._x += vector._x;\n            result._y += vector._y;\n            result._z += vector._z;\n        }\n        result\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.coordinate_direction_3angles",
+      "implementations": {
+        "python": {
+          "sig": "coordinate_direction_3angles(degrees=True)",
+          "code": "def coordinate_direction_3angles(self, degrees=True):\n\n        \"\"\"Compute coordinate direction angles (alpha, beta, gamma).\n\n        Parameters\n        ----------\n        degrees : bool, optional\n            Return angles in degrees if True, radians if False.\n\n        Returns\n        -------\n        tuple\n            (alpha, beta, gamma)"
+        },
+        "rust": {
+          "sig": "coordinate_direction_3angles(degrees: bool) -> [f64; 3]",
+          "code": "pub fn coordinate_direction_3angles(&self, degrees: bool) -> [f64; 3] {\n        let length = self.compute_length();\n        if length < Tolerance::ZERO_TOLERANCE {\n            return [0.0, 0.0, 0.0];\n        }\n\n        let cos_alpha = self._x / length;\n        let cos_beta = self._y / length;\n        let cos_gamma = self._z / length;\n\n        let alpha = cos_alpha.acos();\n        let beta = cos_beta.acos();\n        let gamma = cos_gamma.acos();\n\n        if degrees {\n            [alpha * TO_D"
+        }
+      }
+    },
+    {
+      "name": "Vector.coordinate_direction_2angles",
+      "implementations": {
+        "python": {
+          "sig": "coordinate_direction_2angles(degrees=True)",
+          "code": "def coordinate_direction_2angles(self, degrees=True):\n\n        \"\"\"Compute coordinate direction angles (phi, theta).\n\n        Parameters\n        ----------\n        degrees : bool, optional\n            Return angles in degrees if True, radians if False.\n\n        Returns\n        -------\n        tuple\n            (phi, theta)"
+        },
+        "rust": {
+          "sig": "coordinate_direction_2angles(degrees: bool) -> [f64; 2]",
+          "code": "pub fn coordinate_direction_2angles(&self, degrees: bool) -> [f64; 2] {\n        let length_xy = (self._x * self._x + self._y * self._y).sqrt();\n        let length = self.compute_length();\n\n        if length < Tolerance::ZERO_TOLERANCE {\n            return [0.0, 0.0];\n        }\n\n        let phi = self._y.atan2(self._x);\n        let theta = length_xy.atan2(self._z);\n\n        if degrees {\n            [phi * TO_DEGREES, theta * TO_DEGREES]\n        } else {\n            [phi, theta]\n        }"
+        }
+      }
+    },
+    {
+      "name": "Vector.perpendicular_to",
+      "implementations": {
+        "python": {
+          "sig": "perpendicular_to(v)",
+          "code": "def perpendicular_to(self, v):\n\n        \"\"\"Set this vector to be perpendicular to `v`.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Reference vector.\n\n        Returns\n        -------\n        bool\n            True on success, False otherwise."
+        },
+        "cpp": {
+          "sig": "bool perpendicular_to(Vector &v)",
+          "code": "bool Vector::perpendicular_to(Vector &v) {\n  int i, j, k;\n  double a, b;\n  k = 2;\n  if (std::fabs(v[1]) > std::fabs(v[0])) {\n    if (std::fabs(v[2]) > std::fabs(v[1])) {\n      // |v[2]| > |v[1]| > |v[0]|\n      i = 2; j = 1; k = 0; a = v[2]; b = -v[1];\n    }"
+        },
+        "rust": {
+          "sig": "perpendicular_to(v: &Vector) -> bool",
+          "code": "pub fn perpendicular_to(&mut self, v: &Vector) -> bool {\n        // Ported from Python implementation to ensure identical behavior\n        let i: usize;\n        let j: usize;\n        let k: usize;\n        let a: f64;\n        let b: f64;\n\n        if v[1].abs() > v[0].abs() {\n            if v[2].abs() > v[1].abs() {\n                // |v.z| > |v.y| > |v.x|\n                i = 2;\n                j = 1;\n                k = 0;\n                a = v[2];\n                b = -v[1];\n            } els"
+        }
+      }
+    },
+    {
+      "name": "Vector.__jsondump__",
+      "implementations": {
+        "python": {
+          "sig": "__jsondump__()",
+          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"x\": self[0],\n            \"y\": self[1],\n            \"z\": self[2],\n        }\n\n    @classmethod"
+        }
+      }
+    },
+    {
+      "name": "Vector.__jsonload__",
+      "implementations": {
+        "python": {
+          "sig": "__jsonload__(cls, data, guid=None, name=None)",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        vec = cls(data[\"x\"], data[\"y\"], data[\"z\"])\n        vec.guid = guid\n        vec.name = name\n        return vec"
         }
       }
     },
@@ -970,8 +1554,8 @@ window.API_INDEX = {
       "name": "fmt.format",
       "implementations": {
         "cpp": {
-          "sig": "return format(\"Color({}, {}, {}, {}, {})",
-          "code": "return fmt::format(\"Color({}, {}, {}, {}, {})\", name, r, g, b, a);\n}"
+          "sig": "return format(\"Vector({}, {}, {}, {}, {})",
+          "code": "return fmt::format(\"Vector({}, {}, {}, {}, {})\", _x, _y, _z, guid, name);\n}"
         }
       }
     },
@@ -1161,6 +1745,116 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Vector.to_string",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string to_string()",
+          "code": "std::string Vector::to_string() const {\n  return fmt::format(\"Vector({}"
+        }
+      }
+    },
+    {
+      "name": "Vector.jsondump",
+      "implementations": {
+        "cpp": {
+          "sig": "nlohmann::ordered_json jsondump()",
+          "code": "nlohmann::ordered_json Vector::jsondump() const {\n  auto clean_float = [](double val) -> double { return std::round(val * 100.0) / 100.0; }"
+        },
+        "rust": {
+          "sig": "jsondump() -> Result<String, Box<dyn std::error::Error>>",
+          "code": "pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {\n        let mut buf = Vec::new();\n        let formatter = serde_json::ser::PrettyFormatter::with_indent(b\"    \");\n        let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);\n        SerTrait::serialize(self, &mut ser)?;\n        Ok(String::from_utf8(buf)?)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.jsonload",
+      "implementations": {
+        "cpp": {
+          "sig": "Vector jsonload(const nlohmann::json &data)",
+          "code": "Vector Vector::jsonload(const nlohmann::json &data) {\n  Vector vector(data[\"x\"], data[\"y\"], data[\"z\"]);\n  vector.guid = data[\"guid\"];\n  vector.name = data[\"name\"];\n  return vector;\n}"
+        },
+        "rust": {
+          "sig": "jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>>",
+          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        Ok(serde_json::from_str(json_data)?)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.cached_length",
+      "implementations": {
+        "cpp": {
+          "sig": "double cached_length()",
+          "code": "double Vector::cached_length() const {\n  if (!_has_length) {\n    _length = compute_length();\n    _has_length = true;\n  }"
+        }
+      }
+    },
+    {
+      "name": "std.sqrt",
+      "implementations": {
+        "cpp": {
+          "sig": "return sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad)",
+          "code": "return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}"
+        }
+      }
+    },
+    {
+      "name": "std.asin",
+      "implementations": {
+        "cpp": {
+          "sig": "return asin((b * std::sin(A * to_rad)",
+          "code": "return std::asin((b * std::sin(A * to_rad)) / a) * to_deg;\n}"
+        }
+      }
+    },
+    {
+      "name": "std.atan2",
+      "implementations": {
+        "cpp": {
+          "sig": "return atan2(vector[1], vector[0])",
+          "code": "return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);\n}"
+        }
+      }
+    },
+    {
+      "name": "Vector.scale",
+      "implementations": {
+        "cpp": {
+          "sig": "void scale(double factor)",
+          "code": "void Vector::scale(double factor) {\n  (*this)[0] = _x * factor;\n  (*this)[1] = _y * factor;\n  (*this)[2] = _z * factor;\n}"
+        },
+        "rust": {
+          "sig": "scale(factor: f64)",
+          "code": "pub fn scale(&mut self, factor: f64) {\n        self._x *= factor;\n        self._y *= factor;\n        self._z *= factor;\n        self.invalidate_length_cache();\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.scale_up",
+      "implementations": {
+        "cpp": {
+          "sig": "void scale_up()",
+          "code": "void Vector::scale_up() { scale(static_cast<double>(session_cpp::SCALE)); }"
+        },
+        "rust": {
+          "sig": "scale_up()",
+          "code": "pub fn scale_up(&mut self) {\n        self.scale(SCALE);\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.scale_down",
+      "implementations": {
+        "cpp": {
+          "sig": "void scale_down()",
+          "code": "void Vector::scale_down() { scale(1.0 / static_cast<double>(session_cpp::SCALE)); }"
+        },
+        "rust": {
+          "sig": "scale_down()",
+          "code": "pub fn scale_down(&mut self) {\n        self.scale(1.0 / SCALE);\n    }"
+        }
+      }
+    },
+    {
       "name": "Point.new",
       "implementations": {
         "rust": {
@@ -1243,6 +1937,78 @@ window.API_INDEX = {
     },
     {
       "name": "Color.from_json",
+      "implementations": {
+        "rust": {
+          "sig": "from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>>",
+          "code": "pub fn from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json = std::fs::read_to_string(filepath)?;\n        Self::jsonload(&json)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.new",
+      "implementations": {
+        "rust": {
+          "sig": "new(x: f64, y: f64, z: f64) -> Self",
+          "code": "pub fn new(x: f64, y: f64, z: f64) -> Self {\n        Self {\n            _x: x,\n            _y: y,\n            _z: z,\n            ..Default::default()\n        }\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.with_name",
+      "implementations": {
+        "rust": {
+          "sig": "with_name(x: f64, y: f64, z: f64, name: &str) -> Self",
+          "code": "pub fn with_name(x: f64, y: f64, z: f64, name: &str) -> Self {\n        Self {\n            _x: x,\n            _y: y,\n            _z: z,\n            name: name.to_string(),\n            ..Default::default()\n        }\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.duplicate",
+      "implementations": {
+        "rust": {
+          "sig": "duplicate() -> Self",
+          "code": "pub fn duplicate(&self) -> Self {\n        let mut copy = self.clone();\n        copy.guid = Uuid::new_v4().to_string();\n        copy\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.zero",
+      "implementations": {
+        "rust": {
+          "sig": "zero() -> Self",
+          "code": "pub fn zero() -> Self {\n        Self::new(0.0, 0.0, 0.0)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.projection_with",
+      "implementations": {
+        "rust": {
+          "sig": "projection_with(onto: &Vector, tolerance: f64) -> (Vector, f64, Vector, f64)",
+          "code": "pub fn projection_with(&self, onto: &Vector, tolerance: f64) -> (Vector, f64, Vector, f64) {\n        let onto_len_sq = onto.length_squared();\n\n        if onto_len_sq < tolerance {\n            return (Vector::zero(), 0.0, Vector::zero(), 0.0);\n        }\n\n        // Unit vector along 'onto'\n        let onto_len = onto_len_sq.sqrt();\n        let onto_unit = Vector::new(onto._x / onto_len, onto._y / onto_len, onto._z / onto_len);\n\n        // Scalar projection and projected vector\n        let pro"
+        }
+      }
+    },
+    {
+      "name": "Vector.angle_between_vector_xy_components_degrees",
+      "implementations": {
+        "rust": {
+          "sig": "angle_between_vector_xy_components_degrees(vector: &Vector) -> f64",
+          "code": "pub fn angle_between_vector_xy_components_degrees(vector: &Vector) -> f64 {\n        Self::angle_between_vector_xy_components(vector)\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.to_json",
+      "implementations": {
+        "rust": {
+          "sig": "to_json(filepath: &str) -> Result<(), Box<dyn std::error::Error>>",
+          "code": "pub fn to_json(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {\n        let json = self.jsondump()?;\n        std::fs::write(filepath, json)?;\n        Ok(())\n    }"
+        }
+      }
+    },
+    {
+      "name": "Vector.from_json",
       "implementations": {
         "rust": {
           "sig": "from_json(filepath: &str) -> Result<Self, Box<dyn std::error::Error>>",

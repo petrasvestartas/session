@@ -1,0 +1,202 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 13,
+    "code": "        // Constructor\n        Vector v(1.0, 2.0, 3.0);\n\n        // Setters\n        v[0] = 1.0;\n        v[1] = 2.0;\n        v[2] = 3.0;\n\n        // Getters\n        double x = v[0];\n        double y = v[1];\n        double z = v[2];\n\n        // Copy\n        Vector vcopy = v;\n        Vector vother(1.0, 2.0, 3.0);\n",
+    "checks": [
+      {
+        "line": 31,
+        "code_line": "v.name == \"my_vector\" && v.guid != \"\"",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "x == 1.0 && y == 2.0 && z == 3.0",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "vcopy == vother",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "vcopy.guid != v.guid",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "arithmetic",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 37,
+    "code": "        Vector v1(1.0, 2.0, 3.0);\n        Vector v2(4.0, 5.0, 6.0);\n\n        // Addition\n        Vector sum = v1 + v2;",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "sum[0] == 5.0 && sum[1] == 7.0 && sum[2] == 9.0",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "diff[0] == 3.0 && diff[1] == 3.0 && diff[2] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 51,
+        "code_line": "scaled[0] == 2.0 && scaled[1] == 4.0 && scaled[2] == 6.0",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "divided[0] == 2.0 && divided[1] == 2.5 && divided[2] == 3.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "magnitude",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 58,
+    "code": "        Vector v(3.0, 4.0, 0.0);\n        double len = v.magnitude();",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "Tolerance::round_to(len, Tolerance::ROUNDING) == 5.0",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "unit.magnitude() == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "normalize",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 67,
+    "code": "        Vector v(3.0, 4.0, 0.0);\n        Vector n = v; // copy\n        n.normalize_self();\n",
+    "checks": [
+      {
+        "line": 72,
+        "code_line": "Tolerance::round_to(n.magnitude(), Tolerance::ROUNDING) == 1.0",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "Tolerance::round_to(n[0], Tolerance::ROUNDING) == 0.6",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "Tolerance::round_to(n[1], Tolerance::ROUNDING) == 0.8",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "n[2] == 0.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "dot_product",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 78,
+    "code": "        Vector v1(1.0, 0.0, 0.0);\n        Vector v2(0.0, 1.0, 0.0);\n        Vector v3(1.0, 0.0, 0.0);\n\n        // Perpendicular vectors",
+    "checks": [
+      {
+        "line": 84,
+        "code_line": "v1.dot(v2) == 0.0",
+        "passed": true
+      },
+      {
+        "line": 87,
+        "code_line": "v1.dot(v3) == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "cross_product",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 90,
+    "code": "        Vector v1(1.0, 0.0, 0.0);\n        Vector v2(0.0, 1.0, 0.0);\n\n        Vector cross = v1.cross(v2);",
+    "checks": [
+      {
+        "line": 95,
+        "code_line": "cross[0] == 0.0 && cross[1] == 0.0 && cross[2] == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.056,
+    "line": 98,
+    "code": "        Vector v(42.1, 84.2, 126.3);\n        v.name = \"test_vector\";\n\n        std::string filename = \"test_vector.json\";\n\n        // Write JSON to file\n        std::ofstream ofs(filename);\n        ofs << v.jsondump().dump(2);\n        ofs.close();\n\n        // Read JSON from file\n        std::ifstream ifs(filename);\n        nlohmann::json data = nlohmann::json::parse(ifs);\n        ifs.close();\n        Vector loaded = Vector::jsonload(data);\n",
+    "checks": [
+      {
+        "line": 115,
+        "code_line": "loaded.name == \"test_vector\"",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "Tolerance::round_to(loaded[0], Tolerance::ROUNDING) == Tolerance::round_to(42.1, Tolerance::ROUNDING)",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "Tolerance::round_to(loaded[1], Tolerance::ROUNDING) == Tolerance::round_to(84.2, Tolerance::ROUNDING)",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "Tolerance::round_to(loaded[2], Tolerance::ROUNDING) == Tolerance::round_to(126.3, Tolerance::ROUNDING)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "static_axes",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 121,
+    "code": "        Vector x = Vector::x_axis();\n        Vector y = Vector::y_axis();\n        Vector z = Vector::z_axis();\n",
+    "checks": [
+      {
+        "line": 126,
+        "code_line": "x[0] == 1.0 && x[1] == 0.0 && x[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "y[0] == 0.0 && y[1] == 1.0 && y[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "z[0] == 0.0 && z[1] == 0.0 && z[2] == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]
