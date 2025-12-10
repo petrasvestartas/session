@@ -179,28 +179,18 @@ fi
 
 ( cd "${CPP_DIR}" && "${CPP_EXE}" )
 
-echo "[mini] Building and running Rust Point mini tests (point_minitest)..."
+echo "[mini] Building and running Rust mini tests..."
 RUST_DIR="${REPO_ROOT}/session_rust"
 if [ -d "${RUST_DIR}" ]; then
-  ( cd "${RUST_DIR}" && cargo run --release --bin point_minitest )
+  ( cd "${RUST_DIR}" && cargo run --release --bin minitest )
   RUST_STATUS=$?
   if [ $RUST_STATUS -ne 0 ]; then
-    echo "[mini] Rust point_minitest failed."
+    echo "[mini] Rust minitest failed."
     exit $RUST_STATUS
   fi
 else
   echo "[mini] session_rust directory not found at ${RUST_DIR}"
   exit 1
-fi
-
-echo "[mini] Building and running Rust Vector mini tests (vector_minitest)..."
-if [ -d "${RUST_DIR}" ]; then
-  ( cd "${RUST_DIR}" && cargo run --release --bin vector_minitest )
-  RUST_STATUS=$?
-  if [ $RUST_STATUS -ne 0 ]; then
-    echo "[mini] Rust vector_minitest failed."
-    exit $RUST_STATUS
-  fi
 fi
 
 echo "[mini] Done. JSON results:"
