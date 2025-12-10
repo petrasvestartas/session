@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.154,
+    "time_ms": 0.164,
     "line": 4,
     "code": "    from session_py import Vector\n\n    # Constructor\n    v = Vector(1.0, 2.0, 3.0)\n\n    # Setters\n    v[0] = 10.0\n    v[1] = 20.0\n    v[2] = 30.0\n\n    # Getters\n    x = v[0]\n    y = v[1]\n    z = v[2]\n\n    # Minimal and full string representation\n    vstr = v.str()\n    vrepr = v.repr()\n\n    # Copy (duplicate everything but guid)\n    vcopy = v.duplicate()\n    vother = Vector(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    vmult = v.duplicate()\n    vmult *= 2.0\n    vdiv = v.duplicate()\n    vdiv /= 2.0\n    vadd = v.duplicate()\n    vadd += Vector(1.0, 1.0, 1.0)\n    vsub = v.duplicate()\n    vsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = v * 2.0\n    result_div = v / 2.0\n    result_add = v + Vector(1.0, 1.0, 1.0)\n    result_dif = v - Vector(1.0, 1.0, 1.0)\n\n    # Static axis constructors\n    vx = Vector.x_axis()\n    vy = Vector.y_axis()\n    vz = Vector.z_axis()\n    vzero = Vector.zero()",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "arithmetic",
     "passed": true,
-    "time_ms": 0.044,
+    "time_ms": 0.049,
     "line": 77,
     "code": "    from session_py import Vector\n\n    v1 = Vector(1.0, 2.0, 3.0)\n    v2 = Vector(4.0, 5.0, 6.0)\n\n    # Addition\n    sum_vec = v1 + v2",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.021,
     "line": 101,
     "code": "    from session_py import Vector\n\n    v = Vector(3.0, 4.0, 0.0)\n    length = v.magnitude()",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.02,
     "line": 113,
     "code": "    from session_py import Vector\n\n    v = Vector(3.0, 4.0, 0.0)\n    n = v.normalize()",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "dot_product",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.019,
     "line": 126,
     "code": "    from session_py import Vector\n\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)\n    v3 = Vector(1.0, 0.0, 0.0)\n\n    # Perpendicular vectors",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.26,
+    "time_ms": 0.312,
     "line": 152,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n\n    v = Vector(42.1, 84.2, 126.3)\n    v.name = \"test_vector\"\n\n    path = Path(__file__).resolve().parents[2] / \"test_vector.json\"\n    json_dump(v, path)\n    loaded = json_load(path)",
     "checks": [

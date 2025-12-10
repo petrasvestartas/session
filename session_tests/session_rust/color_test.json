@@ -2,7 +2,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.089,
+    "time_ms": 0.09,
     "line": 279,
     "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        let filename = \"test_color.json\";\n        color.to_json(filename).unwrap();\n        let loaded = Color::from_json(filename).unwrap();\n",
     "checks": [
@@ -37,7 +37,7 @@
   {
     "test_name": "presets",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.043,
     "line": 227,
     "code": "        use crate::Color;\n\n        let white = Color::white();\n        let black = Color::black();\n        let grey = Color::grey();\n        let red = Color::red();\n        let orange = Color::orange();\n        let yellow = Color::yellow();\n        let lime = Color::lime();\n        let green = Color::green();\n        let mint = Color::mint();\n        let cyan = Color::cyan();\n        let azure = Color::azure();\n        let blue = Color::blue();\n        let violet = Color::violet();\n        let magenta = Color::magenta();\n        let pink = Color::pink();\n        let maroon = Color::maroon();\n        let brown = Color::brown();\n        let olive = Color::olive();\n        let teal = Color::teal();\n        let navy = Color::navy();\n        let purple = Color::purple();\n        let silver = Color::silver();\n",
     "checks": [

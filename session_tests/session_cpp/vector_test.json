@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.037,
     "line": 13,
     "code": "        // uncomment #include \"vector.h\"\n\n        // Constructor\n        Vector v(1.0, 2.0, 3.0);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        double x = v[0];\n        double y = v[1];\n        double z = v[2];\n\n        // Minimal and full string representation\n        std::string vstr = v.str();\n        std::string vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        Vector vcopy = v.duplicate();\n        Vector vother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Vector vmult = v.duplicate();\n        vmult *= 2.0;\n        Vector vdiv = v.duplicate();\n        vdiv /= 2.0;\n        Vector vadd = v.duplicate();\n        vadd += Vector(1.0, 1.0, 1.0);\n        Vector vsub = v.duplicate();\n        vsub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Vector result_mul = v * 2.0;\n        Vector result_div = v / 2.0;\n        Vector result_add = v + Vector(1.0, 1.0, 1.0);\n        Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        Vector vx = Vector::x_axis();\n        Vector vy = Vector::y_axis();\n        Vector vz = Vector::z_axis();\n        Vector vzero = Vector::zero();\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "arithmetic",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 79,
     "code": "        Vector v1(1.0, 2.0, 3.0);\n        Vector v2(4.0, 5.0, 6.0);\n\n        // Addition\n        Vector sum = v1 + v2;",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 100,
     "code": "        Vector v(3.0, 4.0, 0.0);\n        double len = v.magnitude();",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.066,
+    "time_ms": 0.056,
     "line": 140,
     "code": "        Vector v(42.1, 84.2, 126.3);\n        v.name = \"test_vector\";\n\n        std::string filename = \"test_vector.json\";\n\n        // Write JSON to file\n        std::ofstream ofs(filename);\n        ofs << v.jsondump().dump(2);\n        ofs.close();\n\n        // Read JSON from file\n        std::ifstream ifs(filename);\n        nlohmann::json data = nlohmann::json::parse(ifs);\n        ifs.close();\n        Vector loaded = Vector::jsonload(data);\n",
     "checks": [

@@ -2,27 +2,27 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.051,
-    "line": 159,
+    "time_ms": 0.052,
+    "line": 140,
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dump, json_load};\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        let filename = \"test_vector.json\";\n        json_dump(&v, filename, true).unwrap();\n        let loaded: Vector = json_load(filename).unwrap();\n",
     "checks": [
       {
-        "line": 170,
+        "line": 151,
         "code_line": "loaded.name == \"test_vector\"",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 152,
         "code_line": "(loaded[0] - 42.1).abs() < 1e-10",
         "passed": true
       },
       {
-        "line": 172,
+        "line": 153,
         "code_line": "(loaded[1] - 84.2).abs() < 1e-10",
         "passed": true
       },
       {
-        "line": 173,
+        "line": 154,
         "code_line": "(loaded[2] - 126.3).abs() < 1e-10",
         "passed": true
       }
@@ -33,11 +33,11 @@
     "test_name": "cross_product",
     "passed": true,
     "time_ms": 0.004,
-    "line": 147,
+    "line": 128,
     "code": "        use crate::Vector;\n\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n\n        let cross = v1.cross(&v2);",
     "checks": [
       {
-        "line": 154,
+        "line": 135,
         "code_line": "cross[0] == 0.0 && cross[1] == 0.0 && cross[2] == 1.0",
         "passed": true
       }
@@ -47,17 +47,17 @@
   {
     "test_name": "dot_product",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 131,
+    "time_ms": 0.004,
+    "line": 112,
     "code": "        use crate::Vector;\n\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n        let v3 = Vector::new(1.0, 0.0, 0.0);\n\n        // Perpendicular vectors",
     "checks": [
       {
-        "line": 139,
+        "line": 120,
         "code_line": "v1.dot(&v2) == 0.0",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 123,
         "code_line": "v1.dot(&v3) == 1.0",
         "passed": true
       }
@@ -67,28 +67,18 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 117,
-    "code": "        use crate::Vector;\n\n        let v = Vector::new(3.0, 4.0, 0.0);\n        let mut n = v.normalize();\n",
+    "time_ms": 0.005,
+    "line": 97,
+    "code": "        use crate::Vector;\n\n        let mut v0 = Vector::new(3.0, 4.0, 0.0);\n        v0.normalize();\n\n        let v1 = Vector::new(3.0, 4.0, 0.0);\n        let mut v2 = v1.normalized();\n",
     "checks": [
       {
-        "line": 123,
-        "code_line": "(n.magnitude() - 1.0).abs() < 1e-10",
+        "line": 106,
+        "code_line": "(v0.magnitude() - 1.0).abs() < 1e-10",
         "passed": true
       },
       {
-        "line": 124,
-        "code_line": "(n[0] - 0.6).abs() < 1e-10",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "(n[1] - 0.8).abs() < 1e-10",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "n[2] == 0.0",
+        "line": 107,
+        "code_line": "(v2.magnitude() - 1.0).abs() < 1e-10",
         "passed": true
       }
     ],
@@ -97,48 +87,18 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 104,
-    "code": "        use crate::Vector;\n\n        let mut v = Vector::new(3.0, 4.0, 0.0);\n        let len = v.magnitude();",
+    "time_ms": 0.005,
+    "line": 84,
+    "code": "        use crate::Vector;\n\n        let mut v = Vector::new(3.0, 4.0, 0.0);\n        let len = v.magnitude();\n        let len_squared = v.magnitude_squared();\n",
     "checks": [
-      {
-        "line": 109,
-        "code_line": "(len - 5.0).abs() < 1e-10",
-        "passed": true
-      },
-      {
-        "line": 112,
-        "code_line": "unit.magnitude() == 1.0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "arithmetic",
-    "passed": true,
-    "time_ms": 0.008,
-    "line": 79,
-    "code": "        use crate::Vector;\n\n        let v1 = Vector::new(1.0, 2.0, 3.0);\n        let v2 = Vector::new(4.0, 5.0, 6.0);\n\n        // Addition\n        let sum = &v1 + &v2;",
-    "checks": [
-      {
-        "line": 87,
-        "code_line": "sum[0] == 5.0 && sum[1] == 7.0 && sum[2] == 9.0",
-        "passed": true
-      },
       {
         "line": 91,
-        "code_line": "diff[0] == 3.0 && diff[1] == 3.0 && diff[2] == 3.0",
+        "code_line": "len == 5.0",
         "passed": true
       },
       {
-        "line": 95,
-        "code_line": "scaled[0] == 2.0 && scaled[1] == 4.0 && scaled[2] == 6.0",
-        "passed": true
-      },
-      {
-        "line": 99,
-        "code_line": "divided[0] == 2.0 && divided[1] == 2.5 && divided[2] == 3.0",
+        "line": 92,
+        "code_line": "len_squared == 25.0",
         "passed": true
       }
     ],
@@ -147,97 +107,102 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.039,
     "line": 5,
-    "code": "        use crate::Vector;\n\n        // Constructor\n        let mut v = Vector::new(1.0, 2.0, 3.0);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        let x = v[0];\n        let y = v[1];\n        let z = v[2];\n\n        // Minimal and full string representation\n        let vsrt = v.str();\n        let vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        let vcopy = v.duplicate();\n        let vother = Vector::new(1.0, 2.0, 3.0);\n\n        // No-copy operators d\n        let mut vmult = v.duplicate();\n        vmult *= 2.0;\n        let mut vdiv = v.duplicate();\n        vdiv /= 2.0;\n        let mut vadd = v.duplicate();\n        vadd += Vector::new(1.0, 1.0, 1.0);\n        let mut vsub = v.duplicate();\n        vsub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &v * 2.0;\n        let result_div = &v / 2.0;\n        let result_add = &v + Vector::new(1.0, 1.0, 1.0);\n        let result_dif = &v - Vector::new(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        let vx = Vector::x_axis();\n        let vy = Vector::y_axis();\n        let vz = Vector::z_axis();\n        let vzero = Vector::zero();\n",
+    "code": "        use crate::Vector;\n        use crate::Point;\n\n        // Constructor\n        let mut v = Vector::new(1.0, 2.0, 3.0);\n        let p0 = Point::new(1.0, 2.0, 3.0);\n        let p1 = Point::new(2.0, 4.0, 6.0);    \n        let v_2p = Vector::from_points(&p0, &p1);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        let x = v[0];\n        let y = v[1];\n        let z = v[2];\n\n        // Minimal and full string representation\n        let vsrt = v.str();\n        let vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        let vcopy = v.duplicate();\n        let vother = Vector::new(1.0, 2.0, 3.0);\n\n        // No-copy operators d\n        let mut vmult = v.duplicate();\n        vmult *= 2.0;\n        let mut vdiv = v.duplicate();\n        vdiv /= 2.0;\n        let mut vadd = v.duplicate();\n        vadd += Vector::new(1.0, 1.0, 1.0);\n        let mut vsub = v.duplicate();\n        vsub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &v * 2.0;\n        let result_div = &v / 2.0;\n        let result_add = &v + Vector::new(1.0, 1.0, 1.0);\n        let result_dif = &v - Vector::new(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        let vx = Vector::x_axis();\n        let vy = Vector::y_axis();\n        let vz = Vector::z_axis();\n        let vzero = Vector::zero();\n",
     "checks": [
       {
-        "line": 51,
+        "line": 55,
         "code_line": "v.name == \"my_vector\" && v[0] == 10.0 && v[1] == 20.0 && v[2] == 30.0 &&\n!v.guid.is_empty()",
         "passed": true
       },
       {
-        "line": 58,
+        "line": 62,
         "code_line": "x == 10.0 && y == 20.0 && z == 30.0",
         "passed": true
       },
       {
-        "line": 59,
-        "code_line": "vsrt == \"10.000000, 20.000000, 30.000000\"",
-        "passed": true
-      },
-      {
-        "line": 60,
-        "code_line": "vrepr == \"Vector(my_vector, 10.000000, 20.000000, 30.000000, 37.416574)\"",
-        "passed": true
-      },
-      {
-        "line": 61,
-        "code_line": "vcopy == v && vcopy.guid != v.guid",
-        "passed": true
-      },
-      {
-        "line": 62,
-        "code_line": "vother != v",
-        "passed": true
-      },
-      {
         "line": 63,
-        "code_line": "vmult[0] == 20.0 && vmult[1] == 40.0 && vmult[2] == 60.0",
+        "code_line": "v_2p[0] == 1.0 && v_2p[1] == 2.0 && v_2p[2] == 3.0",
         "passed": true
       },
       {
         "line": 64,
-        "code_line": "vdiv[0] == 5.0 && vdiv[1] == 10.0 && vdiv[2] == 15.0",
+        "code_line": "vsrt == \"10.000000, 20.000000, 30.000000\"",
         "passed": true
       },
       {
         "line": 65,
-        "code_line": "vadd[0] == 11.0 && vadd[1] == 21.0 && vadd[2] == 31.0",
+        "code_line": "vrepr == \"Vector(my_vector, 10.000000, 20.000000, 30.000000, 37.416574)\"",
         "passed": true
       },
       {
         "line": 66,
-        "code_line": "vsub[0] == 9.0 && vsub[1] == 19.0 && vsub[2] == 29.0",
+        "code_line": "vcopy == v && vcopy.guid != v.guid",
         "passed": true
       },
       {
         "line": 67,
-        "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
+        "code_line": "vother != v",
         "passed": true
       },
       {
         "line": 68,
-        "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
+        "code_line": "vmult[0] == 20.0 && vmult[1] == 40.0 && vmult[2] == 60.0",
         "passed": true
       },
       {
         "line": 69,
-        "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
+        "code_line": "vdiv[0] == 5.0 && vdiv[1] == 10.0 && vdiv[2] == 15.0",
         "passed": true
       },
       {
         "line": 70,
-        "code_line": "result_dif[0] == 9.0 && result_dif[1] == 19.0 && result_dif[2] == 29.0",
+        "code_line": "vadd[0] == 11.0 && vadd[1] == 21.0 && vadd[2] == 31.0",
         "passed": true
       },
       {
         "line": 71,
-        "code_line": "vx[0] == 1.0 && vx[1] == 0.0 && vx[2] == 0.0",
+        "code_line": "vsub[0] == 9.0 && vsub[1] == 19.0 && vsub[2] == 29.0",
         "passed": true
       },
       {
         "line": 72,
-        "code_line": "vy[0] == 0.0 && vy[1] == 1.0 && vy[2] == 0.0",
+        "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
         "passed": true
       },
       {
         "line": 73,
-        "code_line": "vz[0] == 0.0 && vz[1] == 0.0 && vz[2] == 1.0",
+        "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
         "passed": true
       },
       {
         "line": 74,
+        "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "result_dif[0] == 9.0 && result_dif[1] == 19.0 && result_dif[2] == 29.0",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "vx[0] == 1.0 && vx[1] == 0.0 && vx[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "vy[0] == 0.0 && vy[1] == 1.0 && vy[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 78,
+        "code_line": "vz[0] == 0.0 && vz[1] == 0.0 && vz[2] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 79,
         "code_line": "vzero[0] == 0.0 && vzero[1] == 0.0 && vzero[2] == 0.0",
         "passed": true
       }
