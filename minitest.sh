@@ -13,18 +13,20 @@ TESTS_DIR="${REPO_ROOT}/session_tests"
 VENV_DIR="${REPO_ROOT}/uvsession"
 PYTHON="${VENV_DIR}/bin/python"
 
+###############################################################################
+# SINGLE DEFINITION: Add new class names here to include them in tests
+###############################################################################
+CLASS_NAMES=("point" "color" "vector")
+LANGUAGES=("python" "cpp" "rust")
+LANG_DIRS=("session_py" "session_cpp" "session_rust")
+
 # Remove old JSON test result files so each run produces fresh results
 cleanup_json() {
-  rm -f \
-    "${TESTS_DIR}/session_py/point_test.json" \
-    "${TESTS_DIR}/session_cpp/point_test.json" \
-    "${TESTS_DIR}/session_rust/point_test.json" \
-    "${TESTS_DIR}/session_py/color_test.json" \
-    "${TESTS_DIR}/session_cpp/color_test.json" \
-    "${TESTS_DIR}/session_rust/color_test.json" \
-    "${TESTS_DIR}/session_py/vector_test.json" \
-    "${TESTS_DIR}/session_cpp/vector_test.json" \
-    "${TESTS_DIR}/session_rust/vector_test.json"
+  for class_name in "${CLASS_NAMES[@]}"; do
+    rm -f "${TESTS_DIR}/session_py/${class_name}_test.json"
+    rm -f "${TESTS_DIR}/session_cpp/${class_name}_test.json"
+    rm -f "${TESTS_DIR}/session_rust/${class_name}_test.json"
+  done
 }
 
 cleanup_json
@@ -34,7 +36,15 @@ regenerate_python_protos() {
   local PROTO_DIR="${REPO_ROOT}/session_proto"
   local PY_PROTO_OUT="${REPO_ROOT}/session_py/src/session_py/proto"
   
-  if ! command -v protoc >/dev/null 2>&1; then
+  # Try to find protoc: system, C++ build, or local install
+  local PROTOC=""
+  if command -v protoc >/dev/null 2>&1; then
+    PROTOC="protoc"
+  elif [ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]; then
+    PROTOC="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
+  elif [ -f "$HOME/.local/install/protobuf/bin/protoc" ]; then
+    PROTOC="$HOME/.local/install/protobuf/bin/protoc"
+  else
     echo "[mini] Warning: protoc not found, skipping Python protobuf regeneration"
     return 0
   fi
@@ -48,16 +58,15 @@ regenerate_python_protos() {
   # Create output directory if needed
   mkdir -p "${PY_PROTO_OUT}"
   
-  # Regenerate Python bindings for all proto files used by Python
+  # Auto-discover and regenerate Python bindings for ALL proto files
   echo "[mini] Regenerating Python protobuf bindings from session_proto/..."
-  protoc --python_out="${PY_PROTO_OUT}" \
-         -I "${PROTO_DIR}" \
-         "${PROTO_DIR}/color.proto" \
-         "${PROTO_DIR}/point.proto" \
-         "${PROTO_DIR}/xform.proto" || {
-    echo "[mini] Warning: Failed to regenerate Python protobuf bindings"
-    return 1
-  }
+  for proto_file in "${PROTO_DIR}"/*.proto; do
+    if [ -f "$proto_file" ]; then
+      "$PROTOC" --python_out="${PY_PROTO_OUT}" -I "${PROTO_DIR}" "$proto_file" || {
+        echo "[mini] Warning: Failed to regenerate $(basename "$proto_file")"
+      }
+    fi
+  done
   
   # Fix imports: protoc generates absolute imports but we need relative imports
   # since the files are in a package (session_py.proto)
@@ -216,82 +225,54 @@ generate_test_data_js() {
   echo "// Generated at: $(date)" >> "${OUTPUT}"
   echo "window.TEST_DATA = {" >> "${OUTPUT}"
   
-  # Array to track which files we process
-  local SOURCES=(
-    "session_py/point_test.json:python"
-    "session_cpp/point_test.json:cpp"
-    "session_rust/point_test.json:rust"
-    "session_py/color_test.json:python"
-    "session_cpp/color_test.json:cpp"
-    "session_rust/color_test.json:rust"
-    "session_py/vector_test.json:python"
-    "session_cpp/vector_test.json:cpp"
-    "session_rust/vector_test.json:rust"
-  )
-  
+  # Build sources dynamically from CLASS_NAMES
   local FIRST=true
-  for SOURCE in "${SOURCES[@]}"; do
-    local FILE_PATH="${SOURCE%%:*}"
-    local LANG="${SOURCE##*:}"
-    local FULL_PATH="${TESTS_DIR}/${FILE_PATH}"
-    
-    if [ -f "${FULL_PATH}" ]; then
-      local FILE_NAME=$(basename "${FILE_PATH}")
-      local KEY="${FILE_NAME%.json}_${LANG}"
+  for class_name in "${CLASS_NAMES[@]}"; do
+    for i in "${!LANGUAGES[@]}"; do
+      local lang="${LANGUAGES[$i]}"
+      local lang_dir="${LANG_DIRS[$i]}"
+      local FULL_PATH="${TESTS_DIR}/${lang_dir}/${class_name}_test.json"
       
-      if [ "${FIRST}" = false ]; then
-        echo "," >> "${OUTPUT}"
+      if [ -f "${FULL_PATH}" ]; then
+        local KEY="${class_name}_test_${lang}"
+        
+        if [ "${FIRST}" = false ]; then
+          echo "," >> "${OUTPUT}"
+        fi
+        FIRST=false
+        
+        echo -n "  \"${KEY}\": " >> "${OUTPUT}"
+        cat "${FULL_PATH}" >> "${OUTPUT}"
       fi
-      FIRST=false
-      
-      echo -n "  \"${KEY}\": " >> "${OUTPUT}"
-      cat "${FULL_PATH}" >> "${OUTPUT}"
-    fi
+    done
   done
   
-  # Add JSON artifact files (test_point.json, test_color.json, etc.) from each language
-  local ARTIFACTS=(
-    "session_py/test_point.json:python"
-    "session_cpp/test_point.json:cpp"
-    "session_rust/test_point.json:rust"
-    "session_py/test_color.json:python"
-    "session_cpp/test_color.json:cpp"
-    "session_rust/test_color.json:rust"
-    "session_py/test_vector.json:python"
-    "session_cpp/test_vector.json:cpp"
-    "session_rust/test_vector.json:rust"
-  )
-  
-  for ARTIFACT in "${ARTIFACTS[@]}"; do
-    local FILE_PATH="${ARTIFACT%%:*}"
-    local LANG="${ARTIFACT##*:}"
-    local FULL_PATH="${REPO_ROOT}/${FILE_PATH}"
-    
-    if [ -f "${FULL_PATH}" ]; then
-      local FILE_NAME=$(basename "${FILE_PATH}")
-      local KEY="artifact_${FILE_NAME%.json}_${LANG}"
+  # Add JSON artifact files (test_<class>.json) from each language - built from CLASS_NAMES
+  for class_name in "${CLASS_NAMES[@]}"; do
+    for i in "${!LANGUAGES[@]}"; do
+      local lang="${LANGUAGES[$i]}"
+      local lang_dir="${LANG_DIRS[$i]}"
+      local FULL_PATH="${REPO_ROOT}/${lang_dir}/test_${class_name}.json"
       
-      echo "," >> "${OUTPUT}"
-      echo -n "  \"${KEY}\": " >> "${OUTPUT}"
-      cat "${FULL_PATH}" >> "${OUTPUT}"
-    fi
+      if [ -f "${FULL_PATH}" ]; then
+        local KEY="artifact_test_${class_name}_${lang}"
+        
+        echo "," >> "${OUTPUT}"
+        echo -n "  \"${KEY}\": " >> "${OUTPUT}"
+        cat "${FULL_PATH}" >> "${OUTPUT}"
+      fi
+    done
   done
   
-  # Add proto schema files (shared across all languages)
+  # Auto-discover and add ALL proto schema files from session_proto/
   local PROTO_DIR="${REPO_ROOT}/session_proto"
-  local PROTO_FILES=(
-    "point.proto"
-    "color.proto"
-    "xform.proto"
-  )
-  
-  for PROTO_FILE in "${PROTO_FILES[@]}"; do
-    local FULL_PATH="${PROTO_DIR}/${PROTO_FILE}"
-    if [ -f "${FULL_PATH}" ]; then
-      local KEY="proto_${PROTO_FILE%.proto}"
+  for proto_file in "${PROTO_DIR}"/*.proto; do
+    if [ -f "$proto_file" ]; then
+      local proto_name=$(basename "$proto_file" .proto)
+      local KEY="proto_${proto_name}"
       echo "," >> "${OUTPUT}"
       # Escape the proto content for JSON string
-      local CONTENT=$(cat "${FULL_PATH}" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+      local CONTENT=$(cat "$proto_file" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
       echo -n "  \"${KEY}\": \"${CONTENT}\"" >> "${OUTPUT}"
     fi
   done
@@ -307,13 +288,10 @@ generate_test_data_js() {
 
 generate_test_data_js
 
-echo "[mini] Generating static search index for client-side search..."
+# Optional: Generate static search index (silently skip if not present)
 if [ -f "${TESTS_DIR}/rag/generate_search_index.py" ]; then
-  python3 "${TESTS_DIR}/rag/generate_search_index.py" || {
-    echo "[mini] Warning: Failed to generate search index"
-  }
-else
-  echo "[mini] Warning: generate_search_index.py not found, skipping"
+  echo "[mini] Generating static search index for client-side search..."
+  python3 "${TESTS_DIR}/rag/generate_search_index.py" 2>/dev/null || true
 fi
 
 echo "[mini] Setting up Vue.js application..."
@@ -412,40 +390,20 @@ fi
 
 # === LOCAL DEVELOPMENT ONLY (below this line) ===
 
-echo "[mini] Starting RAG API server..."
+# Optional: Start RAG API server (silently skip if not present)
 RAG_PORT=8770
 RAG_DIR="${TESTS_DIR}/rag"
-
-# Kill any existing RAG API server on this port
-if command -v pkill >/dev/null 2>&1; then
-  pkill -f "rag_api.py" >/dev/null 2>&1 || true
-fi
-
-# Wait a moment for the port to be released
-sleep 1
-
-# Start RAG API server in background on port 8770
 if [ -x "/home/pv/anaconda3/bin/python3" ] && [ -f "${RAG_DIR}/rag_api.py" ]; then
+  echo "[mini] Starting RAG API server..."
+  pkill -f "rag_api.py" >/dev/null 2>&1 || true
+  sleep 1
   cd "${RAG_DIR}" && nohup /home/pv/anaconda3/bin/python3 rag_api.py > /tmp/rag_api.log 2>&1 &
   RAG_PID=$!
   cd "${REPO_ROOT}"
-
-  # Wait for server to start and verify it's running
   sleep 2
   if lsof -i :${RAG_PORT} >/dev/null 2>&1; then
     echo "[mini] RAG API server started on http://localhost:${RAG_PORT} (PID: ${RAG_PID})"
-  else
-    echo "[mini] Warning: RAG API server may have failed to start. Check /tmp/rag_api.log"
   fi
-else
-  echo "[mini] Warning: Could not start RAG API server"
-  if [ ! -x "/home/pv/anaconda3/bin/python3" ]; then
-    echo "[mini]   - anaconda python3 not found"
-  fi
-  if [ ! -f "${RAG_DIR}/rag_api.py" ]; then
-    echo "[mini]   - ${RAG_DIR}/rag_api.py not found"
-  fi
-  echo "[mini] RAG queries in the CLI will not work without the API server"
 fi
 
 echo "[mini] Starting development server..."
