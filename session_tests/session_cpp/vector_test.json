@@ -2,128 +2,103 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.037,
-    "line": 13,
-    "code": "        // uncomment #include \"vector.h\"\n\n        // Constructor\n        Vector v(1.0, 2.0, 3.0);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        double x = v[0];\n        double y = v[1];\n        double z = v[2];\n\n        // Minimal and full string representation\n        std::string vstr = v.str();\n        std::string vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        Vector vcopy = v.duplicate();\n        Vector vother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Vector vmult = v.duplicate();\n        vmult *= 2.0;\n        Vector vdiv = v.duplicate();\n        vdiv /= 2.0;\n        Vector vadd = v.duplicate();\n        vadd += Vector(1.0, 1.0, 1.0);\n        Vector vsub = v.duplicate();\n        vsub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Vector result_mul = v * 2.0;\n        Vector result_div = v / 2.0;\n        Vector result_add = v + Vector(1.0, 1.0, 1.0);\n        Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        Vector vx = Vector::x_axis();\n        Vector vy = Vector::y_axis();\n        Vector vz = Vector::z_axis();\n        Vector vzero = Vector::zero();\n",
+    "time_ms": 0.042,
+    "line": 12,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v.duplicate();\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v.duplicate();\n    vmult *= 2.0;\n    Vector vdiv = v.duplicate();\n    vdiv /= 2.0;\n    Vector vadd = v.duplicate();\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v.duplicate();\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
       {
-        "line": 59,
-        "code_line": "v.name == \"my_vector\" && v[0] == 10.0 && v[1] == 20.0 && v[2] == 30.0 && v.guid != \"\"",
-        "passed": true
-      },
-      {
-        "line": 60,
-        "code_line": "x == 10.0 && y == 20.0 && z == 30.0",
-        "passed": true
-      },
-      {
-        "line": 61,
-        "code_line": "vstr == \"10.000000, 20.000000, 30.000000\"",
-        "passed": true
-      },
-      {
         "line": 62,
-        "code_line": "vrepr == \"Vector(my_vector, 10.000000, 20.000000, 30.000000, 37.416574)\"",
+        "code_line": "v.name == \"my_vector\" && v[0] == 10.0 && v[1] == 20.0 && v[2] == 30.0 && !v.guid.empty()",
         "passed": true
       },
       {
         "line": 63,
-        "code_line": "vcopy == v && vcopy.guid != v.guid",
+        "code_line": "x == 10.0 && y == 20.0 && z == 30.0",
         "passed": true
       },
       {
         "line": 64,
-        "code_line": "vother != v",
+        "code_line": "v_2p[0] == 1.0 && v_2p[1] == 2.0 && v_2p[2] == 3.0",
         "passed": true
       },
       {
         "line": 65,
-        "code_line": "vmult[0] == 20.0 && vmult[1] == 40.0 && vmult[2] == 60.0",
+        "code_line": "vstr == \"10.000000, 20.000000, 30.000000\"",
         "passed": true
       },
       {
         "line": 66,
-        "code_line": "vdiv[0] == 5.0 && vdiv[1] == 10.0 && vdiv[2] == 15.0",
+        "code_line": "vrepr == \"Vector(my_vector, 10.000000, 20.000000, 30.000000, 37.416574)\"",
         "passed": true
       },
       {
         "line": 67,
-        "code_line": "vadd[0] == 11.0 && vadd[1] == 21.0 && vadd[2] == 31.0",
+        "code_line": "vcopy == v && vcopy.guid != v.guid",
         "passed": true
       },
       {
         "line": 68,
-        "code_line": "vsub[0] == 9.0 && vsub[1] == 19.0 && vsub[2] == 29.0",
+        "code_line": "vother != v",
         "passed": true
       },
       {
         "line": 69,
-        "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
+        "code_line": "vmult[0] == 20.0 && vmult[1] == 40.0 && vmult[2] == 60.0",
         "passed": true
       },
       {
         "line": 70,
-        "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
+        "code_line": "vdiv[0] == 5.0 && vdiv[1] == 10.0 && vdiv[2] == 15.0",
         "passed": true
       },
       {
         "line": 71,
-        "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
+        "code_line": "vadd[0] == 11.0 && vadd[1] == 21.0 && vadd[2] == 31.0",
         "passed": true
       },
       {
         "line": 72,
-        "code_line": "result_dif[0] == 9.0 && result_dif[1] == 19.0 && result_dif[2] == 29.0",
+        "code_line": "vsub[0] == 9.0 && vsub[1] == 19.0 && vsub[2] == 29.0",
         "passed": true
       },
       {
         "line": 73,
-        "code_line": "vx[0] == 1.0 && vx[1] == 0.0 && vx[2] == 0.0",
+        "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
         "passed": true
       },
       {
         "line": 74,
-        "code_line": "vy[0] == 0.0 && vy[1] == 1.0 && vy[2] == 0.0",
+        "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
         "passed": true
       },
       {
         "line": 75,
-        "code_line": "vz[0] == 0.0 && vz[1] == 0.0 && vz[2] == 1.0",
+        "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
         "passed": true
       },
       {
         "line": 76,
+        "code_line": "result_dif[0] == 9.0 && result_dif[1] == 19.0 && result_dif[2] == 29.0",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "vx[0] == 1.0 && vx[1] == 0.0 && vx[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 78,
+        "code_line": "vy[0] == 0.0 && vy[1] == 1.0 && vy[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "vz[0] == 0.0 && vz[1] == 0.0 && vz[2] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 80,
         "code_line": "vzero[0] == 0.0 && vzero[1] == 0.0 && vzero[2] == 0.0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "arithmetic",
-    "passed": true,
-    "time_ms": 0.008,
-    "line": 79,
-    "code": "        Vector v1(1.0, 2.0, 3.0);\n        Vector v2(4.0, 5.0, 6.0);\n\n        // Addition\n        Vector sum = v1 + v2;",
-    "checks": [
-      {
-        "line": 85,
-        "code_line": "sum[0] == 5.0 && sum[1] == 7.0 && sum[2] == 9.0",
-        "passed": true
-      },
-      {
-        "line": 89,
-        "code_line": "diff[0] == 3.0 && diff[1] == 3.0 && diff[2] == 3.0",
-        "passed": true
-      },
-      {
-        "line": 93,
-        "code_line": "scaled[0] == 2.0 && scaled[1] == 4.0 && scaled[2] == 6.0",
-        "passed": true
-      },
-      {
-        "line": 97,
-        "code_line": "divided[0] == 2.0 && divided[1] == 2.5 && divided[2] == 3.0",
         "passed": true
       }
     ],
@@ -132,18 +107,18 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 100,
-    "code": "        Vector v(3.0, 4.0, 0.0);\n        double len = v.magnitude();",
+    "time_ms": 0.004,
+    "line": 83,
+    "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();\n",
     "checks": [
       {
-        "line": 103,
-        "code_line": "Tolerance::round_to(len, Tolerance::ROUNDING) == 5.0",
+        "line": 90,
+        "code_line": "length == 5.0",
         "passed": true
       },
       {
-        "line": 106,
-        "code_line": "unit.magnitude() == 1.0",
+        "line": 91,
+        "code_line": "len_squared == 25.0",
         "passed": true
       }
     ],
@@ -152,28 +127,33 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 109,
-    "code": "        Vector v(3.0, 4.0, 0.0);\n        Vector n = v; // copy\n        n.normalize_self();\n",
+    "time_ms": 0.006,
+    "line": 94,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v0(3.0, 4.0, 0.0);\n    v0.normalize_self();\n\n    Vector v1(3.0, 4.0, 0.0);\n    Vector v2 = v1.normalize();\n",
+    "checks": [
+      {
+        "line": 104,
+        "code_line": "TOLERANCE.is_close(v0.magnitude(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "TOLERANCE.is_close(v2.magnitude(), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "reverse",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 108,
+    "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(1.0, -2.0, 3.0);\n    v.reverse();\n",
     "checks": [
       {
         "line": 114,
-        "code_line": "Tolerance::round_to(n.magnitude(), Tolerance::ROUNDING) == 1.0",
-        "passed": true
-      },
-      {
-        "line": 115,
-        "code_line": "Tolerance::round_to(n[0], Tolerance::ROUNDING) == 0.6",
-        "passed": true
-      },
-      {
-        "line": 116,
-        "code_line": "Tolerance::round_to(n[1], Tolerance::ROUNDING) == 0.8",
-        "passed": true
-      },
-      {
-        "line": 117,
-        "code_line": "n[2] == 0.0",
+        "code_line": "v[0] == -1.0 && v[1] == 2.0 && v[2] == -3.0",
         "passed": true
       }
     ],
@@ -182,18 +162,28 @@
   {
     "test_name": "dot_product",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 120,
-    "code": "        Vector v1(1.0, 0.0, 0.0);\n        Vector v2(0.0, 1.0, 0.0);\n        Vector v3(1.0, 0.0, 0.0);\n\n        // Perpendicular vectors",
+    "time_ms": 0.008,
+    "line": 117,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n    // uncomment #include <cmath>\n\n    // Orthogonality and parallelism via dot product\n    // Perpendicular vectors are close to 0.0\n    // Parallel vectors are close to 1.0\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector v3(1.0, 0.0, 0.0);\n    double dot_perp = v1.dot(v2);\n    double dot_paral = v1.dot(v3);\n\n    // Projection of a onto b\n    // Scalar projection:\n    // (a . b) / ||b|| (here ||b||=1, so just a_x = 3.0)\n    // Projection coefficient:\n    // (a . b) / ||b||^2 = 6/4 = 1.5 (how many b2's fit in projection)\n    Vector a(3.0, 4.0, 0.0);\n    Vector b(1.0, 0.0, 0.0);\n    Vector b2(2.0, 0.0, 0.0);\n    double proj_scalar = a.dot(b) / std::sqrt(b[0]*b[0] + b[1]*b[1] + b[2]*b[2]);\n    double proj_coeff = a.dot(b2) / (b2[0]*b2[0] + b2[1]*b2[1] + b2[2]*b2[2]);\n",
     "checks": [
       {
-        "line": 126,
-        "code_line": "v1.dot(v2) == 0.0",
+        "line": 142,
+        "code_line": "TOLERANCE.is_close(dot_perp, 0.0)",
         "passed": true
       },
       {
-        "line": 129,
-        "code_line": "v1.dot(v3) == 1.0",
+        "line": 143,
+        "code_line": "TOLERANCE.is_close(dot_paral, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "TOLERANCE.is_close(proj_scalar, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "TOLERANCE.is_close(proj_coeff, 1.5)",
         "passed": true
       }
     ],
@@ -202,13 +192,348 @@
   {
     "test_name": "cross_product",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 132,
-    "code": "        Vector v1(1.0, 0.0, 0.0);\n        Vector v2(0.0, 1.0, 0.0);\n\n        Vector cross = v1.cross(v2);",
+    "time_ms": 0.007,
+    "line": 148,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n    // uncomment #include <cmath>\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);\n",
     "checks": [
       {
-        "line": 137,
-        "code_line": "cross[0] == 0.0 && cross[1] == 0.0 && cross[2] == 1.0",
+        "line": 164,
+        "code_line": "vn[0] == 0.0 && vn[1] == 0.0 && vn[2] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 165,
+        "code_line": "TOLERANCE.is_close(area, 12.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "angle",
+    "passed": true,
+    "time_ms": 0.025,
+    "line": 168,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n    // uncomment #include <cmath>\n\n    // angle(): Angle between two vectors (degrees)\n    Vector v1(1.0, 0.0, 0.0);  // x-axis\n    Vector v2(0.0, 1.0, 0.0);  // y-axis\n    Vector v3(1.0, 1.0, 0.0);  // 45 deg from x-axis\n\n    double angle_90 = v1.angle(v2, false);  // v1 to v2: 90 deg\n    double angle_45 = v1.angle(v3, false);  // v1 to v3: 45 deg\n\n    // angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n    Vector v_30(std::sqrt(3.0), 1.0, 0.0);  // 30 deg from x-axis\n    Vector v_60(1.0, std::sqrt(3.0), 0.0);  // 60 deg from x-axis\n    Vector v_neg(-1.0, 1.0, 0.0);           // 135 deg from x-axis\n\n    double xy_angle_30 = Vector::angle_between_vector_xy_components(v_30);\n    double xy_angle_60 = Vector::angle_between_vector_xy_components(v_60);\n    double xy_angle_135 = Vector::angle_between_vector_xy_components(v_neg);\n\n    // coordinate_direction_3angles(): Angles (alpha, beta, gamma) to x, y, z axes\n    Vector v_dir(35.4, 35.4, 86.6);\n    auto abg = v_dir.coordinate_direction_3angles(true);\n\n    // coordinate_direction_2angles(): Spherical angles (theta azimuth, phi elevation)\n    Vector v_sph(1.0, 1.0, std::sqrt(2.0));\n    auto pt = v_sph.coordinate_direction_2angles(true);\n",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "TOLERANCE.is_close(angle_90, 90.0)",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "TOLERANCE.is_close(angle_45, 45.0)",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "TOLERANCE.is_close(xy_angle_30, 30.0)",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "TOLERANCE.is_close(xy_angle_60, 60.0)",
+        "passed": true
+      },
+      {
+        "line": 202,
+        "code_line": "TOLERANCE.is_close(xy_angle_135, 135.0)",
+        "passed": true
+      },
+      {
+        "line": 203,
+        "code_line": "TOLERANCE.is_close(std::get<0>(abg), 69.2742)",
+        "passed": true
+      },
+      {
+        "line": 204,
+        "code_line": "TOLERANCE.is_close(std::get<1>(abg), 69.2742)",
+        "passed": true
+      },
+      {
+        "line": 205,
+        "code_line": "TOLERANCE.is_close(std::get<2>(abg), 30.032058)",
+        "passed": true
+      },
+      {
+        "line": 206,
+        "code_line": "TOLERANCE.is_close(std::get<0>(pt), 45.0)",
+        "passed": true
+      },
+      {
+        "line": 207,
+        "code_line": "TOLERANCE.is_close(std::get<1>(pt), 45.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "projection",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 210,
+    "code": "    // uncomment #include \"vector.h\"\n\n    // Project vector v=(1,1,1) onto each axis\n    // Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n    Vector v(1.0, 1.0, 1.0);\n    Vector x = Vector::x_axis();\n    Vector y = Vector::y_axis();\n    Vector z = Vector::z_axis();\n    auto [proj_x, lenx, perp_x, perp_lenx] = v.projection(x);\n    auto [proj_y, leny, perp_y, perp_leny] = v.projection(y);\n    auto [proj_z, lenz, perp_z, perp_lenz] = v.projection(z);\n",
+    "checks": [
+      {
+        "line": 223,
+        "code_line": "proj_x[0] == 1.0 && proj_x[1] == 0.0 && proj_x[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 224,
+        "code_line": "proj_y[0] == 0.0 && proj_y[1] == 1.0 && proj_y[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 225,
+        "code_line": "proj_z[0] == 0.0 && proj_z[1] == 0.0 && proj_z[2] == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_parallel_to",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 228,
+    "code": "    // uncomment #include \"vector.h\"\n\n    // is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    Vector v1(2.0, 2.0, 2.0);\n    Vector v2(4.0, 4.0, 4.0);      // parallel (same direction)\n    Vector v3(-1.0, -1.0, -1.0);   // anti-parallel (opposite direction)\n    Vector v4(1.0, 0.0, 0.0);      // not parallel\n",
+    "checks": [
+      {
+        "line": 237,
+        "code_line": "v1.is_parallel_to(v2) == 1",
+        "passed": true
+      },
+      {
+        "line": 238,
+        "code_line": "v1.is_parallel_to(v3) == -1",
+        "passed": true
+      },
+      {
+        "line": 239,
+        "code_line": "v1.is_parallel_to(v4) == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_perpendicular_to",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 242,
+    "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);\n",
+    "checks": [
+      {
+        "line": 262,
+        "code_line": "v1.is_perpendicular_to(v2)",
+        "passed": true
+      },
+      {
+        "line": 263,
+        "code_line": "v1.is_perpendicular_to(v3)",
+        "passed": true
+      },
+      {
+        "line": 264,
+        "code_line": "!v1.is_perpendicular_to(v4)",
+        "passed": true
+      },
+      {
+        "line": 265,
+        "code_line": "x_axis.is_perpendicular_to(z_axis)",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "perp.is_perpendicular_to(arbitrary)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "get_leveled_vector",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 269,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n    // uncomment #include <cmath>\n\n    // Scale vector along its direction so its Z-component equals vertical_height.\n    Vector v(1.0, 1.0, 1.0);\n    double vertical_height = 1.0;\n    Vector v_leveled = v.get_leveled_vector(vertical_height);\n",
+    "checks": [
+      {
+        "line": 279,
+        "code_line": "TOLERANCE.is_close(v_leveled.magnitude(), std::sqrt(3.0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "cos_sin_laws",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 282,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Given a 3-4-5 right triangle\n    double a = 3.0;  // side opposite to angle A\n    double b = 4.0;  // side opposite to angle B\n    double c = 5.0;  // hypotenuse, opposite to angle C (90 deg)\n\n    // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n    double angle_a = Vector::angle_from_cosine_law(b, c, a, true);\n    double angle_b = Vector::angle_from_cosine_law(a, c, b, true);\n    double angle_c = Vector::angle_from_cosine_law(a, b, c, true);\n\n    // given 2 angles + 1 side, find other side\n    double side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n    double side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n    double side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n    // given 2 sides + included angle, find 3rd side\n    double computed_c = Vector::cosine_law(a, b, angle_c, true);\n    double computed_a = Vector::cosine_law(b, c, angle_a, true);\n    double computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n    // given 2 sides + 1 angle, find other angle\n    double computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n    double computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n    // given 1 side + 2 angles, find other side\n    double computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n    double computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
+    "checks": [
+      {
+        "line": 314,
+        "code_line": "TOLERANCE.is_close(angle_a, 36.86989764584402)",
+        "passed": true
+      },
+      {
+        "line": 315,
+        "code_line": "TOLERANCE.is_close(angle_b, 53.13010235415599)",
+        "passed": true
+      },
+      {
+        "line": 316,
+        "code_line": "TOLERANCE.is_close(angle_c, 90.0)",
+        "passed": true
+      },
+      {
+        "line": 317,
+        "code_line": "TOLERANCE.is_close(angle_a + angle_b + angle_c, 180.0)",
+        "passed": true
+      },
+      {
+        "line": 318,
+        "code_line": "TOLERANCE.is_close(side_a, a)",
+        "passed": true
+      },
+      {
+        "line": 319,
+        "code_line": "TOLERANCE.is_close(side_b, b)",
+        "passed": true
+      },
+      {
+        "line": 320,
+        "code_line": "TOLERANCE.is_close(side_c, c)",
+        "passed": true
+      },
+      {
+        "line": 321,
+        "code_line": "TOLERANCE.is_close(computed_c, c)",
+        "passed": true
+      },
+      {
+        "line": 322,
+        "code_line": "TOLERANCE.is_close(computed_a, a)",
+        "passed": true
+      },
+      {
+        "line": 323,
+        "code_line": "TOLERANCE.is_close(computed_b, b)",
+        "passed": true
+      },
+      {
+        "line": 324,
+        "code_line": "TOLERANCE.is_close(computed_angle_b, angle_b)",
+        "passed": true
+      },
+      {
+        "line": 325,
+        "code_line": "TOLERANCE.is_close(computed_angle_a, angle_a)",
+        "passed": true
+      },
+      {
+        "line": 326,
+        "code_line": "TOLERANCE.is_close(computed_side_b, b)",
+        "passed": true
+      },
+      {
+        "line": 327,
+        "code_line": "TOLERANCE.is_close(computed_side_a, a)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "sum_of_vectors",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 330,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);",
+    "checks": [
+      {
+        "line": 341,
+        "code_line": "sum_v[0] == 6.0",
+        "passed": true
+      },
+      {
+        "line": 342,
+        "code_line": "sum_v[1] == 6.0",
+        "passed": true
+      },
+      {
+        "line": 343,
+        "code_line": "sum_v[2] == 6.0",
+        "passed": true
+      },
+      {
+        "line": 348,
+        "code_line": "zero[0] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 349,
+        "code_line": "zero[1] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 350,
+        "code_line": "zero[2] == 0.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "average",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 353,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
+    "checks": [
+      {
+        "line": 364,
+        "code_line": "avg[0] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 365,
+        "code_line": "avg[1] == 4.0",
+        "passed": true
+      },
+      {
+        "line": 366,
+        "code_line": "avg[2] == 5.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_zero",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 369,
+    "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12\n",
+    "checks": [
+      {
+        "line": 376,
+        "code_line": "zero.is_zero()",
+        "passed": true
+      },
+      {
+        "line": 377,
+        "code_line": "!nonzero.is_zero()",
+        "passed": true
+      },
+      {
+        "line": 378,
+        "code_line": "tiny.is_zero()",
         "passed": true
       }
     ],
@@ -217,28 +542,58 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.056,
-    "line": 140,
-    "code": "        Vector v(42.1, 84.2, 126.3);\n        v.name = \"test_vector\";\n\n        std::string filename = \"test_vector.json\";\n\n        // Write JSON to file\n        std::ofstream ofs(filename);\n        ofs << v.jsondump().dump(2);\n        ofs.close();\n\n        // Read JSON from file\n        std::ifstream ifs(filename);\n        nlohmann::json data = nlohmann::json::parse(ifs);\n        ifs.close();\n        Vector loaded = Vector::jsonload(data);\n",
+    "time_ms": 0.063,
+    "line": 381,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
       {
-        "line": 157,
+        "line": 393,
         "code_line": "loaded.name == \"test_vector\"",
         "passed": true
       },
       {
-        "line": 158,
-        "code_line": "Tolerance::round_to(loaded[0], Tolerance::ROUNDING) == Tolerance::round_to(42.1, Tolerance::ROUNDING)",
+        "line": 394,
+        "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 159,
-        "code_line": "Tolerance::round_to(loaded[1], Tolerance::ROUNDING) == Tolerance::round_to(84.2, Tolerance::ROUNDING)",
+        "line": 395,
+        "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 160,
-        "code_line": "Tolerance::round_to(loaded[2], Tolerance::ROUNDING) == Tolerance::round_to(126.3, Tolerance::ROUNDING)",
+        "line": 396,
+        "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 0.053,
+    "line": 399,
+    "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n    std::string filename = \"test_vector.bin\";\n    v.protobuf_dump(filename);\n    Vector loaded = Vector::protobuf_load(filename);\n",
+    "checks": [
+      {
+        "line": 411,
+        "code_line": "loaded.name == \"test_vector\"",
+        "passed": true
+      },
+      {
+        "line": 412,
+        "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
+        "passed": true
+      },
+      {
+        "line": 413,
+        "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
+        "passed": true
+      },
+      {
+        "line": 414,
+        "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       }
     ],

@@ -1,0 +1,252 @@
+[
+  {
+    "test_name": "is_zero",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 10,
+    "code": "        // Values within absolute tolerance should be considered zero",
+    "checks": [
+      {
+        "line": 12,
+        "code_line": "TOLERANCE.is_zero(0.0)",
+        "passed": true
+      },
+      {
+        "line": 13,
+        "code_line": "TOLERANCE.is_zero(1e-10)",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "TOLERANCE.is_zero(-1e-10)",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "!TOLERANCE.is_zero(1e-5)",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "!TOLERANCE.is_zero(-1e-5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_close",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 21,
+    "code": "        // Equal values",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "TOLERANCE.is_close(1.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "TOLERANCE.is_close(0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "TOLERANCE.is_close(1.0, 1.0 - 1e-7)",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "!TOLERANCE.is_close(1.0, 1.0 + 1e-4)",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "!TOLERANCE.is_close(1.0, 2.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_positive",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 35,
+    "code": "        // Positive values above tolerance",
+    "checks": [
+      {
+        "line": 37,
+        "code_line": "TOLERANCE.is_positive(1.0)",
+        "passed": true
+      },
+      {
+        "line": 38,
+        "code_line": "TOLERANCE.is_positive(1e-7)",
+        "passed": true
+      },
+      {
+        "line": 41,
+        "code_line": "!TOLERANCE.is_positive(1e-10)",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "!TOLERANCE.is_positive(0.0)",
+        "passed": true
+      },
+      {
+        "line": 43,
+        "code_line": "!TOLERANCE.is_positive(-1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_negative",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 46,
+    "code": "        // Negative values below -tolerance",
+    "checks": [
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_negative(-1.0)",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "TOLERANCE.is_negative(-1e-7)",
+        "passed": true
+      },
+      {
+        "line": 52,
+        "code_line": "!TOLERANCE.is_negative(-1e-10)",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "!TOLERANCE.is_negative(0.0)",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "!TOLERANCE.is_negative(1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_between",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 57,
+    "code": "        // Values within range",
+    "checks": [
+      {
+        "line": 59,
+        "code_line": "TOLERANCE.is_between(0.5, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 60,
+        "code_line": "TOLERANCE.is_between(0.0, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "TOLERANCE.is_between(1.0, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "TOLERANCE.is_between(-1e-10, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "TOLERANCE.is_between(1.0 + 1e-10, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "!TOLERANCE.is_between(-0.5, 0.0, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 69,
+        "code_line": "!TOLERANCE.is_between(1.5, 0.0, 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "format_number",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 72,
+    "code": "        // Default precision (3)",
+    "checks": [
+      {
+        "line": 74,
+        "code_line": "TOLERANCE.format_number(0.0) == \"0.000\"",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "TOLERANCE.format_number(1.5) == \"1.500\"",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "TOLERANCE.format_number(3.14159) == \"3.142\"",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.format_number(3.14159, 2) == \"3.14\"",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.format_number(3.14159, 5) == \"3.14159\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "geometric_key",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 83,
+    "code": "        // Default precision\n        std::string key = TOLERANCE.geometric_key(1.0, 2.0, 3.0);",
+    "checks": [
+      {
+        "line": 86,
+        "code_line": "key == \"1.000,2.000,3.000\"",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "key2 == \"1.5,2.5,3.5\"",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "key3 == \"1,2,3\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -16,7 +16,7 @@ PYTHON="${VENV_DIR}/bin/python"
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
 ###############################################################################
-CLASS_NAMES=("point" "color" "vector")
+CLASS_NAMES=("point" "color" "vector" "tolerance")
 LANGUAGES=("python" "cpp" "rust")
 LANG_DIRS=("session_py" "session_cpp" "session_rust")
 
@@ -149,6 +149,9 @@ else
 
   echo "[mini] Running Python Vector mini tests..."
   "${PYTHON}" -m session_py.vector_test
+
+  echo "[mini] Running Python Tolerance mini tests..."
+  "${PYTHON}" -m session_py.tolerance_test
 fi
 
 echo "[mini] Building C++ project (session_cpp) including tests (no test run)..."
@@ -182,7 +185,12 @@ fi
 echo "[mini] Building and running Rust mini tests..."
 RUST_DIR="${REPO_ROOT}/session_rust"
 if [ -d "${RUST_DIR}" ]; then
-  ( cd "${RUST_DIR}" && cargo run --release --bin minitest )
+  # Find protoc from cargo vendored package or system
+  PROTOC_PATH=$(find ~/.cargo/registry/src -name "protoc" -path "*linux-x86_64*" 2>/dev/null | head -1)
+  if [ -n "${PROTOC_PATH}" ]; then
+    export PROTOC="${PROTOC_PATH}"
+  fi
+  ( cd "${RUST_DIR}" && cargo run --release --features protobuf --bin minitest )
   RUST_STATUS=$?
   if [ $RUST_STATUS -ne 0 ]; then
     echo "[mini] Rust minitest failed."
@@ -194,15 +202,18 @@ else
 fi
 
 echo "[mini] Done. JSON results:"
-echo "  Point  Python: ${TESTS_DIR}/session_py/point_test.json"
-echo "         C++   : ${TESTS_DIR}/session_cpp/point_test.json"
-echo "         Rust  : ${TESTS_DIR}/session_rust/point_test.json"
-echo "  Color  Python: ${TESTS_DIR}/session_py/color_test.json"
-echo "         C++   : ${TESTS_DIR}/session_cpp/color_test.json"
-echo "         Rust  : ${TESTS_DIR}/session_rust/color_test.json"
-echo "  Vector Python: ${TESTS_DIR}/session_py/vector_test.json"
-echo "         C++   : ${TESTS_DIR}/session_cpp/vector_test.json"
-echo "         Rust  : ${TESTS_DIR}/session_rust/vector_test.json"
+echo "  Point     Python: ${TESTS_DIR}/session_py/point_test.json"
+echo "            C++   : ${TESTS_DIR}/session_cpp/point_test.json"
+echo "            Rust  : ${TESTS_DIR}/session_rust/point_test.json"
+echo "  Color     Python: ${TESTS_DIR}/session_py/color_test.json"
+echo "            C++   : ${TESTS_DIR}/session_cpp/color_test.json"
+echo "            Rust  : ${TESTS_DIR}/session_rust/color_test.json"
+echo "  Vector    Python: ${TESTS_DIR}/session_py/vector_test.json"
+echo "            C++   : ${TESTS_DIR}/session_cpp/vector_test.json"
+echo "            Rust  : ${TESTS_DIR}/session_rust/vector_test.json"
+echo "  Tolerance Python: ${TESTS_DIR}/session_py/tolerance_test.json"
+echo "            C++   : ${TESTS_DIR}/session_cpp/tolerance_test.json"
+echo "            Rust  : ${TESTS_DIR}/session_rust/tolerance_test.json"
 
 echo "[mini] Generating consolidated testData.js..."
 generate_test_data_js() {
