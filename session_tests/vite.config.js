@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     port: 8769,
     strictPort: true,
-    open: true
+    open: false
   },
   publicDir: 'public'
 })

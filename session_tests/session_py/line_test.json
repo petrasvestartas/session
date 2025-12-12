@@ -1,0 +1,397 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.303,
+    "line": 5,
+    "code": "    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n\n    # Setters\n    l[0] = 10.0\n    l[1] = 20.0\n    l[2] = 30.0\n    l[3] = 40.0\n    l[4] = 50.0\n    l[5] = 60.0\n\n    # Getters\n    x0 = l[0]\n    y0 = l[1]\n    z0 = l[2]\n    x1 = l[3]\n    y1 = l[4]\n    z1 = l[5]\n\n    # String Representation\n    lstr = str(l)\n\n    # No-copy operators\n    lmult = l.duplicate()\n    lmult *= 2.0\n    ldiv = l.duplicate()\n    ldiv /= 2.0\n    ladd = l.duplicate()\n    ladd += Vector(1.0, 1.0, 1.0)\n    lsub = l.duplicate()\n    lsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = l * 2.0\n    rdiv = l / 2.0\n    radd = l + Vector(1.0, 1.0, 1.0)\n    rdif = l - Vector(1.0, 1.0, 1.0)\n\n    # From points constructor\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(4.0, 5.0, 6.0)\n    l2p = Line.from_points(p0, p1)\n\n    # Negation (flip start and end)\n    lneg = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    neg = -lneg\n\n    # Line with custom color and width\n    lc = Line(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    lc.linecolor = Color(255, 0, 0, 255, \"red\")\n    lc.width = 2.5",
+    "checks": [
+      {
+        "line": 64,
+        "code_line": "l.name == \"my_line\" and l[0] == 10.0 and l[1] == 20.0 and l[2] == 30.0 and l.guid",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "x0 == 10.0 and y0 == 20.0 and z0 == 30.0 and x1 == 40.0 and y1 == 50.0 and z1 == 60.0",
+        "passed": true
+      },
+      {
+        "line": 66,
+        "code_line": "lmult[0] == 20.0 and lmult[3] == 80.0",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "ldiv[0] == 5.0 and ldiv[3] == 20.0",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "ladd[0] == 11.0 and ladd[3] == 41.0",
+        "passed": true
+      },
+      {
+        "line": 69,
+        "code_line": "lsub[0] == 9.0 and lsub[3] == 39.0",
+        "passed": true
+      },
+      {
+        "line": 70,
+        "code_line": "rmul[0] == 20.0 and rmul[3] == 80.0",
+        "passed": true
+      },
+      {
+        "line": 71,
+        "code_line": "rdiv[0] == 5.0 and rdiv[3] == 20.0",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "radd[0] == 11.0 and radd[3] == 41.0",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "rdif[0] == 9.0 and rdif[3] == 39.0",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "neg[0] == 4.0 and neg[1] == 5.0 and neg[2] == 6.0 and neg[3] == 1.0 and neg[4] == 2.0 and neg[5] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "l2p[0] == 1.0 and l2p[3] == 4.0",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "lc.linecolor[0] == 255 and lc.linecolor[1] == 0 and lc.width == 2.5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "length",
+    "passed": true,
+    "time_ms": 0.046,
+    "line": 79,
+    "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    ln = l.length()\n    lsq = l.squared_length()",
+    "checks": [
+      {
+        "line": 87,
+        "code_line": "TOLERANCE.is_close(ln == 5.0)",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "TOLERANCE.is_close(lsq == 25.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "to_vector",
+    "passed": true,
+    "time_ms": 0.025,
+    "line": 91,
+    "code": "    from session_py import Line\n\n    l = Line(1.0, 2.0, 3.0, 4.0, 6.0, 9.0)\n    v = l.to_vector()",
+    "checks": [
+      {
+        "line": 98,
+        "code_line": "v[0] == 3.0 and v[1] == 4.0 and v[2] == 6.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "to_direction",
+    "passed": true,
+    "time_ms": 0.043,
+    "line": 101,
+    "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    d = l.to_direction()",
+    "checks": [
+      {
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(d[0] == 0.6)",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(d[1] == 0.8)",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "TOLERANCE.is_close(d[2] == 0.0)",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(d.magnitude() == 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "point_at",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 114,
+    "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 10.0, 10.0)\n    ps = l.point_at(0.0)\n    pm = l.point_at(0.5)\n    pe = l.point_at(1.0)",
+    "checks": [
+      {
+        "line": 123,
+        "code_line": "ps[0] == 0.0 and ps[1] == 0.0 and ps[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "pm[0] == 5.0 and pm[1] == 5.0 and pm[2] == 5.0",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "pe[0] == 10.0 and pe[1] == 10.0 and pe[2] == 10.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "start_end",
+    "passed": true,
+    "time_ms": 0.036,
+    "line": 128,
+    "code": "    from session_py import Line\n\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    start = l.start()\n    end = l.end()",
+    "checks": [
+      {
+        "line": 136,
+        "code_line": "start[0] == 1.0 and start[1] == 2.0 and start[2] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "end[0] == 4.0 and end[1] == 5.0 and end[2] == 6.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "center",
+    "passed": true,
+    "time_ms": 0.03,
+    "line": 140,
+    "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 20.0, 30.0)\n    c = l.center()",
+    "checks": [
+      {
+        "line": 147,
+        "code_line": "c[0] == 5.0 and c[1] == 10.0 and c[2] == 15.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "closest_point",
+    "passed": true,
+    "time_ms": 0.076,
+    "line": 150,
+    "code": "    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    p1 = Point(5.0, 5.0, 0.0)\n    p2 = Point(-5.0, 0.0, 0.0)\n    p3 = Point(15.0, 0.0, 0.0)\n    cp1 = l.closest_point(p1)\n    cp2 = l.closest_point(p2)\n    cp3 = l.closest_point(p3)",
+    "checks": [
+      {
+        "line": 163,
+        "code_line": "cp1[0] == 5.0 and cp1[1] == 0.0 and cp1[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 164,
+        "code_line": "cp2[0] == 0.0 and cp2[1] == 0.0 and cp2[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 165,
+        "code_line": "cp3[0] == 10.0 and cp3[1] == 0.0 and cp3[2] == 0.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "subdivide",
+    "passed": true,
+    "time_ms": 0.049,
+    "line": 168,
+    "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    pts = l.subdivide(3)",
+    "checks": [
+      {
+        "line": 175,
+        "code_line": "len(pts) == 3",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "pts[0][0] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 177,
+        "code_line": "pts[1][0] == 5.0",
+        "passed": true
+      },
+      {
+        "line": 178,
+        "code_line": "pts[2][0] == 10.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "from_point_and_vector",
+    "passed": true,
+    "time_ms": 0.033,
+    "line": 181,
+    "code": "    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n\n    p = Point(1.0, 2.0, 3.0)\n    v = Vector(3.0, 4.0, 5.0)\n    l = Line.from_point_and_vector(p, v)",
+    "checks": [
+      {
+        "line": 191,
+        "code_line": "l[0] == 1.0 and l[1] == 2.0 and l[2] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 192,
+        "code_line": "l[3] == 4.0 and l[4] == 6.0 and l[5] == 8.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "from_point_direction_length",
+    "passed": true,
+    "time_ms": 0.042,
+    "line": 195,
+    "code": "    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n\n    p = Point(0.0, 0.0, 0.0)\n    d = Vector(1.0, 0.0, 0.0)\n    length = 5.0\n    l = Line.from_point_direction_length(p, d, length)",
+    "checks": [
+      {
+        "line": 206,
+        "code_line": "l[0] == 0.0 and l[1] == 0.0 and l[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 207,
+        "code_line": "TOLERANCE.is_close(l[3] == 5.0)",
+        "passed": true
+      },
+      {
+        "line": 208,
+        "code_line": "TOLERANCE.is_close(l[4] == 0.0)",
+        "passed": true
+      },
+      {
+        "line": 209,
+        "code_line": "TOLERANCE.is_close(l[5] == 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.414,
+    "line": 212,
+    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_line.json\"\n    l.json_dump(fname)\n    loaded = Line.json_load(fname)",
+    "checks": [
+      {
+        "line": 225,
+        "code_line": "loaded.name == \"test_line\"",
+        "passed": true
+      },
+      {
+        "line": 226,
+        "code_line": "TOLERANCE.is_close(loaded[0] == 42.1)",
+        "passed": true
+      },
+      {
+        "line": 227,
+        "code_line": "TOLERANCE.is_close(loaded[1] == 84.2)",
+        "passed": true
+      },
+      {
+        "line": 228,
+        "code_line": "TOLERANCE.is_close(loaded[2] == 126.3)",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "TOLERANCE.is_close(loaded[3] == 168.4)",
+        "passed": true
+      },
+      {
+        "line": 230,
+        "code_line": "TOLERANCE.is_close(loaded[4] == 210.5)",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "TOLERANCE.is_close(loaded[5] == 252.6)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 0.671,
+    "line": 234,
+    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_line.bin\"\n    l.protobuf_dump(fname)\n    loaded = Line.protobuf_load(fname)",
+    "checks": [
+      {
+        "line": 247,
+        "code_line": "loaded.name == \"test_line\"",
+        "passed": true
+      },
+      {
+        "line": 248,
+        "code_line": "TOLERANCE.is_close(loaded[0] == 42.1)",
+        "passed": true
+      },
+      {
+        "line": 249,
+        "code_line": "TOLERANCE.is_close(loaded[1] == 84.2)",
+        "passed": true
+      },
+      {
+        "line": 250,
+        "code_line": "TOLERANCE.is_close(loaded[2] == 126.3)",
+        "passed": true
+      },
+      {
+        "line": 251,
+        "code_line": "TOLERANCE.is_close(loaded[3] == 168.4)",
+        "passed": true
+      },
+      {
+        "line": 252,
+        "code_line": "TOLERANCE.is_close(loaded[4] == 210.5)",
+        "passed": true
+      },
+      {
+        "line": 253,
+        "code_line": "TOLERANCE.is_close(loaded[5] == 252.6)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

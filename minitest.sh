@@ -1,9 +1,37 @@
 #!/usr/bin/env bash
 # Run mini tests for both Python and C++ Point implementations.
 # Usage:
-#   bash minitest.sh
-# or
-#   ./minitest.sh
+#   bash minitest.sh          # Full build
+#   ./minitest.sh --fast      # Skip protobuf regen, pip install, npm install
+#   ./minitest.sh --py        # Python only
+#   ./minitest.sh --cpp       # C++ only
+#   ./minitest.sh --rust      # Rust only
+
+# Parse arguments
+FAST_MODE=false
+RUN_PYTHON=true
+RUN_CPP=true
+RUN_RUST=true
+
+for arg in "$@"; do
+  case $arg in
+    --fast|-f)
+      FAST_MODE=true
+      ;;
+    --py|--python)
+      RUN_CPP=false
+      RUN_RUST=false
+      ;;
+    --cpp|--c++)
+      RUN_PYTHON=false
+      RUN_RUST=false
+      ;;
+    --rust|--rs)
+      RUN_PYTHON=false
+      RUN_CPP=false
+      ;;
+  esac
+done
 
 # Resolve repository root as the directory containing this script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -16,7 +44,9 @@ PYTHON="${VENV_DIR}/bin/python"
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
 ###############################################################################
-CLASS_NAMES=("point" "color" "vector" "tolerance")
+CLASS_NAMES=("color" "line" "point" "polyline" "tolerance" "vector")
+# Sort CLASS_NAMES alphabetically
+readarray -t CLASS_NAMES < <(printf '%s\n' "${CLASS_NAMES[@]}" | sort)
 LANGUAGES=("python" "cpp" "rust")
 LANG_DIRS=("session_py" "session_cpp" "session_rust")
 
@@ -81,7 +111,10 @@ regenerate_python_protos() {
   return 0
 }
 
-regenerate_python_protos
+# Skip protobuf regeneration in fast mode
+if [ "${FAST_MODE}" = false ]; then
+  regenerate_python_protos
+fi
 
 ensure_python_env() {
   # Prefer uv: create/manage environment from pyproject.toml manifest
@@ -100,12 +133,17 @@ ensure_python_env() {
       return 1
     fi
 
-    echo "[mini] Installing Python dependencies from pyproject.toml with uv..."
-    # Use uv to install session_py (and its dependencies) into this environment
-    ( cd "${REPO_ROOT}/session_py" && uv pip install --python "${PYTHON}" -e . pytest ) || {
-      echo "[mini] Failed to install Python dependencies with uv."
-      return 1
-    }
+    # Skip pip install in fast mode if already installed
+    if [ "${FAST_MODE}" = true ] && "${PYTHON}" -c "import session_py" 2>/dev/null; then
+      echo "[mini] Fast mode: Skipping pip install (session_py already installed)"
+    else
+      echo "[mini] Installing Python dependencies from pyproject.toml with uv..."
+      # Use uv to install session_py (and its dependencies) into this environment
+      ( cd "${REPO_ROOT}/session_py" && uv pip install --python "${PYTHON}" -e . pytest ) || {
+        echo "[mini] Failed to install Python dependencies with uv."
+        return 1
+      }
+    fi
 
     return 0
   fi
@@ -138,67 +176,69 @@ ensure_python_env() {
   return 0
 }
 
-if ! ensure_python_env; then
-  echo "[mini] Skipping Python mini tests due to environment setup failure."
-else
-  echo "[mini] Running Python Point mini tests..."
-  "${PYTHON}" -m session_py.point_test
-
-  echo "[mini] Running Python Color mini tests..."
-  "${PYTHON}" -m session_py.color_test
-
-  echo "[mini] Running Python Vector mini tests..."
-  "${PYTHON}" -m session_py.vector_test
-
-  echo "[mini] Running Python Tolerance mini tests..."
-  "${PYTHON}" -m session_py.tolerance_test
+if [ "${RUN_PYTHON}" = true ]; then
+  if ! ensure_python_env; then
+    echo "[mini] Skipping Python mini tests due to environment setup failure."
+  else
+    for class_name in "${CLASS_NAMES[@]}"; do
+      echo "[mini] Running Python ${class_name} mini tests..."
+      "${PYTHON}" -m "session_py.${class_name}_test"
+    done
+  fi
 fi
 
-echo "[mini] Building C++ project (session_cpp) including tests (no test run)..."
 CPP_DIR="${REPO_ROOT}/session_cpp"
-JOBS="${MINITEST_JOBS:-2}"
+# Use all available cores by default for faster builds
+JOBS="${MINITEST_JOBS:-$(nproc 2>/dev/null || echo 4)}"
 
-if [ -d "${CPP_DIR}" ]; then
-  ( cd "${CPP_DIR}" && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >/dev/null && cmake --build build --config Release -- -j"${JOBS}" )
-  BUILD_STATUS=$?
-  if [ $BUILD_STATUS -ne 0 ]; then
-    echo "[mini] C++ build failed (session_cpp)." 
-    exit $BUILD_STATUS
+if [ "${RUN_CPP}" = true ]; then
+  echo "[mini] Building C++ project (session_cpp) with ${JOBS} jobs..."
+  if [ -d "${CPP_DIR}" ]; then
+    ( cd "${CPP_DIR}" && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >/dev/null && cmake --build build --config Release -- -j"${JOBS}" )
+    BUILD_STATUS=$?
+    if [ $BUILD_STATUS -ne 0 ]; then
+      echo "[mini] C++ build failed (session_cpp)."
+      exit $BUILD_STATUS
+    fi
+  else
+    echo "[mini] session_cpp directory not found at ${CPP_DIR}"
+    exit 1
   fi
-else
-  echo "[mini] session_cpp directory not found at ${CPP_DIR}"
-  exit 1
+
+  # Run all C++ mini tests (one combined executable)
+  echo "[mini] Running C++ mini tests (point_minitest)..."
+  if [ -x "${CPP_DIR}/build/point_minitest" ]; then
+    CPP_EXE="./build/point_minitest"
+  elif [ -x "${CPP_DIR}/build/Release/point_minitest" ]; then
+    CPP_EXE="./build/Release/point_minitest"
+  else
+    echo "[mini] C++ executable 'point_minitest' not found even after build."
+    exit 1
+  fi
+
+  ( cd "${CPP_DIR}" && "${CPP_EXE}" )
 fi
 
-echo "[mini] Running C++ Point mini tests (point_minitest)..."
-if [ -x "${CPP_DIR}/build/point_minitest" ]; then
-  CPP_EXE="./build/point_minitest"
-elif [ -x "${CPP_DIR}/build/Release/point_minitest" ]; then
-  CPP_EXE="./build/Release/point_minitest"
-else
-  echo "[mini] C++ executable 'point_minitest' not found even after build."
-  exit 1
-fi
-
-( cd "${CPP_DIR}" && "${CPP_EXE}" )
-
-echo "[mini] Building and running Rust mini tests..."
 RUST_DIR="${REPO_ROOT}/session_rust"
-if [ -d "${RUST_DIR}" ]; then
-  # Find protoc from cargo vendored package or system
-  PROTOC_PATH=$(find ~/.cargo/registry/src -name "protoc" -path "*linux-x86_64*" 2>/dev/null | head -1)
-  if [ -n "${PROTOC_PATH}" ]; then
-    export PROTOC="${PROTOC_PATH}"
+
+if [ "${RUN_RUST}" = true ]; then
+  echo "[mini] Building and running Rust mini tests..."
+  if [ -d "${RUST_DIR}" ]; then
+    # Find protoc from cargo vendored package or system
+    PROTOC_PATH=$(find ~/.cargo/registry/src -name "protoc" -path "*linux-x86_64*" 2>/dev/null | head -1)
+    if [ -n "${PROTOC_PATH}" ]; then
+      export PROTOC="${PROTOC_PATH}"
+    fi
+    ( cd "${RUST_DIR}" && cargo run --release --features protobuf --bin minitest )
+    RUST_STATUS=$?
+    if [ $RUST_STATUS -ne 0 ]; then
+      echo "[mini] Rust minitest failed."
+      exit $RUST_STATUS
+    fi
+  else
+    echo "[mini] session_rust directory not found at ${RUST_DIR}"
+    exit 1
   fi
-  ( cd "${RUST_DIR}" && cargo run --release --features protobuf --bin minitest )
-  RUST_STATUS=$?
-  if [ $RUST_STATUS -ne 0 ]; then
-    echo "[mini] Rust minitest failed."
-    exit $RUST_STATUS
-  fi
-else
-  echo "[mini] session_rust directory not found at ${RUST_DIR}"
-  exit 1
 fi
 
 echo "[mini] Done. JSON results:"
@@ -344,16 +384,20 @@ EOF
     }
   fi
 
-  # Always ensure dependencies are installed/up-to-date
-  echo "[mini] Ensuring npm dependencies are installed..."
-  ( cd "${TESTS_DIR}" && npm install --silent ) || {
-    echo "[mini] npm install failed. Trying fresh install..."
-    rm -rf "${TESTS_DIR}/node_modules" "${TESTS_DIR}/package-lock.json"
-    ( cd "${TESTS_DIR}" && npm install ) || {
-      echo "[mini] Failed to install npm dependencies."
-      return 1
+  # Skip npm install in fast mode if node_modules exists
+  if [ "${FAST_MODE}" = true ] && [ -d "${TESTS_DIR}/node_modules" ]; then
+    echo "[mini] Fast mode: Skipping npm install (node_modules exists)"
+  else
+    echo "[mini] Ensuring npm dependencies are installed..."
+    ( cd "${TESTS_DIR}" && npm install --silent ) || {
+      echo "[mini] npm install failed. Trying fresh install..."
+      rm -rf "${TESTS_DIR}/node_modules" "${TESTS_DIR}/package-lock.json"
+      ( cd "${TESTS_DIR}" && npm install ) || {
+        echo "[mini] Failed to install npm dependencies."
+        return 1
+      }
     }
-  }
+  fi
 
   return 0
 }
@@ -407,26 +451,29 @@ if [ -x "/home/pv/anaconda3/bin/python3" ] && [ -f "${RAG_DIR}/rag_api.py" ]; th
   fi
 fi
 
-echo "[mini] Starting development server..."
 PORT=8769
-
-# Kill any existing dev server on this port
-if command -v pkill >/dev/null 2>&1; then
-  pkill -f "vite.*${PORT}" >/dev/null 2>&1 || true
-fi
-
-# Start Vite dev server in background (uses port from vite.config: 8769)
-( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
-sleep 2
-
-# Use the configured Vite base path so refresh works without warnings
 WEBSITE_URL="http://localhost:${PORT}/session/tests?suite=point_test"
 
-echo "[mini] Opening results website at ${WEBSITE_URL}..."
-if command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+# Check if dev server is already running
+SERVER_RUNNING=false
+if lsof -i :${PORT} >/dev/null 2>&1; then
+  SERVER_RUNNING=true
+  echo "[mini] Development server already running on port ${PORT}."
+  echo "[mini] Browser will auto-refresh with new test data (Vite HMR)."
 else
-  echo "[mini] Please open ${WEBSITE_URL} in a browser."
+  echo "[mini] Starting development server..."
+  # Start Vite dev server in background
+  ( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
+  sleep 2
+
+  # Only open browser on first run (server wasn't running before)
+  echo "[mini] Opening results website at ${WEBSITE_URL}..."
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+  else
+    echo "[mini] Please open ${WEBSITE_URL} in a browser."
+  fi
 fi
 
-echo "[mini] Development server is running. Press Ctrl+C to stop."
+echo "[mini] Development server is running at ${WEBSITE_URL}"
+echo "[mini] Re-run ./minitest.sh to update test results (browser auto-refreshes)."

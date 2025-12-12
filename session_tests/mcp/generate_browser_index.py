@@ -8,9 +8,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 SOURCE_FILES = {
-    'python': [REPO_ROOT / "session_py/src/session_py/point.py", REPO_ROOT / "session_py/src/session_py/color.py", REPO_ROOT / "session_py/src/session_py/vector.py"],
-    'cpp': [REPO_ROOT / "session_cpp/src/point.h", REPO_ROOT / "session_cpp/src/point.cpp", REPO_ROOT / "session_cpp/src/color.h", REPO_ROOT / "session_cpp/src/color.cpp", REPO_ROOT / "session_cpp/src/vector.h", REPO_ROOT / "session_cpp/src/vector.cpp"],
-    'rust': [REPO_ROOT / "session_rust/src/point.rs", REPO_ROOT / "session_rust/src/color.rs", REPO_ROOT / "session_rust/src/vector.rs"],
+    'python': [REPO_ROOT / "session_py/src/session_py/point.py", REPO_ROOT / "session_py/src/session_py/color.py", REPO_ROOT / "session_py/src/session_py/vector.py", REPO_ROOT / "session_py/src/session_py/tolerance.py", REPO_ROOT / "session_py/src/session_py/line.py"],
+    'cpp': [REPO_ROOT / "session_cpp/src/point.h", REPO_ROOT / "session_cpp/src/point.cpp", REPO_ROOT / "session_cpp/src/color.h", REPO_ROOT / "session_cpp/src/color.cpp", REPO_ROOT / "session_cpp/src/vector.h", REPO_ROOT / "session_cpp/src/vector.cpp", REPO_ROOT / "session_cpp/src/tolerance.h", REPO_ROOT / "session_cpp/src/tolerance.cpp", REPO_ROOT / "session_cpp/src/line.h", REPO_ROOT / "session_cpp/src/line.cpp"],
+    'rust': [REPO_ROOT / "session_rust/src/point.rs", REPO_ROOT / "session_rust/src/color.rs", REPO_ROOT / "session_rust/src/vector.rs", REPO_ROOT / "session_rust/src/tolerance.rs", REPO_ROOT / "session_rust/src/line.rs"],
+
 }
 
 def parse_python(content):

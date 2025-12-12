@@ -36,4 +36,13 @@ for proto_file in "$PROTO_DIR"/*.proto; do
     fi
 done
 
+# Fix imports: convert absolute imports to relative imports for package use
+echo "Fixing imports for package use..."
+for py_file in "$PYTHON_PROTO_DIR"/*_pb2.py; do
+    if [ -f "$py_file" ]; then
+        # Replace "import xxx_pb2" with "from . import xxx_pb2"
+        sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/' "$py_file"
+    fi
+done
+
 echo "Done! Generated Python protobuf files in $PYTHON_PROTO_DIR"
