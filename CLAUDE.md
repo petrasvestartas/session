@@ -103,3 +103,86 @@ git submodule update --init --recursive         # Update submodules
 - Viewer port: 8769
 - C++ requires C++23
 - Protobuf bindings auto-generated during build
+
+## Test Consistency Patterns
+
+Tests across Python, C++, and Rust must be **EXACTLY identical** in structure, line count, and variable names.
+
+### Include Comments
+C++ tests must have **only one** `// uncomment` comment for the main header:
+```cpp
+// uncomment #include "vector.h"
+```
+**DO NOT** add `// uncomment #include "tolerance.h"` or `// uncomment #include <cmath>`.
+
+### Variable Consistency
+If C++ requires a variable (e.g., reference parameter), **all languages must have it**:
+```cpp
+// C++: get_leveled_vector takes double& reference
+double vertical_height = 1.0;
+Vector v_leveled = v.get_leveled_vector(vertical_height);
+```
+```python
+# Python: same variable for consistency
+vertical_height = 1.0
+v_leveled = v.get_leveled_vector(vertical_height)
+```
+```rust
+// Rust: same variable for consistency
+let vertical_height = 1.0;
+let v_leveled = v.get_leveled_vector(vertical_height);
+```
+
+### Comment Formatting
+Use **ASCII characters** in comments (not Unicode):
+- Use `.` not `•` for dot product
+- Use `^2` not `²` for squared
+- Use `deg` not `°` for degrees
+- Use `alpha, beta, gamma` not `α, β, γ`
+
+### Blank Line Consistency
+Each test block should have the same number of blank lines in all languages.
+
+### Serialization File Paths
+- **Python**: Use `Path(__file__).resolve().parents[2] / "filename.json"` to save to `session_py/`
+- **C++/Rust**: Use simple filename `"filename.json"` (runs from their directories)
+
+### MINI_CHECK Assertions
+Keep assertions on separate lines with same logic:
+```python
+MINI_CHECK(x == 1.0 and y == 2.0 and z == 3.0)
+```
+```cpp
+MINI_CHECK(x == 1.0 && y == 2.0 && z == 3.0);
+```
+```rust
+MINI_CHECK!(x == 1.0 && y == 1.0 && z == 1.0);
+```
+
+### Floating Point Comparisons
+Use `TOLERANCE.is_close()` instead of rounding:
+```python
+# GOOD - use is_close
+MINI_CHECK(TOLERANCE.is_close(d, 3.741657))
+
+# BAD - don't use rounding
+d = round(value, Tolerance.ROUNDING)
+MINI_CHECK(d == 3.741657)
+```
+```cpp
+// GOOD - use is_close
+MINI_CHECK(TOLERANCE.is_close(d, 3.741657));
+
+// BAD - don't use rounding
+double d = Tolerance::round_to(value, Tolerance::ROUNDING);
+MINI_CHECK(d == 3.741657);
+```
+```rust
+// GOOD - use is_close
+use crate::tolerance::TOLERANCE;
+MINI_CHECK!(TOLERANCE.is_close(d, 3.741657));
+
+// BAD - don't use rounding
+let d = Tolerance::round_to(value, Tolerance::ROUNDING);
+MINI_CHECK!(d == 3.741657);
+```

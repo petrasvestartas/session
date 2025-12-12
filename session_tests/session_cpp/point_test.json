@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.069,
     "line": 14,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str(); \n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);\n",
     "checks": [
@@ -137,13 +137,13 @@
   {
     "test_name": "mid_point",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 117,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);\n\n        double x = Tolerance::round_to(mid[0], Tolerance::ROUNDING);\n        double y = Tolerance::round_to(mid[1], Tolerance::ROUNDING);\n        double z = Tolerance::round_to(mid[2], Tolerance::ROUNDING);\n",
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);\n",
     "checks": [
       {
-        "line": 129,
-        "code_line": "x == 0.5 && y == 3.5 && z == 2.0",
+        "line": 124,
+        "code_line": "mid[0] == 0.5 && mid[1] == 3.5 && mid[2] == 2.0",
         "passed": true
       }
     ],
@@ -153,12 +153,12 @@
     "test_name": "distance",
     "passed": true,
     "time_ms": 0.005,
-    "line": 132,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double d = Tolerance::round_to(Point::distance(p0, p1), Tolerance::ROUNDING);\n",
+    "line": 127,
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::distance(p0, p1);\n",
     "checks": [
       {
-        "line": 141,
-        "code_line": "d == 3.741657",
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(d, 3.741657)",
         "passed": true
       }
     ],
@@ -167,13 +167,13 @@
   {
     "test_name": "squared_distance",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 144,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n\n        double d = Tolerance::round_to(Point::squared_distance(p0, p1), Tolerance::ROUNDING);\n",
+    "time_ms": 0.006,
+    "line": 137,
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::squared_distance(p0, p1);\n",
     "checks": [
       {
-        "line": 153,
-        "code_line": "d == 14.0",
+        "line": 144,
+        "code_line": "TOLERANCE.is_close(d, 14.0)",
         "passed": true
       }
     ],
@@ -182,12 +182,12 @@
   {
     "test_name": "area",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 156,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include <vector>\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        double area = Point::area(pts);\n",
+    "time_ms": 0.014,
+    "line": 147,
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n        double area = Point::area({p0, p1, p2, p3});\n",
     "checks": [
       {
-        "line": 168,
+        "line": 156,
         "code_line": "area == 4.0",
         "passed": true
       }
@@ -197,13 +197,23 @@
   {
     "test_name": "centroid_quad",
     "passed": true,
-    "time_ms": 0.02,
-    "line": 171,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n        // uncomment #include <vector>\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n\n        std::vector<Point> pts{p0, p1, p2, p3};\n        Point centroid = Point::centroid_quad(pts);\n\n        double x = Tolerance::round_to(centroid[0], Tolerance::ROUNDING);\n        double y = Tolerance::round_to(centroid[1], Tolerance::ROUNDING);\n        double z = Tolerance::round_to(centroid[2], Tolerance::ROUNDING);\n",
+    "time_ms": 0.027,
+    "line": 159,
+    "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n        Point centroid = Point::centroid_quad({p0, p1, p2, p3});\n",
     "checks": [
       {
-        "line": 188,
-        "code_line": "x == 1.0 && y == 1.0 && z == 1.0",
+        "line": 168,
+        "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 169,
+        "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_close(centroid[2], 1.0)",
         "passed": true
       }
     ],
@@ -212,52 +222,52 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.085,
-    "line": 191,
+    "time_ms": 0.08,
+    "line": 173,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.json\";\n        p.json_dump(filename);\n        Point loaded = Point::json_load(filename);\n",
     "checks": [
       {
-        "line": 204,
+        "line": 186,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 205,
+        "line": 187,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 206,
+        "line": 188,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 207,
+        "line": 189,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 190,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 191,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 210,
+        "line": 192,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 211,
+        "line": 193,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 212,
+        "line": 194,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
@@ -267,52 +277,52 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.069,
-    "line": 217,
+    "time_ms": 0.065,
+    "line": 199,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"test_point.bin\";\n        p.protobuf_dump(filename);\n        Point loaded = Point::protobuf_load(filename);\n",
     "checks": [
       {
-        "line": 230,
+        "line": 212,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 231,
+        "line": 213,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 232,
+        "line": 214,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 233,
+        "line": 215,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 234,
+        "line": 216,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 235,
+        "line": 217,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 236,
+        "line": 218,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 237,
+        "line": 219,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 238,
+        "line": 220,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
