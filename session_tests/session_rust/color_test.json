@@ -2,7 +2,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.074,
+    "time_ms": 0.071,
     "line": 298,
     "code": "        use crate::Color;\n\n        let mut color = Color::new(255, 128, 64, 255);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"test_color.bin\";\n        color.protobuf_dump(filename);\n        let loaded = Color::protobuf_load(filename);\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "conversion",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 210,
     "code": "        use crate::Color;\n        use crate::tolerance::TOLERANCE;\n\n        let color = Color::new(255, 128, 64, 255);\n        let flts = color.to_float_array();\n        let ints = Color::from_float(flts[0], flts[1], flts[2], flts[3]);\n",
     "checks": [
@@ -227,7 +227,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.011,
     "line": 172,
     "code": "        use crate::Color;\n\n        // Constructor\n        let mut red = Color::new(255, 0, 0, 255);\n        red.name = \"red\".to_string();\n\n        // Setters\n        red.r = 255;\n        red.g = 0;\n        red.b = 0;\n        red.a = 255;\n\n        // Getters\n        let r = red.r;\n        let g = red.g;\n        let b = red.b;\n        let a = red.a;\n\n        // Minimal and Full String Representation\n        let cstr = red.str();\n        let crepr = red.repr();\n\n        // Copy (duplicates everything except guid)\n        let ccopy = red.duplicate();\n        let mut cother = Color::new(255, 0, 0, 255);\n        cother.name = \"red\".to_string();\n",
     "checks": [

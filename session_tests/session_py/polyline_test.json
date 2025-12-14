@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.792,
+    "time_ms": 0.787,
     "line": 5,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Add point\n    pl.add_point(Point(0.0, 1.0, 0.0))\n    new_count = len(pl)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n\n    # Translation operators\n    pl2 = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])\n    v = Vector(1.0, 1.0, 1.0)\n    pl_add = pl2 + v\n    pl_sub = pl2 - v\n\n    # Polyline with custom color and width\n    plc = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "center",
     "passed": true,
-    "time_ms": 1.383,
+    "time_ms": 1.375,
     "line": 76,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square polyline\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    ])\n    c = pl.center()\n    cv = pl.center_vec()",
     "checks": [
@@ -122,7 +122,7 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.38,
+    "time_ms": 0.404,
     "line": 98,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Open polyline\n    open_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0)\n    ])\n    is_open = open_pl.is_closed()\n\n    # Closed polyline (first and last point same)\n    closed_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ])\n    is_closed = closed_pl.is_closed()",
     "checks": [
@@ -142,7 +142,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.281,
+    "time_ms": 0.261,
     "line": 124,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0)])\n\n    # Test reversed() returns new polyline\n    rev = pl.reversed()\n    orig_first = pl.get_point(0)[0]\n    rev_first = rev.get_point(0)[0]\n\n    # Test reverse() in place\n    pl.reverse()\n    in_place_first = pl.get_point(0)[0]",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "closest_point",
     "passed": true,
-    "time_ms": 0.217,
+    "time_ms": 0.23,
     "line": 145,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0)])\n    test_pt = Point(1.0, 1.0, 0.0)\n    distance, edge_id, closest = pl.closest_distance_and_point(test_pt)",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.565,
+    "time_ms": 0.515,
     "line": 160,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0)])\n    pl.name = \"test_polyline\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_polyline.json\"\n    pl.json_dump(fname)\n    loaded = Polyline.json_load(fname)",
     "checks": [
@@ -232,7 +232,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.85,
+    "time_ms": 0.783,
     "line": 181,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0)])\n    pl.name = \"test_polyline\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_polyline.bin\"\n    pl.protobuf_dump(fname)\n    loaded = Polyline.protobuf_load(fname)",
     "checks": [
