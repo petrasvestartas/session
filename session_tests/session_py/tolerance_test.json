@@ -47,7 +47,7 @@
   {
     "test_name": "is_negative",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 23,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "is_between",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 29,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 35,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.008,
     "line": 41,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [

@@ -102,7 +102,7 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 109,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    double ln = l.length();\n    double lsq = l.squared_length();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "to_direction",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 129,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    Vector d = l.to_direction();\n",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 141,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 10.0, 10.0);\n    Point ps = l.point_at(0.0);\n    Point pm = l.point_at(0.5);\n    Point pe = l.point_at(1.0);\n",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "subdivide",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.028,
     "line": 195,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include <vector>\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    // subdivide by count\n    std::vector<Point> pts = l.subdivide(3);\n\n    // subdivide_by_distance\n    std::vector<Point> pts_dist = l.subdivide_by_distance(2.5);\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.087,
+    "time_ms": 0.084,
     "line": 232,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n",
     "checks": [
@@ -377,7 +377,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.063,
     "line": 253,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    std::string fname = \"test_line.bin\";\n    l.protobuf_dump(fname);\n    Line loaded = Line::protobuf_load(fname);\n",
     "checks": [

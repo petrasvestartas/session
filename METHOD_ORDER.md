@@ -45,6 +45,11 @@ Within each class implementation, keep the following blocks in this order:
     - arithmetic, indexing, etc.
 12. **Private helpers**
 
+### 1.2 Serialization placement notes
+
+- For Rust, prefer keeping any `impl Serialize` / `impl Deserialize` blocks in the **Serialization** section (near `jsondump/jsonload` and protobuf helpers) when the goal is strict cross-language readability.
+  - This is an explicit choice for `Polyline` (Option 2) to match the Python/C++ layout.
+
 ### 1.2 Transform contract
 
 For all classes that have an `xform` field:

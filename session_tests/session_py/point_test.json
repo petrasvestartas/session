@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.286,
+    "time_ms": 0.285,
     "line": 7,
     "code": "    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    p = Point(1.0, 2.0, 3.0)\n\n    # Setters\n    p[0] = 10.0\n    p[1] = 20.0\n    p[2] = 30.0\n\n    # Getters\n    x = p[0]\n    y = p[1]\n    z = p[2]\n\n    # Minimal and Full String Representation\n    pstr = str(p)\n    prepr = repr(p) \n\n    # Copy (duplicates everything except guid)\n    pcopy = p.duplicate()\n    pother = Point(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    pmult = p.duplicate()\n    pmult *= 2.0\n    pdiv = p.duplicate()\n    pdiv /= 2.0\n    padd = p.duplicate()\n    padd += Vector(1.0, 1.0, 1.0)\n    psub = p.duplicate()\n    psub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = p * 2.0\n    result_div = p / 2.0\n    result_add = p + Vector(1.0, 1.0, 1.0)\n    diff_point = p - Vector(1.0, 1.0, 1.0)\n\n    # Static sum and sub methods\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    psum = Point.sum(p1, p2)\n    pdif = Point.sub(p2, p1)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.086,
+    "time_ms": 0.081,
     "line": 81,
     "code": "    from session_py import Point\n    from session_py import Xform\n    \n    p = Point(1.0, 2.0, 3.0)\n    p.xform = Xform.translation(1.0, 2.0, 3.0)\n    p_transformed = p.transformed() # Make a copy\n    p.transform() # After the call, \"xform\" is reset",
     "checks": [
@@ -115,19 +115,139 @@
     "failures": []
   },
   {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.338,
+    "line": 96,
+    "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_point.json\"\n    p.json_dump(fname)\n    loaded = Point.json_load(fname)",
+    "checks": [
+      {
+        "line": 112,
+        "code_line": "isinstance(loaded == Point)",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "loaded.name == p.name",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "loaded[0] == p[0]",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "loaded[1] == p[1]",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "loaded[2] == p[2]",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "loaded.width == p.width",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "loaded.pointcolor[0] == 255",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "loaded.pointcolor[1] == 128",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "loaded.pointcolor[2] == 64",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "loaded.pointcolor[3] == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 0.243,
+    "line": 124,
+    "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    path = Path(__file__).resolve().parents[2] / \"test_point.bin\"\n    p.protobuf_dump(path)\n    loaded = Point.protobuf_load(path)",
+    "checks": [
+      {
+        "line": 139,
+        "code_line": "isinstance(loaded == Point)",
+        "passed": true
+      },
+      {
+        "line": 140,
+        "code_line": "loaded.name == p.name",
+        "passed": true
+      },
+      {
+        "line": 141,
+        "code_line": "loaded[0] == p[0]",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "loaded[1] == p[1]",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "loaded[2] == p[2]",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "loaded.width == p.width",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "loaded.pointcolor[0] == 255",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "loaded.pointcolor[1] == 128",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "loaded.pointcolor[2] == 64",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "loaded.pointcolor[3] == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
     "test_name": "is_ccw",
     "passed": true,
-    "time_ms": 0.045,
-    "line": 96,
+    "time_ms": 0.04,
+    "line": 151,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.05, 1.0, 0.0)\n\n    # Points must be oriented to xy plane.\n    is_counter_clock_wise = Point.is_ccw(p0, p1, p2)\n    is_clock_wise = Point.is_ccw(p2, p1, p0)\n    ",
     "checks": [
       {
-        "line": 108,
+        "line": 163,
         "code_line": "is_counter_clock_wise",
         "passed": true
       },
       {
-        "line": 109,
+        "line": 164,
         "code_line": "not is_clock_wise",
         "passed": true
       }
@@ -137,12 +257,12 @@
   {
     "test_name": "mid_point",
     "passed": true,
-    "time_ms": 0.038,
-    "line": 112,
+    "time_ms": 0.039,
+    "line": 167,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    mid = Point.mid_point(p0, p1)\n    ",
     "checks": [
       {
-        "line": 120,
+        "line": 175,
         "code_line": "mid[0] == 0.5 and mid[1] == 3.5 and mid[2] == 2.0",
         "passed": true
       }
@@ -153,11 +273,11 @@
     "test_name": "distance",
     "passed": true,
     "time_ms": 0.031,
-    "line": 123,
+    "line": 178,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    d = Point.distance(p0, p1)",
     "checks": [
       {
-        "line": 131,
+        "line": 186,
         "code_line": "TOLERANCE.is_close(d == 3.741657)",
         "passed": true
       }
@@ -167,12 +287,12 @@
   {
     "test_name": "squared_distance",
     "passed": true,
-    "time_ms": 0.026,
-    "line": 134,
+    "time_ms": 0.027,
+    "line": 189,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    d = Point.squared_distance(p0, p1)",
     "checks": [
       {
-        "line": 142,
+        "line": 197,
         "code_line": "TOLERANCE.is_close(d == 14.0)",
         "passed": true
       }
@@ -182,12 +302,12 @@
   {
     "test_name": "area",
     "passed": true,
-    "time_ms": 0.048,
-    "line": 145,
+    "time_ms": 0.05,
+    "line": 200,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(2.0, 0.0, 0.0)\n    p2 = Point(2.0, 2.0, 0.0)\n    p3 = Point(0.0, 2.0, 0.0)\n    area = Point.area([p0, p1, p2, p3])\n    ",
     "checks": [
       {
-        "line": 155,
+        "line": 210,
         "code_line": "area == 4.0",
         "passed": true
       }
@@ -197,143 +317,23 @@
   {
     "test_name": "centroid_quad",
     "passed": true,
-    "time_ms": 0.096,
-    "line": 158,
+    "time_ms": 0.122,
+    "line": 213,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(2.0, 0.0, 1.0)\n    p2 = Point(2.0, 2.0, 2.0)\n    p3 = Point(0.0, 2.0, 1.0)\n    centroid = Point.centroid_quad([p0, p1, p2, p3])",
     "checks": [
       {
-        "line": 168,
+        "line": 223,
         "code_line": "TOLERANCE.is_close(centroid[0] == 1.0)",
         "passed": true
       },
       {
-        "line": 169,
+        "line": 224,
         "code_line": "TOLERANCE.is_close(centroid[1] == 1.0)",
         "passed": true
       },
       {
-        "line": 170,
-        "code_line": "TOLERANCE.is_close(centroid[2] == 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "json_roundtrip",
-    "passed": true,
-    "time_ms": 0.363,
-    "line": 173,
-    "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_point.json\"\n    p.json_dump(fname)\n    loaded = Point.json_load(fname)",
-    "checks": [
-      {
-        "line": 189,
-        "code_line": "isinstance(loaded == Point)",
-        "passed": true
-      },
-      {
-        "line": 190,
-        "code_line": "loaded.name == p.name",
-        "passed": true
-      },
-      {
-        "line": 191,
-        "code_line": "loaded[0] == p[0]",
-        "passed": true
-      },
-      {
-        "line": 192,
-        "code_line": "loaded[1] == p[1]",
-        "passed": true
-      },
-      {
-        "line": 193,
-        "code_line": "loaded[2] == p[2]",
-        "passed": true
-      },
-      {
-        "line": 194,
-        "code_line": "loaded.width == p.width",
-        "passed": true
-      },
-      {
-        "line": 195,
-        "code_line": "loaded.pointcolor[0] == 255",
-        "passed": true
-      },
-      {
-        "line": 196,
-        "code_line": "loaded.pointcolor[1] == 128",
-        "passed": true
-      },
-      {
-        "line": 197,
-        "code_line": "loaded.pointcolor[2] == 64",
-        "passed": true
-      },
-      {
-        "line": 198,
-        "code_line": "loaded.pointcolor[3] == 255",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "protobuf_roundtrip",
-    "passed": true,
-    "time_ms": 0.235,
-    "line": 201,
-    "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    path = Path(__file__).resolve().parents[2] / \"test_point.bin\"\n    p.protobuf_dump(path)\n    loaded = Point.protobuf_load(path)",
-    "checks": [
-      {
-        "line": 216,
-        "code_line": "isinstance(loaded == Point)",
-        "passed": true
-      },
-      {
-        "line": 217,
-        "code_line": "loaded.name == p.name",
-        "passed": true
-      },
-      {
-        "line": 218,
-        "code_line": "loaded[0] == p[0]",
-        "passed": true
-      },
-      {
-        "line": 219,
-        "code_line": "loaded[1] == p[1]",
-        "passed": true
-      },
-      {
-        "line": 220,
-        "code_line": "loaded[2] == p[2]",
-        "passed": true
-      },
-      {
-        "line": 221,
-        "code_line": "loaded.width == p.width",
-        "passed": true
-      },
-      {
-        "line": 222,
-        "code_line": "loaded.pointcolor[0] == 255",
-        "passed": true
-      },
-      {
-        "line": 223,
-        "code_line": "loaded.pointcolor[1] == 128",
-        "passed": true
-      },
-      {
-        "line": 224,
-        "code_line": "loaded.pointcolor[2] == 64",
-        "passed": true
-      },
-      {
         "line": 225,
-        "code_line": "loaded.pointcolor[3] == 255",
+        "code_line": "TOLERANCE.is_close(centroid[2] == 1.0)",
         "passed": true
       }
     ],

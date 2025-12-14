@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.061,
     "line": 6,
     "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
     "checks": [
@@ -40,189 +40,34 @@
     "failures": []
   },
   {
-    "test_name": "conversion",
-    "passed": true,
-    "time_ms": 0.043,
-    "line": 48,
-    "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
-    "checks": [
-      {
-        "line": 56,
-        "code_line": "TOLERANCE.is_close(flts[0] == 1.0)",
-        "passed": true
-      },
-      {
-        "line": 57,
-        "code_line": "TOLERANCE.is_close(flts[1] == 0.50196078)",
-        "passed": true
-      },
-      {
-        "line": 58,
-        "code_line": "TOLERANCE.is_close(flts[2] == 0.25098039)",
-        "passed": true
-      },
-      {
-        "line": 59,
-        "code_line": "TOLERANCE.is_close(flts[3] == 1.0)",
-        "passed": true
-      },
-      {
-        "line": 60,
-        "code_line": "ints == color",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "presets",
-    "passed": true,
-    "time_ms": 0.191,
-    "line": 62,
-    "code": "    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
-    "checks": [
-      {
-        "line": 88,
-        "code_line": "white == Color(255 == 255",
-        "passed": true
-      },
-      {
-        "line": 89,
-        "code_line": "black == Color(0 == 0",
-        "passed": true
-      },
-      {
-        "line": 90,
-        "code_line": "grey == Color(128 == 128",
-        "passed": true
-      },
-      {
-        "line": 91,
-        "code_line": "red == Color(255 == 0",
-        "passed": true
-      },
-      {
-        "line": 92,
-        "code_line": "orange == Color(255 == 128",
-        "passed": true
-      },
-      {
-        "line": 93,
-        "code_line": "yellow == Color(255 == 255",
-        "passed": true
-      },
-      {
-        "line": 94,
-        "code_line": "lime == Color(128 == 255",
-        "passed": true
-      },
-      {
-        "line": 95,
-        "code_line": "green == Color(0 == 255",
-        "passed": true
-      },
-      {
-        "line": 96,
-        "code_line": "mint == Color(0 == 255",
-        "passed": true
-      },
-      {
-        "line": 97,
-        "code_line": "cyan == Color(0 == 255",
-        "passed": true
-      },
-      {
-        "line": 98,
-        "code_line": "azure == Color(0 == 128",
-        "passed": true
-      },
-      {
-        "line": 99,
-        "code_line": "blue == Color(0 == 0",
-        "passed": true
-      },
-      {
-        "line": 100,
-        "code_line": "violet == Color(128 == 0",
-        "passed": true
-      },
-      {
-        "line": 101,
-        "code_line": "magenta == Color(255 == 0",
-        "passed": true
-      },
-      {
-        "line": 102,
-        "code_line": "pink == Color(255 == 0",
-        "passed": true
-      },
-      {
-        "line": 103,
-        "code_line": "maroon == Color(128 == 0",
-        "passed": true
-      },
-      {
-        "line": 104,
-        "code_line": "brown == Color(128 == 64",
-        "passed": true
-      },
-      {
-        "line": 105,
-        "code_line": "olive == Color(128 == 128",
-        "passed": true
-      },
-      {
-        "line": 106,
-        "code_line": "teal == Color(0 == 128",
-        "passed": true
-      },
-      {
-        "line": 107,
-        "code_line": "navy == Color(0 == 0",
-        "passed": true
-      },
-      {
-        "line": 108,
-        "code_line": "purple == Color(128 == 0",
-        "passed": true
-      },
-      {
-        "line": 109,
-        "code_line": "silver == Color(192 == 192",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.27,
-    "line": 112,
+    "time_ms": 0.467,
+    "line": 48,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    c = Color(255, 128, 64, 255, \"test_color\")\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_color.json\"\n    c.json_dump(fname)\n    loaded = Color.json_load(fname)",
     "checks": [
       {
-        "line": 124,
+        "line": 60,
         "code_line": "loaded.name == \"test_color\"",
         "passed": true
       },
       {
-        "line": 125,
+        "line": 61,
         "code_line": "loaded[0] == 255",
         "passed": true
       },
       {
-        "line": 126,
+        "line": 62,
         "code_line": "loaded[1] == 128",
         "passed": true
       },
       {
-        "line": 127,
+        "line": 63,
         "code_line": "loaded[2] == 64",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 64,
         "code_line": "loaded[3] == 255",
         "passed": true
       }
@@ -232,33 +77,188 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.17,
-    "line": 130,
+    "time_ms": 0.365,
+    "line": 67,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255, \"test_color\")\n\n    path = Path(__file__).resolve().parents[2] / \"test_color.bin\"\n    color.protobuf_dump(path)\n    loaded = Color.protobuf_load(path)",
     "checks": [
       {
-        "line": 141,
+        "line": 78,
         "code_line": "loaded.name == \"test_color\"",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 79,
         "code_line": "loaded[0] == 255",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 80,
         "code_line": "loaded[1] == 128",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 81,
         "code_line": "loaded[2] == 64",
         "passed": true
       },
       {
-        "line": 145,
+        "line": 82,
         "code_line": "loaded[3] == 255",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "conversion",
+    "passed": true,
+    "time_ms": 0.055,
+    "line": 85,
+    "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
+    "checks": [
+      {
+        "line": 93,
+        "code_line": "TOLERANCE.is_close(flts[0] == 1.0)",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "TOLERANCE.is_close(flts[1] == 0.50196078)",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "TOLERANCE.is_close(flts[2] == 0.25098039)",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "TOLERANCE.is_close(flts[3] == 1.0)",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "ints == color",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "presets",
+    "passed": true,
+    "time_ms": 0.209,
+    "line": 99,
+    "code": "    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
+    "checks": [
+      {
+        "line": 125,
+        "code_line": "white == Color(255 == 255",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "black == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "grey == Color(128 == 128",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "red == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "orange == Color(255 == 128",
+        "passed": true
+      },
+      {
+        "line": 130,
+        "code_line": "yellow == Color(255 == 255",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "lime == Color(128 == 255",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "green == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "mint == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "cyan == Color(0 == 255",
+        "passed": true
+      },
+      {
+        "line": 135,
+        "code_line": "azure == Color(0 == 128",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "blue == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "violet == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "magenta == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "pink == Color(255 == 0",
+        "passed": true
+      },
+      {
+        "line": 140,
+        "code_line": "maroon == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 141,
+        "code_line": "brown == Color(128 == 64",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "olive == Color(128 == 128",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "teal == Color(0 == 128",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "navy == Color(0 == 0",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "purple == Color(128 == 0",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "silver == Color(192 == 192",
         "passed": true
       }
     ],

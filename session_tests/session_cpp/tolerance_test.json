@@ -32,7 +32,7 @@
   {
     "test_name": "is_positive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 18,
     "code": "        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 38,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
