@@ -1,0 +1,242 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.021,
+    "line": 6,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor with points, normals, colors\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(0.0, 1.0, 0.0);\n        let n0 = Vector::new(0.0, 0.0, 1.0);\n        let n1 = Vector::new(0.0, 0.0, 1.0);\n        let n2 = Vector::new(0.0, 0.0, 1.0);\n        let c0 = Color::new(255, 0, 0, 255);\n        let c1 = Color::new(0, 255, 0, 255);\n        let c2 = Color::new(0, 0, 255, 255);\n        let pc = PointCloud::new(vec![p0, p1, p2], vec![n0, n1, n2], vec![c0, c1, c2]);\n\n        // Basic properties\n        let point_count = pc.len();\n        let color_count = pc.color_count();\n        let normal_count = pc.normal_count();\n        let is_empty = pc.is_empty();\n\n        // Minimal and Full String Representation\n        let pcstr = pc.str();\n        let pcrepr = pc.repr();\n\n        // Copy (duplicates everything except guid)\n        let pccopy = pc.duplicate();\n\n        // Get point/color/normal at index\n        let pt0 = pc.get_point(0);\n        let col0 = pc.get_color(0);\n        let norm0 = pc.get_normal(0);\n",
+    "checks": [
+      {
+        "line": 42,
+        "code_line": "pc.name == \"my_pointcloud\" && !pc.guid.is_empty() && point_count == 3",
+        "passed": true
+      },
+      {
+        "line": 43,
+        "code_line": "color_count == 3 && normal_count == 3 && is_empty == false",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "pcstr.contains(\"3 points\")",
+        "passed": true
+      },
+      {
+        "line": 45,
+        "code_line": "pcrepr.contains(\"PointCloud(my_pointcloud\")",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "pccopy == pc && pccopy.guid != pc.guid",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "TOLERANCE.is_close(pt0[0], 0.0) && TOLERANCE.is_close(pt0[1], 0.0) &&\nTOLERANCE.is_close(pt0[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "col0.r == 255 && col0.g == 0 && col0.b == 0 && col0.a == 255",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "TOLERANCE.is_close(norm0[0], 0.0) && TOLERANCE.is_close(norm0[1], 0.0) &&\nTOLERANCE.is_close(norm0[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.055,
+    "line": 176,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n\n        let pt0 = loaded.get_point(0);\n        let col0 = loaded.get_color(0);\n        let norm0 = loaded.get_normal(0);\n",
+    "checks": [
+      {
+        "line": 197,
+        "code_line": "loaded.name == \"test_pointcloud\"",
+        "passed": true
+      },
+      {
+        "line": 198,
+        "code_line": "loaded.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "TOLERANCE.is_close(pt0[0], 1.0) && TOLERANCE.is_close(pt0[1], 2.0) &&\nTOLERANCE.is_close(pt0[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "col0.r == 255 && col0.g == 0 && col0.b == 0",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "TOLERANCE.is_close(norm0[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "protobuf_roundtrip",
+    "passed": true,
+    "time_ms": 0.053,
+    "line": 207,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"test_pointcloud.bin\";\n        pc.protobuf_dump(fname);\n        let loaded = PointCloud::protobuf_load(fname);\n\n        let pt0 = loaded.get_point(0);\n        let col0 = loaded.get_color(0);\n        let norm0 = loaded.get_normal(0);\n",
+    "checks": [
+      {
+        "line": 228,
+        "code_line": "loaded.name == \"test_pointcloud\"",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "loaded.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 230,
+        "code_line": "TOLERANCE.is_close(pt0[0], 1.0) && TOLERANCE.is_close(pt0[1], 2.0) &&\nTOLERANCE.is_close(pt0[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "col0.r == 255 && col0.g == 0 && col0.b == 0",
+        "passed": true
+      },
+      {
+        "line": 232,
+        "code_line": "TOLERANCE.is_close(norm0[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "add_and_set",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 79,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Empty cloud\n        let mut pc = PointCloud::default();\n\n        // Add points, colors, normals\n        pc.add_point(&Point::new(1.0, 2.0, 3.0));\n        pc.add_color(&Color::new(128, 64, 32, 255));\n        pc.add_normal(&Vector::new(1.0, 0.0, 0.0));\n\n        let point_count = pc.len();\n        let color_count = pc.color_count();\n        let normal_count = pc.normal_count();\n\n        // Set point/color/normal at index\n        pc.set_point(0, &Point::new(4.0, 5.0, 6.0));\n        pc.set_color(0, &Color::new(200, 100, 50, 255));\n        pc.set_normal(0, &Vector::new(0.0, 1.0, 0.0));\n\n        let pt0 = pc.get_point(0);\n        let col0 = pc.get_color(0);\n        let norm0 = pc.get_normal(0);\n",
+    "checks": [
+      {
+        "line": 106,
+        "code_line": "point_count == 1 && color_count == 1 && normal_count == 1",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "TOLERANCE.is_close(pt0[0], 4.0) && TOLERANCE.is_close(pt0[1], 5.0) &&\nTOLERANCE.is_close(pt0[2], 6.0)",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "col0.r == 200 && col0.g == 100 && col0.b == 50 && col0.a == 255",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(norm0[0], 0.0) && TOLERANCE.is_close(norm0[1], 1.0) &&\nTOLERANCE.is_close(norm0[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "from_coords",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 54,
+    "code": "        use crate::PointCloud;\n\n        // Create from flat arrays\n        let coords = vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];\n        let colors = vec![255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255];\n        let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];\n        let pc = PointCloud::from_coords(coords, colors, normals);\n\n        let point_count = pc.len();\n        let color_count = pc.color_count();\n        let normal_count = pc.normal_count();\n\n        let pt1 = pc.get_point(1);\n        let col1 = pc.get_color(1);\n        let norm1 = pc.get_normal(1);\n",
+    "checks": [
+      {
+        "line": 71,
+        "code_line": "point_count == 3 && color_count == 3 && normal_count == 3",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "TOLERANCE.is_close(pt1[0], 1.0) && TOLERANCE.is_close(pt1[1], 0.0) &&\nTOLERANCE.is_close(pt1[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "col1.r == 0 && col1.g == 255 && col1.b == 0 && col1.a == 255",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "TOLERANCE.is_close(norm1[0], 0.0) && TOLERANCE.is_close(norm1[1], 0.0) &&\nTOLERANCE.is_close(norm1[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "transform",
+    "passed": true,
+    "time_ms": 0.02,
+    "line": 150,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc.xform = Xform::translation(10.0, 20.0, 30.0);\n        pc.transform();\n\n        // Transformed - returns new cloud\n        let mut pc2 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n        let pc3 = pc2.transformed();\n\n        let pt = pc.get_point(0);\n        let pt3 = pc3.get_point(0);\n        let pt2 = pc2.get_point(0);\n",
+    "checks": [
+      {
+        "line": 169,
+        "code_line": "TOLERANCE.is_close(pt[0], 11.0) && TOLERANCE.is_close(pt[1], 22.0) &&\nTOLERANCE.is_close(pt[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_close(pt3[0], 11.0) && TOLERANCE.is_close(pt3[1], 22.0) &&\nTOLERANCE.is_close(pt3[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "TOLERANCE.is_close(pt2[0], 1.0) && TOLERANCE.is_close(pt2[1], 2.0) &&\nTOLERANCE.is_close(pt2[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "translate",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 114,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n\n        // Create cloud with one point\n        let pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        let offset = Vector::new(10.0, 20.0, 30.0);\n\n        // In-place add\n        let mut pc_iadd = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_iadd += offset.clone();\n\n        // In-place subtract\n        let mut pc_isub = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_isub -= offset.clone();\n\n        // Copy add/subtract\n        let pc_add = &pc + offset.clone();\n        let pc_sub = &pc - offset.clone();\n\n        let pt_iadd = pc_iadd.get_point(0);\n        let pt_isub = pc_isub.get_point(0);\n        let pt_add = pc_add.get_point(0);\n        let pt_sub = pc_sub.get_point(0);\n        let pt_orig = pc.get_point(0);\n",
+    "checks": [
+      {
+        "line": 141,
+        "code_line": "TOLERANCE.is_close(pt_iadd[0], 11.0) && TOLERANCE.is_close(pt_iadd[1], 22.0)\n&& TOLERANCE.is_close(pt_iadd[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "TOLERANCE.is_close(pt_isub[0], -9.0) && TOLERANCE.is_close(pt_isub[1], -18.0)\n&& TOLERANCE.is_close(pt_isub[2], -27.0)",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "TOLERANCE.is_close(pt_add[0], 11.0) && TOLERANCE.is_close(pt_add[1], 22.0) &&\nTOLERANCE.is_close(pt_add[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "TOLERANCE.is_close(pt_sub[0], -9.0) && TOLERANCE.is_close(pt_sub[1], -18.0) &&\nTOLERANCE.is_close(pt_sub[2], -27.0)",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "TOLERANCE.is_close(pt_orig[0], 1.0) && TOLERANCE.is_close(pt_orig[1], 2.0) &&\nTOLERANCE.is_close(pt_orig[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

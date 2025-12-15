@@ -32,7 +32,7 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 14,
     "code": "        let result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "is_positive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 21,
     "code": "        let result = TOLERANCE.is_positive(1.0);",
     "checks": [
