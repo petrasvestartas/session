@@ -1,0 +1,16 @@
+Implement in polyline_test missing separated tests in all langauges cpp, python, rust:
+- get_points
+- shift
+- change name from point_at_parameter to point_at and also implement test
+-  do we use anywhere center_vec? if not remove it
+- get_average_plane and get_fast_plane should be one test
+- get_middle_line, extend_line (already implement so remove it), must be part of line class and appropriate test now polyline
+- remove scale_line methods
+- write test for extend_segment and extend_segement_equally (both  oveerloads)
+- move method  must be removed instead of we must use plus or minus operators as in point class
+- implement test is_clockwise if not implemented
+- there is duplicate of flip and reverse, keep only one method with the same name as in line class
+- write test for convex corners
+- write test for tween_two_polylines
+- write test for avrerage_normal and average_plane (one test)
+- look how operators work in line class implement similar logic for polyline and polyline test must show how to use like in the line constructor test

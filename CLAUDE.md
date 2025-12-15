@@ -1017,6 +1017,7 @@ Every geometry class (Point, Vector, Line, Color, Polyline, etc.) **MUST** imple
 # Vector: "1.0, 2.0, 3.0"
 # Line: "0.0, 0.0, 0.0 -> 1.0, 1.0, 1.0"
 # Polyline: "[(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 1.0, 0.0)]"
+# Plane: "0.0, 0.0, 0.0" (origin only)
 ```
 
 **repr()** - Full, includes class name and name field:
@@ -1026,13 +1027,14 @@ Every geometry class (Point, Vector, Line, Color, Polyline, etc.) **MUST** imple
 # Vector: "Vector(my_vector, 1.0, 2.0, 3.0)"
 # Line: "Line(my_line, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)"
 # Polyline: "Polyline(my_polyline, 3 points)"
+# Plane: "Plane(my_plane, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0)" (name, origin, z_axis)
 ```
 
 ### Duplicate Pattern
 
-The `duplicate()` method creates a deep copy with a **new GUID**:
+Creating a copy with a **new GUID** differs by language:
 
-**Python:**
+**Python** - uses `duplicate()` method:
 ```python
 def duplicate(self):
     """Create a deep copy with a new GUID."""
@@ -1041,16 +1043,32 @@ def duplicate(self):
     return result
 ```
 
-**C++:**
+**C++** - uses **copy constructor/assignment operator** (NO duplicate() method):
 ```cpp
-Polyline duplicate() const {
-    Polyline result = *this;  // Copy all fields
-    result.guid = ::guid();   // Generate new GUID
-    return result;
+// Copy constructor - generates new GUID automatically
+Point::Point(const Point& other)
+    : guid(::guid()),  // NEW GUID
+      name(other.name),
+      // ... copy other fields
+{
 }
+
+// Assignment operator - also generates new GUID
+Point& Point::operator=(const Point& other) {
+    if (this != &other) {
+        guid = ::guid();  // NEW GUID
+        name = other.name;
+        // ... copy other fields
+    }
+    return *this;
+}
+
+// Usage in tests:
+Point pcopy = p;  // Copy constructor generates new GUID
+MINI_CHECK(pcopy == p && pcopy.guid != p.guid);
 ```
 
-**Rust:**
+**Rust** - uses `duplicate()` method (clone() preserves GUID):
 ```rust
 pub fn duplicate(&self) -> Self {
     let mut result = self.clone();
@@ -1058,6 +1076,8 @@ pub fn duplicate(&self) -> Self {
     result
 }
 ```
+
+**IMPORTANT:** In C++, NEVER implement a separate `duplicate()` method. The copy constructor and assignment operator handle new GUID generation automatically. This is different from Python/Rust where `duplicate()` is explicit.
 
 ## Polyline Test Alignment
 
