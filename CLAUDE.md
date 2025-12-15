@@ -266,6 +266,28 @@ MINI_CHECK(x == 1.0 && y == 2.0 && z == 3.0);
 MINI_CHECK!(x == 1.0 && y == 2.0 && z == 3.0);
 ```
 
+### No Intermediate Variables for Serialization Tests
+
+**IMPORTANT:** In serialization tests (json_roundtrip, protobuf_roundtrip), do NOT declare intermediate variables for values only used in MINI_CHECK. Call methods directly in the assertion.
+
+**Wrong:**
+```cpp
+Point pt0 = loaded.get_point(0);
+Color col0 = loaded.get_color(0);
+Vector norm0 = loaded.get_normal(0);
+
+MINI_CHECK(TOLERANCE.is_close(pt0[0], 1.0) && ...);
+MINI_CHECK(col0.r == 255 && ...);
+```
+
+**Correct:**
+```cpp
+MINI_CHECK(TOLERANCE.is_close(loaded.get_point(0)[0], 1.0) && ...);
+MINI_CHECK(loaded.get_color(0).r == 255 && ...);
+```
+
+This applies to all three languages in json_roundtrip and protobuf_roundtrip tests.
+
 ### Floating Point Comparisons
 Use `TOLERANCE.is_close()` instead of rounding:
 ```python
@@ -1003,7 +1025,7 @@ Every geometry class (Point, Vector, Line, Color, Polyline, etc.) **MUST** imple
 |--------|--------|-----|------|-------------|
 | Constructor | `__init__` | Constructor | `new()` | Create instance with parameters |
 | Named constructor | `with_name()` classmethod | `with_name()` static | `with_name()` | Create with custom name |
-| **Duplicate** | `duplicate()` | `duplicate()` | `duplicate()` | Deep copy with **new guid** |
+| **Duplicate** | `duplicate()` | **copy operator `=`** | `duplicate()` | Deep copy with **new guid** |
 | **Short string** | `__str__` | `str()` | `str()` | Minimal representation |
 | **Full string** | `__repr__` | `repr()` | `repr()` | Complete representation with name |
 | Equality | `__eq__` | `operator==` | `impl PartialEq` | Compare by value (ignore guid) |
@@ -1034,6 +1056,10 @@ Every geometry class (Point, Vector, Line, Color, Polyline, etc.) **MUST** imple
 
 Creating a copy with a **new GUID** differs by language:
 
+**CRITICAL: C++ MUST NEVER HAVE A `duplicate()` METHOD**
+
+C++ geometry classes use the **copy assignment operator** to create duplicates with new GUIDs. This is a fundamental design difference from Python and Rust.
+
 **Python** - uses `duplicate()` method:
 ```python
 def duplicate(self):
@@ -1041,12 +1067,15 @@ def duplicate(self):
     result = copy.deepcopy(self)
     result.guid = str(uuid.uuid4())
     return result
+
+# Usage in tests:
+pccopy = pc.duplicate()
 ```
 
-**C++** - uses **copy constructor/assignment operator** (NO duplicate() method):
+**C++** - uses **copy assignment operator `=`** (NEVER implement duplicate()):
 ```cpp
 // Copy constructor - generates new GUID automatically
-Point::Point(const Point& other)
+PointCloud::PointCloud(const PointCloud& other)
     : guid(::guid()),  // NEW GUID
       name(other.name),
       // ... copy other fields
@@ -1054,7 +1083,7 @@ Point::Point(const Point& other)
 }
 
 // Assignment operator - also generates new GUID
-Point& Point::operator=(const Point& other) {
+PointCloud& PointCloud::operator=(const PointCloud& other) {
     if (this != &other) {
         guid = ::guid();  // NEW GUID
         name = other.name;
@@ -1063,9 +1092,9 @@ Point& Point::operator=(const Point& other) {
     return *this;
 }
 
-// Usage in tests:
-Point pcopy = p;  // Copy constructor generates new GUID
-MINI_CHECK(pcopy == p && pcopy.guid != p.guid);
+// Usage in tests - use copy operator, NOT duplicate():
+PointCloud pccopy = pc;  // Copy operator generates new GUID
+MINI_CHECK(pccopy == pc && pccopy.guid != pc.guid);
 ```
 
 **Rust** - uses `duplicate()` method (clone() preserves GUID):
@@ -1075,9 +1104,18 @@ pub fn duplicate(&self) -> Self {
     result.guid = Uuid::new_v4().to_string();
     result
 }
+
+// Usage in tests:
+let pccopy = pc.duplicate();
 ```
 
-**IMPORTANT:** In C++, NEVER implement a separate `duplicate()` method. The copy constructor and assignment operator handle new GUID generation automatically. This is different from Python/Rust where `duplicate()` is explicit.
+**IMPORTANT RULES FOR C++:**
+1. **NEVER** implement a `duplicate()` method in C++ classes
+2. **ALWAYS** use the copy assignment operator `=` to create copies
+3. The copy constructor/assignment operator **MUST** generate a new GUID automatically
+4. Test code uses `PointCloud pccopy = pc;` NOT `pc.duplicate()`
+
+This is fundamentally different from Python/Rust where `duplicate()` is an explicit method.
 
 ## Polyline Test Alignment
 

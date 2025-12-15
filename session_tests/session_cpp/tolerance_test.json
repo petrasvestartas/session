@@ -2,7 +2,7 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 8,
     "code": "        bool result = TOLERANCE.is_zero(1e-10);",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 13,
     "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 33,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 38,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [

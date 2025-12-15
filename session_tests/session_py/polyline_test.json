@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 1.816,
+    "time_ms": 1.795,
     "line": 5,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    p3 = Point(0.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2, p3])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n\n    # No-copy operators\n    plmult = pl.duplicate()\n    plmult *= 2.0\n    pldiv = pl.duplicate()\n    pldiv /= 2.0\n    pladd = pl.duplicate()\n    pladd += Vector(1.0, 1.0, 1.0)\n    plsub = pl.duplicate()\n    plsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = pl * 2.0\n    rdiv = pl / 2.0\n    radd = pl + Vector(1.0, 1.0, 1.0)\n    rdif = pl - Vector(1.0, 1.0, 1.0)\n\n    # Negation (reverse point order)\n    plneg = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)])\n    neg = -plneg\n\n    # Polyline with custom color and width\n    plc = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5",
     "checks": [
@@ -97,7 +97,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.329,
+    "time_ms": 0.341,
     "line": 79,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Xform\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    pl.xform = Xform.translation(10.0, 0.0, 0.0)\n    pl_transformed = pl.transformed()\n    pl.transform()",
     "checks": [
@@ -122,7 +122,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.554,
+    "time_ms": 0.587,
     "line": 95,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0), Point(10.0, 11.0, 12.0)])\n    pl.name = \"test_polyline\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_polyline.json\"\n    pl.json_dump(fname)\n    loaded = Polyline.json_load(fname)",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.586,
+    "time_ms": 0.847,
     "line": 116,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0), Point(10.0, 11.0, 12.0)])\n    pl.name = \"test_polyline\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_polyline.bin\"\n    pl.protobuf_dump(fname)\n    loaded = Polyline.protobuf_load(fname)",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 0.335,
+    "time_ms": 0.34,
     "line": 137,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline: 1 unit right, 1 unit up, 1 unit left = 3 units total\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    ln = pl.length()\n    mag_sq = pl.magnitude_squared()",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "center",
     "passed": true,
-    "time_ms": 0.697,
+    "time_ms": 0.716,
     "line": 151,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square polyline\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    ])\n    c = pl.center()",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.412,
+    "time_ms": 0.435,
     "line": 170,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Open polyline\n    open_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    ])\n    is_open = open_pl.is_closed()\n\n    # Closed polyline (first and last point same)\n    closed_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ])\n    is_closed = closed_pl.is_closed()",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.294,
+    "time_ms": 0.292,
     "line": 197,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)])\n\n    # Test reversed() returns new polyline\n    rev = pl.reversed()\n    orig_first = pl.get_point(0)[0]\n    rev_first = rev.get_point(0)[0]\n\n    # Test reverse() in place\n    pl.reverse()\n    in_place_first = pl.get_point(0)[0]",
     "checks": [
@@ -282,7 +282,7 @@
   {
     "test_name": "closest_point",
     "passed": true,
-    "time_ms": 0.667,
+    "time_ms": 0.676,
     "line": 218,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0)])\n    test_pt = Point(1.0, 1.0, 0.0)\n    distance, edge_id, closest = pl.closest_distance_and_point(test_pt)",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "extend_segment",
     "passed": true,
-    "time_ms": 0.262,
+    "time_ms": 0.289,
     "line": 233,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)])\n    pl.extend_segment(0, 0.5, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "extend_segment_equally",
     "passed": true,
-    "time_ms": 0.26,
+    "time_ms": 0.267,
     "line": 247,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)])\n    pl.extend_segment_equally(0, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
@@ -352,7 +352,7 @@
   {
     "test_name": "get_points",
     "passed": true,
-    "time_ms": 0.145,
+    "time_ms": 0.154,
     "line": 261,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    points = pl.get_points()",
     "checks": [
@@ -387,7 +387,7 @@
   {
     "test_name": "shift",
     "passed": true,
-    "time_ms": 0.405,
+    "time_ms": 0.41,
     "line": 276,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)])\n    pl.shift(1)\n    first_after_shift = pl.get_point(0)[0]\n    pl.shift(-1)\n    first_after_unshift = pl.get_point(0)[0]",
     "checks": [
@@ -407,7 +407,7 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.047,
     "line": 291,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    mid = Polyline.point_at(start, end, 0.5)\n    quarter = Polyline.point_at(start, end, 0.25)",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "is_clockwise",
     "passed": true,
-    "time_ms": 1.121,
+    "time_ms": 1.143,
     "line": 305,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Plane\n\n    # Clockwise square (when viewed from +Z)\n    cw_pl = Polyline([Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0), Point(1.0, 0.0, 0.0)])\n    # Counter-clockwise square\n    ccw_pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    plane = Plane()",
     "checks": [
@@ -447,7 +447,7 @@
   {
     "test_name": "convex_corners",
     "passed": true,
-    "time_ms": 1.643,
+    "time_ms": 1.701,
     "line": 321,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline with one concave corner\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    corners = pl.get_convex_corners()",
     "checks": [
@@ -467,7 +467,7 @@
   {
     "test_name": "tween",
     "passed": true,
-    "time_ms": 0.846,
+    "time_ms": 0.861,
     "line": 334,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl0 = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    pl1 = Polyline([Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0), Point(3.0, 1.0, 0.0), Point(2.0, 1.0, 0.0)])\n    tweened = Polyline.tween_two_polylines(pl0, pl1, 0.5)",
     "checks": [
@@ -487,7 +487,7 @@
   {
     "test_name": "average_plane",
     "passed": true,
-    "time_ms": 3.086,
+    "time_ms": 3.181,
     "line": 347,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0)])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()",
     "checks": [

@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.199,
+    "time_ms": 0.183,
     "line": 6,
     "code": "    from session_py import Vector, Point\n\n    # Constructor\n    v = Vector(1.0, 2.0, 3.0)\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(2.0, 4.0, 6.0)\n    v_2p = Vector.from_points(p0, p1)\n\n    # Setters\n    v[0] = 10.0\n    v[1] = 20.0\n    v[2] = 30.0\n\n    # Getters\n    x = v[0]\n    y = v[1]\n    z = v[2]\n\n    # Minimal and full string representation\n    vstr = v.str()\n    vrepr = v.repr()\n\n    # Copy (duplicate everything but guid)\n    vcopy = v.duplicate()\n    vother = Vector(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    vmult = v.duplicate()\n    vmult *= 2.0\n    vdiv = v.duplicate()\n    vdiv /= 2.0\n    vadd = v.duplicate()\n    vadd += Vector(1.0, 1.0, 1.0)\n    vsub = v.duplicate()\n    vsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = v * 2.0\n    result_div = v / 2.0\n    result_add = v + Vector(1.0, 1.0, 1.0)\n    result_dif = v - Vector(1.0, 1.0, 1.0)\n\n    # Static axis constructors\n    vx = Vector.x_axis()\n    vy = Vector.y_axis()\n    vz = Vector.z_axis()\n    vzero = Vector.zero()",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.018,
     "line": 77,
     "code": "    from session_py import Vector\n\n    v = Vector(3.0, 4.0, 0.0)\n    length = v.magnitude()\n    len_squared = v.magnitude_squared()",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.027,
     "line": 89,
     "code": "    from session_py import Vector\n\n    v0 = Vector(3.0, 4.0, 0.0)\n    v0.normalize_self()\n\n    v1 = Vector(3.0, 4.0, 0.0)\n    v2 = v1.normalize()",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.011,
     "line": 103,
     "code": "    from session_py import Vector\n\n    v = Vector(1.0, -2.0, 3.0)\n    v.reverse()",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "cross_product",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.027,
     "line": 143,
     "code": "    from session_py import Vector\n\n    # Get normal\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)\n    vn = v1.cross(v2)\n\n    # Perpendicular, area = 3*4=12\n    a = Vector(3.0, 0.0, 0.0)\n    b = Vector(0.0, 4.0, 0.0)\n    cross = a.cross(b)\n    area = math.sqrt(cross[0]**2 + cross[1]**2 + cross[2]**2)",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "angle",
     "passed": true,
-    "time_ms": 0.082,
+    "time_ms": 0.069,
     "line": 162,
     "code": "    from session_py import Vector\n\n    # angle(): Angle between two vectors (degrees)\n    v1 = Vector(1.0, 0.0, 0.0)  # x-axis\n    v2 = Vector(0.0, 1.0, 0.0)  # y-axis\n    v3 = Vector(1.0, 1.0, 0.0)  # 45 deg from x-axis\n\n    angle_90 = v1.angle(v2, False)  # v1 to v2: 90 deg\n    angle_45 = v1.angle(v3, False)  # v1 to v3: 45 deg\n\n    # angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n    v_30 = Vector(math.sqrt(3.0), 1.0, 0.0)  # 30 deg from x-axis\n    v_60 = Vector(1.0, math.sqrt(3.0), 0.0)  # 60 deg from x-axis\n    v_neg = Vector(-1.0, 1.0, 0.0)           # 135 deg from x-axis\n\n    xy_angle_30 = Vector.angle_between_vector_xy_components(v_30)\n    xy_angle_60 = Vector.angle_between_vector_xy_components(v_60)\n    xy_angle_135 = Vector.angle_between_vector_xy_components(v_neg)\n\n    # coordinate_direction_3angles(): Angles (alpha, beta, gamma) to x, y, z axes\n    v_dir = Vector(35.4, 35.4, 86.6)\n    abg = v_dir.coordinate_direction_3angles(True)\n\n    # coordinate_direction_2angles(): Spherical angles (theta azimuth, phi elevation)\n    v_sph = Vector(1.0, 1.0, math.sqrt(2.0))\n    pt = v_sph.coordinate_direction_2angles(True)",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "projection",
     "passed": true,
-    "time_ms": 0.075,
+    "time_ms": 0.063,
     "line": 203,
     "code": "    from session_py import Vector\n\n    # Project vector v=(1,1,1) onto each axis\n    # Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n    v = Vector(1.0, 1.0, 1.0)\n    x = Vector.x_axis()\n    y = Vector.y_axis()\n    z = Vector.z_axis()\n    proj_x, lenx, perp_x, perp_lenx = v.projection(x)\n    proj_y, leny, perp_y, perp_leny = v.projection(y)\n    proj_z, lenz, perp_z, perp_lenz = v.projection(z)",
     "checks": [
@@ -297,7 +297,7 @@
   {
     "test_name": "is_parallel_to",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.026,
     "line": 222,
     "code": "    from session_py import Vector\n\n    # is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    v1 = Vector(2.0, 2.0, 2.0)\n    v2 = Vector(4.0, 4.0, 4.0)      # parallel (same direction)\n    v3 = Vector(-1.0, -1.0, -1.0)   # anti-parallel (opposite direction)\n    v4 = Vector(1.0, 0.0, 0.0)      # not parallel",
     "checks": [
@@ -322,7 +322,7 @@
   {
     "test_name": "is_perpendicular_to",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.047,
     "line": 237,
     "code": "    from session_py import Vector\n\n    # is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)  # perpendicular\n    v3 = Vector(0.0, 0.0, 1.0)  # perpendicular\n    v4 = Vector(1.0, 1.0, 0.0)  # not perpendicular\n\n    # perpendicular_to: sets a vector to be perpendicular to another\n    z_axis = Vector(0.0, 0.0, 1.0)\n    x_axis = Vector.zero()\n    # x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis)\n\n    arbitrary = Vector(1.0, 2.0, 3.0)\n    perp = Vector.zero()\n    # perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary)",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "get_leveled_vector",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.023,
     "line": 265,
     "code": "    from session_py import Vector\n\n    # Scale vector along its direction so its Z-component equals vertical_height.\n    v = Vector(1.0, 1.0, 1.0)\n    vertical_height = 1.0\n    v_leveled = v.get_leveled_vector(vertical_height)",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "cos_sin_laws",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.042,
     "line": 277,
     "code": "    from session_py import Vector\n\n    # Given a 3-4-5 right triangle\n    a = 3.0  # side opposite to angle A\n    b = 4.0  # side opposite to angle B\n    c = 5.0  # hypotenuse, opposite to angle C (90 deg)\n\n    # angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n    angle_a = Vector.angle_from_cosine_law(b, c, a, True)\n    angle_b = Vector.angle_from_cosine_law(a, c, b, True)\n    angle_c = Vector.angle_from_cosine_law(a, b, c, True)\n\n    # given 2 angles + 1 side, find other side\n    side_a = Vector.side_from_sine_law(angle_a, angle_b, b, True)\n    side_b = Vector.side_from_sine_law(angle_b, angle_c, c, True)\n    side_c = Vector.side_from_sine_law(angle_c, angle_a, a, True)\n\n    # given 2 sides + included angle, find 3rd side\n    computed_c = Vector.cosine_law(a, b, angle_c, True)\n    computed_a = Vector.cosine_law(b, c, angle_a, True)\n    computed_b = Vector.cosine_law(a, c, angle_b, True)\n\n    # given 2 sides + 1 angle, find other angle\n    computed_angle_b = Vector.sine_law_angle(a, angle_a, b, True)\n    computed_angle_a = Vector.sine_law_angle(b, angle_b, a, True)\n\n    # given 1 side + 2 angles, find other side\n    computed_side_b = Vector.sine_law_length(a, angle_a, angle_b, True)\n    computed_side_a = Vector.sine_law_length(b, angle_b, angle_a, True)",
     "checks": [
@@ -492,7 +492,7 @@
   {
     "test_name": "average",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.027,
     "line": 348,
     "code": "    from session_py import Vector\n\n    # Average of multiple vectors\n    vecs = [\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    ]\n    avg = Vector.average(vecs)",
     "checks": [
@@ -517,7 +517,7 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.019,
     "line": 364,
     "code": "    from session_py import Vector\n\n    zero = Vector(0.0, 0.0, 0.0)\n    nonzero = Vector(1.0, 0.0, 0.0)\n    tiny = Vector(1e-13, 1e-13, 1e-13)  # Magnitude ~ 1.7e-13 < 1e-12",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.32,
+    "time_ms": 0.316,
     "line": 377,
     "code": "    from session_py import Vector\n    from pathlib import Path\n\n    v = Vector(42.1, 84.2, 126.3)\n    v.name = \"test_vector\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_vector.json\"\n    v.json_dump(fname)\n    loaded = Vector.json_load(fname)",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.431,
+    "time_ms": 0.57,
     "line": 396,
     "code": "    from session_py import Vector\n    from pathlib import Path\n\n    v = Vector(42.1, 84.2, 126.3)\n    v.name = \"test_vector\"\n\n    # protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n    path = Path(__file__).resolve().parents[2] / \"test_vector.bin\"\n    v.protobuf_dump(path)\n    loaded = Vector.protobuf_load(path)",
     "checks": [

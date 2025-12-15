@@ -17,7 +17,7 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.007,
     "line": 11,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 35,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [

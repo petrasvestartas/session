@@ -2,143 +2,113 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.178,
+    "time_ms": 0.648,
     "line": 5,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points, normals, colors\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.0, 1.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    n2 = Vector(0.0, 0.0, 1.0)\n    c0 = Color(255, 0, 0, 255)\n    c1 = Color(0, 255, 0, 255)\n    c2 = Color(0, 0, 255, 255)\n    pc = PointCloud([p0, p1, p2], [n0, n1, n2], [c0, c1, c2])\n\n    # Basic properties\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n    is_empty = pc.is_empty()\n\n    # Minimal and Full String Representation\n    pcstr = str(pc)\n    pcrepr = repr(pc)\n\n    # Copy (duplicates everything except guid)\n    pccopy = pc.duplicate()\n\n    # Get point/color/normal at index\n    pt0 = pc.get_point(0)\n    col0 = pc.get_color(0)\n    norm0 = pc.get_normal(0)",
+    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points, normals, colors\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.0, 1.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    n2 = Vector(0.0, 0.0, 1.0)\n    c0 = Color(255, 0, 0, 255)\n    c1 = Color(0, 255, 0, 255)\n    c2 = Color(0, 0, 255, 255)\n    pc = PointCloud([p0, p1, p2], [n0, n1, n2], [c0, c1, c2])\n\n    # Basic properties\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n    is_empty = pc.is_empty()\n\n    # Minimal and Full String Representation\n    pcstr = str(pc)\n    pcrepr = repr(pc)\n\n    # Copy (duplicates everything except guid)\n    pccopy = pc.duplicate()\n\n    # Get point/color/normal at index\n    pt0 = pc.get_point(0)\n    col0 = pc.get_color(0)\n    norm0 = pc.get_normal(0)\n\n    # Add points, colors, normals to empty cloud\n    pc2 = PointCloud()\n    pc2.add_point(Point(1.0, 2.0, 3.0))\n    pc2.add_color(Color(128, 64, 32, 255))\n    pc2.add_normal(Vector(1.0, 0.0, 0.0))\n\n    # Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0))\n    pc2.set_color(0, Color(200, 100, 50, 255))\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0))\n\n    # Translate with Vector offset\n    pc3 = PointCloud([Point(1.0, 2.0, 3.0)])\n    offset = Vector(10.0, 20.0, 30.0)\n    pc_iadd = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_iadd += offset\n    pc_isub = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_isub -= offset\n    pc_add = pc3 + offset\n    pc_sub = pc3 - offset\n\n    # Create from flat arrays\n    coords = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n    colors_arr = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]\n    normals_arr = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]\n    pc4 = PointCloud.from_coords(coords, colors_arr, normals_arr)",
     "checks": [
       {
-        "line": 42,
+        "line": 69,
         "code_line": "pc.name == \"my_pointcloud\" and pc.guid != \"\" and point_count == 3",
         "passed": true
       },
       {
-        "line": 43,
+        "line": 70,
         "code_line": "color_count == 3 and normal_count == 3 and is_empty == False",
         "passed": true
       },
       {
-        "line": 44,
+        "line": 71,
         "code_line": "\"3 points\" in pcstr",
         "passed": true
       },
       {
-        "line": 45,
+        "line": 72,
         "code_line": "\"PointCloud(my_pointcloud\" in pcrepr)",
         "passed": true
       },
       {
-        "line": 46,
+        "line": 73,
         "code_line": "pccopy == pc and pccopy.guid != pc.guid",
         "passed": true
       },
       {
-        "line": 47,
+        "line": 74,
         "code_line": "TOLERANCE.is_close(pt0[0] == 0.0) and TOLERANCE.is_close(pt0[1]",
         "passed": true
       },
       {
-        "line": 48,
+        "line": 75,
         "code_line": "col0[0] == 255 and col0[1] == 0 and col0[2] == 0 and col0[3] == 255",
         "passed": true
       },
       {
-        "line": 49,
+        "line": 76,
         "code_line": "TOLERANCE.is_close(norm0[0] == 0.0) and TOLERANCE.is_close(norm0[1]",
         "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "from_coords",
-    "passed": true,
-    "time_ms": 0.056,
-    "line": 52,
-    "code": "    from session_py import PointCloud\n\n    # Create from flat arrays\n    coords = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n    colors = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]\n    normals = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]\n    pc = PointCloud.from_coords(coords, colors, normals)\n\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n\n    pt1 = pc.get_point(1)\n    col1 = pc.get_color(1)\n    norm1 = pc.get_normal(1)",
-    "checks": [
+      },
       {
-        "line": 70,
-        "code_line": "point_count == 3 and color_count == 3 and normal_count == 3",
+        "line": 77,
+        "code_line": "len(pc2) == 1 and pc2.color_count() == 1 and pc2.normal_count() == 1",
         "passed": true
       },
       {
-        "line": 71,
-        "code_line": "TOLERANCE.is_close(pt1[0] == 1.0) and TOLERANCE.is_close(pt1[1]",
+        "line": 78,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0] == 4.0) and TOLERANCE.is_close(pc2.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 72,
-        "code_line": "col1[0] == 0 and col1[1] == 255 and col1[2] == 0 and col1[3] == 255",
+        "line": 79,
+        "code_line": "pc2.get_color(0)[0] == 200 and pc2.get_color(0)[1] == 100 and pc2.get_color(0)[2] == 50 and pc2.get_color(0)[3] == 255",
         "passed": true
       },
       {
-        "line": 73,
-        "code_line": "TOLERANCE.is_close(norm1[0] == 0.0) and TOLERANCE.is_close(norm1[1]",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "add_and_set",
-    "passed": true,
-    "time_ms": 0.09,
-    "line": 76,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Empty cloud\n    pc = PointCloud()\n\n    # Add points, colors, normals\n    pc.add_point(Point(1.0, 2.0, 3.0))\n    pc.add_color(Color(128, 64, 32, 255))\n    pc.add_normal(Vector(1.0, 0.0, 0.0))\n\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n\n    # Set point/color/normal at index\n    pc.set_point(0, Point(4.0, 5.0, 6.0))\n    pc.set_color(0, Color(200, 100, 50, 255))\n    pc.set_normal(0, Vector(0.0, 1.0, 0.0))\n\n    pt0 = pc.get_point(0)\n    col0 = pc.get_color(0)\n    norm0 = pc.get_normal(0)",
-    "checks": [
-      {
-        "line": 104,
-        "code_line": "point_count == 1 and color_count == 1 and normal_count == 1",
+        "line": 80,
+        "code_line": "TOLERANCE.is_close(pc2.get_normal(0)[0] == 0.0) and TOLERANCE.is_close(pc2.get_normal(0)[1]",
         "passed": true
       },
       {
-        "line": 105,
-        "code_line": "TOLERANCE.is_close(pt0[0] == 4.0) and TOLERANCE.is_close(pt0[1]",
+        "line": 81,
+        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[0] == 11.0) and TOLERANCE.is_close(pc_iadd.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 106,
-        "code_line": "col0[0] == 200 and col0[1] == 100 and col0[2] == 50 and col0[3] == 255",
+        "line": 82,
+        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[0] == -9.0) and TOLERANCE.is_close(pc_isub.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 107,
-        "code_line": "TOLERANCE.is_close(norm0[0] == 0.0) and TOLERANCE.is_close(norm0[1]",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "translate",
-    "passed": true,
-    "time_ms": 0.166,
-    "line": 110,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n\n    # Create cloud with one point\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    offset = Vector(10.0, 20.0, 30.0)\n\n    # In-place add\n    pc_iadd = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_iadd += offset\n\n    # In-place subtract\n    pc_isub = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_isub -= offset\n\n    # Copy add/subtract\n    pc_add = pc + offset\n    pc_sub = pc - offset\n\n    pt_iadd = pc_iadd.get_point(0)\n    pt_isub = pc_isub.get_point(0)\n    pt_add = pc_add.get_point(0)\n    pt_sub = pc_sub.get_point(0)\n    pt_orig = pc.get_point(0)",
-    "checks": [
-      {
-        "line": 138,
-        "code_line": "TOLERANCE.is_close(pt_iadd[0] == 11.0) and TOLERANCE.is_close(pt_iadd[1]",
+        "line": 83,
+        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[0] == 11.0) and TOLERANCE.is_close(pc_add.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 139,
-        "code_line": "TOLERANCE.is_close(pt_isub[0] == -9.0) and TOLERANCE.is_close(pt_isub[1]",
+        "line": 84,
+        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[0] == -9.0) and TOLERANCE.is_close(pc_sub.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 140,
-        "code_line": "TOLERANCE.is_close(pt_add[0] == 11.0) and TOLERANCE.is_close(pt_add[1]",
+        "line": 85,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0] == 1.0) and TOLERANCE.is_close(pc3.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 141,
-        "code_line": "TOLERANCE.is_close(pt_sub[0] == -9.0) and TOLERANCE.is_close(pt_sub[1]",
+        "line": 86,
+        "code_line": "len(pc4) == 3 and pc4.color_count() == 3 and pc4.normal_count() == 3",
         "passed": true
       },
       {
-        "line": 142,
-        "code_line": "TOLERANCE.is_close(pt_orig[0] == 1.0) and TOLERANCE.is_close(pt_orig[1]",
+        "line": 87,
+        "code_line": "TOLERANCE.is_close(pc4.get_point(1)[0] == 1.0) and TOLERANCE.is_close(pc4.get_point(1)[1]",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "pc4.get_color(1)[0] == 0 and pc4.get_color(1)[1] == 255 and pc4.get_color(1)[2] == 0 and pc4.get_color(1)[3] == 255",
+        "passed": true
+      },
+      {
+        "line": 89,
+        "code_line": "TOLERANCE.is_close(pc4.get_normal(1)[0] == 0.0) and TOLERANCE.is_close(pc4.get_normal(1)[1]",
         "passed": true
       }
     ],
@@ -147,23 +117,23 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.14,
-    "line": 145,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    # Transform - in-place transformation\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc.transform()\n\n    # Transformed - returns new cloud\n    pc2 = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc2.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc3 = pc2.transformed()\n\n    pt = pc.get_point(0)\n    pt3 = pc3.get_point(0)\n    pt2 = pc2.get_point(0)",
+    "time_ms": 0.234,
+    "line": 92,
+    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    # Transform - in-place transformation\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc.transform()\n\n    # Transformed - returns new cloud\n    pc2 = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc2.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc3 = pc2.transformed()",
     "checks": [
       {
-        "line": 165,
-        "code_line": "TOLERANCE.is_close(pt[0] == 11.0) and TOLERANCE.is_close(pt[1]",
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0] == 11.0) and TOLERANCE.is_close(pc.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 166,
-        "code_line": "TOLERANCE.is_close(pt3[0] == 11.0) and TOLERANCE.is_close(pt3[1]",
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0] == 11.0) and TOLERANCE.is_close(pc3.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 167,
-        "code_line": "TOLERANCE.is_close(pt2[0] == 1.0) and TOLERANCE.is_close(pt2[1]",
+        "line": 110,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0] == 1.0) and TOLERANCE.is_close(pc2.get_point(0)[1]",
         "passed": true
       }
     ],
@@ -172,33 +142,33 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.348,
-    "line": 170,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"test_pointcloud.json\"\n    pc.json_dump(fname)\n    loaded = PointCloud.json_load(fname)\n\n    pt0 = loaded.get_point(0)\n    col0 = loaded.get_color(0)\n    norm0 = loaded.get_normal(0)",
+    "time_ms": 0.407,
+    "line": 113,
+    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"test_pointcloud.json\"\n    pc.json_dump(fname)\n    loaded = PointCloud.json_load(fname)",
     "checks": [
       {
-        "line": 193,
+        "line": 132,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 194,
+        "line": 133,
         "code_line": "len(loaded) == 2",
         "passed": true
       },
       {
-        "line": 195,
-        "code_line": "TOLERANCE.is_close(pt0[0] == 1.0) and TOLERANCE.is_close(pt0[1]",
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0] == 1.0) and TOLERANCE.is_close(loaded.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 196,
-        "code_line": "col0[0] == 255 and col0[1] == 0 and col0[2] == 0",
+        "line": 135,
+        "code_line": "loaded.get_color(0)[0] == 255 and loaded.get_color(0)[1] == 0 and loaded.get_color(0)[2] == 0",
         "passed": true
       },
       {
-        "line": 197,
-        "code_line": "TOLERANCE.is_close(norm0[2] == 1.0)",
+        "line": 136,
+        "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2] == 1.0)",
         "passed": true
       }
     ],
@@ -207,33 +177,33 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.381,
-    "line": 200,
-    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"test_pointcloud.bin\"\n    pc.protobuf_dump(fname)\n    loaded = PointCloud.protobuf_load(fname)\n\n    pt0 = loaded.get_point(0)\n    col0 = loaded.get_color(0)\n    norm0 = loaded.get_normal(0)",
+    "time_ms": 0.678,
+    "line": 139,
+    "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"test_pointcloud.bin\"\n    pc.protobuf_dump(fname)\n    loaded = PointCloud.protobuf_load(fname)",
     "checks": [
       {
-        "line": 223,
+        "line": 158,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 224,
+        "line": 159,
         "code_line": "len(loaded) == 2",
         "passed": true
       },
       {
-        "line": 225,
-        "code_line": "TOLERANCE.is_close(pt0[0] == 1.0) and TOLERANCE.is_close(pt0[1]",
+        "line": 160,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0] == 1.0) and TOLERANCE.is_close(loaded.get_point(0)[1]",
         "passed": true
       },
       {
-        "line": 226,
-        "code_line": "col0[0] == 255 and col0[1] == 0 and col0[2] == 0",
+        "line": 161,
+        "code_line": "loaded.get_color(0)[0] == 255 and loaded.get_color(0)[1] == 0 and loaded.get_color(0)[2] == 0",
         "passed": true
       },
       {
-        "line": 227,
-        "code_line": "TOLERANCE.is_close(norm0[2] == 1.0)",
+        "line": 162,
+        "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2] == 1.0)",
         "passed": true
       }
     ],
