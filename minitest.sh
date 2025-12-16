@@ -44,7 +44,7 @@ PYTHON="${VENV_DIR}/bin/python"
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
 ###############################################################################
-CLASS_NAMES=("color" "line" "plane" "point" "pointcloud" "polyline" "tolerance" "vector")
+CLASS_NAMES=("color" "line" "plane" "point" "pointcloud" "polyline" "tolerance" "vector" "xform")
 # Sort CLASS_NAMES alphabetically
 readarray -t CLASS_NAMES < <(printf '%s\n' "${CLASS_NAMES[@]}" | sort)
 LANGUAGES=("python" "cpp" "rust")
