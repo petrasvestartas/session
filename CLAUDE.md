@@ -342,6 +342,33 @@ Every test function across Python, C++, and Rust must have:
 | Tuple unpack | `a, b, c = func()` | `auto [a, b, c] = func()` | `let (a, b, c) = func()` |
 | List/Vector | `[v1, v2, v3]` | `std::vector<T>{v1, v2, v3}` | `vec![v1, v2, v3]` |
 
+### PI Constant - Use Tolerance Class
+
+**IMPORTANT:** Always use the PI constant from the Tolerance class, NOT `M_PI` or `math.pi` directly.
+
+`M_PI` is not available on all platforms (notably Windows MSVC). Using the Tolerance class ensures cross-platform compatibility.
+
+| Language | PI Constant | Usage |
+|----------|-------------|-------|
+| Python | `from session_py.tolerance import PI` | `PI / 2.0` |
+| C++ | `Tolerance::PI` | `Tolerance::PI / 2.0` |
+| Rust | `use crate::tolerance::PI;` | `PI / 2.0` |
+
+**Example:**
+```cpp
+// WRONG - not cross-platform
+#include <cmath>
+pl.rotate(M_PI / 2.0);
+
+// CORRECT - use Tolerance::PI
+#include "tolerance.h"
+pl.rotate(Tolerance::PI / 2.0);
+```
+
+The Tolerance class also provides conversion constants:
+- `TO_DEGREES` = 180.0 / PI
+- `TO_RADIANS` = PI / 180.0
+
 ### Rust Reference-Based Operators
 
 In Rust, operators that consume `self` prevent reusing the variable. To match Python/C++ "copy operators" pattern, implement operators for `&Type`:
