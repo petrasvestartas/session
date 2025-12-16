@@ -102,7 +102,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.026,
     "line": 102,
     "code": "        use crate::Line;\n        use crate::Xform;\n\n        let mut l = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        l.xform = Xform::translation(10.0, 0.0, 0.0);\n        let l_transformed = l.transformed(); // Make a copy\n        l.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.057,
     "line": 118,
     "code": "        use crate::Line;\n\n        let mut l = Line::new(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n        l.name = \"test_line\".to_string();\n\n        // json_dump(fname) / json_load(fname) - file-based serialization\n        let fname = \"test_line.json\";\n        l.json_dump(fname).unwrap();\n        let loaded = Line::json_load(fname).unwrap();\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.066,
+    "time_ms": 0.049,
     "line": 141,
     "code": "        use crate::Line;\n\n        let mut l = Line::new(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n        l.name = \"test_line\".to_string();\n\n        // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n        let fname = \"test_line.bin\";\n        l.protobuf_dump(fname);\n        let loaded = Line::protobuf_load(fname);\n",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "closest_point",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.015,
     "line": 216,
     "code": "        use crate::Line;\n        use crate::Point;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n        let p1 = Point::new(5.0, 5.0, 0.0);\n        let p2 = Point::new(-5.0, 0.0, 0.0);\n        let p3 = Point::new(15.0, 0.0, 0.0);\n        let cp1 = l.closest_point(&p1);\n        let cp2 = l.closest_point(&p2);\n        let cp3 = l.closest_point(&p3);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "fit_points",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.015,
     "line": 250,
     "code": "        use crate::Line;\n        use crate::Point;\n\n        let fit_pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.5), Point::new(2.0, 2.0, 1.0), Point::new(3.0, 3.0, 1.5)];\n        let l_fit = Line::fit_points(&fit_pts, None);\n",
     "checks": [
@@ -302,7 +302,7 @@
   {
     "test_name": "start_end_center",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.011,
     "line": 235,
     "code": "        use crate::Line;\n\n        let l = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n        let start = l.start();\n        let end = l.end();\n        let center = l.center();\n",
     "checks": [
@@ -377,7 +377,7 @@
   {
     "test_name": "to_direction",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.008,
     "line": 187,
     "code": "        use crate::Line;\n\n        let l = Line::new(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n        let d = l.to_direction();\n",
     "checks": [
