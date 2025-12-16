@@ -1,0 +1,347 @@
+[
+  {
+    "test_name": "constructor",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 11,
+    "code": "    // uncomment #include \"xform.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 5.0, 10.0, 15.0, 1.0});\n",
+    "checks": [
+      {
+        "line": 29,
+        "code_line": "x.name == \"my_xform\" && !x.guid.empty()",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "m00 == 1.0 && m11 == 1.0 && m22 == 1.0 && m33 == 1.0",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "is_id == true",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "xfrom.m[12] == 5.0 && xfrom.m[13] == 10.0 && xfrom.m[14] == 15.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "translation",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 35,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Translation matrix\n    Xform t = Xform::translation(1.0, 2.0, 3.0);\n\n    // Apply to point\n    Point p(4.0, 5.0, 6.0);\n    Point tp = t.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "TOLERANCE.is_close(tp[0], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "TOLERANCE.is_close(tp[1], 7.0)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_close(tp[2], 9.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "scaling",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 51,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Scaling matrix\n    Xform s = Xform::scaling(2.0, 3.0, 4.0);\n\n    // Apply to point\n    Point p(1.0, 1.0, 1.0);\n    Point sp = s.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 62,
+        "code_line": "TOLERANCE.is_close(sp[0], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "TOLERANCE.is_close(sp[1], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "TOLERANCE.is_close(sp[2], 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "rotation_z",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 67,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotation around Z axis by 90 degrees\n    Xform r = Xform::rotation_z(Tolerance::PI / 2.0);\n\n    // Apply to point (1,0,0) -> (0,1,0)\n    Point p(1.0, 0.0, 0.0);\n    Point rp = r.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(rp[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.is_close(rp[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "TOLERANCE.is_close(rp[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "inverse",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 84,
+    "code": "    // uncomment #include \"xform.h\"\n\n    // Create composite transformation\n    Xform t = Xform::translation(1.0, 2.0, 3.0);\n    Xform s = Xform::scaling(2.0, 2.0, 2.0);\n    Xform composite = t * s;\n\n    // Compute inverse\n    auto inv_opt = composite.inverse();\n    Xform inv = inv_opt.value();\n\n    // Multiply should give identity\n    Xform result = composite * inv;\n",
+    "checks": [
+      {
+        "line": 99,
+        "code_line": "result.is_identity()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "mul_operator",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 102,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Matrix multiplication\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scaling(2.0, 1.0, 1.0);\n\n    // Combined: first scale, then translate\n    Xform combined = t * s;\n\n    // Apply to point\n    Point p(1.0, 0.0, 0.0);\n    Point result = combined.transformed_point(p);\n\n    // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
+    "checks": [
+      {
+        "line": 118,
+        "code_line": "TOLERANCE.is_close(result[0], 12.0)",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "TOLERANCE.is_close(result[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "TOLERANCE.is_close(result[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "transform_vector",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 123,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"vector.h\"\n\n    // Translation should not affect vectors (only direction)\n    Xform t = Xform::translation(100.0, 200.0, 300.0);\n    Vector v(1.0, 0.0, 0.0);\n    Vector tv = t.transformed_vector(v);\n\n    // Scaling should affect vectors\n    Xform s = Xform::scaling(2.0, 3.0, 4.0);\n    Vector v2(1.0, 1.0, 1.0);\n    Vector sv = s.transformed_vector(v2);\n",
+    "checks": [
+      {
+        "line": 137,
+        "code_line": "TOLERANCE.is_close(tv[0], 1.0) && TOLERANCE.is_close(tv[1], 0.0) && TOLERANCE.is_close(tv[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "TOLERANCE.is_close(sv[0], 2.0) && TOLERANCE.is_close(sv[1], 3.0) && TOLERANCE.is_close(sv[2], 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "rotation_x",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 141,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotation around X axis by 90 degrees\n    Xform r = Xform::rotation_x(Tolerance::PI / 2.0);\n\n    // Apply to point (0,1,0) -> (0,0,1)\n    Point p(0.0, 1.0, 0.0);\n    Point rp = r.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 153,
+        "code_line": "TOLERANCE.is_close(rp[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 154,
+        "code_line": "TOLERANCE.is_close(rp[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "TOLERANCE.is_close(rp[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "rotation_y",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 158,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotation around Y axis by 90 degrees\n    Xform r = Xform::rotation_y(Tolerance::PI / 2.0);\n\n    // Apply to point (0,0,1) -> (1,0,0)\n    Point p(0.0, 0.0, 1.0);\n    Point rp = r.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_close(rp[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "TOLERANCE.is_close(rp[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "TOLERANCE.is_close(rp[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "rotation",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 175,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotation around arbitrary axis (1,1,1) by 120 degrees\n    // This cycles x->y->z->x\n    Vector axis(1.0, 1.0, 1.0);\n    Xform r = Xform::rotation(axis, 2.0 * Tolerance::PI / 3.0);\n\n    // Apply to point (1,0,0) -> (0,1,0)\n    Point p(1.0, 0.0, 0.0);\n    Point rp = r.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 190,
+        "code_line": "TOLERANCE.is_close(rp[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 191,
+        "code_line": "TOLERANCE.is_close(rp[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 192,
+        "code_line": "TOLERANCE.is_close(rp[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "change_basis",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 195,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n\n    // Create a coordinate system at origin with rotated axes\n    Point origin(10.0, 20.0, 30.0);\n    Vector x_axis(1.0, 0.0, 0.0);\n    Vector y_axis(0.0, 1.0, 0.0);\n    Vector z_axis(0.0, 0.0, 1.0);\n\n    // Change basis transform\n    Xform xform = Xform::change_basis(origin, x_axis, y_axis, z_axis);\n\n    // Point at local origin should map to world origin\n    Point p(10.0, 20.0, 30.0);\n    Point tp = xform.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 213,
+        "code_line": "TOLERANCE.is_close(tp[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 214,
+        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 215,
+        "code_line": "TOLERANCE.is_close(tp[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "plane_to_plane",
+    "passed": true,
+    "time_ms": 0.017,
+    "line": 218,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n\n    // Source plane at origin, XY plane\n    Point origin_0(0.0, 0.0, 0.0);\n    Vector x_axis_0(1.0, 0.0, 0.0);\n    Vector y_axis_0(0.0, 1.0, 0.0);\n    Vector z_axis_0(0.0, 0.0, 1.0);\n\n    // Target plane translated and rotated\n    Point origin_1(10.0, 0.0, 0.0);\n    Vector x_axis_1(0.0, 1.0, 0.0);\n    Vector y_axis_1(-1.0, 0.0, 0.0);\n    Vector z_axis_1(0.0, 0.0, 1.0);\n\n    Xform xform = Xform::plane_to_plane(origin_0, x_axis_0, y_axis_0, z_axis_0, origin_1, x_axis_1, y_axis_1, z_axis_1);\n\n    // Origin of source should map to origin of target\n    Point p(0.0, 0.0, 0.0);\n    Point tp = xform.transformed_point(p);\n",
+    "checks": [
+      {
+        "line": 241,
+        "code_line": "TOLERANCE.is_close(tp[0], 10.0)",
+        "passed": true
+      },
+      {
+        "line": 242,
+        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 243,
+        "code_line": "TOLERANCE.is_close(tp[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "look_at_rh",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 246,
+    "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n\n    // Camera at (0,0,10) looking at origin\n    Point eye(0.0, 0.0, 10.0);\n    Point target(0.0, 0.0, 0.0);\n    Vector up(0.0, 1.0, 0.0);\n\n    Xform xform = Xform::look_at_rh(eye, target, up);\n\n    // The target point should be on the negative Z axis in view space\n    Point tp = xform.transformed_point(target);\n",
+    "checks": [
+      {
+        "line": 261,
+        "code_line": "TOLERANCE.is_close(tp[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 262,
+        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 263,
+        "code_line": "TOLERANCE.is_close(tp[2], -10.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 0.068,
+    "line": 266,
+    "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform\";\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"test_xform.json\";\n    xform.json_dump(filename);\n    Xform loaded = Xform::json_load(filename);\n",
+    "checks": [
+      {
+        "line": 278,
+        "code_line": "loaded.name == \"test_xform\"",
+        "passed": true
+      },
+      {
+        "line": 279,
+        "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 280,
+        "code_line": "TOLERANCE.is_close(loaded.m[13], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 281,
+        "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]
