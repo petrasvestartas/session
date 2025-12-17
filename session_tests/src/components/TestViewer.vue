@@ -5,8 +5,8 @@
       <table v-if="groupedTests.length">
         <thead>
           <tr>
-            <th>Python</th>
             <th>C++</th>
+            <th>Python</th>
             <th>Rust</th>
           </tr>
         </thead>
@@ -18,51 +18,6 @@
               </td>
             </tr>
             <tr>
-              <!-- Python column -->
-              <td class="lang-col">
-              <div v-if="g.python" class="test-card">
-                <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
-                  {{ g.python.passed ? 'passed' : 'failed' }} ({{ formatTime(g.python.time_ms) }} ms)
-                </div>
-                <div v-if="g.python.code" class="code-shell">
-                  <button
-                    class="code-copy-btn"
-                    type="button"
-                    @click="copyCode(g.python)"
-                    title="Copy code"
-                    aria-label="Copy code"
-                  >
-                  </button>
-                  <pre><code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code></pre>
-                </div>
-                <div class="failures" v-if="!g.python.passed">
-                  <div><strong>Failing checks:</strong></div>
-                  <ul>
-                    <li v-for="c in failingChecks(g.python)" :key="'py-' + g.name + ':' + c.line">
-                      line {{ c.line }}: <code :class="codeClass(g.python)" v-html="highlightedCheck(c, 'python')"></code>
-                    </li>
-                  </ul>
-
-                  <div v-if="hasFailures(g.python)" class="exceptions">
-                    <div><strong>Errors / Exceptions:</strong></div>
-                    <ul>
-                      <li
-                        v-for="f in errorFailures(g.python)"
-                        :key="'py-err-' + g.name + ':' + (f.line || 0) + ':' + (f.file || '')"
-                      >
-                        <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
-                        <div v-if="f.code_line">
-                          <code :class="codeClass(g.python)" v-html="highlightedFailureCode(f, 'python')"></code>
-                        </div>
-                        <div class="error-message" v-if="f.error">{{ f.error }}</div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="missing">–</div>
-            </td>
-
             <!-- C++ column -->
             <td class="lang-col">
               <div v-if="g.cpp" class="test-card">
@@ -98,6 +53,51 @@
                         <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
                         <div v-if="f.code_line">
                           <code :class="codeClass(g.cpp)" v-html="highlightedFailureCode(f, 'cpp')"></code>
+                        </div>
+                        <div class="error-message" v-if="f.error">{{ f.error }}</div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="missing">–</div>
+            </td>
+
+            <!-- Python column -->
+            <td class="lang-col">
+              <div v-if="g.python" class="test-card">
+                <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
+                  {{ g.python.passed ? 'passed' : 'failed' }} ({{ formatTime(g.python.time_ms) }} ms)
+                </div>
+                <div v-if="g.python.code" class="code-shell">
+                  <button
+                    class="code-copy-btn"
+                    type="button"
+                    @click="copyCode(g.python)"
+                    title="Copy code"
+                    aria-label="Copy code"
+                  >
+                  </button>
+                  <pre><code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code></pre>
+                </div>
+                <div class="failures" v-if="!g.python.passed">
+                  <div><strong>Failing checks:</strong></div>
+                  <ul>
+                    <li v-for="c in failingChecks(g.python)" :key="'py-' + g.name + ':' + c.line">
+                      line {{ c.line }}: <code :class="codeClass(g.python)" v-html="highlightedCheck(c, 'python')"></code>
+                    </li>
+                  </ul>
+
+                  <div v-if="hasFailures(g.python)" class="exceptions">
+                    <div><strong>Errors / Exceptions:</strong></div>
+                    <ul>
+                      <li
+                        v-for="f in errorFailures(g.python)"
+                        :key="'py-err-' + g.name + ':' + (f.line || 0) + ':' + (f.file || '')"
+                      >
+                        <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
+                        <div v-if="f.code_line">
+                          <code :class="codeClass(g.python)" v-html="highlightedFailureCode(f, 'python')"></code>
                         </div>
                         <div class="error-message" v-if="f.error">{{ f.error }}</div>
                       </li>
@@ -167,24 +167,24 @@
         <table>
           <thead>
             <tr>
-              <th>Python</th>
               <th>C++</th>
+              <th>Python</th>
               <th>Rust</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="lang-col">
-                <div v-if="artifacts.python" class="artifact-card">
-                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.python)" title="Copy JSON"></button>
-                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.python)"></code></pre>
+                <div v-if="artifacts.cpp" class="artifact-card">
+                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.cpp)" title="Copy JSON"></button>
+                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.cpp)"></code></pre>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
               <td class="lang-col">
-                <div v-if="artifacts.cpp" class="artifact-card">
-                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.cpp)" title="Copy JSON"></button>
-                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.cpp)"></code></pre>
+                <div v-if="artifacts.python" class="artifact-card">
+                  <button class="code-copy-btn" type="button" @click="copyJson(artifacts.python)" title="Copy JSON"></button>
+                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.python)"></code></pre>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
