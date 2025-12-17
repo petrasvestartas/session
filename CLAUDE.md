@@ -76,4 +76,8 @@ git submodule update --init --recursive
 - constructor test groups related functionality: default constructor, constructor overloads, index operator [], equality operators == !=, str() and repr() output, all tested together in single "constructor" test
 - Vue test viewer shows serialized JSON output at bottom of each test result, showing exact JSON structure for each geometry class
 - protobuf schemas defined in session_proto/*.proto files, defines binary serialization format for all geometry classes
+- check if all tests passes in all languages
+- check if you implemented minitest for json de/serialization and protobuf de/serialization
+- check if all the operators minitests are part of constructor test not separate tests
+- run ./minitest.sh
 
