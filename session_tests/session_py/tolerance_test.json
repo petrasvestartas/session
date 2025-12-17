@@ -2,12 +2,12 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 5,
+    "time_ms": 0.006,
+    "line": 7,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
       {
-        "line": 8,
+        "line": 10,
         "code_line": "result == True",
         "passed": true
       }
@@ -18,11 +18,11 @@
     "test_name": "is_close",
     "passed": true,
     "time_ms": 0.007,
-    "line": 11,
+    "line": 13,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
       {
-        "line": 14,
+        "line": 16,
         "code_line": "result == True",
         "passed": true
       }
@@ -33,11 +33,11 @@
     "test_name": "is_positive",
     "passed": true,
     "time_ms": 0.005,
-    "line": 17,
+    "line": 19,
     "code": "    result = TOLERANCE.is_positive(1.0)",
     "checks": [
       {
-        "line": 20,
+        "line": 22,
         "code_line": "result == True",
         "passed": true
       }
@@ -47,12 +47,12 @@
   {
     "test_name": "is_negative",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 23,
+    "time_ms": 0.005,
+    "line": 25,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
       {
-        "line": 26,
+        "line": 28,
         "code_line": "result == True",
         "passed": true
       }
@@ -63,11 +63,11 @@
     "test_name": "is_between",
     "passed": true,
     "time_ms": 0.002,
-    "line": 29,
+    "line": 31,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
       {
-        "line": 32,
+        "line": 34,
         "code_line": "result == True",
         "passed": true
       }
@@ -77,12 +77,12 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 35,
+    "time_ms": 0.007,
+    "line": 37,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
       {
-        "line": 38,
+        "line": 40,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -92,12 +92,12 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 41,
+    "time_ms": 0.008,
+    "line": 43,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [
       {
-        "line": 44,
+        "line": 46,
         "code_line": "result == \"1.000 == 2.000",
         "passed": true
       }

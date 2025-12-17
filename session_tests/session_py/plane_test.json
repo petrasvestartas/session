@@ -2,107 +2,107 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.566,
-    "line": 6,
+    "time_ms": 0.535,
+    "line": 8,
     "code": "    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    # Default constructor - XY plane at origin\n    pl = Plane()\n\n    # Origin and axes\n    origin = pl.origin\n    x_axis = pl.x_axis\n    y_axis = pl.y_axis\n    z_axis = pl.z_axis\n\n    # Plane equation coefficients (ax + by + cz + d = 0)\n    a = pl.a\n    b = pl.b\n    c = pl.c\n    d = pl.d\n\n    # Index access for axes\n    ax0 = pl[0]\n    ax1 = pl[1]\n    ax2 = pl[2]\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n\n    # From point and normal\n    p = Point(0.0, 0.0, 5.0)\n    n = Vector(0.0, 0.0, 1.0)\n    pl_pn = Plane.from_point_normal(p, n)\n\n    # From three points\n    pts = [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)]\n    pl_pts = Plane.from_points(pts)\n\n    # From two points\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 0.0, 0.0)\n    pl_2pts = Plane.from_two_points(p1, p2)\n\n    # Standard planes\n    xy = Plane.xy_plane()\n    yz = Plane.yz_plane()\n    xz = Plane.xz_plane()\n\n    # Translation operators\n    offset = Vector(1.0, 2.0, 3.0)\n\n    # In-place add\n    pl_iadd = Plane.xy_plane()\n    pl_iadd += offset\n\n    # In-place subtract\n    pl_isub = Plane.xy_plane()\n    pl_isub -= offset\n\n    # Copy add/subtract\n    pl_base = Plane.xy_plane()\n    pl_add = pl_base + offset\n    pl_sub = pl_base - offset",
     "checks": [
       {
-        "line": 74,
+        "line": 76,
         "code_line": "pl.name == \"my_plane\" and pl.guid != \"\"",
         "passed": true
       },
       {
-        "line": 75,
+        "line": 77,
         "code_line": "TOLERANCE.is_close(origin[0] == 0.0) and TOLERANCE.is_close(origin[1]",
         "passed": true
       },
       {
-        "line": 76,
+        "line": 78,
         "code_line": "TOLERANCE.is_close(x_axis[0] == 1.0) and TOLERANCE.is_close(x_axis[1]",
         "passed": true
       },
       {
-        "line": 77,
+        "line": 79,
         "code_line": "TOLERANCE.is_close(y_axis[0] == 0.0) and TOLERANCE.is_close(y_axis[1]",
         "passed": true
       },
       {
-        "line": 78,
+        "line": 80,
         "code_line": "TOLERANCE.is_close(z_axis[0] == 0.0) and TOLERANCE.is_close(z_axis[1]",
         "passed": true
       },
       {
-        "line": 79,
+        "line": 81,
         "code_line": "TOLERANCE.is_close(a == 0.0) and TOLERANCE.is_close(b",
         "passed": true
       },
       {
-        "line": 80,
+        "line": 82,
         "code_line": "TOLERANCE.is_close(ax0[0] == 1.0) and TOLERANCE.is_close(ax1[1]",
         "passed": true
       },
       {
-        "line": 81,
+        "line": 83,
         "code_line": "plstr == \"0.0 == 0.0",
         "passed": true
       },
       {
-        "line": 82,
+        "line": 84,
         "code_line": "plrepr == \"Plane(my_plane == 0.0",
         "passed": true
       },
       {
-        "line": 83,
+        "line": 85,
         "code_line": "plcopy == pl and plcopy.guid != pl.guid",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 86,
         "code_line": "TOLERANCE.is_close(pl_pn.origin[2] == 5.0) and TOLERANCE.is_close(pl_pn.z_axis[2]",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 87,
         "code_line": "TOLERANCE.is_close(pl_pts.c == 1.0) and TOLERANCE.is_close(pl_pts.d",
         "passed": true
       },
       {
-        "line": 86,
+        "line": 88,
         "code_line": "TOLERANCE.is_close(pl_2pts.origin[0] == 0.0) and TOLERANCE.is_close(pl_2pts.x_axis[0]",
         "passed": true
       },
       {
-        "line": 87,
+        "line": 89,
         "code_line": "xy.name == \"xy_plane\" and TOLERANCE.is_close(xy.c == 1.0)",
         "passed": true
       },
       {
-        "line": 88,
+        "line": 90,
         "code_line": "yz.name == \"yz_plane\" and TOLERANCE.is_close(yz.a == 1.0)",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 91,
         "code_line": "xz.name == \"xz_plane\" and TOLERANCE.is_close(xz.b == 1.0)",
         "passed": true
       },
       {
-        "line": 90,
+        "line": 92,
         "code_line": "TOLERANCE.is_close(pl_iadd.origin[0] == 1.0) and TOLERANCE.is_close(pl_iadd.origin[1]",
         "passed": true
       },
       {
-        "line": 91,
+        "line": 93,
         "code_line": "TOLERANCE.is_close(pl_isub.origin[0] == -1.0) and TOLERANCE.is_close(pl_isub.origin[1]",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 94,
         "code_line": "TOLERANCE.is_close(pl_add.origin[2] == 3.0) and TOLERANCE.is_close(pl_base.origin[2]",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 95,
         "code_line": "TOLERANCE.is_close(pl_sub.origin[2] == -3.0)",
         "passed": true
       }
@@ -112,22 +112,22 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.053,
-    "line": 96,
+    "time_ms": 0.052,
+    "line": 98,
     "code": "    from session_py import Plane\n\n    # Reverse flips normal and swaps x/y axes\n    pl = Plane.xy_plane()\n    pl.reverse()",
     "checks": [
       {
-        "line": 104,
+        "line": 106,
         "code_line": "TOLERANCE.is_close(pl.x_axis[0] == 0.0) and TOLERANCE.is_close(pl.x_axis[1]",
         "passed": true
       },
       {
-        "line": 105,
+        "line": 107,
         "code_line": "TOLERANCE.is_close(pl.y_axis[0] == 1.0) and TOLERANCE.is_close(pl.y_axis[1]",
         "passed": true
       },
       {
-        "line": 106,
+        "line": 108,
         "code_line": "TOLERANCE.is_close(pl.c == -1.0)",
         "passed": true
       }
@@ -138,11 +138,11 @@
     "test_name": "rotate",
     "passed": true,
     "time_ms": 0.061,
-    "line": 109,
+    "line": 111,
     "code": "    from session_py import Plane\n\n    # Rotate plane 90 degrees around its normal\n    pl = Plane.xy_plane()\n    pl.rotate(PI / 2.0)",
     "checks": [
       {
-        "line": 117,
+        "line": 119,
         "code_line": "TOLERANCE.is_close(pl.x_axis[1] == 1.0)",
         "passed": true
       }
@@ -152,37 +152,37 @@
   {
     "test_name": "is_right_hand",
     "passed": true,
-    "time_ms": 0.166,
-    "line": 120,
+    "time_ms": 0.156,
+    "line": 122,
     "code": "    from session_py import Plane\n\n    # All standard planes should be right-handed\n    xy = Plane.xy_plane()\n    yz = Plane.yz_plane()\n    xz = Plane.xz_plane()\n    default_pl = Plane()\n\n    xy_rh = xy.is_right_hand()\n    yz_rh = yz.is_right_hand()\n    xz_rh = xz.is_right_hand()\n    default_rh = default_pl.is_right_hand()\n\n    # After reverse, should still be right-handed\n    default_pl.reverse()\n    reversed_rh = default_pl.is_right_hand()\n\n    # After rotate, should still be right-handed\n    default_pl.rotate(PI / 4.0)\n    rotated_rh = default_pl.is_right_hand()",
     "checks": [
       {
-        "line": 143,
+        "line": 145,
         "code_line": "xy_rh == True",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 146,
         "code_line": "yz_rh == True",
         "passed": true
       },
       {
-        "line": 145,
+        "line": 147,
         "code_line": "xz_rh == True",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 148,
         "code_line": "default_rh == True",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 149,
         "code_line": "reversed_rh == True",
         "passed": true
       },
       {
-        "line": 148,
+        "line": 150,
         "code_line": "rotated_rh == True",
         "passed": true
       }
@@ -192,47 +192,47 @@
   {
     "test_name": "is_coplanar",
     "passed": true,
-    "time_ms": 0.183,
-    "line": 151,
+    "time_ms": 0.18,
+    "line": 153,
     "code": "    from session_py import Plane\n    from session_py import Vector\n\n    # Same direction (parallel planes)\n    p1 = Plane.xy_plane()\n    p2 = Plane.xy_plane()\n    same_dir = Plane.is_same_direction(p1, p2, True)\n\n    # Flipped direction\n    p3 = Plane.xy_plane()\n    p3.reverse()\n    same_dir_flipped = Plane.is_same_direction(p1, p3, True)\n    same_dir_strict = Plane.is_same_direction(p1, p3, False)\n\n    # Same position\n    p4 = Plane.xy_plane()\n    same_pos = Plane.is_same_position(p1, p4)\n    p4 += Vector(0.0, 0.0, 1.0)\n    diff_pos = Plane.is_same_position(p1, p4)\n\n    # Coplanar\n    p5 = Plane.xy_plane()\n    p6 = Plane.xy_plane()\n    coplanar = Plane.is_coplanar(p5, p6, True)\n    p6.reverse()\n    coplanar_reversed = Plane.is_coplanar(p5, p6, True)\n    p6 += Vector(0.0, 0.0, 1.0)\n    not_coplanar = Plane.is_coplanar(p5, p6, True)",
     "checks": [
       {
-        "line": 182,
+        "line": 184,
         "code_line": "same_dir == True",
         "passed": true
       },
       {
-        "line": 183,
+        "line": 185,
         "code_line": "same_dir_flipped == True",
         "passed": true
       },
       {
-        "line": 184,
+        "line": 186,
         "code_line": "same_dir_strict == False",
         "passed": true
       },
       {
-        "line": 185,
+        "line": 187,
         "code_line": "same_pos == True",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 188,
         "code_line": "diff_pos == False",
         "passed": true
       },
       {
-        "line": 187,
+        "line": 189,
         "code_line": "coplanar == True",
         "passed": true
       },
       {
-        "line": 188,
+        "line": 190,
         "code_line": "coplanar_reversed == True",
         "passed": true
       },
       {
-        "line": 189,
+        "line": 191,
         "code_line": "not_coplanar == False",
         "passed": true
       }
@@ -242,22 +242,22 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.147,
-    "line": 192,
+    "time_ms": 0.14,
+    "line": 194,
     "code": "    from session_py import Plane\n    from session_py import Xform\n\n    # Transform - in-place transformation\n    pl = Plane.xy_plane()\n    pl.xform = Xform.translation(1.0, 2.0, 3.0)\n    pl.transform()\n\n    # Transformed - returns new plane\n    pl2 = Plane.xy_plane()\n    pl2.xform = Xform.translation(1.0, 2.0, 3.0)\n    pl3 = pl2.transformed()",
     "checks": [
       {
-        "line": 207,
+        "line": 209,
         "code_line": "TOLERANCE.is_close(pl.origin[0] == 1.0) and TOLERANCE.is_close(pl.origin[1]",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 210,
         "code_line": "TOLERANCE.is_close(pl3.origin[0] == 1.0) and TOLERANCE.is_close(pl3.origin[1]",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 211,
         "code_line": "TOLERANCE.is_close(pl2.origin[0] == 0.0) and TOLERANCE.is_close(pl2.origin[1]",
         "passed": true
       }
@@ -267,22 +267,22 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.348,
-    "line": 212,
+    "time_ms": 0.344,
+    "line": 214,
     "code": "    from session_py import Plane\n    from pathlib import Path\n\n    pl = Plane.xy_plane()\n    pl.name = \"test_plane\"\n\n    fname = Path(__file__).resolve().parents[2] / \"test_plane.json\"\n    pl.json_dump(fname)\n    loaded = Plane.json_load(fname)",
     "checks": [
       {
-        "line": 224,
+        "line": 226,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 225,
+        "line": 227,
         "code_line": "TOLERANCE.is_close(loaded.c == 1.0)",
         "passed": true
       },
       {
-        "line": 226,
+        "line": 228,
         "code_line": "TOLERANCE.is_close(loaded.d == 0.0)",
         "passed": true
       }
@@ -292,22 +292,22 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.629,
-    "line": 229,
+    "time_ms": 0.609,
+    "line": 231,
     "code": "    from session_py import Plane\n    from pathlib import Path\n\n    pl = Plane.xy_plane()\n    pl.name = \"test_plane\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_plane.bin\"\n    pl.protobuf_dump(fname)\n    loaded = Plane.protobuf_load(fname)",
     "checks": [
       {
-        "line": 242,
+        "line": 244,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 243,
+        "line": 245,
         "code_line": "TOLERANCE.is_close(loaded.c == 1.0)",
         "passed": true
       },
       {
-        "line": 244,
+        "line": 246,
         "code_line": "TOLERANCE.is_close(loaded.d == 0.0)",
         "passed": true
       }

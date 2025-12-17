@@ -60,6 +60,27 @@ git submodule update --init --recursive
 
 ## MINITEST
 
+### Adding New Datastructure to Test Viewer (3 Languages)
+
+1. **Create implementation files:**
+   - `session_rust/src/name.rs` - Rust implementation
+   - `session_py/src/session_py/name.py` - Python implementation
+   - `session_cpp/src/name.h` + `name.cpp` - C++ implementation
+
+2. **Create minitest files:**
+   - `session_rust/src/name_minitest.rs` - use `MINI_TEST!`, `MINI_CHECK!`, `REGISTER_MINI_TEST!`
+   - `session_py/src/session_py/name_minitest.py` - use `@MINI_TEST`, `MINI_CHECK`
+   - `session_cpp/src/name_minitest.cpp` - use `MINI_TEST`, `MINI_CHECK`
+
+3. **Register in build system:**
+   - **Rust:** Add `pub mod name_minitest;` to `session_rust/src/lib.rs`
+   - **C++:** Add `src/name_minitest.cpp` to `MINITEST_SOURCES` in `session_cpp/CMakeLists.txt`
+   - **Shell:** Add `"name"` to `CLASS_NAMES` array in `minitest.sh`
+
+4. **Verify:** Run `./minitest.sh` - all tests must pass in all 3 languages
+
+### Test Requirements
+
 - datastructures name_test.py, name_test.rs, name_test.cpp must include separate tests for each class api method
 - when using math pi constant, use it from tolerance class
 - all api functions must be tested across all three languages (C++, Python, Rust)
@@ -80,4 +101,35 @@ git submodule update --init --recursive
 - check if you implemented minitest for json de/serialization and protobuf de/serialization
 - check if all the operators minitests are part of constructor test not separate tests
 - run ./minitest.sh
+
+### JSON Serialization Conventions
+
+**Alphabetical Field Ordering:** All JSON serialization (`jsondump`/`__jsondump__`) must output fields in **alphabetical order** to match Rust's `serde_json` output. This ensures consistent JSON output across all three languages (C++, Python, Rust).
+
+Example for Point:
+```json
+{
+  "guid": "...",
+  "name": "...",
+  "pointcolor": {...},
+  "type": "Point",
+  "width": 1.0,
+  "x": 0.0,
+  "xform": {...},
+  "y": 0.0,
+  "z": 0.0
+}
+```
+
+**Implementation:**
+- **C++:** Use `nlohmann::ordered_json` and add fields in alphabetical order
+- **Python:** Return dict with keys in alphabetical order
+- **Rust:** Uses `serde_json::json!` which outputs alphabetically by default
+
+**Nested Objects:** Also use alphabetical ordering for nested object fields (e.g., vertex data `attributes, x, y, z`).
+
+### Code Style Rules
+
+- **Python imports:** Each import must be on a separate line. Never use `from session_py import Mesh, Point`. Use separate lines instead.
+- **C++ tolerance.h:** Never include `#include "tolerance.h"` in main source files. It is only for minitest files, not production code.
 
