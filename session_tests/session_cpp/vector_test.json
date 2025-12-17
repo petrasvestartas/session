@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.027,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 108,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(1.0, -2.0, 3.0);\n    v.reverse();\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "cross_product",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 146,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);\n",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "projection",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 204,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Project vector v=(1,1,1) onto each axis\n    // Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n    Vector v(1.0, 1.0, 1.0);\n    Vector x = Vector::x_axis();\n    Vector y = Vector::y_axis();\n    Vector z = Vector::z_axis();\n    auto [proj_x, lenx, perp_x, perp_lenx] = v.projection(x);\n    auto [proj_y, leny, perp_y, perp_leny] = v.projection(y);\n    auto [proj_z, lenz, perp_z, perp_lenz] = v.projection(z);\n",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "cos_sin_laws",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.017,
     "line": 274,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Given a 3-4-5 right triangle\n    double a = 3.0;  // side opposite to angle A\n    double b = 4.0;  // side opposite to angle B\n    double c = 5.0;  // hypotenuse, opposite to angle C (90 deg)\n\n    // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n    double angle_a = Vector::angle_from_cosine_law(b, c, a, true);\n    double angle_b = Vector::angle_from_cosine_law(a, c, b, true);\n    double angle_c = Vector::angle_from_cosine_law(a, b, c, true);\n\n    // given 2 angles + 1 side, find other side\n    double side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n    double side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n    double side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n    // given 2 sides + included angle, find 3rd side\n    double computed_c = Vector::cosine_law(a, b, angle_c, true);\n    double computed_a = Vector::cosine_law(b, c, angle_a, true);\n    double computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n    // given 2 sides + 1 angle, find other angle\n    double computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n    double computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n    // given 1 side + 2 angles, find other side\n    double computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n    double computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "sum_of_vectors",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 321,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.074,
+    "time_ms": 0.069,
     "line": 372,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.061,
     "line": 389,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n    std::string filename = \"test_vector.bin\";\n    v.protobuf_dump(filename);\n    Vector loaded = Vector::protobuf_load(filename);\n",
     "checks": [
