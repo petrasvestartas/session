@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash minitest.sh:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(./minitest.bat:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(cmake --build:*)",
+      "Bash(./build/Release/point_minitest.exe:*)",
+      "Bash(call minitest.bat)",
+      "Bash(./minitest.sh:*)",
+      "Bash(cmd //c \"call minitest.bat 2>&1\")",
+      "Bash(C:/rust/session/uvsession/Scripts/python.exe:*)",
+      "Bash(cargo run:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(g++:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
+      "Bash(./tests.exe)",
+      "Bash(tee:*)",
+      "Bash(cmake:*)",
+      "Bash(./protoc.exe:*)",
+      "Bash(../session_cpp/build/external/protobuf/bin/protoc.exe:*)",
+      "Bash(git submodule:*)",
+      "Bash(git checkout:*)",
+      "Bash(done)",
+      "Bash(./point_minitest.exe)",
+      "Bash(./tests.exe:*)",
+      "Bash(../build/temp/step_test.exe:*)",
+      "Bash(../build/temp/Debug/step_test.exe:*)"
+    ]
+  }
+}

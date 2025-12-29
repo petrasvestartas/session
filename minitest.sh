@@ -44,7 +44,7 @@ PYTHON="${VENV_DIR}/bin/python"
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
 ###############################################################################
-CLASS_NAMES=("color" "line" "mesh" "nurbscurve" "plane" "point" "pointcloud" "polyline" "tolerance" "vector" "xform")
+CLASS_NAMES=("color" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "plane" "point" "pointcloud" "polyline" "tolerance" "vector" "xform")
 # Sort CLASS_NAMES alphabetically
 readarray -t CLASS_NAMES < <(printf '%s\n' "${CLASS_NAMES[@]}" | sort)
 LANGUAGES=("python" "cpp" "rust")
@@ -454,25 +454,23 @@ fi
 PORT=8769
 WEBSITE_URL="http://localhost:${PORT}/session/tests?suite=point_test"
 
-# Check if dev server is already running
-SERVER_RUNNING=false
+# Kill any existing dev server on this port
 if lsof -i :${PORT} >/dev/null 2>&1; then
-  SERVER_RUNNING=true
-  echo "[mini] Development server already running on port ${PORT}."
-  echo "[mini] Browser will auto-refresh with new test data (Vite HMR)."
-else
-  echo "[mini] Starting development server..."
-  # Start Vite dev server in background
-  ( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
-  sleep 2
+  echo "[mini] Stopping existing dev server on port ${PORT}..."
+  lsof -ti :${PORT} | xargs kill -9 2>/dev/null || true
+  sleep 1
+fi
 
-  # Only open browser on first run (server wasn't running before)
-  echo "[mini] Opening results website at ${WEBSITE_URL}..."
-  if command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
-  else
-    echo "[mini] Please open ${WEBSITE_URL} in a browser."
-  fi
+echo "[mini] Starting development server..."
+# Start Vite dev server in background
+( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
+sleep 2
+
+echo "[mini] Opening results website at ${WEBSITE_URL}..."
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+else
+  echo "[mini] Please open ${WEBSITE_URL} in a browser."
 fi
 
 echo "[mini] Development server is running at ${WEBSITE_URL}"

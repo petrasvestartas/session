@@ -2,9 +2,9 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 8,
-    "code": "        bool result = TOLERANCE.is_zero(1e-10);",
+    "code": "        bool result = TOLERANCE.is_zero(1e-10);\n",
     "checks": [
       {
         "line": 10,
@@ -17,9 +17,9 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 13,
-    "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
+    "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);\n",
     "checks": [
       {
         "line": 15,
@@ -32,9 +32,9 @@
   {
     "test_name": "is_positive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 18,
-    "code": "        bool result = TOLERANCE.is_positive(1.0);",
+    "code": "        bool result = TOLERANCE.is_positive(1.0);\n",
     "checks": [
       {
         "line": 20,
@@ -47,9 +47,9 @@
   {
     "test_name": "is_negative",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 23,
-    "code": "        bool result = TOLERANCE.is_negative(-1.0);",
+    "code": "        bool result = TOLERANCE.is_negative(-1.0);\n",
     "checks": [
       {
         "line": 25,
@@ -62,9 +62,9 @@
   {
     "test_name": "is_between",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 28,
-    "code": "        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
+    "code": "        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);\n",
     "checks": [
       {
         "line": 30,
@@ -77,9 +77,9 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 33,
-    "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
+    "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);\n",
     "checks": [
       {
         "line": 35,
@@ -92,9 +92,9 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.007,
     "line": 38,
-    "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
+    "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);\n",
     "checks": [
       {
         "line": 40,

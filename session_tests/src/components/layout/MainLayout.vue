@@ -15,6 +15,13 @@
         <span>Tests</span>
         <span class="tests-tab-caret">▾</span>
       </div>
+
+      <router-link 
+        :to="'/install'"
+        class="tab-button"
+        active-class="active">
+        Install
+      </router-link>
     </nav>
 
     <div
@@ -62,6 +69,7 @@ const currentRoute = computed(() => {
   const path = route.path;
   if (path.includes('/viewer')) return 'viewer';
   if (path.includes('/tests')) return 'tests';
+  if (path.includes('/install')) return 'install';
   return 'viewer';
 });
 

@@ -2,9 +2,9 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.988,
     "line": 12,
-    "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid)\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");\n",
+    "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid)\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");\n\n",
     "checks": [
       {
         "line": 38,
@@ -42,9 +42,9 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.125,
+    "time_ms": 7.639,
     "line": 46,
-    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"test_color\");\n\n      std::string filename = \"test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);\n",
+    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"test_color\");\n\n      std::string filename = \"test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);\n\n",
     "checks": [
       {
         "line": 55,
@@ -77,9 +77,9 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.095,
+    "time_ms": 6.873,
     "line": 63,
-    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"test_color\");\n\n      std::string filename = \"test_color.bin\";\n      c.protobuf_dump(filename);\n      Color loaded = Color::protobuf_load(filename);\n",
+    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"test_color\");\n\n      std::string filename = \"test_color.bin\";\n      c.protobuf_dump(filename);\n      Color loaded = Color::protobuf_load(filename);\n\n#endif",
     "checks": [
       {
         "line": 72,
@@ -112,9 +112,9 @@
   {
     "test_name": "conversion",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.001,
     "line": 80,
-    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255);\n      std::array<double, 4> flts = c.to_unified_array();\n      Color ints = Color::from_unified_array(flts);\n",
+    "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255);\n      std::array<double, 4> flts = c.to_unified_array();\n      Color ints = Color::from_unified_array(flts);\n\n",
     "checks": [
       {
         "line": 87,
@@ -147,9 +147,9 @@
   {
     "test_name": "presets",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.006,
     "line": 94,
-    "code": "      // uncomment #include \"color.h\"\n\n      Color white = Color::white();\n      Color black = Color::black();\n      Color grey = Color::grey();\n      Color red = Color::red();\n      Color orange = Color::orange();\n      Color yellow = Color::yellow();\n      Color lime = Color::lime();\n      Color green = Color::green();\n      Color mint = Color::mint();\n      Color cyan = Color::cyan();\n      Color azure = Color::azure();\n      Color blue = Color::blue();\n      Color violet = Color::violet();\n      Color magenta = Color::magenta();\n      Color pink = Color::pink();\n      Color maroon = Color::maroon();\n      Color brown = Color::brown();\n      Color olive = Color::olive();\n      Color teal = Color::teal();\n      Color navy = Color::navy();\n      Color purple = Color::purple();\n      Color silver = Color::silver();",
+    "code": "      // uncomment #include \"color.h\"\n\n      Color white = Color::white();\n      Color black = Color::black();\n      Color grey = Color::grey();\n      Color red = Color::red();\n      Color orange = Color::orange();\n      Color yellow = Color::yellow();\n      Color lime = Color::lime();\n      Color green = Color::green();\n      Color mint = Color::mint();\n      Color cyan = Color::cyan();\n      Color azure = Color::azure();\n      Color blue = Color::blue();\n      Color violet = Color::violet();\n      Color magenta = Color::magenta();\n      Color pink = Color::pink();\n      Color maroon = Color::maroon();\n      Color brown = Color::brown();\n      Color olive = Color::olive();\n      Color teal = Color::teal();\n      Color navy = Color::navy();\n      Color purple = Color::purple();\n      Color silver = Color::silver();\n",
     "checks": [
       {
         "line": 119,

@@ -1,0 +1,407 @@
+[
+  {
+    "test_name": "knot_count",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 14,
+    "code": "",
+    "checks": [
+      {
+        "line": 15,
+        "code_line": "knot::knot_count(2, 2) == 2",
+        "passed": true
+      },
+      {
+        "line": 16,
+        "code_line": "knot::knot_count(3, 3) == 4",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "knot::knot_count(4, 4) == 6",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "knot::knot_count(4, 5) == 7",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "knot::knot_count(3, 4) == 5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "make_clamped_uniform",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 22,
+    "code": "    // Basic test\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    \n    // With custom delta\n    auto k2 = knot::make_clamped_uniform(3, 4, 2.5);\n    auto [t0, t1] = knot::get_domain(3, 4, k2);\n    \n    // Invalid params\n    auto k3 = knot::make_clamped_uniform(1, 2, 1.0);  // order < 2\n    \n    auto k4 = knot::make_clamped_uniform(4, 3, 1.0);  // cv_count < order\n",
+    "checks": [
+      {
+        "line": 25,
+        "code_line": "k.size() == 6",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "k[0] == 0.0 && k[1] == 0.0 && k[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "k[3] == 1.0 && k[4] == 1.0 && k[5] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "k2.size() == 5",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "t0 == 0.0",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "t1 == 5.0",
+        "passed": true
+      },
+      {
+        "line": 38,
+        "code_line": "k3.empty()",
+        "passed": true
+      },
+      {
+        "line": 41,
+        "code_line": "k4.empty()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "make_periodic_uniform",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 44,
+    "code": "    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    for (int i = 0; i < 5; i++) {",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "k.size() == 5",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "k[i] == static_cast<double>(i)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "k[i] == static_cast<double>(i)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "k[i] == static_cast<double>(i)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "k[i] == static_cast<double>(i)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "k[i] == static_cast<double>(i)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "clamp",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 52,
+    "code": "    std::vector<double> k = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};\n",
+    "checks": [
+      {
+        "line": 54,
+        "code_line": "knot::clamp(4, 4, k, 2)",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "k[0] == k[1] && k[1] == k[2]",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "k[3] == k[4] && k[4] == k[5]",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_valid",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 59,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    \n    // Invalid - decreasing\n    std::vector<double> k2 = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "knot::is_valid(4, 4, k)",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "!knot::is_valid(4, 4, k2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_clamped",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 68,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    \n    auto k2 = knot::make_periodic_uniform(4, 5, 1.0);\n",
+    "checks": [
+      {
+        "line": 70,
+        "code_line": "knot::is_clamped(4, 4, k, 2)",
+        "passed": true
+      },
+      {
+        "line": 71,
+        "code_line": "knot::is_clamped(4, 4, k, 0)",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "knot::is_clamped(4, 4, k, 1)",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "!knot::is_clamped(4, 5, k2, 2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "is_periodic",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 78,
+    "code": "    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    \n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "knot::is_periodic(3, 4, k)",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "!knot::is_periodic(4, 4, k2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "get_domain",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 86,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n",
+    "checks": [
+      {
+        "line": 89,
+        "code_line": "t0 == 0.0",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "t1 == 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "set_domain",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 93,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n",
+    "checks": [
+      {
+        "line": 95,
+        "code_line": "knot::set_domain(4, 4, k, 5.0, 10.0)",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "std::fabs(t0 - 5.0) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 98,
+        "code_line": "std::fabs(t1 - 10.0) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "reverse",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 101,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0_orig, t1_orig] = knot::get_domain(4, 4, k);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n",
+    "checks": [
+      {
+        "line": 104,
+        "code_line": "knot::reverse(4, 4, k)",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "std::fabs(t0 - t0_orig) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "std::fabs(t1 - t1_orig) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "multiplicity",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 110,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    // First and last knots should have multiplicity 3 (order - 1)\n",
+    "checks": [
+      {
+        "line": 113,
+        "code_line": "knot::multiplicity(4, 4, k, 0) == 3",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "knot::multiplicity(4, 4, k, 5) == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "span_count",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 117,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    \n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n",
+    "checks": [
+      {
+        "line": 119,
+        "code_line": "knot::span_count(4, 4, k) == 1",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "knot::span_count(3, 5, k2) == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "find_span",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 125,
+    "code": "    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    \n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n",
+    "checks": [
+      {
+        "line": 127,
+        "code_line": "knot::find_span(4, 4, k, 0.0) == 0",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "knot::find_span(4, 4, k, 0.5) == 0",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "knot::find_span(4, 4, k, 1.0) == 0",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "knot::find_span(3, 5, k2, 0.0) == 0",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "knot::find_span(3, 5, k2, 1.5) == 1",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "knot::find_span(3, 5, k2, 2.5) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "greville_abcissae",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 137,
+    "code": "    auto k = knot::make_clamped_uniform(3, 4, 1.0);\n    auto g = knot::get_greville_abcissae(3, 4, k);\n",
+    "checks": [
+      {
+        "line": 140,
+        "code_line": "g.size() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "domain_tolerance",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 143,
+    "code": "",
+    "checks": [
+      {
+        "line": 144,
+        "code_line": "knot::domain_tolerance(1.0, 1.0) == 0.0",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "knot::domain_tolerance(0.0, 1.0) > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

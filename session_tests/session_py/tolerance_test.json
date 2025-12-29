@@ -2,7 +2,7 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 7,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 13,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "is_positive",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 19,
     "code": "    result = TOLERANCE.is_positive(1.0)",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "is_negative",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 25,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "format_number",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.004,
     "line": 37,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.014,
     "line": 43,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [

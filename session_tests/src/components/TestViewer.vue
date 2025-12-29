@@ -443,7 +443,9 @@ const hasProtoSchemas = computed(() => protoSchemas.value.length > 0)
 const formatProto = (content) => {
   if (!content) return ''
   try {
-    const result = hljs.highlight(content, { language: 'protobuf' })
+    // Decode escaped newlines (from Windows batch generation)
+    const decoded = content.replace(/\\n/g, '\n').replace(/\\r/g, '')
+    const result = hljs.highlight(decoded, { language: 'protobuf' })
     return result.value
   } catch (e) {
     return content
@@ -465,8 +467,10 @@ const copyJson = (obj) => {
 const copyProto = (content) => {
   if (!content) return
   try {
+    // Decode escaped newlines before copying
+    const decoded = content.replace(/\\n/g, '\n').replace(/\\r/g, '')
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(content)
+      navigator.clipboard.writeText(decoded)
     }
   } catch (e) {
     console.error('Failed to copy proto', e)
@@ -579,23 +583,17 @@ pre {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: none;
-  border-radius: 0;
-  background: #2563eb; /* same blue as sidebar/top layout */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50%;
+  background: #2563eb;
   cursor: pointer;
-  font-size: 0;
-  line-height: 0;
 }
 
 .code-copy-btn:hover {
-  background: #1d4ed8; /* slightly darker blue on hover */
+  background: #1d4ed8;
 }
 .failures {
   margin-top: 0.35rem;

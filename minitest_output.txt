@@ -1,0 +1,147 @@
+[mini] Cleaning up old JSON test files...
+[mini] Regenerating Python protobuf bindings from session_proto/...
+[mini] Fixing Python protobuf imports to use relative imports...
+[mini] Installing session_py and pytest with uv...
+Using Python 3.11.0 environment at: uvsession
+Resolved 14 packages in 822ms
+   Building session-py @ file:///C:/rust/session/session_py
+Downloading numpy (12.5MiB)
+Downloading numba (2.6MiB)
+Downloading llvmlite (36.4MiB)
+ Downloaded numba
+      Built session-py @ file:///C:/rust/session/session_py
+ Downloaded numpy
+ Downloaded llvmlite
+Prepared 6 packages in 5.54s
+Uninstalled 5 packages in 525ms
+Installed 6 packages in 684ms
+ ~ coverage==7.13.0
+ ~ llvmlite==0.46.0
+ ~ numba==0.63.1
+ - numpy==2.4.0
+ + numpy==2.3.5
+ ~ session-py==0.1.0 (from file:///C:/rust/session/session_py)
+ + tomli==2.3.0
+[mini] Running Python color mini tests...
+[mini] Running Python knot mini tests...
+[mini] Running Python line mini tests...
+[mini] Running Python mesh mini tests...
+[mini] Running Python nurbscurve mini tests...
+[mini] Running Python nurbssurface mini tests...
+[mini] Running Python plane mini tests...
+[mini] Running Python point mini tests...
+[mini] Running Python pointcloud mini tests...
+[mini] Running Python polyline mini tests...
+[mini] Running Python tolerance mini tests...
+[mini] Running Python vector mini tests...
+[mini] Running Python xform mini tests...
+[mini] Building C++ project (session_cpp)...
+MSBuild version 17.13.9+e0f243f1e for .NET Framework
+
+  proto-objects.vcxproj -> C:\rust\session\session_cpp\build\proto-objects.dir\Release\proto-objects.lib
+  Proto files generation completed
+  nurbssurface.cpp
+C:\rust\session\session_cpp\src\nurbssurface.cpp(657,9): warning C4189: 'srf_cv_size': local variable is initialized but not referenced [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(914,67): warning C4100: 'domain_pair': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(914,29): warning C4100: 'dir': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(920,40): warning C4100: 'east_or_north_side': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(919,60): warning C4100: 'west_or_south_side': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(919,42): warning C4100: 'c': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(919,30): warning C4100: 'dir': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(925,69): warning C4100: 'domain_pair': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(925,31): warning C4100: 'dir': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(996,43): warning C4100: 'end': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1003,49): warning C4100: 'desired_degree': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1003,40): warning C4100: 'dir': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1101,34): warning C4100: 'tolerance': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1105,48): warning C4100: 'point': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1314,39): warning C4100: 'tolerance': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1313,37): warning C4100: 'ignore_parameterization': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1312,53): warning C4100: 'other': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1318,57): warning C4100: 'point': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1318,38): warning C4100: 'side': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1337,85): warning C4100: 'curveB': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1337,59): warning C4100: 'curveA': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface.cpp(1343,73): warning C4100: 'curves': unreferenced formal parameter [C:\rust\session\session_cpp\build\session_core.vcxproj]
+  session_core.vcxproj -> C:\rust\session\session_cpp\build\session_core.dir\Release\session_core.lib
+  MyProject.vcxproj -> C:\rust\session\session_cpp\build\Release\MyProject.exe
+  catch2_lib.vcxproj -> C:\rust\session\session_cpp\build\Release\catch2_lib.lib
+  point_minitest.vcxproj -> C:\rust\session\session_cpp\build\Release\point_minitest.exe
+  temp_demo.vcxproj -> C:\rust\session\session_cpp\build\temp\temp_demo.exe
+  nurbssurface_test.cpp
+C:\rust\session\session_cpp\src\nurbssurface_test.cpp(130,16): warning C4189: 'knot_val': local variable is initialized but not referenced [C:\rust\session\session_cpp\build\tests.vcxproj]
+C:\rust\session\session_cpp\src\nurbssurface_test.cpp(478,14): warning C4189: 'was_clamped_before': local variable is initialized but not referenced [C:\rust\session\session_cpp\build\tests.vcxproj]
+  tests.vcxproj -> C:\rust\session\session_cpp\build\Release\tests.exe
+[mini] Running C++ mini tests...
+[mini] Building and running Rust mini tests...
+   Compiling session_rust v0.1.0 (C:\rust\session\session_rust)
+warning: unused variable: `knot_val`
+   --> src\nurbssurface_test.rs:125:13
+    |
+125 |         let knot_val = surf.knot(0, 2);
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_knot_val`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `was_clamped_before`
+   --> src\nurbssurface_test.rs:519:13
+    |
+519 |         let was_clamped_before = surf.is_clamped(0, 2);
+    |             ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_was_clamped_before`
+
+warning: unused variable: `dom_u`
+   --> src\nurbssurface_test.rs:787:13
+    |
+787 |         let dom_u = surf.domain(0);
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_dom_u`
+
+warning: unused variable: `dom_v`
+   --> src\nurbssurface_test.rs:788:13
+    |
+788 |         let dom_v = surf.domain(1);
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_dom_v`
+
+warning: comparison is useless due to type limits
+   --> src\nurbscurve_test.rs:666:21
+    |
+666 |         MINI_CHECK!(intersections.len() >= 0);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_comparisons)]` on by default
+
+warning: `session_rust` (lib) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 1m 09s
+     Running `target\release\minitest.exe`
+[rust-minitest] Starting test collection...
+[rust-minitest] Inventory found 13 groups
+[rust-minitest] Total groups: 13
+[mini] Done. JSON results:
+  Point     Python: C:\rust\session\session_tests\session_py\point_test.json
+            C++   : C:\rust\session\session_tests\session_cpp\point_test.json
+            Rust  : C:\rust\session\session_tests\session_rust\point_test.json
+[mini] Generating consolidated testData.js...
+[mini] testData.js generated at C:\rust\session\session_tests\public\testData.js
+[mini] Setting up Vue.js application...
+[mini] Found Node.js v20.19.4
+[mini] Ensuring npm dependencies are installed...
+[mini] Building Vue application...
+
+> session-test-viewer@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+<script src="testData.js"> in "/index.html" can't be bundled without type="module" attribute
+<script src="apiIndex.js"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+[32m✓[39m 63 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                [39m[1m[2m  0.73 kB[22m[1m[22m[2m │ gzip:   0.44 kB[22m
+[2mdist/[22m[35massets/main-C9U76teW.css  [39m[1m[2m 13.36 kB[22m[1m[22m[2m │ gzip:   3.22 kB[22m
+[2mdist/[22m[36massets/main-C5a298dy.js   [39m[1m[2m492.39 kB[22m[1m[22m[2m │ gzip: 140.34 kB[22m
+[32m✓ built in 3.51s[39m
+[mini] Starting development server...
+timeout: invalid time interval ‘/t’
+Try 'timeout --help' for more information.
+[mini] Development server is running at http://localhost:8769/session/tests?suite=point_test
+[mini] Re-run minitest.bat to update test results.

@@ -51,3 +51,93 @@ The repository is split between 5 submodules:
 - [`session_data`](https://github.com/petrasvestartas/session_data.git) → Geometry Dataset
 - [`session_proto`](https://github.com/petrasvestartas/session_proto.git) → Schemas
 
+## Python
+
+Create environment:
+
+```cmd
+cd path\to\session
+uv venv uvsession
+```
+
+Activate environment:
+
+```cmd
+cd uvsession\Scripts
+activate.bat
+```
+
+Install package:
+
+```cmd
+(uvsession) uv pip install -e session_py
+```
+
+Run an example:
+
+```cmd
+(uvsession) cd temp
+```
+
+Create `temp\demo.py`:
+
+```python
+from session_py import Point
+
+p = Point(1.0, 2.0, 3.0)
+print(repr(p))
+```
+
+Run:
+
+```cmd
+(uvsession) cd temp
+(uvsession) python demo.py
+```
+
+## C++
+
+Create `session_cpp\temp\demo.cpp`:
+
+```cpp
+#include "point.h"
+#include <iostream>
+
+int main() {
+    session_cpp::Point p(1.0, 2.0, 3.0);
+    std::cout << p[0] << ", " << p[1] << ", " << p[2] << "\n";
+    return 0;
+}
+```
+
+Build and run:
+
+```cmd
+cd path\to\session\session_cpp
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release --target temp_demo
+temp\temp_demo.exe
+```
+
+## Rust
+
+Create `session_rust\temp\demo.rs`:
+
+```rust
+use session_rust::Point;
+
+fn main() {
+    let p = Point::new(1.0, 2.0, 3.0);
+    println!("{p:?}");
+}
+```
+
+Run:
+
+```cmd
+cd path\to\session\session_rust
+cargo run --bin temp_demo
+```
+

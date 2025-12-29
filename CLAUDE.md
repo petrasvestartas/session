@@ -2,6 +2,11 @@
 
 Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer.
 
+## Style
+
+- Be least verbose, without any print messages and exccesive comments
+- When pushing code to github 
+
 ## Workflow
 
 Run claude always: claude --dangerously-skip-permissions
@@ -132,4 +137,10 @@ Example for Point:
 
 - **Python imports:** Each import must be on a separate line. Never use `from session_py import Mesh, Point`. Use separate lines instead.
 - **C++ tolerance.h:** Never include `#include "tolerance.h"` in main source files. It is only for minitest files, not production code.
+
+### Git Rules
+
+- **NEVER add Claude/AI as a git contributor, author, or co-author.** All commits must be attributed to the human user only.
+- Do not modify git author settings or add AI attribution to commits.
+- Do not add Claude to CONTRIBUTORS, AUTHORS, or similar files.
 
