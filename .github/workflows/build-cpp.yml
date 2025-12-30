@@ -14,15 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Cache third-party dependencies
+    - name: Cache FetchContent dependencies
       uses: actions/cache@v4
       with:
-        path: |
-          ${{ github.workspace }}/install
-          session_cpp/build/external
-        key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('session_cpp/CMakeLists.txt') }}
+        path: session_cpp/build/_deps
+        key: ${{ runner.os }}-${{ runner.arch }}-deps-v2-${{ hashFiles('session_cpp/CMakeLists.txt') }}
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-deps-
+          ${{ runner.os }}-${{ runner.arch }}-deps-v2-
 
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2

@@ -43,7 +43,6 @@ Cargo.lock
 **/*.rs.bk
 
 # IDE files
-.vscode/
 .idea/
 *.swp
 *.swo

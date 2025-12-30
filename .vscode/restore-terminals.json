@@ -1,0 +1,40 @@
+{
+  "runOnStartup": true,
+  "terminals": [
+    {
+      "splitTerminals": [
+        { "name": "session", "commands": ["cd /Users/petras/brg/code_rust/session"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "session_cpp", "commands": ["cd /Users/petras/brg/code_rust/session/session_cpp"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "session_proto", "commands": ["cd /Users/petras/brg/code_rust/session/session_proto"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "session_py", "commands": ["cd /Users/petras/brg/code_rust/session/session_py"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "session_rust", "commands": ["cd /Users/petras/brg/code_rust/session/session_rust"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "claude-1", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "claude-2", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+      ]
+    }
+  ]
+}
