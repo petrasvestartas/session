@@ -22,9 +22,10 @@ for %%d in (session_cpp session_py session_rust session_data session_proto) do (
         echo.
         echo Repository: %%d
         pushd "%%d"
+        git checkout main 2>nul || git checkout -b main 2>nul
         git add -A
         git commit -m "%MSG%" 2>nul || echo Nothing to commit in %%d
-        git push -f 2>nul && echo %%d updated
+        git push origin main 2>nul && echo %%d updated
         popd
     ) else (
         echo %%d not found, skipping

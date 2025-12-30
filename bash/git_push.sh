@@ -10,9 +10,10 @@ for d in session_cpp session_py session_rust session_data session_proto; do
   if [ -d "$d" ]; then
     echo -e "\nRepository: $d"
     cd "$d"
+    git checkout main 2>/dev/null || git checkout -b main 2>/dev/null
     git add -A
     git commit -m "$m" 2>/dev/null || echo "ℹ️ Nothing to commit in $d"
-    git push -f 2>/dev/null && echo "✅ $d updated"
+    git push origin main 2>/dev/null && echo "✅ $d updated"
     cd "${REPO_ROOT}"
   else
     echo "⚠️ $d not found, skipping"
