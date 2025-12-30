@@ -5,14 +5,15 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROTO_DIR="$SCRIPT_DIR/session_proto"
-PYTHON_PROTO_DIR="$SCRIPT_DIR/session_py/src/session_py/proto"
+REPO_ROOT="${SCRIPT_DIR}/.."
+PROTO_DIR="$REPO_ROOT/session_proto"
+PYTHON_PROTO_DIR="$REPO_ROOT/session_py/src/session_py/proto"
 
 # Find protoc - first try system, then C++ build
 if command -v protoc &> /dev/null; then
     PROTOC="protoc"
-elif [ -f "$SCRIPT_DIR/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]; then
-    PROTOC="$SCRIPT_DIR/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
+elif [ -f "$REPO_ROOT/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]; then
+    PROTOC="$REPO_ROOT/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
 elif [ -f "$HOME/.local/install/protobuf/bin/protoc" ]; then
     PROTOC="$HOME/.local/install/protobuf/bin/protoc"
 else
@@ -41,7 +42,11 @@ echo "Fixing imports for package use..."
 for py_file in "$PYTHON_PROTO_DIR"/*_pb2.py; do
     if [ -f "$py_file" ]; then
         # Replace "import xxx_pb2" with "from . import xxx_pb2"
-        sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/' "$py_file"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' 's/^import \([a-z_]*_pb2\) as/from . import \1 as/' "$py_file"
+        else
+            sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/' "$py_file"
+        fi
     fi
 done
 

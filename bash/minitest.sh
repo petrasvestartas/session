@@ -33,9 +33,9 @@ for arg in "$@"; do
   esac
 done
 
-# Resolve repository root as the directory containing this script
+# Resolve repository root as the parent of this script's directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT="${SCRIPT_DIR}"
+REPO_ROOT="${SCRIPT_DIR}/.."
 TESTS_DIR="${REPO_ROOT}/session_tests"
 
 VENV_DIR="${REPO_ROOT}/uvsession"
@@ -44,9 +44,8 @@ PYTHON="${VENV_DIR}/bin/python"
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
 ###############################################################################
+# Already sorted alphabetically
 CLASS_NAMES=("color" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "plane" "point" "pointcloud" "polyline" "tolerance" "vector" "xform")
-# Sort CLASS_NAMES alphabetically
-readarray -t CLASS_NAMES < <(printf '%s\n' "${CLASS_NAMES[@]}" | sort)
 LANGUAGES=("python" "cpp" "rust")
 LANG_DIRS=("session_py" "session_cpp" "session_rust")
 
@@ -104,7 +103,12 @@ regenerate_python_protos() {
   for pb_file in "${PY_PROTO_OUT}"/*_pb2.py; do
     if [ -f "$pb_file" ]; then
       # Replace "import xxx_pb2" with "from . import xxx_pb2"
-      sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
+      # Use portable sed syntax (macOS requires -i '', Linux uses -i)
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
+      else
+        sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
+      fi
     fi
   done
   
@@ -312,8 +316,8 @@ generate_test_data_js() {
       local proto_name=$(basename "$proto_file" .proto)
       local KEY="proto_${proto_name}"
       echo "," >> "${OUTPUT}"
-      # Escape the proto content for JSON string
-      local CONTENT=$(cat "$proto_file" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+      # Escape the proto content for JSON string (awk is portable across macOS/Linux)
+      local CONTENT=$(awk 'BEGIN{ORS="\\n"}{gsub(/\\/,"\\\\");gsub(/"/,"\\\"");print}' "$proto_file" | sed 's/\\n$//')
       echo -n "  \"${KEY}\": \"${CONTENT}\"" >> "${OUTPUT}"
     fi
   done

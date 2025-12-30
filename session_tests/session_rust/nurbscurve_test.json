@@ -2,9 +2,9 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 5,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n\n\n        // String representation\n        let cstr = curve.to_string();",
     "checks": [
       {
         "line": 17,
@@ -25,6 +25,21 @@
         "line": 20,
         "code_line": "curve.order() == 3",
         "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "cstr.contains(\"NurbsCurve\")",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "cstr.contains(\"dim=3\")",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "cstr.contains(\"order=3\")",
+        "passed": true
       }
     ],
     "failures": []
@@ -32,27 +47,27 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.096,
-    "line": 351,
+    "time_ms": 0.148,
+    "line": 357,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        let filename = \"test_nurbscurve.json\";\n        curve.json_dump(filename);\n        let loaded = NurbsCurve::json_load(filename);\n",
     "checks": [
       {
-        "line": 367,
+        "line": 373,
         "code_line": "loaded.is_valid() == true",
         "passed": true
       },
       {
-        "line": 368,
+        "line": 374,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 369,
+        "line": 375,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 370,
+        "line": 376,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -62,27 +77,27 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.066,
-    "line": 375,
+    "time_ms": 0.185,
+    "line": 381,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        let filename = \"test_nurbscurve.bin\";\n        curve.protobuf_dump(filename);\n        let loaded = NurbsCurve::protobuf_load(filename);\n",
     "checks": [
       {
-        "line": 391,
+        "line": 397,
         "code_line": "loaded.is_valid() == true",
         "passed": true
       },
       {
-        "line": 392,
+        "line": 398,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 393,
+        "line": 399,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 394,
+        "line": 400,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -92,17 +107,17 @@
   {
     "test_name": "cv_size",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 268,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n",
+    "time_ms": 0.004,
+    "line": 274,
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        curve.make_rational();",
     "checks": [
       {
-        "line": 280,
+        "line": 286,
         "code_line": "curve.cv_size() == 3",
         "passed": true
       },
       {
-        "line": 282,
+        "line": 288,
         "code_line": "curve.cv_size() == 4",
         "passed": true
       }
@@ -112,17 +127,17 @@
   {
     "test_name": "degree",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 399,
+    "time_ms": 0.003,
+    "line": 405,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n",
     "checks": [
       {
-        "line": 411,
+        "line": 417,
         "code_line": "curve.degree() == 2",
         "passed": true
       },
       {
-        "line": 412,
+        "line": 418,
         "code_line": "curve.order() == 3",
         "passed": true
       }
@@ -133,11 +148,11 @@
     "test_name": "dimension",
     "passed": true,
     "time_ms": 0.003,
-    "line": 417,
+    "line": 423,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n",
     "checks": [
       {
-        "line": 429,
+        "line": 435,
         "code_line": "curve.dimension() == 3",
         "passed": true
       }
@@ -147,17 +162,17 @@
   {
     "test_name": "divide_by_count",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 627,
+    "time_ms": 0.008,
+    "line": 633,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let (pts, params) = curve.divide_by_count(5, true);\n",
     "checks": [
       {
-        "line": 640,
+        "line": 646,
         "code_line": "pts.len() >= 2",
         "passed": true
       },
       {
-        "line": 641,
+        "line": 647,
         "code_line": "params.len() >= 2",
         "passed": true
       }
@@ -168,11 +183,11 @@
     "test_name": "domain",
     "passed": true,
     "time_ms": 0.003,
-    "line": 145,
+    "line": 151,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let (t0, t1) = curve.domain();\n",
     "checks": [
       {
-        "line": 158,
+        "line": 164,
         "code_line": "t0 < t1",
         "passed": true
       }
@@ -182,12 +197,12 @@
   {
     "test_name": "evaluate",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 570,
+    "time_ms": 0.007,
+    "line": 576,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let (t0, t1) = curve.domain();\n        let t_mid = (t0 + t1) / 2.0;\n        let result = curve.evaluate(t_mid, 1);\n",
     "checks": [
       {
-        "line": 585,
+        "line": 591,
         "code_line": "result.len() >= 1",
         "passed": true
       }
@@ -197,22 +212,22 @@
   {
     "test_name": "get_cv",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 44,
+    "time_ms": 0.005,
+    "line": 50,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let cv0 = curve.get_cv(0).unwrap();\n        let cv1 = curve.get_cv(1).unwrap();\n        let cv2 = curve.get_cv(2).unwrap();\n",
     "checks": [
       {
-        "line": 59,
+        "line": 65,
         "code_line": "(cv0[0] - 0.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 66,
         "code_line": "(cv1[0] - 1.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 67,
         "code_line": "(cv2[0] - 2.0).abs() < 0.01",
         "passed": true
       }
@@ -222,12 +237,12 @@
   {
     "test_name": "get_span_vector",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 551,
+    "time_ms": 0.004,
+    "line": 557,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let spans = curve.get_span_vector();\n",
     "checks": [
       {
-        "line": 565,
+        "line": 571,
         "code_line": "spans.len() >= 2",
         "passed": true
       }
@@ -237,12 +252,12 @@
   {
     "test_name": "intersect_plane",
     "passed": true,
-    "time_ms": 0.013,
-    "line": 646,
+    "time_ms": 0.014,
+    "line": 652,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Plane;\n        use crate::Vector;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let plane = Plane::new(\n            Point::new(1.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n        );\n        let intersections = curve.intersect_plane(&plane, None);\n",
     "checks": [
       {
-        "line": 666,
+        "line": 672,
         "code_line": "intersections.len() >= 0",
         "passed": true
       }
@@ -252,17 +267,17 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 163,
+    "time_ms": 0.007,
+    "line": 169,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points_open = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n        let curve_open = NurbsCurve::create(false, 2, &points_open);\n\n        let points_closed = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ];\n        let curve_closed = NurbsCurve::create(false, 3, &points_closed);\n",
     "checks": [
       {
-        "line": 183,
+        "line": 189,
         "code_line": "curve_open.is_closed() == false",
         "passed": true
       },
       {
-        "line": 184,
+        "line": 190,
         "code_line": "curve_closed.is_closed() == true",
         "passed": true
       }
@@ -272,17 +287,17 @@
   {
     "test_name": "is_linear",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 287,
+    "time_ms": 0.005,
+    "line": 293,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points_linear = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n        ];\n        let curve_linear = NurbsCurve::create(false, 1, &points_linear);\n\n        let points_curved = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.5, 1.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n        ];\n        let curve_curved = NurbsCurve::create(false, 2, &points_curved);\n",
     "checks": [
       {
-        "line": 304,
+        "line": 310,
         "code_line": "curve_linear.is_linear(None) == true",
         "passed": true
       },
       {
-        "line": 305,
+        "line": 311,
         "code_line": "curve_curved.is_linear(None) == false",
         "passed": true
       }
@@ -293,11 +308,11 @@
     "test_name": "is_periodic",
     "passed": true,
     "time_ms": 0.003,
-    "line": 590,
+    "line": 596,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n",
     "checks": [
       {
-        "line": 602,
+        "line": 608,
         "code_line": "curve.is_periodic() == false",
         "passed": true
       }
@@ -307,17 +322,17 @@
   {
     "test_name": "is_rational",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 434,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n",
+    "time_ms": 0.003,
+    "line": 440,
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        curve.make_rational();",
     "checks": [
       {
-        "line": 446,
+        "line": 452,
         "code_line": "curve.is_rational() == false",
         "passed": true
       },
       {
-        "line": 448,
+        "line": 454,
         "code_line": "curve.is_rational() == true",
         "passed": true
       }
@@ -327,17 +342,17 @@
   {
     "test_name": "is_valid",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 25,
+    "time_ms": 0.004,
+    "line": 31,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let curve_invalid = NurbsCurve::default();\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n        let curve_valid = NurbsCurve::create(false, 2, &points);\n",
     "checks": [
       {
-        "line": 38,
+        "line": 44,
         "code_line": "curve_invalid.is_valid() == false",
         "passed": true
       },
       {
-        "line": 39,
+        "line": 45,
         "code_line": "curve_valid.is_valid() == true",
         "passed": true
       }
@@ -347,17 +362,17 @@
   {
     "test_name": "knot",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 473,
+    "time_ms": 0.003,
+    "line": 479,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let knot0 = curve.knot(0).unwrap_or(0.0);\n        let knot1 = curve.knot(1).unwrap_or(0.0);\n",
     "checks": [
       {
-        "line": 487,
+        "line": 493,
         "code_line": "(knot0 - 0.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 488,
+        "line": 494,
         "code_line": "knot1 >= knot0",
         "passed": true
       }
@@ -368,11 +383,11 @@
     "test_name": "knot_count",
     "passed": true,
     "time_ms": 0.003,
-    "line": 250,
+    "line": 256,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let knot_count = curve.knot_count();\n",
     "checks": [
       {
-        "line": 263,
+        "line": 269,
         "code_line": "knot_count == curve.order() + curve.cv_count() - 2",
         "passed": true
       }
@@ -382,12 +397,12 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 189,
+    "time_ms": 0.005,
+    "line": 195,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 1, &points);\n        let length = curve.length(None);\n",
     "checks": [
       {
-        "line": 201,
+        "line": 207,
         "code_line": "(length - 1.0).abs() < 0.01",
         "passed": true
       }
@@ -397,17 +412,17 @@
   {
     "test_name": "make_non_rational",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 607,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.make_rational();\n",
+    "time_ms": 0.003,
+    "line": 613,
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.make_rational();\n\n        curve.make_non_rational();",
     "checks": [
       {
-        "line": 620,
+        "line": 626,
         "code_line": "curve.is_rational() == true",
         "passed": true
       },
       {
-        "line": 622,
+        "line": 628,
         "code_line": "curve.is_rational() == false",
         "passed": true
       }
@@ -417,17 +432,17 @@
   {
     "test_name": "make_rational",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 310,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n",
+    "time_ms": 0.003,
+    "line": 316,
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        curve.make_rational();",
     "checks": [
       {
-        "line": 322,
+        "line": 328,
         "code_line": "curve.is_rational() == false",
         "passed": true
       },
       {
-        "line": 324,
+        "line": 330,
         "code_line": "curve.is_rational() == true",
         "passed": true
       }
@@ -437,17 +452,17 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 86,
+    "time_ms": 0.004,
+    "line": 92,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let (t0, t1) = curve.domain();\n        let t_mid = (t0 + t1) / 2.0;\n        let pt_mid = curve.point_at(t_mid);\n",
     "checks": [
       {
-        "line": 101,
+        "line": 107,
         "code_line": "pt_mid[0] > 0.0",
         "passed": true
       },
       {
-        "line": 102,
+        "line": 108,
         "code_line": "pt_mid[0] < 2.0",
         "passed": true
       }
@@ -457,17 +472,17 @@
   {
     "test_name": "point_at_end",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 126,
+    "time_ms": 0.004,
+    "line": 132,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let pt_end = curve.point_at_end();\n",
     "checks": [
       {
-        "line": 139,
+        "line": 145,
         "code_line": "(pt_end[0] - 2.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 146,
         "code_line": "(pt_end[1] - 0.0).abs() < 0.01",
         "passed": true
       }
@@ -477,17 +492,17 @@
   {
     "test_name": "point_at_start",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 107,
+    "time_ms": 0.004,
+    "line": 113,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let pt_start = curve.point_at_start();\n",
     "checks": [
       {
-        "line": 120,
+        "line": 126,
         "code_line": "(pt_start[0] - 0.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 121,
+        "line": 127,
         "code_line": "(pt_start[1] - 0.0).abs() < 0.01",
         "passed": true
       }
@@ -498,16 +513,16 @@
     "test_name": "reverse",
     "passed": true,
     "time_ms": 0.006,
-    "line": 206,
+    "line": 212,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        let pt_start_before = curve.point_at_start();\n        let pt_end_before = curve.point_at_end();\n        curve.reverse();\n        let pt_start_after = curve.point_at_start();\n        let pt_end_after = curve.point_at_end();\n",
     "checks": [
       {
-        "line": 223,
+        "line": 229,
         "code_line": "(pt_start_before[0] - pt_end_after[0]).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 224,
+        "line": 230,
         "code_line": "(pt_end_before[0] - pt_start_after[0]).abs() < 0.01",
         "passed": true
       }
@@ -518,16 +533,16 @@
     "test_name": "set_cv",
     "passed": true,
     "time_ms": 0.004,
-    "line": 66,
+    "line": 72,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.set_cv_point(1, &Point::new(1.5, 2.0, 0.0));\n        let cv1 = curve.get_cv(1).unwrap();\n",
     "checks": [
       {
-        "line": 80,
+        "line": 86,
         "code_line": "(cv1[0] - 1.5).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 81,
+        "line": 87,
         "code_line": "(cv1[1] - 2.0).abs() < 0.01",
         "passed": true
       }
@@ -537,22 +552,22 @@
   {
     "test_name": "set_domain",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 512,
+    "time_ms": 0.003,
+    "line": 518,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        let result = curve.set_domain(0.0, 10.0);\n        let (t0, t1) = curve.domain();\n",
     "checks": [
       {
-        "line": 526,
+        "line": 532,
         "code_line": "result == true",
         "passed": true
       },
       {
-        "line": 527,
+        "line": 533,
         "code_line": "(t0 - 0.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 528,
+        "line": 534,
         "code_line": "(t1 - 10.0).abs() < 0.01",
         "passed": true
       }
@@ -562,17 +577,17 @@
   {
     "test_name": "set_knot",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 493,
+    "time_ms": 0.003,
+    "line": 499,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        let result = curve.set_knot(0, 0.5);\n",
     "checks": [
       {
-        "line": 506,
+        "line": 512,
         "code_line": "result == true",
         "passed": true
       },
       {
-        "line": 507,
+        "line": 513,
         "code_line": "(curve.knot(0).unwrap_or(0.0) - 0.5).abs() < 0.01",
         "passed": true
       }
@@ -582,17 +597,17 @@
   {
     "test_name": "set_weight",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 453,
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.make_rational();\n",
+    "time_ms": 0.003,
+    "line": 459,
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.make_rational();\n\n        curve.set_weight(1, 2.0);",
     "checks": [
       {
-        "line": 466,
+        "line": 472,
         "code_line": "(curve.weight(1) - 1.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 468,
+        "line": 474,
         "code_line": "(curve.weight(1) - 2.0).abs() < 0.01",
         "passed": true
       }
@@ -602,12 +617,12 @@
   {
     "test_name": "span_count",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 533,
+    "time_ms": 0.005,
+    "line": 539,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let spans = curve.span_count();\n",
     "checks": [
       {
-        "line": 546,
+        "line": 552,
         "code_line": "spans == 1",
         "passed": true
       }
@@ -617,12 +632,12 @@
   {
     "test_name": "tangent_at",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 229,
+    "time_ms": 0.005,
+    "line": 235,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let curve = NurbsCurve::create(false, 2, &points);\n        let (t0, t1) = curve.domain();\n        let t_mid = (t0 + t1) / 2.0;\n        let tangent = curve.tangent_at(t_mid);\n        let mag = (tangent[0]*tangent[0] + tangent[1]*tangent[1] + tangent[2]*tangent[2]).sqrt();\n",
     "checks": [
       {
-        "line": 245,
+        "line": 251,
         "code_line": "mag > 0.5",
         "passed": true
       }
@@ -632,17 +647,17 @@
   {
     "test_name": "weight",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 329,
+    "time_ms": 0.003,
+    "line": 335,
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n        curve.make_rational();\n        let w = curve.weight(0);\n        curve.set_weight(1, 2.0);\n        let w1 = curve.weight(1);\n",
     "checks": [
       {
-        "line": 345,
+        "line": 351,
         "code_line": "(w - 1.0).abs() < 0.01",
         "passed": true
       },
       {
-        "line": 346,
+        "line": 352,
         "code_line": "(w1 - 2.0).abs() < 0.01",
         "passed": true
       }

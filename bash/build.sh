@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Resolve repository root as the parent of this script's directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT="${SCRIPT_DIR}/.."
+
 echo "🔨 Building all projects..."
 echo "========================================"
 
@@ -7,19 +11,19 @@ SUCCESS_COUNT=0
 FAIL_COUNT=0
 
 for d in session_cpp session_py session_rust; do
-  if [ -d "$d" ]; then
+  if [ -d "${REPO_ROOT}/$d" ]; then
     echo -e "\n🏗️  Building $d"
-    cd "$d"
-    
+    cd "${REPO_ROOT}/$d"
+
     if [ "$d" = "session_cpp" ]; then
       # C++ Build
       if [ ! -d "build" ]; then
         echo "   Creating build directory..."
         mkdir build
       fi
-      
+
       cd build
-      
+
       echo "   Running cmake..."
       if cmake .. > /tmp/cpp_cmake.log 2>&1; then
         echo "   ✓ CMake configuration successful"
@@ -27,10 +31,9 @@ for d in session_cpp session_py session_rust; do
         echo "   ✗ CMake configuration failed"
         tail -10 /tmp/cpp_cmake.log
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        cd ../..
         continue
       fi
-      
+
       echo "   Compiling with make..."
       if make tests -j$(nproc) > /tmp/cpp_make.log 2>&1; then
         echo "✅ $d build successful"
@@ -47,24 +50,22 @@ for d in session_cpp session_py session_rust; do
         tail -15 /tmp/cpp_make.log | grep -E "error:|undefined reference|fatal error" || tail -15 /tmp/cpp_make.log
         FAIL_COUNT=$((FAIL_COUNT + 1))
       fi
-      cd ../..
-      
+
     elif [ "$d" = "session_py" ]; then
       # Python "Build" (check imports and dependencies)
-      if [ -f "../uvsession/bin/activate" ]; then
-        source ../uvsession/bin/activate
+      if [ -f "${REPO_ROOT}/uvsession/bin/activate" ]; then
+        source "${REPO_ROOT}/uvsession/bin/activate"
         echo "   Activated virtual environment: uvsession"
-        
+
         echo "   Checking Python dependencies..."
         if python -c "import sys; print(f'Python {sys.version}')" > /tmp/py_build.log 2>&1; then
           echo "   ✓ Python available: $(python --version)"
         else
           echo "   ✗ Python check failed"
           FAIL_COUNT=$((FAIL_COUNT + 1))
-          cd ..
           continue
         fi
-        
+
         # Check if main module can be imported
         if python -c "import sys; sys.path.insert(0, '.'); print('Module checks passed')" > /tmp/py_import.log 2>&1; then
           echo "✅ $d ready (no build needed for Python)"
@@ -81,8 +82,7 @@ for d in session_cpp session_py session_rust; do
         echo "   Run: uv venv uvsession && source uvsession/bin/activate"
         FAIL_COUNT=$((FAIL_COUNT + 1))
       fi
-      cd ..
-      
+
     elif [ "$d" = "session_rust" ]; then
       # Rust Build
       if command -v cargo &> /dev/null; then
@@ -105,9 +105,8 @@ for d in session_cpp session_py session_rust; do
         echo "   Install Rust: https://rustup.rs/"
         FAIL_COUNT=$((FAIL_COUNT + 1))
       fi
-      cd ..
     fi
-    
+
   else
     echo -e "\n❌ $d - directory not found"
     FAIL_COUNT=$((FAIL_COUNT + 1))

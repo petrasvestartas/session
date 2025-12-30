@@ -23,7 +23,7 @@ session_tests/   # Vue 3 test viewer
 ## Build
 
 ```bash
-./build.sh                    # All languages
+./bash/build.sh               # All languages
 ```
 
 **C++:**
@@ -45,7 +45,7 @@ cd session_rust && cargo build --release && cargo test
 ## Test Viewer
 
 ```bash
-./minitest.sh                 # Run all tests + launch viewer at localhost:8769
+./bash/minitest.sh            # Run all tests + launch viewer at localhost:8769
 ```
 
 ## Git
@@ -53,14 +53,14 @@ cd session_rust && cargo build --release && cargo test
 ```bash
 git clone --recurse-submodules <url>
 git submodule update --init --recursive
-./git_push.sh "message"
+./bash/git_push.sh "message"
 ```
 
 ## GitHub Actions
 
-- after pushing with ./git_push.sh, check GitHub Actions build status using: gh run list --limit 5
+- after pushing with ./bash/git_push.sh, check GitHub Actions build status using: gh run list --limit 5
 - if build fails, view logs with: gh run view <run-id> --log-failed
-- fix the failing code locally, run ./minitest.sh to verify, then push again
+- fix the failing code locally, run ./bash/minitest.sh to verify, then push again
 - all three languages (C++, Python, Rust) must pass CI before merge
 
 ## MINITEST
@@ -80,9 +80,9 @@ git submodule update --init --recursive
 3. **Register in build system:**
    - **Rust:** Add `pub mod name_minitest;` to `session_rust/src/lib.rs`
    - **C++:** Add `src/name_minitest.cpp` to `MINITEST_SOURCES` in `session_cpp/CMakeLists.txt`
-   - **Shell:** Add `"name"` to `CLASS_NAMES` array in `minitest.sh`
+   - **Shell:** Add `"name"` to `CLASS_NAMES` array in `bash/minitest.sh`
 
-4. **Verify:** Run `./minitest.sh` - all tests must pass in all 3 languages
+4. **Verify:** Run `./bash/minitest.sh` - all tests must pass in all 3 languages
 
 ### Test Requirements
 
@@ -105,7 +105,7 @@ git submodule update --init --recursive
 - check if all tests passes in all languages
 - check if you implemented minitest for json de/serialization and protobuf de/serialization
 - check if all the operators minitests are part of constructor test not separate tests
-- run ./minitest.sh
+- run ./bash/minitest.sh
 
 ### JSON Serialization Conventions
 

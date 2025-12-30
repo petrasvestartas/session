@@ -80,4 +80,10 @@ session_cpp/build/
 session_cpp/docs_output/
 
 # OpenNURBS
-opennurbs-8.x/
+opennurbs-8.x
+
+# uvsession
+uvsession
+nurbscurve.md
+
+

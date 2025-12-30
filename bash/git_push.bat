@@ -11,6 +11,12 @@ if "%~1"=="" (
 
 set "MSG=%~1"
 
+REM Resolve repository root (parent of script directory)
+set "SCRIPT_DIR=%~dp0"
+set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+for %%i in ("%SCRIPT_DIR%\..") do set "REPO_ROOT=%%~fi"
+cd /d "%REPO_ROOT%"
+
 for %%d in (session_cpp session_py session_rust session_data session_proto) do (
     if exist "%%d" (
         echo.

@@ -53,10 +53,10 @@ shift
 goto :parse_args
 :done_args
 
-REM Resolve repository root
+REM Resolve repository root (parent of script directory)
 set "SCRIPT_DIR=%~dp0"
 set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
-set "REPO_ROOT=%SCRIPT_DIR%"
+for %%i in ("%SCRIPT_DIR%\..") do set "REPO_ROOT=%%~fi"
 set "TESTS_DIR=%REPO_ROOT%\session_tests"
 set "VENV_DIR=%REPO_ROOT%\uvsession"
 set "PYTHON=%VENV_DIR%\Scripts\python.exe"

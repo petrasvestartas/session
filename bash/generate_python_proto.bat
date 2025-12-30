@@ -6,18 +6,19 @@ setlocal enabledelayedexpansion
 
 set "SCRIPT_DIR=%~dp0"
 set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
-set "PROTO_DIR=%SCRIPT_DIR%\session_proto"
-set "PYTHON_PROTO_DIR=%SCRIPT_DIR%\session_py\src\session_py\proto"
+for %%i in ("%SCRIPT_DIR%\..") do set "REPO_ROOT=%%~fi"
+set "PROTO_DIR=%REPO_ROOT%\session_proto"
+set "PYTHON_PROTO_DIR=%REPO_ROOT%\session_py\src\session_py\proto"
 
 REM Find protoc - check system PATH first, then C++ build location
 set "PROTOC="
 where protoc >nul 2>&1
 if %errorlevel%==0 (
     set "PROTOC=protoc"
-) else if exist "%SCRIPT_DIR%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\Release\protoc.exe" (
-    set "PROTOC=%SCRIPT_DIR%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\Release\protoc.exe"
-) else if exist "%SCRIPT_DIR%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\protoc.exe" (
-    set "PROTOC=%SCRIPT_DIR%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\protoc.exe"
+) else if exist "%REPO_ROOT%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\Release\protoc.exe" (
+    set "PROTOC=%REPO_ROOT%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\Release\protoc.exe"
+) else if exist "%REPO_ROOT%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\protoc.exe" (
+    set "PROTOC=%REPO_ROOT%\session_cpp\build\protobuf_external-prefix\src\protobuf_external-build\protoc.exe"
 ) else if exist "%USERPROFILE%\.local\install\protobuf\bin\protoc.exe" (
     set "PROTOC=%USERPROFILE%\.local\install\protobuf\bin\protoc.exe"
 )
