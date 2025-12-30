@@ -62,6 +62,8 @@ git submodule update --init --recursive
 - if build fails, view logs with: gh run view <run-id> --log-failed
 - fix the failing code locally, run ./bash/minitest.sh to verify, then push again
 - all three languages (C++, Python, Rust) must pass CI before merge
+- **macOS runners:** use `macos-15` for ARM64, `macos-15-intel` for Intel x64
+- **Linux:** use `manylinux_2_28_x86_64` container for glibc compatibility
 
 ## MINITEST
 
