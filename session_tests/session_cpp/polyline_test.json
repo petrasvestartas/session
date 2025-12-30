@@ -122,7 +122,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.132,
+    "time_ms": 0.216,
     "line": 107,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0), Point(10.0, 11.0, 12.0)});\n    pl.name = \"test_polyline\";\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"test_polyline.json\";\n    pl.json_dump(fname);\n    Polyline loaded = Polyline::json_load(fname);\n",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.117,
+    "time_ms": 0.174,
     "line": 130,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0), Point(7.0, 8.0, 9.0), Point(10.0, 11.0, 12.0)});\n    pl.name = \"test_polyline\";\n\n    // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    std::string fname = \"test_polyline.bin\";\n    pl.protobuf_dump(fname);\n    Polyline loaded = Polyline::protobuf_load(fname);\n",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "center",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.021,
     "line": 165,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // Square polyline\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    });\n    Point c = pl.center();\n",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.019,
     "line": 185,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // Open polyline\n    Polyline open_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    });\n    bool is_open = open_pl.is_closed();\n\n    // Closed polyline (first and last point same)\n    Polyline closed_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    });\n    bool is_closed = closed_pl.is_closed();\n",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.012,
     "line": 213,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)});\n\n    // Test reversed() returns new polyline\n    Polyline rev = pl.reversed();\n    double orig_first = pl.get_point(0)[0];\n    double rev_first = rev.get_point(0)[0];\n\n    // Test reverse() in place\n    pl.reverse();\n    double in_place_first = pl.get_point(0)[0];\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "extend_segment_equally",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.013,
     "line": 263,
     "code": "    Polyline pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0)});\n    pl.extend_segment_equally(0, 0.5);\n    double first = pl.get_point(0)[0];\n    double second = pl.get_point(1)[0];\n",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "is_clockwise",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.019,
     "line": 305,
     "code": "    // Clockwise square (when viewed from +Z)\n    Polyline cw_pl({Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0), Point(1.0, 0.0, 0.0)});\n    // Counter-clockwise square\n    Polyline ccw_pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)});\n    Plane plane;\n",
     "checks": [
@@ -447,7 +447,7 @@
   {
     "test_name": "convex_corners",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.021,
     "line": 316,
     "code": "    Polyline pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)});\n    std::vector<bool> corners;\n    pl.get_convex_corners(corners);\n",
     "checks": [
@@ -482,7 +482,7 @@
   {
     "test_name": "average_plane",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.028,
     "line": 333,
     "code": "    Polyline pl({Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0)});\n    Point origin;\n    Vector x_axis, y_axis, z_axis;\n    pl.get_average_plane(origin, x_axis, y_axis, z_axis);\n    Point fast_origin;\n    Plane fast_plane;\n    pl.get_fast_plane(fast_origin, fast_plane);\n",
     "checks": [

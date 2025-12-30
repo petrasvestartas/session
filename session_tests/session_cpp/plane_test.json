@@ -152,7 +152,7 @@
   {
     "test_name": "is_right_hand",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 128,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // All standard planes should be right-handed\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n    Plane default_pl;\n\n    bool xy_rh = xy.is_right_hand();\n    bool yz_rh = yz.is_right_hand();\n    bool xz_rh = xz.is_right_hand();\n    bool default_rh = default_pl.is_right_hand();\n\n    // After reverse, should still be right-handed\n    default_pl.reverse();\n    bool reversed_rh = default_pl.is_right_hand();\n\n    // After rotate, should still be right-handed\n    default_pl.rotate(Tolerance::PI / 4.0);\n    bool rotated_rh = default_pl.is_right_hand();\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.111,
+    "time_ms": 0.096,
     "line": 218,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.092,
+    "time_ms": 0.321,
     "line": 234,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    std::string fname = \"test_plane.bin\";\n    pl.protobuf_dump(fname);\n    Plane loaded = Plane::protobuf_load(fname);\n",
     "checks": [

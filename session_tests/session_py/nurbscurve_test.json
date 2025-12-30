@@ -2,9 +2,9 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.079,
     "line": 6,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0, 0, 0),\n        Point(1, 1, 0),\n        Point(2, 0, 0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n\n    # String representation\n    cstr = str(curve)\n    crepr = repr(curve)",
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0, 0, 0),\n        Point(1, 1, 0),\n        Point(2, 0, 0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
         "line": 19,
@@ -25,26 +25,6 @@
         "line": 22,
         "code_line": "curve.order() == 3",
         "passed": true
-      },
-      {
-        "line": 27,
-        "code_line": "\"NurbsCurve\" in cstr",
-        "passed": true
-      },
-      {
-        "line": 28,
-        "code_line": "\"dim=3\" in cstr",
-        "passed": true
-      },
-      {
-        "line": 29,
-        "code_line": "\"order=3\" in cstr",
-        "passed": true
-      },
-      {
-        "line": 30,
-        "code_line": "\"NurbsCurve\" in crepr",
-        "passed": true
       }
     ],
     "failures": []
@@ -52,17 +32,17 @@
   {
     "test_name": "is_valid",
     "passed": true,
-    "time_ms": 0.065,
-    "line": 33,
+    "time_ms": 0.061,
+    "line": 25,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    curve_invalid = NurbsCurve()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n    curve_valid = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 47,
+        "line": 39,
         "code_line": "curve_invalid.is_valid() == False",
         "passed": true
       },
       {
-        "line": 48,
+        "line": 40,
         "code_line": "curve_valid.is_valid() == True",
         "passed": true
       }
@@ -72,22 +52,22 @@
   {
     "test_name": "get_cv",
     "passed": true,
-    "time_ms": 0.059,
-    "line": 51,
+    "time_ms": 0.061,
+    "line": 43,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    cv0 = curve.get_cv(0)\n    cv1 = curve.get_cv(1)\n    cv2 = curve.get_cv(2)",
     "checks": [
       {
-        "line": 67,
+        "line": 59,
         "code_line": "abs(cv0[0] - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 68,
+        "line": 60,
         "code_line": "abs(cv1[0] - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 69,
+        "line": 61,
         "code_line": "abs(cv2[0] - 2.0) < 0.01",
         "passed": true
       }
@@ -97,17 +77,17 @@
   {
     "test_name": "set_cv",
     "passed": true,
-    "time_ms": 0.047,
-    "line": 72,
+    "time_ms": 0.042,
+    "line": 64,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.set_cv(1, Point(1.5, 2.0, 0.0))\n    cv1 = curve.get_cv(1)",
     "checks": [
       {
-        "line": 87,
+        "line": 79,
         "code_line": "abs(cv1[0] - 1.5) < 0.01",
         "passed": true
       },
       {
-        "line": 88,
+        "line": 80,
         "code_line": "abs(cv1[1] - 2.0) < 0.01",
         "passed": true
       }
@@ -117,17 +97,17 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.053,
-    "line": 91,
+    "time_ms": 0.051,
+    "line": 83,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    t0, t1 = curve.domain()\n    t_mid = (t0 + t1) / 2.0\n    pt_mid = curve.point_at(t_mid)",
     "checks": [
       {
-        "line": 107,
+        "line": 99,
         "code_line": "pt_mid[0] > 0.0",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 100,
         "code_line": "pt_mid[0] < 2.0",
         "passed": true
       }
@@ -137,17 +117,17 @@
   {
     "test_name": "point_at_start",
     "passed": true,
-    "time_ms": 0.052,
-    "line": 111,
+    "time_ms": 0.049,
+    "line": 103,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    pt_start = curve.point_at_start()",
     "checks": [
       {
-        "line": 125,
+        "line": 117,
         "code_line": "abs(pt_start[0] - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 126,
+        "line": 118,
         "code_line": "abs(pt_start[1] - 0.0) < 0.01",
         "passed": true
       }
@@ -157,17 +137,17 @@
   {
     "test_name": "point_at_end",
     "passed": true,
-    "time_ms": 0.053,
-    "line": 129,
+    "time_ms": 0.046,
+    "line": 121,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    pt_end = curve.point_at_end()",
     "checks": [
       {
-        "line": 143,
+        "line": 135,
         "code_line": "abs(pt_end[0] - 2.0) < 0.01",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 136,
         "code_line": "abs(pt_end[1] - 0.0) < 0.01",
         "passed": true
       }
@@ -177,12 +157,12 @@
   {
     "test_name": "domain",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 147,
+    "time_ms": 0.03,
+    "line": 139,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    t0, t1 = curve.domain()",
     "checks": [
       {
-        "line": 161,
+        "line": 153,
         "code_line": "t0 < t1",
         "passed": true
       }
@@ -192,17 +172,17 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.173,
-    "line": 164,
+    "time_ms": 0.166,
+    "line": 156,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points_open = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n    curve_open = NurbsCurve.create(periodic=False, degree=2, points=points_open)\n\n    points_closed = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ]\n    curve_closed = NurbsCurve.create(periodic=False, degree=3, points=points_closed)",
     "checks": [
       {
-        "line": 185,
+        "line": 177,
         "code_line": "curve_open.is_closed() == False",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 178,
         "code_line": "curve_closed.is_closed() == True",
         "passed": true
       }
@@ -212,12 +192,12 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 1.147,
-    "line": 189,
+    "time_ms": 1.086,
+    "line": 181,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=1, points=points)\n    length = curve.length()",
     "checks": [
       {
-        "line": 202,
+        "line": 194,
         "code_line": "abs(length - 1.0) < 0.01",
         "passed": true
       }
@@ -227,17 +207,17 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.1,
-    "line": 205,
+    "time_ms": 0.096,
+    "line": 197,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    pt_start_before = curve.point_at_start()\n    pt_end_before = curve.point_at_end()\n    curve.reverse()\n    pt_start_after = curve.point_at_start()\n    pt_end_after = curve.point_at_end()",
     "checks": [
       {
-        "line": 223,
+        "line": 215,
         "code_line": "abs(pt_start_before[0] - pt_end_after[0]) < 0.01",
         "passed": true
       },
       {
-        "line": 224,
+        "line": 216,
         "code_line": "abs(pt_end_before[0] - pt_start_after[0]) < 0.01",
         "passed": true
       }
@@ -247,17 +227,17 @@
   {
     "test_name": "make_rational",
     "passed": true,
-    "time_ms": 0.035,
-    "line": 227,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    curve.make_rational()",
+    "time_ms": 0.031,
+    "line": 219,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 240,
+        "line": 232,
         "code_line": "curve.is_rational() == False",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 234,
         "code_line": "curve.is_rational() == True",
         "passed": true
       }
@@ -267,12 +247,12 @@
   {
     "test_name": "tangent_at",
     "passed": true,
-    "time_ms": 0.065,
-    "line": 245,
+    "time_ms": 0.063,
+    "line": 237,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    import math\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    t0, t1 = curve.domain()\n    t_mid = (t0 + t1) / 2.0\n    tangent = curve.tangent_at(t_mid)\n    mag = math.sqrt(tangent[0]*tangent[0] + tangent[1]*tangent[1] + tangent[2]*tangent[2])",
     "checks": [
       {
-        "line": 263,
+        "line": 255,
         "code_line": "mag > 0.5",
         "passed": true
       }
@@ -282,12 +262,12 @@
   {
     "test_name": "knot_count",
     "passed": true,
-    "time_ms": 0.029,
-    "line": 266,
+    "time_ms": 0.026,
+    "line": 258,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    knot_count = curve.knot_count()",
     "checks": [
       {
-        "line": 280,
+        "line": 272,
         "code_line": "knot_count == curve.order() + curve.cv_count() - 2",
         "passed": true
       }
@@ -297,17 +277,17 @@
   {
     "test_name": "cv_size",
     "passed": true,
-    "time_ms": 0.032,
-    "line": 283,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    curve.make_rational()",
+    "time_ms": 0.028,
+    "line": 275,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 296,
+        "line": 288,
         "code_line": "curve.cv_size() == 3",
         "passed": true
       },
       {
-        "line": 298,
+        "line": 290,
         "code_line": "curve.cv_size() == 4",
         "passed": true
       }
@@ -317,17 +297,17 @@
   {
     "test_name": "weight",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 301,
+    "time_ms": 0.032,
+    "line": 293,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.make_rational()\n    w = curve.weight(0)\n    curve.set_weight(1, 2.0)\n    w1 = curve.weight(1)",
     "checks": [
       {
-        "line": 318,
+        "line": 310,
         "code_line": "abs(w - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 311,
         "code_line": "abs(w1 - 2.0) < 0.01",
         "passed": true
       }
@@ -337,17 +317,17 @@
   {
     "test_name": "is_linear",
     "passed": true,
-    "time_ms": 0.515,
-    "line": 322,
+    "time_ms": 0.517,
+    "line": 314,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points_linear = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0)\n    ]\n    curve_linear = NurbsCurve.create(periodic=False, degree=1, points=points_linear)\n\n    points_curved = [\n        Point(0.0, 0.0, 0.0),\n        Point(0.5, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0)\n    ]\n    curve_curved = NurbsCurve.create(periodic=False, degree=2, points=points_curved)",
     "checks": [
       {
-        "line": 340,
+        "line": 332,
         "code_line": "curve_linear.is_linear() == True",
         "passed": true
       },
       {
-        "line": 341,
+        "line": 333,
         "code_line": "curve_curved.is_linear() == False",
         "passed": true
       }
@@ -357,27 +337,27 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.483,
-    "line": 344,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.json\"\n    curve.json_dump(fname)\n    loaded = NurbsCurve.json_load(fname)",
+    "time_ms": 0.761,
+    "line": 336,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    fname = Path(__file__).resolve().parents[2] / \"test_nurbscurve.json\"\n    curve.json_dump(fname)\n    loaded = NurbsCurve.json_load(fname)",
     "checks": [
       {
-        "line": 362,
+        "line": 354,
         "code_line": "loaded.is_valid() == True",
         "passed": true
       },
       {
-        "line": 363,
+        "line": 355,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 364,
+        "line": 356,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 365,
+        "line": 357,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -387,27 +367,27 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 1.162,
-    "line": 368,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.bin\"\n    curve.protobuf_dump(path)\n    loaded = NurbsCurve.protobuf_load(path)",
+    "time_ms": 0.886,
+    "line": 360,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    path = Path(__file__).resolve().parents[2] / \"test_nurbscurve.bin\"\n    curve.protobuf_dump(path)\n    loaded = NurbsCurve.protobuf_load(path)",
     "checks": [
       {
-        "line": 386,
+        "line": 378,
         "code_line": "loaded.is_valid() == True",
         "passed": true
       },
       {
-        "line": 387,
+        "line": 379,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 388,
+        "line": 380,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 389,
+        "line": 381,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -417,17 +397,17 @@
   {
     "test_name": "degree",
     "passed": true,
-    "time_ms": 0.031,
-    "line": 392,
+    "time_ms": 0.029,
+    "line": 384,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 405,
+        "line": 397,
         "code_line": "curve.degree() == 2",
         "passed": true
       },
       {
-        "line": 406,
+        "line": 398,
         "code_line": "curve.order() == 3",
         "passed": true
       }
@@ -437,12 +417,12 @@
   {
     "test_name": "dimension",
     "passed": true,
-    "time_ms": 0.05,
-    "line": 409,
+    "time_ms": 0.027,
+    "line": 401,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 422,
+        "line": 414,
         "code_line": "curve.dimension() == 3",
         "passed": true
       }
@@ -452,17 +432,17 @@
   {
     "test_name": "is_rational",
     "passed": true,
-    "time_ms": 0.039,
-    "line": 425,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    curve.make_rational()",
+    "time_ms": 0.03,
+    "line": 417,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 438,
+        "line": 430,
         "code_line": "curve.is_rational() == False",
         "passed": true
       },
       {
-        "line": 440,
+        "line": 432,
         "code_line": "curve.is_rational() == True",
         "passed": true
       }
@@ -472,17 +452,17 @@
   {
     "test_name": "set_weight",
     "passed": true,
-    "time_ms": 0.038,
-    "line": 443,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.make_rational()\n\n    curve.set_weight(1, 2.0)",
+    "time_ms": 0.032,
+    "line": 435,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.make_rational()",
     "checks": [
       {
-        "line": 457,
+        "line": 449,
         "code_line": "abs(curve.weight(1) - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 459,
+        "line": 451,
         "code_line": "abs(curve.weight(1) - 2.0) < 0.01",
         "passed": true
       }
@@ -492,17 +472,17 @@
   {
     "test_name": "knot",
     "passed": true,
-    "time_ms": 0.031,
-    "line": 462,
+    "time_ms": 0.028,
+    "line": 454,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    knot0 = curve.knot(0)\n    knot1 = curve.knot(1)",
     "checks": [
       {
-        "line": 477,
+        "line": 469,
         "code_line": "abs(knot0 - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 478,
+        "line": 470,
         "code_line": "knot1 >= knot0",
         "passed": true
       }
@@ -512,17 +492,17 @@
   {
     "test_name": "set_knot",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 481,
+    "time_ms": 0.027,
+    "line": 473,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    result = curve.set_knot(0, 0.5)",
     "checks": [
       {
-        "line": 495,
+        "line": 487,
         "code_line": "result == True",
         "passed": true
       },
       {
-        "line": 496,
+        "line": 488,
         "code_line": "abs(curve.knot(0) - 0.5) < 0.01",
         "passed": true
       }
@@ -532,22 +512,22 @@
   {
     "test_name": "set_domain",
     "passed": true,
-    "time_ms": 0.038,
-    "line": 499,
+    "time_ms": 0.031,
+    "line": 491,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    result = curve.set_domain(0.0, 10.0)\n    t0, t1 = curve.domain()",
     "checks": [
       {
-        "line": 514,
+        "line": 506,
         "code_line": "result == True",
         "passed": true
       },
       {
-        "line": 515,
+        "line": 507,
         "code_line": "abs(t0 - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 516,
+        "line": 508,
         "code_line": "abs(t1 - 10.0) < 0.01",
         "passed": true
       }
@@ -557,12 +537,12 @@
   {
     "test_name": "span_count",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 519,
+    "time_ms": 0.026,
+    "line": 511,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    spans = curve.span_count()",
     "checks": [
       {
-        "line": 533,
+        "line": 525,
         "code_line": "spans == 1",
         "passed": true
       }
@@ -572,12 +552,12 @@
   {
     "test_name": "get_span_vector",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 536,
+    "time_ms": 0.034,
+    "line": 528,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    spans = curve.get_span_vector()",
     "checks": [
       {
-        "line": 551,
+        "line": 543,
         "code_line": "len(spans) >= 2",
         "passed": true
       }
@@ -587,12 +567,12 @@
   {
     "test_name": "evaluate",
     "passed": true,
-    "time_ms": 0.08,
-    "line": 554,
+    "time_ms": 0.074,
+    "line": 546,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    t0, t1 = curve.domain()\n    t_mid = (t0 + t1) / 2.0\n    result = curve.evaluate(t_mid, 1)",
     "checks": [
       {
-        "line": 570,
+        "line": 562,
         "code_line": "len(result) >= 1",
         "passed": true
       }
@@ -602,12 +582,12 @@
   {
     "test_name": "is_periodic",
     "passed": true,
-    "time_ms": 0.063,
-    "line": 573,
+    "time_ms": 0.058,
+    "line": 565,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)",
     "checks": [
       {
-        "line": 586,
+        "line": 578,
         "code_line": "curve.is_periodic() == False",
         "passed": true
       }
@@ -617,17 +597,17 @@
   {
     "test_name": "make_non_rational",
     "passed": true,
-    "time_ms": 0.037,
-    "line": 589,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.make_rational()\n\n    curve.make_non_rational()",
+    "time_ms": 0.033,
+    "line": 581,
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.make_rational()",
     "checks": [
       {
-        "line": 603,
+        "line": 595,
         "code_line": "curve.is_rational() == True",
         "passed": true
       },
       {
-        "line": 605,
+        "line": 597,
         "code_line": "curve.is_rational() == False",
         "passed": true
       }
@@ -637,17 +617,17 @@
   {
     "test_name": "divide_by_count",
     "passed": true,
-    "time_ms": 0.096,
-    "line": 608,
+    "time_ms": 0.098,
+    "line": 600,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    pts, params = curve.divide_by_count(5, include_endpoints=True)",
     "checks": [
       {
-        "line": 622,
+        "line": 614,
         "code_line": "len(pts) == 5",
         "passed": true
       },
       {
-        "line": 623,
+        "line": 615,
         "code_line": "len(params) == 5",
         "passed": true
       }
@@ -657,12 +637,12 @@
   {
     "test_name": "intersect_plane",
     "passed": true,
-    "time_ms": 0.105,
-    "line": 626,
+    "time_ms": 0.101,
+    "line": 618,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    plane = Plane.xy_plane()\n    intersections = curve.intersect_plane(plane)",
     "checks": [
       {
-        "line": 642,
+        "line": 634,
         "code_line": "isinstance(intersections == list)",
         "passed": true
       }

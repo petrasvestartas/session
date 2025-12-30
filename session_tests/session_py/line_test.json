@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.295,
+    "time_ms": 0.31,
     "line": 7,
     "code": "    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n\n    # Setters\n    l[0] = 10.0\n    l[1] = 20.0\n    l[2] = 30.0\n    l[3] = 40.0\n    l[4] = 50.0\n    l[5] = 60.0\n\n    # Getters\n    x0 = l[0]\n    y0 = l[1]\n    z0 = l[2]\n    x1 = l[3]\n    y1 = l[4]\n    z1 = l[5]\n\n    # Minimal and Full String Representation\n    lstr = str(l)\n    lrepr = repr(l)\n\n    # Copy (duplicate everything but guid)\n    lcopy = l.duplicate()\n    lother = Line(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)\n\n    # No-copy operators\n    lmult = l.duplicate()\n    lmult *= 2.0\n    ldiv = l.duplicate()\n    ldiv /= 2.0\n    ladd = l.duplicate()\n    ladd += Vector(1.0, 1.0, 1.0)\n    lsub = l.duplicate()\n    lsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = l * 2.0\n    rdiv = l / 2.0\n    radd = l + Vector(1.0, 1.0, 1.0)\n    rdif = l - Vector(1.0, 1.0, 1.0)\n\n    # Negation (flip start and end)\n    lneg = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    neg = -lneg\n\n    # From points constructor\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(4.0, 5.0, 6.0)\n    l2p = Line.from_points(p0, p1)\n\n    # from_point_and_vector constructor\n    pv = Point(1.0, 2.0, 3.0)\n    vv = Vector(3.0, 4.0, 5.0)\n    l_pv = Line.from_point_and_vector(pv, vv)\n\n    # from_point_direction_length constructor\n    pd = Point(0.0, 0.0, 0.0)\n    dd = Vector(1.0, 0.0, 0.0)\n    l_pdl = Line.from_point_direction_length(pd, dd, 5.0)\n\n    # Line with custom color and width\n    lc = Line(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    lc.linecolor = Color(255, 0, 0, 255, \"red\")\n    lc.width = 2.5",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.091,
+    "time_ms": 0.098,
     "line": 101,
     "code": "    from session_py import Line\n    from session_py import Xform\n\n    l = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    l.xform = Xform.translation(10.0, 0.0, 0.0)\n    l_transformed = l.transformed()  # Make a copy\n    l.transform()  # After the call, \"xform\" is reset",
     "checks": [
@@ -127,9 +127,9 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.378,
+    "time_ms": 0.426,
     "line": 116,
-    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.json\"\n    l.json_dump(fname)\n    loaded = Line.json_load(fname)",
+    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_line.json\"\n    l.json_dump(fname)\n    loaded = Line.json_load(fname)",
     "checks": [
       {
         "line": 129,
@@ -172,9 +172,9 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 1.313,
+    "time_ms": 0.92,
     "line": 138,
-    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.bin\"\n    l.protobuf_dump(fname)\n    loaded = Line.protobuf_load(fname)",
+    "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    # protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"test_line.bin\"\n    l.protobuf_dump(fname)\n    loaded = Line.protobuf_load(fname)",
     "checks": [
       {
         "line": 151,
@@ -217,7 +217,7 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.015,
     "line": 160,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    ln = l.length()\n    lsq = l.squared_length()",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "to_vector",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 172,
     "code": "    from session_py import Line\n\n    l = Line(1.0, 2.0, 3.0, 4.0, 6.0, 9.0)\n    v = l.to_vector()",
     "checks": [
@@ -252,7 +252,7 @@
   {
     "test_name": "to_direction",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.02,
     "line": 182,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    d = l.to_direction()",
     "checks": [
@@ -282,7 +282,7 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.029,
     "line": 195,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 10.0, 10.0)\n    ps = l.point_at(0.0)\n    pm = l.point_at(0.5)\n    pe = l.point_at(1.0)",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "closest_point",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.048,
     "line": 209,
     "code": "    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    p1 = Point(5.0, 5.0, 0.0)\n    p2 = Point(-5.0, 0.0, 0.0)\n    p3 = Point(15.0, 0.0, 0.0)\n    cp1 = l.closest_point(p1)\n    cp2 = l.closest_point(p2)\n    cp3 = l.closest_point(p3)",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "fit_points",
     "passed": true,
-    "time_ms": 0.155,
+    "time_ms": 1.968,
     "line": 241,
     "code": "    from session_py import Line\n    from session_py import Point\n\n    fit_pts = [Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.5), Point(2.0, 2.0, 1.0), Point(3.0, 3.0, 1.5)]\n    l_fit = Line.fit_points(fit_pts)",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "subdivide",
     "passed": true,
-    "time_ms": 0.06,
+    "time_ms": 0.069,
     "line": 252,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n\n    # subdivide by count\n    pts = l.subdivide(3)\n\n    # subdivide_by_distance\n    pts_dist = l.subdivide_by_distance(2.5)",
     "checks": [
