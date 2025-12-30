@@ -23,14 +23,6 @@ jobs:
 
     # ============ CACHING ============
 
-    # Cache C++ session_proto release
-    - name: Cache C++ Dependencies (session_proto)
-      uses: actions/cache@v4
-      with:
-        path: session_cpp/build/deps
-        key: cpp-deps-${{ runner.os }}-v3
-        restore-keys: cpp-deps-${{ runner.os }}-
-
     # Cache Rust cargo
     - name: Cache Rust Cargo
       uses: actions/cache@v4
@@ -44,24 +36,12 @@ jobs:
         key: rust-${{ runner.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
         restore-keys: rust-${{ runner.os }}-
 
-    # Cache Python pip
-    - name: Cache Python pip
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-${{ hashFiles('session_py/pyproject.toml') }}
-        restore-keys: pip-${{ runner.os }}-
-
     # ============ SETUP ============
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Install Python dependencies for RAG/embeddings
-      run: |
-        pip install sentence-transformers numpy
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
