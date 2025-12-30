@@ -51,6 +51,27 @@ The repository is split between 5 submodules:
 - [`session_data`](https://github.com/petrasvestartas/session_data.git) → Geometry Dataset
 - [`session_proto`](https://github.com/petrasvestartas/session_proto.git) → Schemas
 
+## Getting Started
+
+Clone with all submodules:
+
+```bash
+git clone --recurse-submodules https://github.com/petrasvestartas/session.git
+cd session
+```
+
+If you already cloned without submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+Build and test all languages:
+
+```bash
+./minitest.sh
+```
+
 ## Python
 
 Create environment:

@@ -78,3 +78,6 @@ session_py/*.egg-info/
 
 session_cpp/build/
 session_cpp/docs_output/
+
+# OpenNURBS
+opennurbs-8.x/

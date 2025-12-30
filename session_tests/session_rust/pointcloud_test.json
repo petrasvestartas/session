@@ -117,7 +117,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 4.704,
+    "time_ms": 0.108,
     "line": 116,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 4.837,
+    "time_ms": 0.081,
     "line": 143,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"test_pointcloud.bin\";\n        pc.protobuf_dump(fname);\n        let loaded = PointCloud::protobuf_load(fname);\n",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 94,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc.xform = Xform::translation(10.0, 20.0, 30.0);\n        pc.transform();\n\n        // Transformed - returns new cloud\n        let mut pc2 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n        let pc3 = pc2.transformed();\n",
     "checks": [
