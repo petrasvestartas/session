@@ -21,15 +21,14 @@ jobs:
       with:
         submodules: recursive
 
-    # ============ CACHING (saves ~12+ minutes) ============
-    
-    # Cache C++ FetchContent dependencies (abseil + protobuf) - BIGGEST time saver
-    - name: Cache C++ Dependencies (abseil + protobuf)
+    # ============ CACHING ============
+
+    # Cache C++ session_proto release
+    - name: Cache C++ Dependencies (session_proto)
       uses: actions/cache@v4
-      id: cache-cpp
       with:
-        path: session_cpp/build/_deps
-        key: cpp-deps-${{ runner.os }}-v2
+        path: session_cpp/build/deps
+        key: cpp-deps-${{ runner.os }}-v3
         restore-keys: cpp-deps-${{ runner.os }}-
 
     # Cache Rust cargo
@@ -71,30 +70,17 @@ jobs:
         cache: 'npm'
         cache-dependency-path: session_tests/package-lock.json
 
-    - name: Install Protobuf Compiler
-      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-
     - name: Install npm dependencies (including Firebase)
       working-directory: session_tests
       run: npm ci || npm install
-
-    # ============ PRE-CONFIGURE C++ (FetchContent downloads deps) ============
-
-    - name: Configure C++ (downloads deps if not cached)
-      if: steps.cache-cpp.outputs.cache-hit != 'true'
-      working-directory: session_cpp
-      run: |
-        echo "Cache miss - FetchContent will download abseil and protobuf..."
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_PROTOBUF=ON
-        echo "C++ dependencies downloaded and will be cached."
 
     # ============ RUN TESTS ============
 
     - name: Run mini tests (Python + C++ + Rust)
       shell: bash
       run: |
-        chmod +x minitest.sh
-        ./minitest.sh
+        chmod +x bash/minitest.sh
+        ./bash/minitest.sh
 
     - name: Upload mini-test website as artifact
       uses: actions/upload-artifact@v4
