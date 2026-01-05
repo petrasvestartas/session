@@ -32,7 +32,7 @@ Session is a geometry kernel for datastructures:
 24. `vertex`
 25. `xform`
 
-## Aim
+## Goals
 
 The aim is to display serialized geometry for short time sessions, mostly code development, in a web browser via a Rust‑written wgpu viewer.
 I am learning engineering and math problems, so I need something that I know very well and can debug.
