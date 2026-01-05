@@ -53,6 +53,16 @@ The repository is split between 5 submodule, each contains build instructions:
 - [`session_data`](https://github.com/petrasvestartas/session_data.git) → Geometry Dataset
 - [`session_proto`](https://github.com/petrasvestartas/session_proto.git) → Schemas
 
+## Prerequisites
+
+| Tool | macOS | Ubuntu | Windows |
+|------|-------|--------|---------|
+| **CMake** | `brew install cmake` | `sudo apt install cmake` | [cmake.org](https://cmake.org/download/) |
+| **Python 3.11+** | `brew install python` | `sudo apt install python3` | [python.org](https://python.org) |
+| **Rust** | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` | same | [rustup.rs](https://rustup.rs) |
+| **Node.js 20+** | `brew install node` | `sudo apt install nodejs npm` | [nodejs.org](https://nodejs.org) |
+| **C++ compiler** | `xcode-select --install` | `sudo apt install build-essential` | [Visual Studio](https://visualstudio.microsoft.com/) |
+
 ## Getting Started
 
 Clone with all submodules:
