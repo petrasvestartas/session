@@ -40,3 +40,29 @@ Download pre-built protoc binaries from GitHub releases (same approach as sessio
 - Windows build time: ~5 min → ~30 sec
 - All platforms use same protoc version (v29.0)
 - Consistent with session_proto approach
+
+---
+
+## Status
+
+### A) ✅ Completed
+- build.rs updated to download pre-built protoc
+- Cargo.toml: replaced protobuf-src with ureq + zip
+
+### B) ✅ Local test passed
+- Build time: ~40 sec (vs ~2+ min with protobuf-src)
+- All Rust test JSON files generated correctly
+
+### C) 🔄 GitHub Actions in progress
+- Run ID: 20730038175
+- All 4 platforms running
+
+### D) ✅ build-cpp.yml analysis
+- **Keep it**: runs different tests (`tests` vs `point_minitest`)
+- Manual trigger only - doesn't waste CI minutes
+
+### E) ✅ Newer versions available
+- Current: v29.0
+- Latest: **v33.2** (Dec 2025)
+- All versions v29-v33 have pre-built binaries
+- Consider upgrading after current tests pass
