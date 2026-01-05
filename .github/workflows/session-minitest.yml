@@ -11,7 +11,19 @@ permissions:
 
 jobs:
   minitest:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            protoc_install: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+          - os: macos-15
+            protoc_install: brew install protobuf
+          - os: macos-15-intel
+            protoc_install: brew install protobuf
+          - os: windows-latest
+            protoc_install: choco install protoc -y
+
+    runs-on: ${{ matrix.os }}
     env:
       MINITEST_JOBS: "4"
 
@@ -23,7 +35,6 @@ jobs:
 
     # ============ CACHING ============
 
-    # Cache Rust cargo
     - name: Cache Rust Cargo
       uses: actions/cache@v4
       with:
@@ -33,13 +44,14 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           session_rust/target/
-        key: rust-${{ runner.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
-        restore-keys: rust-${{ runner.os }}-
+        key: rust-${{ matrix.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
+        restore-keys: rust-${{ matrix.os }}-
 
     # ============ SETUP ============
 
     - name: Install protobuf compiler
-      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+      shell: bash
+      run: ${{ matrix.protoc_install }}
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -68,14 +80,25 @@ jobs:
     - name: Upload mini-test website as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: session-mini-tests-website
+        name: session-mini-tests-website-${{ matrix.os }}
         path: session_tests/dist
 
+  deploy:
+    needs: [minitest]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Download Ubuntu artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: session-mini-tests-website-ubuntu-22.04
+        path: dist
+
     - name: Deploy mini-test website to GitHub Pages
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./session_tests/dist
+        publish_dir: ./dist
         publish_branch: gh-pages
         force_orphan: true
