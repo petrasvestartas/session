@@ -117,7 +117,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.198,
     "line": 97,
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::with_name(1.5, 2.5, 3.5, \"test_point\");\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"test_point.json\";\n        p.to_json(filename).unwrap();\n        let loaded = Point::from_json(filename).unwrap();\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.069,
+    "time_ms": 0.077,
     "line": 124,
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::new(1.5, 2.5, 3.5);\n        p.name = \"test_point\".to_string();\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"test_point.bin\";\n        p.protobuf_dump(filename);\n        let loaded = Point::protobuf_load(filename);\n",
     "checks": [

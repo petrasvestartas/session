@@ -47,7 +47,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.029,
     "line": 244,
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        mesh.xform = Xform::translation(10.0, 20.0, 30.0);\n        let mesh_transformed = mesh.transformed();\n        mesh.transform();\n\n        let pos0 = mesh.vertex_position(v0).unwrap();",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.142,
+    "time_ms": 0.138,
     "line": 269,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let filename = \"test_mesh.json\";\n        mesh.to_json(filename).unwrap();\n        let loaded = Mesh::from_json(filename).unwrap();\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.111,
+    "time_ms": 0.116,
     "line": 292,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh_proto\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let filename = \"test_mesh.bin\";\n        mesh.protobuf_dump(filename);\n        let loaded = Mesh::protobuf_load(filename);\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "vertex_normal",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.02,
     "line": 331,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = mesh.add_vertex(Point::new(1.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v3], None);\n        mesh.add_face(vec![v0, v3, v2], None);\n\n        let normal = mesh.vertex_normal(v0).unwrap();",
     "checks": [
