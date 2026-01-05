@@ -49,8 +49,19 @@ jobs:
 
     # ============ SETUP ============
 
-    - name: Set up Rust
-      uses: dtolnay/rust-toolchain@stable
+    - name: Set up Rust (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Set up Rust (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install rustup.install -y
+        rustup default stable
+        echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      shell: pwsh
 
     - name: Set up Python
       uses: actions/setup-python@v5
