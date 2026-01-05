@@ -39,7 +39,19 @@ REPO_ROOT="${SCRIPT_DIR}/.."
 TESTS_DIR="${REPO_ROOT}/session_tests"
 
 VENV_DIR="${REPO_ROOT}/uvsession"
-PYTHON="${VENV_DIR}/bin/python"
+
+# Detect Windows (Git Bash, MSYS2, etc.)
+IS_WINDOWS=false
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ -n "$MSYSTEM" ]]; then
+  IS_WINDOWS=true
+fi
+
+# Python path differs on Windows
+if [ "$IS_WINDOWS" = true ]; then
+  PYTHON="${VENV_DIR}/Scripts/python.exe"
+else
+  PYTHON="${VENV_DIR}/bin/python"
+fi
 
 ###############################################################################
 # SINGLE DEFINITION: Add new class names here to include them in tests
@@ -124,7 +136,7 @@ ensure_python_env() {
   # Prefer uv: create/manage environment from pyproject.toml manifest
   if command -v uv >/dev/null 2>&1; then
     # Create uv-managed virtual environment if it does not exist yet
-    if [ ! -x "${PYTHON}" ]; then
+    if [ ! -f "${PYTHON}" ]; then
       echo "[mini] Creating Python environment with uv at ${VENV_DIR}..."
       ( cd "${REPO_ROOT}" && uv venv uvsession ) || {
         echo "[mini] uv failed to create virtual environment."
@@ -132,7 +144,7 @@ ensure_python_env() {
       }
     fi
 
-    if [ ! -x "${PYTHON}" ]; then
+    if [ ! -f "${PYTHON}" ]; then
       echo "[mini] Failed to create Python environment at ${VENV_DIR}"
       return 1
     fi
@@ -153,20 +165,25 @@ ensure_python_env() {
   fi
 
   # Fallback: use system python3 + venv + pip if uv is not available
-  if [ ! -x "${PYTHON}" ]; then
-    echo "[mini] Creating Python environment at ${VENV_DIR} with python3 -m venv..."
-    if command -v python3 >/dev/null 2>&1; then
-      ( cd "${REPO_ROOT}" && python3 -m venv uvsession ) || {
-        echo "[mini] python3 -m venv failed."
+  if [ ! -f "${PYTHON}" ]; then
+    echo "[mini] Creating Python environment at ${VENV_DIR} with python -m venv..."
+    # On Windows, python3 may not exist, use python instead
+    local PY_CMD="python3"
+    if [ "$IS_WINDOWS" = true ]; then
+      PY_CMD="python"
+    fi
+    if command -v $PY_CMD >/dev/null 2>&1; then
+      ( cd "${REPO_ROOT}" && $PY_CMD -m venv uvsession ) || {
+        echo "[mini] $PY_CMD -m venv failed."
         return 1
       }
     else
-      echo "[mini] Neither 'uv' nor 'python3' is available; cannot create Python environment."
+      echo "[mini] Neither 'uv' nor '$PY_CMD' is available; cannot create Python environment."
       return 1
     fi
   fi
 
-  if [ ! -x "${PYTHON}" ]; then
+  if [ ! -f "${PYTHON}" ]; then
     echo "[mini] Failed to create Python environment at ${VENV_DIR}"
     return 1
   fi
@@ -198,7 +215,13 @@ JOBS="${MINITEST_JOBS:-$(nproc 2>/dev/null || echo 4)}"
 if [ "${RUN_CPP}" = true ]; then
   echo "[mini] Building C++ project (session_cpp) with ${JOBS} jobs..."
   if [ -d "${CPP_DIR}" ]; then
-    ( cd "${CPP_DIR}" && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >/dev/null && cmake --build build --config Release -- -j"${JOBS}" )
+    ( cd "${CPP_DIR}" && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >/dev/null )
+    # MSBuild uses different parallel syntax than make/ninja
+    if [ "$IS_WINDOWS" = true ]; then
+      ( cd "${CPP_DIR}" && cmake --build build --config Release --parallel "${JOBS}" )
+    else
+      ( cd "${CPP_DIR}" && cmake --build build --config Release -- -j"${JOBS}" )
+    fi
     BUILD_STATUS=$?
     if [ $BUILD_STATUS -ne 0 ]; then
       echo "[mini] C++ build failed (session_cpp)."
@@ -211,13 +234,24 @@ if [ "${RUN_CPP}" = true ]; then
 
   # Run all C++ mini tests (one combined executable)
   echo "[mini] Running C++ mini tests (point_minitest)..."
-  if [ -x "${CPP_DIR}/build/point_minitest" ]; then
-    CPP_EXE="./build/point_minitest"
-  elif [ -x "${CPP_DIR}/build/Release/point_minitest" ]; then
-    CPP_EXE="./build/Release/point_minitest"
+  if [ "$IS_WINDOWS" = true ]; then
+    if [ -f "${CPP_DIR}/build/Release/point_minitest.exe" ]; then
+      CPP_EXE="./build/Release/point_minitest.exe"
+    elif [ -f "${CPP_DIR}/build/point_minitest.exe" ]; then
+      CPP_EXE="./build/point_minitest.exe"
+    else
+      echo "[mini] C++ executable 'point_minitest.exe' not found even after build."
+      exit 1
+    fi
   else
-    echo "[mini] C++ executable 'point_minitest' not found even after build."
-    exit 1
+    if [ -x "${CPP_DIR}/build/point_minitest" ]; then
+      CPP_EXE="./build/point_minitest"
+    elif [ -x "${CPP_DIR}/build/Release/point_minitest" ]; then
+      CPP_EXE="./build/Release/point_minitest"
+    else
+      echo "[mini] C++ executable 'point_minitest' not found even after build."
+      exit 1
+    fi
   fi
 
   ( cd "${CPP_DIR}" && "${CPP_EXE}" )
