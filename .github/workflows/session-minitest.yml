@@ -49,6 +49,9 @@ jobs:
 
     # ============ SETUP ============
 
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
