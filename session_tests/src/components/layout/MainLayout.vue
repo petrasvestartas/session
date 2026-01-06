@@ -24,7 +24,7 @@
             <i class="fa-brands fa-rust repo-icon"></i>
           </a>
           <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
-            <i class="fa-solid fa-file-code repo-icon"></i>
+            <i class="fa-solid fa-file repo-icon"></i>
           </a>
           <a href="https://github.com/petrasvestartas/session_data" target="_blank" class="repo-link" title="Data">
             <i class="fa-solid fa-folder repo-icon"></i>
@@ -343,6 +343,10 @@ onUnmounted(() => {
   width: 18px;
   height: 18px;
   font-size: 18px;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .suites-section {
