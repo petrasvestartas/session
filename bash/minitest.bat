@@ -99,12 +99,19 @@ if not exist "%CPP_DIR%" (
     goto :skip_cpp
 )
 pushd "%CPP_DIR%"
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release >nul 2>&1
+echo [mini] Configuring C++ with CMake...
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+if errorlevel 1 (
+    echo [mini] C++ CMake configuration failed.
+    popd
+    exit /b 1
+)
+echo [mini] Building C++...
 cmake --build build --config Release
 if errorlevel 1 (
     echo [mini] C++ build failed.
     popd
-    goto :skip_cpp
+    exit /b 1
 )
 popd
 echo [mini] Running C++ mini tests...
