@@ -6,15 +6,30 @@
       </button>
 
       <div v-if="!sidebarCollapsed" class="nav-section">
-        <a
-          href="https://github.com/petrasvestartas/session"
-          target="_blank"
-          class="nav-button github-link"
-          title="GitHub">
-          <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-        </a>
+        <div class="repo-icons">
+          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" title="Session">
+            <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+          </a>
+          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" title="C++">
+            <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
+            </svg>
+          </a>
+          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" title="Python">
+            <i class="fa-brands fa-python repo-icon"></i>
+          </a>
+          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" title="Rust">
+            <i class="fa-brands fa-rust repo-icon"></i>
+          </a>
+          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
+            <i class="fa-solid fa-file-code repo-icon"></i>
+          </a>
+          <a href="https://github.com/petrasvestartas/session_data" target="_blank" class="repo-link" title="Data">
+            <i class="fa-solid fa-folder repo-icon"></i>
+          </a>
+        </div>
 
         <div
           class="nav-button"
@@ -304,19 +319,30 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-.github-link {
+.repo-icons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.repo-link {
   color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s;
   display: flex;
   align-items: center;
 }
 
-.github-link:hover {
+.repo-link:hover {
   color: #aaaaaa;
 }
 
-.github-icon {
-  width: 21px;
-  height: 21px;
+.repo-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
 }
 
 .suites-section {
