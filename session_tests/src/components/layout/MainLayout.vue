@@ -7,12 +7,12 @@
 
       <div v-if="!sidebarCollapsed" class="nav-section">
         <div class="repo-icons">
-          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" title="Session">
+          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session === 'failure' }" title="Session">
             <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
           </a>
-          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" title="C++">
+          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_cpp === 'failure' }" title="C++">
             <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
             </svg>
@@ -23,7 +23,7 @@
           <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" title="Rust">
             <i class="fa-brands fa-rust repo-icon"></i>
           </a>
-          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
+          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_proto === 'failure' }" title="Protobuf">
             <i class="fa-solid fa-file repo-icon"></i>
           </a>
           <a href="https://github.com/petrasvestartas/session_data" target="_blank" class="repo-link" title="Data">
@@ -111,6 +111,34 @@ const selectedSuite = ref('');
 const testsMenuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 
+const buildStatus = ref({
+  session: null,
+  session_cpp: null,
+  session_proto: null
+});
+
+const fetchBuildStatus = async (repo) => {
+  try {
+    const response = await fetch(`https://api.github.com/repos/petrasvestartas/${repo}/actions/runs?per_page=1`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.workflow_runs && data.workflow_runs.length > 0) {
+      return data.workflow_runs[0].conclusion;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const loadBuildStatuses = async () => {
+  const repos = ['session', 'session_cpp', 'session_proto'];
+  for (const repo of repos) {
+    const status = await fetchBuildStatus(repo);
+    buildStatus.value[repo.replace('-', '_')] = status;
+  }
+};
+
 // CLI height in pixels (resizable)
 const cliHeight = ref(200);
 const minCliHeight = 50;
@@ -175,6 +203,7 @@ const selectSuite = (suite) => {
 onMounted(() => {
   loadSuitesFromTestData();
   syncSelectedSuiteWithRoute();
+  loadBuildStatuses();
 });
 
 watch(
@@ -337,6 +366,14 @@ onUnmounted(() => {
 
 .repo-link:hover {
   color: #aaaaaa;
+}
+
+.repo-link.build-failed {
+  color: #ff5555;
+}
+
+.repo-link.build-failed:hover {
+  color: #ff8888;
 }
 
 .repo-icon {
