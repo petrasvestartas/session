@@ -351,9 +351,9 @@ onUnmounted(() => {
 .repo-icons {
   display: flex;
   flex-direction: row;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem;
+  flex-wrap: nowrap;
 }
 
 .repo-link {
@@ -377,9 +377,9 @@ onUnmounted(() => {
 }
 
 .repo-icon {
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
   text-align: center;
   display: inline-flex;
   justify-content: center;
