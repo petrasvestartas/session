@@ -1,13 +1,20 @@
 <template>
   <div class="install-view">
     <main class="install-main">
-      <h3 class="section-title">Installation Guide</h3>
       <table>
         <thead>
           <tr>
-            <th>C++</th>
-            <th>Python</th>
-            <th>Rust</th>
+            <th>
+              <svg class="lang-icon" viewBox="0 0 24 24" fill="currentColor" title="C++">
+                <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
+              </svg>
+            </th>
+            <th>
+              <i class="fa-brands fa-python lang-icon" title="Python"></i>
+            </th>
+            <th>
+              <i class="fa-brands fa-rust lang-icon" title="Rust"></i>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -480,10 +487,12 @@ const copyCode = (text) => {
 </script>
 
 <style scoped>
+/* Install View - Pure black theme */
 .install-view {
   padding: 1.5rem 0;
   height: 100%;
   box-sizing: border-box;
+  background: #000000;
 }
 
 .install-main {
@@ -492,38 +501,52 @@ const copyCode = (text) => {
 }
 
 .section-title {
-  background: #2563eb;
-  color: white;
-  padding: 0.5rem 0.75rem;
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+  background: #000000;
+  color: #ffffff;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+  font-size: 14px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 0;
+  border: none;
+  text-align: center;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: #000000;
+  box-shadow: none;
   table-layout: fixed;
 }
 
 th, td {
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #e0e0e0;
+  border: none;
   vertical-align: top;
+  color: #aaaaaa;
 }
 
 th {
-  background: #fafafa;
+  background: #000000;
   text-align: left;
   font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  border: none;
 }
 
-th:last-child, td:last-child {
-  border-right: none;
+.lang-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.lang-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .lang-col {
@@ -532,7 +555,8 @@ th:last-child, td:last-child {
 
 .row-header td {
   padding-top: 0.75rem;
-  background: #f9fafb;
+  background: #000000;
+  color: #ffffff;
 }
 
 .install-card {
@@ -544,7 +568,11 @@ th:last-child, td:last-child {
 .install-card p {
   margin: 0;
   font-size: 0.9rem;
-  color: #333;
+  color: #aaaaaa;
+}
+
+.install-card p strong {
+  color: #ffffff;
 }
 
 .install-card ul {
@@ -555,51 +583,55 @@ th:last-child, td:last-child {
 .install-card li {
   margin: 0.15rem 0;
   font-size: 0.9rem;
+  color: #aaaaaa;
 }
 
 .install-card a {
-  color: #2563eb;
+  color: #5588ff;
   text-decoration: none;
 }
 
 .install-card a:hover {
   text-decoration: underline;
+  color: #77aaff;
 }
 
 .os-section {
   padding: 0.75rem 0;
-  border-bottom: 2px solid #e5e7eb;
+  border: none;
 }
 
 .os-section:last-child {
-  border-bottom: none;
+  border: none;
 }
 
 .os-header {
-  background: #2563eb;
+  background: #000000;
   color: white;
-  padding: 0.4rem 0.6rem;
+  padding: 0.4rem 0;
   margin: 0 0 0.5rem 0;
   font-size: 0.95rem;
   font-weight: 600;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .code-shell {
   position: relative;
   margin: 0.25rem 0;
-  background: #ffffff;
+  background: #0f0f0f;
   border-radius: 4px;
+  border: none;
 }
 
 .code-shell pre {
   margin: 0;
-  padding: 0.5rem;
+  padding: 0.75rem;
   overflow-x: auto;
+  background: transparent;
 }
 
 .code-shell code {
-  color: #002050;
+  color: #5588ff;
   font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -611,29 +643,31 @@ th:last-child, td:last-child {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #2563eb;
+  background: #444444;
   cursor: pointer;
 }
 
 .code-copy-btn:hover {
-  background: #1d4ed8;
+  background: #666666;
 }
 
 code {
-  background: #e5e7eb;
+  background: #000000;
   padding: 0.1rem 0.3rem;
-  border-radius: 3px;
+  border-radius: 0;
   font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
   font-size: 0.85em;
+  color: #888888;
 }
 
 .code-shell code {
   background: none;
   padding: 0;
+  color: #5588ff;
 }
 </style>

@@ -1,13 +1,20 @@
 <template>
   <div class="test-layout">
     <main class="test-main">
-      <h3 v-if="groupedTests.length" class="section-title">Tests</h3>
       <table v-if="groupedTests.length">
         <thead>
           <tr>
-            <th>C++</th>
-            <th>Python</th>
-            <th>Rust</th>
+            <th>
+              <svg class="lang-icon" viewBox="0 0 24 24" fill="currentColor" title="C++">
+                <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
+              </svg>
+            </th>
+            <th>
+              <i class="fa-brands fa-python lang-icon" title="Python"></i>
+            </th>
+            <th>
+              <i class="fa-brands fa-rust lang-icon" title="Rust"></i>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -22,7 +29,7 @@
             <td class="lang-col">
               <div v-if="g.cpp" class="test-card">
                 <div :class="['tag', g.cpp.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'cpp')">
-                  {{ g.cpp.passed ? 'passed' : 'failed' }} ({{ formatTime(g.cpp.time_ms) }} ms)
+                  <i :class="g.cpp.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.cpp.time_ms) }} ms
                 </div>
                 <div v-if="g.cpp.code" class="code-shell">
                   <button
@@ -67,7 +74,7 @@
             <td class="lang-col">
               <div v-if="g.python" class="test-card">
                 <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
-                  {{ g.python.passed ? 'passed' : 'failed' }} ({{ formatTime(g.python.time_ms) }} ms)
+                  <i :class="g.python.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.python.time_ms) }} ms
                 </div>
                 <div v-if="g.python.code" class="code-shell">
                   <button
@@ -112,7 +119,7 @@
             <td class="lang-col">
               <div v-if="g.rust" class="test-card">
                 <div :class="['tag', g.rust.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'rust')">
-                  {{ g.rust.passed ? 'passed' : 'failed' }} ({{ formatTime(g.rust.time_ms) }} ms)
+                  <i :class="g.rust.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.rust.time_ms) }} ms
                 </div>
                 <div v-if="g.rust.code" class="code-shell">
                   <button
@@ -328,16 +335,21 @@ const timeStyle = (group, lang) => {
   const t = group[lang]
   if (!t || typeof t.time_ms !== "number") return {}
 
+  // Failed tests are always red
+  if (!t.passed) {
+    return { color: '#ff5555' }
+  }
+
   const times = [group.python, group.cpp, group.rust]
-    .filter(x => x && typeof x.time_ms === "number")
+    .filter(x => x && typeof x.time_ms === "number" && x.passed)
     .map(x => x.time_ms)
-  if (!times.length) return {}
+  if (!times.length) return { color: '#ffffff' }
 
   const min = Math.min(...times)
   const max = Math.max(...times)
 
   if (max === min) {
-    return { background: "hsl(140, 60%, 92%)" }
+    return { color: '#ffffff' }
   }
 
   const value = t.time_ms
@@ -345,14 +357,12 @@ const timeStyle = (group, lang) => {
   if (ratio < 0) ratio = 0
   if (ratio > 1) ratio = 1
 
-  const start = { h: 140, s: 60, l: 90 }
-  const end = { h: 210, s: 80, l: 88 }
+  // White (fast) to blue #5588ff (slow) for passed tests
+  const r = Math.round(255 + (0x55 - 255) * ratio)
+  const g = Math.round(255 + (0x88 - 255) * ratio)
+  const b = Math.round(255 + (0xff - 255) * ratio)
 
-  const h = start.h + (end.h - start.h) * ratio
-  const s = start.s + (end.s - start.s) * ratio
-  const l = start.l + (end.l - start.l) * ratio
-
-  return { background: `hsl(${h}, ${s}%, ${l}%)` }
+  return { color: `rgb(${r}, ${g}, ${b})` }
 }
 
 const failingChecks = (t) => {
@@ -479,7 +489,7 @@ const copyProto = (content) => {
 </script>
 
 <style scoped>
-/* Test viewer styles */
+/* Test viewer styles - Pure black theme */
 .test-layout {
   display: flex;
   height: 100%;
@@ -487,12 +497,13 @@ const copyProto = (content) => {
 .sidebar {
   width: 180px;
   flex-shrink: 0;
-  background: #2563eb;
+  background: #000000;
 }
 .sidebar-title {
   font-weight: 600;
   margin-bottom: 0.5rem;
   font-size: 16px;
+  color: #ffffff;
 }
 .suite-pill {
   display: block;
@@ -502,17 +513,17 @@ const copyProto = (content) => {
   border: none;
   border-left: 3px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.8);
+  color: #aaaaaa;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .suite-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #111111;
   color: #ffffff;
 }
 .suite-pill.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: #111111;
   color: #ffffff;
   border-left-color: #ffffff;
 }
@@ -524,37 +535,50 @@ const copyProto = (content) => {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: #000000;
+  box-shadow: none;
   table-layout: fixed;
 }
 th, td {
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #e0e0e0;
+  border: none;
   vertical-align: top;
+  color: #aaaaaa;
 }
 th {
-  background: #fafafa;
+  background: #000000;
   text-align: left;
   font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  border: none;
 }
-th:last-child, td:last-child {
-  border-right: none;
+
+.lang-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.lang-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
 }
 .tag {
   display: inline-block;
-  padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
+  padding: 0.2rem 0;
   font-weight: 600;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
 }
 .tag-pass {
-  background: #e3f9e5;
-  color: #000;
+  color: #50fa7b;
 }
 .tag-fail {
-  background: #fdecea;
-  color: #b00020;
+  color: #ff5555;
 }
 pre {
   margin: 0;
@@ -563,41 +587,43 @@ pre {
   padding: 0;
 }
 .test-card pre code {
-  white-space: pre-wrap;      /* allow wrapping of long lines */
+  white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
 .code-shell {
   position: relative;
   margin: 0.25rem 0 0.5rem 0;
-  background: #ffffff;
+  background: #0f0f0f;
   border-radius: 4px;
+  border: none;
 }
 
 .code-shell pre {
   margin: 0;
-  padding: 0;
+  padding: 0.75rem;
+  background: transparent;
 }
 
 .code-copy-btn {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #2563eb;
+  background: #444444;
   cursor: pointer;
 }
 
 .code-copy-btn:hover {
-  background: #1d4ed8;
+  background: #666666;
 }
 .failures {
   margin-top: 0.35rem;
-  color: #b00020;
+  color: #ff5555;
 }
 .exceptions {
   margin-top: 0.35rem;
@@ -605,6 +631,7 @@ pre {
 .error-message {
   margin-top: 0.15rem;
   font-family: monospace;
+  color: #ff5555;
 }
 .test-card {
   display: flex;
@@ -616,12 +643,14 @@ pre {
 }
 .missing {
   font-size: 0.8rem;
-  color: #bbb;
+  color: #666666;
   font-style: italic;
 }
 .test-name-row td {
   padding-top: 0.75rem;
   font-weight: 600;
+  color: #ffffff;
+  background: #000000;
 }
 .lang-col {
   width: 33.33%;
@@ -629,56 +658,73 @@ pre {
 .artifacts-section {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 2px solid #e0e0e0;
+  border: none;
 }
 .section-title {
-  background: #2563eb;
-  color: white;
-  padding: 0.5rem 0.75rem;
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+  background: #000000;
+  color: #ffffff;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+  font-size: 14px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 0;
+  border: none;
+  text-align: center;
 }
 .artifacts-section h3 {
   margin: 0 0 1rem 0;
 }
 .artifact-card {
   position: relative;
-  background: #fafafa;
-  border-radius: 4px;
-  padding: 0.5rem;
+  background: #000000;
+  border-radius: 0;
+  padding: 0.5rem 0;
+  border: none;
 }
 .artifact-card pre {
   margin: 0;
   font-size: 0.85rem;
   white-space: pre-wrap;
   word-wrap: break-word;
+  color: #aaaaaa;
 }
 </style>
 
 <style>
-/* Highlight.js overrides (global) */
+/* Highlight.js overrides (global) - Pure black theme */
 .hljs {
-  color: #002050 !important;
+  color: #aaaaaa !important;
+  background: transparent !important;
 }
-.hljs-keyword, .hljs-built_in, .hljs-type, .hljs-title,
-.hljs-title.class_, .hljs-title.function_, .hljs-variable.language_ {
-  color: #0050d7 !important;
+.hljs-keyword, .hljs-built_in, .hljs-type {
+  color: #5588ff !important;
   font-weight: 600;
 }
+.hljs-title, .hljs-title.class_, .hljs-title.function_ {
+  color: #ffff55 !important;
+  font-weight: 600;
+}
+.hljs-variable.language_ {
+  color: #88bbff !important;
+}
 .hljs-property, .hljs-variable, .hljs-attribute, .hljs-attr,
-.hljs-params, .hljs-symbol, .hljs-meta {
-  color: #003c99 !important;
+.hljs-params, .hljs-symbol {
+  color: #88bbff !important;
+}
+.hljs-meta {
+  color: #ff88ff !important;
 }
 .hljs-string, .hljs-char, .hljs-template-variable {
-  color: #1a66cc !important;
+  color: #ffaa55 !important;
 }
-.hljs-number, .hljs-literal, .hljs-operator {
-  color: #3399ff !important;
+.hljs-number, .hljs-literal {
+  color: #bb88ff !important;
+}
+.hljs-operator {
+  color: #ffffff !important;
 }
 .hljs-comment {
-  color: #5c6f91 !important;
+  color: #888888 !important;
   font-style: italic;
 }
 </style>

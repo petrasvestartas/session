@@ -24,8 +24,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #f5f5f7;
-  color: #222;
+  background: #000000;
+  color: #ffffff;
   font-size: 14px;
 }
 

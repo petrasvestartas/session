@@ -1,18 +1,5 @@
 <template>
-  <div class="cli-interface">
-    <div class="cli-input-wrapper">
-      <div class="cli-input-container">
-        <input 
-          type="text" 
-          class="cli-input" 
-          v-model="currentInput"
-          @keydown.enter="executeCommand"
-          :placeholder="inputPlaceholder"
-          ref="inputRef"
-        />
-      </div>
-    </div>
-
+  <div class="cli-interface" ref="containerRef">
     <div class="cli-results-wrapper">
       <div class="cli-results-container">
         <div class="cli-messages" ref="outputRef">
@@ -30,11 +17,24 @@
         </div>
       </div>
     </div>
+
+    <div class="cli-input-wrapper">
+      <div class="cli-input-container">
+        <input
+          type="text"
+          class="cli-input"
+          v-model="currentInput"
+          @keydown.enter="executeCommand"
+          :placeholder="inputPlaceholder"
+          ref="inputRef"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { getClaudeApiKey } from '../firebase.js'
 
 const props = defineProps({
@@ -45,6 +45,8 @@ const history = ref([])
 const currentInput = ref('')
 const outputRef = ref(null)
 const inputRef = ref(null)
+const containerRef = ref(null)
+let resizeObserver = null
 
 // API key management - fetched from Firebase
 const apiKey = ref('')
@@ -65,6 +67,23 @@ onMounted(async () => {
     apiKeyError.value = `Firebase error: ${err.message}`
   } finally {
     apiKeyLoading.value = false
+  }
+
+  if (containerRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      nextTick(() => {
+        if (outputRef.value) {
+          outputRef.value.scrollTop = outputRef.value.scrollHeight
+        }
+      })
+    })
+    resizeObserver.observe(containerRef.value)
+  }
+})
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
   }
 })
 
@@ -90,6 +109,11 @@ const searchConcepts = (query, maxResults = 3) => {
     const nameLower = concept.name.toLowerCase()
     const methodName = concept.name.split('.')[1] || ''
 
+    // Skip if language filter doesn't match
+    if (langFilter && !concept.implementations[langFilter]) {
+      return { ...concept, score: 0 }
+    }
+
     // Exact method name match
     if (methodName && queryLower.includes(methodName.toLowerCase())) score += 100
     // Class name match
@@ -100,8 +124,8 @@ const searchConcepts = (query, maxResults = 3) => {
     }
     // Constructor patterns
     if ((queryLower.includes('create') || queryLower.includes('new') || queryLower.includes('how to')) &&
-        (methodName === '__init__' || methodName === 'new' || methodName === 'with_name')) {
-      score += 50
+        (methodName === '__init__' || methodName === 'new' || methodName === 'constructor')) {
+      score += 100
     }
 
     return { ...concept, score }
@@ -113,12 +137,12 @@ const searchConcepts = (query, maxResults = 3) => {
     .sort((a, b) => b.score - a.score)
     .slice(0, maxResults)
 
-  // Apply language filter if specified
+  // Keep only requested language in output
   if (langFilter) {
     results = results.map(c => ({
       ...c,
       implementations: { [langFilter]: c.implementations[langFilter] }
-    })).filter(c => Object.keys(c.implementations).length > 0 && c.implementations[langFilter])
+    }))
   }
 
   return { results, error: null, langFilter }
@@ -131,16 +155,33 @@ const CLAUDE_ENDPOINT = import.meta.env.PROD
 
 // Call Claude API with streaming support
 const callClaudeAPIStreaming = async (question, context, onChunk) => {
-  const systemPrompt = `You are a coding assistant for the Session geometry library (Python, C++, Rust).
+  const systemPrompt = `You are a coding assistant for the Session geometry library.
 
 RULES:
-- Start with ONE sentence describing what the method does
-- Show SIMPLE usage examples for ALL THREE languages (Python, C++, Rust)
-- Format: **Python:** then code block, **C++:** then code block, **Rust:** then code block
-- Each example should be 1-3 lines max, showing practical usage
-- Do NOT explain parameters unless asked
-- Do NOT show internal implementation details
-- Do NOT cite file names or line numbers`
+- ONE sentence description, then code examples
+- ALWAYS include imports in EVERY example using this exact format:
+
+For Python:
+\`\`\`python
+from session_py import ClassName
+obj = ClassName(args)
+\`\`\`
+
+For C++:
+\`\`\`cpp
+#include "session_cpp/classname.h"
+session_cpp::ClassName obj(args);
+\`\`\`
+
+For Rust:
+\`\`\`rust
+use session_rust::ClassName;
+let obj = ClassName::new(args);
+\`\`\`
+
+- Show only languages present in context
+- Use exact signatures from context
+- Keep examples to 2-3 lines max`
 
   const userMessage = `Question: ${question}
 
@@ -247,34 +288,29 @@ const buildContext = (concepts) => {
   return parts.join('\n')
 }
 
-// Generate clean answer from concepts (works without Claude)
+// Generate answer from concepts - shows actual code from source files
 const generateAnswer = (query, concepts) => {
   if (!concepts || concepts.length === 0) {
-    return `No results found for "${query}". Try: "distance", "Point", "Color", "create", "to_protobuf"`
+    return `No results found for "${query}". Try: "distance", "Point", "Color", "Line", "create"`
   }
 
   const best = concepts[0]
-  const methodName = best.name.split('.')[1] || best.name
-  const className = best.name.split('.')[0]
-  
-  // Generate clean usage examples
-  const examples = {
-    python: generateExample('python', className, methodName, best.implementations.python),
-    cpp: generateExample('cpp', className, methodName, best.implementations.cpp),
-    rust: generateExample('rust', className, methodName, best.implementations.rust),
-  }
-  
-  const lines = [`Use \`${best.name}\` to ${describeMethod(methodName)}:\n`]
-  
+  const lines = [`# ${best.name}\n`]
+
+  // Show actual code from each language implementation
   for (const lang of ['python', 'cpp', 'rust']) {
-    if (!examples[lang]) continue
+    const impl = best.implementations[lang]
+    if (!impl) continue
     const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-    lines.push(`**${langName}:**`)
+    lines.push(`**${langName}:** \`${impl.sig}\``)
     lines.push('```' + lang)
-    lines.push(examples[lang])
+    // Show first 15 lines of actual code
+    const codeLines = impl.code.split('\n').slice(0, 15)
+    lines.push(codeLines.join('\n'))
+    if (impl.code.split('\n').length > 15) lines.push('// ...')
     lines.push('```\n')
   }
-  
+
   return lines.join('\n')
 }
 
@@ -641,35 +677,37 @@ const executeCommand = async () => {
 </script>
 
 <style scoped>
-/* CLI Interface - resizable container (height controlled by parent flex) */
+/* CLI Interface - Pure black theme */
 .cli-interface {
   min-height: 160px;
-  background: #f9fafb;
-  border-top: 1px solid #f9fafb; /* same as background, visually hidden */
-  border-bottom: none;           /* no extra line; resizer provides the divider */
+  height: 100%;
+  background: linear-gradient(to bottom, #0a0a0a, #000000);
+  border: none;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;              /* keep content inside fixed CLI height */
+  overflow: hidden;
 }
 
 .cli-results-wrapper {
   flex: 1;
-  min-height: 0;                 /* allow wrapper to shrink and scroll inside */
-  padding: 0 1rem 1rem 1rem; /* same horizontal padding as input wrapper */
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.25rem 1.5rem 1rem 1.5rem;
 }
 
 .cli-results-container {
   width: 100%;
-  background: #ffffff;
-  border: 2px solid #d1d5db;
-  border-radius: 0;
+  background: #000000;
+  border: 1px solid #333333;
+  border-radius: 4px;
   box-sizing: border-box;
   height: 100%;
-  min-height: 0;                 /* allow inner messages to scroll */
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0.75rem;              /* same inner horizontal padding as input box */
+  padding: 0.75rem;
+  overflow: hidden;
 }
 
 /* Messages area */
@@ -678,17 +716,21 @@ const executeCommand = async () => {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0;                     /* padding now comes from results container */
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem; /* very small gap between messages */
+}
+
+.cli-messages::before {
+  content: '';
+  flex: 1 1 auto;
 }
 
 /* Welcome section */
 .cli-welcome {
   text-align: center;
   padding: 2rem 1rem;
-  color: #6b7280;
+  color: #888888;
 }
 .welcome-icon {
   font-size: 48px;
@@ -697,7 +739,7 @@ const executeCommand = async () => {
 .cli-welcome h2 {
   margin: 0 0 0.5rem 0;
   font-size: 24px;
-  color: #111827;
+  color: #ffffff;
 }
 .cli-welcome p {
   margin: 0.25rem 0;
@@ -706,14 +748,14 @@ const executeCommand = async () => {
 .welcome-hint {
   margin-top: 1rem;
   font-size: 13px;
-  color: #9ca3af;
+  color: #666666;
 }
 
 /* Message groups */
 .message-group {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem; /* almost no gap between lines in same message block */
+  gap: 0.05rem;
 }
 
 .message {
@@ -731,30 +773,31 @@ const executeCommand = async () => {
 .message-content {
   display: block;
   max-width: 100%;
-  padding: 0.05rem 0; /* minimal vertical padding */
+  padding: 0.05rem 0;
   font-size: 14px;
-  line-height: 1.3; /* tighter line height for more compact text */
+  line-height: 1.3;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
-  color: #111827;
+  color: #ffffff;
 }
 
 .command-message .message-content {
-  font-weight: 600; /* user-typed commands bold */
-  padding-right: 0.5rem; /* extra right offset to compensate for scrollbar */
+  font-weight: 600;
+  padding-right: 0.5rem;
+  color: #ffffff;
 }
 
 .error-text {
-  color: #dc2626;
+  color: #ff5555;
 }
 
 /* Input wrapper */
 .cli-input-wrapper {
-  padding: 1rem;
-  background: #ffffff;
-  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem 1rem 1.5rem;
+  background: #000000;
+  border: none;
 }
 
 .cli-input-container {
@@ -762,31 +805,30 @@ const executeCommand = async () => {
   margin: 0;
   display: flex;
   gap: 0.5rem;
-  background: white;
-  border: 2px solid #d1d5db;
-  border-radius: 0;
-  padding: 0.5rem 0.75rem;       /* match results container inner horizontal padding */
+  background: #000000;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
   transition: border-color 0.2s;
 }
 
 .cli-input-container:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #ffffff;
 }
 
 .cli-input {
   flex: 1;
   background: transparent;
   border: none;
-  font-size: 15px;
-  color: #111827;
+  font-size: 14px;
+  color: #ffffff;
   outline: none;
-  padding: 0.25rem 0;            /* vertical only; horizontal comes from container */
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 0.25rem 0;
+  font-family: inherit;
 }
 
 .cli-input::placeholder {
-  color: #9ca3af;
+  color: #666666;
 }
 
 .send-button {
@@ -794,8 +836,8 @@ const executeCommand = async () => {
   height: 40px;
   border-radius: 0.5rem;
   border: none;
-  background: #2563eb;
-  color: white;
+  background: #444444;
+  color: #000000;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -805,12 +847,12 @@ const executeCommand = async () => {
 }
 
 .send-button:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #666666;
   transform: scale(1.05);
 }
 
 .send-button:disabled {
-  background: #e5e7eb;
+  background: #333333;
   cursor: not-allowed;
 }
 
@@ -825,33 +867,33 @@ const executeCommand = async () => {
 }
 
 .cli-messages::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: #000000;
 }
 
 .cli-messages::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #333333;
   border-radius: 4px;
 }
 
 .cli-messages::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #444444;
 }
 
 /* Formatted answer styling */
 .code-block {
-  background: #f3f4f6;
-  border-left: 3px solid #3b82f6;
+  background: #000000;
+  border-left: 3px solid #444444;
   margin: 0.5rem 0;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 
 .code-lang {
-  background: #e5e7eb;
+  background: #000000;
   padding: 0.25rem 0.75rem;
   font-size: 11px;
   font-weight: 600;
-  color: #6b7280;
+  color: #666666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -862,24 +904,24 @@ const executeCommand = async () => {
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.5;
-  color: #059669;
-  background: #f9fafb;
+  color: #ffffff;
+  background: #000000;
   overflow-x: auto;
   white-space: pre;
 }
 
 .text-bold {
   font-weight: 600;
-  color: #0ea5e9;
+  color: #ffffff;
 }
 
 .text-dim {
-  color: #9ca3af;
+  color: #666666;
   font-size: 0.9em;
 }
 
 .text-comment {
-  color: #9ca3af;
+  color: #888888;
   font-style: italic;
 }
 
@@ -888,23 +930,23 @@ const executeCommand = async () => {
 }
 </style>
 
-<!-- Non-scoped styles for v-html content (formatAnswer) -->
+<!-- Non-scoped styles for v-html content (formatAnswer) - Pure black theme -->
 <style>
 /* Code block styling for dynamically inserted HTML */
 .cli-interface .message-content .code-block {
-  background: #f3f4f6;
-  border-left: 3px solid #3b82f6;
+  background: #000000;
+  border-left: 3px solid #444444;
   margin: 0.5rem 0;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 
 .cli-interface .message-content .code-lang {
-  background: #e5e7eb;
+  background: #000000;
   padding: 0.25rem 0.75rem;
   font-size: 11px;
   font-weight: 600;
-  color: #6b7280;
+  color: #666666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -915,24 +957,24 @@ const executeCommand = async () => {
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.5;
-  color: #059669;
-  background: #f9fafb;
+  color: #ffffff;
+  background: #000000;
   overflow-x: auto;
   white-space: pre;
 }
 
 .cli-interface .message-content .text-bold {
   font-weight: 600;
-  color: #0ea5e9;
+  color: #ffffff;
 }
 
 .cli-interface .message-content .text-dim {
-  color: #9ca3af;
+  color: #666666;
   font-size: 0.9em;
 }
 
 .cli-interface .message-content .text-comment {
-  color: #9ca3af;
+  color: #888888;
   font-style: italic;
 }
 
@@ -944,6 +986,6 @@ const executeCommand = async () => {
 
 .cli-interface .streaming-cursor {
   animation: blink 1s infinite;
-  color: #2563eb;
+  color: #5588ff;
 }
 </style>

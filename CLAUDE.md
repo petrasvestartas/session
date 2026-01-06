@@ -22,10 +22,6 @@ session_tests/   # Vue 3 test viewer
 
 ## Build
 
-```bash
-./bash/build.sh               # All languages
-```
-
 **C++:**
 ```bash
 cd session_cpp && mkdir -p build && cd build && cmake .. && make tests -j$(nproc)

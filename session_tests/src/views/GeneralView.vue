@@ -9,17 +9,18 @@
 <style scoped>
 .viewer-root {
   height: 100%;
+  background: #000000;
 }
 
 .viewer-area {
   height: 100%;
-  border-radius: 8px;
-  border: 2px dashed #ddd;
-  background: #ffffff;
+  border-radius: 0;
+  border: none;
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: #444444;
 }
 
 .viewer-placeholder-text {

@@ -85,8 +85,9 @@ watch(
 
 <style scoped>
 .tests-view {
-  padding: 1.5rem 0; /* vertical only; horizontal padding comes from content-area */
+  padding: 1.5rem 0;
   height: 100%;
   box-sizing: border-box;
+  background: #000000;
 }
 </style>

@@ -1,58 +1,76 @@
 <template>
   <div class="main-layout">
-    <nav class="tab-nav">
-      <router-link 
-        :to="'/viewer'"
-        class="tab-button"
-        active-class="active">
-        Viewer
-      </router-link>
+    <nav class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+      <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+        <span class="toggle-arrow">{{ sidebarCollapsed ? '○' : '●' }}</span>
+      </button>
 
-      <div 
-        class="tab-button tab-button-tests" 
-        :class="{ active: currentRoute === 'tests' }"
-        @click="openTestsMenu">
-        <span>Tests</span>
-        <span class="tests-tab-caret">▾</span>
+      <div v-if="!sidebarCollapsed" class="nav-section">
+        <a
+          href="https://github.com/petrasvestartas/session"
+          target="_blank"
+          class="nav-button github-link"
+          title="GitHub">
+          <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+
+        <div
+          class="nav-button"
+          :class="{ active: currentRoute === 'tests' }"
+          @click="openTestsMenu">
+          Tests
+        </div>
+
+        <div
+          v-if="testsMenuOpen && testsSuites.length"
+          class="suites-section">
+          <button
+            v-for="s in testsSuites"
+            :key="s"
+            type="button"
+            class="suite-button"
+            :class="{ active: s === selectedSuite }"
+            @click="selectSuite(s)">
+            {{ suiteLabel(s) }}
+          </button>
+        </div>
+
+        <router-link
+          :to="'/install'"
+          class="nav-button"
+          active-class="active">
+          Install
+        </router-link>
+
+        <router-link
+          :to="'/viewer'"
+          class="nav-button"
+          active-class="active">
+          Viewer
+        </router-link>
       </div>
-
-      <router-link 
-        :to="'/install'"
-        class="tab-button"
-        active-class="active">
-        Install
-      </router-link>
     </nav>
 
-    <div
-      v-if="testsMenuOpen && testsSuites.length"
-      class="tests-suite-bar"
-      @click.stop>
-      <button
-        v-for="s in testsSuites"
-        :key="s"
-        type="button"
-        class="tests-suite-button tab-button"
-        :class="{ active: s === selectedSuite }"
-        @click="selectSuite(s)">
-        {{ suiteLabel(s) }}
-      </button>
-    </div>
-
-    <div class="tab-content">
-      <!-- CLI Interface (top panel for all tabs, resizable) -->
-      <CliInterface
-        :active-tab="currentRoute"
-        :style="{ flex: '0 0 ' + cliHeight + 'px' }"
-      ></CliInterface>
-
-      <!-- Drag handle between CLI and page content -->
-      <div class="cli-resizer" @mousedown="startResize"></div>
-
-      <!-- Main page content below -->
+    <div class="main-content" :class="{ 'cli-is-expanded': cliExpanded }">
       <div class="content-area">
         <router-view></router-view>
       </div>
+
+      <div
+        class="cli-resizer"
+        :class="{ expanded: cliExpanded }"
+        @mousedown="startResize"
+        @click="toggleCliExpand">
+        <span class="resizer-arrow">{{ cliExpanded ? '●' : '○' }}</span>
+      </div>
+
+      <CliInterface
+        :active-tab="currentRoute"
+        :class="{ 'cli-expanded': cliExpanded }"
+        :style="cliExpanded ? {} : { flex: '0 0 ' + cliHeight + 'px' }"
+      ></CliInterface>
     </div>
   </div>
 </template>
@@ -76,13 +94,17 @@ const currentRoute = computed(() => {
 const testsSuites = ref([]);
 const selectedSuite = ref('');
 const testsMenuOpen = ref(false);
+const sidebarCollapsed = ref(false);
 
 // CLI height in pixels (resizable)
-const cliHeight = ref(325); // start slightly taller so answers area is higher
-const minCliHeight = 160;
-const maxCliHeight = 500;
+const cliHeight = ref(200);
+const minCliHeight = 50;
+const maxCliHeight = 10000;
+const cliExpanded = ref(false);
+let previousCliHeight = 200;
 let startY = 0;
 let startHeight = 0;
+let didDrag = false;
 
 const loadSuitesFromTestData = () => {
   if (typeof window === 'undefined' || typeof window.TEST_DATA === 'undefined') return;
@@ -156,11 +178,13 @@ watch(currentRoute, (val) => {
 });
 
 const onMouseMove = (event) => {
-  const delta = event.clientY - startY;
+  didDrag = true;
+  const delta = startY - event.clientY;
   let next = startHeight + delta;
   if (next < minCliHeight) next = minCliHeight;
   if (next > maxCliHeight) next = maxCliHeight;
   cliHeight.value = next;
+  cliExpanded.value = false;
 };
 
 const stopResize = () => {
@@ -170,10 +194,23 @@ const stopResize = () => {
 
 const startResize = (event) => {
   event.preventDefault();
+  didDrag = false;
   startY = event.clientY;
   startHeight = cliHeight.value;
   window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mouseup', stopResize);
+};
+
+const toggleCliExpand = () => {
+  if (didDrag) return;
+  if (cliExpanded.value) {
+    cliHeight.value = previousCliHeight;
+    cliExpanded.value = false;
+  } else {
+    previousCliHeight = cliHeight.value;
+    cliHeight.value = window.innerHeight - 32;
+    cliExpanded.value = true;
+  }
 };
 
 onUnmounted(() => {
@@ -185,131 +222,178 @@ onUnmounted(() => {
 .main-layout {
   height: 100vh;
   display: flex;
-  flex-direction: column;
-}
-
-.tab-nav {
-  display: flex;
-  background: #2563eb;
-  border-bottom: none;
-  padding: 0 1rem;
-}
-
-.tab-button {
-  padding: 1rem 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  transition: all 0.2s;
-  text-decoration: none;
-}
-
-.tab-button-tests {
+  flex-direction: row;
   position: relative;
+}
+
+.sidebar {
+  width: 180px;
+  background: linear-gradient(to right, #0a0a0a, #000000);
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.tab-button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.tab-button.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12); /* lighter, like submenu */
-}
-
-.tests-tab-caret {
-  font-size: 10px;
-}
-
-.tests-suite-bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 0;
+  flex-direction: column;
   padding: 0;
-  background: #2563eb;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transition: width 0.2s;
+  position: relative;
+  z-index: 100;
 }
 
-.tests-suite-button {
-  flex: 0 1 160px;
-  height: 44px;
-  margin: 0;
-  padding: 0;
+.sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
   background: transparent;
   border: none;
-  border-radius: 0;
-  color: rgba(255, 255, 255, 0.85);
-  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover .toggle-arrow {
+  color: #ffffff;
+}
+
+.toggle-arrow {
+  color: #444444;
+  font-size: 21px;
+  transition: color 0.2s;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  position: fixed;
+  left: 0;
+  right: auto;
+  height: 100vh;
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1.8rem;
+}
+
+.nav-button {
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 21px;
+  font-weight: 300;
+  color: #ffffff;
+  transition: all 0.2s;
+  text-decoration: none;
+  text-align: left;
+}
+
+.nav-button:hover {
+  color: #aaaaaa;
+}
+
+.nav-button.active {
+  background: #1a1a1a;
+  color: #ffffff;
   font-weight: 600;
+}
+
+.github-link {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.github-link:hover {
+  color: #aaaaaa;
+}
+
+.github-icon {
+  width: 21px;
+  height: 21px;
+}
+
+.suites-section {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1.5rem;
+}
+
+.suite-button {
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 300;
   text-transform: capitalize;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
+  text-align: left;
 }
 
-.tests-suite-button:hover {
+.suite-button:hover {
+  color: #aaaaaa;
+}
+
+.suite-button.active {
+  background: #1a1a1a;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  font-weight: 600;
 }
 
-.tests-suite-button.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.tab-content {
+.main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #000000;
   overflow: hidden;
 }
 
 .content-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.25rem 1rem 1rem 1rem;
   box-sizing: border-box;
+  background: #000000;
 }
 
 .cli-resizer {
-  flex: 0 0 4px;           /* 4px hit area */
+  flex: 0 0 20px;
   cursor: row-resize;
-  background: linear-gradient(
-    to bottom,
-    #f9fafb 0%,   /* match chat background on top half */
-    #f9fafb 50%,
-    #ffffff 50%,  /* match page background on bottom half */
-    #ffffff 100%
-  );
-  position: relative;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.cli-resizer:hover {
-  background: linear-gradient(
-    to bottom,
-    #f9fafb 0%,
-    #f9fafb 50%,
-    #ffffff 50%,
-    #ffffff 100%
-  );
+.cli-resizer:hover .resizer-arrow {
+  color: #ffffff;
 }
 
-.cli-resizer::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 1px;                   /* 1px visible line */
-  background: #e5e7eb;           /* same grey as other borders */
+.resizer-arrow {
+  color: #444444;
+  font-size: 21px;
+  transition: color 0.2s;
+  pointer-events: none;
+}
+
+.cli-expanded {
+  flex: 1 !important;
+}
+
+.cli-is-expanded .content-area {
+  flex: 0 0 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 </style>

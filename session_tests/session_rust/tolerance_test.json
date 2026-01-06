@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.006,
     "line": 49,
     "code": "        let result = TOLERANCE.key([1.0, 2.0, 3.0], -999);",
     "checks": [

@@ -28,12 +28,27 @@
     },
     {
       "splitTerminals": [
-        { "name": "claude-1", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude mcp", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "claude class structure", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     },
     {
       "splitTerminals": [
         { "name": "claude-2", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+      ]
+    },
+    {
+      "splitTerminals": [
+        { "name": "claude test validity", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
+      ]
+    },    
+    {
+      "splitTerminals": [
+        { "name": "claude vue template", "commands": ["cd /Users/petras/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     }
   ]
