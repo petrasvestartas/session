@@ -2,57 +2,57 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.226,
+    "time_ms": 0.186,
     "line": 11,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        // Minimal and Full String Representation\n        std::string cstr = curve.str();\n        std::string crepr = curve.repr();\n\n        // Copy (duplicates everything except guid)\n        NurbsCurve ccopy = curve;\n        NurbsCurve cother = NurbsCurve::create(false, 2, points);\n",
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.name = \"my_nurbscurve\";\n\n        // Minimal and Full String Representation\n        std::string cstr = curve.str();\n        std::string crepr = curve.repr();\n\n        // Copy (duplicates everything except guid)\n        NurbsCurve ccopy = curve;\n        NurbsCurve cother = NurbsCurve::create(false, 2, points);\n\n",
     "checks": [
       {
-        "line": 31,
+        "line": 32,
         "code_line": "curve.is_valid() == true",
         "passed": true
       },
       {
-        "line": 32,
+        "line": 33,
         "code_line": "curve.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 33,
+        "line": 34,
         "code_line": "curve.degree() == 2",
         "passed": true
       },
       {
-        "line": 34,
+        "line": 35,
         "code_line": "curve.order() == 3",
         "passed": true
       },
       {
-        "line": 35,
+        "line": 36,
         "code_line": "curve.name == \"my_nurbscurve\"",
         "passed": true
       },
       {
-        "line": 36,
+        "line": 37,
         "code_line": "!curve.guid.empty()",
         "passed": true
       },
       {
-        "line": 37,
+        "line": 38,
         "code_line": "cstr == \"degree=2, cvs=3\"",
         "passed": true
       },
       {
-        "line": 38,
+        "line": 39,
         "code_line": "crepr == \"NurbsCurve(my_nurbscurve, dim=3, order=3, cvs=3, rational=false)\"",
         "passed": true
       },
       {
-        "line": 39,
+        "line": 40,
         "code_line": "ccopy.cv_count() == curve.cv_count()",
         "passed": true
       },
       {
-        "line": 40,
+        "line": 41,
         "code_line": "ccopy.guid != curve.guid",
         "passed": true
       }
@@ -63,16 +63,16 @@
     "test_name": "is_valid",
     "passed": true,
     "time_ms": 0.004,
-    "line": 43,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsCurve curve_invalid;\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_valid = NurbsCurve::create(false, 2, points);\n",
+    "line": 44,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsCurve curve_invalid;\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_valid = NurbsCurve::create(false, 2, points);\n\n",
     "checks": [
       {
-        "line": 56,
+        "line": 57,
         "code_line": "curve_invalid.is_valid() == false",
         "passed": true
       },
       {
-        "line": 57,
+        "line": 58,
         "code_line": "curve_valid.is_valid() == true",
         "passed": true
       }
@@ -83,21 +83,21 @@
     "test_name": "get_cv",
     "passed": true,
     "time_ms": 0.004,
-    "line": 60,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point cv0 = curve.get_cv(0);\n        Point cv1 = curve.get_cv(1);\n        Point cv2 = curve.get_cv(2);\n",
+    "line": 61,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point cv0 = curve.get_cv(0);\n        Point cv1 = curve.get_cv(1);\n        Point cv2 = curve.get_cv(2);\n\n",
     "checks": [
       {
-        "line": 75,
+        "line": 76,
         "code_line": "std::abs(cv0[0] - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 76,
+        "line": 77,
         "code_line": "std::abs(cv1[0] - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 77,
+        "line": 78,
         "code_line": "std::abs(cv2[0] - 2.0) < 0.01",
         "passed": true
       }
@@ -107,17 +107,17 @@
   {
     "test_name": "set_cv",
     "passed": true,
-    "time_ms": 0.043,
-    "line": 80,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.set_cv(1, Point(1.5, 2.0, 0.0));\n        Point cv1 = curve.get_cv(1);\n",
+    "time_ms": 0.003,
+    "line": 81,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.set_cv(1, Point(1.5, 2.0, 0.0));\n        Point cv1 = curve.get_cv(1);\n\n",
     "checks": [
       {
-        "line": 94,
+        "line": 95,
         "code_line": "std::abs(cv1[0] - 1.5) < 0.01",
         "passed": true
       },
       {
-        "line": 95,
+        "line": 96,
         "code_line": "std::abs(cv1[1] - 2.0) < 0.01",
         "passed": true
       }
@@ -127,17 +127,17 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 98,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        Point pt_mid = curve.point_at(t_mid);\n",
+    "time_ms": 0.003,
+    "line": 99,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        Point pt_mid = curve.point_at(t_mid);\n\n",
     "checks": [
       {
-        "line": 113,
+        "line": 114,
         "code_line": "pt_mid[0] > 0.0",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 115,
         "code_line": "pt_mid[0] < 2.0",
         "passed": true
       }
@@ -147,17 +147,17 @@
   {
     "test_name": "point_at_start",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 117,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_start = curve.point_at_start();\n",
+    "time_ms": 0.003,
+    "line": 118,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_start = curve.point_at_start();\n\n",
     "checks": [
       {
-        "line": 130,
+        "line": 131,
         "code_line": "std::abs(pt_start[0] - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 131,
+        "line": 132,
         "code_line": "std::abs(pt_start[1] - 0.0) < 0.01",
         "passed": true
       }
@@ -168,16 +168,16 @@
     "test_name": "point_at_end",
     "passed": true,
     "time_ms": 0.003,
-    "line": 134,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_end = curve.point_at_end();\n",
+    "line": 135,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_end = curve.point_at_end();\n\n",
     "checks": [
       {
-        "line": 147,
+        "line": 148,
         "code_line": "std::abs(pt_end[0] - 2.0) < 0.01",
         "passed": true
       },
       {
-        "line": 148,
+        "line": 149,
         "code_line": "std::abs(pt_end[1] - 0.0) < 0.01",
         "passed": true
       }
@@ -187,12 +187,12 @@
   {
     "test_name": "domain",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 151,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n",
+    "time_ms": 0.002,
+    "line": 152,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n\n",
     "checks": [
       {
-        "line": 164,
+        "line": 165,
         "code_line": "t0 < t1",
         "passed": true
       }
@@ -202,17 +202,17 @@
   {
     "test_name": "is_closed",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 167,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points_open = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_open = NurbsCurve::create(false, 2, points_open);\n\n        std::vector<Point> points_closed = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(0.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_closed = NurbsCurve::create(false, 3, points_closed);\n",
+    "time_ms": 0.02,
+    "line": 168,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points_open = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_open = NurbsCurve::create(false, 2, points_open);\n\n        std::vector<Point> points_closed = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(0.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_closed = NurbsCurve::create(false, 3, points_closed);\n\n",
     "checks": [
       {
-        "line": 187,
+        "line": 188,
         "code_line": "curve_open.is_closed() == false",
         "passed": true
       },
       {
-        "line": 188,
+        "line": 189,
         "code_line": "curve_closed.is_closed() == true",
         "passed": true
       }
@@ -222,12 +222,12 @@
   {
     "test_name": "length",
     "passed": true,
-    "time_ms": 0.645,
-    "line": 191,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 1, points);\n        double length = curve.length();\n",
+    "time_ms": 0.629,
+    "line": 192,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 1, points);\n        double length = curve.length();\n\n",
     "checks": [
       {
-        "line": 203,
+        "line": 204,
         "code_line": "std::abs(length - 1.0) < 0.01",
         "passed": true
       }
@@ -238,16 +238,16 @@
     "test_name": "reverse",
     "passed": true,
     "time_ms": 0.005,
-    "line": 206,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_start_before = curve.point_at_start();\n        Point pt_end_before = curve.point_at_end();\n        curve.reverse();\n        Point pt_start_after = curve.point_at_start();\n        Point pt_end_after = curve.point_at_end();\n",
+    "line": 207,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Point pt_start_before = curve.point_at_start();\n        Point pt_end_before = curve.point_at_end();\n        curve.reverse();\n        Point pt_start_after = curve.point_at_start();\n        Point pt_end_after = curve.point_at_end();\n\n",
     "checks": [
       {
-        "line": 223,
+        "line": 224,
         "code_line": "std::abs(pt_start_before[0] - pt_end_after[0]) < 0.01",
         "passed": true
       },
       {
-        "line": 224,
+        "line": 225,
         "code_line": "std::abs(pt_end_before[0] - pt_start_after[0]) < 0.01",
         "passed": true
       }
@@ -257,17 +257,17 @@
   {
     "test_name": "make_rational",
     "passed": true,
-    "time_ms": 0.064,
-    "line": 227,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "time_ms": 0.003,
+    "line": 228,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        curve.make_rational();\n",
     "checks": [
       {
-        "line": 239,
+        "line": 240,
         "code_line": "curve.is_rational() == false",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 242,
         "code_line": "curve.is_rational() == true",
         "passed": true
       }
@@ -277,17 +277,17 @@
   {
     "test_name": "tangent_at",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 244,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        Vector tangent = curve.tangent_at(t_mid);\n",
+    "time_ms": 0.018,
+    "line": 245,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        Vector tangent = curve.tangent_at(t_mid);\n\n",
     "checks": [
       {
-        "line": 259,
+        "line": 260,
         "code_line": "std::isfinite(tangent[0])",
         "passed": true
       },
       {
-        "line": 260,
+        "line": 261,
         "code_line": "std::isfinite(tangent[1])",
         "passed": true
       }
@@ -298,11 +298,11 @@
     "test_name": "knot_count",
     "passed": true,
     "time_ms": 0.003,
-    "line": 263,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        int knot_count = curve.knot_count();\n",
+    "line": 264,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        int knot_count = curve.knot_count();\n\n",
     "checks": [
       {
-        "line": 276,
+        "line": 277,
         "code_line": "knot_count == curve.order() + curve.cv_count() - 2",
         "passed": true
       }
@@ -313,16 +313,16 @@
     "test_name": "cv_size",
     "passed": true,
     "time_ms": 0.003,
-    "line": 279,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "line": 280,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        curve.make_rational();\n",
     "checks": [
       {
-        "line": 291,
+        "line": 292,
         "code_line": "curve.cv_size() == 3",
         "passed": true
       },
       {
-        "line": 293,
+        "line": 294,
         "code_line": "curve.cv_size() == 4",
         "passed": true
       }
@@ -333,16 +333,16 @@
     "test_name": "weight",
     "passed": true,
     "time_ms": 0.003,
-    "line": 296,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n        double w = curve.weight(0);\n        curve.set_weight(1, 2.0);\n        double w1 = curve.weight(1);\n",
+    "line": 297,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n        double w = curve.weight(0);\n        curve.set_weight(1, 2.0);\n        double w1 = curve.weight(1);\n\n",
     "checks": [
       {
-        "line": 312,
+        "line": 313,
         "code_line": "std::abs(w - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 313,
+        "line": 314,
         "code_line": "std::abs(w1 - 2.0) < 0.01",
         "passed": true
       }
@@ -353,16 +353,16 @@
     "test_name": "is_linear",
     "passed": true,
     "time_ms": 0.005,
-    "line": 316,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points_linear = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_linear = NurbsCurve::create(false, 1, points_linear);\n\n        std::vector<Point> points_curved = {\n            Point(0.0, 0.0, 0.0),\n            Point(0.5, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_curved = NurbsCurve::create(false, 2, points_curved);\n",
+    "line": 317,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points_linear = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_linear = NurbsCurve::create(false, 1, points_linear);\n\n        std::vector<Point> points_curved = {\n            Point(0.0, 0.0, 0.0),\n            Point(0.5, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0)\n        };\n        NurbsCurve curve_curved = NurbsCurve::create(false, 2, points_curved);\n\n",
     "checks": [
       {
-        "line": 333,
+        "line": 334,
         "code_line": "curve_linear.is_linear() == true",
         "passed": true
       },
       {
-        "line": 334,
+        "line": 335,
         "code_line": "curve_curved.is_linear() == false",
         "passed": true
       }
@@ -372,27 +372,27 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.127,
-    "line": 337,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        std::string filename = \"serialization/test_nurbscurve.json\";\n        curve.json_dump(filename);\n        NurbsCurve loaded = NurbsCurve::json_load(filename);\n",
+    "time_ms": 0.198,
+    "line": 338,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        std::string filename = \"serialization/test_nurbscurve.json\";\n        curve.json_dump(filename);\n        NurbsCurve loaded = NurbsCurve::json_load(filename);\n\n",
     "checks": [
       {
-        "line": 353,
+        "line": 354,
         "code_line": "loaded.is_valid() == true",
         "passed": true
       },
       {
-        "line": 354,
+        "line": 355,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 355,
+        "line": 356,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 356,
+        "line": 357,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -403,26 +403,26 @@
     "test_name": "protobuf_roundtrip",
     "passed": true,
     "time_ms": 0.104,
-    "line": 359,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        std::string filename = \"serialization/test_nurbscurve.bin\";\n        curve.protobuf_dump(filename);\n        NurbsCurve loaded = NurbsCurve::protobuf_load(filename);\n",
+    "line": 360,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        std::string filename = \"serialization/test_nurbscurve.bin\";\n        curve.protobuf_dump(filename);\n        NurbsCurve loaded = NurbsCurve::protobuf_load(filename);\n\n",
     "checks": [
       {
-        "line": 375,
+        "line": 376,
         "code_line": "loaded.is_valid() == true",
         "passed": true
       },
       {
-        "line": 376,
+        "line": 377,
         "code_line": "loaded.cv_count() == 3",
         "passed": true
       },
       {
-        "line": 377,
+        "line": 378,
         "code_line": "loaded.degree() == 2",
         "passed": true
       },
       {
-        "line": 378,
+        "line": 379,
         "code_line": "loaded.order() == 3",
         "passed": true
       }
@@ -433,16 +433,16 @@
     "test_name": "degree",
     "passed": true,
     "time_ms": 0.003,
-    "line": 381,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "line": 382,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n",
     "checks": [
       {
-        "line": 393,
+        "line": 394,
         "code_line": "curve.degree() == 2",
         "passed": true
       },
       {
-        "line": 394,
+        "line": 395,
         "code_line": "curve.order() == 3",
         "passed": true
       }
@@ -453,11 +453,11 @@
     "test_name": "dimension",
     "passed": true,
     "time_ms": 0.003,
-    "line": 397,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "line": 398,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n",
     "checks": [
       {
-        "line": 409,
+        "line": 410,
         "code_line": "curve.dimension() == 3",
         "passed": true
       }
@@ -468,16 +468,16 @@
     "test_name": "is_rational",
     "passed": true,
     "time_ms": 0.003,
-    "line": 412,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "line": 413,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        curve.make_rational();\n",
     "checks": [
       {
-        "line": 424,
+        "line": 425,
         "code_line": "curve.is_rational() == false",
         "passed": true
       },
       {
-        "line": 426,
+        "line": 427,
         "code_line": "curve.is_rational() == true",
         "passed": true
       }
@@ -487,17 +487,17 @@
   {
     "test_name": "set_weight",
     "passed": true,
-    "time_ms": 0.041,
-    "line": 429,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n",
+    "time_ms": 0.003,
+    "line": 430,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n\n        curve.set_weight(1, 2.0);\n",
     "checks": [
       {
-        "line": 442,
+        "line": 443,
         "code_line": "std::abs(curve.weight(1) - 1.0) < 0.01",
         "passed": true
       },
       {
-        "line": 444,
+        "line": 445,
         "code_line": "std::abs(curve.weight(1) - 2.0) < 0.01",
         "passed": true
       }
@@ -507,17 +507,17 @@
   {
     "test_name": "knot",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 447,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        double knot0 = curve.knot(0);\n        double knot1 = curve.knot(1);\n",
+    "time_ms": 0.003,
+    "line": 448,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        double knot0 = curve.knot(0);\n        double knot1 = curve.knot(1);\n\n",
     "checks": [
       {
-        "line": 461,
+        "line": 462,
         "code_line": "std::abs(knot0 - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 462,
+        "line": 463,
         "code_line": "knot1 >= knot0",
         "passed": true
       }
@@ -528,16 +528,16 @@
     "test_name": "set_knot",
     "passed": true,
     "time_ms": 0.003,
-    "line": 465,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        bool result = curve.set_knot(0, 0.5);\n",
+    "line": 466,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        bool result = curve.set_knot(0, 0.5);\n\n",
     "checks": [
       {
-        "line": 478,
+        "line": 479,
         "code_line": "result == true",
         "passed": true
       },
       {
-        "line": 479,
+        "line": 480,
         "code_line": "std::abs(curve.knot(0) - 0.5) < 0.01",
         "passed": true
       }
@@ -548,21 +548,21 @@
     "test_name": "set_domain",
     "passed": true,
     "time_ms": 0.003,
-    "line": 482,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        bool result = curve.set_domain(0.0, 10.0);\n        auto [t0, t1] = curve.domain();\n",
+    "line": 483,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        bool result = curve.set_domain(0.0, 10.0);\n        auto [t0, t1] = curve.domain();\n\n",
     "checks": [
       {
-        "line": 496,
+        "line": 497,
         "code_line": "result == true",
         "passed": true
       },
       {
-        "line": 497,
+        "line": 498,
         "code_line": "std::abs(t0 - 0.0) < 0.01",
         "passed": true
       },
       {
-        "line": 498,
+        "line": 499,
         "code_line": "std::abs(t1 - 10.0) < 0.01",
         "passed": true
       }
@@ -572,12 +572,12 @@
   {
     "test_name": "span_count",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 501,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        int spans = curve.span_count();\n",
+    "time_ms": 0.003,
+    "line": 502,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        int spans = curve.span_count();\n\n",
     "checks": [
       {
-        "line": 514,
+        "line": 515,
         "code_line": "spans == 1",
         "passed": true
       }
@@ -587,12 +587,12 @@
   {
     "test_name": "get_span_vector",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 517,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        std::vector<double> spans = curve.get_span_vector();\n",
+    "time_ms": 0.004,
+    "line": 518,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        std::vector<double> spans = curve.get_span_vector();\n\n",
     "checks": [
       {
-        "line": 531,
+        "line": 532,
         "code_line": "spans.size() >= 2",
         "passed": true
       }
@@ -603,11 +603,11 @@
     "test_name": "evaluate",
     "passed": true,
     "time_ms": 0.005,
-    "line": 534,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        std::vector<Vector> result = curve.evaluate(t_mid, 1);\n",
+    "line": 535,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        auto [t0, t1] = curve.domain();\n        double t_mid = (t0 + t1) / 2.0;\n        std::vector<Vector> result = curve.evaluate(t_mid, 1);\n\n",
     "checks": [
       {
-        "line": 549,
+        "line": 550,
         "code_line": "result.size() >= 1",
         "passed": true
       }
@@ -618,11 +618,11 @@
     "test_name": "is_periodic",
     "passed": true,
     "time_ms": 0.003,
-    "line": 552,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n",
+    "line": 553,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n",
     "checks": [
       {
-        "line": 564,
+        "line": 565,
         "code_line": "curve.is_periodic() == false",
         "passed": true
       }
@@ -633,16 +633,16 @@
     "test_name": "make_non_rational",
     "passed": true,
     "time_ms": 0.004,
-    "line": 567,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n",
+    "line": 568,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.make_rational();\n\n        curve.make_non_rational();\n",
     "checks": [
       {
-        "line": 580,
+        "line": 581,
         "code_line": "curve.is_rational() == true",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 583,
         "code_line": "curve.is_rational() == false",
         "passed": true
       }
@@ -652,17 +652,17 @@
   {
     "test_name": "divide_by_count",
     "passed": true,
-    "time_ms": 0.02,
-    "line": 585,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        std::vector<Point> divided_points;\n        std::vector<double> params;\n        bool result = curve.divide_by_count(5, divided_points, &params, true);\n",
+    "time_ms": 0.01,
+    "line": 586,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        std::vector<Point> divided_points;\n        std::vector<double> params;\n        bool result = curve.divide_by_count(5, divided_points, &params, true);\n\n",
     "checks": [
       {
-        "line": 600,
+        "line": 601,
         "code_line": "result == true",
         "passed": true
       },
       {
-        "line": 601,
+        "line": 602,
         "code_line": "divided_points.size() == 5",
         "passed": true
       }
@@ -672,12 +672,12 @@
   {
     "test_name": "intersect_plane",
     "passed": true,
-    "time_ms": 0.101,
-    "line": 604,
-    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Plane plane = Plane::xy_plane();\n        std::vector<double> intersections = curve.intersect_plane(plane);\n",
+    "time_ms": 0.042,
+    "line": 605,
+    "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        Plane plane = Plane::xy_plane();\n        std::vector<double> intersections = curve.intersect_plane(plane);\n\n",
     "checks": [
       {
-        "line": 619,
+        "line": 620,
         "code_line": "intersections.size() >= 0",
         "passed": true
       }
