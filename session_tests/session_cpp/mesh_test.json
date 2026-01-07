@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.16,
+    "time_ms": 0.031,
     "line": 15,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n\n        size_t num_vertices = mesh.number_of_vertices();\n        size_t num_faces = mesh.number_of_faces();\n        size_t num_edges = mesh.number_of_edges();\n        bool is_empty = mesh.is_empty();\n        int euler = mesh.euler();\n\n",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "add_vertex",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.013,
     "line": 35,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n\n\n        auto pos = mesh.vertex_position(v0);\n\n        size_t v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42);\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "vertex_faces",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.009,
     "line": 115,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n\n        auto f1 = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto f2 = mesh.add_face({v1, v3, v2}, std::nullopt);\n\n        auto faces = mesh.vertex_faces(v1);\n",
     "checks": [
@@ -397,7 +397,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.328,
+    "time_ms": 0.203,
     "line": 260,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        std::string filename = \"serialization/test_mesh.json\";\n        encoders::json_dump(mesh, filename);\n        Mesh loaded = encoders::json_load<Mesh>(filename);\n\n",
     "checks": [
@@ -422,7 +422,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.279,
+    "time_ms": 0.141,
     "line": 281,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        std::string filename = \"serialization/test_mesh.bin\";\n        mesh.protobuf_dump(filename);\n        Mesh loaded = Mesh::protobuf_load(filename);\n\n#endif",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "vertex_position",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 303,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n\n        auto pos = mesh.vertex_position(v0);\n",
     "checks": [

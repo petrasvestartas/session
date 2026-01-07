@@ -37,7 +37,7 @@
   {
     "test_name": "make_clamped_uniform",
     "passed": true,
-    "time_ms": 0.144,
+    "time_ms": 0.014,
     "line": 31,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Basic clamped uniform knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2];\n    double k3 = k[3], k4 = k[4], k5 = k[5];\n\n    // With custom delta\n    auto k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n    size_t k2_len = k2_vec.size();\n    auto [t0, t1] = knot::get_domain(3, 4, k2_vec);\n\n    // Invalid params\n    auto k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n    auto k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);\n\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "is_valid",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 84,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);\n\n",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "is_periodic",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 118,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    bool periodic = knot::is_periodic(3, 4, k);\n\n    // Clamped knot vector (not periodic)\n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n    bool not_periodic = knot::is_periodic(4, 4, k2);\n\n",
     "checks": [
