@@ -87,11 +87,21 @@ jobs:
         chmod +x bash/*.sh bash/lib/*.sh
         ./bash/minitest.sh
 
+    - name: Verify dist exists
+      shell: bash
+      run: |
+        if [ ! -d "session_tests/dist" ]; then
+          echo "ERROR: session_tests/dist directory not found!"
+          exit 1
+        fi
+        ls -la session_tests/dist
+
     - name: Upload mini-test website as artifact
       uses: actions/upload-artifact@v4
       with:
         name: session-mini-tests-website-${{ matrix.os }}
         path: session_tests/dist
+        if-no-files-found: error
 
   deploy:
     needs: [minitest]

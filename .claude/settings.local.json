@@ -33,11 +33,12 @@
       "Bash(../build/temp/step_test.exe:*)",
       "Bash(../build/temp/Debug/step_test.exe:*)",
       "Bash(python3:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(gh run view:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "session-api"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

@@ -102,7 +102,7 @@
   {
     "test_name": "clamp",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 70,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamp a periodic knot vector\n    std::vector<double> k = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};\n    bool clamp_result = knot::clamp(4, 4, k, 2);\n    bool first_clamped = k[0] == k[1] && k[1] == k[2];\n    bool last_clamped = k[3] == k[4] && k[4] == k[5];\n\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "is_clamped",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 99,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool clamped_both = knot::is_clamped(4, 4, k, 2);\n    bool clamped_start = knot::is_clamped(4, 4, k, 0);\n    bool clamped_end = knot::is_clamped(4, 4, k, 1);\n\n    // Periodic knot vector (not clamped)\n    auto k2 = knot::make_periodic_uniform(4, 5, 1.0);\n    bool not_clamped = knot::is_clamped(4, 5, k2, 2);\n\n",
     "checks": [

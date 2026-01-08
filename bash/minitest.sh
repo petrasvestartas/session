@@ -133,7 +133,9 @@ consolidate_test_data "$REPO_ROOT"
 
 # Check for CI environment
 if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
-    log "CI environment detected - skipping dev server"
+    log "CI environment detected - building dist for artifact upload"
+    cd "${REPO_ROOT}/session_tests"
+    npm run build
     log "Done"
     exit 0
 fi
