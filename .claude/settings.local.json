@@ -35,5 +35,9 @@
       "Bash(python3:*)",
       "Bash(find:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "session-api"
+  ],
+  "enableAllProjectMcpServers": true
 }

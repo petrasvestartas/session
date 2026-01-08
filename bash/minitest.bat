@@ -7,6 +7,7 @@ REM   minitest.bat --fast   - Skip protobuf regen, pip install, npm install
 REM   minitest.bat --py     - Python only
 REM   minitest.bat --cpp    - C++ only
 REM   minitest.bat --rust   - Rust only
+REM   minitest.bat --kill   - Stop running dev server
 
 setlocal enabledelayedexpansion
 
@@ -14,10 +15,11 @@ set "FAST_MODE=false"
 set "RUN_PYTHON=true"
 set "RUN_CPP=true"
 set "RUN_RUST=true"
+set "KILL_SERVER=false"
 
-REM Check if uv is available globally
+REM Check if uv is available globally (use where for reliable detection)
 set "HAS_UV=0"
-uv --version >nul 2>&1
+where uv >nul 2>&1
 if not errorlevel 1 set "HAS_UV=1"
 
 REM Parse arguments
@@ -49,9 +51,21 @@ if /i "%~1"=="--rs" (
     set "RUN_PYTHON=false"
     set "RUN_CPP=false"
 )
+if /i "%~1"=="--kill" set "KILL_SERVER=true"
+if /i "%~1"=="-k" set "KILL_SERVER=true"
 shift
 goto :parse_args
 :done_args
+
+REM Handle --kill flag to stop running server
+if "%KILL_SERVER%"=="true" (
+    echo [mini] Stopping dev server on port 8769...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8769" ^| findstr "LISTENING" 2^>nul') do (
+        taskkill /F /PID %%a >nul 2>&1
+    )
+    echo [mini] Server stopped.
+    goto :end
+)
 
 REM Resolve repository root - try multiple methods
 set "BATCH_PATH=%~f0"
@@ -218,14 +232,26 @@ REM Local development: start dev server
 set "PORT=8769"
 set "WEBSITE_URL=http://localhost:%PORT%/session/tests?suite=point_test"
 
+REM Check if dev server is already running - if so, skip restart (Vite hot-reloads)
+set "SERVER_RUNNING=0"
+netstat -ano 2>nul | findstr ":%PORT%" | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 set "SERVER_RUNNING=1"
+
+if "%SERVER_RUNNING%"=="1" (
+    echo [mini] Dev server already running on port %PORT% - skipping restart.
+    echo [mini] Vite will hot-reload changes automatically.
+    echo [mini] View at: %WEBSITE_URL%
+    goto :end
+)
+
 echo [mini] Starting development server...
 pushd "%TESTS_DIR%"
 start /b npm run dev >nul 2>&1
 popd
 timeout /t 2 /nobreak >nul
 
-echo [mini] Development server is running at %WEBSITE_URL%
-echo [mini] Re-run minitest.bat to update test results.
+echo [mini] Development server started at %WEBSITE_URL%
+echo [mini] Re-run minitest.bat to update test results (browser auto-refreshes).
 start "" "%WEBSITE_URL%"
 goto :end
 
@@ -318,6 +344,16 @@ if "%HAS_UV%"=="1" (
     echo [mini] Installing session_py and pytest with uv...
     uv pip install --python "%PYTHON%" -e "%REPO_ROOT%\session_py" pytest
 ) else (
+    REM Check if pip exists in venv, if not try to bootstrap it
+    "%PYTHON%" -m pip --version >nul 2>&1
+    if errorlevel 1 (
+        echo [mini] pip not found in venv, trying to bootstrap...
+        "%PYTHON%" -m ensurepip --default-pip 2>nul
+        if errorlevel 1 (
+            echo [mini] Error: Cannot install dependencies. Please install uv: pip install uv
+            exit /b 1
+        )
+    )
     echo [mini] Installing session_py and pytest with pip...
     "%PYTHON%" -m pip install -e "%REPO_ROOT%\session_py" pytest
 )

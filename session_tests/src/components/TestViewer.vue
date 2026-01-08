@@ -6,19 +6,17 @@
           <tr>
             <th>
               <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="lang-link">
-                <svg class="lang-icon" viewBox="0 0 24 24" fill="currentColor" title="C++">
-                  <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
-                </svg>
+                <img src="/icons/session_cpp_white.png" class="lang-icon" alt="C++" title="C++">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="lang-link">
-                <i class="fa-brands fa-python lang-icon" title="Python"></i>
+                <img src="/icons/session_py_white.png" class="lang-icon" alt="Python" title="Python">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="lang-link">
-                <i class="fa-brands fa-rust lang-icon" title="Rust"></i>
+                <img src="/icons/session_rust_white.png" class="lang-icon" alt="Rust" title="Rust">
               </a>
             </th>
           </tr>

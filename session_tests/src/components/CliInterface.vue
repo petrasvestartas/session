@@ -681,7 +681,7 @@ const executeCommand = async () => {
 .cli-interface {
   min-height: 160px;
   height: 100%;
-  background: linear-gradient(to bottom, #0a0a0a, #000000);
+  background: #000000;
   border: none;
   display: flex;
   flex-direction: column;

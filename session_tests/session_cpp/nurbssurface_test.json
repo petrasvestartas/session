@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.096,
+    "time_ms": 0.092,
     "line": 34,
     "code": "        // Create surface with parameters (4x4 quadratic surface, order 3)\n        NurbsSurface s;\n        s.create(3, false, 3, 3, 4, 4, false, false, 2.5, 2.5);\n\n        // Set hardcoded control points\n        std::vector<Point> cvs = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        // Setters\n        int idx = 0;\n        for (int i = 0; i < s.cv_count(0); ++i) {\n            for (int j = 0; j < s.cv_count(1); ++j) {\n                s.set_cv(i, j, cvs[idx]);\n                idx++;\n\n        // Getters\n        Point control_point = s.get_cv(2, 1);  // 3.75, 1.25, 4.0\n        Point point = s.point_at(2.5, 2.5);    // 2.5, 2.5, 4.0\n\n        // String representation\n        std::string str_repr = s.to_string();\n\n        // Duplicate for comparison\n        NurbsSurface s_copy = s;\n\n        // Subdivision test\n        auto v = s.subdivide(5, 5);\n        // Helper lambda for tolerance-based point comparison\n        auto close_pt = [](const Point& a, double x, double y, double z) {\n            return TOLERANCE.is_close(a[0], x) && TOLERANCE.is_close(a[1], y) && TOLERANCE.is_close(a[2], z);\n        };\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "create_operations",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.007,
     "line": 151,
     "code": "        // Create a simple 2x2 bilinear surface\n        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n        // Check knot vectors\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "accessors",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 171,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 4, 3, 5, 4, false, false, 1.0, 1.0);\n\n        // Test knot access\n        double knot_val = surf.knot(0, 2);\n\n        // Test set knot\n        surf.set_knot(0, 2, 5.0);\n        double new_val = surf.knot(0, 2);\n\n",
     "checks": [
@@ -492,7 +492,7 @@
   {
     "test_name": "evaluation",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.009,
     "line": 235,
     "code": "        // Create simple bilinear surface\n        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n        // Evaluate at corner\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        Point pt_corner = surf.point_at(dom_u.first, dom_v.first);\n\n        // Evaluate at center (should be center of unit square)\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        Point pt_mid = surf.point_at(u_mid, v_mid);\n\n        // Test derivatives\n        auto derivs = surf.evaluate(u_mid, v_mid, 1);\n\n        // Test normal (for flat plane in XY, normal should point in +Z)\n        Vector normal = surf.normal_at(u_mid, v_mid);\n\n",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "geometric_queries",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 273,
     "code": "        // Create and setup surface\n        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n",
     "checks": [
@@ -592,7 +592,7 @@
   {
     "test_name": "modification",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 293,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 3, 2, false, false, 1.0, 1.0);\n\n        // Set some CVs\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(2, 0, Point(2.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(2, 1, Point(2.0, 1.0, 0.0));\n\n        Point cv_before = surf.get_cv(0, 0);\n\n        // Test reverse in u direction\n        surf.reverse(0);\n        Point cv_after = surf.get_cv(2, 0);\n\n        // Reverse back\n        surf.reverse(0);\n\n        // Test transpose\n        int order_u_before = surf.order(0);\n        int order_v_before = surf.order(1);\n        surf.transpose();\n\n",
     "checks": [
@@ -617,7 +617,7 @@
   {
     "test_name": "isocurve",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.01,
     "line": 322,
     "code": "        // Create surface\n        NurbsSurface surf;\n        surf.create(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Set up a grid of control points\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n\n        // Extract iso-u curve (v varies)\n        auto dom_u = surf.domain(0);\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        NurbsCurve* iso_u = surf.iso_curve(0, u_mid);\n\n        // Extract iso-v curve (u varies)\n        auto dom_v = surf.domain(1);\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        NurbsCurve* iso_v = surf.iso_curve(1, v_mid);\n\n\n        if (iso_u != nullptr) delete iso_u;",
     "checks": [
@@ -677,7 +677,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 0.442,
+    "time_ms": 4.557,
     "line": 376,
     "code": "        // Create and setup surface\n        NurbsSurface surf;\n        surf.create(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.surfacecolor = Color(255, 128, 64, 255);\n\n        // Set some CVs\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n\n        // Serialize to JSON\n        std::string fname = \"serialization/test_nurbssurface.json\";\n        surf.json_dump(fname);\n        NurbsSurface loaded = NurbsSurface::json_load(fname);\n\n",
     "checks": [
@@ -742,7 +742,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.106,
+    "time_ms": 4.762,
     "line": 409,
     "code": "        // Create and setup surface\n        NurbsSurface surf;\n        surf.create(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.surfacecolor = Color(255, 128, 64, 255);\n\n        // Set some CVs\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n\n        // Serialize to protobuf\n        std::string path = \"serialization/test_nurbssurface.bin\";\n        surf.protobuf_dump(path);\n        NurbsSurface loaded = NurbsSurface::protobuf_load(path);\n\n",
     "checks": [
@@ -807,7 +807,7 @@
   {
     "test_name": "advanced_accessors",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 442,
     "code": "        // Create rational surface for testing get_cv_4d/set_cv_4d\n        NurbsSurface surf;\n        surf.create(3, true, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Test set_cv_4d with homogeneous coordinates\n        double x = 2.0, y = 3.0, z = 4.0, w = 2.0;\n\n        // Set CV using set_cv_4d\n        surf.set_cv_4d(1, 1, x, y, z, w);\n\n        // Get CV and verify using get_cv_4d\n        double rx, ry, rz, rw;\n        surf.get_cv_4d(1, 1, rx, ry, rz, rw);\n\n        // Also test get_cv\n        Point pt = surf.get_cv(1, 1);\n        double retrieved_w = surf.weight(1, 1);\n\n        // Test knot_multiplicity\n        int mult = surf.knot_count(0);\n        int first_knot_mult = 0;\n        if (mult > 0) {\n            double first_val = surf.knot(0, 0);\n            int count = 1;\n            for (int i = 1; i < mult; ++i) {\n                double val = surf.knot(0, i);\n                if (std::abs(val - first_val) < 1e-10) {\n                    count++;\n                } else {\n                    break;\n            first_knot_mult = count;\n\n        // Test cv_capacity and knot_capacity\n        int cv_cap = surf.cv_capacity();\n        int knot_cap_u = surf.knot_capacity(0);\n        int knot_cap_v = surf.knot_capacity(1);\n\n        // get_cv returns Euclidean coordinates, so it divides homogeneous coords by w\n",
     "checks": [
@@ -937,7 +937,7 @@
   {
     "test_name": "bounding_box",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.012,
     "line": 543,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 3, 3, false, false, 1.0, 1.0);\n\n        // Set CVs in a known range\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n\n        // Get bounding box\n        BoundingBox bbox = surf.get_bounding_box();\n\n",
     "checks": [
@@ -952,7 +952,7 @@
   {
     "test_name": "domain_operations",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 560,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Get initial domain\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        // Set new domain\n        surf.set_domain(0, 0.0, 10.0);\n        surf.set_domain(1, 5.0, 15.0);\n\n        auto new_dom_u = surf.domain(0);\n        auto new_dom_v = surf.domain(1);\n\n        // Get span vectors\n        auto span_u = surf.get_span_vector(0);\n        auto span_v = surf.get_span_vector(1);\n\n",
     "checks": [
@@ -1002,7 +1002,7 @@
   {
     "test_name": "corner_points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 589,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(10.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 10.0, 0.0));\n        surf.set_cv(1, 1, Point(10.0, 10.0, 0.0));\n\n        // Get corner points\n        Point p00 = surf.point_at_corner(0, 0);\n        Point p10 = surf.point_at_corner(1, 0);\n        Point p01 = surf.point_at_corner(0, 1);\n        Point p11 = surf.point_at_corner(1, 1);\n\n",
     "checks": [
@@ -1032,7 +1032,7 @@
   {
     "test_name": "swap_coordinates",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 611,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set a control point with distinct coordinates\n        surf.set_cv(0, 0, Point(1.0, 2.0, 3.0));\n\n        // Swap X and Y\n        surf.swap_coordinates(0, 1);\n\n        Point pt = surf.get_cv(0, 0);\n\n",
     "checks": [
@@ -1057,7 +1057,7 @@
   {
     "test_name": "change_dimension",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 628,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        surf.set_cv(0, 0, Point(1.0, 2.0, 3.0));\n\n        int old_dim = surf.dimension();\n        surf.change_dimension(2);\n        int new_dim = surf.dimension();\n\n        Point pt = surf.get_cv(0, 0);\n\n",
     "checks": [
@@ -1087,7 +1087,7 @@
   {
     "test_name": "zero_cvs",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 646,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set non-zero control points\n        surf.set_cv(0, 0, Point(1.0, 2.0, 3.0));\n        surf.set_cv(1, 1, Point(4.0, 5.0, 6.0));\n\n        // Zero all CVs\n        surf.zero_cvs();\n\n        Point pt0 = surf.get_cv(0, 0);\n        Point pt1 = surf.get_cv(1, 1);\n\n",
     "checks": [
@@ -1107,7 +1107,7 @@
   {
     "test_name": "get_knots",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 668,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 4, 3, 4, 3, false, false, 1.0, 2.0);\n\n        auto knots_u = surf.get_knots(0);\n        auto knots_v = surf.get_knots(1);\n\n",
     "checks": [
@@ -1137,7 +1137,7 @@
   {
     "test_name": "make_non_rational",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 681,
     "code": "        // Create rational surface with all weights = 1\n        NurbsSurface surf;\n        surf.create(3, true, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Set all weights to 1.0\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n                surf.set_weight(i, j, 1.0);\n\n        bool was_rational = surf.is_rational();\n        surf.make_non_rational();\n        bool is_rational_after = surf.is_rational();\n\n",
     "checks": [
@@ -1157,7 +1157,7 @@
   {
     "test_name": "create_clamped_uniform",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.002,
     "line": 702,
     "code": "        NurbsSurface surf;\n        surf.create_clamped_uniform(3, 4, 3, 4, 4, 1.0, 2.0);\n\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n",
     "checks": [
@@ -1207,7 +1207,7 @@
   {
     "test_name": "knot_multiplicity",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 719,
     "code": "        NurbsSurface surf;\n        surf.create(3, false, 4, 4, 4, 4, false, false, 1.0, 1.0);\n\n        // Check first knot multiplicity (should be equal to degree for clamped)\n        int mult_u_start = surf.knot_multiplicity(0, 0);\n        int mult_v_start = surf.knot_multiplicity(1, 0);\n\n        // Check last knot multiplicity\n        int last_u = surf.knot_count(0) - 1;\n        int last_v = surf.knot_count(1) - 1;\n        int mult_u_end = surf.knot_multiplicity(0, last_u);\n        int mult_v_end = surf.knot_multiplicity(1, last_v);\n\n",
     "checks": [
@@ -1237,7 +1237,7 @@
   {
     "test_name": "sphere",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.017,
     "line": 739,
     "code": "        // Create a sphere as a rational NURBS surface\n        // Sphere: 9x5 control points, degree 2 in both directions\n        // Based on OpenNURBS sphere representation\n        double radius = 2.0;\n        double w = std::sqrt(2.0) / 2.0;  // 0.707107\n\n        NurbsSurface surf;\n        surf.create(3, true, 3, 3, 9, 5, false, false, 1.0, 1.0);\n        surf.name = \"unit_sphere\";\n\n        // U-knots: periodic around equator with multiplicity 2\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: from south pole to north pole\n        double v_knots[] = {-TOLERANCE.PI * 0.5, -TOLERANCE.PI * 0.5, 0, 0,\n                            TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5};\n        for (int i = 0; i < 6; ++i) surf.set_knot(1, i, v_knots[i]);\n\n        // Set up control points for sphere (9 around, 5 latitude levels)\n        // Latitude levels: south pole, -45deg, equator, +45deg, north pole\n        double lat_weights[] = {w, 0.5, w, 0.5, w};  // alternating for cardinal/diagonal\n        double lat_z[] = {-radius, -radius * w, 0.0, radius * w, radius};\n        double lat_r[] = {0.0, radius * w, radius, radius * w, 0.0};  // radius at each latitude\n\n        for (int j = 0; j < 5; ++j) {\n            double r = lat_r[j];\n            double z = lat_z[j];\n            // 9 points around (0, 45, 90, 135, 180, 225, 270, 315, 360=0)\n            double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                               TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                               TOLERANCE.PI * 2.0};\n            for (int i = 0; i < 9; ++i) {\n                double x = r * std::cos(angles[i]);\n                double y = r * std::sin(angles[i]);\n                surf.set_cv(i, j, Point(x, y, z));\n                // Weight: w for cardinal directions (0, 90, 180, 270), 0.5 for diagonals at non-pole latitudes\n                double weight = (i % 2 == 0) ? w : lat_weights[j];\n                if (j == 0 || j == 4) weight = w;  // poles\n                surf.set_weight(i, j, weight);\n\n        // Verify sphere properties\n\n        // Check point on equator at angle 0 (should be at (radius, 0, 0))\n        Point pt = surf.point_at(0.0, 0.0);\n\n        // Check north pole\n        Point north = surf.point_at(0.0, TOLERANCE.PI * 0.5);\n",
     "checks": [
@@ -1297,7 +1297,7 @@
   {
     "test_name": "cylinder",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 804,
     "code": "        // Create an uncapped cylinder as a rational NURBS surface\n        // Cylinder: 9x2 control points (circle at bottom, circle at top)\n        // Degree 2 in U (angular), degree 1 in V (height)\n        double radius = 1.5;\n        double height = 3.0;\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create(3, true, 3, 2, 9, 2, false, false, 1.0, 1.0);\n        surf.name = \"unit_cylinder\";\n\n        // U-knots: periodic for circle\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: linear from bottom to top\n        surf.set_knot(1, 0, 0.0);\n        surf.set_knot(1, 1, height);\n\n        // Set up control points for cylinder (9 around, 2 heights)\n        double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                           TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                           TOLERANCE.PI * 2.0};\n\n        for (int j = 0; j < 2; ++j) {\n            double z = (j == 0) ? 0.0 : height;\n            for (int i = 0; i < 9; ++i) {\n                double x = radius * std::cos(angles[i]);\n                double y = radius * std::sin(angles[i]);\n                // For diagonal points (45, 135, etc), radius needs to be scaled\n                if (i % 2 == 1) {\n                    x = radius * std::sqrt(2.0) * std::cos(angles[i]);\n                    y = radius * std::sqrt(2.0) * std::sin(angles[i]);\n                surf.set_cv(i, j, Point(x, y, z));\n                double weight = (i % 2 == 0) ? 1.0 : w;\n                surf.set_weight(i, j, weight);\n\n        // Verify cylinder properties\n\n        // Check point on bottom circle at angle 0\n        Point pt_bottom = surf.point_at(0.0, 0.0);\n\n        // Check point on top circle at angle 0\n        Point pt_top = surf.point_at(0.0, height);\n\n        // Check midpoint at angle PI/2\n        Point pt_mid = surf.point_at(TOLERANCE.PI * 0.5, height * 0.5);\n",
     "checks": [
@@ -1382,7 +1382,7 @@
   {
     "test_name": "torus",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.018,
     "line": 874,
     "code": "        // Create a torus as a rational NURBS surface\n        // Torus: 9x9 control points (minor circle revolved around major axis)\n        // Degree 2 in both directions\n        double major_radius = 3.0;  // distance from center to tube center\n        double minor_radius = 1.0;  // tube radius\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create(3, true, 3, 3, 9, 9, false, false, 1.0, 1.0);\n        surf.name = \"unit_torus\";\n\n        // Both U and V knots: periodic for circles\n        double knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                          TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                          TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) {\n            surf.set_knot(0, i, knots[i]);\n            surf.set_knot(1, i, knots[i]);\n\n        // Set up control points for torus\n        // U: major angle (around torus), V: minor angle (around tube)\n        double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                           TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                           TOLERANCE.PI * 2.0};\n\n        for (int i = 0; i < 9; ++i) {\n            double major_angle = angles[i];\n            double cos_ma = std::cos(major_angle);\n            double sin_ma = std::sin(major_angle);\n            double major_scale = (i % 2 == 0) ? 1.0 : std::sqrt(2.0);\n\n            for (int j = 0; j < 9; ++j) {\n                double minor_angle = angles[j];\n                double cos_mi = std::cos(minor_angle);\n                double sin_mi = std::sin(minor_angle);\n                double minor_scale = (j % 2 == 0) ? 1.0 : std::sqrt(2.0);\n\n                double r = major_radius + minor_radius * minor_scale * cos_mi;\n                double x = r * major_scale * cos_ma;\n                double y = r * major_scale * sin_ma;\n                double z = minor_radius * minor_scale * sin_mi;\n\n                surf.set_cv(i, j, Point(x, y, z));\n\n                // Weight is product of major and minor weights\n                double w_major = (i % 2 == 0) ? 1.0 : w;\n                double w_minor = (j % 2 == 0) ? 1.0 : w;\n                surf.set_weight(i, j, w_major * w_minor);\n\n        // Verify torus properties\n\n        // Check point at (0, 0) - should be on outer edge of torus\n        Point pt = surf.point_at(0.0, 0.0);\n\n        // Check point at (PI, 0) - should be on opposite side of torus\n        Point pt_opp = surf.point_at(TOLERANCE.PI, 0.0);\n",
     "checks": [
@@ -1447,7 +1447,7 @@
   {
     "test_name": "cone",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.009,
     "line": 947,
     "code": "        // Create an uncapped cone as a rational NURBS surface\n        // Cone: 9x2 control points (apex at top, circle at base)\n        // Degree 2 in U (angular), degree 1 in V (height)\n        double radius = 2.0;\n        double height = 4.0;\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create(3, true, 3, 2, 9, 2, false, false, 1.0, 1.0);\n        surf.name = \"unit_cone\";\n\n        // U-knots: periodic for circle\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: linear from apex to base\n        surf.set_knot(1, 0, 0.0);\n        surf.set_knot(1, 1, height);\n\n        // Set up control points for cone (9 around, 2 heights: apex and base)\n        double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                           TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                           TOLERANCE.PI * 2.0};\n\n        // Apex (j=0) - all points collapse to the apex\n        for (int i = 0; i < 9; ++i) {\n            surf.set_cv(i, 0, Point(0.0, 0.0, height));\n            double weight = (i % 2 == 0) ? 1.0 : w;\n            surf.set_weight(i, 0, weight);\n\n        // Base (j=1) - circle at z=0\n        for (int i = 0; i < 9; ++i) {\n            double x = radius * std::cos(angles[i]);\n            double y = radius * std::sin(angles[i]);\n            if (i % 2 == 1) {\n                x = radius * std::sqrt(2.0) * std::cos(angles[i]);\n                y = radius * std::sqrt(2.0) * std::sin(angles[i]);\n            surf.set_cv(i, 1, Point(x, y, 0.0));\n            double weight = (i % 2 == 0) ? 1.0 : w;\n            surf.set_weight(i, 1, weight);\n\n        // Verify cone properties\n\n        // Check apex\n        Point apex = surf.point_at(0.0, 0.0);\n\n        // Check point on base circle at angle 0\n        Point base = surf.point_at(0.0, height);\n\n        // Check midpoint - should be at half radius, half height\n        Point mid = surf.point_at(0.0, height * 0.5);\n",
     "checks": [

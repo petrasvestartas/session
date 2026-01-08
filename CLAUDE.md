@@ -44,6 +44,67 @@ cd session_rust && cargo build --release && cargo test
 ./bash/minitest.sh            # Run all tests + launch viewer at localhost:8769
 ```
 
+## Fast Development Workflow
+
+### Build Time Reference
+| Component | First Build | Incremental |
+|-----------|-------------|-------------|
+| C++ (with protobuf) | 15-25 min | 1-5 min |
+| Rust | 5-10 min | 10-30 sec |
+| Python | instant | instant |
+| Vue | 1-2 min | 10-30 sec |
+
+### Single-Language Development (FASTEST)
+When working on one language, skip others:
+```bash
+./bash/minitest.sh --py --no-web      # Python only (instant)
+./bash/minitest.sh --rust --no-web    # Rust only (fast)
+./bash/minitest.sh --cpp --no-web     # C++ only
+```
+
+### Quick Single-Class Test
+Test one class without full rebuild:
+```bash
+./bash/quicktest.sh point             # Test Point in all languages
+./bash/quicktest.sh point --py        # Test Point in Python only
+./bash/quicktest.sh mesh --rust       # Test Mesh in Rust only
+```
+
+### Fast Mode (Skip Dependencies)
+After first build, use fast mode to skip pip/npm/protobuf:
+```bash
+./bash/minitest.sh --fast             # Skip dependency installs
+./bash/minitest.sh --fast --py        # Fast Python only
+```
+
+### Development Order (Recommended)
+1. **Prototype in Python** (instant feedback)
+2. **Port to Rust** (fast incremental builds)
+3. **Port to C++** (slowest, do last)
+4. **Run full minitest** before commit
+
+### Web Viewer Control
+```bash
+./bash/minitest.sh --no-web           # Skip Vue entirely
+./bash/minitest.sh --kill             # Stop running dev server
+```
+
+### Pre-warm Builds (First Time Setup)
+Run once to cache dependencies:
+```bash
+# Build C++ with protobuf (slow, but cached after)
+cd session_cpp && cmake -B build -DENABLE_PROTOBUF=ON && cmake --build build --config Release
+
+# Build Rust dependencies (slow, but cached after)
+cd session_rust && cargo build --release --features protobuf
+```
+
+### IDE Integration Tips
+- **VS Code:** Use language-specific tasks for single-language builds
+- **Rust:** `cargo watch -x run` for auto-rebuild on save
+- **Python:** Run tests directly: `python -m session_py.point_test`
+- **C++:** Use ccache/sccache (auto-detected by CMakeLists.txt)
+
 ## Git
 
 ```bash

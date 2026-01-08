@@ -7,27 +7,25 @@
 
       <div v-if="!sidebarCollapsed" class="nav-section">
         <div class="repo-icons">
-          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session === 'failure' }" title="Session">
+          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session === 'failure', 'build-success': buildStatus.session === 'success', 'build-in-progress': buildStatus.session === 'in_progress' }" title="Session">
             <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
           </a>
-          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_cpp === 'failure' }" title="C++">
-            <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
-            </svg>
+          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_cpp === 'failure', 'build-success': buildStatus.session_cpp === 'success', 'build-in-progress': buildStatus.session_cpp === 'in_progress' }" title="C++">
+            <img src="/icons/session_cpp_white.png" class="repo-icon" alt="C++">
           </a>
-          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" title="Python">
-            <i class="fa-brands fa-python repo-icon"></i>
+          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_py === 'failure', 'build-success': buildStatus.session_py === 'success', 'build-in-progress': buildStatus.session_py === 'in_progress' }" title="Python">
+            <img src="/icons/session_py_white.png" class="repo-icon" alt="Python">
           </a>
-          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" title="Rust">
-            <i class="fa-brands fa-rust repo-icon"></i>
+          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_rust === 'failure', 'build-success': buildStatus.session_rust === 'success', 'build-in-progress': buildStatus.session_rust === 'in_progress' }" title="Rust">
+            <img src="/icons/session_rust_white.png" class="repo-icon" alt="Rust">
           </a>
-          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_proto === 'failure' }" title="Protobuf">
-            <i class="fa-solid fa-file repo-icon"></i>
+          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
+            <img src="/icons/session_proto_white.png" class="repo-icon" alt="Protobuf">
           </a>
           <a href="https://github.com/petrasvestartas/session_data" target="_blank" class="repo-link" title="Data">
-            <i class="fa-solid fa-folder repo-icon"></i>
+            <img src="/icons/session_data_white.png" class="repo-icon" alt="Data">
           </a>
         </div>
 
@@ -114,7 +112,8 @@ const sidebarCollapsed = ref(false);
 const buildStatus = ref({
   session: null,
   session_cpp: null,
-  session_proto: null
+  session_py: null,
+  session_rust: null
 });
 
 const fetchBuildStatus = async (repo) => {
@@ -123,7 +122,11 @@ const fetchBuildStatus = async (repo) => {
     if (!response.ok) return null;
     const data = await response.json();
     if (data.workflow_runs && data.workflow_runs.length > 0) {
-      return data.workflow_runs[0].conclusion;
+      const run = data.workflow_runs[0];
+      if (run.status === 'in_progress' || run.status === 'queued') {
+        return 'in_progress';
+      }
+      return run.conclusion;
     }
     return null;
   } catch (e) {
@@ -132,7 +135,7 @@ const fetchBuildStatus = async (repo) => {
 };
 
 const loadBuildStatuses = async () => {
-  const repos = ['session', 'session_cpp', 'session_proto'];
+  const repos = ['session', 'session_cpp', 'session_py', 'session_rust'];
   for (const repo of repos) {
     const status = await fetchBuildStatus(repo);
     buildStatus.value[repo.replace('-', '_')] = status;
@@ -272,7 +275,7 @@ onUnmounted(() => {
 
 .sidebar {
   width: 180px;
-  background: linear-gradient(to right, #0a0a0a, #000000);
+  background: #000000;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -360,7 +363,10 @@ onUnmounted(() => {
   color: #ffffff;
   text-decoration: none;
   transition: color 0.2s;
-  display: flex;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
 }
 
@@ -376,14 +382,65 @@ onUnmounted(() => {
   color: #ff8888;
 }
 
+.repo-link.build-success {
+  color: #55ff55;
+}
+
+.repo-link.build-success:hover {
+  color: #88ff88;
+}
+
+.repo-link.build-in-progress {
+  color: #ffaa00;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.repo-link.build-in-progress:hover {
+  color: #ffcc55;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .repo-icon {
-  width: 24px;
-  height: 24px;
-  font-size: 24px;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+}
+
+svg.repo-icon {
+  width: 20px;
+  height: 20px;
+}
+
+i.repo-icon {
+  width: 20px;
+  height: 20px;
   text-align: center;
-  display: inline-flex;
+  display: flex;
   justify-content: center;
   align-items: center;
+}
+
+img.repo-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.repo-link.build-failed img.repo-icon {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(100%) saturate(2000%) hue-rotate(340deg);
+}
+
+.repo-link.build-success img.repo-icon {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(100%) saturate(500%) hue-rotate(80deg);
+}
+
+.repo-link.build-in-progress img.repo-icon {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(100%) saturate(1000%) hue-rotate(0deg);
 }
 
 .suites-section {

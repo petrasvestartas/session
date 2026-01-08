@@ -27,7 +27,7 @@
   {
     "test_name": "domain_tolerance",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 263,
     "code": "        use crate::knot;\n\n        // Calculate domain tolerance\n        let tol_same = knot::domain_tolerance(1.0, 1.0);\n        let tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
     "checks": [

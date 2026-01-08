@@ -6,19 +6,17 @@
           <tr>
             <th>
               <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="lang-link">
-                <svg class="lang-icon" viewBox="0 0 24 24" fill="currentColor" title="C++">
-                  <path d="M20.66 7a1.51 1.51 0 0 0-.55-.57l-7.34-4.24a1.67 1.67 0 0 0-1.54 0L3.89 6.43a1.51 1.51 0 0 0-.55.57 1.6 1.6 0 0 0-.22.76v8.48a1.6 1.6 0 0 0 .22.76 1.51 1.51 0 0 0 .55.57l7.34 4.24a1.67 1.67 0 0 0 1.54 0l7.34-4.24a1.51 1.51 0 0 0 .55-.57 1.6 1.6 0 0 0 .22-.76V7.76a1.6 1.6 0 0 0-.22-.76zM12 17.92A5.92 5.92 0 1 1 17.13 9L16 9.71l-.36.2-1 .61A3 3 0 0 0 9 12a2.88 2.88 0 0 0 .4 1.48 3 3 0 0 0 5.13 0l2.6 1.52A5.94 5.94 0 0 1 12 17.92zm5.92-5.59h-.66V13h-.65v-.66H16v-.66h.66V11h.65v.66h.66zm2.47 0h-.66V13h-.66v-.66h-.65v-.66h.65V11h.66v.66h.66z"/>
-                </svg>
+                <img src="/icons/session_cpp_white.png" class="lang-icon" alt="C++" title="C++">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="lang-link">
-                <i class="fa-brands fa-python lang-icon" title="Python"></i>
+                <img src="/icons/session_py_white.png" class="lang-icon" alt="Python" title="Python">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="lang-link">
-                <i class="fa-brands fa-rust lang-icon" title="Rust"></i>
+                <img src="/icons/session_rust_white.png" class="lang-icon" alt="Rust" title="Rust">
               </a>
             </th>
           </tr>
@@ -474,6 +472,133 @@ cargo run --bin temp_demo</code></pre>
               </div>
             </td>
           </tr>
+
+          <!-- Fast Single Language -->
+          <tr class="row-header">
+            <td colspan="3"><strong>Fast Single Language (skip others)</strong></td>
+          </tr>
+          <tr>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --cpp --no-web')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --cpp --no-web</code></pre>
+                </div>
+                <p>Build time: 1-5 min (incremental)</p>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --py --no-web')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --py --no-web</code></pre>
+                </div>
+                <p>Build time: instant</p>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --rust --no-web')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --rust --no-web</code></pre>
+                </div>
+                <p>Build time: 10-30 sec (incremental)</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Quick Test Single Class -->
+          <tr class="row-header">
+            <td colspan="3"><strong>Quick Test Single Class</strong></td>
+          </tr>
+          <tr>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/quicktest.sh point --cpp')" title="Copy code"></button>
+                  <pre><code>./bash/quicktest.sh point --cpp
+./bash/quicktest.sh mesh --cpp
+./bash/quicktest.sh vector --cpp</code></pre>
+                </div>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('python -m session_py.point_test')" title="Copy code"></button>
+                  <pre><code>python -m session_py.point_test
+python -m session_py.mesh_test
+python -m session_py.vector_test</code></pre>
+                </div>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/quicktest.sh point --rust')" title="Copy code"></button>
+                  <pre><code>./bash/quicktest.sh point --rust
+./bash/quicktest.sh mesh --rust
+./bash/quicktest.sh vector --rust</code></pre>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Fast Mode (Skip Dependencies) -->
+          <tr class="row-header">
+            <td colspan="3"><strong>Fast Mode (skip dependency rebuilds)</strong></td>
+          </tr>
+          <tr>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --fast --cpp')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --fast --cpp</code></pre>
+                </div>
+                <p>Skips CMake reconfigure if no changes</p>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --fast --py')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --fast --py</code></pre>
+                </div>
+                <p>Skips pip install if already installed</p>
+              </div>
+            </td>
+            <td class="lang-col">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --fast --rust')" title="Copy code"></button>
+                  <pre><code>./bash/minitest.sh --fast --rust</code></pre>
+                </div>
+                <p>Cargo handles incremental builds automatically</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Dev Server Control -->
+          <tr class="row-header">
+            <td colspan="3"><strong>Dev Server Control</strong></td>
+          </tr>
+          <tr>
+            <td class="lang-col" colspan="3">
+              <div class="install-card">
+                <div class="code-shell">
+                  <button class="code-copy-btn" type="button" @click="copyCode('./bash/minitest.sh --kill')" title="Copy code"></button>
+                  <pre><code># Stop running dev server
+./bash/minitest.sh --kill
+
+# Run tests without starting web server
+./bash/minitest.sh --no-web
+
+# Full rebuild (clear caches)
+./bash/minitest.sh --full</code></pre>
+                </div>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </main>
@@ -545,8 +670,7 @@ th {
 .lang-icon {
   width: 24px;
   height: 24px;
-  font-size: 24px;
-  color: #ffffff;
+  object-fit: contain;
 }
 
 .lang-link {

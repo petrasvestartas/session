@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-# Run mini tests for both Python and C++ Point implementations.
+# Run mini tests for Python, C++, and Rust implementations.
 # Usage:
-#   bash minitest.sh          # Full build
+#   ./minitest.sh             # Full build (all languages)
 #   ./minitest.sh --fast      # Skip protobuf regen, pip install, npm install
 #   ./minitest.sh --py        # Python only
 #   ./minitest.sh --cpp       # C++ only
 #   ./minitest.sh --rust      # Rust only
+#   ./minitest.sh --kill      # Stop running dev server
 
 # Parse arguments
 FAST_MODE=false
 RUN_PYTHON=true
 RUN_CPP=true
 RUN_RUST=true
+KILL_SERVER=false
 
 for arg in "$@"; do
   case $arg in
@@ -29,6 +31,9 @@ for arg in "$@"; do
     --rust|--rs)
       RUN_PYTHON=false
       RUN_CPP=false
+      ;;
+    --kill|-k)
+      KILL_SERVER=true
       ;;
   esac
 done
@@ -493,23 +498,64 @@ PORT=8769
 WEBSITE_URL="http://localhost:${PORT}/session/tests?suite=point_test"
 
 # Kill any existing dev server on this port
-if lsof -i :${PORT} >/dev/null 2>&1; then
-  echo "[mini] Stopping existing dev server on port ${PORT}..."
-  lsof -ti :${PORT} | xargs kill -9 2>/dev/null || true
-  sleep 1
+kill_port() {
+  local port=$1
+  if [ "$IS_WINDOWS" = true ]; then
+    # Windows: use netstat + taskkill
+    local pids=$(netstat -ano 2>/dev/null | grep ":${port}" | grep "LISTENING" | awk '{print $5}' | sort -u)
+    for pid in $pids; do
+      if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+        taskkill //F //PID "$pid" >/dev/null 2>&1 || true
+      fi
+    done
+  else
+    # Unix: use lsof
+    if lsof -i :${port} >/dev/null 2>&1; then
+      lsof -ti :${port} | xargs kill -9 2>/dev/null || true
+    fi
+  fi
+}
+
+# Handle --kill flag to stop running server
+if [ "$KILL_SERVER" = true ]; then
+  echo "[mini] Stopping dev server on port ${PORT}..."
+  kill_port ${PORT}
+  echo "[mini] Server stopped."
+  exit 0
 fi
 
-echo "[mini] Starting development server..."
-# Start Vite dev server in background
-( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
-sleep 2
-
-echo "[mini] Opening results website at ${WEBSITE_URL}..."
-if command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+# Check if dev server is already running - if so, skip restart (Vite hot-reloads)
+SERVER_RUNNING=false
+if [ "$IS_WINDOWS" = true ]; then
+  if netstat -ano 2>/dev/null | grep ":${PORT}" | grep -q "LISTENING"; then
+    SERVER_RUNNING=true
+  fi
 else
-  echo "[mini] Please open ${WEBSITE_URL} in a browser."
+  if lsof -i :${PORT} >/dev/null 2>&1; then
+    SERVER_RUNNING=true
+  fi
 fi
 
-echo "[mini] Development server is running at ${WEBSITE_URL}"
+if [ "$SERVER_RUNNING" = true ]; then
+  echo "[mini] Dev server already running on port ${PORT} - skipping restart."
+  echo "[mini] Vite will hot-reload changes automatically."
+  echo "[mini] View at: ${WEBSITE_URL}"
+else
+  echo "[mini] Starting development server..."
+  ( cd "${TESTS_DIR}" && npm run dev >/dev/null 2>&1 & )
+  sleep 2
+
+  echo "[mini] Opening results website at ${WEBSITE_URL}..."
+  if [ "$IS_WINDOWS" = true ]; then
+    start "" "${WEBSITE_URL}" 2>/dev/null || cmd //c start "" "${WEBSITE_URL}" 2>/dev/null || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+  elif command -v open >/dev/null 2>&1; then
+    open "${WEBSITE_URL}" >/dev/null 2>&1 || true
+  else
+    echo "[mini] Please open ${WEBSITE_URL} in a browser."
+  fi
+
+  echo "[mini] Development server started at ${WEBSITE_URL}"
+fi
 echo "[mini] Re-run ./minitest.sh to update test results (browser auto-refreshes)."
