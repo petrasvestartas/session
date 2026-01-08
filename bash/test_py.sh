@@ -55,10 +55,11 @@ ensure_python_env() {
     fi
 
     log_lang "py" "Installing session_py..."
+    local py_path=$(to_windows_path "${REPO_ROOT}/session_py")
     if has_uv; then
-        uv pip install --python "$PYTHON" -e "${REPO_ROOT}/session_py" pytest
+        uv pip install --python "$PYTHON" -e "$py_path" pytest
     else
-        "$PYTHON" -m pip install -e "${REPO_ROOT}/session_py" pytest
+        "$PYTHON" -m pip install -e "$py_path" pytest
     fi
 }
 

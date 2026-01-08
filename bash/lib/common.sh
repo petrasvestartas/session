@@ -26,6 +26,22 @@ detect_platform() {
     fi
 }
 
+# Convert MSYS/Cygwin path to Windows path for native tools (pip, cmake, etc.)
+to_windows_path() {
+    local path="$1"
+    if [[ "$(detect_platform)" == "windows" ]]; then
+        # Use cygpath if available, otherwise manual conversion
+        if command -v cygpath >/dev/null 2>&1; then
+            cygpath -w "$path"
+        else
+            # Manual: /d/foo -> D:\foo
+            echo "$path" | sed -e 's|^/\([a-zA-Z]\)/|\1:\\|' -e 's|/|\\|g'
+        fi
+    else
+        echo "$path"
+    fi
+}
+
 # Get Python executable path
 get_python_path() {
     local repo_root="$1"
