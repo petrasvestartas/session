@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.023,
     "line": 14,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);\n\n",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 88,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Point p(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        Point p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n\n",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 5.273,
+    "time_ms": 6.028,
     "line": 102,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"serialization/test_point.json\";\n        p.json_dump(filename);\n        Point loaded = Point::json_load(filename);\n\n",
     "checks": [
@@ -170,64 +170,9 @@
     "failures": []
   },
   {
-    "test_name": "protobuf_roundtrip",
-    "passed": true,
-    "time_ms": 4.837,
-    "line": 128,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"serialization/test_point.bin\";\n        p.protobuf_dump(filename);\n        Point loaded = Point::protobuf_load(filename);\n\n#endif",
-    "checks": [
-      {
-        "line": 141,
-        "code_line": "loaded.name == p.name",
-        "passed": true
-      },
-      {
-        "line": 142,
-        "code_line": "loaded[0] == p[0]",
-        "passed": true
-      },
-      {
-        "line": 143,
-        "code_line": "loaded[1] == p[1]",
-        "passed": true
-      },
-      {
-        "line": 144,
-        "code_line": "loaded[2] == p[2]",
-        "passed": true
-      },
-      {
-        "line": 145,
-        "code_line": "loaded.width == p.width",
-        "passed": true
-      },
-      {
-        "line": 146,
-        "code_line": "loaded.pointcolor.r == 255",
-        "passed": true
-      },
-      {
-        "line": 147,
-        "code_line": "loaded.pointcolor.g == 128",
-        "passed": true
-      },
-      {
-        "line": 148,
-        "code_line": "loaded.pointcolor.b == 64",
-        "passed": true
-      },
-      {
-        "line": 149,
-        "code_line": "loaded.pointcolor.a == 255",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
     "test_name": "is_ccw",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.015,
     "line": 153,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(1.0, 0.0, 0.0);\n        Point p2(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        bool is_counter_clock_wise = Point::is_ccw(p0, p1, p2);\n        bool is_clock_wise = Point::is_ccw(p2, p1, p0);\n\n",
     "checks": [
@@ -262,7 +207,7 @@
   {
     "test_name": "distance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 178,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::distance(p0, p1);\n\n",
     "checks": [
@@ -292,7 +237,7 @@
   {
     "test_name": "area",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 198,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n        double area = Point::area({p0, p1, p2, p3});\n\n",
     "checks": [
@@ -307,7 +252,7 @@
   {
     "test_name": "centroid_quad",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.007,
     "line": 210,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n        Point centroid = Point::centroid_quad({p0, p1, p2, p3});\n\n",
     "checks": [

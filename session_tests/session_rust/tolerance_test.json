@@ -17,7 +17,7 @@
   {
     "test_name": "is_between",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 35,
     "code": "        let result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "key",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 49,
     "code": "        let result = TOLERANCE.key([1.0, 2.0, 3.0], -999);",
     "checks": [
