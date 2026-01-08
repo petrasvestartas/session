@@ -37,7 +37,7 @@
         </div>
 
         <div
-          v-if="testsMenuOpen && testsSuites.length"
+          v-if="testsSuites.length"
           class="suites-section">
           <button
             v-for="s in testsSuites"
@@ -106,7 +106,6 @@ const currentRoute = computed(() => {
 
 const testsSuites = ref([]);
 const selectedSuite = ref('');
-const testsMenuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 
 const buildStatus = ref({
@@ -178,11 +177,6 @@ const syncSelectedSuiteWithRoute = () => {
 };
 
 const openTestsMenu = () => {
-  if (!testsSuites.value.length) {
-    loadSuitesFromTestData();
-    syncSelectedSuiteWithRoute();
-  }
-  testsMenuOpen.value = true;
   if (currentRoute.value !== 'tests') {
     const suiteToShow =
       selectedSuite.value ||
@@ -203,10 +197,14 @@ const selectSuite = (suite) => {
   router.push({ path: '/tests', query: { suite } });
 };
 
+let buildStatusInterval = null;
+
 onMounted(() => {
   loadSuitesFromTestData();
   syncSelectedSuiteWithRoute();
   loadBuildStatuses();
+  // Poll build statuses every 30 seconds to catch in-progress builds
+  buildStatusInterval = setInterval(loadBuildStatuses, 30000);
 });
 
 watch(
@@ -216,13 +214,6 @@ watch(
   }
 );
 
-watch(currentRoute, (val) => {
-  if (val === 'tests' && testsSuites.value.length) {
-    testsMenuOpen.value = true;
-  } else {
-    testsMenuOpen.value = false;
-  }
-});
 
 const onMouseMove = (event) => {
   didDrag = true;
@@ -262,6 +253,9 @@ const toggleCliExpand = () => {
 
 onUnmounted(() => {
   stopResize();
+  if (buildStatusInterval) {
+    clearInterval(buildStatusInterval);
+  }
 });
 </script>
 
@@ -392,7 +386,10 @@ onUnmounted(() => {
 
 .repo-link.build-in-progress {
   color: #ffaa00;
-  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.repo-link.build-in-progress .repo-icon {
+  animation: spin 2s linear infinite;
 }
 
 .repo-link.build-in-progress:hover {
@@ -402,6 +399,11 @@ onUnmounted(() => {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .repo-icon {

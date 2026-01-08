@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# Manage Vue dev server lifecycle
+
+# Only set SCRIPT_DIR if not already set (when sourced from parent)
+if [[ -z "${SCRIPT_DIR:-}" ]] || [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "${SCRIPT_DIR}/common.sh"
+fi
+
+PORT=8769
+URL="http://localhost:${PORT}/session/tests?suite=point_test"
+
+start_server() {
+    local repo_root="$1"
+    local tests_dir="${repo_root}/session_tests"
+
+    if port_in_use $PORT; then
+        log "Dev server already running on port ${PORT}"
+        log "Vite will hot-reload changes automatically"
+        log "View at: ${URL}"
+        return 0
+    fi
+
+    log "Starting development server..."
+    (cd "${tests_dir}" && npm run dev >/dev/null 2>&1 &)
+    sleep 2
+
+    log "Server started at ${URL}"
+
+    # Open browser
+    local platform=$(detect_platform)
+    if [[ "$platform" == "windows" ]]; then
+        start "" "${URL}" 2>/dev/null || cmd //c start "" "${URL}" 2>/dev/null || true
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "${URL}" >/dev/null 2>&1 || true
+    elif command -v open >/dev/null 2>&1; then
+        open "${URL}" >/dev/null 2>&1 || true
+    fi
+}
+
+stop_server() {
+    if port_in_use $PORT; then
+        log "Stopping dev server on port ${PORT}..."
+        kill_port $PORT
+        log "Server stopped"
+    else
+        log "No server running on port ${PORT}"
+    fi
+}
+
+ensure_node_deps() {
+    local repo_root="$1"
+    local tests_dir="${repo_root}/session_tests"
+    local fast_mode="${2:-false}"
+
+    if ! command -v npm >/dev/null 2>&1; then
+        log "npm not found. Please install Node.js first."
+        return 1
+    fi
+
+    if [[ "$fast_mode" == "true" && -d "${tests_dir}/node_modules" ]]; then
+        log "Fast mode: Skipping npm install"
+        return 0
+    fi
+
+    log "Installing npm dependencies..."
+    (cd "${tests_dir}" && npm install --silent) || {
+        log "npm install failed, retrying..."
+        rm -rf "${tests_dir}/node_modules" "${tests_dir}/package-lock.json"
+        (cd "${tests_dir}" && npm install) || return 1
+    }
+}
+
+# Command dispatch when run directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
+
+    case "${1:-}" in
+        start)
+            ensure_node_deps "$REPO_ROOT" "${2:-false}"
+            start_server "$REPO_ROOT"
+            ;;
+        stop)
+            stop_server
+            ;;
+        restart)
+            stop_server
+            sleep 1
+            ensure_node_deps "$REPO_ROOT" "${2:-false}"
+            start_server "$REPO_ROOT"
+            ;;
+        *)
+            echo "Usage: server.sh {start|stop|restart} [--fast]"
+            exit 1
+            ;;
+    esac
+fi
