@@ -53,10 +53,20 @@ shift
 goto :parse_args
 :done_args
 
-REM Resolve repository root (parent of script directory)
-set "SCRIPT_DIR=%~dp0"
-set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
-for %%i in ("%SCRIPT_DIR%\..") do set "REPO_ROOT=%%~fi"
+REM Resolve repository root - try multiple methods
+set "BATCH_PATH=%~f0"
+for %%i in ("%BATCH_PATH%") do set "BATCH_DIR=%%~dpi"
+for %%i in ("%BATCH_DIR%..") do set "REPO_ROOT=%%~fi"
+
+REM Verify REPO_ROOT by checking for session_py folder
+if not exist "%REPO_ROOT%\session_py" (
+    REM Try going up one more level
+    for %%i in ("%REPO_ROOT%\..") do set "REPO_ROOT=%%~fi"
+)
+if not exist "%REPO_ROOT%\session_py" (
+    REM Fallback: check common locations
+    if exist "C:\rust\session\session_py" set "REPO_ROOT=C:\rust\session"
+)
 set "TESTS_DIR=%REPO_ROOT%\session_tests"
 set "VENV_DIR=%REPO_ROOT%\uvsession"
 set "PYTHON=%VENV_DIR%\Scripts\python.exe"
@@ -93,7 +103,12 @@ if "%RUN_PYTHON%"=="true" (
 REM Run C++ tests
 set "CPP_DIR=%REPO_ROOT%\session_cpp"
 if not "%RUN_CPP%"=="true" goto :skip_cpp
-echo [mini] Building C++ project (session_cpp)...
+
+REM Detect number of CPU cores for parallel build
+for /f "tokens=2 delims==" %%i in ('wmic cpu get NumberOfLogicalProcessors /value 2^>nul ^| find "="') do set "NUM_CORES=%%i"
+if not defined NUM_CORES set "NUM_CORES=4"
+echo [mini] Building C++ project (session_cpp) with %NUM_CORES% parallel jobs...
+
 if not exist "%CPP_DIR%" (
     echo [mini] session_cpp directory not found at %CPP_DIR%
     goto :skip_cpp
@@ -106,8 +121,8 @@ if errorlevel 1 (
     popd
     exit /b 1
 )
-echo [mini] Building C++...
-cmake --build build --config Release
+echo [mini] Building C++ with %NUM_CORES% cores...
+cmake --build build --config Release --parallel %NUM_CORES%
 if errorlevel 1 (
     echo [mini] C++ build failed.
     popd
@@ -154,7 +169,7 @@ echo [mini] Build C++ first or install protoc.
 :protoc_ready
 
 pushd "%RUST_DIR%"
-cargo run --release --features protobuf --bin minitest
+cargo run --release --features protobuf --bin minitest -j %NUM_CORES%
 if errorlevel 1 (
     echo [mini] Rust minitest failed.
     popd
