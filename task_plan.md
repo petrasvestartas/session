@@ -27,6 +27,7 @@ Make the test viewer auto-reload when test JSON changes, preserving the current 
 ## Phase 4: GitHub Actions fixes
 - [x] Fixed bash script permissions: `chmod +x bash/*.sh bash/lib/*.sh`
 - [x] Updated CLAUDE.md with CI permission note
+- [x] Made numba optional to fix macos-15-intel LLVM build failure
 - [ ] Verify CI passes after push
 
 ## Notes
