@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Run C++ minitest only - does NOT touch other languages' JSON
 # Usage:
-#   ./test_cpp.sh              # Build and run all C++ tests
-#   ./test_cpp.sh --fast       # (no effect currently, for consistency)
+#   ./test_cpp.sh              # Build and run (skips cmake if build exists)
+#   ./test_cpp.sh --clean      # Force cmake reconfigure
 #   ./test_cpp.sh --no-viewer  # Don't update testData.js
 
 set -e
@@ -14,11 +14,12 @@ source "${SCRIPT_DIR}/lib/common.sh"
 REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
 CPP_DIR="${REPO_ROOT}/session_cpp"
 UPDATE_VIEWER=true
+FORCE_CLEAN=false
 
 # Parse args
 for arg in "$@"; do
     case $arg in
-        --fast|-f) ;; # ignored for C++, kept for consistency
+        --clean|-c) FORCE_CLEAN=true ;;
         --no-viewer) UPDATE_VIEWER=false ;;
     esac
 done
@@ -36,8 +37,11 @@ log_lang "cpp" "Building with ${JOBS} jobs..."
 
 cd "$CPP_DIR"
 
-log_lang "cpp" "Configuring CMake..."
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step"
+# Skip configure if build exists (use --clean to force reconfigure)
+if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
+    log_lang "cpp" "Configuring CMake..."
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step"
+fi
 
 log_lang "cpp" "Compiling..."
 if [[ "$PLATFORM" == "windows" ]]; then
