@@ -121,6 +121,7 @@ git submodule update --init --recursive
 - all three languages (C++, Python, Rust) must pass CI before merge
 - **macOS runners:** use `macos-15` for ARM64, `macos-15-intel` for Intel x64
 - **Linux:** use `manylinux_2_28_x86_64` container for glibc compatibility
+- **Bash scripts:** Always `chmod +x` bash scripts before running in CI (execute permissions not preserved from Windows)
 
 ## MINITEST
 

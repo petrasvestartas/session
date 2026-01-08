@@ -22,7 +22,12 @@ Make the test viewer auto-reload when test JSON changes, preserving the current 
 - Resolution: Use grep filtering instead of MSBuild flags
 
 ## Status
-**Currently in Phase 3** - Increased debounce to 1000ms to fix flickering
+**Phase 3 complete** - Auto-reload working with URL preservation
+
+## Phase 4: GitHub Actions fixes
+- [x] Fixed bash script permissions: `chmod +x bash/*.sh bash/lib/*.sh`
+- [x] Updated CLAUDE.md with CI permission note
+- [ ] Verify CI passes after push
 
 ## Notes
 - `full-reload` with `path: '*'` tells Vite to reload all connected clients while preserving their current URL

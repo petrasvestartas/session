@@ -85,7 +85,7 @@ jobs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        chmod +x bash/minitest.sh
+        chmod +x bash/*.sh bash/lib/*.sh
         ./bash/minitest.sh
 
     - name: Run mini tests (Windows)
