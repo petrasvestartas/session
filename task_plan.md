@@ -28,7 +28,10 @@ Make the test viewer auto-reload when test JSON changes, preserving the current 
 - [x] Fixed bash script permissions: `chmod +x bash/*.sh bash/lib/*.sh`
 - [x] Updated CLAUDE.md with CI permission note
 - [x] Made numba optional to fix macos-15-intel LLVM build failure
+- [x] Unified workflow to use bash on all platforms (no more .bat files needed)
+- [x] Added MSYS_NO_PATHCONV=1 for Windows Git Bash compatibility
 - [ ] Verify CI passes after push
+- [ ] Delete .bat files after CI passes
 
 ## Notes
 - `full-reload` with `path: '*'` tells Vite to reload all connected clients while preserving their current URL
