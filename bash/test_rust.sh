@@ -65,7 +65,7 @@ log_lang "rust" "Building and running minitest..."
 cd "$RUST_DIR"
 
 JOBS=$(get_jobs)
-cargo run --release --features protobuf --bin minitest -j "$JOBS"
+cargo run --release --bin minitest -j "$JOBS"
 
 if [[ $? -ne 0 ]]; then
     log_lang "rust" "Minitest failed"

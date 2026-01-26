@@ -87,69 +87,7 @@ session_tests/
 
 ## Adding New Test Suites
 
-You can think of a "test section" as a *suite* like `point_test` or `color_test`.
-
-### Step-by-step
-
-1. **Produce JSON output for the new suite** in each language (optional per language):
-   - Python: write to `session_tests/session_py/<suite_name>.json`
-   - C++: write to `session_tests/session_cpp/<suite_name>.json`
-   - Rust: write to `session_tests/session_rust/<suite_name>.json`
-
-   The JSON structure should match the existing files in those folders
-   (e.g. `point_test.json`, `color_test.json`). The easiest way is to copy
-   one of those and adapt it.
-
-2. **Run the new mini tests in `minitest.sh`**
-
-   In `session_tests/minitest.sh`, before the `generate_test_data_js()` call,
-   add the commands that build/run your new mini tests and write the JSON
-   files mentioned above.
-
-3. **Register the JSON files in `generate_test_data_js()`**
-
-   Still in `minitest.sh`, in the `SOURCES` array inside
-   `generate_test_data_js()` add entries for the new suite, e.g. for a
-   `vector_test` suite:
-
-   ```bash
-   local SOURCES=(
-     "session_py/point_test.json:python"
-     "session_cpp/point_test.json:cpp"
-     "session_rust/point_test.json:rust"
-     "session_py/color_test.json:python"
-     "session_cpp/color_test.json:cpp"
-     "session_rust/color_test.json:rust"
-     # New suite "vector_test"
-     "session_py/vector_test.json:python"
-     "session_cpp/vector_test.json:cpp"
-     "session_rust/vector_test.json:rust"
-   )
-   ```
-
-   When `generate_test_data_js()` runs, it will:
-   - Read each JSON file.
-   - Generate keys like `vector_test_python`, `vector_test_cpp`, etc.
-   - Append their data into `window.TEST_DATA`.
-
-4. **Run `minitest.sh`**
-
-   From the repo root:
-
-   ```bash
-   bash session_tests/minitest.sh
-   ```
-
-   This regenerates `public/testData.js` and restarts the dev server.
-
-5. **Verify in the UI**
-
-   - Open `http://localhost:8769/`.
-   - Go to the **Tests** tab.
-   - Open the **Tests** dropdown in the top bar.
-   - You should now see your new suite name (e.g. `vector_test`) as an option.
-   - Selecting it will show the tests for that suite in the table via
-     `TestsView.vue` and `TestViewer.vue`.
+See `CLAUDE.md` in the repo root for the full workflow.
 
 ## Adding New Tabs
 
@@ -198,45 +136,26 @@ const router = createRouter({
 </style>
 ```
 
-## Development Workflow (Step-by-step)
+## Development Workflow
 
-### A. Backend tests + data generation
+### Run all tests + Vue viewer
+```bash
+./bash/minitest.sh
+```
 
-1. Make code changes to Python / C++ / Rust implementations.
-2. From the repo root, run:
+### Options
+```bash
+./bash/minitest.sh --py         # Python only
+./bash/minitest.sh --cpp        # C++ only
+./bash/minitest.sh --rust       # Rust only
+./bash/minitest.sh --fast       # Skip dependency installs
+./bash/minitest.sh --no-web     # Skip Vue server
+./bash/minitest.sh --kill       # Stop dev server
+```
 
-   ```bash
-   bash session_tests/minitest.sh
-   ```
+### Frontend-only development
+```bash
+cd session_tests && npm install && npm run dev
+```
 
-   This will:
-   - Run Python mini tests (if the environment is available).
-   - Build and run C++ and Rust mini tests.
-   - Generate consolidated `public/testData.js` from the JSON outputs in
-     `session_cpp/`, `session_py/`, `session_rust/`.
-   - Run `npm install` (first time only) inside `session_tests/`.
-   - Run `npm run build` (Vite production build).
-   - Start the Vite dev server on **http://localhost:8769/**.
-   - Open the browser to **http://localhost:8769/**.
-
-3. Once running, the Vue app loads immediately using `window.TEST_DATA` from `testData.js`.
-
-### B. Frontend-only development
-
-If you just want to work on the Vue UI (no new backend test data):
-
-1. In `session_tests/`:
-
-   ```bash
-   npm install        # first time only
-   npm run dev        # starts Vite dev server on port 8769
-   ```
-
-2. Open `http://localhost:8769/` in your browser.
-3. Use the **Viewer** and **Tests** tabs and the CLI to test interactions.
-
-## Browser Requirements
-
-- Modern browser with ES6 module support
-- Must be served via HTTP (not file://) for proper CORS handling
-- `minitest.sh` automatically starts the Vite dev server on port **8769**
+Opens at http://localhost:8769/

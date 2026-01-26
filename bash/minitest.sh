@@ -71,10 +71,14 @@ regenerate_python_protos() {
     local protoc=""
     if command -v protoc >/dev/null 2>&1; then
         protoc="protoc"
-    elif [[ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]]; then
-        protoc="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
+    elif [[ -f "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" ]]; then
+        protoc="${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe"
+    elif [[ -f "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc" ]]; then
+        protoc="${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"
     elif [[ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/Release/protoc.exe" ]]; then
         protoc="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/Release/protoc.exe"
+    elif [[ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]]; then
+        protoc="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
     else
         log "Warning: protoc not found, skipping Python protobuf regeneration"
         return 0

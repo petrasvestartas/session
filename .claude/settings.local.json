@@ -34,7 +34,17 @@
       "Bash(../build/temp/Debug/step_test.exe:*)",
       "Bash(python3:*)",
       "Bash(find:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(taskkill:*)",
+      "Bash(./bash/cpp.sh:*)",
+      "Bash(source uvsession/bin/activate)",
+      "Bash(where:*)",
+      "Bash(awk:*)",
+      "Bash(git stash:*)",
+      "Bash(./build/Release/MyProject.exe)",
+      "Bash(./bash/minitest.sh:*)",
+      "Bash(./minitests.exe)",
+      "Bash(git restore:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

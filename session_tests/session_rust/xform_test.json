@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.019,
     "line": 7,
     "code": "        use crate::Xform;\n        use crate::Point;\n\n        // Constructor (identity by default)\n        let x = Xform::new();\n\n        // Matrix access\n        let m00 = x.m[0];\n        let m11 = x.m[5];\n        let m22 = x.m[10];\n        let m33 = x.m[15];\n\n        // Check identity\n        let is_id = x.is_identity();\n\n        // From matrix constructor\n        let xfrom = Xform::from_matrix([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 5.0, 10.0, 15.0, 1.0]);\n\n        // Minimal and Full String Representation\n        let xstr = x.str();\n        let xrepr = x.repr();\n\n        // Copy (duplicates everything except guid)\n        let xcopy = x.duplicate();\n        let xother = Xform::new();\n\n        // Equality operators\n        let x_eq = x == xother;\n        let x_ne = x != xfrom;\n\n        // Matrix multiplication (*)\n        let t = Xform::translation(10.0, 0.0, 0.0);\n        let s = Xform::scaling(2.0, 1.0, 1.0);\n        let combined = &t * &s;\n        let p = Point::new(1.0, 0.0, 0.0);\n        let result = combined.transformed_point(&p);\n\n        // In-place multiplication (*=)\n        let mut t2 = Xform::translation(10.0, 0.0, 0.0);\n        t2 *= s;\n        let result2 = t2.transformed_point(&p);\n\n        // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 5.71,
+    "time_ms": 5.129,
     "line": 285,
     "code": "        use crate::Xform;\n\n        // Create a non-identity xform\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform\".to_string();\n\n        // json_dump(filename) / json_load(filename) - file-based serialization\n        let filename = \"serialization/test_xform.json\";\n        xform.to_json(filename).unwrap();\n        let loaded = Xform::from_json(filename).unwrap();\n",
     "checks": [
@@ -92,27 +92,27 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 4.514,
-    "line": 306,
+    "time_ms": 4.566,
+    "line": 305,
     "code": "        use crate::Xform;\n\n        // Create a non-identity xform\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform_proto\".to_string();\n\n        // protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n        let filename = \"serialization/test_xform.bin\";\n        xform.protobuf_dump(filename);\n        let loaded = Xform::protobuf_load(filename);\n",
     "checks": [
       {
-        "line": 318,
+        "line": 317,
         "code_line": "loaded.name == \"test_xform_proto\"",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 318,
         "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0)",
         "passed": true
       },
       {
-        "line": 320,
+        "line": 319,
         "code_line": "TOLERANCE.is_close(loaded.m[13], 2.0)",
         "passed": true
       },
       {
-        "line": 321,
+        "line": 320,
         "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0)",
         "passed": true
       }
@@ -122,7 +122,7 @@
   {
     "test_name": "change_basis",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 207,
     "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n\n        // System 0: standard XY plane at origin\n        let origin_0 = Point::new(0.0, 0.0, 0.0);\n        let x_axis_0 = Vector::new(1.0, 0.0, 0.0);\n        let y_axis_0 = Vector::new(0.0, 1.0, 0.0);\n        let z_axis_0 = Vector::new(0.0, 0.0, 1.0);\n\n        // System 1: translated and rotated 90 degrees around Z\n        let origin_1 = Point::new(10.0, 20.0, 0.0);\n        let x_axis_1 = Vector::new(0.0, 1.0, 0.0);\n        let y_axis_1 = Vector::new(-1.0, 0.0, 0.0);\n        let z_axis_1 = Vector::new(0.0, 0.0, 1.0);\n\n        // Transform maps points FROM system 1 TO system 0\n        let xform = Xform::change_basis(&origin_1, &x_axis_1, &y_axis_1, &z_axis_1, &origin_0, &x_axis_0, &y_axis_0, &z_axis_0);\n\n        // Point at origin_1 should map to origin_0\n        let p = Point::new(10.0, 20.0, 0.0);\n        let tp = xform.transformed_point(&p);\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "inverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 140,
     "code": "        use crate::Xform;\n\n        // Create composite transformation\n        let t = Xform::translation(1.0, 2.0, 3.0);\n        let s = Xform::scaling(2.0, 2.0, 2.0);\n        let composite = &t * &s;\n\n        // Compute inverse\n        let inv = composite.inverse().unwrap();\n\n        // Multiply should give identity\n        let result = &composite * &inv;\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "look_at_rh",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 263,
     "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n\n        // Camera at (0,0,10) looking at origin\n        let eye = Point::new(0.0, 0.0, 10.0);\n        let target = Point::new(0.0, 0.0, 0.0);\n        let up = Vector::new(0.0, 1.0, 0.0);\n\n        let xform = Xform::look_at_rh(&eye, &target, &up);\n\n        // The target point should be on the negative Z axis in view space\n        let tp = xform.transformed_point(&target);\n",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "plane_to_plane",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 238,
     "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Plane;\n\n        // Source plane at origin, XY plane\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n\n        // Target plane translated and rotated\n        let plane_to = Plane::new(Point::new(10.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0), Vector::new(-1.0, 0.0, 0.0));\n\n        let xform = Xform::plane_to_plane(&plane_from, &plane_to);\n\n        // Origin of source should map to origin of target\n        let p = Point::new(0.0, 0.0, 0.0);\n        let tp = xform.transformed_point(&p);\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "transform_geometry",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.027,
     "line": 159,
     "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Line;\n        use crate::Plane;\n        use crate::Polyline;\n\n        // Simple translation by (10, 20, 30)\n        let t = Xform::translation(10.0, 20.0, 30.0);\n\n        // Transform Point: (1,2,3) -> (11,22,33)\n        let mut pt = Point::new(1.0, 2.0, 3.0);\n        pt.xform = t.duplicate();\n        let pt_transformed = pt.transformed();\n\n        // Transform Vector: translation should NOT affect vectors\n        let v = Vector::new(1.0, 0.0, 0.0);\n        let v_transformed = t.transformed_vector(&v);\n\n        // Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n        let mut ln = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        ln.xform = t.duplicate();\n        let ln_transformed = ln.transformed();\n\n        // Transform Plane: origin (0,0,0) -> (10,20,30)\n        let mut pl = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        pl.xform = t.duplicate();\n        let pl_transformed = pl.transformed();\n\n        // Transform Polyline: 3 points translated\n        let mut poly = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0)]);\n        poly.xform = t.duplicate();\n        let poly_transformed = poly.transformed();\n        let pts = poly_transformed.get_points();\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "translation",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 65,
     "code": "        use crate::Xform;\n        use crate::Point;\n\n        // Translation matrix\n        let t = Xform::translation(1.0, 2.0, 3.0);\n\n        // Apply to point\n        let p = Point::new(4.0, 5.0, 6.0);\n        let tp = t.transformed_point(&p);\n",
     "checks": [

@@ -57,6 +57,15 @@ Cargo.lock
 ehthumbs.db
 Thumbs.db
 
+# Windows reserved names
+nul
+NUL
+con
+CON
+
+# Claude temp files
+tmpclaude-*
+
 # Documentation output directories
 docs_output/
 _build/

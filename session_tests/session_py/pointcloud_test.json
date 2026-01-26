@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.488,
+    "time_ms": 0.516,
     "line": 7,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points, normals, colors\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.0, 1.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    n2 = Vector(0.0, 0.0, 1.0)\n    c0 = Color(255, 0, 0, 255)\n    c1 = Color(0, 255, 0, 255)\n    c2 = Color(0, 0, 255, 255)\n    pc = PointCloud([p0, p1, p2], [n0, n1, n2], [c0, c1, c2])\n\n    # Basic properties\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n    is_empty = pc.is_empty()\n\n    # Minimal and Full String Representation\n    pcstr = str(pc)\n    pcrepr = repr(pc)\n\n    # Copy (duplicates everything except guid)\n    pccopy = pc.duplicate()\n\n    # Get point/color/normal at index\n    pt0 = pc.get_point(0)\n    col0 = pc.get_color(0)\n    norm0 = pc.get_normal(0)\n\n    # Add points, colors, normals to empty cloud\n    pc2 = PointCloud()\n    pc2.add_point(Point(1.0, 2.0, 3.0))\n    pc2.add_color(Color(128, 64, 32, 255))\n    pc2.add_normal(Vector(1.0, 0.0, 0.0))\n\n    # Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0))\n    pc2.set_color(0, Color(200, 100, 50, 255))\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0))\n\n    # Translate with Vector offset\n    pc3 = PointCloud([Point(1.0, 2.0, 3.0)])\n    offset = Vector(10.0, 20.0, 30.0)\n    pc_iadd = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_iadd += offset\n    pc_isub = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_isub -= offset\n    pc_add = pc3 + offset\n    pc_sub = pc3 - offset\n\n    # Create from flat arrays\n    coords = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n    colors_arr = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]\n    normals_arr = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]\n    pc4 = PointCloud.from_coords(coords, colors_arr, normals_arr)",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.143,
+    "time_ms": 0.168,
     "line": 94,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    # Transform - in-place transformation\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc.transform()\n\n    # Transformed - returns new cloud\n    pc2 = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc2.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc3 = pc2.transformed()",
     "checks": [
@@ -142,7 +142,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 4.717,
+    "time_ms": 7.385,
     "line": 115,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.json\"\n    pc.json_dump(fname)\n    loaded = PointCloud.json_load(fname)",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 4.57,
+    "time_ms": 8.719,
     "line": 141,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(255, 0, 0, 255), Color(0, 255, 0, 255)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.bin\"\n    pc.protobuf_dump(fname)\n    loaded = PointCloud.protobuf_load(fname)",
     "checks": [

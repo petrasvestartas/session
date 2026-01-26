@@ -107,7 +107,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 5.25,
+    "time_ms": 5.256,
     "line": 401,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // json_dump(filename) / json_load(filename) - file-based serialization\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "checks": [
@@ -137,27 +137,27 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.66,
-    "line": 421,
+    "time_ms": 0.904,
+    "line": 420,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test protobuf_dump / protobuf_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.protobuf_dump(filename);\n        let loaded = Vector::protobuf_load(filename);\n",
     "checks": [
       {
-        "line": 432,
+        "line": 431,
         "code_line": "loaded.name == \"test_vector\"",
         "passed": true
       },
       {
-        "line": 433,
+        "line": 432,
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 434,
+        "line": 433,
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 435,
+        "line": 434,
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       }
@@ -252,7 +252,7 @@
   {
     "test_name": "cos_sin_laws",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 297,
     "code": "        use crate::Vector;\n\n        // Given a 3-4-5 right triangle\n        let a = 3.0; // side opposite to angle A\n        let b = 4.0; // side opposite to angle B\n        let c = 5.0; // hypotenuse, opposite to angle C (90°)\n\n        // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n        let angle_a = Vector::angle_from_cosine_law(b, c, a, true); \n        let angle_b = Vector::angle_from_cosine_law(a, c, b, true); \n        let angle_c = Vector::angle_from_cosine_law(a, b, c, true); \n\n        // given 2 angles + 1 side, find other side\n        let side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n        let side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n        let side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n        //  given 2 sides + included angle, find 3rd side\n        let computed_c = Vector::cosine_law(a, b, angle_c, true); \n        let computed_a = Vector::cosine_law(b, c, angle_a, true);\n        let computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n        // given 2 sides + 1 angle, find other angle\n        let computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n        let computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n        //  given 1 side + 2 angles, find other side\n        let computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n        let computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "cross_product",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 156,
     "code": "        use crate::Vector;\n\n        // Get normal\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n        let vn = v1.cross(&v2);\n\n        // Perpendicular, area = 3*4=12\n        let a = Vector::new(3.0, 0.0, 0.0);\n        let b = Vector::new(0.0, 4.0, 0.0); \n        let cross = a.cross(&b);\n        let area = (cross[0].powi(2) + cross[1].powi(2) + cross[2].powi(2)).sqrt();\n        \n",
     "checks": [
@@ -382,7 +382,7 @@
   {
     "test_name": "get_leveled_vector",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 284,
     "code": "        use crate::Vector;\n\n        // Scale vector along its direction so its Z-component equals vertical_height.\n        let v = Vector::new(1.0, 1.0, 1.0);\n        let vertical_height = 1.0;\n        let v_leveled = v.get_leveled_vector(vertical_height);\n",
     "checks": [

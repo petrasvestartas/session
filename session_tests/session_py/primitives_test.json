@@ -1,0 +1,152 @@
+[
+  {
+    "test_name": "circle",
+    "passed": true,
+    "time_ms": 0.096,
+    "line": 6,
+    "code": "    from session_py import Primitives\n\n    c = Primitives.circle(0.0, 0.0, 0.0, 1.0)",
+    "checks": [
+      {
+        "line": 12,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 13,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "c.is_rational() == True",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "ellipse",
+    "passed": true,
+    "time_ms": 0.077,
+    "line": 17,
+    "code": "    from session_py import Primitives\n\n    c = Primitives.ellipse(0.0, 0.0, 0.0, 2.0, 1.0)",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "c.is_rational() == True",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "arc",
+    "passed": true,
+    "time_ms": 0.101,
+    "line": 28,
+    "code": "    from session_py import Primitives\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    mid = Point(1.0, 1.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    c = Primitives.arc(start, mid, end)",
+    "checks": [
+      {
+        "line": 38,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 39,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "c.is_rational() == True",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "parabola",
+    "passed": true,
+    "time_ms": 0.064,
+    "line": 43,
+    "code": "    from session_py import Primitives\n    from session_py import Point\n\n    p0 = Point(-1.0, 1.0, 0.0)\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    c = Primitives.parabola(p0, p1, p2)",
+    "checks": [
+      {
+        "line": 53,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "c.is_rational() == False",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "hyperbola",
+    "passed": true,
+    "time_ms": 0.117,
+    "line": 58,
+    "code": "    from session_py import Primitives\n    from session_py import Point\n\n    center = Point(0.0, 0.0, 0.0)\n    c = Primitives.hyperbola(center, 1.0, 1.0, 1.0)",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "c.is_rational() == False",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "spiral",
+    "passed": true,
+    "time_ms": 0.287,
+    "line": 71,
+    "code": "    from session_py import Primitives\n\n    c = Primitives.spiral(1.0, 2.0, 1.0, 5.0)",
+    "checks": [
+      {
+        "line": 77,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 78,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "c.is_rational() == False",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

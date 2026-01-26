@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("color" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "plane" "point" "pointcloud" "polyline" "tolerance" "vector" "xform")
+CLASS_NAMES=("color" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "plane" "point" "pointcloud" "polyline" "primitives" "tolerance" "vector" "xform")
 
 # Resolve repo root from script location
 resolve_repo_root() {

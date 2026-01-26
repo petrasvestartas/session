@@ -1,0 +1,152 @@
+[
+  {
+    "test_name": "circle",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 10,
+    "code": "    NurbsCurve c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "ellipse",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 18,
+    "code": "    NurbsCurve c = Primitives::ellipse(0.0, 0.0, 0.0, 2.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 21,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "arc",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 26,
+    "code": "    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
+    "checks": [
+      {
+        "line": 32,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "parabola",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 37,
+    "code": "    Point p0(-1.0, 1.0, 0.0);\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    NurbsCurve c = Primitives::parabola(p0, p1, p2);\n",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 45,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "hyperbola",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 48,
+    "code": "    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 52,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "spiral",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 57,
+    "code": "    NurbsCurve c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
+    "checks": [
+      {
+        "line": 60,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

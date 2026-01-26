@@ -1,17 +1,15 @@
 #!/bin/bash
-
-# Resolve repository root as the parent of this script's directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT="${SCRIPT_DIR}/.."
-cd "${REPO_ROOT}"
+cd "${SCRIPT_DIR}/.."
 
-echo "🔄 Updating main repo..."
+echo "=== Main repo ==="
 git pull
 
-echo "🔄 Updating submodules (init + recursive)..."
+echo -e "\n=== Init submodules ==="
 git submodule update --init --recursive
 
-echo "🔄 Checking out main branch in all submodules..."
-git submodule foreach 'git checkout main 2>/dev/null || git checkout -b main'
+echo -e "\n=== Pull latest in each submodule ==="
+git submodule foreach 'git checkout main && git pull origin main'
 
-echo "✅ Done. Main repo and submodules are up to date on main branch."
+echo -e "\n=== Status ==="
+git submodule status

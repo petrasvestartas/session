@@ -1,0 +1,152 @@
+[
+  {
+    "test_name": "arc",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 29,
+    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let start = Point::new(0.0, 0.0, 0.0);\n        let mid = Point::new(1.0, 1.0, 0.0);\n        let end = Point::new(2.0, 0.0, 0.0);\n        let c = Primitives::arc(&start, &mid, &end);\n",
+    "checks": [
+      {
+        "line": 38,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 39,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "circle",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 5,
+    "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 10,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 11,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 12,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "ellipse",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 17,
+    "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::ellipse(0.0, 0.0, 0.0, 2.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 22,
+        "code_line": "c.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "c.is_rational() == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "hyperbola",
+    "passed": true,
+    "time_ms": 0.017,
+    "line": 61,
+    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let center = Point::new(0.0, 0.0, 0.0);\n        let c = Primitives::hyperbola(&center, 1.0, 1.0, 1.0);\n",
+    "checks": [
+      {
+        "line": 68,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 69,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 70,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "parabola",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 45,
+    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let p0 = Point::new(-1.0, 1.0, 0.0);\n        let p1 = Point::new(0.0, 0.0, 0.0);\n        let p2 = Point::new(1.0, 1.0, 0.0);\n        let c = Primitives::parabola(&p0, &p1, &p2);\n",
+    "checks": [
+      {
+        "line": 54,
+        "code_line": "c.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "c.order() == 3",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "spiral",
+    "passed": true,
+    "time_ms": 0.018,
+    "line": 75,
+    "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "c.cv_count() >= 4",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "c.order() == 4",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "c.is_rational() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

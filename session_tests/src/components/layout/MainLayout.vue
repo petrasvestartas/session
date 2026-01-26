@@ -7,18 +7,18 @@
 
       <div v-if="!sidebarCollapsed" class="nav-section">
         <div class="repo-icons">
-          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session === 'failure', 'build-success': buildStatus.session === 'success', 'build-in-progress': buildStatus.session === 'in_progress' }" title="Session">
+          <a href="https://github.com/petrasvestartas/session" target="_blank" class="repo-link" title="Session">
             <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
           </a>
-          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_cpp === 'failure', 'build-success': buildStatus.session_cpp === 'success', 'build-in-progress': buildStatus.session_cpp === 'in_progress' }" title="C++">
+          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" title="C++">
             <img src="/icons/session_cpp_white.png" class="repo-icon" alt="C++">
           </a>
-          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_py === 'failure', 'build-success': buildStatus.session_py === 'success', 'build-in-progress': buildStatus.session_py === 'in_progress' }" title="Python">
+          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" title="Python">
             <img src="/icons/session_py_white.png" class="repo-icon" alt="Python">
           </a>
-          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" :class="{ 'build-failed': buildStatus.session_rust === 'failure', 'build-success': buildStatus.session_rust === 'success', 'build-in-progress': buildStatus.session_rust === 'in_progress' }" title="Rust">
+          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" title="Rust">
             <img src="/icons/session_rust_white.png" class="repo-icon" alt="Rust">
           </a>
           <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
@@ -108,38 +108,6 @@ const testsSuites = ref([]);
 const selectedSuite = ref('');
 const sidebarCollapsed = ref(false);
 
-const buildStatus = ref({
-  session: null,
-  session_cpp: null,
-  session_py: null,
-  session_rust: null
-});
-
-const fetchBuildStatus = async (repo) => {
-  try {
-    const response = await fetch(`https://api.github.com/repos/petrasvestartas/${repo}/actions/runs?per_page=1`);
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data.workflow_runs && data.workflow_runs.length > 0) {
-      const run = data.workflow_runs[0];
-      if (run.status === 'in_progress' || run.status === 'queued') {
-        return 'in_progress';
-      }
-      return run.conclusion;
-    }
-    return null;
-  } catch (e) {
-    return null;
-  }
-};
-
-const loadBuildStatuses = async () => {
-  const repos = ['session', 'session_cpp', 'session_py', 'session_rust'];
-  for (const repo of repos) {
-    const status = await fetchBuildStatus(repo);
-    buildStatus.value[repo.replace('-', '_')] = status;
-  }
-};
 
 // CLI height in pixels (resizable)
 const cliHeight = ref(200);
@@ -197,14 +165,9 @@ const selectSuite = (suite) => {
   router.push({ path: '/tests', query: { suite } });
 };
 
-let buildStatusInterval = null;
-
 onMounted(() => {
   loadSuitesFromTestData();
   syncSelectedSuiteWithRoute();
-  loadBuildStatuses();
-  // Poll build statuses every 30 seconds to catch in-progress builds
-  buildStatusInterval = setInterval(loadBuildStatuses, 30000);
 });
 
 watch(
@@ -253,9 +216,6 @@ const toggleCliExpand = () => {
 
 onUnmounted(() => {
   stopResize();
-  if (buildStatusInterval) {
-    clearInterval(buildStatusInterval);
-  }
 });
 </script>
 
@@ -368,43 +328,6 @@ onUnmounted(() => {
   color: #aaaaaa;
 }
 
-.repo-link.build-failed {
-  color: #ff5555;
-}
-
-.repo-link.build-failed:hover {
-  color: #ff8888;
-}
-
-.repo-link.build-success {
-  color: #55ff55;
-}
-
-.repo-link.build-success:hover {
-  color: #88ff88;
-}
-
-.repo-link.build-in-progress {
-  color: #ffaa00;
-}
-
-.repo-link.build-in-progress .repo-icon {
-  animation: spin 2s linear infinite;
-}
-
-.repo-link.build-in-progress:hover {
-  color: #ffcc55;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 
 .repo-icon {
   width: 20px;
@@ -433,17 +356,6 @@ img.repo-icon {
   height: 20px;
 }
 
-.repo-link.build-failed img.repo-icon {
-  filter: brightness(0) saturate(100%) invert(35%) sepia(100%) saturate(2000%) hue-rotate(340deg);
-}
-
-.repo-link.build-success img.repo-icon {
-  filter: brightness(0) saturate(100%) invert(60%) sepia(100%) saturate(500%) hue-rotate(80deg);
-}
-
-.repo-link.build-in-progress img.repo-icon {
-  filter: brightness(0) saturate(100%) invert(70%) sepia(100%) saturate(1000%) hue-rotate(0deg);
-}
 
 .suites-section {
   display: flex;

@@ -74,35 +74,13 @@ pub mod bbox_test;
 
 ### Step 5: Run
 ```bash
-./minitest.sh
-```
-
----
-
-## Summary of Changes Per Language
-
-| File | Change |
-|------|--------|
-| `minitest.sh:10` | Add suite name to `TEST_SUITES` |
-| `session_py/.../bbox_test.py` | Create test file |
-| `session_cpp/src/bbox_test.cpp` | Create test file |
-| `session_cpp/CMakeLists.txt` | Add to `MINITEST_SOURCES` |
-| `session_rust/src/bbox_test.rs` | Create test file |
-| `session_rust/src/lib.rs` | Add `pub mod bbox_test;` |
-
----
-
-## Deployment
-
-```bash
-# Website (GitHub Pages)
-cd session_tests && npm run build && git add -A && git commit -m "Update" && git push
-
-# Claude Proxy (Cloudflare Workers)
-cd session_tests/worker && wrangler deploy
+./bash/minitest.sh
 ```
 
 ## Local Development
 ```bash
-./minitest.sh  # Runs tests + starts dev server at http://localhost:8769/session/
+./bash/minitest.sh              # All tests + Vue viewer
+./bash/minitest.sh --py         # Python only
+./bash/minitest.sh --fast       # Skip dependency installs
+./bash/minitest.sh --no-web     # Skip Vue server
 ```
