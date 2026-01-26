@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 150.708,
+    "time_ms": 141.88,
     "line": 5,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    # The first the curve is closed or open\n    # For linear curves use degree 1\n    # When 3 points use degree 2 curve, Rhino default\n    # When x>3 points use degree 3 curve\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.set_domain(0.0, 1.0)\n\n    # Minimal and Full String Representation\n    cstr = str(curve)\n    crepr = repr(curve)\n\n    # Copy (duplicates everything except guid)\n    ccopy = curve.duplicate()\n    cother = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    # Point division\n    divided = []\n    curve.divide_by_count(10, divided)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "attributes",
     "passed": true,
-    "time_ms": 0.719,
+    "time_ms": 0.622,
     "line": 48,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n    from session_py import Tolerance\n\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    #############################################\n    # Validation\n    #############################################\n\n    # Whole curve\n    is_valid = curve.is_valid()\n\n    # Check whole knot vector for\n    # For correct size: order + cv_count - 2\n    # Non-decreasing (can repeat, can't go down)\n    # Valid domain exists\n    is_valid_knot_vector = curve.is_valid_knot_vector()\n\n    #############################################\n    # Accessors\n    #############################################\n    # Memory layout 2-2D, 3-3D\n    dimension = curve.dimension()\n    # Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n    degree = curve.degree()\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # Order = degree + 1, control points + order = knots\n    order = curve.order()\n    # Number of control vertices\n    cv_count = curve.cv_count()\n    # Number of floats per 1 control vertex\n    cv_size = curve.cv_size()\n    # The knots are a list of (degree+control_points-1) numbers\n    knot_count = curve.knot_count()\n    # Span = a knot interval where a single polynomial segment is evaluated\n    # Knot vector: [0, 0, 0 \u2191, 1 \u2191, 2 \u2191, 3, 3, 3]  (cubic, 5 CVs)\n    span_count = curve.span_count()\n    #####################################################\n    # Control Vertex Access\n    #  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n    #          \u2514\u2500\u2500\u2500 CV 0 \u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500 CV 1 \u2500\u2500\u2500\u2518\n    #####################################################\n\n    # Get pointer to control vertex\n    # Each CV occupies m_cv_stride doubles:\n    # (3 for non-rational, 4 for rational)\n    # cv(index) returns pointer to m_cv[index * m_cv_stride]\n    p = curve.cv(1)\n\n    # Returns the control vertex as Point object\n    cv_point = curve.get_cv(1)\n\n    # Raw homogeneous coords\n    x, y, z, w = curve.get_cv_4d(1)\n\n    # Use for regular points on curve, Polyline, B-Spline\n    curve.set_cv(2, Point(2.0, 0.0, 0.5))\n\n    # Use for rational curvers like circles, ellipses\n    curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707)\n    x, y, z, w = curve.get_cv_4d(2)\n\n    # Get weight of a control vertex (1.0 if non-rational)\n    weight = curve.weight(2)\n\n    # Set the weight of a control vertex\n    curve.set_weight(2, 0.5)\n\n    #####################################################\n    # Knot Access\n    #####################################################\n\n    # Get knot value at index\n    knot3 = curve.knot(3)\n\n    # Set knot value at index\n    # ATTENTION you can brake increasing rule\n    curve.set_knot(4, 2)\n\n    # Count repeated knots at index [0, 0, 1, 1, 2]\n    m0 = curve.knot_multiplicity(0)  # 2 (two 0's)\n    m1 = curve.knot_multiplicity(1)  # 2 (still counting the 0's)\n    m2 = curve.knot_multiplicity(2)  # 1 (single 0.5)\n    m3 = curve.knot_multiplicity(3)  # 2 (single 1's)\n    m4 = curve.knot_multiplicity(4)  # 2 (single 2)\n\n    # Superflous knots are used for extension of clamped curves\n    # For knot vector [0, 0, 0.5, 1, 2]: 2*knot[4] - knot[1] = 2*2 - 0 = 4\n    superfluous_knot = curve.superfluous_knot(1)\n\n    # Direct memory access to knot values, fast, read-only\n    # Vector return is slower and makes a copy\n    knot_vector = curve.get_knots()\n\n    #####################################################\n    # Domain & Parameterization - HERE\n    #####################################################\n\n    # get start and end of the curve interval\n    start, end = curve.domain()\n\n    # Get start, middle and end values of the interval\n    start = curve.domain_start()\n    middle = curve.domain_middle()\n    end = curve.domain_end()\n\n    # Change curve domain\n    curve.set_domain(0.0, 1.0)\n\n    # Span of distict knot intervals\n    intervals = curve.get_span_vector()\n\n    #####################################################\n    # Geometric checks\n    #####################################################\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # circles, ellipses, parabolas, hyperbolas exactly\n    is_rational = curve.is_rational()\n\n    # circles, ellipses, parabolas, hyperbolas exactly\n    closed = curve.is_closed()\n    periodic = curve.is_periodic()\n    linear = curve.is_linear()\n    planar = curve.is_planar()\n    arc = curve.is_arc()\n    plane = Plane.xy_plane()\n    on_plane = curve.is_in_plane(plane)\n    is_open = curve.is_natural()\n    is_polyline, _, _ = curve.is_polyline()",
     "checks": [
@@ -262,7 +262,7 @@
   {
     "test_name": "Conversions",
     "passed": true,
-    "time_ms": 313.412,
+    "time_ms": 291.589,
     "line": 239,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Tolerance\n\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    # to_polyline_adaptive\n    adaptive_pts, adaptive_params = curve.to_polyline_adaptive(0.1, 0.0, 0.0)\n\n\n    # divide_by_count\n    div_pts, div_params = curve.divide_by_count(10, True)\n\n\n    # divide_by_length\n    len_pts, len_params = curve.divide_by_length(0.5)",
     "checks": [
@@ -327,7 +327,7 @@
   {
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 34.612,
+    "time_ms": 31.389,
     "line": 281,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Tolerance\n\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(1.957614, 1.140253, -0.191281),\n        Point(0.912252, 1.886721, 0),\n        Point(3.089381, 2.701879, -0.696251),\n        Point(5.015145, 1.189141, 0.35799),\n        Point(1.854155, 0.514663, 0.347694),\n        Point(3.309532, 1.328666, 0),\n        Point(3.544072, 2.194233, 0.696217),\n        Point(2.903513, 2.091287, 0.696217),\n        Point(2.752484, 1.45432, 0),\n        Point(2.406227, 1.288248, 0),\n        Point(2.15032, 1.868606, 0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    # Length\n\n    # Get point at parameter t\n    point_at = curve.point_at(0.5)\n\n    # Get point and derivatives at parameter t\n    derivatives = curve.evaluate(0.5, 2)\n\n    # Tangent vector at parameter t\n    tangent = curve.tangent_at(0.5)\n\n    # Frame at (normalized=True: t in [0,1] mapped to domain)\n    result = curve.frame_at(0.5, normalized=True)\n    o, t, n, b = result\n\n\n    # Perpendicular frame at (RMF with Frenet initialization, matches Rhino)\n    result = curve.perpendicular_frame_at(0.5, normalized=True)\n    o, t, n, b = result\n\n    # Get multiple rotation minimization frames along the curve (matches Rhino)\n    params = [0.0, 0.25, 0.5, 0.75, 1.0]\n    frames = curve.get_perpendicular_frames(params)\n    # Frame 0 (start)\n    o0, t0, n0, b0 = frames[0]\n    # Frame 2 (middle)\n    o2, t2, n2, b2 = frames[2]\n    # Frame 4 (end)\n    o4, t4, n4, b4 = frames[4]\n\n    # Points\n    p0 = curve.point_at_start()\n    p1 = curve.point_at_middle()\n    p2 = curve.point_at_end()\n\n    curve.set_start_point(Point(1.957614, 1.140253, 2.0))\n    curve.set_end_point(Point(2.15032, 1.868606, 2.0))",
     "checks": [
@@ -562,7 +562,7 @@
   {
     "test_name": "Modifications",
     "passed": true,
-    "time_ms": 12.518,
+    "time_ms": 12.369,
     "line": 390,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Tolerance\n\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    # Reverse the curve\n    curve_reversed = curve.duplicate()\n    curve_reversed.reverse()\n\n    # Swap coordinates axes\n    curve.swap_coordinates(0, 1)\n\n    # Split curve at domain middle\n    split_t = curve.domain_middle()\n    curve_left, curve_right = curve.split(split_t)\n\n    # Extend curve smoothly at both ends\n    curve_extended = curve.duplicate()\n    curve_extended.extend(curve.domain_start() - 0.5, curve.domain_end() + 0.5)\n\n    # Enable curve weights - Make rational or non-rational\n    curve_rational = curve.duplicate()\n    original_length = curve.length()\n    curve_rational.make_rational()\n    curve_rational.set_weight(2, 10)\n\n    curve_rational.make_non_rational(force=True)\n\n    # Clamp ends - create unclamped curve manually\n    points_open = points\n    curve_open = NurbsCurve(dimension=3, is_rational=False, order=3, cv_count=5)\n    # Manually allocate arrays (C++ constructor does this automatically)\n    import numpy as np\n    knot_count = curve_open.m_order + curve_open.m_cv_count - 2\n    curve_open.m_knot = np.zeros(knot_count, dtype=np.float64)\n    curve_open.m_cv = np.zeros(curve_open.m_cv_count * curve_open.m_cv_stride, dtype=np.float64)\n\n    for i in range(5):\n        curve_open.set_cv(i, points_open[i])\n\n    for i in range(curve_open.knot_count()):\n        curve_open.set_knot(i, i * 1.0)\n\n    # Now clamp, making 2 knots at the ends the same\n    curve_open.clamp_end(2)\n    knots = curve_open.get_knots()",
     "checks": [
@@ -637,7 +637,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 23.122,
+    "time_ms": 16.698,
     "line": 464,
     "code": "    # from session_py import NurbsCurve\n    # from session_py import Point\n    # from session_py import Tolerance\n    # from pathlib import Path\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Tolerance\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.json\"\n    curve.json_dump(filename)\n    loaded = NurbsCurve.json_load(filename)",
     "checks": [
@@ -707,7 +707,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 9.384,
+    "time_ms": 11.328,
     "line": 502,
     "code": "    # from session_py import NurbsCurve\n    # from session_py import Point\n    # from session_py import Tolerance\n    # from pathlib import Path\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Tolerance\n    TOLERANCE = Tolerance()\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.bin\"\n    curve.protobuf_dump(filename)\n    loaded = NurbsCurve.protobuf_load(filename)",
     "checks": [
@@ -772,7 +772,7 @@
   {
     "test_name": "intersect_plane",
     "passed": true,
-    "time_ms": 0.128,
+    "time_ms": 0.117,
     "line": 539,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n    from session_py import intersection\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve.set_domain(0.0, 1.0)\n    plane = Plane.xy_plane()\n    intersections = intersection.curve_plane(curve, plane)",
     "checks": [
@@ -787,7 +787,7 @@
   {
     "test_name": "transformations",
     "passed": true,
-    "time_ms": 0.367,
+    "time_ms": 0.32,
     "line": 560,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Xform\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    # transform() - Apply stored xform (in-place)\n    curve1 = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve1.xform = Xform.translation(0.0, 0.0, 1.0)\n    curve1.transform()\n\n    # transform(xform) - Apply custom xform (in-place)\n    curve2 = NurbsCurve.create(periodic=False, degree=2, points=points)\n    x = Xform.translation(0.0, 0.0, 1.0)\n    curve2.transform(x)\n\n    # transformed() - Get copy with stored xform applied\n    curve3 = NurbsCurve.create(periodic=False, degree=2, points=points)\n    curve3.xform = Xform.translation(0.0, 0.0, 10.0)\n    curve3_transformed = curve3.transformed()\n\n    # transformed(xform) - Get copy with custom xform\n    curve4 = NurbsCurve.create(periodic=False, degree=2, points=points)\n    x = Xform.translation(10.0, 0.0, 0.0)\n    curve4_transformed = curve4.transformed(x)",
     "checks": [

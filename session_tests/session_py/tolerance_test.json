@@ -2,7 +2,7 @@
   {
     "test_name": "is_zero",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 7,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "is_close",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 13,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
