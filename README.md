@@ -78,8 +78,47 @@ If you already cloned without submodules:
 git submodule update --init --recursive
 ```
 
-Build and test all languages:
+## New PC Setup
+
+### 1. Install uv (Python package manager)
 
 ```bash
-./minitest.sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
+
+### 2. Create Python virtual environment
+
+```bash
+uv venv uvsession --python 3.11
+```
+
+### 3. Activate and install dependencies
+
+```bash
+# Windows (Git Bash)
+source uvsession/Scripts/activate
+
+# macOS/Linux: source uvsession/bin/activate
+
+cd session_py && uv pip install -e . && cd ..
+```
+
+### 4. Run tests
+
+```bash
+# Python only (fastest)
+./bash/minitest.sh --py --no-web
+
+# All languages with web viewer
+./bash/minitest.sh
+```
+
+### Quick Reference
+
+| Command | Description |
+|---------|-------------|
+| `./bash/minitest.sh --py --no-web` | Python tests only |
+| `./bash/minitest.sh --rust --no-web` | Rust tests only |
+| `./bash/minitest.sh --cpp --no-web` | C++ tests only |
+| `./bash/minitest.sh --fast` | Skip dependency installs |
+| `./bash/minitest.sh` | Full test + web viewer at localhost:8769 |

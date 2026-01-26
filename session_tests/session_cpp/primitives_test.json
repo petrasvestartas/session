@@ -2,7 +2,7 @@
   {
     "test_name": "circle",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 10,
     "code": "    NurbsCurve c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "arc",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.011,
     "line": 26,
     "code": "    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "parabola",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 37,
     "code": "    Point p0(-1.0, 1.0, 0.0);\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    NurbsCurve c = Primitives::parabola(p0, p1, p2);\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "hyperbola",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.011,
     "line": 48,
     "code": "    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
     "checks": [

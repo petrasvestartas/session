@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.047,
     "line": 8,
     "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 6.685,
+    "time_ms": 14.88,
     "line": 50,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    c = Color(255, 128, 64, 255, \"test_color\")\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.json\"\n    c.json_dump(fname)\n    loaded = Color.json_load(fname)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 4.349,
+    "time_ms": 8.862,
     "line": 69,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255, \"test_color\")\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.bin\"\n    color.protobuf_dump(path)\n    loaded = Color.protobuf_load(path)",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "conversion",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.025,
     "line": 87,
     "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "presets",
     "passed": true,
-    "time_ms": 0.167,
+    "time_ms": 0.119,
     "line": 101,
     "code": "    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
     "checks": [

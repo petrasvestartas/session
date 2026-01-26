@@ -67,23 +67,6 @@ regenerate_python_protos() {
     local proto_dir="${REPO_ROOT}/session_proto"
     local py_proto_out="${REPO_ROOT}/session_py/src/session_py/proto"
 
-    # Find protoc
-    local protoc=""
-    if command -v protoc >/dev/null 2>&1; then
-        protoc="protoc"
-    elif [[ -f "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" ]]; then
-        protoc="${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe"
-    elif [[ -f "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc" ]]; then
-        protoc="${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"
-    elif [[ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/Release/protoc.exe" ]]; then
-        protoc="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/Release/protoc.exe"
-    elif [[ -f "${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc" ]]; then
-        protoc="${REPO_ROOT}/session_cpp/build/protobuf_external-prefix/src/protobuf_external-build/protoc"
-    else
-        log "Warning: protoc not found, skipping Python protobuf regeneration"
-        return 0
-    fi
-
     if [[ ! -d "$proto_dir" ]]; then
         log "Warning: ${proto_dir} not found, skipping Python protobuf regeneration"
         return 0
@@ -94,7 +77,7 @@ regenerate_python_protos() {
     log "Regenerating Python protobuf bindings..."
     for proto_file in "${proto_dir}"/*.proto; do
         if [[ -f "$proto_file" ]]; then
-            "$protoc" --python_out="$py_proto_out" -I "$proto_dir" "$proto_file" 2>/dev/null || true
+            python -m grpc_tools.protoc --python_out="$py_proto_out" -I "$proto_dir" "$proto_file" 2>/dev/null || true
         fi
     done
 
