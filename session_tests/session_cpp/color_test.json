@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.567,
+    "time_ms": 0.883,
     "line": 12,
     "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid)\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");\n",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 12.453,
+    "time_ms": 13.489,
     "line": 46,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);\n",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 9.012,
+    "time_ms": 15.398,
     "line": 62,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.protobuf_dump(filename);\n      Color loaded = Color::protobuf_load(filename);\n",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "conversion",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.006,
     "line": 78,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255);\n      std::array<double, 4> flts = c.to_unified_array();\n      Color ints = Color::from_unified_array(flts);\n",
     "checks": [

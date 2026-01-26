@@ -152,7 +152,7 @@
   {
     "test_name": "is_right_hand",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.011,
     "line": 128,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // All standard planes should be right-handed\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n    Plane default_pl;\n\n    bool xy_rh = xy.is_right_hand();\n    bool yz_rh = yz.is_right_hand();\n    bool xz_rh = xz.is_right_hand();\n    bool default_rh = default_pl.is_right_hand();\n\n    // After reverse, should still be right-handed\n    default_pl.reverse();\n    bool reversed_rh = default_pl.is_right_hand();\n\n    // After rotate, should still be right-handed\n    default_pl.rotate(Tolerance::PI / 4.0);\n    bool rotated_rh = default_pl.is_right_hand();\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "is_coplanar",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.02,
     "line": 159,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    // Same direction (parallel planes)\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    bool same_dir = Plane::is_same_direction(p1, p2, true);\n\n    // Flipped direction\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();\n    bool same_dir_flipped = Plane::is_same_direction(p1, p3, true);\n    bool same_dir_strict = Plane::is_same_direction(p1, p3, false);\n\n    // Same position\n    Plane p4 = Plane::xy_plane();\n    bool same_pos = Plane::is_same_position(p1, p4);\n    p4 += Vector(0.0, 0.0, 1.0);\n    bool diff_pos = Plane::is_same_position(p1, p4);\n\n    // Coplanar\n    Plane p5 = Plane::xy_plane();\n    Plane p6 = Plane::xy_plane();\n    bool coplanar = Plane::is_coplanar(p5, p6, true);\n    p6.reverse();\n    bool coplanar_reversed = Plane::is_coplanar(p5, p6, true);\n    p6 += Vector(0.0, 0.0, 1.0);\n    bool not_coplanar = Plane::is_coplanar(p5, p6, true);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 199,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    pl.transform();\n\n    // Transformed - returns new plane\n    Plane pl2 = Plane::xy_plane();\n    pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n    Plane pl3 = pl2.transformed();\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 15.938,
+    "time_ms": 12.394,
     "line": 218,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 13.149,
+    "time_ms": 13.994,
     "line": 233,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.protobuf_dump(fname);\n    Plane loaded = Plane::protobuf_load(fname);\n",
     "checks": [

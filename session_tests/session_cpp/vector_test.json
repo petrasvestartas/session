@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "sum_of_vectors",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 321,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);\n\n    // Empty list returns zero vector\n    std::vector<Vector> empty;\n    Vector zero = Vector::sum_of_vectors(empty);",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 11.245,
+    "time_ms": 12.565,
     "line": 372,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.967,
+    "time_ms": 10.007,
     "line": 389,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.protobuf_dump(filename);\n    Vector loaded = Vector::protobuf_load(filename);\n",
     "checks": [
