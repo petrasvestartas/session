@@ -62,11 +62,9 @@ pub fn run_classname_protobuf_roundtrip() -> TestResult {
     })
 }
 
-REGISTER_MINI_TEST!("ClassName",
-    run_classname_constructor,
-    run_classname_json_roundtrip,
-    run_classname_protobuf_roundtrip
-);
+REGISTER_MINI_TEST!("ClassName", "constructor", crate::classname_test::run_classname_constructor);
+REGISTER_MINI_TEST!("ClassName", "json_roundtrip", crate::classname_test::run_classname_json_roundtrip);
+REGISTER_MINI_TEST!("ClassName", "protobuf_roundtrip", crate::classname_test::run_classname_protobuf_roundtrip);
 ```
 
 ## lib.rs Registration
