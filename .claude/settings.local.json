@@ -44,7 +44,8 @@
       "Bash(./build/Release/MyProject.exe)",
       "Bash(./bash/minitest.sh:*)",
       "Bash(./minitests.exe)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(source:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

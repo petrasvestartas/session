@@ -2,6 +2,8 @@
 
 Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer.
 
+- use always bun instead of npm.
+
 ## Style
 
 - Be least verbose, without any print messages and exccesive comments

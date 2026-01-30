@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.023,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "magnitude",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 83,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 94,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v0(3.0, 4.0, 0.0);\n    v0.normalize_self();\n\n    Vector v1(3.0, 4.0, 0.0);\n    Vector v2 = v1.normalize();\n",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "angle",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 164,
     "code": "    // uncomment #include \"vector.h\"\n\n    // angle(): Angle between two vectors (degrees)\n    Vector v1(1.0, 0.0, 0.0);  // x-axis\n    Vector v2(0.0, 1.0, 0.0);  // y-axis\n    Vector v3(1.0, 1.0, 0.0);  // 45 deg from x-axis\n\n    double angle_90 = v1.angle(v2, false);  // v1 to v2: 90 deg\n    double angle_45 = v1.angle(v3, false);  // v1 to v3: 45 deg\n\n    // angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n    Vector v_30(std::sqrt(3.0), 1.0, 0.0);  // 30 deg from x-axis\n    Vector v_60(1.0, std::sqrt(3.0), 0.0);  // 60 deg from x-axis\n    Vector v_neg(-1.0, 1.0, 0.0);           // 135 deg from x-axis\n\n    double xy_angle_30 = Vector::angle_between_vector_xy_components(v_30);\n    double xy_angle_60 = Vector::angle_between_vector_xy_components(v_60);\n    double xy_angle_135 = Vector::angle_between_vector_xy_components(v_neg);\n\n    // coordinate_direction_3angles(): Angles (alpha, beta, gamma) to x, y, z axes\n    Vector v_dir(35.4, 35.4, 86.6);\n    auto abg = v_dir.coordinate_direction_3angles(true);\n\n    // coordinate_direction_2angles(): Spherical angles (theta azimuth, phi elevation)\n    Vector v_sph(1.0, 1.0, std::sqrt(2.0));\n    auto pt = v_sph.coordinate_direction_2angles(true);\n",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "projection",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 204,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Project vector v=(1,1,1) onto each axis\n    // Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n    Vector v(1.0, 1.0, 1.0);\n    Vector x = Vector::x_axis();\n    Vector y = Vector::y_axis();\n    Vector z = Vector::z_axis();\n    auto [proj_x, lenx, perp_x, perp_lenx] = v.projection(x);\n    auto [proj_y, leny, perp_y, perp_leny] = v.projection(y);\n    auto [proj_z, lenz, perp_z, perp_lenz] = v.projection(z);\n",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "get_leveled_vector",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 263,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Scale vector along its direction so its Z-component equals vertical_height.\n    Vector v(1.0, 1.0, 1.0);\n    double vertical_height = 1.0;\n    Vector v_leveled = v.get_leveled_vector(vertical_height);\n",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 8.449,
+    "time_ms": 11.599,
     "line": 372,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 9.163,
+    "time_ms": 0.955,
     "line": 389,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // protobuf_dump(filename) / protobuf_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.protobuf_dump(filename);\n    Vector loaded = Vector::protobuf_load(filename);\n",
     "checks": [
