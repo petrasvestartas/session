@@ -44,13 +44,13 @@
                     aria-label="Copy code"
                   >
                   </button>
-                  <pre><code :class="codeClass(g.cpp)" v-html="highlightedCode(g.cpp)"></code></pre>
+                  <div v-html="highlightedCode(g.cpp)"></div>
                 </div>
                 <div class="failures" v-if="!g.cpp.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
                     <li v-for="c in failingChecks(g.cpp)" :key="'cpp-' + g.name + ':' + c.line">
-                      line {{ c.line }}: <code :class="codeClass(g.cpp)" v-html="highlightedCheck(c, 'cpp')"></code>
+                      line {{ c.line }}: <span class="inline-code" v-html="highlightedCheck(c, 'cpp')"></span>
                     </li>
                   </ul>
 
@@ -63,7 +63,7 @@
                       >
                         <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
                         <div v-if="f.code_line">
-                          <code :class="codeClass(g.cpp)" v-html="highlightedFailureCode(f, 'cpp')"></code>
+                          <span class="inline-code" v-html="highlightedFailureCode(f, 'cpp')"></span>
                         </div>
                         <div class="error-message" v-if="f.error">{{ f.error }}</div>
                       </li>
@@ -89,13 +89,13 @@
                     aria-label="Copy code"
                   >
                   </button>
-                  <pre><code :class="codeClass(g.python)" v-html="highlightedCode(g.python)"></code></pre>
+                  <div v-html="highlightedCode(g.python)"></div>
                 </div>
                 <div class="failures" v-if="!g.python.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
                     <li v-for="c in failingChecks(g.python)" :key="'py-' + g.name + ':' + c.line">
-                      line {{ c.line }}: <code :class="codeClass(g.python)" v-html="highlightedCheck(c, 'python')"></code>
+                      line {{ c.line }}: <span class="inline-code" v-html="highlightedCheck(c, 'python')"></span>
                     </li>
                   </ul>
 
@@ -108,7 +108,7 @@
                       >
                         <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
                         <div v-if="f.code_line">
-                          <code :class="codeClass(g.python)" v-html="highlightedFailureCode(f, 'python')"></code>
+                          <span class="inline-code" v-html="highlightedFailureCode(f, 'python')"></span>
                         </div>
                         <div class="error-message" v-if="f.error">{{ f.error }}</div>
                       </li>
@@ -134,13 +134,13 @@
                     aria-label="Copy code"
                   >
                   </button>
-                  <pre><code :class="codeClass(g.rust)" v-html="highlightedCode(g.rust)"></code></pre>
+                  <div v-html="highlightedCode(g.rust)"></div>
                 </div>
                 <div class="failures" v-if="!g.rust.passed">
                   <div><strong>Failing checks:</strong></div>
                   <ul>
                     <li v-for="c in failingChecks(g.rust)" :key="'rs-' + g.name + ':' + c.line">
-                      line {{ c.line }}: <code :class="codeClass(g.rust)" v-html="highlightedCheck(c, 'rust')"></code>
+                      line {{ c.line }}: <span class="inline-code" v-html="highlightedCheck(c, 'rust')"></span>
                     </li>
                   </ul>
 
@@ -153,7 +153,7 @@
                       >
                         <div v-if="f.file">at {{ f.file }}<span v-if="f.line">:{{ f.line }}</span></div>
                         <div v-if="f.code_line">
-                          <code :class="codeClass(g.rust)" v-html="highlightedFailureCode(f, 'rust')"></code>
+                          <span class="inline-code" v-html="highlightedFailureCode(f, 'rust')"></span>
                         </div>
                         <div class="error-message" v-if="f.error">{{ f.error }}</div>
                       </li>
@@ -188,21 +188,21 @@
               <td class="lang-col">
                 <div v-if="artifacts.cpp" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.cpp)" title="Copy JSON"></button>
-                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.cpp)"></code></pre>
+                  <div v-html="formatJson(artifacts.cpp)"></div>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
               <td class="lang-col">
                 <div v-if="artifacts.python" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.python)" title="Copy JSON"></button>
-                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.python)"></code></pre>
+                  <div v-html="formatJson(artifacts.python)"></div>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
               <td class="lang-col">
                 <div v-if="artifacts.rust" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.rust)" title="Copy JSON"></button>
-                  <pre><code class="hljs language-json" v-html="formatJson(artifacts.rust)"></code></pre>
+                  <div v-html="formatJson(artifacts.rust)"></div>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
@@ -216,7 +216,7 @@
         <h3 class="section-title">Serialization Protobuf</h3>
         <div class="artifact-card">
           <button class="code-copy-btn" type="button" @click="copyProto(protoSchemas[0]?.content)" title="Copy Proto"></button>
-          <pre><code class="hljs language-protobuf" v-html="formatProto(protoSchemas[0]?.content)"></code></pre>
+          <div v-html="formatProto(protoSchemas[0]?.content)"></div>
         </div>
       </div>
     </main>
@@ -224,20 +224,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import hljs from 'highlight.js/lib/core'
-import python from 'highlight.js/lib/languages/python'
-import cpp from 'highlight.js/lib/languages/cpp'
-import rust from 'highlight.js/lib/languages/rust'
-import json from 'highlight.js/lib/languages/json'
-import protobuf from 'highlight.js/lib/languages/protobuf'
-
-// Register languages
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('cpp', cpp)
-hljs.registerLanguage('rust', rust)
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('protobuf', protobuf)
+import { computed, ref, onMounted } from 'vue'
+import Parser from 'web-tree-sitter'
 
 const props = defineProps({
   tests: { type: Array, required: true },
@@ -245,6 +233,228 @@ const props = defineProps({
 })
 
 defineEmits(['update:activeSuite'])
+
+// Tree-sitter state
+let parser = null
+const languages = {}
+const queries = {}
+const ready = ref(false)
+
+const LANG_MAP = { cpp: 'cpp', python: 'python', rust: 'rust', json: 'json' }
+const BASE = import.meta.env.BASE_URL || '/'
+const WASM_PATHS = {
+  cpp: `${BASE}tree-sitter-cpp.wasm`,
+  python: `${BASE}tree-sitter-python.wasm`,
+  rust: `${BASE}tree-sitter-rust.wasm`,
+  json: `${BASE}tree-sitter-json.wasm`,
+}
+
+// Minimal reliable tree-sitter queries — only unambiguous node types
+// Everything else (keywords, functions, methods) handled by highlightGap
+const QUERIES = {
+  cpp: `
+    (comment) @comment
+    (number_literal) @number
+    (string_literal) @string
+    (raw_string_literal) @string
+    (char_literal) @string
+    (system_lib_string) @string
+    (type_identifier) @type
+    (primitive_type) @type.builtin
+    (sized_type_specifier) @type.builtin
+    (namespace_identifier) @module
+  `,
+  python: `
+    (comment) @comment
+    (integer) @number
+    (float) @number
+    (string) @string
+    (type (identifier) @type)
+  `,
+  rust: `
+    (line_comment) @comment
+    (block_comment) @comment
+    (string_literal) @string
+    (raw_string_literal) @string
+    (char_literal) @string
+    (integer_literal) @number
+    (float_literal) @number
+    (boolean_literal) @constant.builtin
+    (type_identifier) @type
+    (primitive_type) @type.builtin
+    (attribute_item) @decorator
+    (macro_invocation macro: (identifier) @macro)
+  `,
+  json: `
+    (string) @string
+    (number) @number
+    (null) @constant.builtin
+    (true) @constant.builtin
+    (false) @constant.builtin
+    (pair key: (string) @property)
+  `
+}
+
+const CSS = {
+  'comment': 'ts-c', 'number': 'ts-n', 'string': 'ts-s',
+  'type': 'ts-ty', 'type.builtin': 'ts-tyb', 'type.def': 'ts-tyd',
+  'property': 'ts-pr', 'module': 'ts-mod', 'macro': 'ts-mc',
+  'constant.builtin': 'ts-cb', 'decorator': 'ts-dec',
+  'function': 'ts-fn', 'function.def': 'ts-fnd', 'method': 'ts-mt',
+  'keyword': 'ts-kw', 'variable': 'ts-v', 'variable.builtin': 'ts-vb',
+  'parameter': 'ts-pm', 'operator': 'ts-op',
+  'punctuation.bracket': 'ts-pb', 'punctuation.delimiter': 'ts-pd',
+}
+
+const escapeHtml = (str) => {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+const KEYWORDS = {
+  cpp: new Set(['if','else','for','while','do','return','class','struct','enum','namespace','using','template','typename','public','private','protected','virtual','const','static','inline','new','delete','try','catch','throw','void','int','double','float','bool','char','auto','sizeof','constexpr','override','explicit','extern','volatile','mutable','friend','operator','switch','case','default','break','continue','typedef','union','noexcept','nullptr','true','false','this','#include','#define','#ifdef','#ifndef','#endif','#if','co_await','co_return','co_yield','concept','requires','static_assert','static_cast','dynamic_cast','reinterpret_cast','const_cast']),
+  python: new Set(['def','class','return','if','elif','else','for','while','break','continue','pass','import','from','as','with','try','except','finally','raise','yield','lambda','global','nonlocal','assert','del','in','not','and','or','is','async','await','True','False','None','self']),
+  rust: new Set(['fn','let','mut','pub','struct','enum','impl','trait','use','mod','crate','super','match','if','else','for','while','loop','break','continue','return','as','const','static','type','where','unsafe','async','await','move','ref','dyn','extern','in','self','Self','true','false']),
+  json: new Set(),
+  proto: new Set(['syntax','message','enum','service','rpc','returns','option','import','package','repeated','optional','required','oneof','map','reserved','extensions','extend','stream','true','false','double','float','int32','int64','uint32','uint64','sint32','sint64','fixed32','fixed64','sfixed32','sfixed64','bool','string','bytes']),
+}
+
+// Context-aware gap tokenizer: detects functions, methods, keywords, types
+const highlightGap = (text, lang) => {
+  const kw = KEYWORDS[lang] || new Set()
+  const re = /(#?\w+)|([(){}\[\]])|([,;])|([+\-*/%=!<>&|^~?:.@#]+)|(\s+)/g
+  const tokens = []
+  let m
+  while ((m = re.exec(text)) !== null) {
+    tokens.push({ text: m[0], word: m[1], bracket: m[2], delim: m[3], op: m[4], ws: m[5] })
+  }
+  let result = ''
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]
+    if (t.ws) { result += t.ws; continue }
+    if (t.bracket) { result += `<span class="ts-pb">${escapeHtml(t.bracket)}</span>`; continue }
+    if (t.delim) { result += `<span class="ts-pd">${escapeHtml(t.delim)}</span>`; continue }
+    if (t.op) { result += `<span class="ts-op">${escapeHtml(t.op)}</span>`; continue }
+    if (t.word) {
+      // Look ahead past whitespace for (
+      let nextSym = null
+      for (let j = i + 1; j < tokens.length; j++) {
+        if (!tokens[j].ws) { nextSym = tokens[j]; break }
+      }
+      const followedByParen = nextSym && nextSym.bracket === '('
+      // Look back past whitespace for . or :: or ->
+      let prevSym = null
+      for (let j = i - 1; j >= 0; j--) {
+        if (!tokens[j].ws) { prevSym = tokens[j]; break }
+      }
+      const afterDot = prevSym && prevSym.op && /^(::|\.|->) *$/.test(prevSym.op)
+      // Look back for import/module keywords (from X, use X, namespace X)
+      let prevWord = null
+      for (let j = i - 1; j >= 0; j--) {
+        if (tokens[j].word) { prevWord = tokens[j].word; break }
+        if (!tokens[j].ws) break
+      }
+      const MODULE_KW = new Set(['from','import','use','mod','crate','namespace','using','package'])
+      const afterModuleKw = prevWord && MODULE_KW.has(prevWord)
+
+      const isPascal = /^[A-Z][a-zA-Z0-9]+$/.test(t.word)
+
+      if (kw.has(t.word)) {
+        result += `<span class="ts-kw">${escapeHtml(t.word)}</span>`
+      } else if (afterModuleKw && !followedByParen) {
+        result += `<span class="ts-mod">${escapeHtml(t.word)}</span>`
+      } else if (isPascal) {
+        result += `<span class="ts-ty">${escapeHtml(t.word)}</span>`
+      } else if (followedByParen && afterDot) {
+        result += `<span class="ts-mt">${escapeHtml(t.word)}</span>`
+      } else if (followedByParen) {
+        result += `<span class="ts-fn">${escapeHtml(t.word)}</span>`
+      } else if (/^[A-Z][A-Z0-9_]+$/.test(t.word)) {
+        result += `<span class="ts-cb">${escapeHtml(t.word)}</span>`
+      } else {
+        result += escapeHtml(t.word)
+      }
+      continue
+    }
+    result += escapeHtml(t.text)
+  }
+  return result
+}
+
+// Core highlight function using tree-sitter
+const highlight = (code, lang) => {
+  if (!parser || !languages[lang]) return escapeHtml(code)
+  try {
+    return _highlight(code, lang)
+  } catch (e) {
+    console.error('highlight error', lang, e)
+    return escapeHtml(code)
+  }
+}
+
+const _highlight = (code, lang) => {
+  parser.setLanguage(languages[lang])
+  const tree = parser.parse(code)
+  if (!tree) return escapeHtml(code)
+
+  const query = queries[lang]
+  if (!query) { tree.delete(); return escapeHtml(code) }
+
+  const captures = query.captures(tree.rootNode)
+
+  // Build interval list: for each byte position, track the best (most specific) capture
+  const best = new Map()
+  for (const cap of captures) {
+    const s = cap.node.startIndex
+    const e = cap.node.endIndex
+    if (s === e) continue
+    const key = `${s}:${e}`
+    const existing = best.get(key)
+    // More dots = more specific; equal dots = prefer later (more contextual) pattern
+    if (!existing || cap.name.split('.').length >= existing.name.split('.').length) {
+      best.set(key, cap)
+    }
+  }
+
+  // Sort intervals by start, then by shortest span (most specific)
+  const intervals = Array.from(best.values())
+    .map(c => ({ s: c.node.startIndex, e: c.node.endIndex, cls: CSS[c.name] || 'ts-v' }))
+    .sort((a, b) => a.s - b.s || (a.e - a.s) - (b.e - b.s))
+
+  // Render: walk through code, emit spans for intervals, skip overlaps
+  let result = ''
+  let pos = 0
+  for (const iv of intervals) {
+    if (iv.s < pos) continue
+    if (iv.s > pos) result += highlightGap(code.slice(pos, iv.s), lang)
+    const text = code.slice(iv.s, iv.e)
+    result += `<span class="${iv.cls}">${escapeHtml(text)}</span>`
+    pos = iv.e
+  }
+  if (pos < code.length) result += highlightGap(code.slice(pos), lang)
+
+  tree.delete()
+  return result
+}
+
+onMounted(async () => {
+  try {
+    await Parser.init({ locateFile: (f) => `${BASE}${f}` })
+    parser = new Parser()
+  } catch (e) {
+    console.error('tree-sitter init failed:', e)
+    return
+  }
+  for (const lang of Object.keys(WASM_PATHS)) {
+    try {
+      const language = await Parser.Language.load(WASM_PATHS[lang])
+      languages[lang] = language
+      queries[lang] = language.query(QUERIES[lang])
+    } catch (e) {
+      console.error(`tree-sitter ${lang} query failed:`, e.message)
+    }
+  }
+  ready.value = true
+})
 
 const suites = computed(() => {
   const set = new Set()
@@ -276,19 +486,11 @@ const formatTime = (time_ms) => {
 
 const normalizeForDisplay = (code) => {
   if (!code) return ""
-
-  // First, apply any inline transformations (e.g. uncomment markers)
   const lines = code.split('\n').map((line) => {
     const m = line.match(/^(\s*)\/\/\s*uncomment\s+(.*)$/)
-    if (m) {
-      const indent = m[1]
-      const rest = m[2]
-      return indent + rest
-    }
+    if (m) return m[1] + m[2]
     return line
   })
-
-  // Then, strip the common leading indentation so code is visually flush-left
   let minIndent = Infinity
   for (const line of lines) {
     if (!line.trim()) continue
@@ -296,76 +498,42 @@ const normalizeForDisplay = (code) => {
     const indent = m ? m[1].length : 0
     if (indent < minIndent) minIndent = indent
   }
-
-  if (!Number.isFinite(minIndent) || minIndent === 0) {
-    return lines.join('\n')
-  }
-
+  if (!Number.isFinite(minIndent) || minIndent === 0) return lines.join('\n')
   return lines.map((line) => (line.length >= minIndent ? line.slice(minIndent) : line)).join('\n')
-}
-
-const codeClass = (t) => {
-  if (!t || !t.language) return "hljs"
-  if (t.language === "python") return "hljs language-python"
-  if (t.language === "cpp") return "hljs language-cpp"
-  if (t.language === "rust") return "hljs language-rust"
-  return "hljs"
 }
 
 const highlightedCode = (t) => {
   if (!t || !t.code) return ""
-  const displayCode = normalizeForDisplay(t.code)
-  try {
-    const lang = t.language || ""
-    if (!lang) return displayCode
-    const result = hljs.highlight(displayCode, { language: lang })
-    return result.value
-  } catch (e) {
-    return displayCode
-  }
+  const code = normalizeForDisplay(t.code)
+  const lang = t.language || ""
+  if (!ready.value || !lang) return `<pre><code>${escapeHtml(code)}</code></pre>`
+  return `<pre><code>${highlight(code, lang)}</code></pre>`
 }
 
 const highlightedCheck = (check, lang) => {
   if (!check || !check.code_line) return ""
-  try {
-    const result = hljs.highlight(check.code_line, { language: lang })
-    return result.value
-  } catch (e) {
-    return check.code_line
-  }
+  if (!ready.value) return escapeHtml(check.code_line)
+  return highlight(check.code_line, lang)
 }
 
 const timeStyle = (group, lang) => {
   const t = group[lang]
   if (!t || typeof t.time_ms !== "number") return {}
-
-  // Failed tests are always red
-  if (!t.passed) {
-    return { color: '#ff5555' }
-  }
-
+  if (!t.passed) return { color: '#ff5555' }
   const times = [group.python, group.cpp, group.rust]
     .filter(x => x && typeof x.time_ms === "number" && x.passed)
     .map(x => x.time_ms)
   if (!times.length) return { color: '#ffffff' }
-
   const min = Math.min(...times)
   const max = Math.max(...times)
-
-  if (max === min) {
-    return { color: '#ffffff' }
-  }
-
+  if (max === min) return { color: '#ffffff' }
   const value = t.time_ms
   let ratio = (value - min) / (max - min)
   if (ratio < 0) ratio = 0
   if (ratio > 1) ratio = 1
-
-  // White (fast) to blue #5588ff (slow) for passed tests
   const r = Math.round(255 + (0x55 - 255) * ratio)
   const g = Math.round(255 + (0x88 - 255) * ratio)
   const b = Math.round(255 + (0xff - 255) * ratio)
-
   return { color: `rgb(${r}, ${g}, ${b})` }
 }
 
@@ -385,12 +553,8 @@ const errorFailures = (t) => {
 
 const highlightedFailureCode = (failure, lang) => {
   if (!failure || !failure.code_line) return ""
-  try {
-    const result = hljs.highlight(failure.code_line, { language: lang })
-    return result.value
-  } catch (e) {
-    return failure.code_line
-  }
+  if (!ready.value) return escapeHtml(failure.code_line)
+  return highlight(failure.code_line, lang)
 }
 
 const copyCode = (t) => {
@@ -400,20 +564,14 @@ const copyCode = (t) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
     }
-  } catch (e) {
-    console.error('Failed to copy code', e)
-  }
+  } catch (e) { /* ignore */ }
 }
 
-// JSON artifacts (test_point.json files from each language)
 const artifacts = computed(() => {
   if (typeof window.TEST_DATA === 'undefined') return { python: null, cpp: null, rust: null }
   const data = window.TEST_DATA
-  
-  // Get artifact based on active suite (e.g., point_test -> test_point)
   const suiteName = props.activeSuite.replace('_test', '')
   const artifactName = `test_${suiteName}`
-  
   return {
     python: data[`artifact_${artifactName}_python`] || null,
     cpp: data[`artifact_${artifactName}_cpp`] || null,
@@ -429,26 +587,21 @@ const formatJson = (obj) => {
   if (!obj) return ''
   try {
     const jsonStr = JSON.stringify(obj, null, 2)
-    const result = hljs.highlight(jsonStr, { language: 'json' })
-    return result.value
+    if (!ready.value) return `<pre><code>${escapeHtml(jsonStr)}</code></pre>`
+    return `<pre><code>${highlight(jsonStr, 'json')}</code></pre>`
   } catch (e) {
-    return String(obj)
+    return escapeHtml(String(obj))
   }
 }
 
-// Proto schemas (shared across all languages)
 const protoSchemas = computed(() => {
   if (typeof window.TEST_DATA === 'undefined') return []
   const data = window.TEST_DATA
-  
-  // Get proto schema based on active suite (e.g., point_test -> point.proto)
   const suiteName = props.activeSuite.replace('_test', '')
   const schemas = []
-  
   if (data[`proto_${suiteName}`]) {
     schemas.push({ name: `${suiteName}.proto`, content: data[`proto_${suiteName}`] })
   }
-  
   return schemas
 })
 
@@ -456,14 +609,17 @@ const hasProtoSchemas = computed(() => protoSchemas.value.length > 0)
 
 const formatProto = (content) => {
   if (!content) return ''
-  try {
-    // Decode escaped newlines (from Windows batch generation)
-    const decoded = content.replace(/\\n/g, '\n').replace(/\\r/g, '')
-    const result = hljs.highlight(decoded, { language: 'protobuf' })
-    return result.value
-  } catch (e) {
-    return content
-  }
+  const decoded = content.replace(/\\n/g, '\n').replace(/\\r/g, '')
+  const highlighted = decoded.split('\n').map(line => {
+    const commentIdx = line.indexOf('//')
+    if (commentIdx >= 0) {
+      const before = line.slice(0, commentIdx)
+      const comment = line.slice(commentIdx)
+      return highlightGap(before, 'proto') + `<span class="ts-c">${escapeHtml(comment)}</span>`
+    }
+    return highlightGap(line, 'proto')
+  }).join('\n')
+  return `<pre><code>${highlighted}</code></pre>`
 }
 
 const copyJson = (obj) => {
@@ -473,22 +629,17 @@ const copyJson = (obj) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
     }
-  } catch (e) {
-    console.error('Failed to copy JSON', e)
-  }
+  } catch (e) { /* ignore */ }
 }
 
 const copyProto = (content) => {
   if (!content) return
   try {
-    // Decode escaped newlines before copying
     const decoded = content.replace(/\\n/g, '\n').replace(/\\r/g, '')
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(decoded)
     }
-  } catch (e) {
-    console.error('Failed to copy proto', e)
-  }
+  } catch (e) { /* ignore */ }
 }
 </script>
 
@@ -600,10 +751,11 @@ pre {
   border-radius: 0;
   padding: 0;
 }
-.test-card pre code {
+.test-card :deep(pre code) {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
+  color: #abb2bf;
 }
 .code-shell {
   position: relative;
@@ -613,10 +765,15 @@ pre {
   border: none;
 }
 
-.code-shell pre {
+.code-shell :deep(pre) {
   margin: 0;
   padding: 0.75rem;
-  background: transparent;
+  background: transparent !important;
+}
+.code-shell :deep(code) {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .code-copy-btn {
@@ -695,9 +852,12 @@ pre {
   padding: 0.5rem 0;
   border: none;
 }
-.artifact-card pre {
+.artifact-card :deep(pre) {
   margin: 0;
   font-size: 0.85rem;
+  background: transparent !important;
+}
+.artifact-card :deep(code) {
   white-space: pre-wrap;
   word-wrap: break-word;
   color: #aaaaaa;
@@ -705,40 +865,31 @@ pre {
 </style>
 
 <style>
-/* Highlight.js overrides (global) - Pure black theme */
-.hljs {
-  color: #aaaaaa !important;
-  background: transparent !important;
-}
-.hljs-keyword, .hljs-built_in, .hljs-type {
-  color: #5588ff !important;
-  font-weight: 600;
-}
-.hljs-title, .hljs-title.class_, .hljs-title.function_ {
-  color: #ffff55 !important;
-  font-weight: 600;
-}
-.hljs-variable.language_ {
-  color: #88bbff !important;
-}
-.hljs-property, .hljs-variable, .hljs-attribute, .hljs-attr,
-.hljs-params, .hljs-symbol {
-  color: #88bbff !important;
-}
-.hljs-meta {
-  color: #ff88ff !important;
-}
-.hljs-string, .hljs-char, .hljs-template-variable {
-  color: #ffaa55 !important;
-}
-.hljs-number, .hljs-literal {
-  color: #bb88ff !important;
-}
-.hljs-operator {
-  color: #ffffff !important;
-}
-.hljs-comment {
-  color: #888888 !important;
-  font-style: italic;
-}
+/* Tree-sitter highlight theme */
+.ts-kw  { color: #c678dd; }
+.ts-dir { color: #c678dd; }
+.ts-ty  { color: #00e5ff; }
+.ts-tyb { color: #56b6c2; }
+.ts-tyd { color: #00e5ff; font-weight: 600; }
+.ts-fn  { color: #61afef; }
+.ts-fnd { color: #61afef; font-weight: 600; }
+.ts-mt  { color: #61afef; }
+.ts-mc  { color: #61afef; font-weight: 600; }
+.ts-v   { color: #abb2bf; }
+.ts-vb  { color: #e06c75; font-style: italic; }
+.ts-pm  { color: #e5e54b; font-style: italic; }
+.ts-pl  { color: #e5e54b; }
+.ts-pr  { color: #e06c75; }
+.ts-cb  { color: #e5e54b; }
+.ts-s   { color: #98c379; }
+.ts-n   { color: #e5e54b; }
+.ts-c   { color: #5c6370; font-style: italic; }
+.ts-op  { color: #56b6c2; }
+.ts-mod { color: #00e5ff; }
+.ts-lb  { color: #00e5ff; font-style: italic; }
+.ts-dec { color: #00e5ff; }
+.ts-pb  { color: #ff79c6; }
+.ts-pd  { color: #ff79c6; }
+.inline-code pre { display: inline; margin: 0; padding: 0; }
+.inline-code code { display: inline; }
 </style>

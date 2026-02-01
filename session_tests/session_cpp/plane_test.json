@@ -112,7 +112,7 @@
   {
     "test_name": "reverse",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 105,
     "code": "    // uncomment #include \"plane.h\"\n\n    // Reverse flips normal and swaps x/y axes\n    Plane pl = Plane::xy_plane();\n    pl.reverse();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "rotate",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 117,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotate plane 90 degrees around its normal\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "is_coplanar",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 159,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    // Same direction (parallel planes)\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    bool same_dir = Plane::is_same_direction(p1, p2, true);\n\n    // Flipped direction\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();\n    bool same_dir_flipped = Plane::is_same_direction(p1, p3, true);\n    bool same_dir_strict = Plane::is_same_direction(p1, p3, false);\n\n    // Same position\n    Plane p4 = Plane::xy_plane();\n    bool same_pos = Plane::is_same_position(p1, p4);\n    p4 += Vector(0.0, 0.0, 1.0);\n    bool diff_pos = Plane::is_same_position(p1, p4);\n\n    // Coplanar\n    Plane p5 = Plane::xy_plane();\n    Plane p6 = Plane::xy_plane();\n    bool coplanar = Plane::is_coplanar(p5, p6, true);\n    p6.reverse();\n    bool coplanar_reversed = Plane::is_coplanar(p5, p6, true);\n    p6 += Vector(0.0, 0.0, 1.0);\n    bool not_coplanar = Plane::is_coplanar(p5, p6, true);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 199,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    pl.transform();\n\n    // Transformed - returns new plane\n    Plane pl2 = Plane::xy_plane();\n    pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n    Plane pl3 = pl2.transformed();\n",
     "checks": [
@@ -267,22 +267,22 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 13.13,
+    "time_ms": 13.85,
     "line": 218,
-    "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
+    "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
     "checks": [
       {
-        "line": 228,
+        "line": 235,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 229,
+        "line": 236,
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
         "passed": true
       },
       {
-        "line": 230,
+        "line": 237,
         "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
         "passed": true
       }
@@ -292,22 +292,22 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 11.738,
-    "line": 233,
-    "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // protobuf_dump(fname) / protobuf_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.protobuf_dump(fname);\n    Plane loaded = Plane::protobuf_load(fname);\n",
+    "time_ms": 8.841,
+    "line": 240,
+    "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);\n",
     "checks": [
       {
-        "line": 244,
+        "line": 251,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 245,
+        "line": 252,
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
         "passed": true
       },
       {
-        "line": 246,
+        "line": 253,
         "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
         "passed": true
       }

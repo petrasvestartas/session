@@ -3227,21 +3227,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NurbsCurve.change_dimension",
-      "implementations": {
-        "python": {
-          "sig": "change_dimension(desired_dimension: int) -> bool",
-          "code": "def change_dimension(self, desired_dimension: int) -> bool:\n\n        \"\"\"Change the dimension of the curve.\n        \n        Parameters\n        ----------\n        desired_dimension : int\n            Target dimension (must be >= 1).\n            \n        Returns\n        -------\n        bool\n            True if successful.\n        \"\"\"\n        if desired_dimension < 1:\n            return False\n        if desired_dimension == self.m_dim:\n            return True\n        \n        new_stride = (desired_dimension + 1) if self.m_is_rat else desired_dimension\n        new_cv = np.zeros(self.m_cv_count * new_stride)",
-          "file": "nurbscurve.py"
-        },
-        "cpp": {
-          "sig": "bool change_dimension(int desired_dimension)",
-          "code": "bool NurbsCurve::change_dimension(int desired_dimension) {\n    if (desired_dimension < 1) return false;\n    if (desired_dimension == m_dim) return true;\n    \n    int new_stride = m_is_rat ? (desired_dimension + 1) : desired_dimension;\n    std::vector<double> new_cv(m_cv_count * new_stride, 0.0);\n    \n    int copy_dim = std::min(m_dim, desired_dimension);\n    \n    for (int i = 0; i < m_cv_count; i++) {\n        const double* old_cv = cv(i);\n        double* new_cv_ptr = &new_cv[i * new_stride];\n        \n        // Copy existing dimensions\n        for (int j = 0; j < copy_dim; j++) {\n            new_cv_ptr[j] = old_cv[j];\n        }",
-          "file": "nurbscurve.cpp"
-        }
-      }
-    },
-    {
       "name": "NurbsCurve.increase_degree",
       "implementations": {
         "python": {

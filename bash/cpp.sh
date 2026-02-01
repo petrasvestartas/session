@@ -32,12 +32,12 @@ fi
 # Skip configure if build exists (use --clean to force)
 if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
     log_lang "cpp" "Configuring CMake..."
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step"
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step|absl|abseil"
 fi
 
 log_lang "cpp" "Building..."
 if [[ "$PLATFORM" == "windows" ]]; then
-    cmake --build build --config Release --parallel "${JOBS}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$"
+    cmake --build build --config Release --parallel "${JOBS}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$|absl|abseil"
 else
     cmake --build build --config Release -- -j"${JOBS}"
 fi

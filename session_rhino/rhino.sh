@@ -1,21 +1,37 @@
 #!/bin/bash
-# Install session_py to Rhino Python environment
+# Install session_py and session_rhino to Rhino Python environment
 
-RHINO_PYTHON="C:/Users/petrasv/.rhinocode/py39-rh8/python.exe"
+RHINO_PATHS=(
+    "C:/Users/petrasv/.rhinocode/py39-rh8/python.exe"
+    "C:/Users/Petras/.rhinocode/py39-rh8/python.exe"
+)
 
-if [ ! -f "$RHINO_PYTHON" ]; then
-    echo "Error: Rhino Python not found at $RHINO_PYTHON"
+RHINO_PYTHON=""
+for p in "${RHINO_PATHS[@]}"; do
+    if [ -f "$p" ]; then
+        RHINO_PYTHON="$p"
+        break
+    fi
+done
+
+if [ -z "$RHINO_PYTHON" ]; then
+    echo "Error: Rhino Python not found in any known path:"
+    for p in "${RHINO_PATHS[@]}"; do
+        echo "  $p"
+    done
     exit 1
 fi
 
-echo "Installing session_py to Rhino Python 3.9..."
-cd "$(dirname "$0")/../session_py"
+echo "Found Rhino Python: $RHINO_PYTHON"
 
-# Install dependencies
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+echo "Installing session_py..."
 "$RHINO_PYTHON" -m pip install numpy protobuf
+"$RHINO_PYTHON" -m pip install -e "$SCRIPT_DIR/../session_py"
 
-# Install session_py in editable mode
-"$RHINO_PYTHON" -m pip install -e .
+echo "Installing session_rhino..."
+"$RHINO_PYTHON" -m pip install -e "$SCRIPT_DIR"
 
 cat << 'EOF'
 
@@ -23,28 +39,15 @@ cat << 'EOF'
 
 USAGE IN RHINO PYTHON:
 
-  # First time import
-  from session_py import NurbsCurve, Point
+  import session_rhino.rhino_point
+  import session_rhino.rhino_nurbscurve
 
-  # After editing session_py, reload all modules:
+  session_rhino.rhino_point.add(Point(1, 2, 3))
+  session_rhino.rhino_nurbscurve.add(crv)
+
+  # After editing, reload all modules:
   from session_py.reload import reload_package
   reload_package("session_py")
-
-  # Reload any other package too:
-  reload_package("compas")
-  reload_package("my_custom_lib")
-
-  # Nuclear option (clears cache, re-import needed):
-  from session_py.reload import clear_package
-  clear_package("session_py")
-  from session_py import Point  # must re-import
-
-  # Reload single file:
-  from session_py.reload import reload_file
-  reload_file("C:/path/to/my_module.py")
-
-  # Shortcuts for session_py:
-  from session_py.reload import reload_session, clear_session
-  reload_session()  # same as reload_package("session_py")
+  reload_package("session_rhino")
 
 EOF

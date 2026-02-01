@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "session_rhino"
+version = "0.1.0"
+description = "RhinoCommon converters for session_py geometry"
+authors = [{name = "Petras Vestartas", email = "petrasvestartas@gmail.com"}]
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = ["session_py"]
+
+[project.urls]
+Homepage = "https://github.com/petrasvestartas/session"
+Repository = "https://github.com/petrasvestartas/session"
+
+[tool.hatch.build]
+src-layout = true

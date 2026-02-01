@@ -45,6 +45,15 @@ find_protoc() {
         echo "$cpp_protoc_win"
         return
     fi
+    # Rust build cached (downloaded by build.rs)
+    local rust_protoc=$(ls "${REPO_ROOT}"/session_rust/target/release/build/*/out/protoc/bin/protoc.exe 2>/dev/null | head -1)
+    if [[ -z "$rust_protoc" ]]; then
+        rust_protoc=$(ls "${REPO_ROOT}"/session_rust/target/release/build/*/out/protoc/bin/protoc 2>/dev/null | head -1)
+    fi
+    if [[ -n "$rust_protoc" && -f "$rust_protoc" ]]; then
+        echo "$rust_protoc"
+        return
+    fi
     # Cargo vendored
     local cargo_protoc=$(find ~/.cargo/registry/src -name "protoc" -path "*linux-x86_64*" 2>/dev/null | head -1)
     if [[ -n "$cargo_protoc" && -x "$cargo_protoc" ]]; then

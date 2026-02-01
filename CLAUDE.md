@@ -235,26 +235,5 @@ Key functions found:
 
 ## 18.01.2026
 
- nurbscurve evaluate command does not match rhino opennurbs
-
-  what i get in nurbscurve.cpp:
-  Derivative 0: 1.445734, 1.801999, -0.134852
-  Derivative 1: -0.054420, 0.419797, -0.078422
-  Derivative 2: 7.878997, 0.973821, -1.461375
-
-  what I get in rhino:
-
-  {1.445734, 1.801999, -0.134852}
-  {0.043203,1.154047,-0.156844}
-  {4.267853,-0.677778,-1.078813}
-
-  Can you explain what are derivatives?
-
-  Are they use in codebase for anything else than thsi funciton?
-
-  Why rhino is different?
-
-  You have source code of oppenurbs 'c:/rust/session/opennurbs-8.x'?
-  Can you align the code?
-
-  THe grasshopper component use this additional code if it has any influence, maybe it is only interface 
+  nurbscurve evaluate was fixed — now matches rhino opennurbs DerivativeAt output.
+  Tested with 11-CV degree-2 curve at t=0.5, all 3 derivatives match. 

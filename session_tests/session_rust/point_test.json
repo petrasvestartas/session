@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.019,
     "line": 5,
     "code": "        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor\n        let mut p = Point::new(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        let x = p[0];\n        let y = p[1];\n        let z = p[2];\n\n        // Minimal and full string representation\n        let pstr = p.str();\n        let prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        let pcopy = p.duplicate();\n        let pother = Point::new(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        let mut pmult = p.duplicate();\n        pmult *= 2.0;\n        let mut pdiv = p.duplicate();\n        pdiv /= 2.0;\n        let mut padd = p.duplicate();\n        padd += Vector::new(1.0, 1.0, 1.0);\n        let mut psub = p.duplicate();\n        psub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &p * 2.0;\n        let result_div = &p / 2.0;\n        let result_add = &p + Vector::new(1.0, 1.0, 1.0);\n        let diff_point = &p - Vector::new(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        let p1 = Point::new(1.0, 2.0, 3.0);\n        let p2 = Point::new(4.0, 5.0, 6.0);\n        let psum = Point::sum(&p1, &p2);\n        let pdif = Point::sub(&p2, &p1);\n",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 81,
     "code": "        use crate::Point;\n        use crate::Xform;\n\n        let mut p = Point::new(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        let p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
@@ -117,52 +117,52 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 10.398,
+    "time_ms": 8.93,
     "line": 97,
-    "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::with_name(1.5, 2.5, 3.5, \"test_point\");\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"serialization/test_point.json\";\n        p.to_json(filename).unwrap();\n        let loaded = Point::from_json(filename).unwrap();\n\n",
+    "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::with_name(1.5, 2.5, 3.5, \"test_point\");\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_point.json\";\n        p.json_dump(filename).unwrap();\n        let loaded = Point::json_load(filename).unwrap();\n\n",
     "checks": [
       {
-        "line": 109,
+        "line": 114,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 110,
+        "line": 115,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 111,
+        "line": 116,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 112,
+        "line": 117,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 113,
+        "line": 118,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 119,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 115,
+        "line": 120,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 116,
+        "line": 121,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 117,
+        "line": 122,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
@@ -172,52 +172,52 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 9.627,
-    "line": 123,
-    "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::new(1.5, 2.5, 3.5);\n        p.name = \"test_point\".to_string();\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"serialization/test_point.bin\";\n        p.protobuf_dump(filename);\n        let loaded = Point::protobuf_load(filename);\n",
+    "time_ms": 9.822,
+    "line": 128,
+    "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::new(1.5, 2.5, 3.5);\n        p.name = \"test_point\".to_string();\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        let loaded = Point::pb_load(filename);\n",
     "checks": [
       {
-        "line": 136,
+        "line": 141,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 142,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 143,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 144,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 145,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 146,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 147,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 148,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 149,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
@@ -227,12 +227,12 @@
   {
     "test_name": "area",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 204,
+    "time_ms": 0.005,
+    "line": 209,
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 0.0);\n        let p2 = Point::new(2.0, 2.0, 0.0);\n        let p3 = Point::new(0.0, 2.0, 0.0);\n        let area = Point::area(&vec![p0, p1, p2, p3]);\n",
     "checks": [
       {
-        "line": 213,
+        "line": 218,
         "code_line": "area == 4.0",
         "passed": true
       }
@@ -242,22 +242,22 @@
   {
     "test_name": "centroid_quad",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 218,
+    "time_ms": 0.006,
+    "line": 223,
     "code": "        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 1.0);\n        let p2 = Point::new(2.0, 2.0, 2.0);\n        let p3 = Point::new(0.0, 2.0, 1.0);\n        let centroid = Point::centroid_quad(&vec![p0, p1, p2, p3]).unwrap();\n",
     "checks": [
       {
-        "line": 228,
+        "line": 233,
         "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
         "passed": true
       },
       {
-        "line": 229,
+        "line": 234,
         "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
         "passed": true
       },
       {
-        "line": 230,
+        "line": 235,
         "code_line": "TOLERANCE.is_close(centroid[2], 1.0)",
         "passed": true
       }
@@ -268,11 +268,11 @@
     "test_name": "distance",
     "passed": true,
     "time_ms": 0.001,
-    "line": 178,
+    "line": 183,
     "code": "        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let d = p0.distance(&p1, None);\n",
     "checks": [
       {
-        "line": 186,
+        "line": 191,
         "code_line": "TOLERANCE.is_close(d, 3.741657)",
         "passed": true
       }
@@ -283,16 +283,16 @@
     "test_name": "is_ccw",
     "passed": true,
     "time_ms": 0.001,
-    "line": 149,
+    "line": 154,
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        let is_counter_clock_wise = Point::is_ccw(&p0, &p1, &p2);\n        let is_clock_wise = Point::is_ccw(&p2, &p1, &p0);\n",
     "checks": [
       {
-        "line": 160,
+        "line": 165,
         "code_line": "is_counter_clock_wise",
         "passed": true
       },
       {
-        "line": 161,
+        "line": 166,
         "code_line": "!is_clock_wise",
         "passed": true
       }
@@ -302,12 +302,12 @@
   {
     "test_name": "mid_point",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 166,
+    "time_ms": 0.002,
+    "line": 171,
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let mid = Point::mid_point(&p0, &p1);\n",
     "checks": [
       {
-        "line": 173,
+        "line": 178,
         "code_line": "mid[0] == 0.5 && mid[1] == 3.5 && mid[2] == 2.0",
         "passed": true
       }
@@ -318,11 +318,11 @@
     "test_name": "squared_distance",
     "passed": true,
     "time_ms": 0.001,
-    "line": 191,
+    "line": 196,
     "code": "        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let d = p0.squared_distance(&p1, None);\n",
     "checks": [
       {
-        "line": 199,
+        "line": 204,
         "code_line": "TOLERANCE.is_close(d, 14.0)",
         "passed": true
       }

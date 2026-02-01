@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.048,
     "line": 6,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor with points, normals, colors\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(0.0, 1.0, 0.0);\n        let n0 = Vector::new(0.0, 0.0, 1.0);\n        let n1 = Vector::new(0.0, 0.0, 1.0);\n        let n2 = Vector::new(0.0, 0.0, 1.0);\n        let c0 = Color::new(255, 0, 0, 255);\n        let c1 = Color::new(0, 255, 0, 255);\n        let c2 = Color::new(0, 0, 255, 255);\n        let pc = PointCloud::new(vec![p0, p1, p2], vec![n0, n1, n2], vec![c0, c1, c2]);\n\n        // Basic properties\n        let point_count = pc.len();\n        let color_count = pc.color_count();\n        let normal_count = pc.normal_count();\n        let is_empty = pc.is_empty();\n\n        // Minimal and Full String Representation\n        let pcstr = pc.str();\n        let pcrepr = pc.repr();\n\n        // Copy (duplicates everything except guid)\n        let pccopy = pc.duplicate();\n\n        // Get point/color/normal at index\n        let pt0 = pc.get_point(0);\n        let col0 = pc.get_color(0);\n        let norm0 = pc.get_normal(0);\n\n        // Add points, colors, normals to empty cloud\n        let mut pc2 = PointCloud::default();\n        pc2.add_point(&Point::new(1.0, 2.0, 3.0));\n        pc2.add_color(&Color::new(128, 64, 32, 255));\n        pc2.add_normal(&Vector::new(1.0, 0.0, 0.0));\n\n        // Set point/color/normal at index\n        pc2.set_point(0, &Point::new(4.0, 5.0, 6.0));\n        pc2.set_color(0, &Color::new(200, 100, 50, 255));\n        pc2.set_normal(0, &Vector::new(0.0, 1.0, 0.0));\n\n        // Translate with Vector offset\n        let pc3 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        let offset = Vector::new(10.0, 20.0, 30.0);\n        let mut pc_iadd = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_iadd += offset.clone();\n        let mut pc_isub = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_isub -= offset.clone();\n        let pc_add = &pc3 + offset.clone();\n        let pc_sub = &pc3 - offset.clone();\n\n        // Create from flat arrays\n        let coords = vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];\n        let colors_arr = vec![255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255];\n        let normals_arr = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];\n        let pc4 = PointCloud::from_coords(coords, colors_arr, normals_arr);\n",
     "checks": [
@@ -117,32 +117,32 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 12.336,
+    "time_ms": 8.511,
     "line": 116,
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
     "checks": [
       {
-        "line": 133,
+        "line": 138,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 134,
+        "line": 139,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 135,
+        "line": 140,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0) &&\nTOLERANCE.is_close(loaded.get_point(0)[1], 2.0) &&\nTOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
         "passed": true
       },
       {
-        "line": 136,
+        "line": 141,
         "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 &&\nloaded.get_color(0).b == 0",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 142,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }
@@ -152,32 +152,32 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 8.941,
-    "line": 142,
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.bin\";\n        pc.protobuf_dump(fname);\n        let loaded = PointCloud::protobuf_load(fname);\n",
+    "time_ms": 8.133,
+    "line": 147,
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.bin\";\n        pc.pb_dump(fname);\n        let loaded = PointCloud::pb_load(fname);\n",
     "checks": [
       {
-        "line": 159,
+        "line": 164,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 160,
+        "line": 165,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 161,
+        "line": 166,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0) &&\nTOLERANCE.is_close(loaded.get_point(0)[1], 2.0) &&\nTOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
         "passed": true
       },
       {
-        "line": 162,
+        "line": 167,
         "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 &&\nloaded.get_color(0).b == 0",
         "passed": true
       },
       {
-        "line": 163,
+        "line": 168,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }
@@ -187,7 +187,7 @@
   {
     "test_name": "transform",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 94,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc.xform = Xform::translation(10.0, 20.0, 30.0);\n        pc.transform();\n\n        // Transformed - returns new cloud\n        let mut pc2 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n        let pc3 = pc2.transformed();\n",
     "checks": [
