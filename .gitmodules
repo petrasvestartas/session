@@ -13,3 +13,6 @@
 [submodule "session_proto"]
 	path = session_proto
 	url = https://github.com/petrasvestartas/session_proto.git
+[submodule "session_rhino"]
+	path = session_rhino
+	url = https://github.com/petrasvestartas/session_rhino.git
