@@ -4,7 +4,8 @@
 from session_py.reload import reload_all
 reload_all()
 
-from session_py import NurbsCurve, Point, Plane
+from session_py import NurbsCurve
+from session_py import Point
 from session_rhino.session import Session
 
 session = Session()
@@ -24,36 +25,12 @@ points = [
 ]
 
 curve = NurbsCurve.create(False, 2, points)
-session.add(curve)
 print(curve.domain())
 
-# point_at = curve.point_at(curve.domain_start())
-# print(point_at)
-# print(curve.domain())
-# session.add(point_at)
+frames = curve.get_perpendicular_planes(10)
+print(frames)
+session.add(frames, scale=0.2)
 
-# derivatives = curve.evaluate(0.5, 2)
-# tangent = curve.tangent_at(0.5)
-
-# o, t, n, b = curve.frame_at(0.5, True)
-# session.add(Plane(o, t, n), scale=0.3)
-
-# o, t, n, b = curve.perpendicular_frame_at(0.5, True)
-# session.add(Plane(o, t, n), scale=0.3)
-
-params = []
-for i in range(10):
-    params.append(9*i/10)
-params.append(9)
-print(params)
-frames = curve.get_perpendicular_frames(params, False)
-planes = [Plane(o, t, n) for o, t, n, b in frames]
-session.add(planes, scale=0.2)
-
-# session.add([curve.point_at_start(), curve.point_at_middle(), curve.point_at_end()])
-
-# curve.set_start_point(Point(1.957614, 1.140253, 2.0))
-# curve.set_end_point(Point(2.15032, 1.868606, 2.0))
 session.add(curve)
 
 session.draw(delete=True)

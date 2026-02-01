@@ -4,7 +4,8 @@
 from session_py.reload import reload_all
 reload_all()
 
-from session_py import NurbsCurve, Point
+from session_py import NurbsCurve
+from session_py import Point
 from session_rhino.session import Session
 from pathlib import Path
 

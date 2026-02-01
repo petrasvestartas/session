@@ -127,7 +127,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 13.988,
+    "time_ms": 11.817,
     "line": 123,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 10.589,
+    "time_ms": 15.41,
     "line": 150,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n",
     "checks": [
@@ -282,7 +282,7 @@
   {
     "test_name": "point_at",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 202,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 10.0, 10.0);\n    Point ps = l.point_at(0.0);\n    Point pm = l.point_at(0.5);\n    Point pe = l.point_at(1.0);\n",
     "checks": [

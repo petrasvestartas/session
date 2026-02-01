@@ -2,7 +2,7 @@
   {
     "test_name": "circle",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 10,
     "code": "    NurbsCurve c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -27,7 +27,7 @@
   {
     "test_name": "ellipse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 18,
     "code": "    NurbsCurve c = Primitives::ellipse(0.0, 0.0, 0.0, 2.0, 1.0);\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "arc",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.01,
     "line": 26,
     "code": "    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "hyperbola",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 48,
     "code": "    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "spiral",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.008,
     "line": 57,
     "code": "    NurbsCurve c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
     "checks": [
