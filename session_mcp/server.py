@@ -23,16 +23,30 @@ from mcp.server.fastmcp import FastMCP
 REPO_ROOT = Path(__file__).parent.parent
 
 CLASSES = [
+    'arrow',
+    'boundingbox',
     'color',
+    'cylinder',
+    'edge',
+    'graph',
+    'knot',
     'line',
     'mesh',
     'nurbscurve',
+    'nurbssurface',
+    'objects',
     'plane',
     'point',
     'pointcloud',
     'polyline',
+    'primitives',
+    'quaternion',
+    'session',
     'tolerance',
+    'tree',
+    'treenode',
     'vector',
+    'vertex',
     'xform',
 ]
 
@@ -40,6 +54,12 @@ SOURCE_FILES = {
     'python': [REPO_ROOT / f"session_py/src/session_py/{cls}.py" for cls in CLASSES],
     'cpp': [f for cls in CLASSES for f in [REPO_ROOT / f"session_cpp/src/{cls}.h", REPO_ROOT / f"session_cpp/src/{cls}.cpp"]],
     'rust': [REPO_ROOT / f"session_rust/src/{cls}.rs" for cls in CLASSES],
+}
+
+TEST_FILES = {
+    'cpp': [REPO_ROOT / f"session_cpp/src/{cls}_test.cpp" for cls in CLASSES],
+    'python': [REPO_ROOT / f"session_py/src/session_py/{cls}_test.py" for cls in CLASSES],
+    'rust': [REPO_ROOT / f"session_rust/src/{cls}_minitest.rs" for cls in CLASSES],
 }
 
 # =============================================================================
@@ -96,7 +116,7 @@ def parse_cpp(content: str) -> dict:
             constructor_scores[cls] = score
             methods[key] = {
                 'signature': f"{cls}({params})",
-                'code': code[:800].strip(),
+                'code': code[:3000].strip(),
             }
 
     # Header-style constructors: ClassName(params) : init {} or ClassName(params);
@@ -115,11 +135,11 @@ def parse_cpp(content: str) -> dict:
                 constructor_scores[header_class] = score
                 methods[key] = {
                     'signature': f"{header_class}({params})",
-                    'code': code[:800],
+                    'code': code[:3000],
                 }
     # Regular methods: ReturnType ClassName::method(params)
     for match in re.finditer(
-        r'^\s*(?:static\s+)?([a-zA-Z_][\w:<>*&\s]*?)\s+(\w+)::(\w+)\s*\(([^)]*)\)',
+        r'^\s*(?:static\s+)?([a-zA-Z_][\w:<>,*&\s]*?)\s+(\w+)::(\w+)\s*\(([^)]*)\)',
         content, re.MULTILINE
     ):
         ret, cls, name, params = match.groups()
@@ -131,14 +151,16 @@ def parse_cpp(content: str) -> dict:
         code = content[start:end+1] if end > 0 else content[start:start+500]
         methods[key] = {
             'signature': f"{ret.strip()} {name}({params})",
-            'code': code[:800].strip(),
+            'code': code[:3000].strip(),
         }
-    # Header declarations
+    # Header declarations (ending with ; or inline { ... })
     for match in re.finditer(
-        r'^\s*(?:static\s+)?([a-zA-Z_][\w:<>*&\s]*?)\s+(\w+)\s*\(([^)]*)\)\s*(?:const)?\s*;',
+        r'^\s*(?:static\s+)?([a-zA-Z_][\w:<>,*&\s]*?)\s+(\w+)\s*\(([^)]*)\)\s*(?:const)?\s*(?:;|\{[^}]*\})',
         content, re.MULTILINE
     ):
         ret, name, params = match.groups()
+        if name in ('if', 'return', 'while', 'for', 'switch'):
+            continue
         class_match = re.search(r'class\s+(\w+)\s*[:{]', content[:match.start()])
         if class_match:
             cls = class_match.group(1)
@@ -178,12 +200,132 @@ def parse_rust(content: str) -> dict:
             clean_params = params.replace('&self, ', '').replace('&self', '').replace('&mut self, ', '').replace('&mut self', '')
             methods[key] = {
                 'signature': f"{name}({clean_params})" + (f" -> {ret.strip()}" if ret else ""),
-                'code': code[:800].strip(),
+                'code': code[:3000].strip(),
             }
     return methods
 
 
 PARSERS = {'python': parse_python, 'cpp': parse_cpp, 'rust': parse_rust}
+
+
+def parse_cpp_tests(content: str) -> dict:
+    """Extract MINI_TEST blocks from C++ test files."""
+    tests = {}
+    for match in re.finditer(
+        r'MINI_TEST\s*\(\s*"(\w+)"\s*,\s*"([^"]+)"\s*\)\s*\{',
+        content
+    ):
+        cls, test_name = match.groups()
+        brace_start = match.end() - 1
+        depth, i = 1, brace_start + 1
+        while i < len(content) and depth > 0:
+            if content[i] == '{': depth += 1
+            elif content[i] == '}': depth -= 1
+            i += 1
+        code = content[match.start():i]
+        tests[f"{cls}.test_{test_name}"] = {
+            'signature': f'MINI_TEST("{cls}", "{test_name}")',
+            'code': code[:5000].strip(),
+        }
+    return tests
+
+
+def parse_python_tests(content: str) -> dict:
+    """Extract @MINI_TEST blocks from Python test files."""
+    tests = {}
+    for match in re.finditer(
+        r'@MINI_TEST\s*\(\s*"(\w+)"\s*,\s*"([^"]+)"\s*\)\s*\ndef\s+(\w+)\s*\(',
+        content
+    ):
+        cls, test_name, func_name = match.groups()
+        start = match.start()
+        next_test = content.find('@MINI_TEST', match.end())
+        next_func = content.find('\ndef ', match.end() + 1)
+        end = min(e for e in [next_test, next_func, len(content)] if e > 0)
+        code = content[start:end]
+        tests[f"{cls}.test_{test_name}"] = {
+            'signature': f'@MINI_TEST("{cls}", "{test_name}")',
+            'code': code[:5000].strip(),
+        }
+    return tests
+
+
+def parse_rust_tests(content: str) -> dict:
+    """Extract MINI_TEST! blocks from Rust test files."""
+    tests = {}
+    for match in re.finditer(
+        r'MINI_TEST!\s*\(\s*"(\w+)"\s*,\s*"([^"]+)"\s*,',
+        content
+    ):
+        cls, test_name = match.groups()
+        start = match.start()
+        depth, i = 0, match.end()
+        found_brace = False
+        while i < len(content):
+            if content[i] == '{':
+                depth += 1
+                found_brace = True
+            elif content[i] == '}':
+                depth -= 1
+                if found_brace and depth == 0:
+                    i += 1
+                    break
+            i += 1
+        # skip closing );
+        while i < len(content) and content[i] in ' \t\n\r':
+            i += 1
+        if i < len(content) and content[i] == ')':
+            i += 1
+        if i < len(content) and content[i] == ';':
+            i += 1
+        code = content[start:i]
+        tests[f"{cls}.test_{test_name}"] = {
+            'signature': f'MINI_TEST!("{cls}", "{test_name}")',
+            'code': code[:5000].strip(),
+        }
+    return tests
+
+
+TEST_PARSERS = {'cpp': parse_cpp_tests, 'python': parse_python_tests, 'rust': parse_rust_tests}
+
+# =============================================================================
+# Recipe Parser - Extract multi-step code examples from web_recipes.md
+# =============================================================================
+
+RECIPES_FILE = REPO_ROOT / ".claude" / "skills" / "web_recipes.md"
+
+LANG_MAP = {'cpp': 'cpp', 'python': 'python', 'rust': 'rust'}
+
+def parse_recipes(filepath: Path = RECIPES_FILE) -> list[dict]:
+    if not filepath.exists():
+        return []
+    content = filepath.read_text(errors='ignore')
+    recipes = []
+    sections = re.split(r'^## ', content, flags=re.MULTILINE)[1:]
+    for section in sections:
+        lines = section.strip().split('\n')
+        title = lines[0].strip()
+        if title.startswith('API Quick Reference'):
+            continue
+        code = {}
+        for m in re.finditer(r'\*\*(?:C\+\+|Python|Rust):\*\*\s*\n```(\w+)\n(.*?)```', section, re.DOTALL):
+            lang_raw = m.group(1)
+            lang = LANG_MAP.get(lang_raw, lang_raw)
+            code[lang] = m.group(2).strip()
+        if not code:
+            continue
+        title_lower = title.lower()
+        tags = list(set(re.findall(r'[a-z_]+', title_lower)))
+        all_code = ' '.join(code.values()).lower()
+        for fn in re.findall(r'\.([a-z_]+)\(', all_code):
+            if fn not in tags:
+                tags.append(fn)
+        for cls in re.findall(r'(?:Primitives|NurbsCurve|NurbsSurface|Mesh|Point|Plane|Polyline|Line|Color|Vector|Vertex)\b', ' '.join(code.values())):
+            t = cls.lower()
+            if t not in tags:
+                tags.append(t)
+        recipes.append({'title': title, 'tags': tags, 'code': code})
+    return recipes
 
 # =============================================================================
 # API Index - In-memory index of all methods
@@ -194,6 +336,8 @@ class APIIndex:
 
     def __init__(self):
         self.methods: dict[str, dict[str, dict]] = {}
+        self.tests: dict[str, dict[str, dict]] = {}
+        self.recipes: list[dict] = []
         self._build()
 
     def _score_constructor(self, params: str, cls: str) -> int:
@@ -222,6 +366,18 @@ class APIIndex:
                                 continue  # Skip worse constructor
                             constructor_scores[score_key] = new_score
                         self.methods[key][lang] = {**data, 'file': str(file.name)}
+        # Index test files
+        for lang, files in TEST_FILES.items():
+            parser = TEST_PARSERS[lang]
+            for file in files:
+                if file.exists():
+                    content = file.read_text(errors='ignore')
+                    for key, data in parser(content).items():
+                        if key not in self.tests:
+                            self.tests[key] = {}
+                        self.tests[key][lang] = {**data, 'file': str(file.name)}
+        # Index recipes
+        self.recipes = parse_recipes()
 
     def get_method(self, name: str, language: str = None) -> dict | None:
         """Get method by exact or partial name."""
@@ -238,19 +394,42 @@ class APIIndex:
                 return {'name': key, 'implementations': impls} if impls else None
         return None
 
+    def get_test(self, name: str, language: str = None) -> dict | None:
+        """Get test by exact or partial name."""
+        langs = [language] if language else None
+        if name in self.tests:
+            impls = self.tests[name]
+            if langs:
+                impls = {k: v for k, v in impls.items() if k in langs}
+            return {'name': name, 'implementations': impls} if impls else None
+        for key, impls in self.tests.items():
+            if key.endswith(f".{name}") or key.lower() == name.lower():
+                if langs:
+                    impls = {k: v for k, v in impls.items() if k in langs}
+                return {'name': key, 'implementations': impls} if impls else None
+        return None
+
     def search(self, query: str) -> list[dict]:
-        """Search methods by keyword."""
+        """Search methods and tests by keyword."""
         query_lower = query.lower()
         results = []
         for name, impls in self.methods.items():
             if query_lower in name.lower():
-                results.append({'name': name, 'languages': list(impls.keys())})
-        return sorted(results, key=lambda x: len(x['name']))[:15]
+                results.append({'name': name, 'languages': list(impls.keys()), 'type': 'method'})
+        for name, impls in self.tests.items():
+            if query_lower in name.lower():
+                results.append({'name': name, 'languages': list(impls.keys()), 'type': 'test'})
+        return sorted(results, key=lambda x: len(x['name']))[:20]
 
     def list_class(self, class_name: str) -> list[str]:
         """List all methods of a class."""
         prefix = f"{class_name}."
         return sorted([k for k in self.methods.keys() if k.startswith(prefix)])
+
+    def list_tests(self, class_name: str) -> list[str]:
+        """List all tests for a class."""
+        prefix = f"{class_name}."
+        return sorted([k for k in self.tests.keys() if k.startswith(prefix)])
 
     def list_classes(self) -> list[str]:
         """List all indexed classes."""
@@ -271,7 +450,19 @@ class APIIndex:
                 'name': name,
                 'implementations': implementations,
             })
-        return {'concepts': concepts}
+        for name, langs in self.tests.items():
+            implementations = {}
+            for lang, data in langs.items():
+                implementations[lang] = {
+                    'sig': data['signature'],
+                    'code': data['code'],
+                    'file': data.get('file', ''),
+                }
+            concepts.append({
+                'name': name,
+                'implementations': implementations,
+            })
+        return {'concepts': concepts, 'recipes': self.recipes}
 
 
 # =============================================================================
@@ -285,23 +476,41 @@ index = APIIndex()
 @mcp.tool()
 def get_api(method: str, language: str = None) -> str:
     """
-    Get Session API method implementation.
+    Get Session API method implementation and usage examples from tests.
 
     Args:
         method: Method name (e.g., 'Point.distance', 'Line.new', or just 'distance')
         language: Optional filter (python, cpp, rust)
 
     Returns:
-        Method code for all languages or filtered by language.
+        Method code for all languages, plus related test examples.
     """
     result = index.get_method(method, language)
     if not result:
         return f"Method '{method}' not found. Use search_api to find methods."
 
-    output = [f"# {result['name']}\n"]
     lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+    output = [f"# {result['name']}\n"]
     for lang, impl in result['implementations'].items():
         output.append(f"\n## {lang_names[lang]}\n```{lang}\n{impl['code']}\n```")
+
+    # Find related tests that use this method
+    class_name = result['name'].split('.')[0]
+    method_name = result['name'].split('.')[-1]
+    related_tests = []
+    for test_key, test_impls in index.tests.items():
+        if not test_key.startswith(f"{class_name}."):
+            continue
+        for lang, data in test_impls.items():
+            if language and lang != language:
+                continue
+            if method_name in data['code']:
+                related_tests.append((test_key, lang, data))
+                break
+    if related_tests:
+        output.append(f"\n# Usage examples from tests\n")
+        for test_key, lang, data in related_tests:
+            output.append(f"\n## {test_key} ({lang_names.get(lang, lang)})\n```{lang}\n{data['code']}\n```")
     return '\n'.join(output)
 
 
@@ -323,6 +532,51 @@ def search_api(query: str) -> str:
     lines = ["Found methods:"]
     for r in results:
         lines.append(f"- {r['name']} ({', '.join(r['languages'])})")
+    return '\n'.join(lines)
+
+
+@mcp.tool()
+def get_test(test_name: str, language: str = None) -> str:
+    """
+    Get Session API test implementation (usage examples from _test files).
+
+    Args:
+        test_name: Test name (e.g., 'NurbsCurve.test_constructor', 'test_Evaluation')
+        language: Optional filter (python, cpp, rust)
+
+    Returns:
+        Test code for all languages or filtered by language.
+    """
+    result = index.get_test(test_name, language)
+    if not result:
+        return f"Test '{test_name}' not found. Use list_tests to see available tests."
+
+    output = [f"# {result['name']}\n"]
+    lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+    for lang, impl in result['implementations'].items():
+        ext = {'python': 'python', 'cpp': 'cpp', 'rust': 'rust'}[lang]
+        output.append(f"\n## {lang_names[lang]}\n```{ext}\n{impl['code']}\n```")
+    return '\n'.join(output)
+
+
+@mcp.tool()
+def list_tests(class_name: str) -> str:
+    """
+    List all tests for a Session class (from _test files).
+
+    Args:
+        class_name: Class name (e.g., 'NurbsCurve', 'Point', 'Mesh')
+
+    Returns:
+        List of test names with their available languages.
+    """
+    tests = index.list_tests(class_name)
+    if not tests:
+        return f"No tests found for '{class_name}'."
+    lines = [f"{class_name} tests:"]
+    for t in tests:
+        langs = list(index.tests[t].keys())
+        lines.append(f"  {t.split('.')[1]} ({', '.join(langs)})")
     return '\n'.join(lines)
 
 
@@ -360,7 +614,7 @@ def list_classes() -> str:
 
 def main():
     """Main entry point for MCP server."""
-    print(f"Session API Server - {len(index.methods)} methods indexed", file=sys.stderr)
+    print(f"Session API Server - {len(index.methods)} methods, {len(index.tests)} tests indexed", file=sys.stderr)
     print(f"Classes: {', '.join(index.list_classes())}", file=sys.stderr)
     mcp.run()
 

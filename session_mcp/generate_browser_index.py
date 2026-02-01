@@ -28,6 +28,7 @@ def generate():
 
     print(f"Generated {output_file}")
     print(f"  - {len(data['concepts'])} methods indexed")
+    print(f"  - {len(data.get('recipes', []))} recipes indexed")
     print(f"  - Classes: {', '.join(sorted(set(c['name'].split('.')[0] for c in data['concepts'])))}")
 
 

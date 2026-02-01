@@ -107,7 +107,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 10.29,
+    "time_ms": 13.674,
     "line": 401,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 0.694,
+    "time_ms": 0.992,
     "line": 424,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test pb_dump / pb_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.pb_dump(filename);\n        let loaded = Vector::pb_load(filename);\n",
     "checks": [
@@ -422,7 +422,7 @@
   {
     "test_name": "is_perpendicular_to",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 255,
     "code": "        use crate::Vector;\n\n        // is_perpendicular_to: checks if two vectors are perpendicular (dot product ≈ 0)\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0); // perpendicular\n        let v3 = Vector::new(0.0, 0.0, 1.0); // perpendicular\n        let v4 = Vector::new(1.0, 1.0, 0.0); // not perpendicular\n\n        // perpendicular_to: sets a vector to be perpendicular to another\n        let z_axis = Vector::new(0.0, 0.0, 1.0);\n        let mut x_axis = Vector::zero();\n        // x_axis is now perpendicular to z_axis\n        x_axis.perpendicular_to(&z_axis);  \n\n        let arbitrary = Vector::new(1.0, 2.0, 3.0);\n        let mut perp = Vector::zero();\n        // perp is now perpendicular to arbitrary\n        perp.perpendicular_to(&arbitrary);  \n",
     "checks": [
@@ -502,7 +502,7 @@
   {
     "test_name": "normalize",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 99,
     "code": "        use crate::Vector;\n\n        let mut v0 = Vector::new(3.0, 4.0, 0.0);\n        v0.normalize();\n\n        let v1 = Vector::new(3.0, 4.0, 0.0);\n        let v2 = v1.normalized();\n",
     "checks": [

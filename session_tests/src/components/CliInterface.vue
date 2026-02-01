@@ -87,6 +87,60 @@ onUnmounted(() => {
   }
 })
 
+// Synonym map for recipe search - maps user words to recipe tag words
+const RECIPE_SYNONYMS = {
+  perpendicular: ['frame', 'plane', 'normal'],
+  normal: ['frame', 'plane', 'perpendicular'],
+  frame: ['plane', 'perpendicular', 'frame_at'],
+  frames: ['plane', 'perpendicular', 'frame_at'],
+  planes: ['frame', 'perpendicular', 'plane'],
+  subdivide: ['divide', 'divide_by_count', 'divide_by_length', 'split'],
+  split: ['divide', 'subdivide', 'divide_by_count'],
+  divide: ['subdivide', 'divide_by_count', 'divide_by_length'],
+  points: ['point', 'divide_by_count', 'subdivide'],
+  sample: ['divide', 'subdivide', 'divide_by_count'],
+  evaluate: ['point_at', 'tangent_at', 'frame_at'],
+  tangent: ['tangent_at', 'frame_at'],
+  curvature: ['frame_at', 'kappa'],
+  adaptive: ['to_polyline_adaptive', 'polyline'],
+  polyline: ['to_polyline_adaptive', 'adaptive'],
+}
+
+// Recipe search - matches query words against recipe tags/titles with synonyms
+const searchRecipes = (query, maxResults = 3) => {
+  const index = window.API_INDEX
+  if (!index || !index.recipes) return []
+
+  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2)
+  if (queryWords.length === 0) return []
+
+  // Expand query words with synonyms
+  const expandedWords = new Set(queryWords)
+  for (const word of queryWords) {
+    const syns = RECIPE_SYNONYMS[word]
+    if (syns) syns.forEach(s => expandedWords.add(s))
+  }
+
+  return index.recipes
+    .map(recipe => {
+      let score = 0
+      const titleLower = recipe.title.toLowerCase()
+      // Direct word matches score highest
+      for (const word of queryWords) {
+        if (recipe.tags.includes(word)) score += 20
+        if (titleLower.includes(word)) score += 10
+      }
+      // Synonym matches score lower
+      for (const word of expandedWords) {
+        if (!queryWords.includes(word) && recipe.tags.includes(word)) score += 8
+      }
+      return { ...recipe, score }
+    })
+    .filter(r => r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxResults)
+}
+
 // Concept-based search - returns unified API concepts with all languages
 const searchConcepts = (query, maxResults = 3) => {
   const index = window.API_INDEX
@@ -157,31 +211,15 @@ const CLAUDE_ENDPOINT = import.meta.env.PROD
 const callClaudeAPIStreaming = async (question, context, onChunk) => {
   const systemPrompt = `You are a coding assistant for the Session geometry library.
 
-RULES:
-- ONE sentence description, then code examples
-- ALWAYS include imports in EVERY example using this exact format:
-
-For Python:
-\`\`\`python
-from session_py import ClassName
-obj = ClassName(args)
-\`\`\`
-
-For C++:
-\`\`\`cpp
-#include "session_cpp/classname.h"
-session_cpp::ClassName obj(args);
-\`\`\`
-
-For Rust:
-\`\`\`rust
-use session_rust::ClassName;
-let obj = ClassName::new(args);
-\`\`\`
-
+CRITICAL RULES:
+- ONLY use method names, class names, and signatures that appear in the provided context. NEVER invent or guess API names.
+- There is NO namespace like "session_cpp::". C++ classes are used directly: Point, NurbsCurve, Primitives, etc.
+- C++ includes use: #include "classname.h" (NOT "session_cpp/classname.h")
+- If a Recipe is provided, copy its code exactly as your answer — recipes are verified correct code.
+- If you cannot answer from the context, say "I don't have enough context for this" instead of guessing.
+- ONE sentence description, then code blocks
 - Show only languages present in context
-- Use exact signatures from context
-- Keep examples to 2-3 lines max`
+- Use EXACT signatures from context, do not modify them`
 
   const userMessage = `Question: ${question}
 
@@ -268,47 +306,80 @@ Please answer the question based on this code context.`
   }
 }
 
-// Generate context from concept results for Claude
-const buildContext = (concepts) => {
-  if (!concepts || concepts.length === 0) return ''
-
+// Generate context from concept results and recipes for Claude
+const buildContext = (concepts, recipes = []) => {
   const parts = []
-  for (const concept of concepts) {
-    parts.push(`## ${concept.name}`)
-    for (const [lang, impl] of Object.entries(concept.implementations)) {
-      if (!impl) continue
-      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-      parts.push(`\n### ${langName}: ${impl.sig}`)
-      parts.push('```' + lang)
-      parts.push(impl.code)
-      parts.push('```')
+
+  if (recipes && recipes.length > 0) {
+    parts.push('# Recipes (verified multi-step examples)\n')
+    for (const recipe of recipes) {
+      parts.push(`## ${recipe.title}`)
+      for (const [lang, code] of Object.entries(recipe.code)) {
+        const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+        parts.push(`\n### ${langName}`)
+        parts.push('```' + lang)
+        parts.push(code)
+        parts.push('```')
+      }
+      parts.push('')
     }
-    parts.push('')
   }
+
+  if (concepts && concepts.length > 0) {
+    parts.push('# API Methods\n')
+    for (const concept of concepts) {
+      parts.push(`## ${concept.name}`)
+      for (const [lang, impl] of Object.entries(concept.implementations)) {
+        if (!impl) continue
+        const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+        parts.push(`\n### ${langName}: ${impl.sig}`)
+        parts.push('```' + lang)
+        parts.push(impl.code)
+        parts.push('```')
+      }
+      parts.push('')
+    }
+  }
+
   return parts.join('\n')
 }
 
-// Generate answer from concepts - shows actual code from source files
-const generateAnswer = (query, concepts) => {
-  if (!concepts || concepts.length === 0) {
-    return `No results found for "${query}". Try: "distance", "Point", "Color", "Line", "create"`
+// Generate answer from concepts and recipes - shows actual code from source files
+const generateAnswer = (query, concepts, recipes = []) => {
+  const lines = []
+
+  if (recipes && recipes.length > 0) {
+    const best = recipes[0]
+    lines.push(`# ${best.title}\n`)
+    for (const lang of ['python', 'cpp', 'rust']) {
+      const code = best.code[lang]
+      if (!code) continue
+      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+      lines.push(`**${langName}:**`)
+      lines.push('```' + lang)
+      lines.push(code)
+      lines.push('```\n')
+    }
   }
 
-  const best = concepts[0]
-  const lines = [`# ${best.name}\n`]
+  if (concepts && concepts.length > 0) {
+    const best = concepts[0]
+    lines.push(`# ${best.name}\n`)
+    for (const lang of ['python', 'cpp', 'rust']) {
+      const impl = best.implementations[lang]
+      if (!impl) continue
+      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+      lines.push(`**${langName}:** \`${impl.sig}\``)
+      lines.push('```' + lang)
+      const codeLines = impl.code.split('\n').slice(0, 15)
+      lines.push(codeLines.join('\n'))
+      if (impl.code.split('\n').length > 15) lines.push('// ...')
+      lines.push('```\n')
+    }
+  }
 
-  // Show actual code from each language implementation
-  for (const lang of ['python', 'cpp', 'rust']) {
-    const impl = best.implementations[lang]
-    if (!impl) continue
-    const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-    lines.push(`**${langName}:** \`${impl.sig}\``)
-    lines.push('```' + lang)
-    // Show first 15 lines of actual code
-    const codeLines = impl.code.split('\n').slice(0, 15)
-    lines.push(codeLines.join('\n'))
-    if (impl.code.split('\n').length > 15) lines.push('// ...')
-    lines.push('```\n')
+  if (lines.length === 0) {
+    return `No results found for "${query}". Try: "distance", "Point", "Color", "Line", "create"`
   }
 
   return lines.join('\n')
@@ -547,10 +618,11 @@ const commands = {
 
     const question = args.join(' ')
 
-    // Search for relevant concepts (unified across all languages)
+    // Search recipes first (compositional queries), then concepts
+    const recipeResults = searchRecipes(question, 2)
     const { results, error: searchError } = searchConcepts(question, 3)
 
-    if (searchError) {
+    if (searchError && recipeResults.length === 0) {
       return [
         'API index not available.',
         'Run: python mcp/generate_browser_index.py',
@@ -559,25 +631,31 @@ const commands = {
       ]
     }
 
-    if (results.length === 0) {
+    if (results.length === 0 && recipeResults.length === 0) {
       return [
         `No results found for "${question}".`,
         '',
         'Try searching for:',
         '  - distance, duplicate, transform (methods)',
         '  - Point, Color (classes)',
-        '  - "distance in rust" (specific language)'
+        '  - "create a circle and subdivide into points" (recipes)'
       ]
+    }
+
+    // If a recipe matches strongly, show it directly — more reliable than LLM rewriting
+    if (recipeResults.length > 0 && recipeResults[0].score >= 40) {
+      const answer = generateAnswer(question, [], recipeResults)
+      return answer.split('\n')
     }
 
     // If Claude API key is configured, use Claude with streaming
     if (apiKey.value) {
-      const context = buildContext(results)
-      
+      const context = buildContext(results, recipeResults)
+
       // Add a placeholder response that we'll update
       const responseIndex = history.value.length
       history.value.push({ text: '▌', type: 'output', streaming: true })
-      
+
       // Scroll to show the streaming response
       nextTick(() => {
         if (outputRef.value) {
@@ -602,7 +680,7 @@ const commands = {
         // Remove placeholder and show error
         history.value.splice(responseIndex, 1)
         console.log('Claude API error, falling back:', claudeResult.error)
-        const answer = generateAnswer(question, results)
+        const answer = generateAnswer(question, results, recipeResults)
         return [`(Claude unavailable: ${claudeResult.error})`, '', ...answer.split('\n')]
       }
 
@@ -611,12 +689,12 @@ const commands = {
         history.value[responseIndex].text = claudeResult.answer
         history.value[responseIndex].streaming = false
       }
-      
+
       return [] // Already added to history via streaming
     }
 
-    // No API key - show code directly
-    const answer = generateAnswer(question, results)
+    // No API key - show recipe + concept code directly
+    const answer = generateAnswer(question, results, recipeResults)
     return answer.split('\n')
   },
 }

@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.012,
     "line": 5,
     "code": "        use crate::Mesh;\n\n        let mesh = Mesh::new();\n\n        let num_vertices = mesh.number_of_vertices();\n        let num_faces = mesh.number_of_faces();\n        let num_edges = mesh.number_of_edges();\n        let is_empty = mesh.is_empty();\n        let euler = mesh.euler();\n",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.02,
     "line": 244,
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        mesh.xform = Xform::translation(10.0, 20.0, 30.0);\n        let mesh_transformed = mesh.transformed();\n        mesh.transform();\n\n        let pos0 = mesh.vertex_position(v0).unwrap();",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 11.235,
+    "time_ms": 12.227,
     "line": 269,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_mesh.json\";\n        mesh.json_dump(filename).unwrap();\n        let loaded = Mesh::json_load(filename).unwrap();\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.069,
+    "time_ms": 13.909,
     "line": 296,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh_proto\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let filename = \"serialization/test_mesh.bin\";\n        mesh.pb_dump(filename);\n        let loaded = Mesh::pb_load(filename);\n",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "add_vertex",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 27,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(1.0, 2.0, 3.0), None);\n\n\n        let pos = mesh.vertex_position(v0).unwrap();\n\n        let v1 = mesh.add_vertex(Point::new(4.0, 5.0, 6.0), Some(42));",
     "checks": [
@@ -247,7 +247,7 @@
   {
     "test_name": "face_area",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 172,
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let area = mesh.face_area(f).unwrap();\n",
     "checks": [
@@ -262,7 +262,7 @@
   {
     "test_name": "face_normal",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 152,
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let normal = mesh.face_normal(f).unwrap();\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "from_polygons",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.015,
     "line": 190,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let triangle = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n\n        let mesh = Mesh::from_polygons(vec![triangle], None);\n\n        let tri1 = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let tri2 = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n        ];\n\n        let mesh2 = Mesh::from_polygons(vec![tri1, tri2], None);",
     "checks": [
@@ -377,7 +377,7 @@
   {
     "test_name": "to_vertices_and_faces",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 354,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n",
     "checks": [
@@ -402,7 +402,7 @@
   {
     "test_name": "vertex_faces",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 113,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = mesh.add_vertex(Point::new(1.0, 1.0, 0.0), None);\n\n        let f1 = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let f2 = mesh.add_face(vec![v1, v3, v2], None).unwrap();\n\n        let faces = mesh.vertex_faces(v1);",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "vertex_normal",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 335,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = mesh.add_vertex(Point::new(1.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v3], None);\n        mesh.add_face(vec![v0, v3, v2], None);\n\n        let normal = mesh.vertex_normal(v0).unwrap();",
     "checks": [

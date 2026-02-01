@@ -2,7 +2,7 @@
   {
     "test_name": "clamp",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 79,
     "code": "        use crate::knot;\n\n        // Clamp a periodic knot vector\n        let mut k = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];\n        let clamp_result = knot::clamp(4, 4, &mut k, 2);\n        let first_clamped = k[0] == k[1] && k[1] == k[2];\n        let last_clamped = k[3] == k[4] && k[4] == k[5];\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "is_clamped",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.002,
     "line": 112,
     "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
     "checks": [
