@@ -81,7 +81,7 @@ def parse_python(content: str) -> dict:
             if current_class and indent:
                 key = f"{current_class}.{name}"
                 start = match.end()
-                lines = content[start:start+1500].split('\n')[:20]
+                lines = content[start:start+8000].split('\n')[:80]
                 code = match.group(0) + '\n' + '\n'.join(lines)
                 methods[key] = {
                     'signature': f"{name}({params.replace('self, ', '').replace('self', '')})" + (f" -> {ret}" if ret else ""),
@@ -116,7 +116,7 @@ def parse_cpp(content: str) -> dict:
             constructor_scores[cls] = score
             methods[key] = {
                 'signature': f"{cls}({params})",
-                'code': code[:3000].strip(),
+                'code': code[:8000].strip(),
             }
 
     # Header-style constructors: ClassName(params) : init {} or ClassName(params);
@@ -135,7 +135,7 @@ def parse_cpp(content: str) -> dict:
                 constructor_scores[header_class] = score
                 methods[key] = {
                     'signature': f"{header_class}({params})",
-                    'code': code[:3000],
+                    'code': code[:8000],
                 }
     # Regular methods: ReturnType ClassName::method(params)
     for match in re.finditer(
@@ -151,7 +151,7 @@ def parse_cpp(content: str) -> dict:
         code = content[start:end+1] if end > 0 else content[start:start+500]
         methods[key] = {
             'signature': f"{ret.strip()} {name}({params})",
-            'code': code[:3000].strip(),
+            'code': code[:8000].strip(),
         }
     # Header declarations (ending with ; or inline { ... })
     for match in re.finditer(
@@ -200,7 +200,7 @@ def parse_rust(content: str) -> dict:
             clean_params = params.replace('&self, ', '').replace('&self', '').replace('&mut self, ', '').replace('&mut self', '')
             methods[key] = {
                 'signature': f"{name}({clean_params})" + (f" -> {ret.strip()}" if ret else ""),
-                'code': code[:3000].strip(),
+                'code': code[:8000].strip(),
             }
     return methods
 
@@ -225,7 +225,7 @@ def parse_cpp_tests(content: str) -> dict:
         code = content[match.start():i]
         tests[f"{cls}.test_{test_name}"] = {
             'signature': f'MINI_TEST("{cls}", "{test_name}")',
-            'code': code[:5000].strip(),
+            'code': code[:8000].strip(),
         }
     return tests
 
@@ -245,7 +245,7 @@ def parse_python_tests(content: str) -> dict:
         code = content[start:end]
         tests[f"{cls}.test_{test_name}"] = {
             'signature': f'@MINI_TEST("{cls}", "{test_name}")',
-            'code': code[:5000].strip(),
+            'code': code[:8000].strip(),
         }
     return tests
 
@@ -281,7 +281,7 @@ def parse_rust_tests(content: str) -> dict:
         code = content[start:i]
         tests[f"{cls}.test_{test_name}"] = {
             'signature': f'MINI_TEST!("{cls}", "{test_name}")',
-            'code': code[:5000].strip(),
+            'code': code[:8000].strip(),
         }
     return tests
 
@@ -338,7 +338,10 @@ class APIIndex:
         self.methods: dict[str, dict[str, dict]] = {}
         self.tests: dict[str, dict[str, dict]] = {}
         self.recipes: list[dict] = []
+        self.related_methods: dict[str, list[str]] = {}
+        self.class_summaries: dict[str, str] = {}
         self._build()
+        self._build_relationships()
 
     def _score_constructor(self, params: str, cls: str) -> int:
         """Score constructor: prefer parameterized over copy/default."""
@@ -378,6 +381,72 @@ class APIIndex:
                         self.tests[key][lang] = {**data, 'file': str(file.name)}
         # Index recipes
         self.recipes = parse_recipes()
+
+    def _build_relationships(self):
+        """Build related_methods and class_summaries from indexed data."""
+        # Group methods by class
+        class_methods: dict[str, list[str]] = {}
+        for key in self.methods:
+            if '.' in key:
+                cls, method = key.split('.', 1)
+                class_methods.setdefault(cls, []).append(method)
+
+        # For each method, find other methods in the same class that reference it
+        for key, impls in self.methods.items():
+            if '.' not in key:
+                continue
+            cls, method_name = key.split('.', 1)
+            related = set()
+            # Check if other methods in the same class reference this method name
+            for other_key, other_impls in self.methods.items():
+                if other_key == key or not other_key.startswith(f"{cls}."):
+                    continue
+                other_method = other_key.split('.', 1)[1]
+                for lang, data in other_impls.items():
+                    if method_name in data.get('code', ''):
+                        related.add(other_key)
+                        break
+            # Also check if this method references other methods
+            for lang, data in impls.items():
+                code = data.get('code', '')
+                for other_method in class_methods.get(cls, []):
+                    if other_method != method_name and other_method in code:
+                        related.add(f"{cls}.{other_method}")
+            if related:
+                self.related_methods[key] = sorted(related)
+
+        # Build class summaries from method names
+        CLASS_DESCRIPTIONS = {
+            'Point': 'A 3D point with x, y, z coordinates',
+            'Vector': 'A 3D vector with direction and magnitude',
+            'Line': 'A line defined by start and end points',
+            'Plane': 'A plane defined by origin, x-axis, and y-axis',
+            'Polyline': 'A polyline defined by a sequence of points',
+            'NurbsCurve': 'A NURBS curve with control points, weights, knots, and degree',
+            'NurbsSurface': 'A NURBS surface with control points, weights, knots, and degrees',
+            'Mesh': 'A polygon mesh with vertices, faces, and optional vertex colors',
+            'Xform': 'A 4x4 transformation matrix for translation, rotation, and scaling',
+            'Color': 'An RGBA color with preset colors and interpolation',
+            'BoundingBox': 'An axis-aligned bounding box',
+            'Quaternion': 'A quaternion for representing rotations',
+            'Primitives': 'Factory for creating geometric primitives (circle, ellipse, arc, etc.)',
+            'Cylinder': 'A cylinder defined by base plane, radius, and height',
+            'Arrow': 'An arrow defined by origin, direction, and length',
+            'PointCloud': 'A collection of 3D points with optional colors',
+            'Graph': 'A graph data structure with nodes and edges',
+            'Tree': 'A tree data structure with hierarchical paths',
+            'TreeNode': 'A node in a tree with data and children',
+            'Edge': 'An edge in a mesh connecting two vertices',
+            'Vertex': 'A vertex in a mesh with position and connectivity',
+            'Knot': 'A knot vector for NURBS curves and surfaces',
+            'Tolerance': 'Tolerance values for geometric comparisons',
+            'Session': 'Session management for geometry objects',
+            'Objects': 'Collection of geometry objects',
+        }
+        for cls in class_methods:
+            self.class_summaries[cls] = CLASS_DESCRIPTIONS.get(
+                cls, f'{cls} geometry class'
+            )
 
     def get_method(self, name: str, language: str = None) -> dict | None:
         """Get method by exact or partial name."""
@@ -446,10 +515,13 @@ class APIIndex:
                     'code': data['code'],
                     'file': data.get('file', ''),
                 }
-            concepts.append({
+            entry = {
                 'name': name,
                 'implementations': implementations,
-            })
+            }
+            if name in self.related_methods:
+                entry['related'] = self.related_methods[name]
+            concepts.append(entry)
         for name, langs in self.tests.items():
             implementations = {}
             for lang, data in langs.items():
@@ -462,7 +534,20 @@ class APIIndex:
                 'name': name,
                 'implementations': implementations,
             })
-        return {'concepts': concepts, 'recipes': self.recipes}
+
+        # Build method_index: maps bare method names to fully qualified names
+        method_index = {}
+        for name in self.methods:
+            if '.' in name:
+                bare = name.split('.', 1)[1]
+                method_index.setdefault(bare, []).append(name)
+
+        return {
+            'concepts': concepts,
+            'recipes': self.recipes,
+            'class_summaries': self.class_summaries,
+            'method_index': method_index,
+        }
 
 
 # =============================================================================

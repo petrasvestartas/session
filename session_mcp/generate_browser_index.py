@@ -27,9 +27,11 @@ def generate():
     output_file.write_text(js_content)
 
     print(f"Generated {output_file}")
-    print(f"  - {len(data['concepts'])} methods indexed")
+    print(f"  - {len(data['concepts'])} concepts indexed")
     print(f"  - {len(data.get('recipes', []))} recipes indexed")
-    print(f"  - Classes: {', '.join(sorted(set(c['name'].split('.')[0] for c in data['concepts'])))}")
+    print(f"  - {len(data.get('class_summaries', {}))} class summaries")
+    print(f"  - {len(data.get('method_index', {}))} method index entries")
+    print(f"  - Classes: {', '.join(sorted(data.get('class_summaries', {}).keys()))}")
 
 
 if __name__ == "__main__":

@@ -53,8 +53,48 @@ const apiKey = ref('')
 const apiKeyLoading = ref(true)
 const apiKeyError = ref('')
 
+// Conversation history for Claude API (last 10 exchanges = 20 messages)
+const conversationMessages = ref([])
+const MAX_CONVERSATION_MESSAGES = 20
+
+// Restore conversation from sessionStorage
+const restoreConversation = () => {
+  try {
+    const saved = sessionStorage.getItem('session_conversation')
+    if (saved) {
+      conversationMessages.value = JSON.parse(saved)
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+}
+
+const saveConversation = () => {
+  try {
+    sessionStorage.setItem('session_conversation', JSON.stringify(conversationMessages.value))
+  } catch (e) {
+    // Ignore storage errors
+  }
+}
+
+const addToConversation = (role, content) => {
+  conversationMessages.value.push({ role, content })
+  // Keep only last N messages
+  if (conversationMessages.value.length > MAX_CONVERSATION_MESSAGES) {
+    conversationMessages.value = conversationMessages.value.slice(-MAX_CONVERSATION_MESSAGES)
+  }
+  saveConversation()
+}
+
+const clearConversation = () => {
+  conversationMessages.value = []
+  saveConversation()
+}
+
 // Fetch API key from Firebase on mount
 onMounted(async () => {
+  restoreConversation()
+
   try {
     const { key, error } = await getClaudeApiKey()
     if (key) {
@@ -104,6 +144,9 @@ const RECIPE_SYNONYMS = {
   curvature: ['frame_at', 'kappa'],
   adaptive: ['to_polyline_adaptive', 'polyline'],
   polyline: ['to_polyline_adaptive', 'adaptive'],
+  ellipse: ['primitives', 'ellipse', 'create'],
+  circle: ['primitives', 'circle', 'arc', 'create'],
+  arc: ['primitives', 'arc', 'circle', 'create'],
 }
 
 // Recipe search - matches query words against recipe tags/titles with synonyms
@@ -141,11 +184,11 @@ const searchRecipes = (query, maxResults = 3) => {
     .slice(0, maxResults)
 }
 
-// Concept-based search - returns unified API concepts with all languages
-const searchConcepts = (query, maxResults = 3) => {
+// Multi-strategy search - uses method_index, class names, related methods, and concepts
+const searchForContext = (query, maxResults = 8) => {
   const index = window.API_INDEX
   if (!index || !index.concepts) {
-    return { results: [], error: 'API index not loaded. Run: python mcp/generate_browser_index.py' }
+    return { results: [], error: 'API index not loaded. Run: python -m session_mcp.generate_browser_index' }
   }
 
   const queryLower = query.toLowerCase()
@@ -157,21 +200,65 @@ const searchConcepts = (query, maxResults = 3) => {
   else if (queryLower.includes('rust')) langFilter = 'rust'
   else if (queryLower.includes('c++') || queryLower.includes('cpp')) langFilter = 'cpp'
 
-  // Score each concept
-  const scored = index.concepts.map(concept => {
-    let score = 0
+  // Build a map from concept name to concept for fast lookup
+  const conceptMap = {}
+  for (const concept of index.concepts) {
+    conceptMap[concept.name] = concept
+  }
+
+  // Collect scored results
+  const scores = {} // name -> score
+
+  // Strategy 1: method_index lookup (fast exact method name matching)
+  if (index.method_index) {
+    for (const word of queryWords) {
+      // Expand synonyms for method lookup
+      const lookupWords = [word]
+      const syns = RECIPE_SYNONYMS[word]
+      if (syns) lookupWords.push(...syns)
+
+      for (const lw of lookupWords) {
+        const fqns = index.method_index[lw]
+        if (fqns) {
+          for (const fqn of fqns) {
+            scores[fqn] = (scores[fqn] || 0) + (lw === word ? 80 : 40)
+          }
+        }
+      }
+    }
+  }
+
+  // Strategy 2: Class name matching
+  if (index.class_summaries) {
+    for (const word of queryWords) {
+      for (const cls of Object.keys(index.class_summaries)) {
+        if (cls.toLowerCase() === word || cls.toLowerCase().includes(word)) {
+          // Boost all methods of this class
+          for (const concept of index.concepts) {
+            if (concept.name.startsWith(cls + '.')) {
+              scores[concept.name] = (scores[concept.name] || 0) + 30
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Strategy 3: Score each concept by name/keyword matching
+  for (const concept of index.concepts) {
     const nameLower = concept.name.toLowerCase()
     const methodName = concept.name.split('.')[1] || ''
 
     // Skip if language filter doesn't match
-    if (langFilter && !concept.implementations[langFilter]) {
-      return { ...concept, score: 0 }
-    }
+    if (langFilter && !concept.implementations[langFilter]) continue
 
-    // Exact method name match
+    let score = scores[concept.name] || 0
+
+    // Exact method name match in query
     if (methodName && queryLower.includes(methodName.toLowerCase())) score += 100
     // Class name match
-    if (nameLower.split('.')[0] && queryLower.includes(nameLower.split('.')[0])) score += 30
+    const className = nameLower.split('.')[0]
+    if (className && queryLower.includes(className)) score += 30
     // Partial name match
     for (const word of queryWords) {
       if (nameLower.includes(word)) score += 40
@@ -181,21 +268,48 @@ const searchConcepts = (query, maxResults = 3) => {
         (methodName === '__init__' || methodName === 'new' || methodName === 'constructor')) {
       score += 100
     }
+    // Test match boost for test queries
+    if (queryLower.includes('test') && concept.name.includes('.test_')) {
+      score += 50
+    }
 
-    return { ...concept, score }
-  })
+    if (score > 0) {
+      scores[concept.name] = score
+    }
+  }
 
-  // Sort and filter
-  let results = scored
-    .filter(c => c.score > 0)
-    .sort((a, b) => b.score - a.score)
+  // Strategy 4: Add related methods for top matches
+  const topNames = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name]) => name)
+
+  for (const name of topNames) {
+    const concept = conceptMap[name]
+    if (concept && concept.related) {
+      for (const relatedName of concept.related) {
+        if (!scores[relatedName]) {
+          scores[relatedName] = 20 // Lower score for related methods
+        }
+      }
+    }
+  }
+
+  // Sort and collect top results
+  let results = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
     .slice(0, maxResults)
+    .map(([name, score]) => {
+      const concept = conceptMap[name]
+      return concept ? { ...concept, score } : null
+    })
+    .filter(Boolean)
 
   // Keep only requested language in output
   if (langFilter) {
     results = results.map(c => ({
       ...c,
-      implementations: { [langFilter]: c.implementations[langFilter] }
+      implementations: c.implementations[langFilter] ? { [langFilter]: c.implementations[langFilter] } : c.implementations
     }))
   }
 
@@ -203,13 +317,22 @@ const searchConcepts = (query, maxResults = 3) => {
 }
 
 // Determine API endpoint - use Cloudflare Worker proxy in production, direct in development
-const CLAUDE_ENDPOINT = import.meta.env.PROD 
+const CLAUDE_ENDPOINT = import.meta.env.PROD
   ? 'https://session-claude-proxy.petrasvestartas.workers.dev'
   : 'https://api.anthropic.com/v1/messages'
 
-// Call Claude API with streaming support
-const callClaudeAPIStreaming = async (question, context, onChunk) => {
-  const systemPrompt = `You are a coding assistant for the Session geometry library.
+// Build system prompt with class list and conventions
+const buildSystemPrompt = () => {
+  const index = window.API_INDEX
+  let classList = ''
+  if (index && index.class_summaries) {
+    classList = '\n\nAvailable classes:\n' +
+      Object.entries(index.class_summaries)
+        .map(([cls, desc]) => `- ${cls}: ${desc}`)
+        .join('\n')
+  }
+
+  return `You are a coding assistant for the Session geometry library — a cross-language (C++, Python, Rust) geometry library.
 
 CRITICAL RULES:
 - ONLY use method names, class names, and signatures that appear in the provided context. NEVER invent or guess API names.
@@ -217,23 +340,39 @@ CRITICAL RULES:
 - C++ includes use: #include "classname.h" (NOT "session_cpp/classname.h")
 - If a Recipe is provided, copy its code exactly as your answer — recipes are verified correct code.
 - If you cannot answer from the context, say "I don't have enough context for this" instead of guessing.
-- ONE sentence description, then code blocks
-- Show only languages present in context
-- Use EXACT signatures from context, do not modify them`
+- When a question requires combining multiple methods (e.g. create a curve then subdivide it), chain them together in a complete example.
+- Show code for ALL three languages (Python, C++, Rust) unless the user asks for a specific one.
+- Use EXACT signatures from context, do not modify them.
+- Keep explanations brief — one or two sentences, then code blocks.
 
-  const userMessage = `Question: ${question}
+API CONVENTIONS:
+- Python: snake_case methods, constructors via ClassName(...)
+- C++: snake_case methods, constructors via ClassName(...), include via #include "classname.h"
+- Rust: snake_case methods, constructors via ClassName::new(...)
+- Factory methods for primitives: Primitives::circle(...), Primitives::ellipse(...), etc.
+${classList}`
+}
 
-Here is relevant code from the codebase:
+// Call Claude API with streaming support and conversation history
+const callClaudeAPIStreaming = async (question, context, onChunk) => {
+  const systemPrompt = buildSystemPrompt()
 
-${context}
+  // Build the user message with context
+  const userMessage = context
+    ? `Question: ${question}\n\nHere is relevant code from the codebase:\n\n${context}\n\nPlease answer the question based on this code context.`
+    : question
 
-Please answer the question based on this code context.`
+  // Build messages array with conversation history
+  const messages = [
+    ...conversationMessages.value,
+    { role: 'user', content: userMessage }
+  ]
 
   // Build headers - production uses minimal headers (proxy adds the rest)
   const headers = {
     'Content-Type': 'application/json'
   }
-  
+
   if (!import.meta.env.PROD) {
     // Development: call Claude directly
     if (!apiKey.value) {
@@ -249,11 +388,11 @@ Please answer the question based on this code context.`
       method: 'POST',
       headers,
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1024,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
         stream: true,
         system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }]
+        messages
       })
     })
 
@@ -276,7 +415,7 @@ Please answer the question based on this code context.`
       if (done) break
 
       buffer += decoder.decode(value, { stream: true })
-      
+
       // Process SSE events in buffer
       const lines = buffer.split('\n')
       buffer = lines.pop() || '' // Keep incomplete line in buffer
@@ -285,7 +424,7 @@ Please answer the question based on this code context.`
         if (line.startsWith('data: ')) {
           const data = line.slice(6)
           if (data === '[DONE]') continue
-          
+
           try {
             const parsed = JSON.parse(data)
             // Handle content_block_delta events
@@ -299,6 +438,10 @@ Please answer the question based on this code context.`
         }
       }
     }
+
+    // Add to conversation history
+    addToConversation('user', question)
+    addToConversation('assistant', fullText)
 
     return { answer: fullText }
   } catch (error) {
@@ -344,7 +487,7 @@ const buildContext = (concepts, recipes = []) => {
   return parts.join('\n')
 }
 
-// Generate answer from concepts and recipes - shows actual code from source files
+// Generate answer from concepts and recipes - shows actual code from source files (fallback when no API key)
 const generateAnswer = (query, concepts, recipes = []) => {
   const lines = []
 
@@ -363,18 +506,17 @@ const generateAnswer = (query, concepts, recipes = []) => {
   }
 
   if (concepts && concepts.length > 0) {
-    const best = concepts[0]
-    lines.push(`# ${best.name}\n`)
-    for (const lang of ['python', 'cpp', 'rust']) {
-      const impl = best.implementations[lang]
-      if (!impl) continue
-      const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
-      lines.push(`**${langName}:** \`${impl.sig}\``)
-      lines.push('```' + lang)
-      const codeLines = impl.code.split('\n').slice(0, 15)
-      lines.push(codeLines.join('\n'))
-      if (impl.code.split('\n').length > 15) lines.push('// ...')
-      lines.push('```\n')
+    for (const concept of concepts.slice(0, 3)) {
+      lines.push(`# ${concept.name}\n`)
+      for (const lang of ['python', 'cpp', 'rust']) {
+        const impl = concept.implementations[lang]
+        if (!impl) continue
+        const langName = lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)
+        lines.push(`**${langName}:** \`${impl.sig}\``)
+        lines.push('```' + lang)
+        lines.push(impl.code)
+        lines.push('```\n')
+      }
     }
   }
 
@@ -383,73 +525,6 @@ const generateAnswer = (query, concepts, recipes = []) => {
   }
 
   return lines.join('\n')
-}
-
-// Generate clean usage example for a method
-const generateExample = (lang, cls, method, impl) => {
-  if (!impl) return null
-  
-  // Common patterns
-  if (method === 'distance' || method === 'squared_distance') {
-    if (lang === 'python') return `p1 = Point(1.0, 2.0, 3.0)\np2 = Point(4.0, 5.0, 6.0)\ndist = p1.${method}(p2)`
-    if (lang === 'cpp') return `Point p1(1.0, 2.0, 3.0);\nPoint p2(4.0, 5.0, 6.0);\ndouble dist = p1.${method}(p2);`
-    if (lang === 'rust') return `let p1 = Point::new(1.0, 2.0, 3.0);\nlet p2 = Point::new(4.0, 5.0, 6.0);\nlet dist = p1.${method}(&p2, None);`
-  }
-  if (method === '__init__' || method === 'new') {
-    if (lang === 'python') return `p = ${cls}(1.0, 2.0, 3.0)`
-    if (lang === 'cpp') return `${cls} p(1.0, 2.0, 3.0);`
-    if (lang === 'rust') return `let p = ${cls}::new(1.0, 2.0, 3.0);`
-  }
-  if (method === 'duplicate') {
-    if (lang === 'python') return `copy = original.duplicate()`
-    if (lang === 'cpp') return `auto copy = original.duplicate();`
-    if (lang === 'rust') return `let copy = original.duplicate();`
-  }
-  if (method === 'to_protobuf') {
-    if (lang === 'python') return `data = obj.to_protobuf()`
-    if (lang === 'cpp') return `std::string data = obj.to_protobuf();`
-    if (lang === 'rust') return `let data: Vec<u8> = obj.to_protobuf();`
-  }
-  if (method === 'from_protobuf') {
-    if (lang === 'python') return `obj = ${cls}.from_protobuf(data)`
-    if (lang === 'cpp') return `auto obj = ${cls}::from_protobuf(data);`
-    if (lang === 'rust') return `let obj = ${cls}::from_protobuf(&data);`
-  }
-  if (method === 'transform') {
-    if (lang === 'python') return `point.transform(matrix)`
-    if (lang === 'cpp') return `point.transform(matrix);`
-    if (lang === 'rust') return `point.transform(&matrix);`
-  }
-  // Color presets
-  if (['white','black','red','green','blue','yellow','cyan','magenta'].includes(method)) {
-    if (lang === 'python') return `c = Color.${method}()`
-    if (lang === 'cpp') return `Color c = Color::${method}();`
-    if (lang === 'rust') return `let c = Color::${method}();`
-  }
-  
-  // Fallback: show signature
-  return `// ${impl.sig}`
-}
-
-// Describe what a method does
-const describeMethod = (method) => {
-  const descriptions = {
-    'distance': 'calculate distance between two points',
-    'squared_distance': 'calculate squared distance (faster, no sqrt)',
-    '__init__': 'create a new instance',
-    'new': 'create a new instance',
-    'duplicate': 'create a copy',
-    'transform': 'apply a transformation matrix',
-    'to_protobuf': 'serialize to protobuf format',
-    'from_protobuf': 'deserialize from protobuf',
-    'to_json': 'convert to JSON',
-    'from_json': 'load from JSON',
-    'white': 'create white color',
-    'black': 'create black color',
-    'red': 'create red color',
-    'blue': 'create blue color',
-  }
-  return descriptions[method] || `use ${method}`
 }
 
 // Format answer text with HTML styling
@@ -491,12 +566,6 @@ const tabContext = computed(() => {
 })
 
 const inputPlaceholder = computed(() => {
-  if (props.activeTab === 'viewer') {
-    return 'Ask a question or type "help" for commands'
-  }
-  if (props.activeTab === 'tests') {
-    return 'Ask a question or type "help" for commands'
-  }
   return 'Ask a question or type "help" for commands'
 })
 
@@ -515,17 +584,23 @@ const commands = {
       'Session CLI - Ask questions about your codebase',
       '',
       `Claude AI: ${keyStatus}`,
+      `Model: claude-sonnet-4-20250514 (4096 tokens)`,
+      `Conversation: ${conversationMessages.value.length / 2} exchanges stored`,
       '',
       'Quick Start:',
       '  Just type your question directly!',
       '  Examples:',
       '    how to create a Point in Python',
-      '    what are the Color methods in Rust',
-      '    distance calculation between points',
+      '    how to create an ellipse and get perpendicular subdivided planes',
+      '    show me NurbsCurve evaluate in Rust',
+      '    what tests exist for Mesh?',
+      '',
+      'Follow-up questions use conversation context:',
+      '    "now the C++ version" (refers to previous answer)',
       '',
       'Available commands:',
       '  help       - Show this help message',
-      '  clear      - Clear the console',
+      '  clear      - Clear console and conversation history',
       '  search     - Show raw search results with sources',
       '  info       - Show current context information',
       '',
@@ -535,10 +610,11 @@ const commands = {
   },
   clear: () => {
     history.value = []
+    clearConversation()
     return []
   },
   info: () => {
-    const index = window.SEARCH_INDEX
+    const index = window.API_INDEX
     let claudeStatus
     if (apiKeyLoading.value) {
       claudeStatus = 'Loading from Firebase...'
@@ -552,14 +628,18 @@ const commands = {
       `Current tab: ${props.activeTab}`,
       `Context: ${tabContext.value}`,
       '',
-      'Search Index:',
+      'API Index:',
       `  Loaded: ${index ? 'Yes' : 'No'}`,
-      `  Chunks: ${index?.chunks?.length || 0}`,
-      `  Has Embeddings: ${index?.hasEmbeddings || false}`,
+      `  Concepts: ${index?.concepts?.length || 0}`,
+      `  Recipes: ${index?.recipes?.length || 0}`,
+      `  Classes: ${index?.class_summaries ? Object.keys(index.class_summaries).length : 0}`,
+      `  Method index entries: ${index?.method_index ? Object.keys(index.method_index).length : 0}`,
       '',
       'Claude AI:',
       `  Status: ${claudeStatus}`,
       `  Model: claude-sonnet-4-20250514`,
+      `  Max tokens: 4096`,
+      `  Conversation history: ${conversationMessages.value.length / 2} exchanges`,
     ]
     return [lines.join('\n')]
   },
@@ -569,7 +649,7 @@ const commands = {
     }
 
     const query = args.join(' ')
-    const { results, error } = clientSideSearch(query, 5)
+    const { results, error } = searchForContext(query, 10)
 
     if (error) {
       return [`Error: ${error}`]
@@ -581,11 +661,11 @@ const commands = {
 
     const output = [`Found ${results.length} results for: "${query}"`, '']
     results.forEach((r, i) => {
-      output.push(`${i + 1}. ${r.type} "${r.name}" (${r.language})`)
-      output.push(`   File: ${r.file}:${r.line_start}`)
-      output.push(`   Score: ${r.score}`)
-      const preview = (r.code || '').split('\n').slice(0, 2).join(' ').substring(0, 80)
-      if (preview) output.push(`   Preview: ${preview}...`)
+      const langs = Object.keys(r.implementations).join(', ')
+      output.push(`${i + 1}. ${r.name} (${langs}) [score: ${r.score}]`)
+      if (r.related) {
+        output.push(`   Related: ${r.related.join(', ')}`)
+      }
       output.push('')
     })
 
@@ -618,14 +698,14 @@ const commands = {
 
     const question = args.join(' ')
 
-    // Search recipes first (compositional queries), then concepts
-    const recipeResults = searchRecipes(question, 2)
-    const { results, error: searchError } = searchConcepts(question, 3)
+    // Multi-strategy search: recipes + concepts with related methods
+    const recipeResults = searchRecipes(question, 3)
+    const { results, error: searchError } = searchForContext(question, 8)
 
     if (searchError && recipeResults.length === 0) {
       return [
         'API index not available.',
-        'Run: python mcp/generate_browser_index.py',
+        'Run: python -m session_mcp.generate_browser_index',
         '',
         `Details: ${searchError}`
       ]
@@ -642,8 +722,8 @@ const commands = {
       ]
     }
 
-    // If a recipe matches strongly, show it directly — more reliable than LLM rewriting
-    if (recipeResults.length > 0 && recipeResults[0].score >= 40) {
+    // If a recipe matches strongly and no API key, show directly
+    if (!apiKey.value && recipeResults.length > 0 && recipeResults[0].score >= 40) {
       const answer = generateAnswer(question, [], recipeResults)
       return answer.split('\n')
     }

@@ -1,6 +1,6 @@
 /**
- * Cloudflare Worker - Claude API Proxy
- * 
+ * Cloudflare Worker - Claude API Proxy with streaming support
+ *
  * Deploy: npx wrangler deploy
  * Set secret: npx wrangler secret put ANTHROPIC_API_KEY
  */
@@ -24,6 +24,7 @@ export default {
 
     try {
       const body = await request.json();
+      const isStreaming = body.stream === true;
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -35,8 +36,21 @@ export default {
         body: JSON.stringify(body)
       });
 
+      if (isStreaming) {
+        // Pass-through streaming: pipe the response body directly
+        return new Response(response.body, {
+          status: response.status,
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
+
+      // Non-streaming: read and forward as JSON
       const data = await response.text();
-      
       return new Response(data, {
         status: response.status,
         headers: {
@@ -47,7 +61,7 @@ export default {
     } catch (error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
   }

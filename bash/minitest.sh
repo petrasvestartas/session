@@ -118,6 +118,11 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
+# Regenerate browser API index for Vue chatbot
+log "=== Regenerating Browser API Index ==="
+cd "$REPO_ROOT"
+python -m session_mcp.generate_browser_index || log "Warning: Failed to generate browser index"
+
 # Check for CI environment
 if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
     log "CI environment detected - building dist for artifact upload"
