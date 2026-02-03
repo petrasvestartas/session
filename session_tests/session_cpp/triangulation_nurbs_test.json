@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 82,
     "code": "        NurbsSurface surf = make_flat_surface();\n        NurbsTriangulation mesher(surf);\n\n        mesher.set_max_angle(30.0);\n        mesher.set_max_edge_length(0.5);\n        mesher.set_min_edge_length(0.01);\n        mesher.set_max_chord_height(0.001);\n        mesher.set_max_iterations(1000);\n",
     "checks": [
@@ -37,7 +37,7 @@
   {
     "test_name": "mesh_flat_plane",
     "passed": true,
-    "time_ms": 527.693,
+    "time_ms": 530.354,
     "line": 99,
     "code": "        NurbsSurface surf = make_flat_surface();\n        NurbsTriangulation mesher(surf);\n        Mesh m = mesher.mesh();\n\n        bool all_z_zero = true;\n        for (const auto& [vk, vd] : m.vertex) {\n            if (std::abs(vd.z) > 1e-6) { all_z_zero = false; break; }",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "mesh_curved_surface",
     "passed": true,
-    "time_ms": 5462.945,
+    "time_ms": 4268.392,
     "line": 114,
     "code": "        NurbsSurface surf = make_bump_surface();\n        NurbsTriangulation mesher(surf);\n        Mesh m = mesher.mesh();\n\n        NurbsSurface flat_surf = make_flat_surface();\n        NurbsTriangulation flat_mesher(flat_surf);\n        Mesh flat_m = flat_mesher.mesh();\n",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "mesh_vertex_normals",
     "passed": true,
-    "time_ms": 4445.006,
+    "time_ms": 3713.896,
     "line": 128,
     "code": "        NurbsSurface surf = make_bump_surface();\n        NurbsTriangulation mesher(surf);\n        Mesh m = mesher.mesh();\n\n        bool all_have_normals = true;\n        for (const auto& [vk, vd] : m.vertex) {\n            auto n = vd.normal();\n            if (!n.has_value()) { all_have_normals = false; break; }\n            double len = std::sqrt(n->at(0) * n->at(0) + n->at(1) * n->at(1) + n->at(2) * n->at(2));\n            if (len < 0.5) { all_have_normals = false; break; }",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "mesh_sphere",
     "passed": true,
-    "time_ms": 2980.739,
+    "time_ms": 2566.505,
     "line": 145,
     "code": "        double radius = 2.0;\n        NurbsSurface surf = make_sphere_surface(radius);\n        NurbsTriangulation mesher(surf);\n        mesher.set_max_angle(20.0);\n        Mesh m = mesher.mesh();\n\n        int near_count = 0;\n        double tol = radius * 0.3;\n        for (const auto& [vk, vd] : m.vertex) {\n            double dist = std::sqrt(vd.x * vd.x + vd.y * vd.y + vd.z * vd.z);\n            if (std::abs(dist - radius) <= tol) near_count++;",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "mesh_parameters",
     "passed": true,
-    "time_ms": 4382.972,
+    "time_ms": 4859.172,
     "line": 165,
     "code": "        NurbsSurface surf = make_bump_surface();\n\n        NurbsTriangulation coarse(surf);\n        coarse.set_max_angle(90.0).set_max_edge_length(10.0).set_max_chord_height(10.0);\n        Mesh m_coarse = coarse.mesh();\n\n        NurbsTriangulation fine(surf);\n        fine.set_max_angle(5.0).set_max_edge_length(0.5).set_max_chord_height(0.01);\n        Mesh m_fine = fine.mesh();\n",
     "checks": [

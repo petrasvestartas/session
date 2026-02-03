@@ -199,7 +199,7 @@ Example for Point:
 
 - **Python imports:** Each import must be on a separate line. Never use `from session_py import Mesh, Point`. Use separate lines instead.
 - **C++ tolerance.h:** Never include `#include "tolerance.h"` in main source files. It is only for minitest files, not production code.
-- **C++ Point/Vector output:** Use `std::cout << point` or `std::cout << vector` directly instead of printing individual coordinates. The stream operator is overloaded for cleaner output.
+- **C++ Point/Vector output:** Use `std::cout << point` or `std::cout << vector` directly instead of printing individual coordinates. The stream operator is overloaded for cleaner output. Never use `std::setprecision` or `std::fixed` or manual `[0],[1],[2]` indexing for printing — just use `<<`.
 
 ### Git Rules
 

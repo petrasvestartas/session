@@ -27,7 +27,7 @@ consolidate_test_data() {
 
         # Process each class and language combination
         for class_name in "${CLASS_NAMES[@]}"; do
-            for lang_info in "python:session_py" "cpp:session_cpp" "rust:session_rust"; do
+            for lang_info in "cpp:session_cpp" "python:session_py" "rust:session_rust"; do
                 local lang="${lang_info%%:*}"
                 local dir="${lang_info#*:}"
                 local json_path="${tests_dir}/${dir}/${class_name}_test.json"
@@ -43,7 +43,7 @@ consolidate_test_data() {
 
         # Add artifact files (test_<class>.json from each language)
         for class_name in "${CLASS_NAMES[@]}"; do
-            for lang_info in "python:session_py" "cpp:session_cpp" "rust:session_rust"; do
+            for lang_info in "cpp:session_cpp" "python:session_py" "rust:session_rust"; do
                 local lang="${lang_info%%:*}"
                 local dir="${lang_info#*:}"
                 local artifact_path="${repo_root}/${dir}/test_${class_name}.json"
