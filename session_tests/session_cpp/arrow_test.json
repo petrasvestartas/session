@@ -1,0 +1,32 @@
+[
+  {
+    "test_name": "json_roundtrip",
+    "passed": true,
+    "time_ms": 17.788,
+    "line": 10,
+    "code": "    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Arrow original(line, 1.0);\n    original.name = \"test_arrow\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_arrow.json\");\n    Arrow loaded = encoders::json_load<Arrow>(\"./serialization/test_arrow.json\");\n",
+    "checks": [
+      {
+        "line": 19,
+        "code_line": "TOLERANCE.is_close(loaded.radius, original.radius)",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "loaded.mesh.number_of_vertices() == 29",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "loaded.mesh.number_of_faces() == 28",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

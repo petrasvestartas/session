@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.394,
+    "time_ms": 0.383,
     "line": 22,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Get mesh\n        Mesh m = s.mesh();\n\n        // Point division matching Rhino's 4x6 grid\n        auto [v, uv] = s.divide_by_count(4, 6);\n\n        // Minimal and Full String Representation\n        std::string sstr = s.str();\n        std::string srepr = s.repr();\n\n        // Copy (duplicates everything except guid)\n        NurbsSurface scopy = s;\n        NurbsSurface sother = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "constructor_ruled",
     "passed": true,
-    "time_ms": 0.245,
+    "time_ms": 0.258,
     "line": 120,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> pts_a = {Point(3,0,0), Point(-2,0,5)};\n        std::vector<Point> pts_b = {Point(3,5,5), Point(-2,5,0)};\n        NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n        NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n        NurbsSurface srf = NurbsSurface::create_ruled(crvA, crvB);\n\n        // Mesh 180 - lowest quality, 5 - highest quality\n        Mesh m = srf.mesh(45);\n\n\n        auto [rd, ruv] = srf.divide_by_count(4, 4);\n\n        std::vector<Point> pts;\n        for (int i = 0; i < (int)rd.size(); i++)\n            for (int j = 0; j < (int)rd[i].size(); j++)\n                pts.push_back(rd[i][j]);\n\n        std::vector<Vector> normals;\n        for (int i = 0; i < (int)ruv.size(); i++)\n            for (int j = 0; j < (int)ruv[i].size(); j++)\n                normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n        std::vector<std::pair<double,double>> uvs;\n        for (int i = 0; i < (int)ruv.size(); i++)\n            for (int j = 0; j < (int)ruv[i].size(); j++)\n                uvs.push_back(ruv[i][j]);\n\n\n",
     "checks": [
@@ -604,20 +604,20 @@
     "passed": true,
     "time_ms": 0.146,
     "line": 217,
-    "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n        NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n        NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n        NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n        NurbsSurface srf = NurbsSurface::create_loft({c1, c2, c3, c4}, 3);\n\n\n\n        // Open loft\n        std::vector<std::vector<Point>> open_pts = {\n            {Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)},\n            {Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)},\n            {Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)},\n        };\n        std::vector<NurbsCurve> open_curves = {\n            NurbsCurve::create(false, 3, open_pts[0]),\n            NurbsCurve::create(false, 3, open_pts[1]),\n            NurbsCurve::create(false, 3, open_pts[2]),\n        };\n        NurbsSurface open_srf = NurbsSurface::create_loft(open_curves, 3);\n\n",
+    "code": "        // uncomment #include \"nurbssurface.h\"\n\n        // Closed circles with varying radius and same center\n        NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n        NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n        NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n        NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n        NurbsSurface srf = NurbsSurface::create_loft({c1, c2, c3, c4}, 3);\n\n\n        // Open loft\n        std::vector<std::vector<Point>> open_pts = {\n            {Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)},\n            {Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)},\n            {Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)},\n        };\n        std::vector<NurbsCurve> open_curves = {\n            NurbsCurve::create(false, 3, open_pts[0]),\n            NurbsCurve::create(false, 3, open_pts[1]),\n            NurbsCurve::create(false, 3, open_pts[2]),\n        };\n        NurbsSurface open_srf = NurbsSurface::create_loft(open_curves, 3);\n\n",
     "checks": [
       {
-        "line": 227,
+        "line": 228,
         "code_line": "srf.is_valid()",
         "passed": true
       },
       {
-        "line": 228,
+        "line": 229,
         "code_line": "srf.cv_count(0) == 9",
         "passed": true
       },
       {
-        "line": 229,
+        "line": 230,
         "code_line": "srf.cv_count(1) == 4",
         "passed": true
       },
@@ -882,7 +882,7 @@
   {
     "test_name": "constructor_revolve",
     "passed": true,
-    "time_ms": 0.134,
+    "time_ms": 0.143,
     "line": 299,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsCurve profile = NurbsCurve::create(false, 3, {\n            Point(1.5, 0, 0), Point(1.5, 0, 0.3), Point(0.3, 0, 0.5),\n            Point(0.3, 0, 2.5), Point(0.2, 0, 3.0), Point(2.0, 0, 4.5), Point(1.8, 0, 5.0),\n        });\n        NurbsSurface srf = NurbsSurface::create_revolve(profile, Point(0,0,0), Vector(0,0,1));",
     "checks": [],
@@ -891,7 +891,7 @@
   {
     "test_name": "constructor_sweep",
     "passed": true,
-    "time_ms": 23.166,
+    "time_ms": 25.672,
     "line": 311,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        // Sweep1\n        NurbsCurve rail = NurbsCurve::create(false, 2, {\n            Point(0,0,0), Point(0,5,0), Point(2,9,0)\n        });\n        NurbsCurve profile = Primitives::circle(0, 0, 0, 1.0);\n        NurbsSurface srf = NurbsSurface::create_sweep1(rail, profile);\n\n        // Sweep2\n        NurbsCurve rail1 = NurbsCurve::create(false, 2, {Point(-2,-1,0), Point(-1,3,0), Point(0,4,0)});\n        NurbsCurve rail2 = NurbsCurve::create(false, 2, {Point(2,-1,0), Point(2,3,0), Point(1,4,0)});\n        NurbsCurve shape1 = NurbsCurve::create(false, 2, {Point(-2,-1,0), Point(0,-1,2), Point(2,-1,0)});       \n        NurbsCurve shape2 = NurbsCurve::create(false, 2, {Point(0,4,0), Point(0.5,4,1.5), Point(1,4,0)});\n        srf = NurbsSurface::create_sweep2(rail1, rail2, {shape1, shape2});\n    ",
     "checks": [],
@@ -900,7 +900,7 @@
   {
     "test_name": "create_operations",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.01,
     "line": 333,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create a simple 2x2 bilinear surface\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n        // Check knot vectors\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n",
     "checks": [
@@ -1010,7 +1010,7 @@
   {
     "test_name": "knot_operations",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 386,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 4, 4, 4, 4, false, false, 1.0, 1.0);\n\n        // Verify domain\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n",
     "checks": [
@@ -1050,7 +1050,7 @@
   {
     "test_name": "rational_operations",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 404,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create non-rational surface\n        NurbsSurface surf;\n        surf.create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Make it rational\n        surf.make_rational();\n\n        // Set a control point and weight\n        surf.set_cv(1, 1, Point(1.0, 2.0, 3.0));\n        surf.set_weight(1, 1, 2.0);\n\n        // Verify weight\n        double w = surf.weight(1, 1);\n",
     "checks": [
@@ -1075,7 +1075,7 @@
   {
     "test_name": "evaluation",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.011,
     "line": 427,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        // Create simple bilinear surface\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n        // Evaluate at corner\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        Point pt_corner = surf.point_at(dom_u.first, dom_v.first);\n\n        // Evaluate at center (should be center of unit square)\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        Point pt_mid = surf.point_at(u_mid, v_mid);\n\n        // Test derivatives\n        auto derivs = surf.evaluate(u_mid, v_mid, 1);\n\n        // Test normal (for flat plane in XY, normal should point in +Z)\n        Vector normal = surf.normal_at(u_mid, v_mid);\n",
     "checks": [
@@ -1200,7 +1200,7 @@
   {
     "test_name": "isocurve",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.013,
     "line": 524,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create surface\n        NurbsSurface surf;\n        surf.create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Set up a grid of control points\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));",
     "checks": [
@@ -1235,7 +1235,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 560,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        // Create simple surface\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, Point(1.0, 1.0, 0.0));\n\n        // Apply translation\n        Xform xf = Xform::translation(1.0, 2.0, 3.0);\n        surf.transform(xf);\n\n        // Check transformed CV\n        Point pt = surf.get_cv(0, 0);\n",
     "checks": [
@@ -1260,7 +1260,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 10.014,
+    "time_ms": 18.251,
     "line": 586,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.surfacecolor = Color(255, 128, 64, 255);\n\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));",
     "checks": [
@@ -1285,7 +1285,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 13.459,
+    "time_ms": 11.593,
     "line": 628,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.surfacecolor = Color(255, 128, 64, 255);\n\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));",
     "checks": [
@@ -1365,7 +1365,7 @@
   {
     "test_name": "clamp_operations",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.008,
     "line": 715,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 4, 4, 4, 4, false, false, 1.0, 1.0);\n\n        // Set up control points\n        for (int i = 0; i < 4; ++i) {\n            for (int j = 0; j < 4; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));",
     "checks": [
@@ -1420,7 +1420,7 @@
   {
     "test_name": "bounding_box",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.013,
     "line": 765,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 3, 3, false, false, 1.0, 1.0);\n\n        // Set CVs in a known range\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_cv(i, j, Point(static_cast<double>(i), static_cast<double>(j), 0.0));",
     "checks": [
@@ -1435,7 +1435,7 @@
   {
     "test_name": "domain_operations",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 785,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0);\n\n        // Get initial domain\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        // Set new domain\n        surf.set_domain(0, 0.0, 10.0);\n        surf.set_domain(1, 5.0, 15.0);\n\n        auto new_dom_u = surf.domain(0);\n        auto new_dom_v = surf.domain(1);\n\n        // Get span vectors\n        auto span_u = surf.get_span_vector(0);\n        auto span_v = surf.get_span_vector(1);\n",
     "checks": [
@@ -1485,7 +1485,7 @@
   {
     "test_name": "corner_points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.009,
     "line": 816,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set corner control points\n        surf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, Point(10.0, 0.0, 0.0));\n        surf.set_cv(0, 1, Point(0.0, 10.0, 0.0));\n        surf.set_cv(1, 1, Point(10.0, 10.0, 0.0));\n\n        // Get corner points\n        Point p00 = surf.point_at_corner(0, 0);\n        Point p10 = surf.point_at_corner(1, 0);\n        Point p01 = surf.point_at_corner(0, 1);\n        Point p11 = surf.point_at_corner(1, 1);\n",
     "checks": [
@@ -1540,7 +1540,7 @@
   {
     "test_name": "zero_cvs",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 861,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n\n        // Set non-zero control points\n        surf.set_cv(0, 0, Point(1.0, 2.0, 3.0));\n        surf.set_cv(1, 1, Point(4.0, 5.0, 6.0));\n\n        // Zero all CVs\n        surf.zero_cvs();\n\n        Point pt0 = surf.get_cv(0, 0);\n        Point pt1 = surf.get_cv(1, 1);\n\n                   TOLERANCE.is_close(pt0[1], 0.0) &&\n                   TOLERANCE.is_close(pt0[2], 0.0));\n                   TOLERANCE.is_close(pt1[1], 0.0) &&\n                   TOLERANCE.is_close(pt1[2], 0.0));",
     "checks": [
@@ -1610,7 +1610,7 @@
   {
     "test_name": "create_clamped_uniform",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 925,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface surf;\n        surf.create_clamped_uniform(3, 4, 3, 4, 4, 1.0, 2.0);\n\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n",
     "checks": [
@@ -1660,7 +1660,7 @@
   {
     "test_name": "knot_multiplicity",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 944,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface surf;\n        surf.create_raw(3, false, 4, 4, 4, 4, false, false, 1.0, 1.0);\n\n        // Check first knot multiplicity (should be equal to degree for clamped)\n        int mult_u_start = surf.knot_multiplicity(0, 0);\n        int mult_v_start = surf.knot_multiplicity(1, 0);\n\n        // Check last knot multiplicity\n        int last_u = surf.knot_count(0) - 1;\n        int last_v = surf.knot_count(1) - 1;\n        int mult_u_end = surf.knot_multiplicity(0, last_u);\n        int mult_v_end = surf.knot_multiplicity(1, last_v);\n",
     "checks": [
@@ -1690,7 +1690,7 @@
   {
     "test_name": "sphere",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 966,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create a sphere as a rational NURBS surface\n        // Sphere: 9x5 control points, degree 2 in both directions\n        // Based on OpenNURBS sphere representation\n        double radius = 2.0;\n        double w = std::sqrt(2.0) / 2.0;  // 0.707107\n\n        NurbsSurface surf;\n        surf.create_raw(3, true, 3, 3, 9, 5, false, false, 1.0, 1.0);\n        surf.name = \"unit_sphere\";\n\n        // U-knots: periodic around equator with multiplicity 2\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: from south pole to north pole\n        double v_knots[] = {-TOLERANCE.PI * 0.5, -TOLERANCE.PI * 0.5, 0, 0,\n                            TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5};\n        for (int i = 0; i < 6; ++i) surf.set_knot(1, i, v_knots[i]);\n\n        // Set up control points for sphere (9 around, 5 latitude levels)\n        // Latitude levels: south pole, -45deg, equator, +45deg, north pole\n        double lat_weights[] = {w, 0.5, w, 0.5, w};  // alternating for cardinal/diagonal\n        double lat_z[] = {-radius, -radius * w, 0.0, radius * w, radius};\n        double lat_r[] = {0.0, radius * w, radius, radius * w, 0.0};  // radius at each latitude\n\n        for (int j = 0; j < 5; ++j) {\n            double r = lat_r[j];\n            double z = lat_z[j];\n            // 9 points around (0, 45, 90, 135, 180, 225, 270, 315, 360=0)\n            double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                               TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                               TOLERANCE.PI * 2.0};\n            for (int i = 0; i < 9; ++i) {\n                double x = r * std::cos(angles[i]);\n                double y = r * std::sin(angles[i]);\n                surf.set_cv(i, j, Point(x, y, z));\n                // Weight: w for cardinal directions (0, 90, 180, 270), 0.5 for diagonals at non-pole latitudes\n                double weight = (i % 2 == 0) ? w : lat_weights[j];\n                if (j == 0 || j == 4) weight = w;  // poles\n                surf.set_weight(i, j, weight);",
     "checks": [
@@ -1750,7 +1750,7 @@
   {
     "test_name": "cylinder",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 1034,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create an uncapped cylinder as a rational NURBS surface\n        // Cylinder: 9x2 control points (circle at bottom, circle at top)\n        // Degree 2 in U (angular), degree 1 in V (height)\n        double radius = 1.5;\n        double height = 3.0;\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create_raw(3, true, 3, 2, 9, 2, false, false, 1.0, 1.0);\n        surf.name = \"unit_cylinder\";\n\n        // U-knots: periodic for circle\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: linear from bottom to top\n        surf.set_knot(1, 0, 0.0);\n        surf.set_knot(1, 1, height);\n\n        // Set up control points for cylinder (9 around, 2 heights)\n        double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                           TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                           TOLERANCE.PI * 2.0};\n\n        for (int j = 0; j < 2; ++j) {\n            double z = (j == 0) ? 0.0 : height;\n            for (int i = 0; i < 9; ++i) {\n                double x = radius * std::cos(angles[i]);\n                double y = radius * std::sin(angles[i]);\n                // For diagonal points (45, 135, etc), radius needs to be scaled\n                if (i % 2 == 1) {\n                    x = radius * std::sqrt(2.0) * std::cos(angles[i]);\n                    y = radius * std::sqrt(2.0) * std::sin(angles[i]);",
     "checks": [
@@ -1835,7 +1835,7 @@
   {
     "test_name": "torus",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.017,
     "line": 1107,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create a torus as a rational NURBS surface\n        // Torus: 9x9 control points (minor circle revolved around major axis)\n        // Degree 2 in both directions\n        double major_radius = 3.0;  // distance from center to tube center\n        double minor_radius = 1.0;  // tube radius\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create_raw(3, true, 3, 3, 9, 9, false, false, 1.0, 1.0);\n        surf.name = \"unit_torus\";\n\n        // Both U and V knots: periodic for circles\n        double knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                          TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                          TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) {\n            surf.set_knot(0, i, knots[i]);\n            surf.set_knot(1, i, knots[i]);",
     "checks": [
@@ -1900,7 +1900,7 @@
   {
     "test_name": "cone",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.007,
     "line": 1183,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create an uncapped cone as a rational NURBS surface\n        // Cone: 9x2 control points (apex at top, circle at base)\n        // Degree 2 in U (angular), degree 1 in V (height)\n        double radius = 2.0;\n        double height = 4.0;\n        double w = std::sqrt(2.0) / 2.0;\n\n        NurbsSurface surf;\n        surf.create_raw(3, true, 3, 2, 9, 2, false, false, 1.0, 1.0);\n        surf.name = \"unit_cone\";\n\n        // U-knots: periodic for circle\n        double u_knots[] = {0, 0, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.5,\n                            TOLERANCE.PI, TOLERANCE.PI, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.5,\n                            TOLERANCE.PI * 2.0, TOLERANCE.PI * 2.0};\n        for (int i = 0; i < 10; ++i) surf.set_knot(0, i, u_knots[i]);\n\n        // V-knots: linear from apex to base\n        surf.set_knot(1, 0, 0.0);\n        surf.set_knot(1, 1, height);\n\n        // Set up control points for cone (9 around, 2 heights: apex and base)\n        double angles[] = {0, TOLERANCE.PI * 0.25, TOLERANCE.PI * 0.5, TOLERANCE.PI * 0.75,\n                           TOLERANCE.PI, TOLERANCE.PI * 1.25, TOLERANCE.PI * 1.5, TOLERANCE.PI * 1.75,\n                           TOLERANCE.PI * 2.0};\n\n        // Apex (j=0) - all points collapse to the apex\n        for (int i = 0; i < 9; ++i) {\n            surf.set_cv(i, 0, Point(0.0, 0.0, height));\n            double weight = (i % 2 == 0) ? 1.0 : w;\n            surf.set_weight(i, 0, weight);",
     "checks": [
@@ -1980,7 +1980,7 @@
   {
     "test_name": "create_loft",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.026,
     "line": 1259,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Loft 3 parallel circles at different Z heights\n        double radius = 2.0;\n        double w = std::sqrt(2.0) / 2.0;\n\n        auto make_circle = [&](double z) -> NurbsCurve {\n            NurbsCurve c(3, true, 3, 9);\n            double knots[] = {0, 0, Tolerance::PI * 0.5, Tolerance::PI * 0.5,\n                              Tolerance::PI, Tolerance::PI, Tolerance::PI * 1.5, Tolerance::PI * 1.5,\n                              Tolerance::PI * 2.0, Tolerance::PI * 2.0};\n            for (int i = 0; i < 10; ++i) c.set_knot(i, knots[i]);\n\n            double angles[] = {0, Tolerance::PI * 0.25, Tolerance::PI * 0.5, Tolerance::PI * 0.75,\n                               Tolerance::PI, Tolerance::PI * 1.25, Tolerance::PI * 1.5, Tolerance::PI * 1.75,\n                               Tolerance::PI * 2.0};\n            for (int i = 0; i < 9; ++i) {\n                double scale = (i % 2 == 0) ? 1.0 : std::sqrt(2.0);\n                double x = radius * scale * std::cos(angles[i]);\n                double y = radius * scale * std::sin(angles[i]);\n                c.set_cv(i, Point(x, y, z));\n                c.set_weight(i, (i % 2 == 0) ? 1.0 : w);",
     "checks": [
@@ -2025,7 +2025,7 @@
   {
     "test_name": "create_revolve_full",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.053,
     "line": 1311,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Revolve a line segment 360 degrees around Z axis -> cylinder\n        double radius = 2.0;\n        double height = 5.0;\n\n        // Profile: vertical line at x=radius\n        NurbsCurve profile = NurbsCurve::create(false, 1, {Point(radius, 0.0, 0.0), Point(radius, 0.0, height)});\n\n        NurbsSurface surf = NurbsSurface::create_revolve(profile, Point(0, 0, 0), Vector(0, 0, 1));\n\n\n        // Check point at angle 0, bottom\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n        Point pt0 = surf.point_at(dom_u.first, dom_v.first);\n\n        // Check point at angle PI/2, bottom\n        Point pt90 = surf.point_at(Tolerance::PI * 0.5, dom_v.first);\n\n        // Check point at angle 0, top\n        Point pt_top = surf.point_at(dom_u.first, dom_v.second);",
     "checks": [
@@ -2090,7 +2090,7 @@
   {
     "test_name": "create_revolve_partial",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.035,
     "line": 1349,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Revolve a line segment 90 degrees -> quarter cylinder\n        double radius = 3.0;\n        double height = 4.0;\n\n        NurbsCurve profile = NurbsCurve::create(false, 1, {Point(radius, 0.0, 0.0), Point(radius, 0.0, height)});\n\n        double angle = Tolerance::PI * 0.5;\n        NurbsSurface surf = NurbsSurface::create_revolve(profile, Point(0, 0, 0), Vector(0, 0, 1), angle);\n\n\n        // Check start point\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n        Point pt_start = surf.point_at(dom_u.first, dom_v.first);\n\n        // Check end point at 90 degrees\n        Point pt_end = surf.point_at(dom_u.second, dom_v.first);",
     "checks": [
@@ -2135,7 +2135,7 @@
   {
     "test_name": "create_sweep1",
     "passed": true,
-    "time_ms": 6.729,
+    "time_ms": 6.431,
     "line": 1380,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Sweep a small circle profile along a straight rail\n        // Rail: line along Z axis\n        NurbsCurve rail = NurbsCurve::create(false, 1, {Point(0, 0, 0), Point(0, 0, 10)});\n\n        // Profile: small circle in XY plane\n        double r = 1.0;\n        double w = std::sqrt(2.0) / 2.0;\n        NurbsCurve profile(3, true, 3, 9);\n        double knots[] = {0, 0, Tolerance::PI * 0.5, Tolerance::PI * 0.5,\n                          Tolerance::PI, Tolerance::PI, Tolerance::PI * 1.5, Tolerance::PI * 1.5,\n                          Tolerance::PI * 2.0, Tolerance::PI * 2.0};\n        for (int i = 0; i < 10; ++i) profile.set_knot(i, knots[i]);\n\n        double angles[] = {0, Tolerance::PI * 0.25, Tolerance::PI * 0.5, Tolerance::PI * 0.75,\n                           Tolerance::PI, Tolerance::PI * 1.25, Tolerance::PI * 1.5, Tolerance::PI * 1.75,\n                           Tolerance::PI * 2.0};\n        for (int i = 0; i < 9; ++i) {\n            double scale = (i % 2 == 0) ? 1.0 : std::sqrt(2.0);\n            double x = r * scale * std::cos(angles[i]);\n            double y = r * scale * std::sin(angles[i]);\n            profile.set_cv(i, Point(x, y, 0.0));\n            profile.set_weight(i, (i % 2 == 0) ? 1.0 : w);",
     "checks": [
@@ -2160,7 +2160,7 @@
   {
     "test_name": "create_sweep2",
     "passed": true,
-    "time_ms": 17.663,
+    "time_ms": 17.541,
     "line": 1416,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Sweep a line profile along two diverging rails\n        // Rail1: line along Z at x=0\n        // Rail2: line along Z at x=5\n        NurbsCurve rail1 = NurbsCurve::create(false, 1, {Point(0, 0, 0), Point(0, 0, 10)});\n        NurbsCurve rail2 = NurbsCurve::create(false, 1, {Point(5, 0, 0), Point(5, 0, 10)});\n\n        // Profile: horizontal line from (0,0,0) to (5,0,0)\n        NurbsCurve profile = NurbsCurve::create(false, 1, {Point(0, 0, 0), Point(5, 0, 0)});\n\n        NurbsSurface surf = NurbsSurface::create_sweep2(rail1, rail2, {profile});\n",
     "checks": [
@@ -2183,70 +2183,305 @@
     "failures": []
   },
   {
-    "test_name": "create_planar",
+    "test_name": "create_edge_surface",
     "passed": true,
-    "time_ms": 1.832,
+    "time_ms": 0.172,
     "line": 1437,
-    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"trimesh_delaunay.h\"\n\n        std::vector<Point> pts = {Point(0,0,0), Point(3,1,0), Point(5,0.5,0), Point(6,3,0), Point(4,5,0), Point(1,4,0), Point(0,0,0)};\n        NurbsCurve boundary = NurbsCurve::create(false, 3, pts);\n        NurbsSurface surf = NurbsSurface::create_planar(boundary);\n\n\n        auto [pd, puv] = surf.divide_by_count(4, 4);\n\n        TrimeshDelaunay tri(surf);\n        Mesh mesh = tri.mesh();",
+    "code": "        std::vector<Point> pts_south = {Point(1, 20.569076, 0), Point(1, 22.569076, 3.0), Point(1, 25.569076, 3.0), Point(1, 27.569076, 0)};\n        std::vector<Point> pts_west  = {Point(10, 20.569076, 0), Point(5.5, 20.569076, 3.5), Point(1, 20.569076, 0)};\n        std::vector<Point> pts_north = {Point(10, 20.569076, 0), Point(10, 22.569076, 3), Point(10, 25.569076, 3), Point(10, 27.569076, 0)};\n        std::vector<Point> pts_east  = {Point(10, 27.569076, 0), Point(5.5, 27.569076, 3.5), Point(1, 27.569076, 0)};\n\n        NurbsCurve south = NurbsCurve::create(false, 3, pts_south);\n        NurbsCurve west  = NurbsCurve::create(false, 2, pts_west);\n        NurbsCurve north = NurbsCurve::create(false, 3, pts_north);\n        NurbsCurve east  = NurbsCurve::create(false, 2, pts_east);\n\n        NurbsSurface surf = NurbsSurface::create_edge_surface(south, west, north, east);\n\n\n        // Expected control points (matching Rhino output)\n        std::vector<Point> expected = {\n            Point(1, 20.569076, 0),    Point(1, 22.569076, 3.0),    Point(1, 25.569076, 3.0),    Point(1, 27.569076, 0),\n            Point(5.5, 20.569076, 3.5), Point(5.5, 22.569076, 6.5), Point(5.5, 25.569076, 6.5), Point(5.5, 27.569076, 3.5),\n            Point(10, 20.569076, 0),    Point(10, 22.569076, 3),     Point(10, 25.569076, 3),     Point(10, 27.569076, 0)\n        };\n\n        for (int i = 0; i < 3; i++) {\n            for (int j = 0; j < 4; j++) {\n                Point cv = surf.get_cv(i, j);\n                Point exp = expected[i * 4 + j];",
     "checks": [
       {
-        "line": 1448,
+        "line": 1450,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 1449,
-        "code_line": "surf.is_planar()",
-        "passed": true
-      },
-      {
-        "line": 1450,
-        "code_line": "surf.degree(0) == 1",
-        "passed": true
-      },
-      {
         "line": 1451,
-        "code_line": "surf.degree(1) == 1",
+        "code_line": "surf.degree(0) == 2",
         "passed": true
       },
       {
         "line": 1452,
-        "code_line": "surf.cv_count(0) == 2",
+        "code_line": "surf.degree(1) == 3",
         "passed": true
       },
       {
         "line": 1453,
-        "code_line": "surf.cv_count(1) == 2",
+        "code_line": "surf.cv_count(0) == 3",
         "passed": true
       },
       {
         "line": 1454,
+        "code_line": "surf.cv_count(1) == 4",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1467,
+        "code_line": "std::abs(cv[0] - exp[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1468,
+        "code_line": "std::abs(cv[1] - exp[1]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1469,
+        "code_line": "std::abs(cv[2] - exp[2]) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "create_planar",
+    "passed": true,
+    "time_ms": 2.04,
+    "line": 1474,
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"trimesh_delaunay.h\"\n\n        std::vector<Point> pts = {Point(0,0,0), Point(3,1,0), Point(5,0.5,0), Point(6,3,0), Point(4,5,0), Point(1,4,0), Point(0,0,0)};\n        NurbsCurve boundary = NurbsCurve::create(false, 3, pts);\n        NurbsSurface surf = NurbsSurface::create_planar(boundary);\n\n\n        auto [pd, puv] = surf.divide_by_count(4, 4);\n\n        TrimeshDelaunay tri(surf);\n        Mesh mesh = tri.mesh();",
+    "checks": [
+      {
+        "line": 1485,
+        "code_line": "surf.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 1486,
+        "code_line": "surf.is_planar()",
+        "passed": true
+      },
+      {
+        "line": 1487,
+        "code_line": "surf.degree(0) == 1",
+        "passed": true
+      },
+      {
+        "line": 1488,
+        "code_line": "surf.degree(1) == 1",
+        "passed": true
+      },
+      {
+        "line": 1489,
+        "code_line": "surf.cv_count(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 1490,
+        "code_line": "surf.cv_count(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 1491,
         "code_line": "surf.is_trimmed()",
         "passed": true
       },
       {
-        "line": 1455,
+        "line": 1492,
         "code_line": "surf.get_outer_loop().is_valid()",
         "passed": true
       },
       {
-        "line": 1458,
+        "line": 1495,
         "code_line": "pd.size() == 5",
         "passed": true
       },
       {
-        "line": 1459,
+        "line": 1496,
         "code_line": "pd[0].size() == 5",
         "passed": true
       },
       {
-        "line": 1463,
+        "line": 1500,
         "code_line": "mesh.number_of_faces() > 0",
         "passed": true
       },
       {
-        "line": 1464,
+        "line": 1501,
         "code_line": "mesh.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "create_network",
+    "passed": true,
+    "time_ms": 6.561,
+    "line": 1504,
+    "code": "        // u-curves (2 curves, each 3 CVs)\n        auto uc0 = NurbsCurve::create(false, 2, {Point(10,9.569076,0), Point(5.5,9.569076,3.5), Point(1,9.569076,0)});\n        auto uc1 = NurbsCurve::create(false, 2, {Point(10,16.569076,0), Point(5.5,16.569076,3.5), Point(1,16.569076,0)});\n\n        // v-curves (4 curves)\n        auto vc0 = NurbsCurve::create(false, 3, {Point(1,9.569076,0), Point(1,11.569076,3.0), Point(1,14.569076,3.0), Point(1,16.569076,0)});\n        auto vc1 = NurbsCurve::create(false, 2, {Point(4.236484,9.569076,1.612033), Point(3,13.069076,4.250144), Point(3.667141,16.569076,1.459684)});\n        auto vc2 = NurbsCurve::create(false, 2, {Point(7.295129,16.569076,1.471513), Point(8,13.069076,4.250144), Point(6.99265,9.569076,1.557456)});\n        auto vc3 = NurbsCurve::create(false, 3, {Point(10,9.569076,0), Point(10,11.569076,3), Point(10,14.569076,3), Point(10,16.569076,0)});\n\n        auto srf = NurbsSurface::create_network({uc0, uc1}, {vc0, vc1, vc2, vc3});\n\n        // Print all CVs for debugging\n        std::cerr << \"Network surface: \" << srf.cv_count(0) << \"x\" << srf.cv_count(1) << std::endl;\n        std::cerr << \"Degree: \" << srf.degree(0) << \"x\" << srf.degree(1) << std::endl;\n        for (int i = 0; i < srf.cv_count(0); i++) {\n            for (int j = 0; j < srf.cv_count(1); j++) {\n                Point p = srf.get_cv(i, j);\n                std::cerr << \"cv(\" << i << \",\" << j << \") = {\" << p[0] << \", \" << p[1] << \", \" << p[2] << \"}\" << std::endl;",
+    "checks": [
+      {
+        "line": 1527,
+        "code_line": "srf.cv_count(0) == 19",
+        "passed": true
+      },
+      {
+        "line": 1528,
+        "code_line": "srf.cv_count(1) == 11",
         "passed": true
       }
     ],
