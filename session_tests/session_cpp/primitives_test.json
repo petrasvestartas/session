@@ -27,7 +27,7 @@
   {
     "test_name": "ellipse",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 18,
     "code": "    NurbsCurve c = Primitives::ellipse(0.0, 0.0, 0.0, 2.0, 1.0);\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "arc",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.012,
     "line": 26,
     "code": "    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
     "checks": [
