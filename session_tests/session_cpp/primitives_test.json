@@ -2,7 +2,7 @@
   {
     "test_name": "circle",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 10,
     "code": "    NurbsCurve c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "arc",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.009,
     "line": 26,
     "code": "    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "parabola",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 37,
     "code": "    Point p0(-1.0, 1.0, 0.0);\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    NurbsCurve c = Primitives::parabola(p0, p1, p2);\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "hyperbola",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.011,
     "line": 48,
     "code": "    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "spiral",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 57,
     "code": "    NurbsCurve c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "cylinder_surface",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 65,
     "code": "    NurbsSurface s = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n\n\n    Point p00 = s.point_at(0.0, 0.0);\n\n    Point p01 = s.point_at(0.0, 1.0);\n\n    Point pmid = s.point_at(1.0, 0.5);",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "cone_surface",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 91,
     "code": "    NurbsSurface s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n\n\n    Point pbase = s.point_at(0.0, 0.0);\n\n    Point papex = s.point_at(0.0, 1.0);\n\n    Point pmid = s.point_at(0.0, 0.5);",
     "checks": [
@@ -322,7 +322,7 @@
   {
     "test_name": "torus_surface",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 117,
     "code": "    NurbsSurface s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n\n\n    Point p00 = s.point_at(0.0, 0.0);\n\n    Point p10 = s.point_at(1.0, 0.0);\n\n    Point p_top = s.point_at(0.0, 1.0);",
     "checks": [

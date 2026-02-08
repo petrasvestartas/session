@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.075,
+    "time_ms": 0.096,
     "line": 6,
     "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Minimal and Full String Representation\n        let sstr = s.to_string();\n        let srepr = s.repr();\n\n        // Copy (duplicates everything except guid)\n        let scopy = s.duplicate();\n        let _sother = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Point division matching Rhino's 4x6 grid\n        let (v, _uv) = s.divide_by_count(4, 6);\n\n",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 335,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::xform::Xform;\n        use crate::tolerance::TOLERANCE;\n\n        // Create simple surface\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        // Apply translation\n        let xf = Xform::translation(1.0, 2.0, 3.0);\n        surf.transform(&xf);\n\n        // Check transformed CV\n        let pt = surf.get_cv(0, 0).unwrap();\n",
     "checks": [
@@ -302,63 +302,23 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 14.382,
+    "time_ms": 12.92,
     "line": 363,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::color::Color;\n        use crate::tolerance::TOLERANCE;\n\n        // Create and setup surface\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n        surf.name = \"test_nurbssurface\".to_string();\n        surf.width = 2.0;\n        surf.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // Set some CVs\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        // Serialize to JSON\n        let fname = \"serialization/test_nurbssurface.json\";\n        surf.json_dump(fname);\n        let loaded = NurbsSurface::json_load(fname);\n",
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::color::Color;\n        use std::path::PathBuf;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n        surf.name = \"test_nurbssurface\".to_string();\n        surf.width = 2.0;\n        surf.surfacecolor = Color::new(255, 128, 64, 255);\n\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        // JSON object\n        let json = surf.jsondump().unwrap();\n        let loaded_json = NurbsSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = surf.json_dumps();\n        let loaded_json_string = NurbsSurface::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.json\");\n        surf.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurface::json_load(filename.to_str().unwrap());\n",
     "checks": [
       {
-        "line": 392,
-        "code_line": "loaded.name == surf.name",
-        "passed": true
-      },
-      {
-        "line": 393,
-        "code_line": "TOLERANCE.is_close(loaded.width, surf.width)",
-        "passed": true
-      },
-      {
-        "line": 394,
-        "code_line": "loaded.surfacecolor[0] == surf.surfacecolor[0]",
-        "passed": true
-      },
-      {
-        "line": 395,
-        "code_line": "loaded.surfacecolor[1] == surf.surfacecolor[1]",
-        "passed": true
-      },
-      {
-        "line": 396,
-        "code_line": "loaded.surfacecolor[2] == surf.surfacecolor[2]",
-        "passed": true
-      },
-      {
-        "line": 397,
-        "code_line": "loaded.dimension() == surf.dimension()",
-        "passed": true
-      },
-      {
-        "line": 398,
-        "code_line": "loaded.is_rational() == surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 399,
-        "code_line": "loaded.order(0) == surf.order(0)",
-        "passed": true
-      },
-      {
-        "line": 400,
-        "code_line": "loaded.order(1) == surf.order(1)",
-        "passed": true
-      },
-      {
         "line": 401,
-        "code_line": "loaded.cv_count_dir(Some(0)) == surf.cv_count_dir(Some(0))",
+        "code_line": "loaded_json == surf",
         "passed": true
       },
       {
         "line": 402,
-        "code_line": "loaded.cv_count_dir(Some(1)) == surf.cv_count_dir(Some(1))",
+        "code_line": "loaded_json_string == surf",
+        "passed": true
+      },
+      {
+        "line": 403,
+        "code_line": "loaded_from_file == surf",
         "passed": true
       }
     ],
@@ -367,63 +327,18 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.811,
-    "line": 407,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::color::Color;\n        use crate::tolerance::TOLERANCE;\n\n        // Create and setup surface\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n        surf.name = \"test_nurbssurface\".to_string();\n        surf.width = 2.0;\n        surf.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // Set some CVs\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        // Serialize to protobuf\n        let path = \"serialization/test_nurbssurface.bin\";\n        surf.pb_dump(path);\n        let loaded = NurbsSurface::pb_load(path);\n",
+    "time_ms": 10.457,
+    "line": 408,
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::color::Color;\n        use std::path::PathBuf;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n        surf.name = \"test_nurbssurface\".to_string();\n        surf.width = 2.0;\n        surf.surfacecolor = Color::new(255, 128, 64, 255);\n\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        //   pb_dumps()      │ bytes        │ to protobuf bytes\n        //   pb_loads(b)     │ bytes        │ from protobuf bytes\n        //   pb_dump(path)   │ file         │ write to file\n        //   pb_load(path)   │ file         │ read from file\n\n        // String\n        let proto_string = surf.pb_dumps();\n        let loaded_proto_string = NurbsSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.bin\");\n        surf.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurface::pb_load(filename.to_str().unwrap());\n",
     "checks": [
       {
-        "line": 431,
-        "code_line": "loaded.name == surf.name",
-        "passed": true
-      },
-      {
-        "line": 432,
-        "code_line": "TOLERANCE.is_close(loaded.width, surf.width)",
-        "passed": true
-      },
-      {
-        "line": 433,
-        "code_line": "loaded.surfacecolor[0] == surf.surfacecolor[0]",
-        "passed": true
-      },
-      {
-        "line": 434,
-        "code_line": "loaded.surfacecolor[1] == surf.surfacecolor[1]",
-        "passed": true
-      },
-      {
-        "line": 435,
-        "code_line": "loaded.surfacecolor[2] == surf.surfacecolor[2]",
-        "passed": true
-      },
-      {
-        "line": 436,
-        "code_line": "loaded.dimension() == surf.dimension()",
-        "passed": true
-      },
-      {
-        "line": 437,
-        "code_line": "loaded.is_rational() == surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 438,
-        "code_line": "loaded.order(0) == surf.order(0)",
-        "passed": true
-      },
-      {
-        "line": 439,
-        "code_line": "loaded.order(1) == surf.order(1)",
-        "passed": true
-      },
-      {
         "line": 440,
-        "code_line": "loaded.cv_count_dir(Some(0)) == surf.cv_count_dir(Some(0))",
+        "code_line": "loaded_proto_string == surf",
         "passed": true
       },
       {
         "line": 441,
-        "code_line": "loaded.cv_count_dir(Some(1)) == surf.cv_count_dir(Some(1))",
+        "code_line": "loaded == surf",
         "passed": true
       }
     ],
@@ -432,7 +347,7 @@
   {
     "test_name": "accessors",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 128,
     "code": "        use crate::nurbssurface::NurbsSurface;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 4, 3, 5, 4, false, false, 1.0, 1.0).unwrap();\n\n        // Test knot access\n        let _knot_val = surf.knot(0, 2);\n\n        // Test set knot\n        surf.set_knot(0, 2, 5.0);\n        let new_val = surf.knot(0, 2);\n",
     "checks": [
@@ -577,7 +492,7 @@
   {
     "test_name": "bounding_box",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 555,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 3, 3, false, false, 1.0, 1.0).unwrap();\n\n        // Set CVs in a known range\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        // Get bounding box\n        let _bbox = surf.get_bounding_box();\n",
     "checks": [
@@ -692,7 +607,7 @@
   {
     "test_name": "constructor_ruled_surface",
     "passed": true,
-    "time_ms": 0.18,
+    "time_ms": 0.167,
     "line": 1104,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pts_a = vec![Point::new(3.0,0.0,0.0), Point::new(-2.0,0.0,5.0)];\n        let pts_b = vec![Point::new(3.0,5.0,5.0), Point::new(-2.0,5.0,0.0)];\n        let crv_a = NurbsCurve::create(false, 1, &pts_a);\n        let crv_b = NurbsCurve::create(false, 1, &pts_b);\n        let ruled = NurbsSurface::create_ruled(&crv_a, &crv_b).unwrap();\n\n\n        let (rd, ruv) = ruled.divide_by_count(4, 4);\n\n        let mut pts: Vec<Point> = Vec::new();\n        for i in 0..rd.len() {\n            for j in 0..rd[i].len() {\n                pts.push(rd[i][j].clone());\n\n        let mut normals: Vec<Vector> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                normals.push(ruled.normal_at(ruv[i][j].0, ruv[i][j].1));\n\n        let mut uvs: Vec<(f64, f64)> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                uvs.push(ruv[i][j]);\n\n\n",
     "checks": [
@@ -1017,7 +932,7 @@
   {
     "test_name": "corner_points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 609,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set corner control points\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(10.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 10.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(10.0, 10.0, 0.0));\n\n        // Get corner points\n        let p00 = surf.point_at_corner(0, 0).unwrap();\n        let p10 = surf.point_at_corner(1, 0).unwrap();\n        let p01 = surf.point_at_corner(0, 1).unwrap();\n        let p11 = surf.point_at_corner(1, 1).unwrap();\n",
     "checks": [
@@ -1097,7 +1012,7 @@
   {
     "test_name": "create_operations",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 104,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create a simple 2x2 bilinear surface\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set corner control points\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        // Check knot vectors\n        let (u0, _u1) = surf.domain(0).unwrap();\n        let (v0, _v1) = surf.domain(1).unwrap();\n",
     "checks": [
@@ -1122,7 +1037,7 @@
   {
     "test_name": "create_planar",
     "passed": true,
-    "time_ms": 18.982,
+    "time_ms": 18.832,
     "line": 1075,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let pts = vec![\n            Point::new(0.0,0.0,0.0), Point::new(3.0,1.0,0.0), Point::new(5.0,0.5,0.0),\n            Point::new(6.0,3.0,0.0), Point::new(4.0,5.0,0.0), Point::new(1.0,4.0,0.0),\n            Point::new(0.0,0.0,0.0),\n        ];\n        let boundary = NurbsCurve::create(false, 3, &pts);\n        let surf = NurbsSurface::create_planar(&[boundary]).unwrap();\n\n\n        let (pd, _puv) = surf.divide_by_count(4, 4);",
     "checks": [
@@ -1182,7 +1097,7 @@
   {
     "test_name": "cylinder",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.011,
     "line": 841,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::tolerance::{TOLERANCE, PI};\n\n        // Create an uncapped cylinder as a rational NURBS surface\n        // Cylinder: 9x2 control points (circle at bottom, circle at top)\n        // Degree 2 in U (angular), degree 1 in V (height)\n        let radius = 1.5;\n        let height = 3.0;\n        let w = (2.0_f64).sqrt() / 2.0;\n        let pi = PI;\n\n        let mut surf = NurbsSurface::create_raw(3, true, 3, 2, 9, 2, false, false, 1.0, 1.0).unwrap();\n        surf.name = \"unit_cylinder\".to_string();\n\n        // U-knots: periodic for circle\n        let u_knots = [0.0, 0.0, pi * 0.5, pi * 0.5,\n                        pi, pi, pi * 1.5, pi * 1.5,\n                        pi * 2.0, pi * 2.0];\n        for i in 0..10 { surf.set_knot(0, i, u_knots[i]); }\n\n        // V-knots: linear from bottom to top\n        surf.set_knot(1, 0, 0.0);\n        surf.set_knot(1, 1, height);\n\n        // Set up control points for cylinder (9 around, 2 heights)\n        let angles = [0.0, pi * 0.25, pi * 0.5, pi * 0.75,\n                       pi, pi * 1.25, pi * 1.5, pi * 1.75,\n                       pi * 2.0];\n\n        for j in 0..2 {\n            let z = if j == 0 { 0.0 } else { height };\n            for i in 0..9 {\n                let mut x = radius * angles[i].cos();\n                let mut y = radius * angles[i].sin();\n                // For diagonal points (45, 135, etc), radius needs to be scaled\n                if i % 2 == 1 {\n                    x = radius * (2.0_f64).sqrt() * angles[i].cos();\n                    y = radius * (2.0_f64).sqrt() * angles[i].sin();\n                surf.set_cv(i, j, &Point::new(x, y, z));\n                let weight = if i % 2 == 0 { 1.0 } else { w };\n                surf.set_weight(i, j, weight);\n\n        // Verify cylinder properties\n\n        // Check point on bottom circle at angle 0\n        let pt_bottom = surf.point_at(0.0, 0.0).unwrap();\n\n        // Check point on top circle at angle 0\n        let pt_top = surf.point_at(0.0, height).unwrap();\n\n        // Check midpoint at angle PI/2\n        let pt_mid = surf.point_at(pi * 0.5, height * 0.5).unwrap();",
     "checks": [
@@ -1317,7 +1232,7 @@
   {
     "test_name": "evaluation",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 202,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::tolerance::TOLERANCE;\n\n        // Create simple bilinear surface\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set corner control points\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        // Evaluate at corner\n        let (u0, u1) = surf.domain(0).unwrap();\n        let (v0, v1) = surf.domain(1).unwrap();\n\n        let pt_corner = surf.point_at(u0, v0).unwrap();\n\n        // Evaluate at center (should be center of unit square)\n        let u_mid = (u0 + u1) / 2.0;\n        let v_mid = (v0 + v1) / 2.0;\n        let pt_mid = surf.point_at(u_mid, v_mid).unwrap();\n\n        // Test derivatives\n        let derivs = surf.evaluate(u_mid, v_mid, 1);\n\n        // Test normal (for flat plane in XY, normal should point in +Z)\n        let normal = surf.normal_at(u_mid, v_mid);\n",
     "checks": [
@@ -1367,7 +1282,7 @@
   {
     "test_name": "geometric_queries",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 245,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create and setup surface\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n",
     "checks": [
@@ -1447,7 +1362,7 @@
   {
     "test_name": "isocurve",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 302,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create surface\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n\n        // Set up a grid of control points\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n\n        // Extract iso-u curve (v varies)\n        let (u0, u1) = surf.domain(0).unwrap();\n        let u_mid = (u0 + u1) / 2.0;\n        let iso_u = surf.iso_curve(0, u_mid);\n\n        // Extract iso-v curve (u varies)\n        let (v0, v1) = surf.domain(1).unwrap();\n        let v_mid = (v0 + v1) / 2.0;\n        let iso_v = surf.iso_curve(1, v_mid);\n",
     "checks": [
@@ -1482,7 +1397,7 @@
   {
     "test_name": "knot_multiplicity",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 747,
     "code": "        use crate::nurbssurface::NurbsSurface;\n\n        let surf = NurbsSurface::create_raw(3, false, 4, 4, 4, 4, false, false, 1.0, 1.0).unwrap();\n\n        // Check first knot multiplicity (should be equal to degree for clamped)\n        let mult_u_start = surf.knot_multiplicity(0, 0);\n        let mult_v_start = surf.knot_multiplicity(1, 0);\n\n        // Check last knot multiplicity\n        let last_u = surf.knot_count(0) - 1;\n        let last_v = surf.knot_count(1) - 1;\n        let mult_u_end = surf.knot_multiplicity(0, last_u as usize);\n        let mult_v_end = surf.knot_multiplicity(1, last_v as usize);\n",
     "checks": [
@@ -1552,7 +1467,7 @@
   {
     "test_name": "make_non_rational",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 701,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create rational surface with all weights = 1\n        let mut surf = NurbsSurface::create_raw(3, true, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n\n        // Set all weights to 1.0\n        for i in 0..3 {\n            for j in 0..3 {\n                surf.set_cv(i, j, &Point::new(i as f64, j as f64, 0.0));\n                surf.set_weight(i, j, 1.0);\n\n        let was_rational = surf.is_rational();\n        surf.make_non_rational();\n        let is_rational_after = surf.is_rational();\n",
     "checks": [
@@ -1572,7 +1487,7 @@
   {
     "test_name": "modification",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 269,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 3, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set some CVs\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(2, 0, &Point::new(2.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(2, 1, &Point::new(2.0, 1.0, 0.0));\n\n        let cv_before = surf.get_cv(0, 0).unwrap();\n\n        // Test reverse in u direction\n        surf.reverse(0);\n        let cv_after = surf.get_cv(2, 0).unwrap();\n\n        // Reverse back\n        surf.reverse(0);\n\n        // Test transpose\n        let order_u_before = surf.order(0);\n        let order_v_before = surf.order(1);\n        surf.transpose();\n",
     "checks": [
@@ -1597,7 +1512,7 @@
   {
     "test_name": "rational_operations",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 178,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create non-rational surface\n        let mut surf = NurbsSurface::create_raw(3, false, 3, 3, 3, 3, false, false, 1.0, 1.0).unwrap();\n\n        // Make it rational\n        surf.make_rational();\n\n        // Set a control point and weight\n        surf.set_cv(1, 1, &Point::new(1.0, 2.0, 3.0));\n        surf.set_weight(1, 1, 2.0);\n\n        // Verify weight\n        let w = surf.weight(1, 1);\n",
     "checks": [
@@ -1622,7 +1537,7 @@
   {
     "test_name": "singularity",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 527,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        // Create a simple surface\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set all CVs to different points (non-singular)\n        surf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        surf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        surf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        surf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        // Test is_singular for each side\n        let is_singular_south = surf.is_singular(0);\n        let is_singular_east = surf.is_singular(1);\n        let is_singular_north = surf.is_singular(2);\n        let is_singular_west = surf.is_singular(3);\n",
     "checks": [
@@ -1807,7 +1722,7 @@
   {
     "test_name": "zero_cvs",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 658,
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut surf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n\n        // Set non-zero control points\n        surf.set_cv(0, 0, &Point::new(1.0, 2.0, 3.0));\n        surf.set_cv(1, 1, &Point::new(4.0, 5.0, 6.0));\n\n        // Zero all CVs\n        surf.zero_cvs();\n\n        let pt0 = surf.get_cv(0, 0).unwrap();\n        let pt1 = surf.get_cv(1, 1).unwrap();\n",
     "checks": [

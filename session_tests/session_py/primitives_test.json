@@ -2,7 +2,7 @@
   {
     "test_name": "circle",
     "passed": true,
-    "time_ms": 0.071,
+    "time_ms": 0.063,
     "line": 6,
     "code": "    from session_py import Primitives\n\n    c = Primitives.circle(0.0, 0.0, 0.0, 1.0)",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "arc",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.067,
     "line": 28,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    mid = Point(1.0, 1.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    c = Primitives.arc(start, mid, end)",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "hyperbola",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.109,
     "line": 58,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    center = Point(0.0, 0.0, 0.0)\n    c = Primitives.hyperbola(center, 1.0, 1.0, 1.0)",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "spiral",
     "passed": true,
-    "time_ms": 0.226,
+    "time_ms": 0.234,
     "line": 71,
     "code": "    from session_py import Primitives\n\n    c = Primitives.spiral(1.0, 2.0, 1.0, 5.0)",
     "checks": [

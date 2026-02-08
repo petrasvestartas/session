@@ -1,0 +1,149 @@
+{
+  "type": "Session",
+  "name": "my_session",
+  "guid": "502967f1-4d12-46e8-87b0-47d1eac3d6a3",
+  "objects": {
+    "type": "Objects",
+    "guid": "2a9498ab-9a99-4565-975a-f144ba700b31",
+    "name": "my_objects",
+    "arrows": [],
+    "bboxes": [],
+    "cylinders": [],
+    "lines": [],
+    "meshes": [],
+    "nurbscurves": [],
+    "nurbssurfaces": [],
+    "planes": [],
+    "points": [
+      {
+        "guid": "931d345a-d99d-4007-8418-92865c15f533",
+        "name": "my_point",
+        "pointcolor": {
+          "a": 255,
+          "b": 255,
+          "g": 0,
+          "guid": "8bb54468-92dd-4925-bf8f-68cde904ecd4",
+          "name": "blue",
+          "r": 0,
+          "type": "Color"
+        },
+        "type": "Point",
+        "width": 1.0,
+        "x": 1.0,
+        "xform": {
+          "guid": "b7bd9994-2b18-43a5-bab2-28659710dd53",
+          "m": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "name": "my_xform",
+          "type": "Xform"
+        },
+        "y": 2.0,
+        "z": 3.0
+      },
+      {
+        "guid": "0972b77a-5122-480a-87f6-5ec8b1af60a6",
+        "name": "my_point",
+        "pointcolor": {
+          "a": 255,
+          "b": 255,
+          "g": 0,
+          "guid": "9d50687e-7b6f-427d-88a9-ac7195998ea5",
+          "name": "blue",
+          "r": 0,
+          "type": "Color"
+        },
+        "type": "Point",
+        "width": 1.0,
+        "x": 4.0,
+        "xform": {
+          "guid": "7af17ca3-09b8-4af1-8a46-4cd61480120c",
+          "m": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "name": "my_xform",
+          "type": "Xform"
+        },
+        "y": 5.0,
+        "z": 6.0
+      }
+    ],
+    "pointclouds": [],
+    "polylines": []
+  },
+  "tree": {
+    "type": "Tree",
+    "guid": "917869c5-7583-4547-80e8-4355cd78712a",
+    "name": "my_session_tree",
+    "root": {
+      "type": "TreeNode",
+      "guid": "689cea20-87ae-4eca-b3e7-a1abc9f55e71",
+      "name": "my_session",
+      "children": []
+    }
+  },
+  "graph": {
+    "type": "Graph",
+    "name": "my_session_graph",
+    "guid": "30622109-0c01-4c97-a118-bcfbcae4032c",
+    "vertices": [
+      {
+        "type": "Vertex",
+        "name": "0972b77a-5122-480a-87f6-5ec8b1af60a6",
+        "guid": "a02e5e89-cc10-4a80-835f-e0ebda543c41",
+        "attribute": "point_my_point",
+        "index": 1
+      },
+      {
+        "type": "Vertex",
+        "name": "931d345a-d99d-4007-8418-92865c15f533",
+        "guid": "77c85924-3b33-48f0-811d-a8c01a66da11",
+        "attribute": "point_my_point",
+        "index": 0
+      }
+    ],
+    "edges": [
+      {
+        "type": "Edge",
+        "name": "my_edge",
+        "guid": "5de1376e-5651-4b7a-8e9e-d6ce0438607f",
+        "v0": "931d345a-d99d-4007-8418-92865c15f533",
+        "v1": "0972b77a-5122-480a-87f6-5ec8b1af60a6",
+        "attribute": "connection",
+        "index": 0
+      }
+    ],
+    "vertex_count": 2,
+    "edge_count": 1
+  }
+}
