@@ -13692,8 +13692,11 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.create",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_ruled",
         "NurbsSurface.create_simple",
@@ -13713,7 +13716,9 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.set_cv",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.str",
         "NurbsSurface.to_string"
       ]
@@ -13744,13 +13749,20 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.area",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.closest_point",
         "NurbsSurface.collapse_side",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_edge",
         "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_revolve",
@@ -13767,6 +13779,7 @@ window.API_INDEX = {
         "NurbsSurface.initialize",
         "NurbsSurface.is_duplicate",
         "NurbsSurface.is_rational",
+        "NurbsSurface.is_singular",
         "NurbsSurface.iso_curve",
         "NurbsSurface.json_dump",
         "NurbsSurface.jsondump",
@@ -13776,8 +13789,10 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.pb_loads",
         "NurbsSurface.plane_pt",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.set_cv",
         "NurbsSurface.set_weight",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.str",
         "NurbsSurface.to_string",
         "NurbsSurface.transform_stored",
@@ -13882,6 +13897,7 @@ window.API_INDEX = {
         "NurbsSurface.area",
         "NurbsSurface.clamp_end",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_edge",
         "NurbsSurface.create_loft",
         "NurbsSurface.create_revolve",
         "NurbsSurface.create_ruled",
@@ -14005,6 +14021,8 @@ window.API_INDEX = {
         "NurbsSurface.__str__",
         "NurbsSurface.add_hole",
         "NurbsSurface.add_holes",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -14013,6 +14031,7 @@ window.API_INDEX = {
         "NurbsSurface.dimension",
         "NurbsSurface.is_duplicate",
         "NurbsSurface.is_rational",
+        "NurbsSurface.is_singular",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.str",
@@ -14046,6 +14065,8 @@ window.API_INDEX = {
         "NurbsSurface.__jsonload__",
         "NurbsSurface.__ne__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_holes",
         "NurbsSurface.collapse_side",
         "NurbsSurface.constructor",
@@ -14104,10 +14125,14 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface.add_holes",
         "NurbsSurface.collapse_side",
         "NurbsSurface.constructor",
         "NurbsSurface.create",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
         "NurbsSurface.create_simple",
@@ -14167,6 +14192,8 @@ window.API_INDEX = {
         "NurbsSurface._basis_functions",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_holes",
         "NurbsSurface.area",
         "NurbsSurface.basis_functions",
@@ -14176,6 +14203,9 @@ window.API_INDEX = {
         "NurbsSurface.constructor",
         "NurbsSurface.create",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_edge",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
         "NurbsSurface.create_simple",
@@ -14192,6 +14222,7 @@ window.API_INDEX = {
         "NurbsSurface.domain",
         "NurbsSurface.duplicate",
         "NurbsSurface.extend",
+        "NurbsSurface.find_param",
         "NurbsSurface.find_span",
         "NurbsSurface.get_knots",
         "NurbsSurface.get_span_vector",
@@ -14218,14 +14249,17 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
+        "NurbsSurface.min_dist_sq",
         "NurbsSurface.new",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads",
         "NurbsSurface.plane_pt",
         "NurbsSurface.point_at",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_knot",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
         "NurbsSurface.swap_coordinates",
@@ -14265,6 +14299,9 @@ window.API_INDEX = {
         "NurbsSurface.__str__",
         "NurbsSurface._compute_bbox_diagonal",
         "NurbsSurface._create_impl",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface._span_flatness",
         "NurbsSurface.add_inner_loop",
         "NurbsSurface.basis_functions",
@@ -14299,8 +14336,10 @@ window.API_INDEX = {
         "NurbsSurface.knot_count",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.order",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.repr",
         "NurbsSurface.set_outer_loop",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.to_string"
       ]
@@ -14330,6 +14369,11 @@ window.API_INDEX = {
         "NurbsSurface._compute_bbox_diagonal",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.add_holes",
         "NurbsSurface.add_inner_loop",
@@ -14343,6 +14387,7 @@ window.API_INDEX = {
         "NurbsSurface.constructor",
         "NurbsSurface.create",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
@@ -14394,6 +14439,7 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
@@ -14401,11 +14447,13 @@ window.API_INDEX = {
         "NurbsSurface.plane_pt",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_knot",
         "NurbsSurface.set_outer_loop",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
         "NurbsSurface.swap_coordinates",
@@ -14525,8 +14573,11 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.area",
         "NurbsSurface.create",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
@@ -14546,8 +14597,11 @@ window.API_INDEX = {
         "NurbsSurface.iso_curve",
         "NurbsSurface.knot",
         "NurbsSurface.knot_multiplicity",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.order",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.set_knot",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.str",
         "NurbsSurface.to_string",
@@ -14617,7 +14671,12 @@ window.API_INDEX = {
         "NurbsSurface._compute_bbox_diagonal",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface._span_flatness",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.add_holes",
         "NurbsSurface.add_inner_loop",
@@ -14631,6 +14690,7 @@ window.API_INDEX = {
         "NurbsSurface.constructor",
         "NurbsSurface.create",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
@@ -14684,6 +14744,7 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
@@ -14691,6 +14752,7 @@ window.API_INDEX = {
         "NurbsSurface.plane_pt",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.set_cv",
@@ -14699,6 +14761,7 @@ window.API_INDEX = {
         "NurbsSurface.set_knot",
         "NurbsSurface.set_outer_loop",
         "NurbsSurface.set_weight",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
         "NurbsSurface.str",
@@ -14738,12 +14801,17 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._compute_bbox_diagonal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface._span_flatness",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_inner_loop",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.clear_inner_loops",
         "NurbsSurface.clear_outer_loop",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_ruled",
         "NurbsSurface.create_sweep1",
@@ -14766,10 +14834,12 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.set_cv",
         "NurbsSurface.set_outer_loop",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.span_count",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
@@ -14799,6 +14869,7 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.get_cv",
@@ -14830,10 +14901,13 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.add_holes",
         "NurbsSurface.area",
         "NurbsSurface.create",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_ruled",
@@ -14843,10 +14917,13 @@ window.API_INDEX = {
         "NurbsSurface.get_cv",
         "NurbsSurface.get_cv_4d",
         "NurbsSurface.iso_curve",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.plane_pt",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.reverse",
         "NurbsSurface.set_cv_4d",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.transform",
         "NurbsSurface.transform_self",
         "NurbsSurface.transformed",
@@ -14876,6 +14953,7 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_mut",
@@ -15000,15 +15078,24 @@ window.API_INDEX = {
         "NurbsSurface._basis_functions",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.add_holes",
         "NurbsSurface.area",
         "NurbsSurface.basis_functions",
         "NurbsSurface.basis_functions_derivatives",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
         "NurbsSurface.clamp_end",
         "NurbsSurface.collapse_side",
         "NurbsSurface.create",
         "NurbsSurface.create_clamped_uniform",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.create_revolve",
@@ -15024,6 +15111,7 @@ window.API_INDEX = {
         "NurbsSurface.domain",
         "NurbsSurface.extend",
         "NurbsSurface.find_span",
+        "NurbsSurface.gauss_solve",
         "NurbsSurface.get_knots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.initialize",
@@ -15049,15 +15137,18 @@ window.API_INDEX = {
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads",
         "NurbsSurface.plane_pt",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_knot",
         "NurbsSurface.set_weight",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.split",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
@@ -15092,7 +15183,10 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.area",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
@@ -15104,8 +15198,11 @@ window.API_INDEX = {
         "NurbsSurface.knot",
         "NurbsSurface.knot_count",
         "NurbsSurface.knot_multiplicity",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.order",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.set_weight",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.to_string",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed_stored"
@@ -15131,12 +15228,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.domain",
         "NurbsSurface.get_knots",
         "NurbsSurface.insert_knot",
-        "NurbsSurface.is_singular",
         "NurbsSurface.is_valid",
         "NurbsSurface.is_valid_knot_vector",
         "NurbsSurface.knot",
@@ -15167,6 +15265,9 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -15180,6 +15281,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_knot",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.to_string"
       ]
     },
@@ -15235,14 +15337,20 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface.add_hole",
         "NurbsSurface.closest_point",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.divide_by_count",
         "NurbsSurface.evaluate",
         "NurbsSurface.extend",
+        "NurbsSurface.find_param",
         "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_knots",
         "NurbsSurface.get_span_vector",
@@ -15254,10 +15362,14 @@ window.API_INDEX = {
         "NurbsSurface.knot",
         "NurbsSurface.knot_multiplicity",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.set_domain",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.split",
         "NurbsSurface.to_string",
         "NurbsSurface.trim"
@@ -15285,17 +15397,26 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.domain",
+        "NurbsSurface.find_param",
         "NurbsSurface.get_knots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.is_valid",
         "NurbsSurface.is_valid_knot_vector",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.order",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.to_string"
       ]
     },
@@ -15517,20 +15638,27 @@ window.API_INDEX = {
         "NurbsSurface.basis_functions",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.closest_point",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.cv_size",
         "NurbsSurface.divide_by_count",
         "NurbsSurface.evaluate",
+        "NurbsSurface.find_param",
         "NurbsSurface.find_span",
         "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_cv",
+        "NurbsSurface.is_singular",
         "NurbsSurface.is_valid",
         "NurbsSurface.mesh",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.monotone_hermite_eval",
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.reparametrize_curve",
         "NurbsSurface.weight"
       ]
     },
@@ -15630,10 +15758,13 @@ window.API_INDEX = {
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.closest_point",
+        "NurbsSurface.create_network",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.domain",
+        "NurbsSurface.find_param",
         "NurbsSurface.is_valid",
+        "NurbsSurface.min_dist_sq",
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.point_at",
@@ -15733,12 +15864,15 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface.create_network",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.cv_size",
+        "NurbsSurface.find_param",
         "NurbsSurface.get_cv",
         "NurbsSurface.is_valid",
         "NurbsSurface.knot",
+        "NurbsSurface.min_dist_sq",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.set_cv",
@@ -15780,6 +15914,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.reverse",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates"
       ]
@@ -15840,6 +15975,9 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -15861,7 +15999,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "make_non_rational() -> bool",
-          "code": "def make_non_rational(self) -> bool:\n\n        \"\"\"Make surface non-rational if all weights are equal.\n        \n        Returns\n        -------\n        bool\n            True if successful, False if weights are non-uniform.\n        \"\"\"\n        if not self.m_is_rat:\n            return True\n        \n        # Check if all weights are 1.0\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                w = self.weight(i, j)\n                if abs(w - 1.0) > 1e-10:\n                    return False  # Cannot make non-rational\n        \n        # Convert to non-rational by removing weights\n        old_cv_size = self.m_dim + 1\n        new_cv_size = self.m_dim\n        new_cv = np.zeros(self.m_cv_count[0] * self.m_cv_count[1] * new_cv_size)\n        \n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                old_index = i * self.m_cv_stride[0] + j * self.m_cv_stride[1]\n                new_index = i * (new_cv_size * self.m_cv_count[1]) + j * new_cv_size\n                \n                # Copy coordinates (not weight)\n                new_cv[new_index:new_index + self.m_dim] = self.m_cv[old_index:old_index + self.m_dim]\n        \n        self.m_cv = new_cv\n        self.m_is_rat = 0\n        self.m_cv_stride[1] = new_cv_size\n        self.m_cv_stride[0] = new_cv_size * self.m_cv_count[1]\n\n        return True\n\n    def clamp_end(self, dir: int, end: int) -> bool:\n        \"\"\"Clamp knot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) knot values to match knot[order-2]/knot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use knot module function\n        return knot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_knot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        \"\"\"Increase degree in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        desired_degree : int\n            Desired degree.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires degree elevation algorithm\n        return False",
+          "code": "def make_non_rational(self) -> bool:\n\n        \"\"\"Make surface non-rational if all weights are equal.\n        \n        Returns\n        -------\n        bool\n            True if successful, False if weights are non-uniform.\n        \"\"\"\n        if not self.m_is_rat:\n            return True\n        \n        # Check if all weights are 1.0\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                w = self.weight(i, j)\n                if abs(w - 1.0) > 1e-10:\n                    return False  # Cannot make non-rational\n        \n        # Convert to non-rational by removing weights\n        old_cv_size = self.m_dim + 1\n        new_cv_size = self.m_dim\n        new_cv = np.zeros(self.m_cv_count[0] * self.m_cv_count[1] * new_cv_size)\n        \n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                old_index = i * self.m_cv_stride[0] + j * self.m_cv_stride[1]\n                new_index = i * (new_cv_size * self.m_cv_count[1]) + j * new_cv_size\n                \n                # Copy coordinates (not weight)\n                new_cv[new_index:new_index + self.m_dim] = self.m_cv[old_index:old_index + self.m_dim]\n        \n        self.m_cv = new_cv\n        self.m_is_rat = 0\n        self.m_cv_stride[1] = new_cv_size\n        self.m_cv_stride[0] = new_cv_size * self.m_cv_count[1]\n\n        return True\n\n    def clamp_end(self, dir: int, end: int) -> bool:\n        \"\"\"Clamp knot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) knot values to match knot[order-2]/knot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use knot module function\n        return knot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_knot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -15876,6 +16014,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.clamp_end",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -16105,7 +16245,6 @@ window.API_INDEX = {
         "NurbsSurface.json_dumps",
         "NurbsSurface.json_load",
         "NurbsSurface.json_loads",
-        "NurbsSurface.jsondump",
         "NurbsSurface.mesh",
         "NurbsSurface.normal_at",
         "NurbsSurface.pb_dumps",
@@ -16504,7 +16643,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "nlohmann::ordered_json jsondump()",
-          "code": "nlohmann::ordered_json NurbsSurface::jsondump() const {\n    nlohmann::ordered_json j;\n    j[\"guid\"] = guid;\n    j[\"name\"] = name;\n    j[\"type\"] = \"NurbsSurface\";\n     j[\"width\"] = width;\n     j[\"surfacecolor\"] = surfacecolor.jsondump();\n     j[\"xform\"] = xform.jsondump();\n    j[\"dimension\"] = m_dim;\n    j[\"is_rational\"] = m_is_rat != 0;\n    j[\"order_u\"] = m_order[0];\n    j[\"order_v\"] = m_order[1];\n    j[\"cv_count_u\"] = m_cv_count[0];\n    j[\"cv_count_v\"] = m_cv_count[1];\n    j[\"knots_u\"] = m_knot[0];\n    j[\"knots_v\"] = m_knot[1];\n    j[\"control_points\"] = m_cv;\n    if (is_trimmed()) {\n        j[\"outer_loop\"] = m_outer_loop.jsondump();\n    }",
+          "code": "nlohmann::ordered_json NurbsSurface::jsondump() const {\n    nlohmann::ordered_json j;\n    j[\"guid\"] = guid;\n    j[\"name\"] = name;\n    j[\"type\"] = \"NurbsSurface\";\n     j[\"width\"] = width;\n     j[\"surfacecolor\"] = surfacecolor.jsondump();\n     j[\"xform\"] = xform.jsondump();\n    j[\"dimension\"] = m_dim;\n    j[\"is_rational\"] = m_is_rat != 0;\n    j[\"order_u\"] = m_order[0];\n    j[\"order_v\"] = m_order[1];\n    j[\"cv_count_u\"] = m_cv_count[0];\n    j[\"cv_count_v\"] = m_cv_count[1];\n    j[\"knots_u\"] = m_knot[0];\n    j[\"knots_v\"] = m_knot[1];\n    {\n        int cv_sz = m_is_rat ? (m_dim + 1) : m_dim;\n        std::vector<double> row_major_cvs;\n        row_major_cvs.reserve(m_cv_count[0] * m_cv_count[1] * cv_sz);\n        for (int ci = 0; ci < m_cv_count[0]; ci++)\n            for (int cj = 0; cj < m_cv_count[1]; cj++) {\n                const double* cvp = cv(ci, cj);\n                for (int d = 0; d < cv_sz; d++) row_major_cvs.push_back(cvp[d]);\n            }",
           "file": "nurbssurface.cpp"
         },
         "rust": {
@@ -16527,7 +16666,6 @@ window.API_INDEX = {
         "NurbsSurface.is_duplicate",
         "NurbsSurface.is_planar",
         "NurbsSurface.is_rational",
-        "NurbsSurface.is_trimmed",
         "NurbsSurface.json_dump",
         "NurbsSurface.json_dumps",
         "NurbsSurface.json_load",
@@ -16538,7 +16676,6 @@ window.API_INDEX = {
         "NurbsSurface.repr",
         "NurbsSurface.str",
         "NurbsSurface.to_string",
-        "NurbsSurface.trim",
         "NurbsSurface.zero_cvs"
       ]
     },
@@ -16680,7 +16817,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__() -> str",
-          "code": "def __repr__(self) -> str:\n\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n    \n    ###########################################################################\n    # ADDITIONAL STATIC FACTORY METHODS\n    ###########################################################################\n    \n    @staticmethod\n    def create_ruled(curveA: 'NurbsCurve', curveB: 'NurbsCurve') -> 'NurbsSurface':\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10\n\n        for k in knots_b:\n            found = any(abs(ka - k) < tol for ka in knots_a)\n            if not found:\n                cA.insert_knot(k, 1)\n\n        knots_a = list(cA.get_knots())\n        for k in knots_a:\n            found = any(abs(kb - k) < tol for kb in knots_b)\n            if not found:\n                cB.insert_knot(k, 1)\n\n        order_u = cA.order()\n        cv_count_u = cA.cv_count()\n        is_rat = cA.is_rational()\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, 2, cv_count_u, 2)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(cA.knot_count()):\n            surface.set_knot(0, i, cA.knot(i))\n\n        surface.set_knot(1, 0, 0.0)\n        surface.set_knot(1, 1, 1.0)\n\n        if is_rat:\n            for i in range(cv_count_u):\n                ok_a, ax, ay, az, aw = cA.get_cv_4d(i)\n                surface.set_cv_4d(i, 0, ax, ay, az, aw)\n                ok_b, bx, by, bz, bw = cB.get_cv_4d(i)\n                surface.set_cv_4d(i, 1, bx, by, bz, bw)\n        else:\n            for i in range(cv_count_u):\n                surface.set_cv(i, 0, cA.get_cv(i))\n                surface.set_cv(i, 1, cB.get_cv(i))\n\n        return surface\n    \n    @staticmethod",
+          "code": "def __repr__(self) -> str:\n\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n    \n    ###########################################################################\n    # ADDITIONAL STATIC FACTORY METHODS\n    ###########################################################################\n    \n    @staticmethod\n    def create_ruled(curveA: 'NurbsCurve', curveB: 'NurbsCurve') -> 'NurbsSurface':\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10\n\n        for k in knots_b:\n            found = any(abs(ka - k) < tol for ka in knots_a)\n            if not found:\n                cA.insert_knot(k, 1)\n\n        knots_a = list(cA.get_knots())\n        for k in knots_a:\n            found = any(abs(kb - k) < tol for kb in knots_b)\n            if not found:\n                cB.insert_knot(k, 1)\n\n        order_u = cA.order()\n        cv_count_u = cA.cv_count()\n        is_rat = cA.is_rational()\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, 2, cv_count_u, 2)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(cA.knot_count()):\n            surface.set_knot(0, i, cA.knot(i))\n\n        surface.set_knot(1, 0, 0.0)\n        surface.set_knot(1, 1, 1.0)\n\n        if is_rat:\n            for i in range(cv_count_u):\n                ok_a, ax, ay, az, aw = cA.get_cv_4d(i)\n                surface.set_cv_4d(i, 0, ax, ay, az, aw)\n                ok_b, bx, by, bz, bw = cB.get_cv_4d(i)\n                surface.set_cv_4d(i, 1, bx, by, bz, bw)\n        else:\n            for i in range(cv_count_u):\n                surface.set_cv(i, 0, cA.get_cv(i))\n                surface.set_cv(i, 1, cB.get_cv(i))\n\n        return surface\n\n    @staticmethod",
           "file": "nurbssurface.py"
         }
       },
@@ -16720,7 +16857,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_ruled(curveA: 'NurbsCurve', curveB: 'NurbsCurve') -> 'NurbsSurface'",
-          "code": "def create_ruled(curveA: 'NurbsCurve', curveB: 'NurbsCurve') -> 'NurbsSurface':\n\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10\n\n        for k in knots_b:\n            found = any(abs(ka - k) < tol for ka in knots_a)\n            if not found:\n                cA.insert_knot(k, 1)\n\n        knots_a = list(cA.get_knots())\n        for k in knots_a:\n            found = any(abs(kb - k) < tol for kb in knots_b)\n            if not found:\n                cB.insert_knot(k, 1)\n\n        order_u = cA.order()\n        cv_count_u = cA.cv_count()\n        is_rat = cA.is_rational()\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, 2, cv_count_u, 2)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(cA.knot_count()):\n            surface.set_knot(0, i, cA.knot(i))\n\n        surface.set_knot(1, 0, 0.0)\n        surface.set_knot(1, 1, 1.0)\n\n        if is_rat:\n            for i in range(cv_count_u):\n                ok_a, ax, ay, az, aw = cA.get_cv_4d(i)\n                surface.set_cv_4d(i, 0, ax, ay, az, aw)\n                ok_b, bx, by, bz, bw = cB.get_cv_4d(i)\n                surface.set_cv_4d(i, 1, bx, by, bz, bw)\n        else:\n            for i in range(cv_count_u):\n                surface.set_cv(i, 0, cA.get_cv(i))\n                surface.set_cv(i, 1, cB.get_cv(i))\n\n        return surface\n    \n    @staticmethod\n    def create_planar(curves):\n        surface = NurbsSurface()\n        if not curves:\n            return surface\n\n        all_pts = []\n        for crv in curves:\n            for i in range(crv.cv_count()):\n                all_pts.append(crv.get_cv(i))\n        if len(all_pts) < 3:\n            return surface\n\n        plane = Plane.from_points_pca(all_pts)\n        if plane.z_axis.magnitude() < 1e-10:\n            return surface\n\n        xax = plane.x_axis\n        yax = plane.y_axis",
+          "code": "def create_ruled(curveA: 'NurbsCurve', curveB: 'NurbsCurve') -> 'NurbsSurface':\n\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10\n\n        for k in knots_b:\n            found = any(abs(ka - k) < tol for ka in knots_a)\n            if not found:\n                cA.insert_knot(k, 1)\n\n        knots_a = list(cA.get_knots())\n        for k in knots_a:\n            found = any(abs(kb - k) < tol for kb in knots_b)\n            if not found:\n                cB.insert_knot(k, 1)\n\n        order_u = cA.order()\n        cv_count_u = cA.cv_count()\n        is_rat = cA.is_rational()\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, 2, cv_count_u, 2)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(cA.knot_count()):\n            surface.set_knot(0, i, cA.knot(i))\n\n        surface.set_knot(1, 0, 0.0)\n        surface.set_knot(1, 1, 1.0)\n\n        if is_rat:\n            for i in range(cv_count_u):\n                ok_a, ax, ay, az, aw = cA.get_cv_4d(i)\n                surface.set_cv_4d(i, 0, ax, ay, az, aw)\n                ok_b, bx, by, bz, bw = cB.get_cv_4d(i)\n                surface.set_cv_4d(i, 1, bx, by, bz, bw)\n        else:\n            for i in range(cv_count_u):\n                surface.set_cv(i, 0, cA.get_cv(i))\n                surface.set_cv(i, 1, cB.get_cv(i))\n\n        return surface\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        if len(input_curves) < 2:\n            return NurbsSurface()\n        for c in input_curves:\n            if not c.is_valid():\n                return NurbsSurface()\n\n        curves = [c.duplicate() for c in input_curves]\n        NurbsSurface._make_curves_compatible(curves)\n        NurbsSurface._make_curves_compatible(curves)\n\n        n_sections = len(curves)\n        cv_count_u = curves[0].cv_count()\n        order_u = curves[0].order()\n        is_rat = curves[0].is_rational()\n\n        if degree_v >= n_sections:\n            degree_v = n_sections - 1",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -16737,8 +16874,9 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._make_curves_compatible",
         "NurbsSurface.create",
-        "NurbsSurface.create_planar",
+        "NurbsSurface.create_loft",
         "NurbsSurface.create_raw",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -16764,6 +16902,141 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "NurbsSurface.create_loft",
+      "implementations": {
+        "python": {
+          "sig": "create_loft(input_curves, degree_v=3)",
+          "code": "def create_loft(input_curves, degree_v=3):\n\n        if len(input_curves) < 2:\n            return NurbsSurface()\n        for c in input_curves:\n            if not c.is_valid():\n                return NurbsSurface()\n\n        curves = [c.duplicate() for c in input_curves]\n        NurbsSurface._make_curves_compatible(curves)\n        NurbsSurface._make_curves_compatible(curves)\n\n        n_sections = len(curves)\n        cv_count_u = curves[0].cv_count()\n        order_u = curves[0].order()\n        is_rat = curves[0].is_rational()\n\n        if degree_v >= n_sections:\n            degree_v = n_sections - 1\n        if degree_v < 1:\n            degree_v = 1\n        order_v = degree_v + 1\n\n        v_params = [0.0] * n_sections\n        for k in range(1, n_sections):\n            pk_prev = curves[k - 1].point_at_middle()\n            pk_curr = curves[k].point_at_middle()\n            dx = pk_curr[0] - pk_prev[0]\n            dy = pk_curr[1] - pk_prev[1]\n            dz = pk_curr[2] - pk_prev[2]\n            v_params[k] = v_params[k - 1] + math.sqrt(dx * dx + dy * dy + dz * dz)\n\n        total_len = v_params[-1]\n        if total_len > 1e-14:\n            for k in range(n_sections):\n                v_params[k] /= total_len\n        else:\n            for k in range(n_sections):\n                v_params[k] = float(k) / (n_sections - 1)\n\n        cv_count_v = n_sections\n        knot_count_v = order_v + cv_count_v - 2\n        knots_v = [0.0] * knot_count_v\n\n        if degree_v >= n_sections - 1:\n            d = degree_v\n            for i in range(d):\n                knots_v[i] = 0.0\n            for i in range(d, knot_count_v):\n                knots_v[i] = 1.0\n        else:\n            for i in range(order_v - 1):\n                knots_v[i] = v_params[0]\n            for j in range(1, n_sections - order_v + 1):\n                s = 0.0\n                for i in range(j, j + degree_v):\n                    s += v_params[i]\n                knots_v[order_v - 2 + j] = s / degree_v\n            for i in range(knot_count_v - order_v + 1, knot_count_v):\n                knots_v[i] = v_params[n_sections - 1]\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, order_v, cv_count_u, cv_count_v)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(surface.knot_count(0)):\n            surface.set_knot(0, i, curves[0].knot(i))\n        for i in range(len(knots_v)):\n            if i < surface.knot_count(1):\n                surface.set_knot(1, i, knots_v[i])\n\n        n = n_sections\n        N_matrix = [[0.0] * n for _ in range(n)]\n        knots_v_arr = np.array(knots_v)\n\n        for k in range(n):\n            t = v_params[k]\n            t0 = knots_v[order_v - 2]\n            t1 = knots_v[knot_count_v - order_v + 1]\n            if t < t0:\n                t = t0",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "NurbsSurface create_loft(const std::vector<NurbsCurve>& input_curves, int degree_v)",
+          "code": "NurbsSurface NurbsSurface::create_loft(const std::vector<NurbsCurve>& input_curves, int degree_v) {\n    NurbsSurface surface;\n    if (input_curves.size() < 2) return surface;\n\n    // Validate all curves\n    for (auto& c : input_curves) {\n        if (!c.is_valid()) return surface;\n    }",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "create_loft(input_curves: &[NurbsCurve], degree_v: usize) -> NurbsSurface",
+          "code": "pub fn create_loft(input_curves: &[NurbsCurve], degree_v: usize) -> NurbsSurface {\n        if input_curves.len() < 2 { return NurbsSurface::new(); }\n        for c in input_curves {\n            if !c.is_valid() { return NurbsSurface::new(); }\n        }\n\n        let mut curves: Vec<NurbsCurve> = input_curves.iter().map(|c| c.duplicate()).collect();\n        Self::make_curves_compatible(&mut curves);\n        Self::make_curves_compatible(&mut curves);\n\n        let n_sections = curves.len();\n        let cv_count_u = curves[0].cv_count();\n        let order_u = curves[0].order();\n        let is_rat = curves[0].is_rational();\n\n        let mut degree_v = degree_v;\n        if degree_v >= n_sections { degree_v = n_sections - 1; }\n        if degree_v < 1 { degree_v = 1; }\n        let order_v = degree_v + 1;\n\n        let mut v_params = vec![0.0; n_sections];\n        for k in 1..n_sections {\n            let pk_prev = curves[k - 1].point_at_middle();\n            let pk_curr = curves[k].point_at_middle();\n            let dx = pk_curr[0] - pk_prev[0];\n            let dy = pk_curr[1] - pk_prev[1];\n            let dz = pk_curr[2] - pk_prev[2];\n            v_params[k] = v_params[k - 1] + (dx * dx + dy * dy + dz * dz).sqrt();\n        }\n\n        let total_len = v_params[n_sections - 1];\n        if total_len > 1e-14 {\n            for k in 0..n_sections { v_params[k] /= total_len; }\n        } else {\n            for k in 0..n_sections { v_params[k] = k as f64 / (n_sections - 1) as f64; }\n        }\n\n        let cv_count_v = n_sections;\n        let knot_count_v = order_v + cv_count_v - 2;\n        let mut knots_v = vec![0.0; knot_count_v];\n\n        if degree_v >= n_sections - 1 {\n            let d = degree_v;\n            for i in 0..d { knots_v[i] = 0.0; }\n            for i in d..knot_count_v { knots_v[i] = 1.0; }\n        } else {\n            for i in 0..(order_v - 1) { knots_v[i] = v_params[0]; }\n            for j in 1..=(n_sections - order_v) {\n                let mut sum = 0.0;\n                for i in j..(j + degree_v) { sum += v_params[i]; }\n                knots_v[order_v - 2 + j] = sum / degree_v as f64;\n            }\n            for i in (knot_count_v - order_v + 1)..knot_count_v {\n                knots_v[i] = v_params[n_sections - 1];\n            }\n        }\n\n        let mut surface = match Self::create_raw(3, is_rat, order_u, order_v, cv_count_u, cv_count_v, false, false, 1.0, 1.0) {\n            Some(s) => s,\n            None => return NurbsSurface::new(),\n        };\n\n        for i in 0..surface.knot_count(0) as usize {\n            if let Some(k) = curves[0].knot(i) {\n                surface.set_knot(0, i, k);\n            }\n        }\n        for i in 0..knots_v.len() {\n            if i < surface.knot_count(1) {\n                surface.set_knot(1, i, knots_v[i]);\n            }\n        }\n\n        let n = n_sections;\n        let mut n_matrix = vec![vec![0.0; n]; n];\n\n        for k in 0..n {\n            let mut t = v_params[k];\n            let t0 = knots_v[order_v - 2];\n            let t1 = knots_v[knot_count_v - order_v + 1];\n            if t < t0 { t = t0; }\n            if t > t1 { t = t1; }\n\n            let span = knot::find_span(order_v, cv_count_v, &knots_v, t);\n            let d = order_v - 1;\n            let knot_base = span + d;\n\n            if knots_v[knot_base - 1] == knots_v[knot_base] {\n                if t <= knots_v[knot_base] {\n                    n_matrix[k][span] = 1.0;\n                } else {\n                    n_matrix[k][span + order_v - 1] = 1.0;\n                }\n                continue;\n            }\n\n            let mut nvals = vec![0.0; order_v * order_v];\n            nvals[order_v * order_v - 1] = 1.0;\n            let mut left = vec![0.0; d];\n            let mut right = vec![0.0; d];\n            let mut n_idx = (order_v * order_v - 1) as i64;\n            let mut k_right = knot_base;\n            let mut k_left = knot_base - 1;\n\n            for j in 0..d {\n                let n0_idx = n_idx;\n                n_idx -= (order_v + 1) as i64;\n                left[j] = t - knots_v[k_left];\n                right[j] = knots_v[k_right] - t;\n                if k_left > 0 { k_left -= 1; } else { k_left = 0; }\n                k_right += 1;\n\n                let mut x = 0.0;\n                for r in 0..=j {\n                    let a0 = left[j - r];\n                    let a1 = right[r];\n                    let denom = a0 + a1;\n                    let y = if denom != 0.0 { nvals[n0_idx as usize + r] / denom } else { 0.0 };\n                    nvals[n_idx as usize + r] = x + a1 * y;\n                    x = a0 * y;\n                }\n                nvals[n_idx as usize + j + 1] = x;\n            }\n\n            for j in 0..order_v {\n                let col = span + j;\n                if col < n {\n                    n_matrix[k][col] = nvals[j];\n                }\n            }\n        }\n\n        let dim = if is_rat { 4 } else { 3 };\n        for i in 0..cv_count_u {\n            let mut rhs = vec![vec![0.0; dim]; n];\n            for k in 0..n {\n                if is_rat {\n                    if let Some((cx, cy, cz, cw)) = curves[k].get_cv_4d(i) {\n                        rhs[k] = vec![cx, cy, cz, cw];\n                    }\n                } else {\n                    if let Some(p) = curves[k].get_cv(i) {\n                        rhs[k] = vec![p[0], p[1], p[2]];\n                    }\n                }\n            }\n\n            let mut a = n_matrix.clone();\n            let mut b = rhs;\n\n            for col in 0..n {\n                let mut max_row = col;\n                let mut max_val = a[col][col].abs();\n                for row in (col + 1)..n {\n                    if a[row][col].abs() > max_val {\n                        max_val = a[row][col].abs();\n                        max_row = row;\n                    }\n                }\n                if max_val < 1e-14 { continue; }\n                a.swap(col, max_row);\n                b.swap(col, max_row);\n                for row in (col + 1)..n {\n                    let factor = a[row][col] / a[col][col];\n                    for c in col..n {\n                        a[row][c] -= factor * a[col][c];\n                    }\n                    for d2 in 0..dim {\n                        b[row][d2] -= factor * b[col][d2];\n                    }\n                }\n            }\n\n            let mut q = vec![vec![0.0; dim]; n];\n            for row in (0..n).rev() {\n                for d2 in 0..dim {\n                    q[row][d2] = b[row][d2];\n                    for c in (row + 1)..n {\n                        q[row][d2] -= a[row][c] * q[c][d2];\n                    }\n                    if a[row][row].abs() > 1e-14 {\n                        q[row][d2] /= a[row][row];\n                    }\n                }\n            }\n\n            for j in 0..n {\n                if is_rat {\n                    surface.set_cv_4d(i, j, q[j][0], q[j][1], q[j][2], q[j][3]);\n                } else {\n                    surface.set_cv(i, j, &Point::new(q[j][0], q[j][1], q[j][2]));\n                }\n            }\n        }\n\n        surface\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.create_ruled",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.find_span",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.get_cv_4d",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.new",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_cv_4d",
+        "NurbsSurface.set_knot"
+      ]
+    },
+    {
+      "name": "NurbsSurface._merge_knot_vectors",
+      "implementations": {
+        "python": {
+          "sig": "_merge_knot_vectors(a, b, tol=1e-10)",
+          "code": "def _merge_knot_vectors(a, b, tol=1e-10):\n\n        merged = []\n        i, j = 0, 0\n        while i < len(a) and j < len(b):\n            if abs(a[i] - b[j]) < tol:\n                merged.append(a[i])\n                i += 1\n                j += 1\n            elif a[i] < b[j]:\n                merged.append(a[i])\n                i += 1\n            else:\n                merged.append(b[j])\n                j += 1\n        while i < len(a):\n            merged.append(a[i])\n            i += 1\n        while j < len(b):\n            merged.append(b[j])\n            j += 1\n        return merged\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        if len(a) != len(b):\n            return False\n        for i in range(len(a)):\n            if abs(a[i] - b[i]) > tol:\n                return False\n        return True\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        if len(curves) < 2:\n            return\n        max_deg = max(c.degree() for c in curves)\n        for c in curves:\n            if c.degree() < max_deg:\n                c.increase_degree(max_deg)\n        any_rational = any(c.is_rational() for c in curves)\n        if any_rational:\n            for c in curves:\n                c.make_rational()\n        already_compatible = True\n        for i in range(1, len(curves)):\n            if curves[i].cv_count() != curves[0].cv_count():\n                already_compatible = False\n                break\n            if not NurbsSurface._knot_vectors_equal(list(curves[i].get_knots()), list(curves[0].get_knots())):\n                already_compatible = False\n                break\n        if already_compatible:\n            return\n        for c in curves:\n            c.set_domain(0.0, 1.0)\n        unified = list(curves[0].get_knots())\n        for i in range(1, len(curves)):\n            unified = NurbsSurface._merge_knot_vectors(unified, list(curves[i].get_knots()))\n        tol = 1e-10\n        for c in curves:\n            cur_knots = list(c.get_knots())\n            for k in unified:\n                found = any(abs(ck - k) < tol for ck in cur_knots)\n                if not found:\n                    c.insert_knot(k, 1)\n                    cur_knots = list(c.get_knots())\n\n    @staticmethod\n    def create_planar(curves):\n        surface = NurbsSurface()\n        if not curves:\n            return surface\n\n        all_pts = []\n        for crv in curves:\n            for i in range(crv.cv_count()):\n                all_pts.append(crv.get_cv(i))\n        if len(all_pts) < 3:\n            return surface",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.create",
+        "NurbsSurface.create_planar",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.get_knots",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.knot",
+        "NurbsSurface.make_rational",
+        "NurbsSurface.set_domain",
+        "NurbsSurface.skin_curves"
+      ]
+    },
+    {
+      "name": "NurbsSurface._knot_vectors_equal",
+      "implementations": {
+        "python": {
+          "sig": "_knot_vectors_equal(a, b, tol=1e-10)",
+          "code": "def _knot_vectors_equal(a, b, tol=1e-10):\n\n        if len(a) != len(b):\n            return False\n        for i in range(len(a)):\n            if abs(a[i] - b[i]) > tol:\n                return False\n        return True\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        if len(curves) < 2:\n            return\n        max_deg = max(c.degree() for c in curves)\n        for c in curves:\n            if c.degree() < max_deg:\n                c.increase_degree(max_deg)\n        any_rational = any(c.is_rational() for c in curves)\n        if any_rational:\n            for c in curves:\n                c.make_rational()\n        already_compatible = True\n        for i in range(1, len(curves)):\n            if curves[i].cv_count() != curves[0].cv_count():\n                already_compatible = False\n                break\n            if not NurbsSurface._knot_vectors_equal(list(curves[i].get_knots()), list(curves[0].get_knots())):\n                already_compatible = False\n                break\n        if already_compatible:\n            return\n        for c in curves:\n            c.set_domain(0.0, 1.0)\n        unified = list(curves[0].get_knots())\n        for i in range(1, len(curves)):\n            unified = NurbsSurface._merge_knot_vectors(unified, list(curves[i].get_knots()))\n        tol = 1e-10\n        for c in curves:\n            cur_knots = list(c.get_knots())\n            for k in unified:\n                found = any(abs(ck - k) < tol for ck in cur_knots)\n                if not found:\n                    c.insert_knot(k, 1)\n                    cur_knots = list(c.get_knots())\n\n    @staticmethod\n    def create_planar(curves):\n        surface = NurbsSurface()\n        if not curves:\n            return surface\n\n        all_pts = []\n        for crv in curves:\n            for i in range(crv.cv_count()):\n                all_pts.append(crv.get_cv(i))\n        if len(all_pts) < 3:\n            return surface\n\n        plane = Plane.from_points_pca(all_pts)\n        if plane.z_axis.magnitude() < 1e-10:\n            return surface\n\n        xax = plane.x_axis\n        yax = plane.y_axis\n        orig = plane.origin\n\n        min_u = float('inf')\n        max_u = float('-inf')\n        min_v = float('inf')\n        max_v = float('-inf')\n\n        for pt in all_pts:\n            dx = pt[0] - orig[0]\n            dy = pt[1] - orig[1]\n            dz = pt[2] - orig[2]\n            u = dx * xax[0] + dy * xax[1] + dz * xax[2]\n            v = dx * yax[0] + dy * yax[1] + dz * yax[2]\n            min_u = min(min_u, u)\n            max_u = max(max_u, u)\n            min_v = min(min_v, v)\n            max_v = max(max_v, v)",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface.create",
+        "NurbsSurface.create_planar",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.get_knots",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.knot",
+        "NurbsSurface.make_rational",
+        "NurbsSurface.set_domain"
+      ]
+    },
+    {
+      "name": "NurbsSurface._make_curves_compatible",
+      "implementations": {
+        "python": {
+          "sig": "_make_curves_compatible(curves)",
+          "code": "def _make_curves_compatible(curves):\n\n        if len(curves) < 2:\n            return\n        max_deg = max(c.degree() for c in curves)\n        for c in curves:\n            if c.degree() < max_deg:\n                c.increase_degree(max_deg)\n        any_rational = any(c.is_rational() for c in curves)\n        if any_rational:\n            for c in curves:\n                c.make_rational()\n        already_compatible = True\n        for i in range(1, len(curves)):\n            if curves[i].cv_count() != curves[0].cv_count():\n                already_compatible = False\n                break\n            if not NurbsSurface._knot_vectors_equal(list(curves[i].get_knots()), list(curves[0].get_knots())):\n                already_compatible = False\n                break\n        if already_compatible:\n            return\n        for c in curves:\n            c.set_domain(0.0, 1.0)\n        unified = list(curves[0].get_knots())\n        for i in range(1, len(curves)):\n            unified = NurbsSurface._merge_knot_vectors(unified, list(curves[i].get_knots()))\n        tol = 1e-10\n        for c in curves:\n            cur_knots = list(c.get_knots())\n            for k in unified:\n                found = any(abs(ck - k) < tol for ck in cur_knots)\n                if not found:\n                    c.insert_knot(k, 1)\n                    cur_knots = list(c.get_knots())\n\n    @staticmethod\n    def create_planar(curves):\n        surface = NurbsSurface()\n        if not curves:\n            return surface\n\n        all_pts = []\n        for crv in curves:\n            for i in range(crv.cv_count()):\n                all_pts.append(crv.get_cv(i))\n        if len(all_pts) < 3:\n            return surface\n\n        plane = Plane.from_points_pca(all_pts)\n        if plane.z_axis.magnitude() < 1e-10:\n            return surface\n\n        xax = plane.x_axis\n        yax = plane.y_axis\n        orig = plane.origin\n\n        min_u = float('inf')\n        max_u = float('-inf')\n        min_v = float('inf')\n        max_v = float('-inf')\n\n        for pt in all_pts:\n            dx = pt[0] - orig[0]\n            dy = pt[1] - orig[1]\n            dz = pt[2] - orig[2]\n            u = dx * xax[0] + dy * xax[1] + dz * xax[2]\n            v = dx * yax[0] + dy * yax[1] + dz * yax[2]\n            min_u = min(min_u, u)\n            max_u = max(max_u, u)\n            min_v = min(min_v, v)\n            max_v = max(max_v, v)\n\n        pad = max(max_u - min_u, max_v - min_v) * 0.05\n        if pad < 1e-6:\n            pad = 1.0\n        min_u -= pad\n        max_u += pad\n        min_v -= pad\n        max_v += pad",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface.create",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
+        "NurbsSurface.create_planar",
+        "NurbsSurface.create_ruled",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.find_param",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.get_knots",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.knot",
+        "NurbsSurface.make_rational",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.monotone_hermite_eval",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.set_domain"
+      ]
+    },
+    {
       "name": "NurbsSurface.create_planar",
       "implementations": {
         "python": {
@@ -16783,9 +17056,11 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
         "NurbsSurface.create",
         "NurbsSurface.create_raw",
-        "NurbsSurface.create_ruled",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.divide_by_count",
@@ -16968,7 +17243,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_singular(side: int) -> bool",
-          "code": "def is_singular(self, side: int) -> bool:\n\n        \"\"\"Check if surface side is singular (collapsed to a point).\n        \n        Parameters\n        ----------\n        side : int\n            Side (0=south, 1=east, 2=north, 3=west).\n        \n        Returns\n        -------\n        bool\n            True if singular, False otherwise.\n        \"\"\"\n        if not self.is_valid():\n            return False\n        \n        points = []\n        \n        if side == 0:  # south (v=0)\n            if not self.is_clamped(1, 0):\n                return False\n            points = [self.get_cv(i, 0) for i in range(self.m_cv_count[0])]\n        elif side == 1:  # east (u=max)\n            if not self.is_clamped(0, 1):\n                return False\n            points = [self.get_cv(self.m_cv_count[0] - 1, j) for j in range(self.m_cv_count[1])]\n        elif side == 2:  # north (v=max)\n            if not self.is_clamped(1, 1):\n                return False\n            points = [self.get_cv(i, self.m_cv_count[1] - 1) for i in range(self.m_cv_count[0])]\n        elif side == 3:  # west (u=0)\n            if not self.is_clamped(0, 0):\n                return False\n            points = [self.get_cv(0, j) for j in range(self.m_cv_count[1])]\n        else:\n            return False\n        \n        # Check if all points are coincident\n        if len(points) < 2:\n            return False\n        \n        p0 = points[0]\n        for pt in points[1:]:\n            if p0.distance(pt) > 1e-12:\n                return False\n        \n        return True\n    \n    ###########################################################################\n    # KNOT VECTOR OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def insert_knot(self, dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool:\n        \"\"\"Insert knot in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        knot_value : float\n            Knot value to insert.\n        knot_multiplicity : int, optional\n            Number of times to insert. Defaults to 1.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires Boehm's algorithm\n        return False\n    \n    ###########################################################################\n    # MODIFICATION OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def trim(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Trim surface to sub-domain in specified direction.\n        \n        Parameters",
+          "code": "def is_singular(self, side: int) -> bool:\n\n        \"\"\"Check if surface side is singular (collapsed to a point).\n        \n        Parameters\n        ----------\n        side : int\n            Side (0=south, 1=east, 2=north, 3=west).\n        \n        Returns\n        -------\n        bool\n            True if singular, False otherwise.\n        \"\"\"\n        if not self.is_valid():\n            return False\n        \n        points = []\n        \n        if side == 0:  # south (v=0)\n            if not self.is_clamped(1, 0):\n                return False\n            points = [self.get_cv(i, 0) for i in range(self.m_cv_count[0])]\n        elif side == 1:  # east (u=max)\n            if not self.is_clamped(0, 1):\n                return False\n            points = [self.get_cv(self.m_cv_count[0] - 1, j) for j in range(self.m_cv_count[1])]\n        elif side == 2:  # north (v=max)\n            if not self.is_clamped(1, 1):\n                return False\n            points = [self.get_cv(i, self.m_cv_count[1] - 1) for i in range(self.m_cv_count[0])]\n        elif side == 3:  # west (u=0)\n            if not self.is_clamped(0, 0):\n                return False\n            points = [self.get_cv(0, j) for j in range(self.m_cv_count[1])]\n        else:\n            return False\n        \n        # Check if all points are coincident\n        if len(points) < 2:\n            return False\n        \n        p0 = points[0]\n        for pt in points[1:]:\n            if p0.distance(pt) > 1e-12:\n                return False\n        \n        return True\n    \n    ###########################################################################\n    # NETWORK SURFACE (GORDON SURFACE)\n    ###########################################################################\n\n    @staticmethod\n    def create_network(u_curves, v_curves):\n        from .knot import find_span\n        surface = NurbsSurface()\n        n_u = len(u_curves)\n        n_v = len(v_curves)\n        if n_u < 2 or n_v < 2:\n            return surface\n\n        u_crvs = [c.duplicate() for c in u_curves]\n        v_crvs = [c.duplicate() for c in v_curves]\n\n        def min_dist_sq(crv, pt):\n            t0, t1 = crv.domain()\n            best = 1e30\n            for i in range(51):\n                t = t0 + (t1 - t0) * i / 50.0\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best:\n                    best = d\n            return best\n\n        def find_param(crv, pt):\n            t0, t1 = crv.domain()\n            best_t, best_d = t0, 1e30\n            ns = 200\n            for i in range(ns + 1):",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -16983,17 +17258,324 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface.create",
+        "NurbsSurface.create_network",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.domain",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.find_param",
+        "NurbsSurface.find_span",
         "NurbsSurface.get_cv",
-        "NurbsSurface.insert_knot",
         "NurbsSurface.is_clamped",
         "NurbsSurface.is_periodic",
         "NurbsSurface.is_valid",
         "NurbsSurface.knot",
-        "NurbsSurface.knot_multiplicity",
+        "NurbsSurface.min_dist_sq",
         "NurbsSurface.new",
+        "NurbsSurface.point_at",
+        "NurbsSurface.str"
+      ]
+    },
+    {
+      "name": "NurbsSurface.create_network",
+      "implementations": {
+        "python": {
+          "sig": "create_network(u_curves, v_curves)",
+          "code": "def create_network(u_curves, v_curves):\n\n        from .knot import find_span\n        surface = NurbsSurface()\n        n_u = len(u_curves)\n        n_v = len(v_curves)\n        if n_u < 2 or n_v < 2:\n            return surface\n\n        u_crvs = [c.duplicate() for c in u_curves]\n        v_crvs = [c.duplicate() for c in v_curves]\n\n        def min_dist_sq(crv, pt):\n            t0, t1 = crv.domain()\n            best = 1e30\n            for i in range(51):\n                t = t0 + (t1 - t0) * i / 50.0\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best:\n                    best = d\n            return best\n\n        def find_param(crv, pt):\n            t0, t1 = crv.domain()\n            best_t, best_d = t0, 1e30\n            ns = 200\n            for i in range(ns + 1):\n                t = t0 + (t1 - t0) * i / ns\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best_d:\n                    best_d = d\n                    best_t = t\n            for _ in range(20):\n                derivs = crv.evaluate(best_t, 2)\n                dx = derivs[0][0]-pt[0]\n                dy = derivs[0][1]-pt[1]\n                dz = derivs[0][2]-pt[2]\n                f1 = 2.0*(dx*derivs[1][0] + dy*derivs[1][1] + dz*derivs[1][2])\n                f2 = 2.0*(derivs[1][0]**2 + derivs[1][1]**2 + derivs[1][2]**2\n                          + dx*derivs[2][0] + dy*derivs[2][1] + dz*derivs[2][2])\n                if abs(f2) < 1e-14:\n                    break\n                dt = f1 / f2\n                best_t -= dt\n                best_t = max(t0, min(t1, best_t))\n                if abs(dt) < 1e-14:\n                    break\n            return best_t\n\n        # Orient v-curves: start near u_curves[0]\n        for vc in v_crvs:\n            vs = vc.point_at(vc.domain_start())\n            ve = vc.point_at(vc.domain_end())\n            if min_dist_sq(u_crvs[0], ve) < min_dist_sq(u_crvs[0], vs):\n                vc.reverse()\n\n        # Sort v-curves by u-parameter on u_curves[0]\n        u_params_raw = [find_param(u_crvs[0], vc.point_at(vc.domain_start())) for vc in v_crvs]\n        v_order = sorted(range(n_v), key=lambda j: u_params_raw[j])\n        v_crvs = [v_crvs[j] for j in v_order]\n\n        # Orient u-curves: start near first sorted v-curve\n        for uc in u_crvs:\n            us = uc.point_at(uc.domain_start())\n            ue = uc.point_at(uc.domain_end())\n            if min_dist_sq(v_crvs[0], ue) < min_dist_sq(v_crvs[0], us):\n                uc.reverse()\n\n        # Make curves compatible\n        NurbsSurface._make_curves_compatible(u_crvs)\n        NurbsSurface._make_curves_compatible(v_crvs)\n        for c in u_crvs:\n            c.set_domain(0.0, 1.0)\n        for c in v_crvs:\n            c.set_domain(0.0, 1.0)\n\n        # Find intersection parameters for ALL pairs\n        t_u_ij = [[0.0]*n_v for _ in range(n_u)]\n        t_v_ij = [[0.0]*n_v for _ in range(n_u)]",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "NurbsSurface create_network(\n    const std::vector<NurbsCurve>& u_curves,\n    const std::vector<NurbsCurve>& v_curves)",
+          "code": "NurbsSurface NurbsSurface::create_network(\n    const std::vector<NurbsCurve>& u_curves,\n    const std::vector<NurbsCurve>& v_curves)\n{\n    NurbsSurface surface;\n    int n_u = static_cast<int>(u_curves.size());\n    int n_v = static_cast<int>(v_curves.size());\n    if (n_u < 2 || n_v < 2) return surface;\n\n    auto u_crvs = u_curves;\n    auto v_crvs = v_curves;\n\n    // Helper: min squared distance from point to sampled curve\n    auto min_dist_sq = [](const NurbsCurve& crv, const Point& pt) -> double {\n        auto [t0, t1] = crv.domain();\n        double best = 1e30;\n        for (int i = 0; i <= 50; i++) {\n            double t = t0 + (t1 - t0) * i / 50.0;\n            Point p = crv.point_at(t);\n            double d = (p[0]-pt[0])*(p[0]-pt[0]) + (p[1]-pt[1])*(p[1]-pt[1]) + (p[2]-pt[2])*(p[2]-pt[2]);\n            if (d < best) best = d;\n        }",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "create_network(u_curves: &[NurbsCurve], v_curves: &[NurbsCurve]) -> NurbsSurface",
+          "code": "pub fn create_network(u_curves: &[NurbsCurve], v_curves: &[NurbsCurve]) -> NurbsSurface {\n        let n_u = u_curves.len();\n        let n_v = v_curves.len();\n        if n_u < 2 || n_v < 2 { return NurbsSurface::new(); }\n\n        let mut u_crvs: Vec<NurbsCurve> = u_curves.iter().map(|c| c.duplicate()).collect();\n        let mut v_crvs: Vec<NurbsCurve> = v_curves.iter().map(|c| c.duplicate()).collect();\n\n        let min_dist_sq = |crv: &NurbsCurve, pt: &Point| -> f64 {\n            let (t0, t1) = crv.domain();\n            let mut best = 1e30_f64;\n            for i in 0..=50 {\n                let t = t0 + (t1 - t0) * i as f64 / 50.0;\n                let p = crv.point_at(t);\n                let d = (p[0]-pt[0]).powi(2) + (p[1]-pt[1]).powi(2) + (p[2]-pt[2]).powi(2);\n                if d < best { best = d; }\n            }\n            best\n        };\n\n        let find_param = |crv: &NurbsCurve, pt: &Point| -> f64 {\n            let (t0, t1) = crv.domain();\n            let mut best_t = t0;\n            let mut best_d = 1e30_f64;\n            let ns = 200;\n            for i in 0..=ns {\n                let t = t0 + (t1 - t0) * i as f64 / ns as f64;\n                let p = crv.point_at(t);\n                let d = (p[0]-pt[0]).powi(2) + (p[1]-pt[1]).powi(2) + (p[2]-pt[2]).powi(2);\n                if d < best_d { best_d = d; best_t = t; }\n            }\n            for _ in 0..20 {\n                let derivs = crv.evaluate(best_t, 2);\n                let dx = derivs[0][0]-pt[0];\n                let dy = derivs[0][1]-pt[1];\n                let dz = derivs[0][2]-pt[2];\n                let f1 = 2.0*(dx*derivs[1][0] + dy*derivs[1][1] + dz*derivs[1][2]);\n                let f2 = 2.0*(derivs[1][0].powi(2) + derivs[1][1].powi(2) + derivs[1][2].powi(2)\n                             + dx*derivs[2][0] + dy*derivs[2][1] + dz*derivs[2][2]);\n                if f2.abs() < 1e-14 { break; }\n                let dt = f1 / f2;\n                best_t -= dt;\n                if best_t < t0 { best_t = t0; }\n                if best_t > t1 { best_t = t1; }\n                if dt.abs() < 1e-14 { break; }\n            }\n            best_t\n        };\n\n        // Orient v-curves: all should start near u_curve[0]\n        for vc in v_crvs.iter_mut() {\n            let vs = vc.point_at(vc.domain_start());\n            let ve = vc.point_at(vc.domain_end());\n            if min_dist_sq(&u_crvs[0], &ve) < min_dist_sq(&u_crvs[0], &vs) {\n                vc.reverse();\n            }\n        }\n\n        // Find u-params for each v-curve on u_curve[0], sort v-curves\n        let mut u_params_raw = vec![0.0; n_v];\n        for j in 0..n_v {\n            u_params_raw[j] = find_param(&u_crvs[0], &v_crvs[j].point_at(v_crvs[j].domain_start()));\n        }\n        let mut v_order: Vec<usize> = (0..n_v).collect();\n        v_order.sort_by(|&a, &b| u_params_raw[a].partial_cmp(&u_params_raw[b]).unwrap());\n        let sorted: Vec<NurbsCurve> = v_order.iter().map(|&i| v_crvs[i].duplicate()).collect();\n        v_crvs = sorted;\n\n        // Orient u-curves: all should start near first sorted v-curve\n        for uc in u_crvs.iter_mut() {\n            let us = uc.point_at(uc.domain_start());\n            let ue = uc.point_at(uc.domain_end());\n            if min_dist_sq(&v_crvs[0], &ue) < min_dist_sq(&v_crvs[0], &us) {\n                uc.reverse();\n            }\n        }\n\n        Self::make_curves_compatible(&mut u_crvs);\n        Self::make_curves_compatible(&mut v_crvs);\n        for c in u_crvs.iter_mut() { c.set_domain(0.0, 1.0); }\n        for c in v_crvs.iter_mut() { c.set_domain(0.0, 1.0); }\n\n        // Find intersection parameters for ALL (u-curve, v-curve) pairs\n        let mut t_u_ij = vec![vec![0.0; n_v]; n_u];\n        let mut t_v_ij = vec![vec![0.0; n_v]; n_u];\n        for i in 0..n_u {\n            for j in 0..n_v {\n                let approx_v = if n_u > 1 { i as f64 / (n_u - 1) as f64 } else { 0.0 };\n                let pv = v_crvs[j].point_at(approx_v);\n                t_u_ij[i][j] = find_param(&u_crvs[i], &pv);\n                let pu = u_crvs[i].point_at(t_u_ij[i][j]);\n                t_v_ij[i][j] = find_param(&v_crvs[j], &pu);\n            }\n        }\n\n        // Average intersection parameters\n        let mut u_params = vec![0.0; n_v];\n        for j in 0..n_v {\n            for i in 0..n_u { u_params[j] += t_u_ij[i][j]; }\n            u_params[j] /= n_u as f64;\n        }\n        let mut v_params = vec![0.0; n_u];\n        for i in 0..n_u {\n            for j in 0..n_v { v_params[i] += t_v_ij[i][j]; }\n            v_params[i] /= n_v as f64;\n        }\n\n        // Gaussian elimination with partial pivoting\n        let gauss_solve = |n: usize, dim: usize, a: &mut Vec<Vec<f64>>, b: &mut Vec<Vec<f64>>| {\n            for col in 0..n {\n                let mut mr = col;\n                let mut mv = a[col][col].abs();\n                for r in (col+1)..n {\n                    if a[r][col].abs() > mv { mv = a[r][col].abs(); mr = r; }\n                }\n                if mv < 1e-14 { continue; }\n                a.swap(col, mr);\n                b.swap(col, mr);\n                for r in (col+1)..n {\n                    let f = a[r][col] / a[col][col];\n                    for c in col..n { a[r][c] -= f * a[col][c]; }\n                    for d in 0..dim { b[r][d] -= f * b[col][d]; }\n                }\n            }\n            for r in (0..n).rev() {\n                for d in 0..dim {\n                    for c in (r+1)..n { b[r][d] -= a[r][c] * b[c][d]; }\n                    if a[r][r].abs() > 1e-14 { b[r][d] /= a[r][r]; }\n                }\n            }\n        };\n\n        // Build interpolation knot vector (Piegl-Tiller averaging)\n        let build_interp_knots = |n_pts: usize, deg: usize, params: &[f64]| -> Vec<f64> {\n            let ord = deg + 1;\n            let kc = ord + n_pts - 2;\n            let mut knots = vec![0.0; kc];\n            for i in 0..(ord-1) { knots[i] = params[0]; }\n            for j in 1..=(n_pts.saturating_sub(ord)) {\n                let mut sum = 0.0;\n                for i in j..(j+deg) { sum += params[i]; }\n                knots[ord - 2 + j] = sum / deg as f64;\n            }\n            for i in (kc-ord+1)..kc { knots[i] = params[n_pts-1]; }\n            knots\n        };\n\n        // Build basis function matrix\n        let build_basis_matrix = |n: usize, ord: usize, params: &[f64], knots: &[f64]| -> Vec<Vec<f64>> {\n            let mut nn = vec![vec![0.0; n]; n];\n            for row in 0..n {\n                let t = params[row];\n                let span = knot::find_span(ord, n, knots, t);\n                let d = ord - 1;\n                let kb = span + d;\n                if knots[kb - 1] == knots[kb] {\n                    if t <= knots[kb] { nn[row][span] = 1.0; }\n                    else { nn[row][span + ord - 1] = 1.0; }\n                    continue;\n                }\n                let mut nv = vec![0.0; ord * ord];\n                nv[ord * ord - 1] = 1.0;\n                let mut left = vec![0.0; d];\n                let mut right = vec![0.0; d];\n                let mut ni = (ord * ord - 1) as i64;\n                let mut kr = kb;\n                let mut kl = kb - 1;\n                for j in 0..d {\n                    let n0 = ni;\n                    ni -= (ord + 1) as i64;\n                    left[j] = t - knots[kl];\n                    right[j] = knots[kr] - t;\n                    if kl > 0 { kl -= 1; }\n                    kr += 1;\n                    let mut xv = 0.0;\n                    for r in 0..=j {\n                        let a0 = left[j - r];\n                        let a1 = right[r];\n                        let den = a0 + a1;\n                        let yv = if den != 0.0 { nv[n0 as usize + r] / den } else { 0.0 };\n                        nv[ni as usize + r] = xv + a1 * yv;\n                        xv = a0 * yv;\n                    }\n                    nv[ni as usize + j + 1] = xv;\n                }\n                for j in 0..ord {\n                    let col = span + j;\n                    if col < n",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create",
+        "NurbsSurface.domain",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.find_param",
+        "NurbsSurface.find_span",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.is_singular",
+        "NurbsSurface.knot",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.new",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.reverse",
+        "NurbsSurface.set_domain"
+      ]
+    },
+    {
+      "name": "NurbsSurface.min_dist_sq",
+      "implementations": {
+        "python": {
+          "sig": "min_dist_sq(crv, pt)",
+          "code": "def min_dist_sq(crv, pt):\n\n            t0, t1 = crv.domain()\n            best = 1e30\n            for i in range(51):\n                t = t0 + (t1 - t0) * i / 50.0\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best:\n                    best = d\n            return best\n\n        def find_param(crv, pt):\n            t0, t1 = crv.domain()\n            best_t, best_d = t0, 1e30\n            ns = 200\n            for i in range(ns + 1):\n                t = t0 + (t1 - t0) * i / ns\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best_d:\n                    best_d = d\n                    best_t = t\n            for _ in range(20):\n                derivs = crv.evaluate(best_t, 2)\n                dx = derivs[0][0]-pt[0]\n                dy = derivs[0][1]-pt[1]\n                dz = derivs[0][2]-pt[2]\n                f1 = 2.0*(dx*derivs[1][0] + dy*derivs[1][1] + dz*derivs[1][2])\n                f2 = 2.0*(derivs[1][0]**2 + derivs[1][1]**2 + derivs[1][2]**2\n                          + dx*derivs[2][0] + dy*derivs[2][1] + dz*derivs[2][2])\n                if abs(f2) < 1e-14:\n                    break\n                dt = f1 / f2\n                best_t -= dt\n                best_t = max(t0, min(t1, best_t))\n                if abs(dt) < 1e-14:\n                    break\n            return best_t\n\n        # Orient v-curves: start near u_curves[0]\n        for vc in v_crvs:\n            vs = vc.point_at(vc.domain_start())\n            ve = vc.point_at(vc.domain_end())\n            if min_dist_sq(u_crvs[0], ve) < min_dist_sq(u_crvs[0], vs):\n                vc.reverse()\n\n        # Sort v-curves by u-parameter on u_curves[0]\n        u_params_raw = [find_param(u_crvs[0], vc.point_at(vc.domain_start())) for vc in v_crvs]\n        v_order = sorted(range(n_v), key=lambda j: u_params_raw[j])\n        v_crvs = [v_crvs[j] for j in v_order]\n\n        # Orient u-curves: start near first sorted v-curve\n        for uc in u_crvs:\n            us = uc.point_at(uc.domain_start())\n            ue = uc.point_at(uc.domain_end())\n            if min_dist_sq(v_crvs[0], ue) < min_dist_sq(v_crvs[0], us):\n                uc.reverse()\n\n        # Make curves compatible\n        NurbsSurface._make_curves_compatible(u_crvs)\n        NurbsSurface._make_curves_compatible(v_crvs)\n        for c in u_crvs:\n            c.set_domain(0.0, 1.0)\n        for c in v_crvs:\n            c.set_domain(0.0, 1.0)\n\n        # Find intersection parameters for ALL pairs\n        t_u_ij = [[0.0]*n_v for _ in range(n_u)]\n        t_v_ij = [[0.0]*n_v for _ in range(n_u)]\n        for i in range(n_u):\n            for j in range(n_v):\n                approx_v = float(i) / (n_u - 1) if n_u > 1 else 0.0\n                pv = v_crvs[j].point_at(approx_v)\n                t_u_ij[i][j] = find_param(u_crvs[i], pv)\n                pu = u_crvs[i].point_at(t_u_ij[i][j])\n                t_v_ij[i][j] = find_param(v_crvs[j], pu)\n\n        # Average intersection parameters\n        u_params = [sum(t_u_ij[i][j] for i in range(n_u)) / n_u for j in range(n_v)]\n        v_params = [sum(t_v_ij[i][j] for j in range(n_v)) / n_v for i in range(n_u)]",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.create_network",
+        "NurbsSurface.domain",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.find_param",
+        "NurbsSurface.is_singular",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.reverse",
+        "NurbsSurface.set_domain"
+      ]
+    },
+    {
+      "name": "NurbsSurface.find_param",
+      "implementations": {
+        "python": {
+          "sig": "find_param(crv, pt)",
+          "code": "def find_param(crv, pt):\n\n            t0, t1 = crv.domain()\n            best_t, best_d = t0, 1e30\n            ns = 200\n            for i in range(ns + 1):\n                t = t0 + (t1 - t0) * i / ns\n                p = crv.point_at(t)\n                d = (p[0]-pt[0])**2 + (p[1]-pt[1])**2 + (p[2]-pt[2])**2\n                if d < best_d:\n                    best_d = d\n                    best_t = t\n            for _ in range(20):\n                derivs = crv.evaluate(best_t, 2)\n                dx = derivs[0][0]-pt[0]\n                dy = derivs[0][1]-pt[1]\n                dz = derivs[0][2]-pt[2]\n                f1 = 2.0*(dx*derivs[1][0] + dy*derivs[1][1] + dz*derivs[1][2])\n                f2 = 2.0*(derivs[1][0]**2 + derivs[1][1]**2 + derivs[1][2]**2\n                          + dx*derivs[2][0] + dy*derivs[2][1] + dz*derivs[2][2])\n                if abs(f2) < 1e-14:\n                    break\n                dt = f1 / f2\n                best_t -= dt\n                best_t = max(t0, min(t1, best_t))\n                if abs(dt) < 1e-14:\n                    break\n            return best_t\n\n        # Orient v-curves: start near u_curves[0]\n        for vc in v_crvs:\n            vs = vc.point_at(vc.domain_start())\n            ve = vc.point_at(vc.domain_end())\n            if min_dist_sq(u_crvs[0], ve) < min_dist_sq(u_crvs[0], vs):\n                vc.reverse()\n\n        # Sort v-curves by u-parameter on u_curves[0]\n        u_params_raw = [find_param(u_crvs[0], vc.point_at(vc.domain_start())) for vc in v_crvs]\n        v_order = sorted(range(n_v), key=lambda j: u_params_raw[j])\n        v_crvs = [v_crvs[j] for j in v_order]\n\n        # Orient u-curves: start near first sorted v-curve\n        for uc in u_crvs:\n            us = uc.point_at(uc.domain_start())\n            ue = uc.point_at(uc.domain_end())\n            if min_dist_sq(v_crvs[0], ue) < min_dist_sq(v_crvs[0], us):\n                uc.reverse()\n\n        # Make curves compatible\n        NurbsSurface._make_curves_compatible(u_crvs)\n        NurbsSurface._make_curves_compatible(v_crvs)\n        for c in u_crvs:\n            c.set_domain(0.0, 1.0)\n        for c in v_crvs:\n            c.set_domain(0.0, 1.0)\n\n        # Find intersection parameters for ALL pairs\n        t_u_ij = [[0.0]*n_v for _ in range(n_u)]\n        t_v_ij = [[0.0]*n_v for _ in range(n_u)]\n        for i in range(n_u):\n            for j in range(n_v):\n                approx_v = float(i) / (n_u - 1) if n_u > 1 else 0.0\n                pv = v_crvs[j].point_at(approx_v)\n                t_u_ij[i][j] = find_param(u_crvs[i], pv)\n                pu = u_crvs[i].point_at(t_u_ij[i][j])\n                t_v_ij[i][j] = find_param(v_crvs[j], pu)\n\n        # Average intersection parameters\n        u_params = [sum(t_u_ij[i][j] for i in range(n_u)) / n_u for j in range(n_v)]\n        v_params = [sum(t_v_ij[i][j] for j in range(n_v)) / n_v for i in range(n_u)]\n\n        # Helpers\n        def gauss_solve(n, dim, A, b):\n            for col in range(n):\n                mr, mv = col, abs(A[col][col])\n                for r in range(col+1, n):\n                    if abs(A[r][col]) > mv:\n                        mv = abs(A[r][col])\n                        mr = r\n                if mv < 1e-14:\n                    continue",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.create_network",
+        "NurbsSurface.domain",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.is_singular",
+        "NurbsSurface.min_dist_sq",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.reverse",
+        "NurbsSurface.set_domain"
+      ]
+    },
+    {
+      "name": "NurbsSurface.gauss_solve",
+      "implementations": {
+        "python": {
+          "sig": "gauss_solve(n, dim, A, b)",
+          "code": "def gauss_solve(n, dim, A, b):\n\n            for col in range(n):\n                mr, mv = col, abs(A[col][col])\n                for r in range(col+1, n):\n                    if abs(A[r][col]) > mv:\n                        mv = abs(A[r][col])\n                        mr = r\n                if mv < 1e-14:\n                    continue\n                A[col], A[mr] = A[mr], A[col]\n                b[col], b[mr] = b[mr], b[col]\n                for r in range(col+1, n):\n                    f = A[r][col] / A[col][col]\n                    for c in range(col, n):\n                        A[r][c] -= f * A[col][c]\n                    for d in range(dim):\n                        b[r][d] -= f * b[col][d]\n            for r in range(n-1, -1, -1):\n                for d in range(dim):\n                    for c in range(r+1, n):\n                        b[r][d] -= A[r][c] * b[c][d]\n                    if abs(A[r][r]) > 1e-14:\n                        b[r][d] /= A[r][r]\n\n        def build_interp_knots(n_pts, deg, params):\n            ord_ = deg + 1\n            kc = ord_ + n_pts - 2\n            knots = [0.0] * kc\n            for i in range(ord_ - 1):\n                knots[i] = params[0]\n            for j in range(1, n_pts - ord_ + 1):\n                s = sum(params[j:j+deg]) / deg\n                knots[ord_ - 2 + j] = s\n            for i in range(kc - ord_ + 1, kc):\n                knots[i] = params[n_pts - 1]\n            return knots\n\n        def build_basis_matrix(n, ord_, params, knots):\n            N = [[0.0]*n for _ in range(n)]\n            for row in range(n):\n                t = params[row]\n                span = find_span(ord_, n, knots, t)\n                d = ord_ - 1\n                kb = span + d\n                if knots[kb - 1] == knots[kb]:\n                    if t <= knots[kb]:\n                        N[row][span] = 1.0\n                    else:\n                        N[row][span + ord_ - 1] = 1.0\n                    continue\n                Nv = [0.0] * (ord_ * ord_)\n                Nv[ord_ * ord_ - 1] = 1.0\n                left = [0.0] * d\n                right = [0.0] * d\n                ni = ord_ * ord_ - 1\n                kr, kl = kb, kb - 1\n                for jj in range(d):\n                    n0 = ni\n                    ni -= (ord_ + 1)\n                    left[jj] = t - knots[kl]\n                    right[jj] = knots[kr] - t\n                    kl -= 1\n                    kr += 1\n                    xv = 0.0\n                    for r in range(jj + 1):\n                        a0 = left[jj - r]\n                        a1 = right[r]\n                        den = a0 + a1\n                        yv = Nv[n0 + r] / den if den != 0.0 else 0.0\n                        Nv[ni + r] = xv + a1 * yv\n                        xv = a0 * yv\n                    Nv[ni + jj + 1] = xv\n                for jj in range(ord_):\n                    col = span + jj\n                    if 0 <= col < n:\n                        N[row][col] = Nv[jj]\n            return N\n\n        # Reparametrize curves using monotone Hermite parameter mapping\n        def monotone_hermite_eval(xs, ys, t):",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create_network",
+        "NurbsSurface.find_param",
+        "NurbsSurface.find_span",
+        "NurbsSurface.knot",
+        "NurbsSurface.monotone_hermite_eval",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.skin_curves"
+      ]
+    },
+    {
+      "name": "NurbsSurface.build_interp_knots",
+      "implementations": {
+        "python": {
+          "sig": "build_interp_knots(n_pts, deg, params)",
+          "code": "def build_interp_knots(n_pts, deg, params):\n\n            ord_ = deg + 1\n            kc = ord_ + n_pts - 2\n            knots = [0.0] * kc\n            for i in range(ord_ - 1):\n                knots[i] = params[0]\n            for j in range(1, n_pts - ord_ + 1):\n                s = sum(params[j:j+deg]) / deg\n                knots[ord_ - 2 + j] = s\n            for i in range(kc - ord_ + 1, kc):\n                knots[i] = params[n_pts - 1]\n            return knots\n\n        def build_basis_matrix(n, ord_, params, knots):\n            N = [[0.0]*n for _ in range(n)]\n            for row in range(n):\n                t = params[row]\n                span = find_span(ord_, n, knots, t)\n                d = ord_ - 1\n                kb = span + d\n                if knots[kb - 1] == knots[kb]:\n                    if t <= knots[kb]:\n                        N[row][span] = 1.0\n                    else:\n                        N[row][span + ord_ - 1] = 1.0\n                    continue\n                Nv = [0.0] * (ord_ * ord_)\n                Nv[ord_ * ord_ - 1] = 1.0\n                left = [0.0] * d\n                right = [0.0] * d\n                ni = ord_ * ord_ - 1\n                kr, kl = kb, kb - 1\n                for jj in range(d):\n                    n0 = ni\n                    ni -= (ord_ + 1)\n                    left[jj] = t - knots[kl]\n                    right[jj] = knots[kr] - t\n                    kl -= 1\n                    kr += 1\n                    xv = 0.0\n                    for r in range(jj + 1):\n                        a0 = left[jj - r]\n                        a1 = right[r]\n                        den = a0 + a1\n                        yv = Nv[n0 + r] / den if den != 0.0 else 0.0\n                        Nv[ni + r] = xv + a1 * yv\n                        xv = a0 * yv\n                    Nv[ni + jj + 1] = xv\n                for jj in range(ord_):\n                    col = span + jj\n                    if 0 <= col < n:\n                        N[row][col] = Nv[jj]\n            return N\n\n        # Reparametrize curves using monotone Hermite parameter mapping\n        def monotone_hermite_eval(xs, ys, t):\n            n = len(xs)\n            if n < 2: return t\n            if t <= xs[0]: return ys[0]\n            if t >= xs[n-1]: return ys[n-1]\n            delta = [(ys[k+1]-ys[k])/(xs[k+1]-xs[k]) for k in range(n-1)]\n            d = [0.0]*n\n            d[0] = delta[0]; d[n-1] = delta[n-2]\n            for k in range(1, n-1):\n                d[k] = 0.0 if delta[k-1]*delta[k] <= 0 else (delta[k-1]+delta[k])/2.0\n            for k in range(n-1):\n                if abs(delta[k]) < 1e-15: d[k] = 0; d[k+1] = 0; continue\n                alpha, beta = d[k]/delta[k], d[k+1]/delta[k]\n                if alpha < 0: d[k] = 0; alpha = 0\n                if beta < 0: d[k+1] = 0; beta = 0\n                r2 = alpha*alpha + beta*beta\n                if r2 > 9.0:\n                    tau = 3.0 / (r2**0.5)\n                    d[k] = tau * alpha * delta[k]\n                    d[k+1] = tau * beta * delta[k]\n            ki = 0\n            for i in range(n-1):\n                if t < xs[i+1]: ki = i; break\n                if i == n-2: ki = i\n            h = xs[ki+1] - xs[ki]",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.create_network",
+        "NurbsSurface.find_span",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.knot",
+        "NurbsSurface.monotone_hermite_eval",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.skin_curves"
+      ]
+    },
+    {
+      "name": "NurbsSurface.build_basis_matrix",
+      "implementations": {
+        "python": {
+          "sig": "build_basis_matrix(n, ord_, params, knots)",
+          "code": "def build_basis_matrix(n, ord_, params, knots):\n\n            N = [[0.0]*n for _ in range(n)]\n            for row in range(n):\n                t = params[row]\n                span = find_span(ord_, n, knots, t)\n                d = ord_ - 1\n                kb = span + d\n                if knots[kb - 1] == knots[kb]:\n                    if t <= knots[kb]:\n                        N[row][span] = 1.0\n                    else:\n                        N[row][span + ord_ - 1] = 1.0\n                    continue\n                Nv = [0.0] * (ord_ * ord_)\n                Nv[ord_ * ord_ - 1] = 1.0\n                left = [0.0] * d\n                right = [0.0] * d\n                ni = ord_ * ord_ - 1\n                kr, kl = kb, kb - 1\n                for jj in range(d):\n                    n0 = ni\n                    ni -= (ord_ + 1)\n                    left[jj] = t - knots[kl]\n                    right[jj] = knots[kr] - t\n                    kl -= 1\n                    kr += 1\n                    xv = 0.0\n                    for r in range(jj + 1):\n                        a0 = left[jj - r]\n                        a1 = right[r]\n                        den = a0 + a1\n                        yv = Nv[n0 + r] / den if den != 0.0 else 0.0\n                        Nv[ni + r] = xv + a1 * yv\n                        xv = a0 * yv\n                    Nv[ni + jj + 1] = xv\n                for jj in range(ord_):\n                    col = span + jj\n                    if 0 <= col < n:\n                        N[row][col] = Nv[jj]\n            return N\n\n        # Reparametrize curves using monotone Hermite parameter mapping\n        def monotone_hermite_eval(xs, ys, t):\n            n = len(xs)\n            if n < 2: return t\n            if t <= xs[0]: return ys[0]\n            if t >= xs[n-1]: return ys[n-1]\n            delta = [(ys[k+1]-ys[k])/(xs[k+1]-xs[k]) for k in range(n-1)]\n            d = [0.0]*n\n            d[0] = delta[0]; d[n-1] = delta[n-2]\n            for k in range(1, n-1):\n                d[k] = 0.0 if delta[k-1]*delta[k] <= 0 else (delta[k-1]+delta[k])/2.0\n            for k in range(n-1):\n                if abs(delta[k]) < 1e-15: d[k] = 0; d[k+1] = 0; continue\n                alpha, beta = d[k]/delta[k], d[k+1]/delta[k]\n                if alpha < 0: d[k] = 0; alpha = 0\n                if beta < 0: d[k+1] = 0; beta = 0\n                r2 = alpha*alpha + beta*beta\n                if r2 > 9.0:\n                    tau = 3.0 / (r2**0.5)\n                    d[k] = tau * alpha * delta[k]\n                    d[k+1] = tau * beta * delta[k]\n            ki = 0\n            for i in range(n-1):\n                if t < xs[i+1]: ki = i; break\n                if i == n-2: ki = i\n            h = xs[ki+1] - xs[ki]\n            if h < 1e-15: return ys[ki]\n            s = (t - xs[ki]) / h; s2 = s*s; s3 = s2*s\n            return (2*s3-3*s2+1)*ys[ki] + (s3-2*s2+s)*h*d[ki] \\\n                 + (-2*s3+3*s2)*ys[ki+1] + (s3-s2)*h*d[ki+1]\n\n        def reparametrize_curve(crv, target_params, actual_params):\n            np_ = len(target_params)\n            mx, my = [], []\n            has0 = any(abs(target_params[k]) < 1e-10 for k in range(np_))\n            has1 = any(abs(target_params[k] - 1.0) < 1e-10 for k in range(np_))\n            if not has0: mx.append(0.0); my.append(0.0)\n            for k in range(np_): mx.append(target_params[k]); my.append(actual_params[k])\n            if not has1: mx.append(1.0); my.append(1.0)",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create_network",
+        "NurbsSurface.find_span",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.knot",
+        "NurbsSurface.monotone_hermite_eval",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.skin_curves"
+      ]
+    },
+    {
+      "name": "NurbsSurface.monotone_hermite_eval",
+      "implementations": {
+        "python": {
+          "sig": "monotone_hermite_eval(xs, ys, t)",
+          "code": "def monotone_hermite_eval(xs, ys, t):\n\n            n = len(xs)\n            if n < 2: return t\n            if t <= xs[0]: return ys[0]\n            if t >= xs[n-1]: return ys[n-1]\n            delta = [(ys[k+1]-ys[k])/(xs[k+1]-xs[k]) for k in range(n-1)]\n            d = [0.0]*n\n            d[0] = delta[0]; d[n-1] = delta[n-2]\n            for k in range(1, n-1):\n                d[k] = 0.0 if delta[k-1]*delta[k] <= 0 else (delta[k-1]+delta[k])/2.0\n            for k in range(n-1):\n                if abs(delta[k]) < 1e-15: d[k] = 0; d[k+1] = 0; continue\n                alpha, beta = d[k]/delta[k], d[k+1]/delta[k]\n                if alpha < 0: d[k] = 0; alpha = 0\n                if beta < 0: d[k+1] = 0; beta = 0\n                r2 = alpha*alpha + beta*beta\n                if r2 > 9.0:\n                    tau = 3.0 / (r2**0.5)\n                    d[k] = tau * alpha * delta[k]\n                    d[k+1] = tau * beta * delta[k]\n            ki = 0\n            for i in range(n-1):\n                if t < xs[i+1]: ki = i; break\n                if i == n-2: ki = i\n            h = xs[ki+1] - xs[ki]\n            if h < 1e-15: return ys[ki]\n            s = (t - xs[ki]) / h; s2 = s*s; s3 = s2*s\n            return (2*s3-3*s2+1)*ys[ki] + (s3-2*s2+s)*h*d[ki] \\\n                 + (-2*s3+3*s2)*ys[ki+1] + (s3-s2)*h*d[ki+1]\n\n        def reparametrize_curve(crv, target_params, actual_params):\n            np_ = len(target_params)\n            mx, my = [], []\n            has0 = any(abs(target_params[k]) < 1e-10 for k in range(np_))\n            has1 = any(abs(target_params[k] - 1.0) < 1e-10 for k in range(np_))\n            if not has0: mx.append(0.0); my.append(0.0)\n            for k in range(np_): mx.append(target_params[k]); my.append(actual_params[k])\n            if not has1: mx.append(1.0); my.append(1.0)\n            max_dev = max(abs(my[k]-mx[k]) for k in range(len(mx)))\n            if max_dev < 1e-6: return crv\n            nu = max(crv.cv_count() * 5, 30)\n            sample_set = set()\n            for k in range(nu): sample_set.add(float(k) / (nu - 1))\n            for k in range(np_): sample_set.add(target_params[k])\n            sp = sorted(sample_set)\n            ns = len(sp)\n            pts = []\n            for k in range(ns):\n                tm = max(0.0, min(1.0, monotone_hermite_eval(mx, my, sp[k])))\n                pts.append(crv.point_at(tm))\n            deg = min(3, ns - 1); ord_ = deg + 1\n            kn = build_interp_knots(ns, deg, sp)\n            N = build_basis_matrix(ns, ord_, sp, kn)\n            rhs = [[pts[k][0], pts[k][1], pts[k][2]] for k in range(ns)]\n            A_copy = [row[:] for row in N]\n            gauss_solve(ns, 3, A_copy, rhs)\n            nc = NurbsCurve(3, False, ord_, ns)\n            for k in range(min(len(kn), nc.knot_count())):\n                nc.set_knot(k, kn[k])\n            for k in range(ns):\n                nc.set_cv(k, Point(rhs[k][0], rhs[k][1], rhs[k][2]))\n            nc.set_domain(0.0, 1.0)\n            return nc\n\n        for i in range(n_u):\n            tgt = [u_params[j] for j in range(n_v)]\n            act = [t_u_ij[i][j] for j in range(n_v)]\n            u_crvs[i] = reparametrize_curve(u_crvs[i], tgt, act)\n        for j in range(n_v):\n            tgt = [v_params[i] for i in range(n_u)]\n            act = [t_v_ij[i][j] for i in range(n_u)]\n            v_crvs[j] = reparametrize_curve(v_crvs[j], tgt, act)\n\n        NurbsSurface._make_curves_compatible(u_crvs)\n        NurbsSurface._make_curves_compatible(v_crvs)\n        for c in u_crvs: c.set_domain(0.0, 1.0)\n        for c in v_crvs: c.set_domain(0.0, 1.0)\n\n        # Intersection points from u-curves (ensures exact v-curve interpolation at grid points)\n        P_ij = [[None]*n_v for _ in range(n_u)]",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.domain",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.point_at",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_domain",
+        "NurbsSurface.set_knot"
+      ]
+    },
+    {
+      "name": "NurbsSurface.reparametrize_curve",
+      "implementations": {
+        "python": {
+          "sig": "reparametrize_curve(crv, target_params, actual_params)",
+          "code": "def reparametrize_curve(crv, target_params, actual_params):\n\n            np_ = len(target_params)\n            mx, my = [], []\n            has0 = any(abs(target_params[k]) < 1e-10 for k in range(np_))\n            has1 = any(abs(target_params[k] - 1.0) < 1e-10 for k in range(np_))\n            if not has0: mx.append(0.0); my.append(0.0)\n            for k in range(np_): mx.append(target_params[k]); my.append(actual_params[k])\n            if not has1: mx.append(1.0); my.append(1.0)\n            max_dev = max(abs(my[k]-mx[k]) for k in range(len(mx)))\n            if max_dev < 1e-6: return crv\n            nu = max(crv.cv_count() * 5, 30)\n            sample_set = set()\n            for k in range(nu): sample_set.add(float(k) / (nu - 1))\n            for k in range(np_): sample_set.add(target_params[k])\n            sp = sorted(sample_set)\n            ns = len(sp)\n            pts = []\n            for k in range(ns):\n                tm = max(0.0, min(1.0, monotone_hermite_eval(mx, my, sp[k])))\n                pts.append(crv.point_at(tm))\n            deg = min(3, ns - 1); ord_ = deg + 1\n            kn = build_interp_knots(ns, deg, sp)\n            N = build_basis_matrix(ns, ord_, sp, kn)\n            rhs = [[pts[k][0], pts[k][1], pts[k][2]] for k in range(ns)]\n            A_copy = [row[:] for row in N]\n            gauss_solve(ns, 3, A_copy, rhs)\n            nc = NurbsCurve(3, False, ord_, ns)\n            for k in range(min(len(kn), nc.knot_count())):\n                nc.set_knot(k, kn[k])\n            for k in range(ns):\n                nc.set_cv(k, Point(rhs[k][0], rhs[k][1], rhs[k][2]))\n            nc.set_domain(0.0, 1.0)\n            return nc\n\n        for i in range(n_u):\n            tgt = [u_params[j] for j in range(n_v)]\n            act = [t_u_ij[i][j] for j in range(n_v)]\n            u_crvs[i] = reparametrize_curve(u_crvs[i], tgt, act)\n        for j in range(n_v):\n            tgt = [v_params[i] for i in range(n_u)]\n            act = [t_v_ij[i][j] for i in range(n_u)]\n            v_crvs[j] = reparametrize_curve(v_crvs[j], tgt, act)\n\n        NurbsSurface._make_curves_compatible(u_crvs)\n        NurbsSurface._make_curves_compatible(v_crvs)\n        for c in u_crvs: c.set_domain(0.0, 1.0)\n        for c in v_crvs: c.set_domain(0.0, 1.0)\n\n        # Intersection points from u-curves (ensures exact v-curve interpolation at grid points)\n        P_ij = [[None]*n_v for _ in range(n_u)]\n        for i in range(n_u):\n            for j in range(n_v):\n                P_ij[i][j] = u_crvs[i].point_at(u_params[j])\n\n        def skin_curves(curves, cross_params, cross_degree):\n            nc = len(curves)\n            cv_along = curves[0].cv_count()\n            order_along = curves[0].order()\n            cdeg = min(cross_degree, nc - 1)\n            cord = cdeg + 1\n            cross_knots = build_interp_knots(nc, cdeg, cross_params)\n            N_cross = build_basis_matrix(nc, cord, cross_params, cross_knots)\n            srf = NurbsSurface.create_raw(3, False, order_along, cord, cv_along, nc)\n            for i in range(srf.knot_count(0)):\n                srf.set_knot(0, i, curves[0].knot(i))\n            v_kc = len(cross_knots)\n            for i in range(min(v_kc, srf.knot_count(1))):\n                srf.set_knot(1, i, cross_knots[i])\n            for j in range(cv_along):\n                A = [row[:] for row in N_cross]\n                rhs = [[0.0]*3 for _ in range(nc)]\n                for k in range(nc):\n                    p = curves[k].get_cv(j)\n                    rhs[k] = [p[0], p[1], p[2]]\n                gauss_solve(nc, 3, A, rhs)\n                for k in range(nc):\n                    srf.set_cv(j, k, Point(rhs[k][0], rhs[k][1], rhs[k][2]))\n            return srf\n\n        # Step 1: S_profiles = skin u-curves at v_params",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.monotone_hermite_eval",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_domain",
+        "NurbsSurface.set_knot",
+        "NurbsSurface.skin_curves"
+      ]
+    },
+    {
+      "name": "NurbsSurface.skin_curves",
+      "implementations": {
+        "python": {
+          "sig": "skin_curves(curves, cross_params, cross_degree)",
+          "code": "def skin_curves(curves, cross_params, cross_degree):\n\n            nc = len(curves)\n            cv_along = curves[0].cv_count()\n            order_along = curves[0].order()\n            cdeg = min(cross_degree, nc - 1)\n            cord = cdeg + 1\n            cross_knots = build_interp_knots(nc, cdeg, cross_params)\n            N_cross = build_basis_matrix(nc, cord, cross_params, cross_knots)\n            srf = NurbsSurface.create_raw(3, False, order_along, cord, cv_along, nc)\n            for i in range(srf.knot_count(0)):\n                srf.set_knot(0, i, curves[0].knot(i))\n            v_kc = len(cross_knots)\n            for i in range(min(v_kc, srf.knot_count(1))):\n                srf.set_knot(1, i, cross_knots[i])\n            for j in range(cv_along):\n                A = [row[:] for row in N_cross]\n                rhs = [[0.0]*3 for _ in range(nc)]\n                for k in range(nc):\n                    p = curves[k].get_cv(j)\n                    rhs[k] = [p[0], p[1], p[2]]\n                gauss_solve(nc, 3, A, rhs)\n                for k in range(nc):\n                    srf.set_cv(j, k, Point(rhs[k][0], rhs[k][1], rhs[k][2]))\n            return srf\n\n        # Step 1: S_profiles = skin u-curves at v_params\n        s_profiles = skin_curves(u_crvs, v_params, 3)\n\n        # Step 2: S_guides = skin v-curves at u_params, transpose\n        s_guides = skin_curves(v_crvs, u_params, 3)\n        s_guides.transpose()\n\n        # Step 3: S_tensor = interpolate intersection point grid\n        u_deg = min(3, n_v - 1)\n        u_ord = u_deg + 1\n        u_knots_t = build_interp_knots(n_v, u_deg, u_params)\n        N_u = build_basis_matrix(n_v, u_ord, u_params, u_knots_t)\n        row_curves = []\n        for i in range(n_u):\n            A = [row[:] for row in N_u]\n            rhs = [[P_ij[i][j][0], P_ij[i][j][1], P_ij[i][j][2]] for j in range(n_v)]\n            gauss_solve(n_v, 3, A, rhs)\n            crv = NurbsCurve(3, False, u_ord, n_v)\n            for k in range(min(len(u_knots_t), crv.knot_count())):\n                crv.set_knot(k, u_knots_t[k])\n            for k in range(n_v):\n                crv.set_cv(k, Point(rhs[k][0], rhs[k][1], rhs[k][2]))\n            row_curves.append(crv)\n        s_tensor = skin_curves(row_curves, v_params, 3)\n\n        # Step 4: Make all three surfaces compatible\n        for dir_ in range(2):\n            s_profiles.set_domain(dir_, 0.0, 1.0)\n            s_guides.set_domain(dir_, 0.0, 1.0)\n            s_tensor.set_domain(dir_, 0.0, 1.0)\n\n        max_deg_u = max(s_profiles.degree(0), s_guides.degree(0), s_tensor.degree(0))\n        max_deg_v = max(s_profiles.degree(1), s_guides.degree(1), s_tensor.degree(1))\n        for srf in [s_profiles, s_guides, s_tensor]:\n            if srf.degree(0) < max_deg_u:\n                srf.increase_degree(0, max_deg_u)\n            if srf.degree(1) < max_deg_v:\n                srf.increase_degree(1, max_deg_v)\n\n        ktol = 1e-10\n        for dir_ in range(2):\n            ka = list(s_profiles.get_knots(dir_))\n            kb = list(s_guides.get_knots(dir_))\n            kc = list(s_tensor.get_knots(dir_))\n            unified = NurbsSurface._merge_knot_vectors(\n                NurbsSurface._merge_knot_vectors(ka, kb), kc)\n            for srf in [s_profiles, s_guides, s_tensor]:\n                cur = list(srf.get_knots(dir_))\n                for kv in unified:\n                    found = any(abs(ck - kv) < ktol for ck in cur)\n                    if not found:\n                        srf.insert_knot(dir_, kv, 1)\n                        cur = list(srf.get_knots(dir_))\n\n        # Step 5: Combine control points",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.gauss_solve",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.get_knots",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.order",
+        "NurbsSurface.reparametrize_curve",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_domain",
+        "NurbsSurface.set_knot",
+        "NurbsSurface.transpose"
+      ]
+    },
+    {
+      "name": "NurbsSurface._to_curve_internal",
+      "implementations": {
+        "python": {
+          "sig": "_to_curve_internal(dir: int)",
+          "code": "def _to_curve_internal(self, dir: int):\n\n        \"\"\"Pack surface into a high-dimensional curve along dir.\"\"\"\n        dim = self.m_dim\n        if dir == 0:\n            n_along = self.cv_count(0)\n            n_other = self.cv_count(1)\n        else:\n            n_along = self.cv_count(1)\n            n_other = self.cv_count(0)\n        hdim = dim * n_other\n        crv = NurbsCurve(hdim, False, self.order(dir), n_along)\n        for k in range(self.knot_count(dir)):\n            crv.set_knot(k, self.m_knot[dir][k])\n        for i in range(n_along):\n            cv_data = []\n            for j in range(n_other):\n                if dir == 0:\n                    p = self.get_cv(i, j)\n                else:\n                    p = self.get_cv(j, i)\n                cv_data.extend([p[0], p[1], p[2]])\n            for d in range(hdim):\n                crv.m_cv[i * crv.m_cv_stride + d] = cv_data[d]\n        return crv\n\n    def _from_curve_internal(self, crv, dir: int):\n        \"\"\"Unpack high-dimensional curve back into surface.\"\"\"\n        dim = self.m_dim\n        if dir == 0:\n            n_other = self.cv_count(1)\n            new_n_along = crv.cv_count()\n        else:\n            n_other = self.cv_count(0)\n            new_n_along = crv.cv_count()\n        new_order = crv.order()\n        if dir == 0:\n            new_srf = NurbsSurface.create_raw(dim, False, new_order, self.order(1),\n                                               new_n_along, self.cv_count(1))\n            for k in range(crv.knot_count()):\n                new_srf.set_knot(0, k, crv.knot(k))\n            for k in range(self.knot_count(1)):\n                new_srf.set_knot(1, k, self.m_knot[1][k])\n        else:\n            new_srf = NurbsSurface.create_raw(dim, False, self.order(0), new_order,\n                                               self.cv_count(0), new_n_along)\n            for k in range(self.knot_count(0)):\n                new_srf.set_knot(0, k, self.m_knot[0][k])\n            for k in range(crv.knot_count()):\n                new_srf.set_knot(1, k, crv.knot(k))\n        for i in range(new_n_along):\n            for j in range(n_other):\n                base = i * crv.m_cv_stride + j * dim\n                x = crv.m_cv[base]\n                y = crv.m_cv[base + 1]\n                z = crv.m_cv[base + 2]\n                if dir == 0:\n                    new_srf.set_cv(i, j, Point(x, y, z))\n                else:\n                    new_srf.set_cv(j, i, Point(x, y, z))\n        self.m_order = new_srf.m_order\n        self.m_cv_count = new_srf.m_cv_count\n        self.m_knot = new_srf.m_knot\n        self.m_cv = new_srf.m_cv\n        self.m_cv_stride = new_srf.m_cv_stride\n        return True\n\n    def insert_knot(self, dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        for _ in range(knot_multiplicity):\n            if not crv.insert_knot(knot_value, 1):\n                return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # MODIFICATION OPERATIONS (ADDITIONAL)\n    ###########################################################################",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface.clamp_end",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.dimension",
+        "NurbsSurface.extend",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.knot_multiplicity",
+        "NurbsSurface.make_non_rational",
+        "NurbsSurface.new",
+        "NurbsSurface.order",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_knot",
+        "NurbsSurface.str"
+      ]
+    },
+    {
+      "name": "NurbsSurface._from_curve_internal",
+      "implementations": {
+        "python": {
+          "sig": "_from_curve_internal(crv, dir: int)",
+          "code": "def _from_curve_internal(self, crv, dir: int):\n\n        \"\"\"Unpack high-dimensional curve back into surface.\"\"\"\n        dim = self.m_dim\n        if dir == 0:\n            n_other = self.cv_count(1)\n            new_n_along = crv.cv_count()\n        else:\n            n_other = self.cv_count(0)\n            new_n_along = crv.cv_count()\n        new_order = crv.order()\n        if dir == 0:\n            new_srf = NurbsSurface.create_raw(dim, False, new_order, self.order(1),\n                                               new_n_along, self.cv_count(1))\n            for k in range(crv.knot_count()):\n                new_srf.set_knot(0, k, crv.knot(k))\n            for k in range(self.knot_count(1)):\n                new_srf.set_knot(1, k, self.m_knot[1][k])\n        else:\n            new_srf = NurbsSurface.create_raw(dim, False, self.order(0), new_order,\n                                               self.cv_count(0), new_n_along)\n            for k in range(self.knot_count(0)):\n                new_srf.set_knot(0, k, self.m_knot[0][k])\n            for k in range(crv.knot_count()):\n                new_srf.set_knot(1, k, crv.knot(k))\n        for i in range(new_n_along):\n            for j in range(n_other):\n                base = i * crv.m_cv_stride + j * dim\n                x = crv.m_cv[base]\n                y = crv.m_cv[base + 1]\n                z = crv.m_cv[base + 2]\n                if dir == 0:\n                    new_srf.set_cv(i, j, Point(x, y, z))\n                else:\n                    new_srf.set_cv(j, i, Point(x, y, z))\n        self.m_order = new_srf.m_order\n        self.m_cv_count = new_srf.m_cv_count\n        self.m_knot = new_srf.m_knot\n        self.m_cv = new_srf.m_cv\n        self.m_cv_stride = new_srf.m_cv_stride\n        return True\n\n    def insert_knot(self, dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        for _ in range(knot_multiplicity):\n            if not crv.insert_knot(knot_value, 1):\n                return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # MODIFICATION OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def trim(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Trim surface to sub-domain in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        domain : tuple\n            (start, end) domain.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires knot insertion and removal\n        return False\n    \n    def split(self, dir: int, c: float) -> Tuple[Optional['NurbsSurface'], Optional['NurbsSurface']]:\n        \"\"\"Split surface at parameter in specified direction.\n        \n        Parameters\n        ----------\n        dir : int",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._to_curve_internal",
+        "NurbsSurface.clamp_end",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.dimension",
+        "NurbsSurface.domain",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.insert_knot",
+        "NurbsSurface.knot",
+        "NurbsSurface.knot_count",
+        "NurbsSurface.knot_multiplicity",
+        "NurbsSurface.make_non_rational",
+        "NurbsSurface.new",
+        "NurbsSurface.order",
+        "NurbsSurface.set_cv",
+        "NurbsSurface.set_knot",
+        "NurbsSurface.split",
         "NurbsSurface.str",
         "NurbsSurface.trim"
       ]
@@ -17003,25 +17585,35 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "insert_knot(dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool",
-          "code": "def insert_knot(self, dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool:\n\n        \"\"\"Insert knot in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        knot_value : float\n            Knot value to insert.\n        knot_multiplicity : int, optional\n            Number of times to insert. Defaults to 1.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires Boehm's algorithm\n        return False\n    \n    ###########################################################################\n    # MODIFICATION OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def trim(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Trim surface to sub-domain in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        domain : tuple\n            (start, end) domain.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires knot insertion and removal\n        return False\n    \n    def split(self, dir: int, c: float) -> Tuple[Optional['NurbsSurface'], Optional['NurbsSurface']]:\n        \"\"\"Split surface at parameter in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        c : float\n            Parameter value to split at.\n        \n        Returns\n        -------\n        tuple\n            (west_or_south_side, east_or_north_side) or (None, None) on failure.\n        \"\"\"\n        # Stub - requires knot insertion\n        return (None, None)\n    \n    def extend(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Extend surface to include domain in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        domain : tuple\n            (start, end) domain to extend to.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires curve extension algorithms\n        return False\n    \n    def make_non_rational(self) -> bool:\n        \"\"\"Make surface non-rational if all weights are equal.",
+          "code": "def insert_knot(self, dir: int, knot_value: float, knot_multiplicity: int = 1) -> bool:\n\n        if dir < 0 or dir > 1:\n            return False\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        for _ in range(knot_multiplicity):\n            if not crv.insert_knot(knot_value, 1):\n                return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # MODIFICATION OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def trim(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Trim surface to sub-domain in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        domain : tuple\n            (start, end) domain.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires knot insertion and removal\n        return False\n    \n    def split(self, dir: int, c: float) -> Tuple[Optional['NurbsSurface'], Optional['NurbsSurface']]:\n        \"\"\"Split surface at parameter in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        c : float\n            Parameter value to split at.\n        \n        Returns\n        -------\n        tuple\n            (west_or_south_side, east_or_north_side) or (None, None) on failure.\n        \"\"\"\n        # Stub - requires knot insertion\n        return (None, None)\n    \n    def extend(self, dir: int, domain: Tuple[float, float]) -> bool:\n        \"\"\"Extend surface to include domain in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        domain : tuple\n            (start, end) domain to extend to.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires curve extension algorithms\n        return False\n    \n    def make_non_rational(self) -> bool:\n        \"\"\"Make surface non-rational if all weights are equal.\n        \n        Returns\n        -------\n        bool\n            True if successful, False if weights are non-uniform.\n        \"\"\"\n        if not self.m_is_rat:\n            return True",
           "file": "nurbssurface.py"
         },
         "cpp": {
           "sig": "bool insert_knot(int dir, double knot_value, int knot_multiplicity)",
           "code": "bool NurbsSurface::insert_knot(int dir, double knot_value, int knot_multiplicity) {\n    // Actual implementation is after helper function definitions\n    // This stub delegates to insert_knot_impl to avoid forward reference issues\n    return insert_knot_impl(*this, dir, knot_value, knot_multiplicity);\n}",
           "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "insert_knot(dir: usize, knot_value: f64, knot_multiplicity: usize) -> bool",
+          "code": "pub fn insert_knot(&mut self, dir: usize, knot_value: f64, knot_multiplicity: usize) -> bool {\n        if dir > 1 { return false; }\n        let mut crv = match self.to_curve_internal(dir) {\n            Some(c) => c,\n            None => return false,\n        };\n        for _ in 0..knot_multiplicity {\n            if !crv.insert_knot(knot_value, 1) {\n                return false;\n            }\n        }\n        self.from_curve_internal(&crv, dir)\n    }",
+          "file": "nurbssurface.rs"
         }
       },
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.create_ruled",
         "NurbsSurface.domain",
         "NurbsSurface.extend",
-        "NurbsSurface.is_singular",
         "NurbsSurface.knot",
         "NurbsSurface.knot_multiplicity",
         "NurbsSurface.make_non_rational",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.split",
         "NurbsSurface.to_string",
         "NurbsSurface.trim",
@@ -17044,6 +17636,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface.__jsondump__",
+        "NurbsSurface._from_curve_internal",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.collapse_side",
         "NurbsSurface.cv",
@@ -17056,12 +17649,10 @@ window.API_INDEX = {
         "NurbsSurface.get_outer_loop",
         "NurbsSurface.insert_knot",
         "NurbsSurface.is_duplicate",
-        "NurbsSurface.is_singular",
         "NurbsSurface.is_trimmed",
         "NurbsSurface.json_dumps",
         "NurbsSurface.json_load",
         "NurbsSurface.json_loads",
-        "NurbsSurface.jsondump",
         "NurbsSurface.knot",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.mesh",
@@ -17089,6 +17680,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._from_curve_internal",
         "NurbsSurface.clamp_end",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -17120,6 +17712,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.clamp_end",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -17147,7 +17740,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clamp_end(dir: int, end: int) -> bool",
-          "code": "def clamp_end(self, dir: int, end: int) -> bool:\n\n        \"\"\"Clamp knot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) knot values to match knot[order-2]/knot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use knot module function\n        return knot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_knot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        \"\"\"Increase degree in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        desired_degree : int\n            Desired degree.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires degree elevation algorithm\n        return False\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def area(self, tolerance: float = 1e-6) -> float:\n        \"\"\"Get surface area (approximate).\n        \n        Parameters\n        ----------\n        tolerance : float, optional\n            Tolerance for approximation.\n        \n        Returns",
+          "code": "def clamp_end(self, dir: int, end: int) -> bool:\n\n        \"\"\"Clamp knot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) knot values to match knot[order-2]/knot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use knot module function\n        return knot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_knot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def area(self, tolerance: float = 1e-6) -> float:\n        \"\"\"Get surface area (approximate).\n        \n        Parameters\n        ----------\n        tolerance : float, optional\n            Tolerance for approximation.\n        \n        Returns\n        -------\n        float\n            Approximate surface area.\n        \"\"\"",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -17162,6 +17755,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.area",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -17184,18 +17779,28 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "increase_degree(dir: int, desired_degree: int) -> bool",
-          "code": "def increase_degree(self, dir: int, desired_degree: int) -> bool:\n\n        \"\"\"Increase degree in specified direction.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        desired_degree : int\n            Desired degree.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        # Stub - requires degree elevation algorithm\n        return False\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def area(self, tolerance: float = 1e-6) -> float:\n        \"\"\"Get surface area (approximate).\n        \n        Parameters\n        ----------\n        tolerance : float, optional\n            Tolerance for approximation.\n        \n        Returns\n        -------\n        float\n            Approximate surface area.\n        \"\"\"\n        # Stub - requires numerical integration\n        return 0.0\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():",
+          "code": "def increase_degree(self, dir: int, desired_degree: int) -> bool:\n\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def area(self, tolerance: float = 1e-6) -> float:\n        \"\"\"Get surface area (approximate).\n        \n        Parameters\n        ----------\n        tolerance : float, optional\n            Tolerance for approximation.\n        \n        Returns\n        -------\n        float\n            Approximate surface area.\n        \"\"\"\n        # Stub - requires numerical integration\n        return 0.0\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()",
           "file": "nurbssurface.py"
         },
         "cpp": {
           "sig": "bool increase_degree(int dir, int desired_degree)",
-          "code": "bool NurbsSurface::increase_degree(int dir, int desired_degree) {\n    // TODO: Implement using curve conversion helpers\n    return false;\n}",
+          "code": "bool NurbsSurface::increase_degree(int dir, int desired_degree) {\n    // Actual implementation after helper function definitions (see increase_degree_impl)\n    return increase_degree_impl(*this, dir, desired_degree);\n}",
           "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "increase_degree(dir: usize, desired_degree: usize) -> bool",
+          "code": "pub fn increase_degree(&mut self, dir: usize, desired_degree: usize) -> bool {\n        if dir > 1 { return false; }\n        if desired_degree < self.degree(dir) { return false; }\n        if desired_degree == self.degree(dir) { return true; }\n        let mut crv = match self.to_curve_internal(dir) {\n            Some(c) => c,\n            None => return false,\n        };\n        if !crv.increase_degree(desired_degree) {\n            return false;\n        }\n        self.from_curve_internal(&crv, dir)\n    }",
+          "file": "nurbssurface.rs"
         }
       },
       "related": [
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._make_curves_compatible",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.area",
         "NurbsSurface.clamp_end",
         "NurbsSurface.create_ruled",
@@ -17203,6 +17808,7 @@ window.API_INDEX = {
         "NurbsSurface.is_valid",
         "NurbsSurface.iso_curve",
         "NurbsSurface.make_non_rational",
+        "NurbsSurface.skin_curves",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
         "NurbsSurface.transform_stored",
@@ -18076,7 +18682,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects",
           "file": "objects.py"
         },
         "cpp": {
@@ -18112,7 +18718,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
           "file": "objects.py"
         },
         "cpp": {
@@ -18148,7 +18754,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
           "file": "objects.py"
         },
         "cpp": {
@@ -18184,7 +18790,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -18219,17 +18825,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for c in self.cylinders:\n            proto.cylinders.add().ParseFromString(c.pb_dumps())\n        for a in self.arrows:\n            proto.arrows.add().ParseFromString(a.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
           "sig": "std::string pb_dumps()",
-          "code": "std::string Objects::pb_dumps() const {\n  session_proto::Objects proto;\n  proto.set_name(name);\n  proto.set_guid(guid);\n  for (const auto& p : *points) proto.add_points()->ParseFromString(p->pb_dumps());\n  for (const auto& l : *lines) proto.add_lines()->ParseFromString(l->pb_dumps());\n  for (const auto& pl : *planes) proto.add_planes()->ParseFromString(pl->pb_dumps());\n  for (const auto& b : *bboxes) proto.add_bboxes()->ParseFromString(b->pb_dumps());\n  for (const auto& pl : *polylines) proto.add_polylines()->ParseFromString(pl->pb_dumps());\n  for (const auto& pc : *pointclouds) proto.add_pointclouds()->ParseFromString(pc->pb_dumps());\n  for (const auto& m : *meshes) proto.add_meshes()->ParseFromString(m->pb_dumps());\n  for (const auto& c : *cylinders) proto.add_cylinders()->ParseFromString(c->pb_dumps());\n  for (const auto& a : *arrows) proto.add_arrows()->ParseFromString(a->pb_dumps());\n  return proto.SerializeAsString();\n}",
+          "code": "std::string Objects::pb_dumps() const {\n  session_proto::Objects proto;\n  proto.set_name(name);\n  proto.set_guid(guid);\n  for (const auto& p : *points) proto.add_points()->ParseFromString(p->pb_dumps());\n  for (const auto& l : *lines) proto.add_lines()->ParseFromString(l->pb_dumps());\n  for (const auto& pl : *planes) proto.add_planes()->ParseFromString(pl->pb_dumps());\n  for (const auto& b : *bboxes) proto.add_bboxes()->ParseFromString(b->pb_dumps());\n  for (const auto& pl : *polylines) proto.add_polylines()->ParseFromString(pl->pb_dumps());\n  for (const auto& pc : *pointclouds) proto.add_pointclouds()->ParseFromString(pc->pb_dumps());\n  for (const auto& m : *meshes) proto.add_meshes()->ParseFromString(m->pb_dumps());\n  for (const auto& c : *cylinders) proto.add_cylinders()->ParseFromString(c->pb_dumps());\n  for (const auto& a : *arrows) proto.add_arrows()->ParseFromString(a->pb_dumps());\n  for (const auto& nc : *nurbscurves) proto.add_nurbscurves()->ParseFromString(nc->pb_dumps());\n  for (const auto& ns : *nurbssurfaces) proto.add_nurbssurfaces()->ParseFromString(ns->pb_dumps());\n  return proto.SerializeAsString();\n}",
           "file": "objects.cpp"
         },
         "rust": {
           "sig": "pb_dumps() -> Vec<u8>",
-          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Objects {\n            name: self.name.clone(),\n            guid: self.guid.clone(),\n            points: self.points.iter().map(|p| {\n                crate::proto::Point::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            lines: self.lines.iter().map(|l| {\n                crate::proto::Line::decode(l.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            planes: self.planes.iter().map(|p| {\n                crate::proto::Plane::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            bboxes: self.bboxes.iter().map(|b| {\n                crate::proto::BoundingBox::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            polylines: self.polylines.iter().map(|p| {\n                crate::proto::Polyline::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            pointclouds: self.pointclouds.iter().map(|p| {\n                crate::proto::PointCloud::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            meshes: self.meshes.iter().map(|m| {\n                crate::proto::Mesh::decode(m.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            cylinders: self.cylinders.iter().map(|c| {\n                crate::proto::Cylinder::decode(c.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            arrows: self.arrows.iter().map(|a| {\n                crate::proto::Arrow::decode(a.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n        };\n        proto.encode_to_vec()\n    }",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Objects {\n            name: self.name.clone(),\n            guid: self.guid.clone(),\n            points: self.points.iter().map(|p| {\n                crate::proto::Point::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            lines: self.lines.iter().map(|l| {\n                crate::proto::Line::decode(l.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            planes: self.planes.iter().map(|p| {\n                crate::proto::Plane::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            bboxes: self.bboxes.iter().map(|b| {\n                crate::proto::BoundingBox::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            polylines: self.polylines.iter().map(|p| {\n                crate::proto::Polyline::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            pointclouds: self.pointclouds.iter().map(|p| {\n                crate::proto::PointCloud::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            meshes: self.meshes.iter().map(|m| {\n                crate::proto::Mesh::decode(m.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            cylinders: self.cylinders.iter().map(|c| {\n                crate::proto::Cylinder::decode(c.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            arrows: self.arrows.iter().map(|a| {\n                crate::proto::Arrow::decode(a.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbscurves: self.nurbscurves.iter().map(|nc| {\n                crate::proto::NurbsCurve::decode(nc.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbssurfaces: self.nurbssurfaces.iter().map(|ns| {\n                crate::proto::NurbsSurface::decode(ns.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n        };\n        proto.encode_to_vec()\n    }",
           "file": "objects.rs"
         }
       },
@@ -18250,17 +18856,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_loads(cls, data):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for c in proto.cylinders:\n            objects.cylinders.append(Cylinder.pb_loads(c.SerializeToString()))\n        for a in proto.arrows:\n            objects.arrows.append(Arrow.pb_loads(a.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
           "sig": "Objects pb_loads(const std::string& data)",
-          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<BoundingBox>(BoundingBox::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& c : proto.cylinders())\n    objects.cylinders->push_back(std::make_shared<Cylinder>(Cylinder::pb_loads(c.SerializeAsString())));\n  for (const auto& a : proto.arrows())\n    objects.arrows->push_back(std::make_shared<Arrow>(Arrow::pb_loads(a.SerializeAsString())));\n  return objects;\n}",
+          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<BoundingBox>(BoundingBox::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& c : proto.cylinders())\n    objects.cylinders->push_back(std::make_shared<Cylinder>(Cylinder::pb_loads(c.SerializeAsString())));\n  for (const auto& a : proto.arrows())\n    objects.arrows->push_back(std::make_shared<Arrow>(Arrow::pb_loads(a.SerializeAsString())));\n  for (const auto& nc : proto.nurbscurves())\n    objects.nurbscurves->push_back(std::make_shared<NurbsCurve>(NurbsCurve::pb_loads(nc.SerializeAsString())));\n  for (const auto& ns : proto.nurbssurfaces())\n    objects.nurbssurfaces->push_back(std::make_shared<NurbsSurface>(NurbsSurface::pb_loads(ns.SerializeAsString())));\n  return objects;\n}",
           "file": "objects.cpp"
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.guid = proto.guid;\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::boundingbox::BoundingBox::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for c in &proto.cylinders {\n            objects.cylinders.push(crate::cylinder::Cylinder::pb_loads(&c.encode_to_vec())?);\n        }\n        for a in &proto.arrows {\n            objects.arrows.push(crate::arrow::Arrow::pb_loads(&a.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.guid = proto.guid;\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::boundingbox::BoundingBox::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for c in &proto.cylinders {\n            objects.cylinders.push(crate::cylinder::Cylinder::pb_loads(&c.encode_to_vec())?);\n        }\n        for a in &proto.arrows {\n            objects.arrows.push(crate::arrow::Arrow::pb_loads(&a.encode_to_vec())?);\n        }\n        for nc in &proto.nurbscurves {\n            objects.nurbscurves.push(crate::nurbscurve::NurbsCurve::pb_loads(&nc.encode_to_vec())?);\n        }\n        for ns in &proto.nurbssurfaces {\n            objects.nurbssurfaces.push(crate::nurbssurface::NurbsSurface::pb_loads(&ns.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
           "file": "objects.rs"
         }
       },
@@ -36237,6 +36843,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "NormalWeighting.is_valid",
+      "implementations": {
+        "cpp": {
+          "sig": "bool is_valid()",
+          "code": "bool is_valid() const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
       "name": "NormalWeighting.euler",
       "implementations": {
         "cpp": {
@@ -36640,6 +37256,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "Mesh()",
           "code": "Mesh::Mesh() {\n    xform = Xform::identity();\n    default_vertex_attributes[\"x\"] = 0.0;\n    default_vertex_attributes[\"y\"] = 0.0;\n    default_vertex_attributes[\"z\"] = 0.0;\n}",
+          "file": "mesh.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.is_valid",
+      "implementations": {
+        "cpp": {
+          "sig": "bool is_valid()",
+          "code": "bool Mesh::is_valid() const {\n    if (vertex.empty() || face.empty()) return false;\n    for (const auto& [fkey, vkeys] : face) {\n        if (vkeys.size() < 3) return false;\n        for (size_t vk : vkeys) {\n            if (vertex.find(vk) == vertex.end()) return false;\n        }",
           "file": "mesh.cpp"
         }
       }
@@ -37431,21 +38057,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "NurbsSurface.create_loft",
-      "implementations": {
-        "cpp": {
-          "sig": "NurbsSurface create_loft(const std::vector<NurbsCurve>& input_curves, int degree_v)",
-          "code": "NurbsSurface NurbsSurface::create_loft(const std::vector<NurbsCurve>& input_curves, int degree_v) {\n    NurbsSurface surface;\n    if (input_curves.size() < 2) return surface;\n\n    // Validate all curves\n    for (auto& c : input_curves) {\n        if (!c.is_valid()) return surface;\n    }",
-          "file": "nurbssurface.cpp"
-        }
-      },
-      "related": [
-        "NurbsSurface.create",
-        "NurbsSurface.degree",
-        "NurbsSurface.is_valid"
-      ]
-    },
-    {
       "name": "NurbsSurface.create_revolve",
       "implementations": {
         "cpp": {
@@ -37497,6 +38108,21 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.create",
         "NurbsSurface.is_valid"
+      ]
+    },
+    {
+      "name": "NurbsSurface.create_edge",
+      "implementations": {
+        "cpp": {
+          "sig": "NurbsSurface create_edge(\n    const NurbsCurve& c0, const NurbsCurve& c1,\n    const NurbsCurve& c2, const NurbsCurve& c3)",
+          "code": "NurbsSurface NurbsSurface::create_edge(\n    const NurbsCurve& c0, const NurbsCurve& c1,\n    const NurbsCurve& c2, const NurbsCurve& c3)\n{\n    NurbsSurface surface;\n\n    // Validate all 4 curves\n    if (!c0.is_valid() || !c1.is_valid() || !c2.is_valid() || !c3.is_valid())\n        return surface;\n\n    // Build a boundary loop by matching endpoints\n    // Input: 4 curves in arbitrary order, we chain them into a consistent loop\n    std::vector<NurbsCurve> input = {c0, c1, c2, c3}",
+          "file": "nurbssurface.cpp"
+        }
+      },
+      "related": [
+        "NurbsSurface.create",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.order"
       ]
     },
     {
@@ -37559,6 +38185,8 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._create_impl",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.create",
         "NurbsSurface.create_raw",
         "NurbsSurface.cv",
@@ -37659,9 +38287,15 @@ window.API_INDEX = {
         "NurbsSurface._basis_functions",
         "NurbsSurface._find_span",
         "NurbsSurface.area",
+        "NurbsSurface.build_basis_matrix",
+        "NurbsSurface.build_interp_knots",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
+        "NurbsSurface.gauss_solve",
         "NurbsSurface.is_clamped",
+        "NurbsSurface.is_singular",
         "NurbsSurface.iso_curve",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
@@ -40705,8 +41339,12 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface.__eq__",
         "NurbsSurface.__ne__",
+        "NurbsSurface._from_curve_internal",
+        "NurbsSurface._to_curve_internal",
         "NurbsSurface.add_hole",
         "NurbsSurface.closest_point",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_network",
         "NurbsSurface.create_planar",
         "NurbsSurface.create_raw",
         "NurbsSurface.cv",
@@ -42076,6 +42714,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Arrow.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Arrow\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Arrow\", \"json_roundtrip\") {\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Arrow original(line, 1.0);\n    original.name = \"test_arrow\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_arrow.json\");\n    Arrow loaded = encoders::json_load<Arrow>(\"./serialization/test_arrow.json\");\n\n    MINI_CHECK(TOLERANCE.is_close(loaded.radius, original.radius));\n    MINI_CHECK(loaded.name == original.name);\n    MINI_CHECK(loaded.mesh.number_of_vertices() == 29);\n    MINI_CHECK(loaded.mesh.number_of_faces() == 28);\n}",
+          "file": "arrow_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "BoundingBox.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BoundingBox\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"BoundingBox\", \"json_roundtrip\") {\n    BoundingBox original = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    original.name = \"test_bbox\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_boundingbox.json\");\n    BoundingBox loaded = encoders::json_load<BoundingBox>(\"./serialization/test_boundingbox.json\");\n\n    MINI_CHECK(loaded.name == original.name);\n    std::filesystem::remove(\"./serialization/test_boundingbox.json\");\n}",
+          "file": "boundingbox_test.cpp"
+        }
+      }
+    },
+    {
       "name": "Color.test_constructor",
       "implementations": {
         "cpp": {
@@ -42147,6 +42805,36 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"Color\", \"presets\")",
           "code": "@MINI_TEST(\"Color\", \"presets\")\ndef test_color_presets():\n    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()\n    MINI_CHECK(white == Color(255, 255, 255, 255, \"white\"))\n    MINI_CHECK(black == Color(0, 0, 0, 255, \"black\"))\n    MINI_CHECK(grey == Color(128, 128, 128, 255, \"grey\"))\n    MINI_CHECK(red == Color(255, 0, 0, 255, \"red\"))\n    MINI_CHECK(orange == Color(255, 128, 0, 255, \"orange\"))\n    MINI_CHECK(yellow == Color(255, 255, 0, 255, \"yellow\"))\n    MINI_CHECK(lime == Color(128, 255, 0, 255, \"lime\"))\n    MINI_CHECK(green == Color(0, 255, 0, 255, \"green\"))\n    MINI_CHECK(mint == Color(0, 255, 128, 255, \"mint\"))\n    MINI_CHECK(cyan == Color(0, 255, 255, 255, \"cyan\"))\n    MINI_CHECK(azure == Color(0, 128, 255, 255, \"azure\"))\n    MINI_CHECK(blue == Color(0, 0, 255, 255, \"blue\"))\n    MINI_CHECK(violet == Color(128, 0, 255, 255, \"violet\"))\n    MINI_CHECK(magenta == Color(255, 0, 255, 255, \"magenta\"))\n    MINI_CHECK(pink == Color(255, 0, 128, 255, \"pink\"))\n    MINI_CHECK(maroon == Color(128, 0, 0, 255, \"maroon\"))\n    MINI_CHECK(brown == Color(128, 64, 0, 255, \"brown\"))\n    MINI_CHECK(olive == Color(128, 128, 0, 255, \"olive\"))\n    MINI_CHECK(teal == Color(0, 128, 128, 255, \"teal\"))\n    MINI_CHECK(navy == Color(0, 0, 128, 255, \"navy\"))\n    MINI_CHECK(purple == Color(128, 0, 128, 255, \"purple\"))\n    MINI_CHECK(silver == Color(192, 192, 192, 255, \"silver\"))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "color_test.py"
+        }
+      }
+    },
+    {
+      "name": "Cylinder.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Cylinder\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Cylinder\", \"json_roundtrip\") {\n    std::filesystem::create_directories(\"./serialization\");\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Cylinder original(line, 1.0);\n    original.name = \"test_cylinder\";\n\n    std::string filename = \"./serialization/test_cylinder.json\";\n    encoders::json_dump(original, filename);\n    Cylinder loaded = encoders::json_load<Cylinder>(filename);\n\n    MINI_CHECK(TOLERANCE.is_close(loaded.radius, original.radius));\n    MINI_CHECK(loaded.name == original.name);\n\n    std::filesystem::remove(filename);\n}",
+          "file": "cylinder_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Edge.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Edge\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Edge\", \"json_roundtrip\") {\n    Edge original(\"./serialization/test_edge\", \"v0\", \"v1\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_edge.json\");\n    Edge loaded = encoders::json_load<Edge>(\"./serialization/test_edge.json\");\n\n    MINI_CHECK(loaded.name == original.name);\n    MINI_CHECK(loaded.v0 == original.v0);\n    MINI_CHECK(loaded.v1 == original.v1);\n    std::filesystem::remove(\"./serialization/test_edge.json\");\n}",
+          "file": "edge_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Graph.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Graph\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Graph\", \"json_roundtrip\") {\n    std::filesystem::create_directories(\"./serialization\");\n    Graph original(\"./serialization/test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    std::string filename = \"./serialization/test_graph.json\";\n    encoders::json_dump(original, filename);\n    Graph loaded = encoders::json_load<Graph>(filename);\n\n    MINI_CHECK(loaded.number_of_vertices() == 2);\n    MINI_CHECK(loaded.number_of_edges() == 1);\n    MINI_CHECK(loaded.has_edge(std::make_tuple(\"node1\", \"node2\")));\n\n    std::filesystem::remove(filename);\n}",
+          "file": "graph_test.cpp"
         }
       }
     },
@@ -42952,6 +43640,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"NurbsSurface\", \"constructor_ruled\")",
           "code": "MINI_TEST(\"NurbsSurface\", \"constructor_ruled\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> pts_a = {Point(3,0,0), Point(-2,0,5)};\n        std::vector<Point> pts_b = {Point(3,5,5), Point(-2,5,0)};\n        NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n        NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n        NurbsSurface srf = NurbsSurface::create_ruled(crvA, crvB);\n\n        // Mesh 180 - lowest quality, 5 - highest quality\n        Mesh m = srf.mesh(45);\n\n        MINI_CHECK(srf.is_valid());\n        MINI_CHECK(srf.degree(0) == 1);\n        MINI_CHECK(srf.degree(1) == 1);\n        MINI_CHECK(srf.cv_count(0) == 2);\n        MINI_CHECK(srf.cv_count(1) == 2);\n\n        auto [rd, ruv] = srf.divide_by_count(4, 4);\n        MINI_CHECK(rd.size() == 5);\n        MINI_CHECK(rd[0].size() == 5);\n\n        std::vector<Point> pts;\n        for (int i = 0; i < (int)rd.size(); i++)\n            for (int j = 0; j < (int)rd[i].size(); j++)\n                pts.push_back(rd[i][j]);\n\n        std::vector<Vector> normals;\n        for (int i = 0; i < (int)ruv.size(); i++)\n            for (int j = 0; j < (int)ruv[i].size(); j++)\n                normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n        std::vector<std::pair<double,double>> uvs;\n        for (int i = 0; i < (int)ruv.size(); i++)\n            for (int j = 0; j < (int)ruv[i].size(); j++)\n                uvs.push_back(ruv[i][j]);\n\n        MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)));\n\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector( 0.577350269189626, -0.577350269189626,  0.577350269189626)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector( 1.0/3.0, -2.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0, -0.707106781186547,  0.707106781186547)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector(-1.0/3.0, -2.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector(-0.577350269189626, -0.577350269189626,  0.577350269189626)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector( 2.0/3.0, -1.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector( 0.408248290463863, -0.408248290463863,  0.816496580927726)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0, -0.447213595499958,  0.894427190999916)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector(-0.408248290463863, -0.408248290463863,  0.816496580927726)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector(-2.0/3.0, -1.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector( 0.707106781186547,  0.0,  0.707106781186547)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector( 0.447213595499958,  0.0,  0.894427190999916)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0, 0.0, 1.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector(-0.447213595499958,  0.0,  0.894427190999916)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector(-0.707106781186547,  0.0,  0.707106781186547)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector( 2.0/3.0, 1.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector( 0.408248290463863,  0.408248290463863,  0.816496580927726)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, 0.447213595499958,  0.894427190999916)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector(-0.408248290463863,  0.408248290463863,  0.816496580927726)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector(-2.0/3.0, 1.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector( 0.577350269189626,  0.577350269189626,  0.577350269189626)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector( 1.0/3.0, 2.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, 0.707106781186547,  0.707106781186547)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector(-1.0/3.0, 2.0/3.0, 2.0/3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector(-0.577350269189626,  0.577350269189626,  0.577350269189626)));\n\n        MINI_CHECK(TOLERANCE.is_close(uvs[0].first,  0.00) && TOLERANCE.is_close(uvs[0].second,  0.00));\n        MINI_CHECK(TOLERANCE.is_close(uvs[1].first,  0.00) && TOLERANCE.is_close(uvs[1].second,  0.25));\n        MINI_CHECK(TOLERANCE.is_close(uvs[4].first,  0.00) && TOLERANCE.is_close(uvs[4].second,  1.00));\n        MINI_CHECK(TOLERANCE.is_close(uvs[6].first,  0.25) && TOLERANCE.is_close(uvs[6].second,  0.25));\n        MINI_CHECK(TOLERANCE.is_close(uvs[12].first, 0.50) && TOLERANCE.is_close(uvs[12].second, 0.50));\n        MINI_CHECK(TOLERANCE.is_close(uvs[24].first, 1.00) && TOLERANCE.is_close(uvs[24].second, 1.00));\n    }",
           "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"constructor_ruled\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"constructor_ruled\")\ndef test_nurbssurface_constructor_ruled():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3,0,0), Point(-2,0,5)]\n    pts_b = [Point(3,5,5), Point(-2,5,0)]\n    crvA = NurbsCurve.create(False, 1, pts_a)\n    crvB = NurbsCurve.create(False, 1, pts_b)\n    ruled = NurbsSurface.create_ruled(crvA, crvB)\n\n    MINI_CHECK(ruled.is_valid())\n    MINI_CHECK(ruled.degree(0) == 1)\n    MINI_CHECK(ruled.degree(1) == 1)\n    MINI_CHECK(ruled.cv_count_dir(0) == 2)\n    MINI_CHECK(ruled.cv_count_dir(1) == 2)\n\n    rd, ruv = ruled.divide_by_count(4, 4)\n    MINI_CHECK(len(rd) == 5)\n    MINI_CHECK(len(rd[0]) == 5)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(ruled.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector( 0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector( 1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0, -0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector(-1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector(-0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector( 2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector( 0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0, -0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector(-0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector(-2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector( 0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector( 0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0, 0.0, 1.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector(-0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector(-0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector( 2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector( 0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, 0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector(-0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector(-2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector( 0.577350269189626,  0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector( 1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, 0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector(-1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector(-0.577350269189626,  0.577350269189626,  0.577350269189626)))\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0][0],  0.00) and TOLERANCE.is_close(uvs[0][1],  0.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[1][0],  0.00) and TOLERANCE.is_close(uvs[1][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[4][0],  0.00) and TOLERANCE.is_close(uvs[4][1],  1.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[6][0],  0.25) and TOLERANCE.is_close(uvs[6][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[12][0], 0.50) and TOLERANCE.is_close(uvs[12][1], 0.50))\n    MINI_CHECK(TOLERANCE.is_close(uvs[24][0], 1.00) and TOLERANCE.is_close(uvs[24][1], 1.00))",
+          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -42960,8 +43653,13 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"constructor_loft\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"constructor_loft\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n        NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n        NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n        NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n        NurbsSurface srf = NurbsSurface::create_loft({c1, c2, c3, c4}, 3);\n\n        MINI_CHECK(srf.is_valid());\n        MINI_CHECK(srf.cv_count(0) == 9);\n        MINI_CHECK(srf.cv_count(1) == 4);\n\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 0), Point(2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 1), Point(-0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 2), Point(3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 3), Point(0.8, 0, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 0), Point(2, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 1), Point(-0.677194251158421, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 2), Point(3.00619893067414, 3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 3), Point(0.8, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 0), Point(0, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 1), Point(0, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 2), Point(0, 3.00619893067415, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 3), Point(0, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 0), Point(-2, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 1), Point(0.677194251158421, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 2), Point(-3.00619893067414, 3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 3), Point(-0.8, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 0), Point(-2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 1), Point(0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 2), Point(-3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 3), Point(-0.8, 0, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 0), Point(-2, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 1), Point(0.677194251158421, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 2), Point(-3.00619893067414, -3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 3), Point(-0.8, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 0), Point(0, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 1), Point(0, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 2), Point(0, -3.00619893067415, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 3), Point(0, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 0), Point(2, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 1), Point(-0.677194251158421, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 2), Point(3.00619893067414, -3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 3), Point(0.8, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 0), Point(2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 1), Point(-0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 2), Point(3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 3), Point(0.8, 0, 6)));\n\n        // Open loft\n        std::vector<std::vector<Point>> open_pts = {\n            {Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)},\n            {Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)},\n            {Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)},\n        };\n        std::vector<NurbsCurve> open_curves = {\n            NurbsCurve::create(false, 3, open_pts[0]),\n            NurbsCurve::create(false, 3, open_pts[1]),\n            NurbsCurve::create(false, 3, open_pts[2]),\n        };\n        NurbsSurface open_srf = NurbsSurface::create_loft(open_curves, 3);\n\n        MINI_CHECK(open_srf.is_valid());\n        MINI_CHECK(open_srf.cv_count(0) == 4);\n        MINI_CHECK(open_srf.cv_count(1) == 3);\n\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 0), Point(10, -12, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 1), Point(5.5, -12, 7)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 2), Point(1, -12, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 0), Point(10, -10, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 1), Point(5.5, -10, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 2), Point(1, -10, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 0), Point(10, -7, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 1), Point(5.5, -7, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 2), Point(1, -7, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 0), Point(10, -5, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 1), Point(5.5, -5, 7)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 2), Point(1, -5, 0)));\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"constructor_loft\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        // Closed circles with varying radius and same center\n        NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n        NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n        NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n        NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n        NurbsSurface srf = NurbsSurface::create_loft({c1, c2, c3, c4}, 3);\n\n        MINI_CHECK(srf.is_valid());\n        MINI_CHECK(srf.cv_count(0) == 9);\n        MINI_CHECK(srf.cv_count(1) == 4);\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 0), Point(2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 1), Point(-0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 2), Point(3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 3), Point(0.8, 0, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 0), Point(2, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 1), Point(-0.677194251158421, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 2), Point(3.00619893067414, 3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 3), Point(0.8, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 0), Point(0, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 1), Point(0, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 2), Point(0, 3.00619893067415, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 3), Point(0, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 0), Point(-2, 2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 1), Point(0.677194251158421, -0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 2), Point(-3.00619893067414, 3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 3), Point(-0.8, 0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 0), Point(-2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 1), Point(0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 2), Point(-3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 3), Point(-0.8, 0, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 0), Point(-2, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 1), Point(0.677194251158421, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 2), Point(-3.00619893067414, -3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 3), Point(-0.8, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 0), Point(0, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 1), Point(0, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 2), Point(0, -3.00619893067415, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 3), Point(0, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 0), Point(2, -2, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 1), Point(-0.677194251158421, 0.677194251158421, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 2), Point(3.00619893067414, -3.00619893067414, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 3), Point(0.8, -0.8, 6)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 0), Point(2, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 1), Point(-0.677194251158421, 0, 1.75222035185728)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 2), Point(3.00619893067415, 0, 4.08030037218547)));\n        MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 3), Point(0.8, 0, 6)));\n\n        // Open loft\n        std::vector<std::vector<Point>> open_pts = {\n            {Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)},\n            {Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)},\n            {Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)},\n        };\n        std::vector<NurbsCurve> open_curves = {\n            NurbsCurve::create(false, 3, open_pts[0]),\n            NurbsCurve::create(false, 3, open_pts[1]),\n            NurbsCurve::create(false, 3, open_pts[2]),\n        };\n        NurbsSurface open_srf = NurbsSurface::create_loft(open_curves, 3);\n\n        MINI_CHECK(open_srf.is_valid());\n        MINI_CHECK(open_srf.cv_count(0) == 4);\n        MINI_CHECK(open_srf.cv_count(1) == 3);\n\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 0), Point(10, -12, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 1), Point(5.5, -12, 7)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 2), Point(1, -12, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 0), Point(10, -10, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 1), Point(5.5, -10, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 2), Point(1, -10, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 0), Point(10, -7, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 1), Point(5.5, -7, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 2), Point(1, -7, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 0), Point(10, -5, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 1), Point(5.5, -5, 7)));\n        MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 2), Point(1, -5, 0)));\n    }",
           "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"constructor_loft\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"constructor_loft\")\ndef test_nurbssurface_constructor_loft():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Primitives\n\n    c1 = Primitives.circle(0, 0, 0.0, 2.0)\n    c2 = Primitives.circle(0, 0, 2.0, 1.0)\n    c3 = Primitives.circle(0, 0, 4.0, 1.5)\n    c4 = Primitives.circle(0, 0, 6.0, 0.8)\n\n    srf = NurbsSurface.create_loft([c1, c2, c3, c4], 3)\n\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.cv_count_dir(0) == 9)\n    MINI_CHECK(srf.cv_count_dir(1) == 4)\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 0), Point(2, 0, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 1), Point(-0.677194251158421, 0, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 2), Point(3.00619893067415, 0, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(0, 3), Point(0.8, 0, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 0), Point(2, 2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 1), Point(-0.677194251158421, -0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 2), Point(3.00619893067414, 3.00619893067414, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(1, 3), Point(0.8, 0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 0), Point(0, 2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 1), Point(0, -0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 2), Point(0, 3.00619893067415, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(2, 3), Point(0, 0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 0), Point(-2, 2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 1), Point(0.677194251158421, -0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 2), Point(-3.00619893067414, 3.00619893067414, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(3, 3), Point(-0.8, 0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 0), Point(-2, 0, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 1), Point(0.677194251158421, 0, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 2), Point(-3.00619893067415, 0, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(4, 3), Point(-0.8, 0, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 0), Point(-2, -2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 1), Point(0.677194251158421, 0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 2), Point(-3.00619893067414, -3.00619893067414, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(5, 3), Point(-0.8, -0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 0), Point(0, -2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 1), Point(0, 0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 2), Point(0, -3.00619893067415, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(6, 3), Point(0, -0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 0), Point(2, -2, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 1), Point(-0.677194251158421, 0.677194251158421, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 2), Point(3.00619893067414, -3.00619893067414, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(7, 3), Point(0.8, -0.8, 6)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 0), Point(2, 0, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 1), Point(-0.677194251158421, 0, 1.75222035185728)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 2), Point(3.00619893067415, 0, 4.08030037218547)))\n    MINI_CHECK(TOLERANCE.is_point_close(srf.get_cv(8, 3), Point(0.8, 0, 6)))\n\n    open_pts = [\n        [Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)],\n        [Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)],\n        [Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)],\n    ]\n    open_curves = [\n        NurbsCurve.create(False, 3, open_pts[0]),\n        NurbsCurve.create(False, 3, open_pts[1]),\n        NurbsCurve.create(False, 3, open_pts[2]),\n    ]\n    open_srf = NurbsSurface.create_loft(open_curves, 3)\n\n    MINI_CHECK(open_srf.is_valid())\n    MINI_CHECK(open_srf.cv_count_dir(0) == 4)\n    MINI_CHECK(open_srf.cv_count_dir(1) == 3)\n\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 0), Point(10, -12, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 1), Point(5.5, -12, 7)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(0, 2), Point(1, -12, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 0), Point(10, -10, 3)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 1), Point(5.5, -10, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(1, 2), Point(1, -10, 3)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 0), Point(10, -7, 3)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 1), Point(5.5, -7, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(2, 2), Point(1, -7, 3)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 0), Point(10, -5, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 1), Point(5.5, -5, 7)))\n    MINI_CHECK(TOLERANCE.is_point_close(open_srf.get_cv(3, 2), Point(1, -5, 0)))",
+          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -42971,6 +43669,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"constructor_revolve\")",
           "code": "MINI_TEST(\"NurbsSurface\", \"constructor_revolve\") {\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsCurve profile = NurbsCurve::create(false, 3, {\n            Point(1.5, 0, 0), Point(1.5, 0, 0.3), Point(0.3, 0, 0.5),\n            Point(0.3, 0, 2.5), Point(0.2, 0, 3.0), Point(2.0, 0, 4.5), Point(1.8, 0, 5.0),\n        });\n        NurbsSurface srf = NurbsSurface::create_revolve(profile, Point(0,0,0), Vector(0,0,1));\n    }",
+          "file": "nurbssurface_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_constructor_edge",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"constructor_edge\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"constructor_edge\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> pts_south = {Point(1, 20.569076, 0), Point(1, 22.569076, 3.0), Point(1, 25.569076, 3.0), Point(1, 27.569076, 0)};\n        std::vector<Point> pts_west  = {Point(10, 20.569076, 0), Point(5.5, 20.569076, 3.5), Point(1, 20.569076, 0)};\n        std::vector<Point> pts_north = {Point(10, 20.569076, 0), Point(10, 22.569076, 3), Point(10, 25.569076, 3), Point(10, 27.569076, 0)};\n        std::vector<Point> pts_east  = {Point(10, 27.569076, 0), Point(5.5, 27.569076, 3.5), Point(1, 27.569076, 0)};\n\n        NurbsCurve south = NurbsCurve::create(false, 3, pts_south);\n        NurbsCurve west  = NurbsCurve::create(false, 2, pts_west);\n        NurbsCurve north = NurbsCurve::create(false, 3, pts_north);\n        NurbsCurve east  = NurbsCurve::create(false, 2, pts_east);\n\n        NurbsSurface surf = NurbsSurface::create_edge(south, west, north, east);\n        Mesh m = surf.mesh(15);\n\n        MINI_CHECK(surf.is_valid());\n        MINI_CHECK(m.is_valid());\n        MINI_CHECK(surf.degree(0) == 2);\n        MINI_CHECK(surf.degree(1) == 3);\n        MINI_CHECK(surf.cv_count(0) == 3);\n        MINI_CHECK(surf.cv_count(1) == 4);\n\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 0), Point(1, 20.569076, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 1), Point(1, 22.569076, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 2), Point(1, 25.569076, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 3), Point(1, 27.569076, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 0), Point(5.5, 20.569076, 3.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 1), Point(5.5, 22.569076, 6.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 2), Point(5.5, 25.569076, 6.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 3), Point(5.5, 27.569076, 3.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 0), Point(10, 20.569076, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 1), Point(10, 22.569076, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 2), Point(10, 25.569076, 3)));\n        MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 3), Point(10, 27.569076, 0)));\n    }",
           "file": "nurbssurface_test.cpp"
         }
       }
@@ -43452,6 +44160,31 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"create_planar\")",
           "code": "@MINI_TEST(\"NurbsSurface\", \"create_planar\")\ndef test_nurbssurface_create_planar():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts = [Point(0,0,0), Point(3,1,0), Point(5,0.5,0), Point(6,3,0), Point(4,5,0), Point(1,4,0), Point(0,0,0)]\n    boundary = NurbsCurve.create(False, 3, pts)\n    surf = NurbsSurface.create_planar([boundary])\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_planar())\n    MINI_CHECK(surf.degree(0) == 1)\n    MINI_CHECK(surf.degree(1) == 1)\n    MINI_CHECK(surf.cv_count_dir(0) == 2)\n    MINI_CHECK(surf.cv_count_dir(1) == 2)\n    MINI_CHECK(surf.is_trimmed())\n    MINI_CHECK(surf.get_outer_loop().is_valid())\n\n    pd, puv = surf.divide_by_count(4, 4)\n    MINI_CHECK(len(pd) == 5)\n    MINI_CHECK(len(pd[0]) == 5)",
           "file": "nurbssurface_test.py"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_create_network",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"create_network\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"create_network\") {\n        auto uc0 = NurbsCurve::create(false, 2, {Point(10,9.569076,0), Point(5.5,9.569076,3.5), Point(1,9.569076,0)});\n        auto uc1 = NurbsCurve::create(false, 2, {Point(10,16.569076,0), Point(5.5,16.569076,3.5), Point(1,16.569076,0)});\n        auto vc0 = NurbsCurve::create(false, 3, {Point(1,9.569076,0), Point(1,11.569076,3.0), Point(1,14.569076,3.0), Point(1,16.569076,0)});\n        auto vc1 = NurbsCurve::create(false, 2, {Point(4.236484,9.569076,1.612033), Point(3,13.069076,4.250144), Point(3.667141,16.569076,1.459684)});\n        auto vc2 = NurbsCurve::create(false, 2, {Point(7.295129,16.569076,1.471513), Point(8,13.069076,4.250144), Point(6.99265,9.569076,1.557456)});\n        auto vc3 = NurbsCurve::create(false, 3, {Point(10,9.569076,0), Point(10,11.569076,3), Point(10,14.569076,3), Point(10,16.569076,0)});\n        auto srf = NurbsSurface::create_network({uc0, uc1}, {vc0, vc1, vc2, vc3});\n        MINI_CHECK(srf.cv_count(0) >= 4);\n        MINI_CHECK(srf.cv_count(1) >= 4);\n        MINI_CHECK(srf.degree(0) == 3);\n        MINI_CHECK(srf.degree(1) == 3);\n        Point p00 = srf.point_at(0, 0);\n        Point p01 = srf.point_at(0, 1);\n        Point p10 = srf.point_at(1, 0);\n        Point p11 = srf.point_at(1, 1);\n        MINI_CHECK(std::abs(p00[0] - 10.0) < 0.5);\n        MINI_CHECK(std::abs(p00[1] - 9.569076) < 0.5);\n        MINI_CHECK(std::abs(p10[0] - 1.0) < 0.5);\n        MINI_CHECK(std::abs(p11[0] - 1.0) < 0.5);\n        MINI_CHECK(std::abs(p01[1] - 16.569076) < 0.5);\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"create_network\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"create_network\")\ndef test_create_network():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    uc0 = NurbsCurve.create(False, 2, [Point(10,9.569076,0), Point(5.5,9.569076,3.5), Point(1,9.569076,0)])\n    uc1 = NurbsCurve.create(False, 2, [Point(10,16.569076,0), Point(5.5,16.569076,3.5), Point(1,16.569076,0)])\n    vc0 = NurbsCurve.create(False, 3, [Point(1,9.569076,0), Point(1,11.569076,3.0), Point(1,14.569076,3.0), Point(1,16.569076,0)])\n    vc1 = NurbsCurve.create(False, 2, [Point(4.236484,9.569076,1.612033), Point(3,13.069076,4.250144), Point(3.667141,16.569076,1.459684)])\n    vc2 = NurbsCurve.create(False, 2, [Point(7.295129,16.569076,1.471513), Point(8,13.069076,4.250144), Point(6.99265,9.569076,1.557456)])\n    vc3 = NurbsCurve.create(False, 3, [Point(10,9.569076,0), Point(10,11.569076,3), Point(10,14.569076,3), Point(10,16.569076,0)])\n    srf = NurbsSurface.create_network([uc0, uc1], [vc0, vc1, vc2, vc3])\n    MINI_CHECK(srf.cv_count(0) >= 4)\n    MINI_CHECK(srf.cv_count(1) >= 4)\n    MINI_CHECK(srf.degree(0) == 3)\n    MINI_CHECK(srf.degree(1) == 3)\n    p00 = srf.point_at(0, 0)\n    p01 = srf.point_at(0, 1)\n    p10 = srf.point_at(1, 0)\n    p11 = srf.point_at(1, 1)\n    MINI_CHECK(abs(p00[0] - 10.0) < 0.5)\n    MINI_CHECK(abs(p00[1] - 9.569076) < 0.5)\n    MINI_CHECK(abs(p10[0] - 1.0) < 0.5)\n    MINI_CHECK(abs(p11[0] - 1.0) < 0.5)\n    MINI_CHECK(abs(p01[1] - 16.569076) < 0.5)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "nurbssurface_test.py"
+        }
+      }
+    },
+    {
+      "name": "Objects.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Objects\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Objects\", \"json_roundtrip\") {\n    std::filesystem::create_directories(\"./serialization\");\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"./serialization/test_objects.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);\n\n    MINI_CHECK(loaded.points->size() == original.points->size());\n\n    std::filesystem::remove(filename);\n}",
+          "file": "objects_test.cpp"
         }
       }
     },
@@ -44176,6 +44909,106 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Quaternion.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Quaternion\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Quaternion\", \"json_roundtrip\") {\n    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");\n\n    MINI_CHECK(TOLERANCE.is_close(loaded.s, original.s));\n}",
+          "file": "quaternion_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"constructor\")",
+          "code": "MINI_TEST(\"Session\", \"constructor\") {\n    Session session;\n    MINI_CHECK(session.name == \"my_session\");\n    MINI_CHECK(!session.guid.empty());\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_jsondump",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"jsondump\")",
+          "code": "MINI_TEST(\"Session\", \"jsondump\") {\n    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n    MINI_CHECK(data[\"name\"] == \"my_session\");\n    MINI_CHECK(data.contains(\"guid\"));\n    MINI_CHECK(data[\"objects\"][\"points\"].size() == 2);\n    MINI_CHECK(data[\"graph\"][\"vertices\"].size() == 2);\n    MINI_CHECK(data[\"graph\"][\"edges\"].size() == 1);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, \"./serialization/test_session.json\");\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_jsonload",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"jsonload\")",
+          "code": "MINI_TEST(\"Session\", \"jsonload\") {\n    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n    Session session2 = Session::jsonload(data);\n    MINI_CHECK(session2.name == \"my_session\");\n    MINI_CHECK(session2.lookup.size() == 2);\n    MINI_CHECK(session2.graph.number_of_vertices() == 2);\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_file_io",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"file_io\")",
+          "code": "MINI_TEST(\"Session\", \"file_io\") {\n    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n    std::string filename = \"./serialization/test_session_roundtrip.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n    MINI_CHECK(loaded_session.name == session.name);\n    MINI_CHECK(loaded_session.lookup.size() == session.lookup.size());\n    MINI_CHECK(loaded_session.graph.number_of_vertices() == session.graph.number_of_vertices());\n\n    std::filesystem::remove(filename);\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_add_point",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"add_point\")",
+          "code": "MINI_TEST(\"Session\", \"add_point\") {\n    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);\n\n    MINI_CHECK(session.objects.points->size() == 1);\n    MINI_CHECK(session.lookup.count(point->guid) == 1);\n    MINI_CHECK(session.graph.has_node(point->guid));\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_add_edge",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"add_edge\")",
+          "code": "MINI_TEST(\"Session\", \"add_edge\") {\n    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    MINI_CHECK(session.graph.has_edge({point1->guid, point2->guid}));\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_get_object",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"get_object\")",
+          "code": "MINI_TEST(\"Session\", \"get_object\") {\n    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);\n\n    auto retrieved = session.get_object<Point>(point->guid);\n    MINI_CHECK(retrieved != nullptr);\n    MINI_CHECK(retrieved->guid == point->guid);\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_file_io_comprehensive",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"file_io_comprehensive\")",
+          "code": "MINI_TEST(\"Session\", \"file_io_comprehensive\") {\n    Session session(\"./serialization/test_session\");\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"./serialization/test_connection\");\n    std::string filename = \"./serialization/test_session_comprehensive.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n    MINI_CHECK(loaded_session.name == session.name);\n    MINI_CHECK(loaded_session.objects.points->size() == session.objects.points->size());\n    MINI_CHECK(loaded_session.graph.number_of_vertices() == session.graph.number_of_vertices());\n    MINI_CHECK(loaded_session.graph.number_of_edges() == session.graph.number_of_edges());\n\n    std::filesystem::remove(filename);\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Session.test_tree_transformation_hierarchy",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"tree_transformation_hierarchy\")",
+          "code": "MINI_TEST(\"Session\", \"tree_transformation_hierarchy\") {\n    Session scene(\"tree_transformation_test\");\n\n    auto create_box = [](const Point& center, double size) -> std::shared_ptr<Mesh> {\n        auto mesh = std::make_shared<Mesh>();\n        double h = size * 0.5;\n        std::vector<Point> verts = {\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h)\n        };\n        for (size_t i = 0; i < verts.size(); ++i) mesh->add_vertex(verts[i], i);\n        std::vector<std::vector<size_t>> faces = {\n            {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}\n        };\n        for (const auto& f : faces) mesh->add_face(f);\n        return mesh;\n    };\n\n    auto box1 = create_box(Point(0, 0, 0), 2.0);\n    box1->name = \"box_1\";\n    auto box1_node = scene.add_mesh(box1);\n\n    auto box2 = create_box(Point(0, 0, 0), 2.0);\n    box2->name = \"box_2\";\n    auto box2_node = scene.add_mesh(box2);\n\n    auto box3 = create_box(Point(0, 0, 0), 2.0);\n    box3->name = \"box_3\";\n    auto box3_node = scene.add_mesh(box3);\n\n    scene.add(box1_node);\n    scene.add(box2_node, box1_node);\n    scene.add(box3_node, box2_node);\n\n    Point box1_top(0, 0, 1.0);\n    Vector normal(0, 0, 1), x(1, 0, 0), y(0, 1, 0);\n    Point xy_origin(0, 0, 0);\n    Vector xy_x(1, 0, 0), xy_y(0, 1, 0);\n\n    Plane plane_from(xy_origin, xy_x, xy_y);\n    Plane plane_to(box1_top, x, y);\n    Xform xy_to_top = Xform::plane_to_plane(plane_from, plane_to);\n    box1->xform = Xform::rotation_z(Tolerance::PI / 1.5) * xy_to_top;\n\n    box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(Tolerance::PI / 6.0);\n    box3->xform = Xform::translation(2.0, 0, 0);\n\n    Objects transformed = scene.get_geometry();\n\n    MINI_CHECK(transformed.meshes->size() == 3);\n\n    std::vector<std::array<double, 3>> expected_box1 = {\n        {1.36603, -0.366025, 0}, {0.366025, 1.36603, 0}, {-1.36603, 0.366025, 0},\n        {-0.366025, -1.36603, 0}, {1.36603, -0.366025, 2}, {0.366025, 1.36603, 2},\n        {-1.36603, 0.366025, 2}, {-0.366025, -1.36603, 2}\n    };\n\n    std::vector<std::array<double, 3>> expected_box2 = {\n        {0.366025, 2.09808, 0}, {-1.36603, 3.09808, 0}, {-2.36603, 1.36603, 0},\n        {-0.633975, 0.366025, 0}, {0.366025, 2.09808, 2}, {-1.36603, 3.09808, 2},\n        {-2.36603, 1.36603, 2}, {-0.633975, 0.366025, 2}\n    };\n\n    std::vector<std::array<double, 3>> expected_box3 = {\n        {-1.36603, 3.09808, 0}, {-3.09808, 4.09808, 0}, {-4.09808, 2.36603, 0},\n        {-2.36603, 1.36603, 0}, {-1.36603, 3.09808, 2}, {-3.09808, 4.09808, 2},\n        {-4.09808, 2.36603, 2}, {-2.36603, 1.36603, 2}\n    };\n\n    std::vector<std::vector<size_t>> expected_faces = {\n        {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}\n    };\n\n    auto& m1 = (*transformed.meshes)[0];\n    MINI_CHECK(m1->vertex.size() == 8);\n    for (size_t i = 0; i < 8; ++i) {\n        const auto& v = m1->vertex.at(i);\n        MINI_CHECK(std::abs(v.x - expected_box1[i][0]) < 1e-4);\n        MINI_CHECK(std::abs(v.y - expected_box1[i][1]) < 1e-4);\n        MINI_CHECK(std::abs(v.z - expected_box1[i][2]) < 1e-4);\n    }\n\n    auto& m2 = (*transformed.meshes)[1];\n    MINI_CHECK(m2->vertex.size() == 8);\n    for (size_t i = 0; i < 8; ++i) {\n        const auto& v = m2->vertex.at(i);\n        MINI_CHECK(std::abs(v.x - expected_box2[i][0]) < 1e-4);\n        MINI_CHECK(std::abs(v.y - expected_box2[i][1]) < 1e-4);\n        MINI_CHECK(std::abs(v.z - expected_box2[i][2]) < 1e-4);\n    }\n\n    auto& m3 = (*transformed.meshes)[2];\n    MINI_CHECK(m3->vertex.size() == 8);\n    for (size_t i = 0; i < 8; ++i) {\n        const auto& v = m3->vertex.at(i);\n        MINI_CHECK(std::abs(v.x - expected_box3[i][0]) < 1e-4);\n        MINI_CHECK(std::abs(v.y - expected_box3[i][1]) < 1e-4);\n        MINI_CHECK(std::abs(v.z - expected_box3[i][2]) < 1e-4);\n    }\n\n    for (auto* mesh : {&m1, &m2, &m3}) {\n        MINI_CHECK((*mesh)->face.size() == 6);\n        size_t face_idx = 0;\n        for (const auto& [key, face] : (*mesh)->face) {\n            MINI_CHECK(face.size() == expected_faces[face_idx].size());\n            for (size_t i = 0; i < face.size(); ++i) {\n                MINI_CHECK(face[i] == expected_faces[face_idx][i]);\n            }\n            face_idx++;\n        }\n    }\n}",
+          "file": "session_test.cpp"
+        }
+      }
+    },
+    {
       "name": "Tolerance.test_is_zero",
       "implementations": {
         "cpp": {
@@ -44292,6 +45125,26 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"Tolerance\", \"runtime_modification\")",
           "code": "@MINI_TEST(\"Tolerance\", \"runtime_modification\")\ndef test_tolerance_runtime_modification():\n    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n    MINI_CHECK(original_absolute == 1e-9)\n    MINI_CHECK(original_relative == 1e-6)\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n    MINI_CHECK(TOLERANCE.absolute == 1e-12)\n    MINI_CHECK(TOLERANCE.relative == 1e-12)\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_tight == False)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n    MINI_CHECK(TOLERANCE.absolute == 1e-9)\n    MINI_CHECK(TOLERANCE.relative == 1e-6)\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_default == True)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "tolerance_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tree.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tree\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Tree\", \"json_roundtrip\") {\n    Tree original(\"./serialization/test_tree\");\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto node1 = std::make_shared<TreeNode>(point1->guid);\n    original.add(node1, nullptr);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_tree.json\");\n    Tree loaded = encoders::json_load<Tree>(\"./serialization/test_tree.json\");\n\n    MINI_CHECK(loaded.name == original.name);\n    MINI_CHECK(loaded.nodes().size() == original.nodes().size());\n}",
+          "file": "tree_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "TreeNode.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"TreeNode\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"TreeNode\", \"json_roundtrip\") {\n    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original->jsondump(), \"./serialization/test_treenode.json\");\n    auto loaded_json = encoders::json_load_data(\"./serialization/test_treenode.json\");\n    auto loaded = TreeNode::jsonload(loaded_json);\n\n    MINI_CHECK(loaded->name == original->name);\n\n    std::filesystem::remove(\"./serialization/test_treenode.json\");\n}",
+          "file": "treenode_test.cpp"
         }
       }
     },
@@ -44551,6 +45404,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Vertex.test_json_roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Vertex\", \"json_roundtrip\")",
+          "code": "MINI_TEST(\"Vertex\", \"json_roundtrip\") {\n    Vertex original(\"v0\", \"./serialization/test_attribute\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"./serialization/test_vertex.json\");\n\n    MINI_CHECK(loaded.name == original.name);\n    MINI_CHECK(loaded.attribute == original.attribute);\n\n    std::filesystem::remove(\"./serialization/test_vertex.json\");\n}",
+          "file": "vertex_test.cpp"
+        }
+      }
+    },
+    {
       "name": "Xform.test_constructor",
       "implementations": {
         "cpp": {
@@ -44714,25 +45577,15 @@ window.API_INDEX = {
           "file": "xform_test.py"
         }
       }
-    },
-    {
-      "name": "NurbsSurface.test_constructor_ruled_surface",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"constructor_ruled_surface\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"constructor_ruled_surface\")\ndef test_nurbssurface_constructor_ruled_surface():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3,0,0), Point(-2,0,5)]\n    pts_b = [Point(3,5,5), Point(-2,5,0)]\n    crvA = NurbsCurve.create(False, 1, pts_a)\n    crvB = NurbsCurve.create(False, 1, pts_b)\n    ruled = NurbsSurface.create_ruled(crvA, crvB)\n\n    MINI_CHECK(ruled.is_valid())\n    MINI_CHECK(ruled.degree(0) == 1)\n    MINI_CHECK(ruled.degree(1) == 1)\n    MINI_CHECK(ruled.cv_count_dir(0) == 2)\n    MINI_CHECK(ruled.cv_count_dir(1) == 2)\n\n    rd, ruv = ruled.divide_by_count(4, 4)\n    MINI_CHECK(len(rd) == 5)\n    MINI_CHECK(len(rd[0]) == 5)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(ruled.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector( 0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector( 1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0, -0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector(-1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector(-0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector( 2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector( 0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0, -0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector(-0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector(-2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector( 0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector( 0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0, 0.0, 1.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector(-0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector(-0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector( 2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector( 0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, 0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector(-0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector(-2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector( 0.577350269189626,  0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector( 1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, 0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector(-1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector(-0.577350269189626,  0.577350269189626,  0.577350269189626)))\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0][0],  0.00) and TOLERANCE.is_close(uvs[0][1],  0.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[1][0],  0.00) and TOLERANCE.is_close(uvs[1][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[4][0],  0.00) and TOLERANCE.is_close(uvs[4][1],  1.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[6][0],  0.25) and TOLERANCE.is_close(uvs[6][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[12][0], 0.50) and TOLERANCE.is_close(uvs[12][1], 0.50))\n    MINI_CHECK(TOLERANCE.is_close(uvs[24][0], 1.00) and TOLERANCE.is_close(uvs[24][1], 1.00))\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
-          "file": "nurbssurface_test.py"
-        }
-      }
     }
   ],
   "recipes": [
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "into",
         "circle",
         "n",
-        "into",
         "subdivide",
         "points",
         "divide_by_count",
@@ -44748,11 +45601,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "arc",
         "length",
         "subdivide",
-        "ellipse",
-        "arc",
         "by",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -44767,8 +45620,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "through",
-        "arc",
         "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -44782,11 +45635,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
+        "open",
+        "curve",
         "adaptive",
         "polyline",
-        "curve",
-        "open",
+        "from",
         "points",
         "to_polyline_adaptive",
         "create",
@@ -44802,10 +45655,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
-        "parameter",
         "curve",
+        "parameter",
         "evaluation",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -44824,10 +45677,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "along",
-        "length",
         "curve",
+        "along",
+        "frames",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -44849,9 +45702,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "perpendicular",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -44872,10 +45725,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
+        "evaluate",
+        "surface",
         "cylinder",
         "point",
-        "surface",
-        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -44890,11 +45743,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
-        "from",
+        "and",
         "mesh",
         "vertices",
-        "and",
+        "faces",
+        "from",
         "add_vertex",
         "add_face",
         "vertex"
@@ -45556,7 +46409,9 @@ window.API_INDEX = {
       "CurveKnotStyle.is_valid",
       "NurbsCurve.is_valid",
       "NurbsSurface.is_valid",
-      "Plane.is_valid"
+      "Plane.is_valid",
+      "NormalWeighting.is_valid",
+      "Mesh.is_valid"
     ],
     "is_clamped": [
       "CurveKnotStyle.is_clamped",
@@ -45625,7 +46480,8 @@ window.API_INDEX = {
       "CurveKnotStyle.compute_parameters"
     ],
     "build_interp_knots": [
-      "CurveKnotStyle.build_interp_knots"
+      "CurveKnotStyle.build_interp_knots",
+      "NurbsSurface.build_interp_knots"
     ],
     "fit_points": [
       "Line.fit_points"
@@ -46295,6 +47151,18 @@ window.API_INDEX = {
     "create_ruled": [
       "NurbsSurface.create_ruled"
     ],
+    "create_loft": [
+      "NurbsSurface.create_loft"
+    ],
+    "_merge_knot_vectors": [
+      "NurbsSurface._merge_knot_vectors"
+    ],
+    "_knot_vectors_equal": [
+      "NurbsSurface._knot_vectors_equal"
+    ],
+    "_make_curves_compatible": [
+      "NurbsSurface._make_curves_compatible"
+    ],
     "create_planar": [
       "NurbsSurface.create_planar"
     ],
@@ -46303,6 +47171,36 @@ window.API_INDEX = {
     ],
     "cv_count_total": [
       "NurbsSurface.cv_count_total"
+    ],
+    "create_network": [
+      "NurbsSurface.create_network"
+    ],
+    "min_dist_sq": [
+      "NurbsSurface.min_dist_sq"
+    ],
+    "find_param": [
+      "NurbsSurface.find_param"
+    ],
+    "gauss_solve": [
+      "NurbsSurface.gauss_solve"
+    ],
+    "build_basis_matrix": [
+      "NurbsSurface.build_basis_matrix"
+    ],
+    "monotone_hermite_eval": [
+      "NurbsSurface.monotone_hermite_eval"
+    ],
+    "reparametrize_curve": [
+      "NurbsSurface.reparametrize_curve"
+    ],
+    "skin_curves": [
+      "NurbsSurface.skin_curves"
+    ],
+    "_to_curve_internal": [
+      "NurbsSurface._to_curve_internal"
+    ],
+    "_from_curve_internal": [
+      "NurbsSurface._from_curve_internal"
     ],
     "transform_stored": [
       "NurbsSurface.transform_stored"
@@ -47219,9 +48117,6 @@ window.API_INDEX = {
     "slerp": [
       "NurbsCurve.slerp"
     ],
-    "create_loft": [
-      "NurbsSurface.create_loft"
-    ],
     "create_revolve": [
       "NurbsSurface.create_revolve"
     ],
@@ -47230,6 +48125,9 @@ window.API_INDEX = {
     ],
     "create_sweep2": [
       "NurbsSurface.create_sweep2"
+    ],
+    "create_edge": [
+      "NurbsSurface.create_edge"
     ],
     "point_and_normal_at": [
       "NurbsSurface.point_and_normal_at"

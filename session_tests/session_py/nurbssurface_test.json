@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 2.193,
+    "time_ms": 2.188,
     "line": 8,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Point division matching Rhino's 4x6 grid\n    v, uv = s.divide_by_count(4, 6)",
     "checks": [
@@ -302,7 +302,7 @@
   {
     "test_name": "accessors",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.052,
     "line": 128,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface.create_raw(3, False, 4, 3, 5, 4, False, False, 1.0, 1.0)\n\n    # Test knot access\n    knot_val = surf.knot(0, 2)\n\n    # Test set knot\n    surf.set_knot(0, 2, 5.0)\n    new_val = surf.knot(0, 2)",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "rational_operations",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 0.073,
     "line": 176,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create non-rational surface\n    surf = NurbsSurface.create_raw(3, False, 3, 3, 3, 3, False, False, 1.0, 1.0)\n\n    # Make it rational\n    surf.make_rational()\n\n    # Set a control point and weight\n    surf.set_cv(1, 1, Point(1.0, 2.0, 3.0))\n    surf.set_weight(1, 1, 2.0)\n\n    # Verify weight\n    w = surf.weight(1, 1)",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "evaluation",
     "passed": true,
-    "time_ms": 0.261,
+    "time_ms": 0.376,
     "line": 199,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create simple bilinear surface\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    # Set corner control points\n    surf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    surf.set_cv(1, 0, Point(1.0, 0.0, 0.0))\n    surf.set_cv(0, 1, Point(0.0, 1.0, 0.0))\n    surf.set_cv(1, 1, Point(1.0, 1.0, 0.0))\n\n    # Evaluate at corner\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    pt_corner = surf.point_at(u0, v0)\n\n    # Evaluate at center (should be center of unit square)\n    u_mid = (u0 + u1) / 2.0\n    v_mid = (v0 + v1) / 2.0\n    pt_mid = surf.point_at(u_mid, v_mid)\n\n    # Test derivatives\n    derivs = surf.evaluate(u_mid, v_mid, 1)\n\n    # Test normal (for flat plane in XY, normal should point in +Z)\n    normal = surf.normal_at(u_mid, v_mid)",
     "checks": [
@@ -502,7 +502,7 @@
   {
     "test_name": "geometric_queries",
     "passed": true,
-    "time_ms": 0.108,
+    "time_ms": 0.123,
     "line": 240,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create and setup surface\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    surf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    surf.set_cv(1, 0, Point(1.0, 0.0, 0.0))\n    surf.set_cv(0, 1, Point(0.0, 1.0, 0.0))\n    surf.set_cv(1, 1, Point(1.0, 1.0, 0.0))",
     "checks": [
@@ -577,7 +577,7 @@
   {
     "test_name": "isocurve",
     "passed": true,
-    "time_ms": 0.187,
+    "time_ms": 0.186,
     "line": 295,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create surface\n    surf = NurbsSurface.create_raw(3, False, 3, 3, 3, 3, False, False, 1.0, 1.0)\n\n    # Set up a grid of control points\n    for i in range(3):\n        for j in range(3):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n\n    # Extract iso-u curve (v varies)\n    u0, u1 = surf.domain(0)\n    u_mid = (u0 + u1) / 2.0\n    iso_u = surf.iso_curve(0, u_mid)\n\n    # Extract iso-v curve (u varies)\n    v0, v1 = surf.domain(1)\n    v_mid = (v0 + v1) / 2.0\n    iso_v = surf.iso_curve(1, v_mid)",
     "checks": [
@@ -612,7 +612,7 @@
   {
     "test_name": "transformation",
     "passed": true,
-    "time_ms": 0.131,
+    "time_ms": 0.344,
     "line": 325,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Xform\n\n    # Create simple surface\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    surf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    surf.set_cv(1, 0, Point(1.0, 0.0, 0.0))\n    surf.set_cv(0, 1, Point(0.0, 1.0, 0.0))\n    surf.set_cv(1, 1, Point(1.0, 1.0, 0.0))\n\n    # Apply translation\n    xf = Xform.translation(1.0, 2.0, 3.0)\n    surf.transform(xf)\n\n    # Check transformed CV\n    pt = surf.get_cv(0, 0)",
     "checks": [
@@ -637,7 +637,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 17.181,
+    "time_ms": 13.708,
     "line": 351,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    surf = NurbsSurface.create_raw(3, False, 3, 3, 3, 3, False, False, 1.0, 1.0)\n    surf.name = \"test_nurbssurface\"\n    surf.width = 2.0\n    surf.surfacecolor = Color(255, 128, 64, 255)\n\n    for i in range(3):\n        for j in range(3):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # JSON object\n    json_obj = surf.__jsondump__()\n    loaded_json = NurbsSurface.__jsonload__(json_obj)\n\n    # String\n    json_string = surf.json_dumps()\n    loaded_json_string = NurbsSurface.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.json\"\n    surf.json_dump(filename)\n    loaded_from_file = NurbsSurface.json_load(filename)",
     "checks": [
@@ -662,7 +662,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 16.479,
+    "time_ms": 11.723,
     "line": 392,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    surf = NurbsSurface.create_raw(3, False, 3, 3, 3, 3, False, False, 1.0, 1.0)\n    surf.name = \"test_nurbssurface\"\n    surf.width = 2.0\n    surf.surfacecolor = Color(255, 128, 64, 255)\n\n    for i in range(3):\n        for j in range(3):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # String\n    proto_string = surf.pb_dumps()\n    loaded_proto_string = NurbsSurface.pb_loads(proto_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.bin\"\n    surf.pb_dump(filename)\n    loaded = NurbsSurface.pb_load(filename)",
     "checks": [
@@ -682,7 +682,7 @@
   {
     "test_name": "advanced_accessors",
     "passed": true,
-    "time_ms": 0.085,
+    "time_ms": 0.079,
     "line": 426,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create rational surface for testing get_cv_4d/set_cv_4d\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 3, 3, False, False, 1.0, 1.0)\n\n    # Test set_cv_4d with homogeneous coordinates\n    x, y, z, w = 2.0, 3.0, 4.0, 2.0\n\n    # Set CV using set_cv_4d\n    surf.set_cv_4d(1, 1, x, y, z, w)\n\n    # Get CV and verify using get_cv_4d\n    ok, rx, ry, rz, rw = surf.get_cv_4d(1, 1)\n\n    # Also test get_cv\n    pt = surf.get_cv(1, 1)\n    retrieved_w = surf.weight(1, 1)\n\n    # Test knot_multiplicity\n    mult = surf.knot_count(0)\n    first_knot_mult = 0\n    if mult > 0:\n        first_val = surf.knot(0, 0)\n        count = 1\n        for i in range(1, mult):\n            val = surf.knot(0, i)\n            if abs(val - first_val) < 1e-10:\n                count += 1\n            else:\n                break\n        first_knot_mult = count\n\n    # get_cv returns Euclidean coordinates, so it divides homogeneous coords by w",
     "checks": [
@@ -742,7 +742,7 @@
   {
     "test_name": "clamp_operations",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.127,
     "line": 474,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    surf = NurbsSurface.create_raw(3, False, 4, 4, 4, 4, False, False, 1.0, 1.0)\n\n    # Set up control points\n    for i in range(4):\n        for j in range(4):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n\n    # Test clamp_end\n    was_clamped_before = surf.is_clamped(0, 2)\n    surf.clamp_end(0, 2)\n    is_clamped_after = surf.is_clamped(0, 2)",
     "checks": [
@@ -762,7 +762,7 @@
   {
     "test_name": "singularity",
     "passed": true,
-    "time_ms": 0.213,
+    "time_ms": 0.113,
     "line": 495,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create a simple surface\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    # Set all CVs to different points (non-singular)\n    surf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    surf.set_cv(1, 0, Point(1.0, 0.0, 0.0))\n    surf.set_cv(0, 1, Point(0.0, 1.0, 0.0))\n    surf.set_cv(1, 1, Point(1.0, 1.0, 0.0))\n\n    # Test is_singular for each side\n    is_singular_south = surf.is_singular(0)\n    is_singular_east = surf.is_singular(1)\n    is_singular_north = surf.is_singular(2)\n    is_singular_west = surf.is_singular(3)",
     "checks": [
@@ -797,7 +797,7 @@
   {
     "test_name": "bounding_box",
     "passed": true,
-    "time_ms": 0.284,
+    "time_ms": 0.248,
     "line": 522,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 3, 3, False, False, 1.0, 1.0)\n\n    # Set CVs in a known range\n    for i in range(3):\n        for j in range(3):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n\n    # Get bounding box\n    bbox = surf.get_bounding_box()",
     "checks": [
@@ -812,7 +812,7 @@
   {
     "test_name": "domain_operations",
     "passed": true,
-    "time_ms": 0.06,
+    "time_ms": 0.056,
     "line": 540,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface.create_raw(3, False, 3, 3, 3, 3, False, False, 1.0, 1.0)\n\n    # Get initial domain\n    dom_u = surf.domain(0)\n    dom_v = surf.domain(1)\n\n    # Set new domain\n    surf.set_domain(0, 0.0, 10.0)\n    surf.set_domain(1, 5.0, 15.0)\n\n    new_dom_u = surf.domain(0)\n    new_dom_v = surf.domain(1)\n\n    # Get span vectors\n    span_u = surf.get_span_vector(0)\n    span_v = surf.get_span_vector(1)",
     "checks": [
@@ -862,7 +862,7 @@
   {
     "test_name": "corner_points",
     "passed": true,
-    "time_ms": 0.098,
+    "time_ms": 0.108,
     "line": 571,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    # Set corner control points\n    surf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    surf.set_cv(1, 0, Point(10.0, 0.0, 0.0))\n    surf.set_cv(0, 1, Point(0.0, 10.0, 0.0))\n    surf.set_cv(1, 1, Point(10.0, 10.0, 0.0))\n\n    # Get corner points\n    p00 = surf.point_at_corner(0, 0)\n    p10 = surf.point_at_corner(1, 0)\n    p01 = surf.point_at_corner(0, 1)\n    p11 = surf.point_at_corner(1, 1)",
     "checks": [
@@ -892,7 +892,7 @@
   {
     "test_name": "swap_coordinates",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.086,
     "line": 596,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    # Set a control point with distinct coordinates\n    surf.set_cv(0, 0, Point(1.0, 2.0, 3.0))\n\n    # Swap X and Y\n    surf.swap_coordinates(0, 1)\n\n    pt = surf.get_cv(0, 0)",
     "checks": [
@@ -917,7 +917,7 @@
   {
     "test_name": "zero_cvs",
     "passed": true,
-    "time_ms": 0.081,
+    "time_ms": 0.087,
     "line": 616,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    surf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n\n    # Set non-zero control points\n    surf.set_cv(0, 0, Point(1.0, 2.0, 3.0))\n    surf.set_cv(1, 1, Point(4.0, 5.0, 6.0))\n\n    # Zero all CVs\n    surf.zero_cvs()\n\n    pt0 = surf.get_cv(0, 0)\n    pt1 = surf.get_cv(1, 1)",
     "checks": [
@@ -937,7 +937,7 @@
   {
     "test_name": "get_knots",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.054,
     "line": 641,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface.create_raw(3, False, 4, 3, 4, 3, False, False, 1.0, 2.0)\n\n    knots_u = surf.get_knots(0)\n    knots_v = surf.get_knots(1)",
     "checks": [
@@ -967,7 +967,7 @@
   {
     "test_name": "make_non_rational",
     "passed": true,
-    "time_ms": 0.123,
+    "time_ms": 0.115,
     "line": 656,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create rational surface with all weights = 1\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 3, 3, False, False, 1.0, 1.0)\n\n    # Set all weights to 1.0\n    for i in range(3):\n        for j in range(3):\n            surf.set_cv(i, j, Point(float(i), float(j), 0.0))\n            surf.set_weight(i, j, 1.0)\n\n    was_rational = surf.is_rational()\n    surf.make_non_rational()\n    is_rational_after = surf.is_rational()",
     "checks": [
@@ -987,7 +987,7 @@
   {
     "test_name": "create_clamped_uniform",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.046,
     "line": 678,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface()\n    surf.create_clamped_uniform(3, 4, 3, 4, 4, 1.0, 2.0)\n\n    dom_u = surf.domain(0)\n    dom_v = surf.domain(1)",
     "checks": [
@@ -1037,7 +1037,7 @@
   {
     "test_name": "knot_multiplicity",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.041,
     "line": 698,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface.create_raw(3, False, 4, 4, 4, 4, False, False, 1.0, 1.0)\n\n    # Check first knot multiplicity (should be equal to degree for clamped)\n    mult_u_start = surf.knot_multiplicity(0, 0)\n    mult_v_start = surf.knot_multiplicity(1, 0)\n\n    # Check last knot multiplicity\n    last_u = surf.knot_count(0) - 1\n    last_v = surf.knot_count(1) - 1\n    mult_u_end = surf.knot_multiplicity(0, last_u)\n    mult_v_end = surf.knot_multiplicity(1, last_v)",
     "checks": [
@@ -1067,7 +1067,7 @@
   {
     "test_name": "sphere",
     "passed": true,
-    "time_ms": 0.496,
+    "time_ms": 0.488,
     "line": 720,
     "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    w = math.sqrt(2.0) / 2.0  # 0.707107\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5, False, False, 1.0, 1.0)\n    surf.name = \"unit_sphere\"\n\n    # U-knots: periodic around equator with multiplicity 2\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: from south pole to north pole\n    v_knots = [-pi * 0.5, -pi * 0.5, 0, 0, pi * 0.5, pi * 0.5]\n    for i in range(6):\n        surf.set_knot(1, i, v_knots[i])\n\n    # Set up control points for sphere (9 around, 5 latitude levels)\n    # Latitude levels: south pole, -45deg, equator, +45deg, north pole\n    lat_weights = [w, 0.5, w, 0.5, w]\n    lat_z = [-radius, -radius * w, 0.0, radius * w, radius]\n    lat_r = [0.0, radius * w, radius, radius * w, 0.0]\n\n    for j in range(5):\n        r = lat_r[j]\n        z = lat_z[j]\n        # 9 points around (0, 45, 90, 135, 180, 225, 270, 315, 360=0)\n        angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n        for i in range(9):\n            x = r * math.cos(angles[i])\n            y = r * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            # Weight: w for cardinal directions (0, 90, 180, 270), 0.5 for diagonals at non-pole latitudes\n            weight = w if i % 2 == 0 else lat_weights[j]\n            if j == 0 or j == 4:\n                weight = w  # poles\n            surf.set_weight(i, j, weight)\n\n    # Verify sphere properties\n\n    # Check point on equator at angle 0 (should be at (radius, 0, 0))\n    pt = surf.point_at(0.0, 0.0)\n\n    # Check north pole\n    north = surf.point_at(0.0, pi * 0.5)",
     "checks": [
@@ -1127,7 +1127,7 @@
   {
     "test_name": "cylinder",
     "passed": true,
-    "time_ms": 0.268,
+    "time_ms": 0.286,
     "line": 783,
     "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 1.5\n    height = 3.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cylinder\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from bottom to top\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cylinder (9 around, 2 heights)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for j in range(2):\n        z = 0.0 if j == 0 else height\n        for i in range(9):\n            x = radius * math.cos(angles[i])\n            y = radius * math.sin(angles[i])\n            # For diagonal points (45, 135, etc), radius needs to be scaled\n            if i % 2 == 1:\n                x = radius * math.sqrt(2.0) * math.cos(angles[i])\n                y = radius * math.sqrt(2.0) * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            weight = 1.0 if i % 2 == 0 else w\n            surf.set_weight(i, j, weight)\n\n    # Verify cylinder properties\n\n    # Check point on bottom circle at angle 0\n    pt_bottom = surf.point_at(0.0, 0.0)\n\n    # Check point on top circle at angle 0\n    pt_top = surf.point_at(0.0, height)\n\n    # Check midpoint at angle PI/2\n    pt_mid = surf.point_at(pi * 0.5, height * 0.5)",
     "checks": [
@@ -1212,7 +1212,7 @@
   {
     "test_name": "torus",
     "passed": true,
-    "time_ms": 0.703,
+    "time_ms": 0.657,
     "line": 849,
     "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    major_radius = 3.0\n    minor_radius = 1.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 9, False, False, 1.0, 1.0)\n    surf.name = \"unit_torus\"\n\n    # Both U and V knots: periodic for circles\n    knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, knots[i])\n        surf.set_knot(1, i, knots[i])\n\n    # Set up control points for torus\n    # U: major angle (around torus), V: minor angle (around tube)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for i in range(9):\n        major_angle = angles[i]\n        cos_ma = math.cos(major_angle)\n        sin_ma = math.sin(major_angle)\n        major_scale = 1.0 if i % 2 == 0 else math.sqrt(2.0)\n\n        for j in range(9):\n            minor_angle = angles[j]\n            cos_mi = math.cos(minor_angle)\n            sin_mi = math.sin(minor_angle)\n            minor_scale = 1.0 if j % 2 == 0 else math.sqrt(2.0)\n\n            r = major_radius + minor_radius * minor_scale * cos_mi\n            x = r * major_scale * cos_ma\n            y = r * major_scale * sin_ma\n            z = minor_radius * minor_scale * sin_mi\n\n            surf.set_cv(i, j, Point(x, y, z))\n\n            # Weight is product of major and minor weights\n            w_major = 1.0 if i % 2 == 0 else w\n            w_minor = 1.0 if j % 2 == 0 else w\n            surf.set_weight(i, j, w_major * w_minor)\n\n    # Verify torus properties\n\n    # Check point at (0, 0) - should be on outer edge of torus\n    pt = surf.point_at(0.0, 0.0)\n\n    # Check point at (PI, 0) - should be on opposite side of torus\n    pt_opp = surf.point_at(pi, 0.0)",
     "checks": [
@@ -1277,7 +1277,7 @@
   {
     "test_name": "cone",
     "passed": true,
-    "time_ms": 0.254,
+    "time_ms": 0.342,
     "line": 917,
     "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    height = 4.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cone\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from apex to base\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cone (9 around, 2 heights: apex and base)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    # Apex (j=0) - all points collapse to the apex\n    for i in range(9):\n        surf.set_cv(i, 0, Point(0.0, 0.0, height))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 0, weight)\n\n    # Base (j=1) - circle at z=0\n    for i in range(9):\n        x = radius * math.cos(angles[i])\n        y = radius * math.sin(angles[i])\n        if i % 2 == 1:\n            x = radius * math.sqrt(2.0) * math.cos(angles[i])\n            y = radius * math.sqrt(2.0) * math.sin(angles[i])\n        surf.set_cv(i, 1, Point(x, y, 0.0))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 1, weight)\n\n    # Verify cone properties\n\n    # Check apex\n    apex = surf.point_at(0.0, 0.0)\n\n    # Check point on base circle at angle 0\n    base = surf.point_at(0.0, height)\n\n    # Check midpoint - should be at half radius, half height\n    mid = surf.point_at(0.0, height * 0.5)",
     "checks": [
@@ -1357,7 +1357,7 @@
   {
     "test_name": "create_planar",
     "passed": true,
-    "time_ms": 230.704,
+    "time_ms": 233.834,
     "line": 986,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts = [Point(0,0,0), Point(3,1,0), Point(5,0.5,0), Point(6,3,0), Point(4,5,0), Point(1,4,0), Point(0,0,0)]\n    boundary = NurbsCurve.create(False, 3, pts)\n    surf = NurbsSurface.create_planar([boundary])\n\n\n    pd, puv = surf.divide_by_count(4, 4)",
     "checks": [
@@ -1417,7 +1417,7 @@
   {
     "test_name": "constructor_ruled",
     "passed": true,
-    "time_ms": 2.921,
+    "time_ms": 2.913,
     "line": 1010,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3,0,0), Point(-2,0,5)]\n    pts_b = [Point(3,5,5), Point(-2,5,0)]\n    crvA = NurbsCurve.create(False, 1, pts_a)\n    crvB = NurbsCurve.create(False, 1, pts_b)\n    ruled = NurbsSurface.create_ruled(crvA, crvB)\n\n\n    rd, ruv = ruled.divide_by_count(4, 4)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(ruled.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])",
     "checks": [
@@ -1742,7 +1742,7 @@
   {
     "test_name": "constructor_loft",
     "passed": true,
-    "time_ms": 2.8,
+    "time_ms": 2.635,
     "line": 1107,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Primitives\n\n    c1 = Primitives.circle(0, 0, 0.0, 2.0)\n    c2 = Primitives.circle(0, 0, 2.0, 1.0)\n    c3 = Primitives.circle(0, 0, 4.0, 1.5)\n    c4 = Primitives.circle(0, 0, 6.0, 0.8)\n\n    srf = NurbsSurface.create_loft([c1, c2, c3, c4], 3)\n\n\n    open_pts = [\n        [Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)],\n        [Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)],\n        [Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)],\n    ]\n    open_curves = [\n        NurbsCurve.create(False, 3, open_pts[0]),\n        NurbsCurve.create(False, 3, open_pts[1]),\n        NurbsCurve.create(False, 3, open_pts[2]),\n    ]\n    open_srf = NurbsSurface.create_loft(open_curves, 3)",
     "checks": [
@@ -2014,6 +2014,61 @@
       {
         "line": 1188,
         "code_line": "TOLERANCE.is_point_close(open_srf.get_cv(3, 2), Point(1, -5, 0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "create_network",
+    "passed": true,
+    "time_ms": 125.723,
+    "line": 1191,
+    "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    uc0 = NurbsCurve.create(False, 2, [Point(10,9.569076,0), Point(5.5,9.569076,3.5), Point(1,9.569076,0)])\n    uc1 = NurbsCurve.create(False, 2, [Point(10,16.569076,0), Point(5.5,16.569076,3.5), Point(1,16.569076,0)])\n    vc0 = NurbsCurve.create(False, 3, [Point(1,9.569076,0), Point(1,11.569076,3.0), Point(1,14.569076,3.0), Point(1,16.569076,0)])\n    vc1 = NurbsCurve.create(False, 2, [Point(4.236484,9.569076,1.612033), Point(3,13.069076,4.250144), Point(3.667141,16.569076,1.459684)])\n    vc2 = NurbsCurve.create(False, 2, [Point(7.295129,16.569076,1.471513), Point(8,13.069076,4.250144), Point(6.99265,9.569076,1.557456)])\n    vc3 = NurbsCurve.create(False, 3, [Point(10,9.569076,0), Point(10,11.569076,3), Point(10,14.569076,3), Point(10,16.569076,0)])\n    srf = NurbsSurface.create_network([uc0, uc1], [vc0, vc1, vc2, vc3])\n    p00 = srf.point_at(0, 0)\n    p01 = srf.point_at(0, 1)\n    p10 = srf.point_at(1, 0)\n    p11 = srf.point_at(1, 1)",
+    "checks": [
+      {
+        "line": 1203,
+        "code_line": "srf.cv_count(0) >= 4",
+        "passed": true
+      },
+      {
+        "line": 1204,
+        "code_line": "srf.cv_count(1) >= 4",
+        "passed": true
+      },
+      {
+        "line": 1205,
+        "code_line": "srf.degree(0) == 3",
+        "passed": true
+      },
+      {
+        "line": 1206,
+        "code_line": "srf.degree(1) == 3",
+        "passed": true
+      },
+      {
+        "line": 1211,
+        "code_line": "abs(p00[0] - 10.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 1212,
+        "code_line": "abs(p00[1] - 9.569076) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 1213,
+        "code_line": "abs(p10[0] - 1.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 1214,
+        "code_line": "abs(p11[0] - 1.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 1215,
+        "code_line": "abs(p01[1] - 16.569076) < 0.5",
         "passed": true
       }
     ],

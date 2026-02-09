@@ -2,7 +2,7 @@
   {
     "test_name": "constructor",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.02,
     "line": 15,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n\n        size_t num_vertices = mesh.number_of_vertices();\n        size_t num_faces = mesh.number_of_faces();\n        size_t num_edges = mesh.number_of_edges();\n        bool is_empty = mesh.is_empty();\n        int euler = mesh.euler();\n",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "add_face",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 54,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        auto invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n\n        auto invalid2 = mesh.add_face({v0, v1, 999}, std::nullopt);\n\n        auto invalid3 = mesh.add_face({v0, v1, v0}, std::nullopt);",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "face_vertices",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 79,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto vertices = mesh.face_vertices(*f);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "face_normal",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 150,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto normal = mesh.face_normal(*f);\n",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "face_area",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 169,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto area = mesh.face_area(*f);\n",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "from_polygons",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.02,
     "line": 186,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> triangle = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n\n        Mesh mesh = Mesh::from_polygons({triangle}, std::nullopt);\n\n        std::vector<Point> tri1 = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        std::vector<Point> tri2 = {\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n        };\n\n        Mesh mesh2 = Mesh::from_polygons({tri1, tri2}, std::nullopt);",
     "checks": [
@@ -327,7 +327,7 @@
   {
     "test_name": "clear",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 217,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n\n        mesh.clear();\n",
     "checks": [
@@ -397,7 +397,7 @@
   {
     "test_name": "json_roundtrip",
     "passed": true,
-    "time_ms": 13.759,
+    "time_ms": 11.848,
     "line": 260,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   json_dumps()    │ std::string  │ to JSON string\n        //   json_loads(s)   │ std::string  │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_mesh.json\";\n        encoders::json_dump(mesh, filename);\n        Mesh loaded = encoders::json_load<Mesh>(filename);\n",
     "checks": [
@@ -422,7 +422,7 @@
   {
     "test_name": "protobuf_roundtrip",
     "passed": true,
-    "time_ms": 11.476,
+    "time_ms": 11.146,
     "line": 287,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        std::string filename = \"serialization/test_mesh.bin\";\n        mesh.pb_dump(filename);\n        Mesh loaded = Mesh::pb_load(filename);\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "vertex_position",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 308,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n\n        auto pos = mesh.vertex_position(v0);",
     "checks": [
@@ -487,7 +487,7 @@
   {
     "test_name": "vertex_normal",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.016,
     "line": 323,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v3}, std::nullopt);\n        mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        auto normal = mesh.vertex_normal(v0);",
     "checks": [
@@ -507,7 +507,7 @@
   {
     "test_name": "to_vertices_and_faces",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.009,
     "line": 341,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        auto [vertices, faces] = mesh.to_vertices_and_faces();\n",
     "checks": [
