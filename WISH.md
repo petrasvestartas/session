@@ -1,0 +1,3 @@
+- Interpolated nurbscurve from points (maybe from Greville points)
+- Interpolated nurbssurface from points
+- Network Surface

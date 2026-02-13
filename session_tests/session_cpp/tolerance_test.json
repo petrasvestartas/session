@@ -1,6 +1,6 @@
 [
   {
-    "test_name": "is_zero",
+    "test_name": "Is_zero",
     "passed": true,
     "time_ms": 0.001,
     "line": 8,
@@ -15,9 +15,9 @@
     "failures": []
   },
   {
-    "test_name": "is_close",
+    "test_name": "Is_close",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 13,
     "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -30,7 +30,7 @@
     "failures": []
   },
   {
-    "test_name": "is_positive",
+    "test_name": "Is_positive",
     "passed": true,
     "time_ms": 0.0,
     "line": 18,
@@ -45,7 +45,7 @@
     "failures": []
   },
   {
-    "test_name": "is_negative",
+    "test_name": "Is_negative",
     "passed": true,
     "time_ms": 0.0,
     "line": 23,
@@ -60,7 +60,7 @@
     "failures": []
   },
   {
-    "test_name": "is_between",
+    "test_name": "Is_between",
     "passed": true,
     "time_ms": 0.0,
     "line": 28,
@@ -75,9 +75,9 @@
     "failures": []
   },
   {
-    "test_name": "format_number",
+    "test_name": "Format_number",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.012,
     "line": 33,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -90,9 +90,9 @@
     "failures": []
   },
   {
-    "test_name": "key",
+    "test_name": "Key",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.007,
     "line": 38,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
@@ -105,7 +105,7 @@
     "failures": []
   },
   {
-    "test_name": "runtime_modification",
+    "test_name": "Runtime_modification",
     "passed": true,
     "time_ms": 0.001,
     "line": 43,

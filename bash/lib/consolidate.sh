@@ -47,6 +47,10 @@ consolidate_test_data() {
                 local lang="${lang_info%%:*}"
                 local dir="${lang_info#*:}"
                 local artifact_path="${repo_root}/${dir}/test_${class_name}.json"
+                # Also check serialization/ subdirectory
+                if [[ ! -f "$artifact_path" ]]; then
+                    artifact_path="${repo_root}/${dir}/serialization/test_${class_name}.json"
+                fi
 
                 if [[ -f "$artifact_path" ]]; then
                     echo ","
