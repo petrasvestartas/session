@@ -498,8 +498,8 @@ const normalizeForDisplay = (code) => {
     const indent = m ? m[1].length : 0
     if (indent < minIndent) minIndent = indent
   }
-  if (!Number.isFinite(minIndent) || minIndent === 0) return lines.join('\n')
-  return lines.map((line) => (line.length >= minIndent ? line.slice(minIndent) : line)).join('\n')
+  if (!Number.isFinite(minIndent) || minIndent === 0) return lines.join('\n').replace(/(\n\s*)+$/, '')
+  return lines.map((line) => (line.length >= minIndent ? line.slice(minIndent) : line)).join('\n').replace(/(\n\s*)+$/, '')
 }
 
 const highlightedCode = (t) => {

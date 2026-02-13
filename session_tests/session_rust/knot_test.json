@@ -1,8 +1,8 @@
 [
   {
-    "test_name": "clamp",
+    "test_name": "Clamp",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 79,
     "code": "        use crate::knot;\n\n        // Clamp a periodic knot vector\n        let mut k = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];\n        let clamp_result = knot::clamp(4, 4, &mut k, 2);\n        let first_clamped = k[0] == k[1] && k[1] == k[2];\n        let last_clamped = k[3] == k[4] && k[4] == k[5];\n",
     "checks": [
@@ -25,9 +25,9 @@
     "failures": []
   },
   {
-    "test_name": "domain_tolerance",
+    "test_name": "Domain_tolerance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 263,
     "code": "        use crate::knot;\n\n        // Calculate domain tolerance\n        let tol_same = knot::domain_tolerance(1.0, 1.0);\n        let tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
     "checks": [
@@ -45,9 +45,9 @@
     "failures": []
   },
   {
-    "test_name": "find_span",
+    "test_name": "Find_span",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 229,
     "code": "        use crate::knot;\n\n        // Find span in single-span knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span_0 = knot::find_span(4, 4, &k, 0.0);\n        let span_mid = knot::find_span(4, 4, &k, 0.5);\n        let span_1 = knot::find_span(4, 4, &k, 1.0);\n\n        // Find span in multi-span knot vector\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2_0 = knot::find_span(3, 5, &k2, 0.0);\n        let span2_mid = knot::find_span(3, 5, &k2, 1.5);\n        let span2_end = knot::find_span(3, 5, &k2, 2.5);\n",
     "checks": [
@@ -65,7 +65,7 @@
     "failures": []
   },
   {
-    "test_name": "get_domain",
+    "test_name": "Get_domain",
     "passed": true,
     "time_ms": 0.0,
     "line": 150,
@@ -85,7 +85,7 @@
     "failures": []
   },
   {
-    "test_name": "greville_abcissae",
+    "test_name": "Greville_abcissae",
     "passed": true,
     "time_ms": 0.0,
     "line": 250,
@@ -100,9 +100,9 @@
     "failures": []
   },
   {
-    "test_name": "is_clamped",
+    "test_name": "Is_clamped",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 112,
     "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
     "checks": [
@@ -130,7 +130,7 @@
     "failures": []
   },
   {
-    "test_name": "is_periodic",
+    "test_name": "Is_periodic",
     "passed": true,
     "time_ms": 0.0,
     "line": 133,
@@ -150,7 +150,7 @@
     "failures": []
   },
   {
-    "test_name": "is_valid",
+    "test_name": "Is_valid",
     "passed": true,
     "time_ms": 0.0,
     "line": 95,
@@ -170,7 +170,7 @@
     "failures": []
   },
   {
-    "test_name": "knot_count",
+    "test_name": "Knot_count",
     "passed": true,
     "time_ms": 0.0,
     "line": 7,
@@ -205,7 +205,7 @@
     "failures": []
   },
   {
-    "test_name": "make_clamped_uniform",
+    "test_name": "Make_clamped_uniform",
     "passed": true,
     "time_ms": 0.0,
     "line": 26,
@@ -250,7 +250,7 @@
     "failures": []
   },
   {
-    "test_name": "make_periodic_uniform",
+    "test_name": "Make_periodic_uniform",
     "passed": true,
     "time_ms": 0.0,
     "line": 61,
@@ -270,7 +270,7 @@
     "failures": []
   },
   {
-    "test_name": "multiplicity",
+    "test_name": "Multiplicity",
     "passed": true,
     "time_ms": 0.0,
     "line": 198,
@@ -290,7 +290,7 @@
     "failures": []
   },
   {
-    "test_name": "reverse",
+    "test_name": "Reverse",
     "passed": true,
     "time_ms": 0.0,
     "line": 180,
@@ -315,7 +315,7 @@
     "failures": []
   },
   {
-    "test_name": "set_domain",
+    "test_name": "Set_domain",
     "passed": true,
     "time_ms": 0.0,
     "line": 163,
@@ -340,7 +340,7 @@
     "failures": []
   },
   {
-    "test_name": "span_count",
+    "test_name": "Span_count",
     "passed": true,
     "time_ms": 0.0,
     "line": 212,
