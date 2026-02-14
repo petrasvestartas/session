@@ -42,7 +42,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 8.705,
+    "time_ms": 10.947,
     "line": 46,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      //   jsondump()      │ ordered_json │ to JSON object (internal use)\n      //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n      //   json_dumps()    │ std::string  │ to JSON string\n      //   json_loads(s)   │ std::string  │ from JSON string\n      //   json_dump(path) │ file         │ write to file\n      //   json_load(path) │ file         │ read from file\n\n      std::string filename = \"serialization/test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);\n",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.26,
+    "time_ms": 9.655,
     "line": 69,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.pb_dump(filename);\n      Color loaded = Color::pb_load(filename);\n",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Conversion",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 85,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255);\n      std::array<double, 4> flts = c.to_unified_array();\n      Color ints = Color::from_unified_array(flts);\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 99,
     "code": "      // uncomment #include \"color.h\"\n\n      Color white = Color::white();\n      Color black = Color::black();\n      Color grey = Color::grey();\n      Color red = Color::red();\n      Color orange = Color::orange();\n      Color yellow = Color::yellow();\n      Color lime = Color::lime();\n      Color green = Color::green();\n      Color mint = Color::mint();\n      Color cyan = Color::cyan();\n      Color azure = Color::azure();\n      Color blue = Color::blue();\n      Color violet = Color::violet();\n      Color magenta = Color::magenta();\n      Color pink = Color::pink();\n      Color maroon = Color::maroon();\n      Color brown = Color::brown();\n      Color olive = Color::olive();\n      Color teal = Color::teal();\n      Color navy = Color::navy();\n      Color purple = Color::purple();\n      Color silver = Color::silver();",
     "checks": [

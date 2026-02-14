@@ -22,7 +22,7 @@
   {
     "test_name": "Jsondump",
     "passed": true,
-    "time_ms": 0.37,
+    "time_ms": 0.369,
     "line": 17,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, \"./serialization/test_session.json\");",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Jsonload",
     "passed": true,
-    "time_ms": 0.095,
+    "time_ms": 0.092,
     "line": 36,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n    Session session2 = Session::jsonload(data);",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "File_io",
     "passed": true,
-    "time_ms": 13.781,
+    "time_ms": 13.73,
     "line": 51,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n    std::string filename = \"./serialization/test_session_roundtrip.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n\n    std::filesystem::remove(filename);",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Get_object",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 92,
     "code": "    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);\n\n    auto retrieved = session.get_object<Point>(point->guid);",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "File_io_comprehensive",
     "passed": true,
-    "time_ms": 14.984,
+    "time_ms": 16.171,
     "line": 102,
     "code": "    Session session(\"./serialization/test_session\");\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"./serialization/test_connection\");\n    std::string filename = \"./serialization/test_session_comprehensive.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n\n    std::filesystem::remove(filename);",
     "checks": [

@@ -472,6 +472,7 @@ window.API_INDEX = {
         "BoundingBox.from_mesh",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
         "BoundingBox.from_pointcloud",
@@ -15195,11 +15196,6 @@ window.API_INDEX = {
           "code": "def get_bounding_box(self) -> BoundingBox:\n\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        BoundingBox\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return BoundingBox()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))\n\n        center = Point((min_pt.x + max_pt.x) / 2.0,\n                      (min_pt.y + max_pt.y) / 2.0,\n                      (min_pt.z + max_pt.z) / 2.0)\n        half_size = Vector((max_pt.x - min_pt.x) / 2.0,\n                          (max_pt.y - min_pt.y) / 2.0,\n                          (max_pt.z - min_pt.z) / 2.0)\n\n        return BoundingBox(center, Vector.x_axis(), Vector.y_axis(), Vector.z_axis(), half_size)\n    \n    def divide_by_count(self, nu: int, nv: int):\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def clear_outer_loop(self):\n        self.m_outer_loop = NurbsCurve()\n\n    def add_inner_loop(self, loop):\n        self.m_inner_loops.append(loop)\n\n    def get_inner_loop(self, index):\n        return self.m_inner_loops[index]\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops = []\n\n    def _compute_bbox_diagonal(self):\n        import math\n        minx = miny = minz = 1e30\n        maxx = maxy = maxz = -1e30\n        for i in range(self.cv_count(0)):\n            for j in range(self.cv_count(1)):",
           "file": "nurbssurface.py"
         },
-        "cpp": {
-          "sig": "BoundingBox get_bounding_box()",
-          "code": "BoundingBox NurbsSurface::get_bounding_box() const {\n    return BoundingBox::from_nurbssurface(*this);\n}",
-          "file": "nurbssurface.cpp"
-        },
         "rust": {
           "sig": "get_bounding_box() -> BoundingBox",
           "code": "pub fn get_bounding_box(&self) -> BoundingBox {\n        let mut min_pt = Point::new(f64::MAX, f64::MAX, f64::MAX);\n        let mut max_pt = Point::new(f64::MIN, f64::MIN, f64::MIN);\n        for i in 0..self.m_cv_count[0] {\n            for j in 0..self.m_cv_count[1] {\n                if let Some(pt) = self.get_cv(i, j) {\n                    if pt[0] < min_pt[0] { min_pt[0] = pt[0]; }\n                    if pt[1] < min_pt[1] { min_pt[1] = pt[1]; }\n                    if pt[2] < min_pt[2] { min_pt[2] = pt[2]; }\n                    if pt[0] > max_pt[0] { max_pt[0] = pt[0]; }\n                    if pt[1] > max_pt[1] { max_pt[1] = pt[1]; }\n                    if pt[2] > max_pt[2] { max_pt[2] = pt[2]; }\n                }\n            }\n        }\n        let center = Point::new(\n            (min_pt[0] + max_pt[0]) * 0.5,\n            (min_pt[1] + max_pt[1]) * 0.5,\n            (min_pt[2] + max_pt[2]) * 0.5,\n        );\n        let half_size = Vector::new(\n            (max_pt[0] - min_pt[0]) * 0.5,\n            (max_pt[1] - min_pt[1]) * 0.5,\n            (max_pt[2] - min_pt[2]) * 0.5,\n        );\n        BoundingBox::new(\n            center,\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            half_size,\n        )\n    }",
@@ -25855,7 +25851,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "torus_surface(cx, cy, cz, major_radius, minor_radius)",
-          "code": "def torus_surface(cx, cy, cz, major_radius, minor_radius):\n\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 9)\n        for d in range(2):\n            for i in range(10):\n                srf.set_knot(d, i, u_knots[i])\n\n        for i in range(9):\n            ca = cos_a[i]\n            sa = sin_a[i]\n            for j in range(9):\n                cb = cos_a[j]\n                sb = sin_a[j]\n                r = major_radius + minor_radius * cb\n                px = cx + r * ca\n                py = cy + r * sa\n                pz = cz + minor_radius * sb\n                wij = cw[i] * cw[j]\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def sphere_surface(cx, cy, cz, radius):\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n        v_knots = [0, 0, 1, 1, 2, 2]\n        lat_r = [0, 1, 1, 1, 0]\n        lat_z = [-1, -1, 0, 1, 1]\n        lat_w = [1, w, 1, w, 1]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5)\n        for i in range(10):\n            srf.set_knot(0, i, u_knots[i])\n        for i in range(6):\n            srf.set_knot(1, i, v_knots[i])\n\n        for j in range(5):\n            r = radius * lat_r[j]\n            pz = cz + radius * lat_z[j]\n            wj = lat_w[j]\n            for i in range(9):\n                px = cx + r * cos_a[i]\n                py = cy + r * sin_a[i]\n                wij = cw[i] * wj\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10",
+          "code": "def torus_surface(cx, cy, cz, major_radius, minor_radius):\n\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 9)\n        for d in range(2):\n            for i in range(10):\n                srf.set_knot(d, i, u_knots[i])\n\n        for i in range(9):\n            ca = cos_a[i]\n            sa = sin_a[i]\n            for j in range(9):\n                cb = cos_a[j]\n                sb = sin_a[j]\n                r = major_radius + minor_radius * cb\n                px = cx + r * ca\n                py = cy + r * sa\n                pz = cz + minor_radius * sb\n                wij = cw[i] * cw[j]\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def sphere_surface(cx, cy, cz, radius):\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n        v_knots = [0, 0, 1, 1, 2, 2]\n        lat_r = [0, 1, 1, 1, 0]\n        lat_z = [-1, -1, 0, 1, 1]\n        lat_w = [1, w, 1, w, 1]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5)\n        for i in range(10):\n            srf.set_knot(0, i, u_knots[i])\n        for i in range(6):\n            srf.set_knot(1, i, v_knots[i])\n\n        for j in range(5):\n            r = radius * lat_r[j]\n            pz = cz + radius * lat_z[j]\n            wj = lat_w[j]\n            for i in range(9):\n                px = cx + r * cos_a[i]\n                py = cy + r * sin_a[i]\n                wij = cw[i] * wj\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def schwarz_p(cx, cy, cz, size):\n        half = size / 2.0\n        PI = math.pi\n\n        # Sample 3x3 grid on level set cos(pi*x)+cos(pi*y)+cos(pi*z)=0\n        # Fundamental patch in region 0<=y<=x<=z<=1 (1/48 of cube)\n        # Parametrization: y=u*x, z=1-v*(1-x), solve for x via Newton\n        pts = [[None]*3 for _ in range(3)]\n        for iv in range(3):\n            v = iv * 0.5\n            xp = 0.5\n            for iu in range(3):\n                u = iu * 0.5\n                x = xp\n                for _ in range(50):\n                    f = math.cos(PI*x) + math.cos(PI*u*x) - math.cos(PI*v*(1.0-x))\n                    fp = -PI*math.sin(PI*x) - PI*u*math.sin(PI*u*x) - PI*v*math.sin(PI*v*(1.0-x))\n                    if abs(fp) < 1e-14:\n                        break\n                    dx = f / fp\n                    x -= dx\n                    x = max(0.01, min(0.99, x))",
           "file": "primitives.py"
         },
         "cpp": {
@@ -25871,8 +25867,10 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.cone_surface",
-        "Primitives.create_ruled",
+        "Primitives.cube",
         "Primitives.cylinder_surface",
+        "Primitives.pt",
+        "Primitives.schwarz_p",
         "Primitives.sphere_surface"
       ]
     },
@@ -25881,7 +25879,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "sphere_surface(cx, cy, cz, radius)",
-          "code": "def sphere_surface(cx, cy, cz, radius):\n\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n        v_knots = [0, 0, 1, 1, 2, 2]\n        lat_r = [0, 1, 1, 1, 0]\n        lat_z = [-1, -1, 0, 1, 1]\n        lat_w = [1, w, 1, w, 1]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5)\n        for i in range(10):\n            srf.set_knot(0, i, u_knots[i])\n        for i in range(6):\n            srf.set_knot(1, i, v_knots[i])\n\n        for j in range(5):\n            r = radius * lat_r[j]\n            pz = cz + radius * lat_z[j]\n            wj = lat_w[j]\n            for i in range(9):\n                px = cx + r * cos_a[i]\n                py = cy + r * sin_a[i]\n                wij = cw[i] * wj\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())\n        knots_b = list(cB.get_knots())\n        tol = 1e-10\n\n        for k in knots_b:\n            found = any(abs(ka - k) < tol for ka in knots_a)\n            if not found:\n                cA.insert_knot(k, 1)\n\n        knots_a = list(cA.get_knots())\n        for k in knots_a:\n            found = any(abs(kb - k) < tol for kb in knots_b)\n            if not found:\n                cB.insert_knot(k, 1)\n\n        order_u = cA.order()\n        cv_count_u = cA.cv_count()\n        is_rat = cA.is_rational()\n\n        surface = NurbsSurface.create_raw(3, is_rat, order_u, 2, cv_count_u, 2)\n        if surface is None:\n            return NurbsSurface()\n\n        for i in range(cA.knot_count()):\n            surface.set_knot(0, i, cA.knot(i))\n\n        surface.set_knot(1, 0, 0.0)\n        surface.set_knot(1, 1, 1.0)\n\n        if is_rat:\n            for i in range(cv_count_u):",
+          "code": "def sphere_surface(cx, cy, cz, radius):\n\n        w = math.sqrt(2.0) / 2.0\n        cw = [1, w, 1, w, 1, w, 1, w, 1]\n        cos_a = [1, 1, 0, -1, -1, -1, 0, 1, 1]\n        sin_a = [0, 1, 1, 1, 0, -1, -1, -1, 0]\n        u_knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]\n        v_knots = [0, 0, 1, 1, 2, 2]\n        lat_r = [0, 1, 1, 1, 0]\n        lat_z = [-1, -1, 0, 1, 1]\n        lat_w = [1, w, 1, w, 1]\n\n        srf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5)\n        for i in range(10):\n            srf.set_knot(0, i, u_knots[i])\n        for i in range(6):\n            srf.set_knot(1, i, v_knots[i])\n\n        for j in range(5):\n            r = radius * lat_r[j]\n            pz = cz + radius * lat_z[j]\n            wj = lat_w[j]\n            for i in range(9):\n                px = cx + r * cos_a[i]\n                py = cy + r * sin_a[i]\n                wij = cw[i] * wj\n                srf.set_cv_4d(i, j, px * wij, py * wij, pz * wij, wij)\n\n        return srf\n\n    @staticmethod\n    def schwarz_p(cx, cy, cz, size):\n        half = size / 2.0\n        PI = math.pi\n\n        # Sample 3x3 grid on level set cos(pi*x)+cos(pi*y)+cos(pi*z)=0\n        # Fundamental patch in region 0<=y<=x<=z<=1 (1/48 of cube)\n        # Parametrization: y=u*x, z=1-v*(1-x), solve for x via Newton\n        pts = [[None]*3 for _ in range(3)]\n        for iv in range(3):\n            v = iv * 0.5\n            xp = 0.5\n            for iu in range(3):\n                u = iu * 0.5\n                x = xp\n                for _ in range(50):\n                    f = math.cos(PI*x) + math.cos(PI*u*x) - math.cos(PI*v*(1.0-x))\n                    fp = -PI*math.sin(PI*x) - PI*u*math.sin(PI*u*x) - PI*v*math.sin(PI*v*(1.0-x))\n                    if abs(fp) < 1e-14:\n                        break\n                    dx = f / fp\n                    x -= dx\n                    x = max(0.01, min(0.99, x))\n                    if abs(dx) < 1e-12:\n                        break\n                xp = x\n                pts[iu][iv] = (x * half, u * x * half, (1.0 - v * (1.0 - x)) * half)\n\n        # Degree-2 interpolation: compute CVs from M_inv = [[1,0,0],[-0.5,2,-0.5],[0,0,1]]\n        mi = [[1.0, 0.0, 0.0], [-0.5, 2.0, -0.5], [0.0, 0.0, 1.0]]\n        cvs = []\n        for iu in range(3):\n            for iv in range(3):\n                px, py, pz = 0.0, 0.0, 0.0\n                for k in range(3):\n                    for l in range(3):\n                        w = mi[iu][k] * mi[iv][l]\n                        if abs(w) > 1e-15:\n                            px += w * pts[k][l][0]\n                            py += w * pts[k][l][1]\n                            pz += w * pts[k][l][2]\n                cvs.append(Point(px, py, pz))\n\n        base = NurbsSurface.create(False, False, 2, 2, 3, 3, cvs)\n\n        perms = [(0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0)]\n        patches = []\n        for perm in perms:\n            for s0 in [1, -1]:\n                for s1 in [1, -1]:\n                    for s2 in [1, -1]:",
           "file": "primitives.py"
         },
         "cpp": {
@@ -25897,8 +25895,37 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.cone_surface",
-        "Primitives.create_ruled",
+        "Primitives.cube",
         "Primitives.cylinder_surface",
+        "Primitives.pt",
+        "Primitives.schwarz_p",
+        "Primitives.torus_surface"
+      ]
+    },
+    {
+      "name": "Primitives.schwarz_p",
+      "implementations": {
+        "python": {
+          "sig": "schwarz_p(cx, cy, cz, size)",
+          "code": "def schwarz_p(cx, cy, cz, size):\n\n        half = size / 2.0\n        PI = math.pi\n\n        # Sample 3x3 grid on level set cos(pi*x)+cos(pi*y)+cos(pi*z)=0\n        # Fundamental patch in region 0<=y<=x<=z<=1 (1/48 of cube)\n        # Parametrization: y=u*x, z=1-v*(1-x), solve for x via Newton\n        pts = [[None]*3 for _ in range(3)]\n        for iv in range(3):\n            v = iv * 0.5\n            xp = 0.5\n            for iu in range(3):\n                u = iu * 0.5\n                x = xp\n                for _ in range(50):\n                    f = math.cos(PI*x) + math.cos(PI*u*x) - math.cos(PI*v*(1.0-x))\n                    fp = -PI*math.sin(PI*x) - PI*u*math.sin(PI*u*x) - PI*v*math.sin(PI*v*(1.0-x))\n                    if abs(fp) < 1e-14:\n                        break\n                    dx = f / fp\n                    x -= dx\n                    x = max(0.01, min(0.99, x))\n                    if abs(dx) < 1e-12:\n                        break\n                xp = x\n                pts[iu][iv] = (x * half, u * x * half, (1.0 - v * (1.0 - x)) * half)\n\n        # Degree-2 interpolation: compute CVs from M_inv = [[1,0,0],[-0.5,2,-0.5],[0,0,1]]\n        mi = [[1.0, 0.0, 0.0], [-0.5, 2.0, -0.5], [0.0, 0.0, 1.0]]\n        cvs = []\n        for iu in range(3):\n            for iv in range(3):\n                px, py, pz = 0.0, 0.0, 0.0\n                for k in range(3):\n                    for l in range(3):\n                        w = mi[iu][k] * mi[iv][l]\n                        if abs(w) > 1e-15:\n                            px += w * pts[k][l][0]\n                            py += w * pts[k][l][1]\n                            pz += w * pts[k][l][2]\n                cvs.append(Point(px, py, pz))\n\n        base = NurbsSurface.create(False, False, 2, 2, 3, 3, cvs)\n\n        perms = [(0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0)]\n        patches = []\n        for perm in perms:\n            for s0 in [1, -1]:\n                for s1 in [1, -1]:\n                    for s2 in [1, -1]:\n                        srf = base.duplicate()\n                        for i in range(3):\n                            for j in range(3):\n                                p = srf.get_cv(i, j)\n                                c = [p[0], p[1], p[2]]\n                                srf.set_cv(i, j, Point(cx + s0*c[perm[0]], cy + s1*c[perm[1]], cz + s2*c[perm[2]]))\n                        patches.append(srf)\n        return patches\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        if not curveA.is_valid() or not curveB.is_valid():\n            return NurbsSurface()\n\n        cA = curveA.duplicate()\n        cB = curveB.duplicate()\n\n        cA.set_domain(0.0, 1.0)\n        cB.set_domain(0.0, 1.0)\n\n        if cA.degree() < cB.degree():\n            cA.increase_degree(cB.degree())\n        elif cB.degree() < cA.degree():\n            cB.increase_degree(cA.degree())\n\n        if cA.is_rational() or cB.is_rational():\n            cA.make_rational()\n            cB.make_rational()\n\n        knots_a = list(cA.get_knots())",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurface> schwarz_p(double cx, double cy, double cz, double size)",
+          "code": "std::vector<NurbsSurface> Primitives::schwarz_p(double cx, double cy, double cz, double size) {\n    const double half = size / 2.0;\n    const double PI = 3.14159265358979323846;\n\n    // Sample 3x3 grid on level set cos(pi*x)+cos(pi*y)+cos(pi*z)=0\n    // Fundamental patch in region 0<=y<=x<=z<=1 (1/48 of cube)\n    // Parametrization: y=u*x, z=1-v*(1-x), solve for x via Newton\n    double pts[3][3][3]; // [iu][iv][xyz]\n    for (int iv = 0; iv < 3; ++iv) {\n        double v = iv * 0.5;\n        double xp = 0.5;\n        for (int iu = 0; iu < 3; ++iu) {\n            double u = iu * 0.5;\n            double x = xp;\n            for (int it = 0; it < 50; ++it) {\n                double f = std::cos(PI*x) + std::cos(PI*u*x) - std::cos(PI*v*(1.0-x));\n                double fp = -PI*std::sin(PI*x) - PI*u*std::sin(PI*u*x) - PI*v*std::sin(PI*v*(1.0-x));\n                if (std::abs(fp) < 1e-14) break;\n                double dx = f / fp;\n                x -= dx;\n                if (x < 0.01) x = 0.01;\n                if (x > 0.99) x = 0.99;\n                if (std::abs(dx) < 1e-12) break;\n            }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "schwarz_p(cx: f64, cy: f64, cz: f64, size: f64) -> Vec<NurbsSurface>",
+          "code": "pub fn schwarz_p(cx: f64, cy: f64, cz: f64, size: f64) -> Vec<NurbsSurface> {\n        let half = size / 2.0;\n        let pi = std::f64::consts::PI;\n\n        // Sample 3x3 grid on level set cos(pi*x)+cos(pi*y)+cos(pi*z)=0\n        // Fundamental patch in region 0<=y<=x<=z<=1 (1/48 of cube)\n        // Parametrization: y=u*x, z=1-v*(1-x), solve for x via Newton\n        let mut pts = [[[0.0_f64; 3]; 3]; 3]; // [iu][iv][xyz]\n        for iv in 0..3 {\n            let v = iv as f64 * 0.5;\n            let mut xp = 0.5_f64;\n            for iu in 0..3 {\n                let u = iu as f64 * 0.5;\n                let mut x = xp;\n                for _ in 0..50 {\n                    let f = (pi*x).cos() + (pi*u*x).cos() - (pi*v*(1.0-x)).cos();\n                    let fp = -pi*(pi*x).sin() - pi*u*(pi*u*x).sin() - pi*v*(pi*v*(1.0-x)).sin();\n                    if fp.abs() < 1e-14 { break; }\n                    let dx = f / fp;\n                    x -= dx;\n                    x = x.clamp(0.01, 0.99);\n                    if dx.abs() < 1e-12 { break; }\n                }\n                xp = x;\n                pts[iu][iv] = [x * half, u * x * half, (1.0 - v * (1.0 - x)) * half];\n            }\n        }\n\n        // Degree-2 interpolation: compute CVs from M_inv = [[1,0,0],[-0.5,2,-0.5],[0,0,1]]\n        let mi: [[f64; 3]; 3] = [[1.0,0.0,0.0],[-0.5,2.0,-0.5],[0.0,0.0,1.0]];\n        let mut cvs = Vec::new();\n        for iu in 0..3 {\n            for iv in 0..3 {\n                let (mut px, mut py, mut pz) = (0.0, 0.0, 0.0);\n                for k in 0..3 {\n                    for l in 0..3 {\n                        let w = mi[iu][k] * mi[iv][l];\n                        if w.abs() > 1e-15 {\n                            px += w * pts[k][l][0];\n                            py += w * pts[k][l][1];\n                            pz += w * pts[k][l][2];\n                        }\n                    }\n                }\n                cvs.push(Point::new(px, py, pz));\n            }\n        }\n        let base = NurbsSurface::create(false, false, 2, 2, 3, 3, &cvs).unwrap_or_default();\n\n        let perms: [[usize; 3]; 6] = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];\n        let signs: [[f64; 3]; 8] = [\n            [1.0,1.0,1.0],[1.0,1.0,-1.0],[1.0,-1.0,1.0],[1.0,-1.0,-1.0],\n            [-1.0,1.0,1.0],[-1.0,1.0,-1.0],[-1.0,-1.0,1.0],[-1.0,-1.0,-1.0],\n        ];\n\n        let mut patches = Vec::new();\n        for pi_idx in 0..6 {\n            for si in 0..8 {\n                let mut srf = base.duplicate();\n                for i in 0..3 {\n                    for j in 0..3 {\n                        if let Some(p) = srf.get_cv(i, j) {\n                            let c = [p[0], p[1], p[2]];\n                            let rx = signs[si][0] * c[perms[pi_idx][0]];\n                            let ry = signs[si][1] * c[perms[pi_idx][1]];\n                            let rz = signs[si][2] * c[perms[pi_idx][2]];\n                            srf.set_cv(i, j, &Point::new(cx + rx, cy + ry, cz + rz));\n                        }\n                    }\n                }\n                patches.push(srf);\n            }\n        }\n        patches\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.create_ruled",
+        "Primitives.cube",
+        "Primitives.pt",
+        "Primitives.sphere_surface",
         "Primitives.torus_surface"
       ]
     },
@@ -25925,8 +25952,7 @@ window.API_INDEX = {
         "Primitives.create_extrusion",
         "Primitives.create_planar",
         "Primitives.pt",
-        "Primitives.sphere_surface",
-        "Primitives.torus_surface"
+        "Primitives.schwarz_p"
       ]
     },
     {
@@ -26015,9 +26041,15 @@ window.API_INDEX = {
         "Primitives.create_ruled",
         "Primitives.create_sweep1",
         "Primitives.create_sweep2",
+        "Primitives.dedup_face",
+        "Primitives.hex_mesh",
+        "Primitives.hex_mesh2",
         "Primitives.lerp_vec",
         "Primitives.longest_edge_dir",
         "Primitives.make_bilinear",
+        "Primitives.schwarz_p",
+        "Primitives.sphere_surface",
+        "Primitives.torus_surface",
         "Primitives.wave_surface"
       ]
     },
@@ -26198,7 +26230,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_interpolated(points, parameterization=knot.CurveKnotStyle.Chord)",
-          "code": "def create_interpolated(points, parameterization=knot.CurveKnotStyle.Chord):\n\n        return NurbsCurve.create_interpolated(points, parameterization)",
+          "code": "def create_interpolated(points, parameterization=knot.CurveKnotStyle.Chord):\n\n        return NurbsCurve.create_interpolated(points, parameterization)\n\n    @staticmethod\n    def quad_mesh(surface, u_count, v_count):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        nu, nv = u_count + 1, v_count + 1\n\n        vkeys = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + (du[1] - du[0]) * i / u_count\n            for j in range(nv):\n                v = dv[0] + (dv[1] - dv[0]) * j / v_count\n                vkeys[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        for i in range(u_count):\n            for j in range(v_count):\n                mesh.add_face([vkeys[i][j], vkeys[i+1][j], vkeys[i+1][j+1], vkeys[i][j+1]])\n        return mesh\n\n    @staticmethod\n    def diamond_mesh(surface, u_count, v_count):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n        nu, nv = u_count + 1, v_count + 1\n\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                left   = grid[i-1][j] if i > 0 else center\n                bottom = grid[i][j-1] if j > 0 else center\n                right  = grid[i+1][j] if i < u_count else center\n                top    = grid[i][j+1] if j < v_count else center\n                verts = [left, bottom, right, top]\n                unique = []\n                for k in range(4):\n                    if verts[k] != verts[(k + 1) % 4]:\n                        unique.append(verts[k])\n                if len(unique) >= 3:\n                    mesh.add_face(unique)\n        return mesh\n\n    @staticmethod\n    def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26211,7 +26243,132 @@ window.API_INDEX = {
           "code": "pub fn create_interpolated(points: &[Point], parameterization: knot::CurveKnotStyle) -> NurbsCurve {\n        NurbsCurve::create_interpolated(points, parameterization)\n    }",
           "file": "primitives.rs"
         }
-      }
+      },
+      "related": [
+        "Primitives.diamond_mesh",
+        "Primitives.hex_mesh",
+        "Primitives.quad_mesh"
+      ]
+    },
+    {
+      "name": "Primitives.quad_mesh",
+      "implementations": {
+        "python": {
+          "sig": "quad_mesh(surface, u_count, v_count)",
+          "code": "def quad_mesh(surface, u_count, v_count):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        nu, nv = u_count + 1, v_count + 1\n\n        vkeys = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + (du[1] - du[0]) * i / u_count\n            for j in range(nv):\n                v = dv[0] + (dv[1] - dv[0]) * j / v_count\n                vkeys[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        for i in range(u_count):\n            for j in range(v_count):\n                mesh.add_face([vkeys[i][j], vkeys[i+1][j], vkeys[i+1][j+1], vkeys[i][j+1]])\n        return mesh\n\n    @staticmethod\n    def diamond_mesh(surface, u_count, v_count):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n        nu, nv = u_count + 1, v_count + 1\n\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                left   = grid[i-1][j] if i > 0 else center\n                bottom = grid[i][j-1] if j > 0 else center\n                right  = grid[i+1][j] if i < u_count else center\n                top    = grid[i][j+1] if j < v_count else center\n                verts = [left, bottom, right, top]\n                unique = []\n                for k in range(4):\n                    if verts[k] != verts[(k + 1) % 4]:\n                        unique.append(verts[k])\n                if len(unique) >= 3:\n                    mesh.add_face(unique)\n        return mesh\n\n    @staticmethod\n    def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + (1.0 - t))",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh quad_mesh(const NurbsSurface& surface, int u_count, int v_count)",
+          "code": "Mesh Primitives::quad_mesh(const NurbsSurface& surface, int u_count, int v_count) {\n    Mesh mesh;\n    auto du = surface.domain(0);\n    auto dv = surface.domain(1);\n    int nu = u_count + 1, nv = v_count + 1;\n\n    std::vector<std::vector<size_t>> vkeys(nu, std::vector<size_t>(nv));\n    for (int i = 0; i < nu; i++) {\n        double u = du.first + (du.second - du.first) * i / u_count;\n        for (int j = 0; j < nv; j++) {\n            double v = dv.first + (dv.second - dv.first) * j / v_count;\n            vkeys[i][j] = mesh.add_vertex(surface.point_at(u, v));\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "quad_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize) -> Mesh",
+          "code": "pub fn quad_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize) -> Mesh {\n        let mut mesh = Mesh::new();\n        let du = surface.domain(0).unwrap();\n        let dv = surface.domain(1).unwrap();\n        let nu = u_count + 1;\n        let nv = v_count + 1;\n\n        let mut vkeys = vec![vec![0usize; nv]; nu];\n        for i in 0..nu {\n            let u = du.0 + (du.1 - du.0) * i as f64 / u_count as f64;\n            for j in 0..nv {\n                let v = dv.0 + (dv.1 - dv.0) * j as f64 / v_count as f64;\n                vkeys[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        for i in 0..u_count {\n            for j in 0..v_count {\n                mesh.add_face(vec![vkeys[i][j], vkeys[i+1][j], vkeys[i+1][j+1], vkeys[i][j+1]], None);\n            }\n        }\n        mesh\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.create_interpolated",
+        "Primitives.diamond_mesh",
+        "Primitives.hex_mesh"
+      ]
+    },
+    {
+      "name": "Primitives.diamond_mesh",
+      "implementations": {
+        "python": {
+          "sig": "diamond_mesh(surface, u_count, v_count)",
+          "code": "def diamond_mesh(surface, u_count, v_count):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n        nu, nv = u_count + 1, v_count + 1\n\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                left   = grid[i-1][j] if i > 0 else center\n                bottom = grid[i][j-1] if j > 0 else center\n                right  = grid[i+1][j] if i < u_count else center\n                top    = grid[i][j+1] if j < v_count else center\n                verts = [left, bottom, right, top]\n                unique = []\n                for k in range(4):\n                    if verts[k] != verts[(k + 1) % 4]:\n                        unique.append(verts[k])\n                if len(unique) >= 3:\n                    mesh.add_face(unique)\n        return mesh\n\n    @staticmethod\n    def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + (1.0 - t))\n                mid_b[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        def dedup_face(v):\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                ul = mid_a[i-1][j]   if (i > 0 and j < v_count)          else (grid[i-1][j] if i > 0 else center)\n                ll = mid_b[i-1][j-1] if (i > 0 and j > 0)                else (grid[i-1][j] if i > 0 else center)\n                bt = mid_a[i][j-1]   if j > 0                            else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh diamond_mesh(const NurbsSurface& surface, int u_count, int v_count)",
+          "code": "Mesh Primitives::diamond_mesh(const NurbsSurface& surface, int u_count, int v_count) {\n    Mesh mesh;\n    auto du = surface.domain(0);\n    auto dv = surface.domain(1);\n    double su = (du.second - du.first) / u_count;\n    double sv = (dv.second - dv.first) / v_count;\n    int nu = u_count + 1, nv = v_count + 1;\n\n    std::vector<std::vector<size_t>> grid(nu, std::vector<size_t>(nv));\n    for (int i = 0; i < nu; i++) {\n        double u = du.first + su * i;\n        for (int j = 0; j < nv; j++) {\n            double v = dv.first + sv * j;\n            grid[i][j] = mesh.add_vertex(surface.point_at(u, v));\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "diamond_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize) -> Mesh",
+          "code": "pub fn diamond_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize) -> Mesh {\n        let mut mesh = Mesh::new();\n        let du = surface.domain(0).unwrap();\n        let dv = surface.domain(1).unwrap();\n        let su = (du.1 - du.0) / u_count as f64;\n        let sv = (dv.1 - dv.0) / v_count as f64;\n        let nu = u_count + 1;\n        let nv = v_count + 1;\n\n        let mut grid = vec![vec![0usize; nv]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..nv {\n                let v = dv.0 + sv * j as f64;\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        for i in 0..=u_count {\n            for j in 0..=v_count {\n                if (i + j) % 2 != 0 { continue; }\n                let center = grid[i][j];\n                let left   = if i > 0       { grid[i-1][j] } else { center };\n                let bottom = if j > 0       { grid[i][j-1] } else { center };\n                let right  = if i < u_count { grid[i+1][j] } else { center };\n                let top    = if j < v_count { grid[i][j+1] } else { center };\n                let verts = [left, bottom, right, top];\n                let mut unique = Vec::new();\n                for k in 0..4 {\n                    if verts[k] != verts[(k + 1) % 4] {\n                        unique.push(verts[k]);\n                    }\n                }\n                if unique.len() >= 3 {\n                    mesh.add_face(unique, None);\n                }\n            }\n        }\n        mesh\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.create_interpolated",
+        "Primitives.dedup_face",
+        "Primitives.hex_mesh",
+        "Primitives.quad_mesh"
+      ]
+    },
+    {
+      "name": "Primitives.hex_mesh",
+      "implementations": {
+        "python": {
+          "sig": "hex_mesh(surface, u_count, v_count, t=1.0/3.0)",
+          "code": "def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v = dv[0] + sv * (j + (1.0 - t))\n                mid_b[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        def dedup_face(v):\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                ul = mid_a[i-1][j]   if (i > 0 and j < v_count)          else (grid[i-1][j] if i > 0 else center)\n                ll = mid_b[i-1][j-1] if (i > 0 and j > 0)                else (grid[i-1][j] if i > 0 else center)\n                bt = mid_a[i][j-1]   if j > 0                            else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                lq = dedup_face([bt, ll, ul, tp])\n                if len(lq) >= 3:\n                    mesh.add_face(lq)\n                rq = dedup_face([ur, lr, bt, tp])\n                if len(rq) >= 3:\n                    mesh.add_face(rq)\n        return mesh\n\n    @staticmethod\n    def hex_mesh2(surface, u_count, v_count, t=2.0/3.0):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        h_pts = [[[0, 0] for _ in range(v_count)] for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v0 = dv[0] + sv * j\n                v1 = dv[0] + sv * (j + 1)\n                va = v0 + (v1 - v0) * (1.0 - t) * 0.5",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh hex_mesh(const NurbsSurface& surface, int u_count, int v_count, double t)",
+          "code": "Mesh Primitives::hex_mesh(const NurbsSurface& surface, int u_count, int v_count, double t) {\n    Mesh mesh;\n    auto du = surface.domain(0);\n    auto dv = surface.domain(1);\n    double su = (du.second - du.first) / u_count;\n    double sv = (dv.second - dv.first) / v_count;\n\n    int nu = u_count + 1, nv = v_count + 1;\n    std::vector<std::vector<size_t>> grid(nu, std::vector<size_t>(nv));\n    for (int i = 0; i < nu; i++) {\n        double u = du.first + su * i;\n        for (int j = 0; j < nv; j++) {\n            double v = dv.first + sv * j;\n            grid[i][j] = mesh.add_vertex(surface.point_at(u, v));\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "hex_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize, t: f64) -> Mesh",
+          "code": "pub fn hex_mesh(surface: &NurbsSurface, u_count: usize, v_count: usize, t: f64) -> Mesh {\n        let mut mesh = Mesh::new();\n        let du = surface.domain(0).unwrap();\n        let dv = surface.domain(1).unwrap();\n        let su = (du.1 - du.0) / u_count as f64;\n        let sv = (dv.1 - dv.0) / v_count as f64;\n\n        let nu = u_count + 1;\n        let nv = v_count + 1;\n        let mut grid = vec![vec![0usize; nv]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..nv {\n                let v = dv.0 + sv * j as f64;\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        let mut mid_a = vec![vec![0usize; v_count]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..v_count {\n                let v = dv.0 + sv * (j as f64 + t);\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        let mut mid_b = vec![vec![0usize; v_count]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..v_count {\n                let v = dv.0 + sv * (j as f64 + (1.0 - t));\n                mid_b[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        let dedup_face = |v: Vec<usize>| -> Vec<usize> {\n            let n = v.len();\n            let mut r = Vec::new();\n            for k in 0..n {\n                if v[k] != v[(k + 1) % n] { r.push(v[k]); }\n            }\n            r\n        };\n\n        for i in 0..=u_count {\n            for j in 0..=v_count {\n                if (i + j) % 2 != 0 { continue; }\n                let center = grid[i][j];\n                let ul = if i > 0 && j < v_count          { mid_a[i-1][j]   } else if i > 0 { grid[i-1][j] } else { center };\n                let ll = if i > 0 && j > 0                { mid_b[i-1][j-1] } else if i > 0 { grid[i-1][j] } else { center };\n                let bt = if j > 0                          { mid_a[i][j-1]   } else { center };\n                let lr = if i < u_count && j > 0           { mid_b[i+1][j-1] } else if i < u_count { grid[i+1][j] } else { center };\n                let ur = if i < u_count && j < v_count     { mid_a[i+1][j]   } else if i < u_count { grid[i+1][j] } else { center };\n                let tp = if j < v_count                    { mid_b[i][j]     } else { center };\n\n                let lq = dedup_face(vec![bt, ll, ul, tp]);\n                if lq.len() >= 3 { mesh.add_face(lq, None); }\n                let rq = dedup_face(vec![ur, lr, bt, tp]);\n                if rq.len() >= 3 { mesh.add_face(rq, None); }\n            }\n        }\n        mesh\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.create_interpolated",
+        "Primitives.dedup_face",
+        "Primitives.diamond_mesh",
+        "Primitives.hex_mesh2",
+        "Primitives.pt",
+        "Primitives.quad_mesh"
+      ]
+    },
+    {
+      "name": "Primitives.dedup_face",
+      "implementations": {
+        "python": {
+          "sig": "dedup_face(v)",
+          "code": "def dedup_face(v):\n\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        for i in range(nu):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                ul = mid_a[i-1][j]   if (i > 0 and j < v_count)          else (grid[i-1][j] if i > 0 else center)\n                ll = mid_b[i-1][j-1] if (i > 0 and j > 0)                else (grid[i-1][j] if i > 0 else center)\n                bt = mid_a[i][j-1]   if j > 0                            else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                lq = dedup_face([bt, ll, ul, tp])\n                if len(lq) >= 3:\n                    mesh.add_face(lq)\n                rq = dedup_face([ur, lr, bt, tp])\n                if len(rq) >= 3:\n                    mesh.add_face(rq)\n        return mesh\n\n    @staticmethod\n    def hex_mesh2(surface, u_count, v_count, t=2.0/3.0):\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        h_pts = [[[0, 0] for _ in range(v_count)] for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v0 = dv[0] + sv * j\n                v1 = dv[0] + sv * (j + 1)\n                va = v0 + (v1 - v0) * (1.0 - t) * 0.5\n                vb = v0 + (v1 - v0) * (1.0 + t) * 0.5\n                h_pts[i][j][0] = mesh.add_vertex(surface.point_at(u, va))\n                h_pts[i][j][1] = mesh.add_vertex(surface.point_at(u, vb))\n\n        for i in range(u_count):\n            for j in range(v_count):\n                mesh.add_face([\n                    h_pts[i][j][0], h_pts[i][j][1],\n                    h_pts[i+1][j][1], h_pts[i+1][j][0]\n                ])\n\n        for i in range(u_count):\n            for j in range(v_count):\n                if j == 0:\n                    mesh.add_face([grid[i][0], h_pts[i][0][0], h_pts[i+1][0][0], grid[i+1][0]])\n                else:\n                    mesh.add_face([h_pts[i][j-1][1], h_pts[i][j][0], h_pts[i+1][j][0], h_pts[i+1][j-1][1]])\n            jj = v_count - 1\n            mesh.add_face([h_pts[i][jj][1], grid[i][nv-1], grid[i+1][nv-1], h_pts[i+1][jj][1]])\n        return mesh",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "Primitives.diamond_mesh",
+        "Primitives.hex_mesh",
+        "Primitives.hex_mesh2",
+        "Primitives.pt"
+      ]
+    },
+    {
+      "name": "Primitives.hex_mesh2",
+      "implementations": {
+        "python": {
+          "sig": "hex_mesh2(surface, u_count, v_count, t=2.0/3.0)",
+          "code": "def hex_mesh2(surface, u_count, v_count, t=2.0/3.0):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        h_pts = [[[0, 0] for _ in range(v_count)] for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                v0 = dv[0] + sv * j\n                v1 = dv[0] + sv * (j + 1)\n                va = v0 + (v1 - v0) * (1.0 - t) * 0.5\n                vb = v0 + (v1 - v0) * (1.0 + t) * 0.5\n                h_pts[i][j][0] = mesh.add_vertex(surface.point_at(u, va))\n                h_pts[i][j][1] = mesh.add_vertex(surface.point_at(u, vb))\n\n        for i in range(u_count):\n            for j in range(v_count):\n                mesh.add_face([\n                    h_pts[i][j][0], h_pts[i][j][1],\n                    h_pts[i+1][j][1], h_pts[i+1][j][0]\n                ])\n\n        for i in range(u_count):\n            for j in range(v_count):\n                if j == 0:\n                    mesh.add_face([grid[i][0], h_pts[i][0][0], h_pts[i+1][0][0], grid[i+1][0]])\n                else:\n                    mesh.add_face([h_pts[i][j-1][1], h_pts[i][j][0], h_pts[i+1][j][0], h_pts[i+1][j-1][1]])\n            jj = v_count - 1\n            mesh.add_face([h_pts[i][jj][1], grid[i][nv-1], grid[i+1][nv-1], h_pts[i+1][jj][1]])\n        return mesh",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh hex_mesh2(const NurbsSurface& surface, int u_count, int v_count, double t)",
+          "code": "Mesh Primitives::hex_mesh2(const NurbsSurface& surface, int u_count, int v_count, double t) {\n    Mesh mesh;\n    auto du = surface.domain(0);\n    auto dv = surface.domain(1);\n    double su = (du.second - du.first) / u_count;\n    double sv = (dv.second - dv.first) / v_count;\n\n    int nu = u_count + 1, nv = v_count + 1;\n    std::vector<std::vector<size_t>> grid(nu, std::vector<size_t>(nv));\n    for (int i = 0; i < nu; i++) {\n        double u = du.first + su * i;\n        for (int j = 0; j < nv; j++) {\n            double v = dv.first + sv * j;\n            grid[i][j] = mesh.add_vertex(surface.point_at(u, v));\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "hex_mesh2(surface: &NurbsSurface, u_count: usize, v_count: usize, t: f64) -> Mesh",
+          "code": "pub fn hex_mesh2(surface: &NurbsSurface, u_count: usize, v_count: usize, t: f64) -> Mesh {\n        let mut mesh = Mesh::new();\n        let du = surface.domain(0).unwrap();\n        let dv = surface.domain(1).unwrap();\n        let su = (du.1 - du.0) / u_count as f64;\n        let sv = (dv.1 - dv.0) / v_count as f64;\n\n        let nu = u_count + 1;\n        let nv = v_count + 1;\n        let mut grid = vec![vec![0usize; nv]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..nv {\n                let v = dv.0 + sv * j as f64;\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v).unwrap(), None);\n            }\n        }\n\n        let mut h_pts = vec![vec![[0usize; 2]; v_count]; nu];\n        for i in 0..nu {\n            let u = du.0 + su * i as f64;\n            for j in 0..v_count {\n                let v0 = dv.0 + sv * j as f64;\n                let v1 = dv.0 + sv * (j as f64 + 1.0);\n                let va = v0 + (v1 - v0) * (1.0 - t) * 0.5;\n                let vb = v0 + (v1 - v0) * (1.0 + t) * 0.5;\n                h_pts[i][j][0] = mesh.add_vertex(surface.point_at(u, va).unwrap(), None);\n                h_pts[i][j][1] = mesh.add_vertex(surface.point_at(u, vb).unwrap(), None);\n            }\n        }\n\n        for i in 0..u_count {\n            for j in 0..v_count {\n                mesh.add_face(vec![\n                    h_pts[i][j][0], h_pts[i][j][1],\n                    h_pts[i+1][j][1], h_pts[i+1][j][0]\n                ], None);\n            }\n        }\n\n        for i in 0..u_count {\n            for j in 0..v_count {\n                if j == 0 {\n                    mesh.add_face(vec![grid[i][0], h_pts[i][0][0], h_pts[i+1][0][0], grid[i+1][0]], None);\n                } else {\n                    mesh.add_face(vec![h_pts[i][j-1][1], h_pts[i][j][0], h_pts[i+1][j][0], h_pts[i+1][j-1][1]], None);\n                }\n            }\n            let jj = v_count - 1;\n            mesh.add_face(vec![h_pts[i][jj][1], grid[i][nv-1], grid[i+1][nv-1], h_pts[i+1][jj][1]], None);\n        }\n        mesh\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.dedup_face",
+        "Primitives.hex_mesh",
+        "Primitives.pt"
+      ]
     },
     {
       "name": "Quaternion.__init__",
@@ -34816,11 +34973,14 @@ window.API_INDEX = {
       "name": "BoundingBox.from_nurbssurface",
       "implementations": {
         "cpp": {
-          "sig": "return from_nurbssurface(*this)",
-          "code": "return BoundingBox::from_nurbssurface(*this);\n}",
-          "file": "nurbssurface.cpp"
+          "sig": "BoundingBox from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount)",
+          "code": "BoundingBox BoundingBox::from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount) {\n    if (!surface.is_valid() || surface.cv_count(0) == 0 || surface.cv_count(1) == 0) {\n        return BoundingBox();\n    }",
+          "file": "boundingbox.cpp"
         }
-      }
+      },
+      "related": [
+        "BoundingBox.inflate"
+      ]
     },
     {
       "name": "BoundingBox.aabb",
@@ -38239,7 +38399,12 @@ window.API_INDEX = {
           "code": "Mesh Primitives::cube(double edge) {\n    double a = edge / 2.0;\n    Point v0(-a,-a,-a), v1(a,-a,-a), v2(a,a,-a), v3(-a,a,-a);\n    Point v4(-a,-a,a), v5(a,-a,a), v6(a,a,a), v7(-a,a,a);\n    std::vector<std::vector<Point>> faces = {\n        {v3, v2, v1, v0}",
           "file": "primitives.cpp"
         }
-      }
+      },
+      "related": [
+        "Primitives.schwarz_p",
+        "Primitives.sphere_surface",
+        "Primitives.torus_surface"
+      ]
     },
     {
       "name": "Primitives.octahedron",
@@ -42439,12 +42604,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsCurve\", \"Attributes\")",
-          "code": "MINI_TEST(\"NurbsCurve\", \"Attributes\") {\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        bool is_valid = curve.is_valid();\n        MINI_CHECK(is_valid == true);\n\n        // Check whole knot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        bool is_valid_knot_vector = curve.is_valid_knot_vector();\n        MINI_CHECK(is_valid_knot_vector == true);\n\n        // Check if the curve is clamped at start, end, or both\n        bool is_clamped_start = curve.is_clamped(0);\n        bool is_clamped_end = curve.is_clamped(1);\n        bool is_clamped_both = curve.is_clamped(2);\n        MINI_CHECK(is_clamped_start == true && is_clamped_end == true && is_clamped_both == true);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        bool is_rational = curve.is_rational();\n        bool closed = curve.is_closed();\n        bool periodic = curve.is_periodic();\n        bool linear = curve.is_linear();\n        bool planar = curve.is_planar();\n        bool arc = curve.is_arc();\n        Plane plane = Plane::xy_plane();\n        bool on_plane = curve.is_in_plane(plane);\n        bool is_open = curve.is_natural();\n        bool is_polyline = curve.is_polyline();\n        bool is_singular = curve.is_singular();\n        bool is_duplicate = curve.is_duplicate(curve, false);\n        bool is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n        MINI_CHECK(is_rational == true);\n        MINI_CHECK(closed == false);\n        MINI_CHECK(periodic == false);\n        MINI_CHECK(linear == false);\n        MINI_CHECK(planar == false);\n        MINI_CHECK(arc == false);\n        MINI_CHECK(on_plane == false);\n        MINI_CHECK(is_open == false);\n        MINI_CHECK(is_polyline == false);\n        MINI_CHECK(is_singular == false);\n        MINI_CHECK(is_duplicate == true);\n        MINI_CHECK(is_continuous == true);\n\n        /////////////////////////////////////////////\n        // Knot Operations\n        /////////////////////////////////////////////\n\n        // Insert knot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        NurbsCurve copy_curve = curve;\n        Point before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_knot(1.5, 1);\n        MINI_CHECK(TOLERANCE.is_point_close(before_pt, copy_curve.point_at(1.5)));\n\n        // Useful for controlling curve by cv on lying on it\n        double greville0 = curve.greville_abcissa(0);\n        MINI_CHECK(TOLERANCE.is_close(greville0, 0.0));\n\n        std::vector<double> greville = curve.get_greville_abcissae();\n        MINI_CHECK(greville.size() == 4);\n        MINI_CHECK(TOLERANCE.is_close(greville[0], 0.0));\n        MINI_CHECK(TOLERANCE.is_close(greville[1], 0.879872167739067));\n        MINI_CHECK(TOLERANCE.is_close(greville[2], 2.639616503217201));\n        MINI_CHECK(TOLERANCE.is_close(greville[3], 3.519488670956267));\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        int dimension = curve.dimension();\n        MINI_CHECK(dimension == 3);\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        int degree = curve.degree();\n        MINI_CHECK(degree == 2);\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = knots\n        int order = curve.order();\n        MINI_CHECK(order == 3);\n        // Number of control vertices\n        int cv_count = curve.cv_count();\n        MINI_CHECK(cv_count == 4);\n        // Number of floats per 1 control vertex\n        int cv_size = curve.cv_size();\n        MINI_CHECK(cv_size == 3);\n        // The knots are a list of (degree+control_points-1) numbers\n        int knot_count = curve.knot_count();\n        MINI_CHECK(knot_count == 5);\n        // Span = a knot interval where a single polynomial segment is evaluated\n        // Knot vector: [0, 0, 0 \u00e2\u2020\u2018, 1 \u00e2\u2020\u2018, 2 \u00e2\u2020\u2018, 3, 3, 3]  (cubic, 5 CVs)\n        int span_count = curve.span_count();\n        MINI_CHECK(span_count == 2);\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 0 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc    \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 1 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        double* p = curve.cv(1);\n        MINI_CHECK(p[0] == 1.0 && p[1] == 1.0 && p[2] == 0.0);\n\n        // Returns the control vertex as Point object\n        Point cv_point = curve.get_cv(1);\n        MINI_CHECK(cv_point == Point(1.0, 1.0, 0.0));\n\n        // Raw homogeneous coords\n        auto [x, y, z, w] = curve.get_cv_4d(1);\n        MINI_CHECK(x == 1.0 && y == 1.0 && z == 0.0 && w == 1.0);\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, Point(2.0, 0.0, 0.5));\n        MINI_CHECK(curve.get_cv(2)[0] == 2.0 && curve.get_cv(2)[1] == 0.0 && curve.get_cv(2)[2] == 0.5);\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        auto [x2, y2, z2, w2] = curve.get_cv_4d(2);\n        MINI_CHECK(x2 == 2.0 && y2 == 0.0 && z2 == 0.5 && w2 == 0.707);\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        double weight = curve.weight(2);\n        MINI_CHECK(weight == 0.707);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n        MINI_CHECK(curve.weight(2) == 0.5);\n\n        /////////////////////////////////////////////////////\n        // Knot Access\n        /////////////////////////////////////////////////////\n\n        // Get knot value at index\n        double knot3 = curve.knot(3);\n        MINI_CHECK(TOLERANCE.is_close(knot3, 3.519488670956267));\n\n        // Set knot value at index\n        // ATTENTION you can brake increasing rule\n        double end_knot = curve.knot(4);\n        curve.set_knot(4, end_knot);\n        MINI_CHECK(TOLERANCE.is_close(curve.knot(4), end_knot));\n\n        // Count repeated knots at index [0, 0, 1, 1, 2]\n        int m0 = curve.knot_multiplicity(0);  // 2 (two 0's)\n        int m1 = curve.knot_multiplicity(1);  // 2 (still counting the 0's)\n        int m2 = curve.knot_multiplicity(2);  // 1 (single 0.5)\n        int m3 = curve.knot_multiplicity(3);  // 2 (single 1's)\n        int m4 = curve.knot_multiplicity(4);  // 2 (single 2)\n        MINI_CHECK(m0 == 2);\n        MINI_CHECK(m1 == 2);\n        MINI_CHECK(m2 == 1);\n        MINI_CHECK(m3 == 2);\n        MINI_CHECK(m4 == 2);\n\n        // Superflous knots are used for extension of clamped curves\n        double superfluous_knot = curve.superfluous_knot(1);\n        MINI_CHECK(TOLERANCE.is_close(superfluous_knot, 7.038977341912535));\n\n        // Direct m",
+          "code": "MINI_TEST(\"NurbsCurve\", \"Attributes\") {\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        bool is_valid = curve.is_valid();\n        MINI_CHECK(is_valid == true);\n\n        // Check whole knot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        bool is_valid_knot_vector = curve.is_valid_knot_vector();\n        MINI_CHECK(is_valid_knot_vector == true);\n\n        // Check if the curve is clamped at start, end, or both\n        bool is_clamped_start = curve.is_clamped(0);\n        bool is_clamped_end = curve.is_clamped(1);\n        bool is_clamped_both = curve.is_clamped(2);\n        MINI_CHECK(is_clamped_start == true && is_clamped_end == true && is_clamped_both == true);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        bool is_rational = curve.is_rational();\n        bool closed = curve.is_closed();\n        bool periodic = curve.is_periodic();\n        bool linear = curve.is_linear();\n        bool planar = curve.is_planar();\n        bool arc = curve.is_arc();\n        Plane plane = Plane::xy_plane();\n        bool on_plane = curve.is_in_plane(plane);\n        bool is_open = curve.is_natural();\n        bool is_polyline = curve.is_polyline();\n        bool is_singular = curve.is_singular();\n        bool is_duplicate = curve.is_duplicate(curve, false);\n        bool is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n        MINI_CHECK(is_rational == false);\n        MINI_CHECK(closed == false);\n        MINI_CHECK(periodic == false);\n        MINI_CHECK(linear == false);\n        MINI_CHECK(planar == true);\n        MINI_CHECK(arc == false);\n        MINI_CHECK(on_plane == true);\n        MINI_CHECK(is_open == false);\n        MINI_CHECK(is_polyline == false);\n        MINI_CHECK(is_singular == false);\n        MINI_CHECK(is_duplicate == true);\n        MINI_CHECK(is_continuous == true);\n\n        /////////////////////////////////////////////\n        // Knot Operations\n        /////////////////////////////////////////////\n\n        // Insert knot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        NurbsCurve copy_curve = curve;\n        Point before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_knot(1.5, 1);\n        MINI_CHECK(TOLERANCE.is_point_close(before_pt, copy_curve.point_at(1.5)));\n\n        // Useful for controlling curve by cv on lying on it\n        double greville0 = curve.greville_abcissa(0);\n        MINI_CHECK(TOLERANCE.is_close(greville0, 0.0));\n\n        std::vector<double> greville = curve.get_greville_abcissae();\n        MINI_CHECK(greville.size() == 4);\n        MINI_CHECK(TOLERANCE.is_close(greville[0], 0.0));\n        MINI_CHECK(TOLERANCE.is_close(greville[1], 0.879872167739067));\n        MINI_CHECK(TOLERANCE.is_close(greville[2], 2.639616503217201));\n        MINI_CHECK(TOLERANCE.is_close(greville[3], 3.519488670956267));\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        int dimension = curve.dimension();\n        MINI_CHECK(dimension == 3);\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        int degree = curve.degree();\n        MINI_CHECK(degree == 2);\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = knots\n        int order = curve.order();\n        MINI_CHECK(order == 3);\n        // Number of control vertices\n        int cv_count = curve.cv_count();\n        MINI_CHECK(cv_count == 4);\n        // Number of floats per 1 control vertex\n        int cv_size = curve.cv_size();\n        MINI_CHECK(cv_size == 3);\n        // The knots are a list of (degree+control_points-1) numbers\n        int knot_count = curve.knot_count();\n        MINI_CHECK(knot_count == 5);\n        // Span = a knot interval where a single polynomial segment is evaluated\n        // Knot vector: [0, 0, 0 \u00e2\u2020\u2018, 1 \u00e2\u2020\u2018, 2 \u00e2\u2020\u2018, 3, 3, 3]  (cubic, 5 CVs)\n        int span_count = curve.span_count();\n        MINI_CHECK(span_count == 2);\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 0 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc    \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 1 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        double* p = curve.cv(1);\n        MINI_CHECK(p[0] == 1.0 && p[1] == 1.0 && p[2] == 0.0);\n\n        // Returns the control vertex as Point object\n        Point cv_point = curve.get_cv(1);\n        MINI_CHECK(cv_point == Point(1.0, 1.0, 0.0));\n\n        // Raw homogeneous coords\n        auto [x, y, z, w] = curve.get_cv_4d(1);\n        MINI_CHECK(x == 1.0 && y == 1.0 && z == 0.0 && w == 1.0);\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, Point(2.0, 0.0, 0.5));\n        MINI_CHECK(curve.get_cv(2)[0] == 2.0 && curve.get_cv(2)[1] == 0.0 && curve.get_cv(2)[2] == 0.5);\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        auto [x2, y2, z2, w2] = curve.get_cv_4d(2);\n        MINI_CHECK(x2 == 2.0 && y2 == 0.0 && z2 == 0.5 && w2 == 0.707);\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        double weight = curve.weight(2);\n        MINI_CHECK(weight == 0.707);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n        MINI_CHECK(curve.weight(2) == 0.5);\n\n        /////////////////////////////////////////////////////\n        // Knot Access\n        /////////////////////////////////////////////////////\n\n        // Get knot value at index\n        double knot3 = curve.knot(3);\n        MINI_CHECK(TOLERANCE.is_close(knot3, 3.519488670956267));\n\n        // Set knot value at index\n        // ATTENTION you can brake increasing rule\n        double end_knot = curve.knot(4);\n        curve.set_knot(4, end_knot);\n        MINI_CHECK(TOLERANCE.is_close(curve.knot(4), end_knot));\n\n        // Count repeated knots at index [0, 0, 1, 1, 2]\n        int m0 = curve.knot_multiplicity(0);  // 2 (two 0's)\n        int m1 = curve.knot_multiplicity(1);  // 2 (still counting the 0's)\n        int m2 = curve.knot_multiplicity(2);  // 1 (single 0.5)\n        int m3 = curve.knot_multiplicity(3);  // 2 (single 1's)\n        int m4 = curve.knot_multiplicity(4);  // 2 (single 2)\n        MINI_CHECK(m0 == 2);\n        MINI_CHECK(m1 == 2);\n        MINI_CHECK(m2 == 1);\n        MINI_CHECK(m3 == 2);\n        MINI_CHECK(m4 == 2);\n\n        // Superflous knots are used for extension of clamped curves\n        double superfluous_knot = curve.superfluous_knot(1);\n        MINI_CHECK(TOLERANCE.is_close(superfluous_knot, 7.038977341912535));\n\n        // Direct me",
           "file": "nurbscurve_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsCurve\", \"Attributes\")",
-          "code": "@MINI_TEST(\"NurbsCurve\", \"Attributes\")\ndef test_nurbscurve_attributes():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    #############################################\n    # Validation\n    #############################################\n\n    # Whole curve\n    is_valid = curve.is_valid()\n    MINI_CHECK(is_valid == True)\n\n    # Check whole knot vector for\n    # For correct size: order + cv_count - 2\n    # Non-decreasing (can repeat, can't go down)\n    # Valid domain exists\n    is_valid_knot_vector = curve.is_valid_knot_vector()\n    MINI_CHECK(is_valid_knot_vector == True)\n\n    # Insert knot into curve\n    # Useful for splitting curves at a parameter\n    # Increase local control without changing shape\n    copy_curve = curve.duplicate()\n    before_pt = copy_curve.point_at(1.5)\n    copy_curve.insert_knot(1.5, 1)\n    MINI_CHECK(TOLERANCE.is_point_close(before_pt, copy_curve.point_at(1.5)))\n\n    # Check if the curve is clamped at start, end, or both\n    is_clamped_start = curve.is_clamped(0)\n    is_clamped_end = curve.is_clamped(1)\n    is_clamped_both = curve.is_clamped(2)\n    MINI_CHECK(is_clamped_start == True and is_clamped_end == True and is_clamped_both == True)\n\n    # Useful for controlling curve by cv on lying on it\n    greville0 = curve.greville_abcissa(0)\n    MINI_CHECK(TOLERANCE.is_close(greville0, 0.0))\n\n    greville = curve.get_greville_abcissae()\n    MINI_CHECK(len(greville) == 4)\n    MINI_CHECK(TOLERANCE.is_close(greville[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(greville[1], 0.879872167739067))\n    MINI_CHECK(TOLERANCE.is_close(greville[2], 2.639616503217201))\n    MINI_CHECK(TOLERANCE.is_close(greville[3], 3.519488670956267))\n\n    #############################################\n    # Accessors\n    #############################################\n    # Memory layout 2-2D, 3-3D\n    dimension = curve.dimension()\n    MINI_CHECK(dimension == 3)\n    # Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n    degree = curve.degree()\n    MINI_CHECK(degree == 2)\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # Order = degree + 1, control points + order = knots\n    order = curve.order()\n    MINI_CHECK(order == 3)\n    # Number of control vertices\n    cv_count = curve.cv_count()\n    MINI_CHECK(cv_count == 4)\n    # Number of floats per 1 control vertex\n    cv_size = curve.cv_size()\n    MINI_CHECK(cv_size == 3)\n    # The knots are a list of (degree+control_points-1) numbers\n    knot_count = curve.knot_count()\n    MINI_CHECK(knot_count == 5)\n    # Span = a knot interval where a single polynomial segment is evaluated\n    # Knot vector: [0, 0, 0 \u00e2\u2020\u2018, 1 \u00e2\u2020\u2018, 2 \u00e2\u2020\u2018, 3, 3, 3]  (cubic, 5 CVs)\n    span_count = curve.span_count()\n    MINI_CHECK(span_count == 2)\n    #####################################################\n    # Control Vertex Access\n    #  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n    #          \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 0 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc    \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 1 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc\n    #####################################################\n\n    # Get pointer to control vertex\n    # Each CV occupies m_cv_stride doubles:\n    # (3 for non-rational, 4 for rational)\n    # cv(index) returns pointer to m_cv[index * m_cv_stride]\n    p = curve.cv(1)\n    MINI_CHECK(p[0] == 1.0 and p[1] == 1.0 and p[2] == 0.0)\n\n    # Returns the control vertex as Point object\n    cv_point = curve.get_cv(1)\n    MINI_CHECK(cv_point == Point(1.0, 1.0, 0.0))\n\n    # Raw homogeneous coords\n    x, y, z, w = curve.get_cv_4d(1)\n    MINI_CHECK(x == 1.0 and y == 1.0 and z == 0.0 and w == 1.0)\n\n    # Use for regular points on curve, Polyline, B-Spline\n    curve.set_cv(2, Point(2.0, 0.0, 0.5))\n    MINI_CHECK(curve.get_cv(2)[0] == 2.0 and curve.get_cv(2)[1] == 0.0 and curve.get_cv(2)[2] == 0.5)\n\n    # Use for rational curvers like circles, ellipses\n    curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707)\n    x, y, z, w = curve.get_cv_4d(2)\n    MINI_CHECK(x == 2.0 and y == 0.0 and z == 0.5 and w == 0.707)\n\n    # Get weight of a control vertex (1.0 if non-rational)\n    weight = curve.weight(2)\n    MINI_CHECK(weight == 0.707)\n\n    # Set the weight of a control vertex\n    curve.set_weight(2, 0.5)\n    MINI_CHECK(curve.weight(2) == 0.5)\n\n    #####################################################\n    # Knot Access\n    #####################################################\n\n    # Get knot value at index\n    knot3 = curve.knot(3)\n    MINI_CHECK(TOLERANCE.is_close(knot3, 3.519488670956267))\n\n    # Set knot value at index\n    # ATTENTION you can brake increasing rule\n    end_knot = curve.knot(4)\n    curve.set_knot(4, end_knot)\n    MINI_CHECK(TOLERANCE.is_close(curve.knot(4), end_knot))\n\n    # Count repeated knots at index [0, 0, 1, 1, 2]\n    m0 = curve.knot_multiplicity(0)  # 2 (two 0's)\n    m1 = curve.knot_multiplicity(1)  # 2 (still counting the 0's)\n    m2 = curve.knot_multiplicity(2)  # 1 (single 0.5)\n    m3 = curve.knot_multiplicity(3)  # 2 (single 1's)\n    m4 = curve.knot_multiplicity(4)  # 2 (single 2)\n    MINI_CHECK(m0 == 2)\n    MINI_CHECK(m1 == 2)\n    MINI_CHECK(m2 == 1)\n    MINI_CHECK(m3 == 2)\n    MINI_CHECK(m4 == 2)\n\n    # Superflous knots are used for extension of clamped curves\n    superfluous_knot = curve.superfluous_knot(1)\n    MINI_CHECK(TOLERANCE.is_close(superfluous_knot, 7.038977341912535))\n\n    # Direct memory access to knot values, fast, read-only\n    # Vector return is slower and makes a copy\n    knots = curve.knot_array()\n    k0 = knots[0]\n    knot_vector = curve.get_knots()\n    MINI_CHECK(k0 == 0.0)\n    MINI_CHECK(TOLERANCE.is_close(knot_vector[0], 0.0) and TOLERANCE.is_close(knot_vector[1], 0.0) and\n               TOLERANCE.is_close(knot_vector[2], 1.759744335478134) and TOLERANCE.is_close(knot_vector[3], 3.519488670956267) and\n               TOLERANCE.is_close(knot_vector[4], 3.519488670956267))\n\n    # Control vertex array access\n    cvs = curve.cv_array()\n    cx0 = cvs[0]\n    MINI_CHECK(cx0 == 0.0)\n\n    #####################################################\n    # Domain & Parameterization - HERE\n    #####################################################\n\n    # get start and end of the curve interval\n    start, end = curve.domain()\n    MINI_CHECK(TOLERANCE.is_close(start, 0.0) and TOLERANCE.is_close(end, 3.519488670956267))\n\n    # Get start, middle and end values of the interval\n    start = curve.domain_start()\n    middle = curve.domain_middle()\n    end = curve.domain_end()\n    MINI_CHECK(TOLERANCE.is_close(start, 0.0) and TOLERANCE.is_close(middle, 1.759744335478134) and TOLERANCE.is_close(end, 3.519488670956267))\n\n    # Change curve domain\n    curve.set_domain(0.0, 1.0)\n    MINI_CHECK(curve.domain_start() == 0.0 and curve.domain_middle() == 0.5 and curve.domain_end() == 1.0)\n\n    # Span of distict knot intervals\n    intervals = curve.get_span_vector()\n    MINI_CHECK(intervals[0] == 0.0 and intervals[1] == 0.5 and intervals[2] == 1.0)\n\n    #####################################################\n    # Geometric checks\n    #####################################################\n\n    found, t_out = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end())\n    MINI_CHECK(found == True and t_out == 0.5)\n\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # circles, ellipses, parabolas, hyperbolas exactly\n    is_rational = curve.is_rational()\n    closed = curve.is_closed()\n    periodic = curve.is_periodic()\n    linear = curve.is_linear()\n    planar = curve.is_planar()\n    arc = curve.is_arc()\n    plane = Pl",
+          "code": "@MINI_TEST(\"NurbsCurve\", \"Attributes\")\ndef test_nurbscurve_attributes():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    #############################################\n    # Boolean Queries\n    #############################################\n\n    # Whole curve\n    is_valid = curve.is_valid()\n    MINI_CHECK(is_valid == True)\n\n    # Check whole knot vector for\n    # For correct size: order + cv_count - 2\n    # Non-decreasing (can repeat, can't go down)\n    # Valid domain exists\n    is_valid_knot_vector = curve.is_valid_knot_vector()\n    MINI_CHECK(is_valid_knot_vector == True)\n\n    # Check if the curve is clamped at start, end, or both\n    is_clamped_start = curve.is_clamped(0)\n    is_clamped_end = curve.is_clamped(1)\n    is_clamped_both = curve.is_clamped(2)\n    MINI_CHECK(is_clamped_start == True and is_clamped_end == True and is_clamped_both == True)\n\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # circles, ellipses, parabolas, hyperbolas exactly\n    is_rational = curve.is_rational()\n    closed = curve.is_closed()\n    periodic = curve.is_periodic()\n    linear = curve.is_linear()\n    planar = curve.is_planar()\n    arc = curve.is_arc()\n    plane = Plane.xy_plane()\n    on_plane = curve.is_in_plane(plane)\n    is_open = curve.is_natural()\n    is_polyline, _, _ = curve.is_polyline()\n    is_singular = curve.is_singular()\n    is_duplicate = curve.is_duplicate(curve, False)\n    is_continuous = curve.is_continuous(1, curve.domain_middle())\n\n    MINI_CHECK(is_rational == False)\n    MINI_CHECK(closed == False)\n    MINI_CHECK(periodic == False)\n    MINI_CHECK(linear == False)\n    MINI_CHECK(planar == True)\n    MINI_CHECK(arc == False)\n    MINI_CHECK(on_plane == True)\n    MINI_CHECK(is_open == False)\n    MINI_CHECK(is_polyline == False)\n    MINI_CHECK(is_singular == False)\n    MINI_CHECK(is_duplicate == True)\n    MINI_CHECK(is_continuous == True)\n\n    #############################################\n    # Knot Operations\n    #############################################\n\n    # Insert knot into curve\n    # Useful for splitting curves at a parameter\n    # Increase local control without changing shape\n    copy_curve = curve.duplicate()\n    before_pt = copy_curve.point_at(1.5)\n    copy_curve.insert_knot(1.5, 1)\n    MINI_CHECK(TOLERANCE.is_point_close(before_pt, copy_curve.point_at(1.5)))\n\n    # Useful for controlling curve by cv on lying on it\n    greville0 = curve.greville_abcissa(0)\n    MINI_CHECK(TOLERANCE.is_close(greville0, 0.0))\n\n    greville = curve.get_greville_abcissae()\n    MINI_CHECK(len(greville) == 4)\n    MINI_CHECK(TOLERANCE.is_close(greville[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(greville[1], 0.879872167739067))\n    MINI_CHECK(TOLERANCE.is_close(greville[2], 2.639616503217201))\n    MINI_CHECK(TOLERANCE.is_close(greville[3], 3.519488670956267))\n\n    #############################################\n    # Accessors\n    #############################################\n    # Memory layout 2-2D, 3-3D\n    dimension = curve.dimension()\n    MINI_CHECK(dimension == 3)\n    # Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n    degree = curve.degree()\n    MINI_CHECK(degree == 2)\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # Order = degree + 1, control points + order = knots\n    order = curve.order()\n    MINI_CHECK(order == 3)\n    # Number of control vertices\n    cv_count = curve.cv_count()\n    MINI_CHECK(cv_count == 4)\n    # Number of floats per 1 control vertex\n    cv_size = curve.cv_size()\n    MINI_CHECK(cv_size == 3)\n    # The knots are a list of (degree+control_points-1) numbers\n    knot_count = curve.knot_count()\n    MINI_CHECK(knot_count == 5)\n    # Span = a knot interval where a single polynomial segment is evaluated\n    # Knot vector: [0, 0, 0 \u00e2\u2020\u2018, 1 \u00e2\u2020\u2018, 2 \u00e2\u2020\u2018, 3, 3, 3]  (cubic, 5 CVs)\n    span_count = curve.span_count()\n    MINI_CHECK(span_count == 2)\n    #####################################################\n    # Control Vertex Access\n    #  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n    #          \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 0 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc    \u00e2\u201d\u201d\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac CV 1 \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u02dc\n    #####################################################\n\n    # Get pointer to control vertex\n    # Each CV occupies m_cv_stride doubles:\n    # (3 for non-rational, 4 for rational)\n    # cv(index) returns pointer to m_cv[index * m_cv_stride]\n    p = curve.cv(1)\n    MINI_CHECK(p[0] == 1.0 and p[1] == 1.0 and p[2] == 0.0)\n\n    # Returns the control vertex as Point object\n    cv_point = curve.get_cv(1)\n    MINI_CHECK(cv_point == Point(1.0, 1.0, 0.0))\n\n    # Raw homogeneous coords\n    x, y, z, w = curve.get_cv_4d(1)\n    MINI_CHECK(x == 1.0 and y == 1.0 and z == 0.0 and w == 1.0)\n\n    # Use for regular points on curve, Polyline, B-Spline\n    curve.set_cv(2, Point(2.0, 0.0, 0.5))\n    MINI_CHECK(curve.get_cv(2)[0] == 2.0 and curve.get_cv(2)[1] == 0.0 and curve.get_cv(2)[2] == 0.5)\n\n    # Use for rational curvers like circles, ellipses\n    curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707)\n    x, y, z, w = curve.get_cv_4d(2)\n    MINI_CHECK(x == 2.0 and y == 0.0 and z == 0.5 and w == 0.707)\n\n    # Get weight of a control vertex (1.0 if non-rational)\n    weight = curve.weight(2)\n    MINI_CHECK(weight == 0.707)\n\n    # Set the weight of a control vertex\n    curve.set_weight(2, 0.5)\n    MINI_CHECK(curve.weight(2) == 0.5)\n\n    #####################################################\n    # Knot Access\n    #####################################################\n\n    # Get knot value at index\n    knot3 = curve.knot(3)\n    MINI_CHECK(TOLERANCE.is_close(knot3, 3.519488670956267))\n\n    # Set knot value at index\n    # ATTENTION you can brake increasing rule\n    end_knot = curve.knot(4)\n    curve.set_knot(4, end_knot)\n    MINI_CHECK(TOLERANCE.is_close(curve.knot(4), end_knot))\n\n    # Count repeated knots at index [0, 0, 1, 1, 2]\n    m0 = curve.knot_multiplicity(0)  # 2 (two 0's)\n    m1 = curve.knot_multiplicity(1)  # 2 (still counting the 0's)\n    m2 = curve.knot_multiplicity(2)  # 1 (single 0.5)\n    m3 = curve.knot_multiplicity(3)  # 2 (single 1's)\n    m4 = curve.knot_multiplicity(4)  # 2 (single 2)\n    MINI_CHECK(m0 == 2)\n    MINI_CHECK(m1 == 2)\n    MINI_CHECK(m2 == 1)\n    MINI_CHECK(m3 == 2)\n    MINI_CHECK(m4 == 2)\n\n    # Superflous knots are used for extension of clamped curves\n    superfluous_knot = curve.superfluous_knot(1)\n    MINI_CHECK(TOLERANCE.is_close(superfluous_knot, 7.038977341912535))\n\n    # Direct memory access to knot values, fast, read-only\n    # Vector return is slower and makes a copy\n    knots = curve.knot_array()\n    k0 = knots[0]\n    knot_vector = curve.get_knots()\n    MINI_CHECK(k0 == 0.0)\n    MINI_CHECK(TOLERANCE.is_close(knot_vector[0], 0.0) and TOLERANCE.is_close(knot_vector[1], 0.0) and\n               TOLERANCE.is_close(knot_vector[2], 1.759744335478134) and TOLERANCE.is_close(knot_vector[3], 3.519488670956267) and\n               TOLERANCE.is_close(knot_vector[4], 3.519488670956267))\n\n    # Control vertex array access\n    cvs = curve.cv_array()\n    cx0 = cvs[0]\n    MINI_CHECK(cx0 == 0.0)\n\n    #####################################################\n    # Domain & Parameterization - HERE\n    #####################################################\n\n    # get start and end of the curve interval\n    start, end = curve.domain()\n    MINI_CHECK(TOLERANCE.is_close(start, 0.0) and TOLERANCE.is_close(end, 3.519488670956267))\n\n    # Get start, middle and end values of the interval\n    start = curve.doma",
           "file": "nurbscurve_test.py"
         }
       }
@@ -42574,23 +42739,33 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Attributes\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Attributes\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Test Surace validity\n        bool is_valid = s.is_valid();\n\n        // Check the dimentions of a surface\n        // Mostly 3d\n        // But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n        // Planar geometry: texture coordinates\n        int dimensions = s.dimension();\n\n\n        \n\n        // // Test knot access and set knot\n        // surf.set_knot(0, 2, 5.0);\n        // double new_val = surf.knot(0, 2);\n\n        // MINI_CHECK(surf.dimension() == 3);\n        // MINI_CHECK(!surf.is_rational());\n        // MINI_CHECK(surf.order(0) == 4);\n        // MINI_CHECK(surf.order(1) == 3);\n        // MINI_CHECK(surf.degree(0) == 3);\n        // MINI_CHECK(surf.degree(1) == 2);\n        // MINI_CHECK(surf.cv_count(0) == 5);\n        // MINI_CHECK(surf.cv_count(1) == 4);\n        // MINI_CHECK(surf.cv_count() == 20);\n        // MINI_CHECK(surf.cv_size() == 3);\n        // MINI_CHECK(surf.knot_count(0) == 7);\n        // MINI_CHECK(surf.knot_count(1) == 5);\n        // MINI_CHECK(surf.span_count(0) == 2);\n        // MINI_CHECK(surf.span_count(1) == 2);\n        // MINI_CHECK(new_val == 5.0);\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Attributes\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Check the dimentions of a surface\n        // Mostly 3d\n        // But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n        // Planar geometry: texture coordinates\n        int dimensions = s.dimension();\n\n        // Degree types 1 - linear, 2 - quadratic, 3 - cubic\n        int order_u = s.order(0);\n        int order_v = s.order(1);\n\n        // Control vertex count\n        int cv_count_u = s.cv_count(0);\n        int cv_count_v = s.cv_count(1);\n        int cv_count = s.cv_count();\n        int cv_size = s.cv_size();\n\n        // Number of knots\n        int k_count_0 = s.knot_count(0);\n        int k_count_1 = s.knot_count(1);\n\n        // Span count\n        int s_count_0 = s.span_count(0);\n        int s_count_1 = s.span_count(1);\n\n        MINI_CHECK(dimensions==3);\n        MINI_CHECK(order_u==4);\n        MINI_CHECK(order_v==4);\n        MINI_CHECK(cv_count_u);\n        MINI_CHECK(cv_count_v);\n        MINI_CHECK(cv_count);\n        MINI_CHECK(cv_size);\n        MINI_CHECK(k_count_0);\n        MINI_CHECK(k_count_1);\n        MINI_CHECK(s_count_0);\n        MINI_CHECK(s_count_1);\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Attributes\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Attributes\")\ndef test_nurbssurface_attributes():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check the dimentions of a surface\n    # Mostly 3d\n    # But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n    # Planar geometry: texture coordinates\n    dimensions = s.dimension()\n\n    # Degree types 1 - linear, 2 - quadratic, 3 - cubic\n    order_u = s.order(0)\n    order_v = s.order(1)\n\n    # Control vertex count\n    cv_count_u = s.cv_count_dir(0)\n    cv_count_v = s.cv_count_dir(1)\n    cv_count = s.cv_count_dir(None)\n    cv_size = s.cv_size()\n\n    # Number of knots\n    k_count_0 = s.knot_count(0)\n    k_count_1 = s.knot_count(1)\n\n    # Span count\n    s_count_0 = s.span_count(0)\n    s_count_1 = s.span_count(1)\n\n    MINI_CHECK(dimensions == 3)\n    MINI_CHECK(order_u == 4)\n    MINI_CHECK(order_v == 4)\n    MINI_CHECK(cv_count_u)\n    MINI_CHECK(cv_count_v)\n    MINI_CHECK(cv_count)\n    MINI_CHECK(cv_size)\n    MINI_CHECK(k_count_0)\n    MINI_CHECK(k_count_1)\n    MINI_CHECK(s_count_0)\n    MINI_CHECK(s_count_1)",
+          "file": "nurbssurface_test.py"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Control Vertices Access",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Control Vertices Access\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Control Vertices Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n        s.make_rational(); // to change weights\n\n\n        // const - to read, non-const point to write\n        const double* const_pointer_cv = s.cv(0,0);\n        MINI_CHECK( const_pointer_cv[2] == 0);\n        double* pointer_cv = s.cv(0,0);\n        pointer_cv[2] = 10.0; // modifies surface because it is a pointer\n        MINI_CHECK( pointer_cv[2] == 10);\n\n        // Point and Weight\n        // point is (Xw, Yw, Zw, w)\n        // cv pointer is (X, Y, Z)\n        Point cv = s.get_cv(0,0);\n        MINI_CHECK( cv == Point(0,0,10));\n        double x, y, z, w;\n        s.get_cv_4d(0,0, x, y, z, w);\n        MINI_CHECK( x == 0 && y == 0 && z == 10 && w == 1);\n\n        s.set_cv(0,0, Point(0, 0, 5));\n        MINI_CHECK(  s.get_cv(0,0) == Point(0,0,5) );\n        s.set_cv_4d(0,0, 0, 0, 4, 0.5);\n        MINI_CHECK( s.get_cv(0,0) == Point(0, 0, 8) && s.cv(0,0)[2] == 4 && s.weight(0,0) == 0.5 );\n\n        w = s.weight(0,0);\n        s.set_weight(0,0,1);\n        MINI_CHECK( s.weight(0,0) == 1); \n\n\n    }",
           "file": "nurbssurface_test.cpp"
         }
       }
     },
     {
-      "name": "NurbsSurface.test_Knot_operations",
+      "name": "NurbsSurface.test_Knot Access",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"NurbsSurface\", \"Knot_operations\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Knot_operations\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points;\n        for (int i = 0; i < 4; ++i)\n            for (int j = 0; j < 4; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Verify domain\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        MINI_CHECK(dom_u.first == 0.0);\n        MINI_CHECK(dom_u.second > dom_u.first);\n        MINI_CHECK(dom_v.first == 0.0);\n        MINI_CHECK(dom_v.second > dom_v.first);\n        MINI_CHECK(surf.is_clamped(0, 0));\n        MINI_CHECK(surf.is_clamped(1, 0));\n    }",
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n\n\n\n\n\n\n    }",
           "file": "nurbssurface_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")\ndef test_knot_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Verify domain\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    MINI_CHECK(u0 == 0.0)\n    MINI_CHECK(u1 > u0)\n    MINI_CHECK(v0 == 0.0)\n    MINI_CHECK(v1 > v0)\n    MINI_CHECK(surf.is_clamped(0, 0))\n    MINI_CHECK(surf.is_clamped(1, 0))",
-          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -42755,21 +42930,6 @@ window.API_INDEX = {
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Singularity\")",
           "code": "@MINI_TEST(\"NurbsSurface\", \"Singularity\")\ndef test_singularity():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create a simple surface with all CVs at different points (non-singular)\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Test is_singular for each side\n    is_singular_south = surf.is_singular(0)\n    is_singular_east = surf.is_singular(1)\n    is_singular_north = surf.is_singular(2)\n    is_singular_west = surf.is_singular(3)\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(not is_singular_south)\n    MINI_CHECK(not is_singular_east)\n    MINI_CHECK(not is_singular_north)\n    MINI_CHECK(not is_singular_west)",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Bounding_box",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"NurbsSurface\", \"Bounding_box\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Bounding_box\") {\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points;\n        for (int i = 0; i < 3; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 3, 3, points);\n\n        // Get bounding box\n        BoundingBox bbox = surf.get_bounding_box();\n\n        MINI_CHECK(surf.is_valid());\n    }",
-          "file": "nurbssurface_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")\ndef test_bounding_box():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 3, points)\n\n    # Get bounding box\n    bbox = surf.get_bounding_box()\n\n    MINI_CHECK(surf.is_valid())",
           "file": "nurbssurface_test.py"
         }
       }
@@ -43705,6 +43865,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Primitives.test_Nurbssurface_schwarz_p",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface_schwarz_p\")",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface_schwarz_p\") {\n    double S = 10.0;\n    auto patches = Primitives::schwarz_p(0.0, 0.0, 0.0, S);\n\n    MINI_CHECK(patches.size() == 48);\n    for (size_t f = 0; f < 48; f++) {\n        MINI_CHECK(patches[f].is_valid());\n        MINI_CHECK(patches[f].is_rational() == false);\n        MINI_CHECK(patches[f].degree(0) == 2);\n        MINI_CHECK(patches[f].degree(1) == 2);\n        MINI_CHECK(patches[f].cv_count(0) == 3);\n        MINI_CHECK(patches[f].cv_count(1) == 3);\n    }\n\n    const double PI2 = 2.0 * 3.14159265358979323846;\n    double max_err = 0.0;\n    for (size_t f = 0; f < 48; f++) {\n        for (int i = 0; i <= 4; i++) {\n            double u = i / 4.0;\n            for (int j = 0; j <= 4; j++) {\n                double v = j / 4.0;\n                Point p = patches[f].point_at(u, v);\n                double val = std::cos(PI2 * p[0] / S) + std::cos(PI2 * p[1] / S) + std::cos(PI2 * p[2] / S);\n                double err = std::abs(val);\n                if (err > max_err) max_err = err;\n            }\n        }\n    }\n    MINI_CHECK(max_err < 0.15);\n\n    Point mid = patches[0].point_at(0.5, 0.5);\n    double mid_val = std::cos(PI2 * mid[0] / S) + std::cos(PI2 * mid[1] / S) + std::cos(PI2 * mid[2] / S);\n    MINI_CHECK(std::abs(mid_val) < 0.15);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface_schwarz_p\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface_schwarz_p\")\ndef test_nurbssurface_schwarz_p():\n    from session_py import Primitives\n    from session_py import Point\n\n    S = 10.0\n    patches = Primitives.schwarz_p(0.0, 0.0, 0.0, S)\n\n    MINI_CHECK(len(patches) == 48)\n    for f in range(48):\n        MINI_CHECK(patches[f].is_valid())\n        MINI_CHECK(patches[f].is_rational() == False)\n        MINI_CHECK(patches[f].degree(0) == 2)\n        MINI_CHECK(patches[f].degree(1) == 2)\n        MINI_CHECK(patches[f].cv_count(0) == 3)\n        MINI_CHECK(patches[f].cv_count(1) == 3)\n\n    PI2 = 2.0 * PI\n    max_err = 0.0\n    for f in range(48):\n        for i in range(5):\n            u = i / 4.0\n            for j in range(5):\n                v = j / 4.0\n                p = patches[f].point_at(u, v)\n                val = math.cos(PI2 * p[0] / S) + math.cos(PI2 * p[1] / S) + math.cos(PI2 * p[2] / S)\n                err = abs(val)\n                if err > max_err:\n                    max_err = err\n    MINI_CHECK(max_err < 0.15)\n\n    mid = patches[0].point_at(0.5, 0.5)\n    mid_val = math.cos(PI2 * mid[0] / S) + math.cos(PI2 * mid[1] / S) + math.cos(PI2 * mid[2] / S)\n    MINI_CHECK(abs(mid_val) < 0.15)\n\n\n###########################################################################################\n# Surface-to-mesh subdivision\n###########################################################################################",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
       "name": "Primitives.test_Nurbssurface_ruled",
       "implementations": {
         "cpp": {
@@ -43805,6 +43980,66 @@ window.API_INDEX = {
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface_edge\")",
           "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface_edge\")\ndef test_nurbssurface_edge():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts_south = [Point(1.0, 20.569076, 0.0), Point(1.0, 22.569076, 3.0), Point(1.0, 25.569076, 3.0), Point(1.0, 27.569076, 0.0)]\n    pts_west  = [Point(10.0, 20.569076, 0.0), Point(5.5, 20.569076, 3.5), Point(1.0, 20.569076, 0.0)]\n    pts_north = [Point(10.0, 20.569076, 0.0), Point(10.0, 22.569076, 3.0), Point(10.0, 25.569076, 3.0), Point(10.0, 27.569076, 0.0)]\n    pts_east  = [Point(10.0, 27.569076, 0.0), Point(5.5, 27.569076, 3.5), Point(1.0, 27.569076, 0.0)]\n\n    south = NurbsCurve.create(False, 3, pts_south)\n    west  = NurbsCurve.create(False, 2, pts_west)\n    north = NurbsCurve.create(False, 3, pts_north)\n    east  = NurbsCurve.create(False, 2, pts_east)\n\n    surf = Primitives.create_edge(south, west, north, east)\n    m = surf.mesh()\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(m.number_of_faces() > 0)\n    MINI_CHECK(surf.degree(0) == 2)\n    MINI_CHECK(surf.degree(1) == 3)\n    MINI_CHECK(surf.cv_count_dir(0) == 3)\n    MINI_CHECK(surf.cv_count_dir(1) == 4)\n\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 0), Point(1.0, 20.569076, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 1), Point(1.0, 22.569076, 3.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 2), Point(1.0, 25.569076, 3.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(0, 3), Point(1.0, 27.569076, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 0), Point(5.5, 20.569076, 3.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 1), Point(5.5, 22.569076, 6.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 2), Point(5.5, 25.569076, 6.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(1, 3), Point(5.5, 27.569076, 3.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 0), Point(10.0, 20.569076, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 1), Point(10.0, 22.569076, 3.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 2), Point(10.0, 25.569076, 3.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(surf.get_cv(2, 3), Point(10.0, 27.569076, 0.0)))",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_quad_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_quad_mesh\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_quad_mesh\") {\n    NurbsSurface srf = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::quad_mesh(srf, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 45);\n    MINI_CHECK(m.number_of_faces() == 32);\n    MINI_CHECK(m.is_valid());\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_quad_mesh\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_quad_mesh\")\ndef test_mesh_quad_mesh():\n    from session_py import Primitives\n\n    srf = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.quad_mesh(srf, 8, 4)\n\n    MINI_CHECK(m.number_of_vertices() == 45)\n    MINI_CHECK(m.number_of_faces() == 32)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_diamond_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_diamond_mesh\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_diamond_mesh\") {\n    NurbsSurface srf = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::diamond_mesh(srf, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 45);\n    MINI_CHECK(m.number_of_faces() == 23);\n    MINI_CHECK(m.is_valid());\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_diamond_mesh\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_diamond_mesh\")\ndef test_mesh_diamond_mesh():\n    from session_py import Primitives\n\n    srf = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.diamond_mesh(srf, 8, 4)\n\n    MINI_CHECK(m.number_of_vertices() == 45)\n    MINI_CHECK(m.number_of_faces() == 23)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_hex_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_hex_mesh\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_hex_mesh\") {\n    NurbsSurface srf = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh(srf, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m.number_of_vertices() == 91);\n    MINI_CHECK(m.number_of_faces() == 32);\n    MINI_CHECK(m.is_valid());\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_hex_mesh\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_hex_mesh\")\ndef test_mesh_hex_mesh():\n    from session_py import Primitives\n\n    srf = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.hex_mesh(srf, 6, 4, 1.0/3.0)\n\n    MINI_CHECK(m.number_of_vertices() == 91)\n    MINI_CHECK(m.number_of_faces() == 32)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_hex_mesh2",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_hex_mesh2\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_hex_mesh2\") {\n    NurbsSurface srf = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh2(srf, 6, 4, 2.0/3.0);\n\n    MINI_CHECK(m.number_of_vertices() == 91);\n    MINI_CHECK(m.number_of_faces() == 54);\n    MINI_CHECK(m.is_valid());\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_hex_mesh2\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_hex_mesh2\")\ndef test_mesh_hex_mesh2():\n    from session_py import Primitives\n\n    srf = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.hex_mesh2(srf, 6, 4, 2.0/3.0)\n\n    MINI_CHECK(m.number_of_vertices() == 91)\n    MINI_CHECK(m.number_of_faces() == 54)",
           "file": "primitives_test.py"
         }
       }
@@ -44505,6 +44740,26 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "NurbsSurface.test_Knot_operations",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")\ndef test_knot_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Verify domain\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    MINI_CHECK(u0 == 0.0)\n    MINI_CHECK(u1 > u0)\n    MINI_CHECK(v0 == 0.0)\n    MINI_CHECK(v1 > v0)\n    MINI_CHECK(surf.is_clamped(0, 0))\n    MINI_CHECK(surf.is_clamped(1, 0))",
+          "file": "nurbssurface_test.py"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Bounding_box",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")\ndef test_bounding_box():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 3, points)\n\n    # Get bounding box\n    bbox = surf.get_bounding_box()\n\n    MINI_CHECK(surf.is_valid())",
+          "file": "nurbssurface_test.py"
+        }
+      }
+    },
+    {
       "name": "NurbsSurface.test_Sphere",
       "implementations": {
         "python": {
@@ -44549,11 +44804,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "subdivide",
+        "circle",
         "points",
         "n",
-        "circle",
+        "into",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -44567,10 +44822,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "length",
         "arc",
         "by",
+        "subdivide",
         "ellipse",
         "divide_by_length",
         "nurbscurve",
@@ -44586,8 +44841,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "through",
-        "points",
         "arc",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -44601,12 +44856,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
         "curve",
-        "polyline",
+        "adaptive",
+        "from",
         "points",
         "open",
-        "from",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -44621,8 +44876,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
         "evaluation",
+        "curve",
         "at",
         "parameter",
         "set_domain",
@@ -44644,9 +44899,9 @@ window.API_INDEX = {
       "title": "Curve Frames Along Length",
       "tags": [
         "curve",
-        "frames",
         "along",
         "length",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -44669,8 +44924,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "frames",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -44691,10 +44946,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "evaluate",
-        "surface",
         "point",
+        "surface",
+        "evaluate",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -44709,10 +44964,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
-        "from",
-        "faces",
         "and",
+        "mesh",
+        "faces",
+        "from",
         "vertices",
         "add_vertex",
         "add_face",
@@ -46439,6 +46694,9 @@ window.API_INDEX = {
     "sphere_surface": [
       "Primitives.sphere_surface"
     ],
+    "schwarz_p": [
+      "Primitives.schwarz_p"
+    ],
     "create_extrusion": [
       "Primitives.create_extrusion"
     ],
@@ -46468,6 +46726,21 @@ window.API_INDEX = {
     ],
     "create_edge": [
       "Primitives.create_edge"
+    ],
+    "quad_mesh": [
+      "Primitives.quad_mesh"
+    ],
+    "diamond_mesh": [
+      "Primitives.diamond_mesh"
+    ],
+    "hex_mesh": [
+      "Primitives.hex_mesh"
+    ],
+    "dedup_face": [
+      "Primitives.dedup_face"
+    ],
+    "hex_mesh2": [
+      "Primitives.hex_mesh2"
     ],
     "identity": [
       "Quaternion.identity",

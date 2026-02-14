@@ -2,7 +2,7 @@
   {
     "test_name": "Mesh_arrow",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.097,
     "line": 6,
     "code": "        use crate::primitives::Primitives;\n        use crate::line::Line;\n\n        let line = Line::new(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n        let m = Primitives::arrow_mesh(&line, 1.0);\n",
     "checks": [
@@ -40,9 +40,89 @@
     "failures": []
   },
   {
+    "test_name": "Mesh_diamond_mesh",
+    "passed": true,
+    "time_ms": 0.071,
+    "line": 822,
+    "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::diamond_mesh(&srf, 8, 4);\n",
+    "checks": [
+      {
+        "line": 828,
+        "code_line": "m.number_of_vertices() == 45",
+        "passed": true
+      },
+      {
+        "line": 829,
+        "code_line": "m.number_of_faces() == 23",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_hex_mesh",
+    "passed": true,
+    "time_ms": 0.137,
+    "line": 834,
+    "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::hex_mesh(&srf, 6, 4, 1.0/3.0);\n",
+    "checks": [
+      {
+        "line": 840,
+        "code_line": "m.number_of_vertices() == 91",
+        "passed": true
+      },
+      {
+        "line": 841,
+        "code_line": "m.number_of_faces() == 32",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_hex_mesh2",
+    "passed": true,
+    "time_ms": 0.146,
+    "line": 846,
+    "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::hex_mesh2(&srf, 6, 4, 2.0 / 3.0);\n",
+    "checks": [
+      {
+        "line": 852,
+        "code_line": "m.number_of_vertices() == 91",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "m.number_of_faces() == 54",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_quad_mesh",
+    "passed": true,
+    "time_ms": 0.101,
+    "line": 810,
+    "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::quad_mesh(&srf, 8, 4);\n",
+    "checks": [
+      {
+        "line": 816,
+        "code_line": "m.number_of_vertices() == 45",
+        "passed": true
+      },
+      {
+        "line": 817,
+        "code_line": "m.number_of_faces() == 32",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
     "test_name": "Nurbscurve_arc",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 74,
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let start = Point::new(0.0, 0.0, 0.0);\n        let mid = Point::new(1.0, 1.0, 0.0);\n        let end = Point::new(2.0, 0.0, 0.0);\n        let c = Primitives::arc(&start, &mid, &end);\n",
     "checks": [
@@ -67,7 +147,7 @@
   {
     "test_name": "Nurbscurve_circle",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 50,
     "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -117,7 +197,7 @@
   {
     "test_name": "Nurbscurve_hyperbola",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.014,
     "line": 106,
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let center = Point::new(0.0, 0.0, 0.0);\n        let c = Primitives::hyperbola(&center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -142,102 +222,102 @@
   {
     "test_name": "Nurbscurve_interpolated",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 766,
+    "time_ms": 0.026,
+    "line": 858,
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n        use crate::knot::CurveKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0), Point::new(15.342777, 13.734889, 0.0), Point::new(21.897914, 32.239195, 0.0),\n            Point::new(24.678472, 0.354555, 0.0), Point::new(33.813678, 24.76858, 0.0),\n            Point::new(39.626394, 15.47249, 0.0), Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = Primitives::create_interpolated(&points, CurveKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n        let knots = c.get_knots();\n\n\n        let pts4 = vec![Point::new(0.0,0.0,0.0), Point::new(1.0,2.0,0.0), Point::new(3.0,1.0,0.0), Point::new(5.0,3.0,0.0)];\n        let c4 = Primitives::create_interpolated(&pts4, CurveKnotStyle::Chord);\n        let (d4_0, d4_1) = c4.domain();",
     "checks": [
       {
-        "line": 779,
+        "line": 871,
         "code_line": "c.is_valid()",
         "passed": true
       },
       {
-        "line": 780,
+        "line": 872,
         "code_line": "c.degree() == 3",
         "passed": true
       },
       {
-        "line": 781,
+        "line": 873,
         "code_line": "c.order() == 4",
         "passed": true
       },
       {
-        "line": 782,
+        "line": 874,
         "code_line": "c.cv_count() == 9",
         "passed": true
       },
       {
-        "line": 783,
+        "line": 875,
         "code_line": "c.is_rational() == false",
         "passed": true
       },
       {
-        "line": 787,
+        "line": 879,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(d0), &points[0])",
         "passed": true
       },
       {
-        "line": 788,
+        "line": 880,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[3]), &points[1])",
         "passed": true
       },
       {
-        "line": 789,
+        "line": 881,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[4]), &points[2])",
         "passed": true
       },
       {
-        "line": 790,
+        "line": 882,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[5]), &points[3])",
         "passed": true
       },
       {
-        "line": 791,
+        "line": 883,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[6]), &points[4])",
         "passed": true
       },
       {
-        "line": 792,
+        "line": 884,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[7]), &points[5])",
         "passed": true
       },
       {
-        "line": 793,
+        "line": 885,
         "code_line": "TOLERANCE.is_point_close(&c.point_at(d1), &points[6])",
         "passed": true
       },
       {
-        "line": 795,
+        "line": 887,
         "code_line": "TOLERANCE.is_point_close(&c.get_cv(0).unwrap(), &points[0])",
         "passed": true
       },
       {
-        "line": 796,
+        "line": 888,
         "code_line": "TOLERANCE.is_point_close(&c.get_cv(8).unwrap(), &points[6])",
         "passed": true
       },
       {
-        "line": 800,
+        "line": 892,
         "code_line": "c4.is_valid()",
         "passed": true
       },
       {
-        "line": 801,
+        "line": 893,
         "code_line": "c4.degree() == 3",
         "passed": true
       },
       {
-        "line": 802,
+        "line": 894,
         "code_line": "c4.cv_count() == 6",
         "passed": true
       },
       {
-        "line": 804,
+        "line": 896,
         "code_line": "TOLERANCE.is_point_close(&c4.point_at(d4_0), &pts4[0])",
         "passed": true
       },
       {
-        "line": 805,
+        "line": 897,
         "code_line": "TOLERANCE.is_point_close(&c4.point_at(d4_1), &pts4[3])",
         "passed": true
       }
@@ -272,7 +352,7 @@
   {
     "test_name": "Nurbscurve_polyline",
     "passed": true,
-    "time_ms": 0.121,
+    "time_ms": 0.12,
     "line": 32,
     "code": "        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c = NurbsCurve::create(false, 1, &[\n            Point::new(0.0,0.0,0.0), Point::new(1.0,2.0,0.0), Point::new(2.0,0.0,0.0),\n            Point::new(3.0,2.0,0.0), Point::new(4.0,0.0,0.0)]);\n",
     "checks": [
@@ -312,7 +392,7 @@
   {
     "test_name": "Nurbscurve_spiral",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.023,
     "line": 120,
     "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
     "checks": [
@@ -507,7 +587,7 @@
   {
     "test_name": "Nurbssurface_edge",
     "passed": true,
-    "time_ms": 0.392,
+    "time_ms": 0.386,
     "line": 725,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let pts_south = vec![Point::new(1.0, 20.569076, 0.0), Point::new(1.0, 22.569076, 3.0), Point::new(1.0, 25.569076, 3.0), Point::new(1.0, 27.569076, 0.0)];\n        let pts_west  = vec![Point::new(10.0, 20.569076, 0.0), Point::new(5.5, 20.569076, 3.5), Point::new(1.0, 20.569076, 0.0)];\n        let pts_north = vec![Point::new(10.0, 20.569076, 0.0), Point::new(10.0, 22.569076, 3.0), Point::new(10.0, 25.569076, 3.0), Point::new(10.0, 27.569076, 0.0)];\n        let pts_east  = vec![Point::new(10.0, 27.569076, 0.0), Point::new(5.5, 27.569076, 3.5), Point::new(1.0, 27.569076, 0.0)];\n\n        let south = NurbsCurve::create(false, 3, &pts_south);\n        let west  = NurbsCurve::create(false, 2, &pts_west);\n        let north = NurbsCurve::create(false, 3, &pts_north);\n        let east  = NurbsCurve::create(false, 2, &pts_east);\n\n        let surf = Primitives::create_edge(&south, &west, &north, &east);\n        let m = surf.mesh();\n\n",
     "checks": [
@@ -607,7 +687,7 @@
   {
     "test_name": "Nurbssurface_extrusion",
     "passed": true,
-    "time_ms": 0.528,
+    "time_ms": 0.514,
     "line": 420,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let dir = Vector::new(0.0, 1.0, 5.0);\n\n        let c1 = NurbsCurve::create(false, 1, &[Point::new(13.0,0.0,0.0), Point::new(18.0,0.0,0.0)]);\n        let s_line = Primitives::create_extrusion(&c1, &dir);\n        let m_line = s_line.mesh();\n\n        let c2 = Primitives::circle(24.0, 0.0, 0.0, 3.0);\n        let s_circle = Primitives::create_extrusion(&c2, &dir);\n        let m_circle = s_circle.mesh();\n\n        let c3 = NurbsCurve::create(false, 2, &[Point::new(30.0,0.0,0.0), Point::new(33.0,5.0,0.0), Point::new(37.0,0.0,0.0)]);\n        let s_arc = Primitives::create_extrusion(&c3, &dir);\n        let m_arc = s_arc.mesh();\n\n        let c4 = NurbsCurve::create(false, 1, &[Point::new(40.0,3.0,0.0), Point::new(45.0,0.0,0.0), Point::new(50.0,3.0,0.0), Point::new(55.0,0.0,0.0)]);\n        let s_wavy = Primitives::create_extrusion(&c4, &dir);\n        let m_wavy = s_wavy.mesh();\n\n\n\n",
     "checks": [
@@ -837,7 +917,7 @@
   {
     "test_name": "Nurbssurface_loft",
     "passed": true,
-    "time_ms": 0.135,
+    "time_ms": 0.111,
     "line": 495,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c1 = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n        let c2 = Primitives::circle(0.0, 0.0, 2.0, 1.0);\n        let c3 = Primitives::circle(0.0, 0.0, 4.0, 1.5);\n        let c4 = Primitives::circle(0.0, 0.0, 6.0, 0.8);\n\n        let srf = Primitives::create_loft(&[c1, c2, c3, c4], 3);\n\n\n        let open_pts = vec![\n            vec![Point::new(10.0, -12.0, 0.0), Point::new(10.0, -10.0, 3.0), Point::new(10.0, -7.0, 3.0), Point::new(10.0, -5.0, 0.0)],\n            vec![Point::new(5.5, -12.0, 3.5), Point::new(5.5, -10.0, 1.5), Point::new(5.5, -7.0, 1.5), Point::new(5.5, -5.0, 3.5)],\n            vec![Point::new(1.0, -12.0, 0.0), Point::new(1.0, -10.0, 3.0), Point::new(1.0, -7.0, 3.0), Point::new(1.0, -5.0, 0.0)],\n        ];\n        let open_curves = vec![\n            NurbsCurve::create(false, 3, &open_pts[0]),\n            NurbsCurve::create(false, 3, &open_pts[1]),\n            NurbsCurve::create(false, 3, &open_pts[2]),\n        ];\n        let open_srf = Primitives::create_loft(&open_curves, 3);\n\n",
     "checks": [
@@ -1117,7 +1197,7 @@
   {
     "test_name": "Nurbssurface_planar",
     "passed": false,
-    "time_ms": 13.103,
+    "time_ms": 11.782,
     "line": 328,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c1 = 0.7_f64.cos(); let s1 = 0.7_f64.sin();\n        let c2 = 0.96_f64.cos(); let s2 = 0.96_f64.sin();\n        let c3 = 0.52_f64.cos(); let s3 = 0.52_f64.sin();\n        let c4 = 1.13_f64.cos(); let s4 = 1.13_f64.sin();\n\n        let ca = NurbsCurve::create(false, 1, &[\n            Point::new(0.0,0.0,0.0), Point::new(4.0,0.0,0.0),\n            Point::new(4.0,3.0*c1,3.0*s1), Point::new(0.0,3.0*c1,3.0*s1),\n            Point::new(0.0,0.0,0.0)]);\n        let s_quad = Primitives::create_planar(&ca);\n        let m_quad = s_quad.mesh();\n\n        let cb1 = NurbsCurve::create(false, 1, &[\n            Point::new(8.0,0.0,0.0), Point::new(8.0+5.0*c2,0.0,5.0*s2),\n            Point::new(8.0+2.0*c2,3.0,2.0*s2), Point::new(8.0,0.0,0.0)]);\n        let s_triangle = Primitives::create_planar(&cb1);\n        let m_triangle = s_triangle.mesh();\n\n        let ox = 18.0;\n        let cb2 = NurbsCurve::create(false, 1, &[\n            Point::new(ox+0.0*c3,0.0*s3,0.0),\n            Point::new(ox+4.0*c3,4.0*s3,0.0),\n            Point::new(ox+5.0*c3-2.0*s3,5.0*s3+2.0*c3,0.0),\n            Point::new(ox+3.0*c3-4.0*s3,3.0*s3+4.0*c3,0.0),\n            Point::new(ox-1.0*c3-3.0*s3,-1.0*s3+3.0*c3,0.0),\n            Point::new(ox+0.0*c3,0.0*s3,0.0)]);\n        let s_polygon = Primitives::create_planar(&cb2);\n        let m_polygon = s_polygon.mesh();\n\n        let cc = NurbsCurve::create(false, 3, &[\n            Point::new(26.0,0.0,0.0),\n            Point::new(29.0,1.0*c4,1.0*s4),\n            Point::new(31.0,0.5*c4,0.5*s4),\n            Point::new(32.0,3.0*c4,3.0*s4),\n            Point::new(30.0,5.0*c4,5.0*s4),\n            Point::new(27.0,4.0*c4,4.0*s4),\n            Point::new(26.0,0.0,0.0)]);\n        let s_nurbs = Primitives::create_planar(&cc);\n        let m_nurbs = s_nurbs.mesh();\n\n",
     "checks": [
@@ -1191,7 +1271,7 @@
   {
     "test_name": "Nurbssurface_revolve",
     "passed": true,
-    "time_ms": 7.917,
+    "time_ms": 7.904,
     "line": 579,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pa = NurbsCurve::create(false, 3, &[\n            Point::new(1.5, 0.0, 0.0), Point::new(1.5, 0.0, 0.3), Point::new(0.3, 0.0, 0.5),\n            Point::new(0.3, 0.0, 2.5), Point::new(0.2, 0.0, 3.0), Point::new(2.0, 0.0, 4.5), Point::new(1.8, 0.0, 5.0)]);\n        let s_vase = Primitives::create_revolve(&pa, &Point::new(0.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_vase = s_vase.mesh();\n\n        let w = (2.0_f64).sqrt() / 2.0;\n        let cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0];\n        let ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        let rr = 5.0; let r = 1.5; let tcx = 14.0;\n        let mut pb = NurbsCurve::new(3, true, 3, 9);\n        for i in 0..10 { pb.set_knot(i, ck[i]); }\n        for i in 0..9 { pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i]); }\n        let s_torus = Primitives::create_revolve(&pb, &Point::new(tcx,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_torus = s_torus.mesh();\n\n        let pc = NurbsCurve::create(false, 1, &[Point::new(29.0, 0.0, -0.5), Point::new(29.0, 0.0, 0.5)]);\n        let s_elbow = Primitives::create_revolve(&pc, &Point::new(26.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), crate::tolerance::PI / 2.0);\n        let m_elbow = s_elbow.mesh();\n\n        let sr = 2.0; let scx = 36.0;\n        let mut pd = NurbsCurve::new(3, true, 3, 5);\n        let sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0];\n        for i in 0..6 { pd.set_knot(i, sk[i]); }\n        let spx = [0.0, sr, sr, sr, 0.0]; let spz = [-sr, -sr, 0.0, sr, sr]; let spw = [1.0, w, 1.0, w, 1.0];\n        for i in 0..5 { pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i]); }\n        let s_sphere = Primitives::create_revolve(&pd, &Point::new(scx,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_sphere = s_sphere.mesh();\n\n        let pe = NurbsCurve::create(false, 1, &[Point::new(44.0, 0.0, 3.0), Point::new(46.0, 0.0, 0.0)]);\n        let s_cone = Primitives::create_revolve(&pe, &Point::new(44.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_cone = s_cone.mesh();\n\n\n\n\n",
     "checks": [
@@ -1451,7 +1531,7 @@
   {
     "test_name": "Nurbssurface_ruled",
     "passed": true,
-    "time_ms": 1.022,
+    "time_ms": 1.121,
     "line": 222,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pts_a = vec![Point::new(3.0,0.0,0.0), Point::new(-2.0,0.0,5.0)];\n        let pts_b = vec![Point::new(3.0,5.0,5.0), Point::new(-2.0,5.0,0.0)];\n        let crv_a = NurbsCurve::create(false, 1, &pts_a);\n        let crv_b = NurbsCurve::create(false, 1, &pts_b);\n        let srf = Primitives::create_ruled(&crv_a, &crv_b);\n        let _m = srf.mesh();\n\n\n        let (rd, ruv) = srf.divide_by_count(4, 4);\n\n        let mut pts: Vec<Point> = Vec::new();\n        for i in 0..rd.len() {\n            for j in 0..rd[i].len() {\n                pts.push(rd[i][j].clone());\n\n        let mut normals: Vec<Vector> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                normals.push(srf.normal_at(ruv[i][j].0, ruv[i][j].1));\n\n        let mut uvs: Vec<(f64, f64)> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                uvs.push(ruv[i][j]);\n\n\n",
     "checks": [
@@ -1774,9 +1854,1474 @@
     "failures": []
   },
   {
+    "test_name": "Nurbssurface_schwarz_p",
+    "passed": true,
+    "time_ms": 0.842,
+    "line": 766,
+    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let s = 10.0_f64;\n        let patches = Primitives::schwarz_p(0.0, 0.0, 0.0, s);\n\n        for f in 0..48 {\n\n        let pi2 = 2.0 * std::f64::consts::PI;\n        let mut max_err = 0.0_f64;\n        for f in 0..48 {\n            for i in 0..=4 {\n                let u = i as f64 / 4.0;\n                for j in 0..=4 {\n                    let v = j as f64 / 4.0;\n                    let p = patches[f].point_at(u, v).unwrap();\n                    let val = (pi2 * p[0] / s).cos() + (pi2 * p[1] / s).cos() + (pi2 * p[2] / s).cos();\n                    let err = val.abs();\n                    if err > max_err { max_err = err; }\n\n        let mid = patches[0].point_at(0.5, 0.5).unwrap();\n        let mid_val = (pi2 * mid[0] / s).cos() + (pi2 * mid[1] / s).cos() + (pi2 * mid[2] / s).cos();",
+    "checks": [
+      {
+        "line": 773,
+        "code_line": "patches.len() == 48",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 775,
+        "code_line": "patches[f].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 776,
+        "code_line": "patches[f].is_rational() == false",
+        "passed": true
+      },
+      {
+        "line": 777,
+        "code_line": "patches[f].degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 778,
+        "code_line": "patches[f].degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 779,
+        "code_line": "patches[f].cv_count_dir(Some(0)) == 3",
+        "passed": true
+      },
+      {
+        "line": 780,
+        "code_line": "patches[f].cv_count_dir(Some(1)) == 3",
+        "passed": true
+      },
+      {
+        "line": 797,
+        "code_line": "max_err < 0.15",
+        "passed": true
+      },
+      {
+        "line": 801,
+        "code_line": "mid_val.abs() < 0.15",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
     "test_name": "Nurbssurface_sweep",
     "passed": true,
-    "time_ms": 18.488,
+    "time_ms": 15.774,
     "line": 678,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let rail = NurbsCurve::create(false, 2, &[Point::new(0.0,0.0,0.0), Point::new(0.0,5.0,0.0), Point::new(2.0,9.0,0.0)]);\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let s_sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let m_sweep1 = s_sweep1.mesh();\n\n        let rail1 = NurbsCurve::create(false, 2, &[Point::new(6.0,-1.0,0.0), Point::new(7.0,3.0,0.0), Point::new(8.0,4.0,0.0)]);\n        let rail2 = NurbsCurve::create(false, 2, &[Point::new(10.0,-1.0,0.0), Point::new(10.0,3.0,0.0), Point::new(9.0,4.0,0.0)]);\n        let shape1 = NurbsCurve::create(false, 2, &[Point::new(6.0,-1.0,0.0), Point::new(8.0,-1.0,2.0), Point::new(10.0,-1.0,0.0)]);\n        let shape2 = NurbsCurve::create(false, 2, &[Point::new(8.0,4.0,0.0), Point::new(8.5,4.0,1.5), Point::new(9.0,4.0,0.0)]);\n        let s_sweep2 = Primitives::create_sweep2(&rail1, &rail2, &[shape1, shape2]);\n        let m_sweep2 = s_sweep2.mesh();\n\n",
     "checks": [
