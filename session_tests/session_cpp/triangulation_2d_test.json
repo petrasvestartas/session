@@ -2,7 +2,7 @@
   {
     "test_name": "Triangle",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.053,
     "line": 24,
     "code": "    Polyline boundary({Point(0, 0, 0), Point(1, 0, 0), Point(0, 1, 0), Point(0, 0, 0)});\n    auto tris = Triangulation2D::triangulate(boundary);\n",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "Square",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.013,
     "line": 34,
     "code": "    Polyline boundary({Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0), Point(0, 0, 0)});\n    auto tris = Triangulation2D::triangulate(boundary);\n    std::vector<Point> pts = {Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)};\n    double a = total_area(pts, tris);\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "Convex_polygon",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.02,
     "line": 44,
     "code": "    double r = 1.0;\n    std::vector<Point> hex_pts;\n    for (int i = 0; i < 6; ++i) {\n        double angle = i * TOLERANCE.PI / 3.0;\n        hex_pts.push_back(Point(r * std::cos(angle), r * std::sin(angle), 0));",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Polygon_with_hole",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.027,
     "line": 75,
     "code": "    Polyline boundary({\n        Point(0, 0, 0), Point(4, 0, 0), Point(4, 4, 0), Point(0, 4, 0), Point(0, 0, 0)\n    });\n    Polyline hole({\n        Point(1, 1, 0), Point(3, 1, 0), Point(3, 3, 0), Point(1, 3, 0), Point(1, 1, 0)\n    });\n    auto tris = Triangulation2D::triangulate(boundary, {hole});\n    std::vector<Point> all_pts = {\n        Point(0, 0, 0), Point(4, 0, 0), Point(4, 4, 0), Point(0, 4, 0),\n        Point(1, 1, 0), Point(3, 1, 0), Point(3, 3, 0), Point(1, 3, 0)\n    };\n    double a = total_area(all_pts, tris);\n    double expected = 4.0 * 4.0 - 2.0 * 2.0;\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Polygon_with_multiple_holes",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.038,
     "line": 94,
     "code": "    Polyline boundary({\n        Point(0, 0, 0), Point(10, 0, 0), Point(10, 8, 0), Point(0, 8, 0), Point(0, 0, 0)\n    });\n    Polyline hole0({\n        Point(1, 1, 0), Point(3, 1, 0), Point(3, 3, 0), Point(1, 3, 0), Point(1, 1, 0)\n    });\n    Polyline hole1({\n        Point(5, 4, 0), Point(9, 4, 0), Point(9, 7, 0), Point(5, 7, 0), Point(5, 4, 0)\n    });\n    auto tris = Triangulation2D::triangulate(boundary, {hole0, hole1});\n    std::vector<Point> all_pts = {\n        Point(0, 0, 0), Point(10, 0, 0), Point(10, 8, 0), Point(0, 8, 0),\n        Point(1, 1, 0), Point(3, 1, 0), Point(3, 3, 0), Point(1, 3, 0),\n        Point(5, 4, 0), Point(9, 4, 0), Point(9, 7, 0), Point(5, 7, 0)\n    };\n    double a = total_area(all_pts, tris);\n    double expected = 10.0 * 8.0 - 2.0 * 2.0 - 4.0 * 3.0;\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Winding_correction",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.012,
     "line": 117,
     "code": "    Polyline boundary({\n        Point(0, 1, 0), Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)\n    });\n    auto tris = Triangulation2D::triangulate(boundary);\n    std::vector<Point> pts = {Point(0, 1, 0), Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0)};\n    double a = total_area(pts, tris);\n",
     "checks": [

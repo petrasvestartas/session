@@ -117,7 +117,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 15.304,
+    "time_ms": 12.674,
     "line": 102,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   json_dumps()    │ std::string  │ to JSON string\n        //   json_loads(s)   │ std::string  │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_point.json\";\n        p.json_dump(filename);\n        Point loaded = Point::json_load(filename);\n\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.661,
+    "time_ms": 12.638,
     "line": 134,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        Point loaded = Point::pb_load(filename);\n",
     "checks": [
@@ -227,7 +227,7 @@
   {
     "test_name": "Is_ccw",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 158,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(1.0, 0.0, 0.0);\n        Point p2(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        bool is_counter_clock_wise = Point::is_ccw(p0, p1, p2);\n        bool is_clock_wise = Point::is_ccw(p2, p1, p0);\n",
     "checks": [
@@ -247,7 +247,7 @@
   {
     "test_name": "Mid_point",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 173,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);\n",
     "checks": [
@@ -262,7 +262,7 @@
   {
     "test_name": "Distance",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 183,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::distance(p0, p1);\n",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "Squared_distance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 193,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::squared_distance(p0, p1);\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Centroid_quad",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.005,
     "line": 215,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n        Point centroid = Point::centroid_quad({p0, p1, p2, p3});\n",
     "checks": [
