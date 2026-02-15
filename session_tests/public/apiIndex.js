@@ -42997,7 +42997,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n\n\n\n\n\n\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n        \n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n\n\n    }",
           "file": "nurbssurface_test.cpp"
         }
       }
@@ -45042,11 +45042,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "into",
         "circle",
-        "n",
         "subdivide",
         "points",
-        "into",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -45061,9 +45061,9 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "length",
+        "ellipse",
         "arc",
         "subdivide",
-        "ellipse",
         "by",
         "divide_by_length",
         "nurbscurve",
@@ -45078,8 +45078,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "arc",
+        "through",
         "points",
         "nurbscurve",
         "primitives",
@@ -45095,10 +45095,10 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "open",
-        "from",
         "curve",
-        "points",
         "adaptive",
+        "points",
+        "from",
         "polyline",
         "to_polyline_adaptive",
         "create",
@@ -45138,8 +45138,8 @@ window.API_INDEX = {
       "tags": [
         "curve",
         "length",
-        "frames",
         "along",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -45161,9 +45161,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -45184,10 +45184,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "evaluate",
-        "point",
         "surface",
+        "cylinder",
+        "point",
+        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -45202,11 +45202,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "vertices",
         "from",
+        "mesh",
         "faces",
         "and",
-        "mesh",
-        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
