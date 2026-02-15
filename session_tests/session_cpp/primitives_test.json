@@ -2,7 +2,7 @@
   {
     "test_name": "Mesh_arrow",
     "passed": true,
-    "time_ms": 0.127,
+    "time_ms": 0.105,
     "line": 21,
     "code": "    // uncomment #include \"mesh.h\"\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Mesh m = Primitives::arrow_mesh(line, 1.0);\n",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Mesh_cylinder",
     "passed": true,
-    "time_ms": 0.066,
+    "time_ms": 0.063,
     "line": 30,
     "code": "    // uncomment #include \"mesh.h\"\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Mesh m = Primitives::cylinder_mesh(line, 1.0);\n",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "Nurbscurve_polyline",
     "passed": true,
-    "time_ms": 0.129,
+    "time_ms": 0.117,
     "line": 43,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    NurbsCurve c = NurbsCurve::create(false, 1, {\n        Point(0,0,0), Point(1,2,0), Point(2,0,0), Point(3,2,0), Point(4,0,0)});\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "Nurbscurve_circle",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 56,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    NurbsCurve c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Nurbscurve_ellipse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 65,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    NurbsCurve c = Primitives::ellipse(0.0, 0.0, 0.0, 2.0, 1.0);\n",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Nurbscurve_hyperbola",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 98,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "Nurbssurface_cone",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 149,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsSurface s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n    s.name = \"cone\";\n\n\n    Point pbase = s.point_at(0.0, 0.0);\n\n    Point papex = s.point_at(0.0, 1.0);\n\n    Point pmid = s.point_at(0.0, 0.5);",
     "checks": [
@@ -587,7 +587,7 @@
   {
     "test_name": "Nurbssurface_quad_sphere",
     "passed": true,
-    "time_ms": 0.128,
+    "time_ms": 0.116,
     "line": 238,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    double R = 5.0;\n    auto faces = Primitives::quad_sphere(0.0, 0.0, 0.0, R);\n\n    for (int f = 0; f < 6; f++) {",
     "checks": [
@@ -827,7 +827,7 @@
   {
     "test_name": "Nurbssurface_ruled",
     "passed": true,
-    "time_ms": 1.826,
+    "time_ms": 1.777,
     "line": 295,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_a = {Point(3,0,0), Point(-2,0,5)};\n    std::vector<Point> pts_b = {Point(3,5,5), Point(-2,5,0)};\n    NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n    NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n    NurbsSurface srf = Primitives::create_ruled(crvA, crvB);\n    srf.name = \"ruled\";\n\n    Mesh m = srf.mesh(45);\n\n\n    auto [rd, ruv] = srf.divide_by_count(4, 4);\n\n    std::vector<Point> pts;\n    for (int i = 0; i < (int)rd.size(); i++)\n        for (int j = 0; j < (int)rd[i].size(); j++)\n            pts.push_back(rd[i][j]);\n\n    std::vector<Vector> normals;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n    std::vector<std::pair<double,double>> uvs;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            uvs.push_back(ruv[i][j]);\n\n\n",
     "checks": [
@@ -1152,7 +1152,7 @@
   {
     "test_name": "Nurbssurface_planar",
     "passed": true,
-    "time_ms": 21.337,
+    "time_ms": 20.304,
     "line": 391,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    double c1=std::cos(0.7), s1=std::sin(0.7);\n    double c2=std::cos(0.96), s2=std::sin(0.96);\n    double c3=std::cos(0.52), s3=std::sin(0.52);\n    double c4=std::cos(1.13), s4=std::sin(1.13);\n\n    auto ca = NurbsCurve::create(false, 1, {\n        Point(0,0,0),\n        Point(4,0,0),\n        Point(4,3*c1,3*s1),\n        Point(0,3*c1,3*s1),\n        Point(0,0,0)});\n    auto s_quad = Primitives::create_planar(ca);\n    s_quad.name = \"quad\";\n    auto m_quad = s_quad.mesh();\n\n    auto cb1 = NurbsCurve::create(false, 1, {\n        Point(8,0,0),\n        Point(8+5*c2,0,5*s2),\n        Point(8+2*c2,3,2*s2),\n        Point(8,0,0)});\n    auto s_triangle = Primitives::create_planar(cb1);\n    s_triangle.name = \"triangle\";\n    auto m_triangle = s_triangle.mesh();\n\n    double ox=18;\n    auto cb2 = NurbsCurve::create(false, 1, {\n        Point(ox+0*c3,0*s3,0),\n        Point(ox+4*c3,4*s3,0),\n        Point(ox+5*c3-2*s3,5*s3+2*c3,0),\n        Point(ox+3*c3-4*s3,3*s3+4*c3,0),\n        Point(ox-1*c3-3*s3,-1*s3+3*c3,0),\n        Point(ox+0*c3,0*s3,0)});\n    auto s_polygon = Primitives::create_planar(cb2);\n    s_polygon.name = \"polygon\";\n    auto m_polygon = s_polygon.mesh();\n\n    auto cc = NurbsCurve::create(false, 3, {\n        Point(26,0,0),\n        Point(29,1*c4,1*s4),\n        Point(31,0.5*c4,0.5*s4),\n        Point(32,3*c4,3*s4),\n        Point(30,5*c4,5*s4),\n        Point(27,4*c4,4*s4),\n        Point(26,0,0)});\n    auto s_nurbs = Primitives::create_planar(cc);\n    s_nurbs.name = \"nurbs\";\n    auto m_nurbs = s_nurbs.mesh();\n\n\n\n",
     "checks": [
@@ -1362,7 +1362,7 @@
   {
     "test_name": "Nurbssurface_extrusion",
     "passed": true,
-    "time_ms": 0.474,
+    "time_ms": 0.469,
     "line": 486,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    Vector dir(0, 1, 5);\n\n    auto c1 = NurbsCurve::create(false, 1, {Point(13,0,0), Point(18,0,0)});\n    auto s_line = Primitives::create_extrusion(c1, dir);\n    s_line.name = \"line\";\n    auto m_line = s_line.mesh();\n\n    auto c2 = Primitives::circle(24, 0, 0, 3.0);\n    auto s_circle = Primitives::create_extrusion(c2, dir);\n    s_circle.name = \"circle\";\n    auto m_circle = s_circle.mesh();\n\n    auto c3 = NurbsCurve::create(false, 2, {Point(30,0,0), Point(33,5,0), Point(37,0,0)});\n    auto s_arc = Primitives::create_extrusion(c3, dir);\n    s_arc.name = \"arc\";\n    auto m_arc = s_arc.mesh();\n\n    auto c4 = NurbsCurve::create(false, 1, {Point(40,3,0), Point(45,0,0), Point(50,3,0), Point(55,0,0)});\n    auto s_wavy = Primitives::create_extrusion(c4, dir);\n    s_wavy.name = \"wavy\";\n    auto m_wavy = s_wavy.mesh();\n\n\n\n",
     "checks": [
@@ -1592,7 +1592,7 @@
   {
     "test_name": "Nurbssurface_loft",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.14,
     "line": 559,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n    NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n    NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n    NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n    NurbsSurface srf = Primitives::create_loft({c1, c2, c3, c4}, 3);\n    srf.name = \"loft\";\n\n\n    std::vector<std::vector<Point>> open_pts = {\n        {Point(10, -12, 0), Point(10, -10, 3), Point(10, -7, 3), Point(10, -5, 0)},\n        {Point(5.5, -12, 3.5), Point(5.5, -10.0, 1.5), Point(5.5, -7.0, 1.5), Point(5.5, -5, 3.5)},\n        {Point(1, -12, 0), Point(1, -10, 3.0), Point(1, -7, 3.0), Point(1, -5, 0)},\n    };\n    std::vector<NurbsCurve> open_curves = {\n        NurbsCurve::create(false, 3, open_pts[0]),\n        NurbsCurve::create(false, 3, open_pts[1]),\n        NurbsCurve::create(false, 3, open_pts[2]),\n    };\n    NurbsSurface open_srf = Primitives::create_loft(open_curves, 3);\n    open_srf.name = \"open_loft\";\n\n",
     "checks": [
@@ -1872,7 +1872,7 @@
   {
     "test_name": "Nurbssurface_revolve",
     "passed": true,
-    "time_ms": 10.768,
+    "time_ms": 10.414,
     "line": 640,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    auto pa = NurbsCurve::create(false, 3, {\n        Point(1.5, 0, 0), Point(1.5, 0, 0.3), Point(0.3, 0, 0.5),\n        Point(0.3, 0, 2.5), Point(0.2, 0, 3.0), Point(2.0, 0, 4.5), Point(1.8, 0, 5.0)});\n    auto s_vase = Primitives::create_revolve(pa, Point(0,0,0), Vector(0,0,1));\n    s_vase.name = \"vase\";\n    auto m_vase = s_vase.mesh();\n\n    NurbsCurve pb(3, true, 3, 9);\n    const double w = std::sqrt(2.0) / 2.0;\n    double cw[] = {1, w, 1, w, 1, w, 1, w, 1};\n    double ca[] = {1, 1, 0, -1, -1, -1, 0, 1, 1};\n    double sa[] = {0, 1, 1, 1, 0, -1, -1, -1, 0};\n    double ck[] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4};\n    double R = 5.0, r = 1.5, tcx = 14;\n    for (int i = 0; i < 10; i++) pb.set_knot(i, ck[i]);\n    for (int i = 0; i < 9; i++)\n        pb.set_cv_4d(i, (tcx + R + r * ca[i]) * cw[i], 0, r * sa[i] * cw[i], cw[i]);\n    auto s_torus = Primitives::create_revolve(pb, Point(tcx,0,0), Vector(0,0,1));\n    s_torus.name = \"torus\";\n    auto m_torus = s_torus.mesh();\n\n    auto pc = NurbsCurve::create(false, 1, {Point(29, 0, -0.5), Point(29, 0, 0.5)});\n    auto s_elbow = Primitives::create_revolve(pc, Point(26,0,0), Vector(0,0,1), Tolerance::PI / 2.0);\n    s_elbow.name = \"elbow\";\n    auto m_elbow = s_elbow.mesh();\n\n    double sr = 2.0, scx = 36;\n    NurbsCurve pd(3, true, 3, 5);\n    double sk[] = {0, 0, 1, 1, 2, 2};\n    for (int i = 0; i < 6; i++) pd.set_knot(i, sk[i]);\n    double spx[] = {0, sr, sr, sr, 0}, spz[] = {-sr, -sr, 0, sr, sr}, spw[] = {1, w, 1, w, 1};\n    for (int i = 0; i < 5; i++)\n        pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0, spz[i] * spw[i], spw[i]);\n    auto s_sphere = Primitives::create_revolve(pd, Point(scx,0,0), Vector(0,0,1));\n    s_sphere.name = \"sphere\";\n    auto m_sphere = s_sphere.mesh();\n\n    auto pe = NurbsCurve::create(false, 1, {Point(44, 0, 3), Point(46, 0, 0)});\n    auto s_cone = Primitives::create_revolve(pe, Point(44,0,0), Vector(0,0,1));\n    s_cone.name = \"cone\";\n    auto m_cone = s_cone.mesh();\n\n\n\n\n",
     "checks": [
@@ -2132,7 +2132,7 @@
   {
     "test_name": "Nurbssurface_sweep",
     "passed": true,
-    "time_ms": 27.436,
+    "time_ms": 26.847,
     "line": 740,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve rail = NurbsCurve::create(false, 2, {Point(0,0,0), Point(0,5,0), Point(2,9,0)});\n    NurbsCurve profile = Primitives::circle(0, 0, 0, 1.0);\n    NurbsSurface s_sweep1 = Primitives::create_sweep1(rail, profile);\n    s_sweep1.name = \"sweep1\";\n    auto m_sweep1 = s_sweep1.mesh();\n\n    NurbsCurve rail1 = NurbsCurve::create(false, 2, {Point(6,-1,0), Point(7,3,0), Point(8,4,0)});\n    NurbsCurve rail2 = NurbsCurve::create(false, 2, {Point(10,-1,0), Point(10,3,0), Point(9,4,0)});\n    NurbsCurve shape1 = NurbsCurve::create(false, 2, {Point(6,-1,0), Point(8,-1,2), Point(10,-1,0)});\n    NurbsCurve shape2 = NurbsCurve::create(false, 2, {Point(8,4,0), Point(8.5,4,1.5), Point(9,4,0)});\n    NurbsSurface s_sweep2 = Primitives::create_sweep2(rail1, rail2, {shape1, shape2});\n    s_sweep2.name = \"sweep2\";\n    auto m_sweep2 = s_sweep2.mesh();\n\n",
     "checks": [
@@ -2557,7 +2557,7 @@
   {
     "test_name": "Nurbssurface_edge",
     "passed": true,
-    "time_ms": 0.475,
+    "time_ms": 0.413,
     "line": 842,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_south = {Point(1, 20.569076, 0), Point(1, 22.569076, 3.0), Point(1, 25.569076, 3.0), Point(1, 27.569076, 0)};\n    std::vector<Point> pts_west  = {Point(10, 20.569076, 0), Point(5.5, 20.569076, 3.5), Point(1, 20.569076, 0)};\n    std::vector<Point> pts_north = {Point(10, 20.569076, 0), Point(10, 22.569076, 3), Point(10, 25.569076, 3), Point(10, 27.569076, 0)};\n    std::vector<Point> pts_east  = {Point(10, 27.569076, 0), Point(5.5, 27.569076, 3.5), Point(1, 27.569076, 0)};\n\n    NurbsCurve south = NurbsCurve::create(false, 3, pts_south);\n    NurbsCurve west  = NurbsCurve::create(false, 2, pts_west);\n    NurbsCurve north = NurbsCurve::create(false, 3, pts_north);\n    NurbsCurve east  = NurbsCurve::create(false, 2, pts_east);\n\n    NurbsSurface surf = Primitives::create_edge(south, west, north, east);\n    surf.name = \"edge\";\n    Mesh m = surf.mesh(15);\n\n",
     "checks": [
@@ -2657,7 +2657,7 @@
   {
     "test_name": "Mesh_quad_mesh",
     "passed": true,
-    "time_ms": 0.184,
+    "time_ms": 0.169,
     "line": 883,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::quad_mesh(cyl, 8, 4);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::quad_mesh(sph, 8, 4);",
     "checks": [
@@ -2697,7 +2697,7 @@
   {
     "test_name": "Mesh_diamond_mesh",
     "passed": true,
-    "time_ms": 0.133,
+    "time_ms": 0.121,
     "line": 897,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::diamond_mesh(cyl, 8, 4);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::diamond_mesh(sph, 8, 4);",
     "checks": [
@@ -2737,7 +2737,7 @@
   {
     "test_name": "Mesh_hex_mesh",
     "passed": true,
-    "time_ms": 0.226,
+    "time_ms": 0.205,
     "line": 911,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh(cyl, 6, 4, 1.0/3.0);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::hex_mesh(sph, 6, 4, 1.0/3.0);",
     "checks": [
@@ -2777,7 +2777,7 @@
   {
     "test_name": "Mesh_cone_subdivisions",
     "passed": true,
-    "time_ms": 0.26,
+    "time_ms": 0.239,
     "line": 925,
     "code": "    NurbsSurface cone = Primitives::cone_surface(0, 0, 0, 3.0, 5.0);\n\n    Mesh m1 = Primitives::quad_mesh(cone, 8, 4);\n\n    Mesh m2 = Primitives::diamond_mesh(cone, 8, 4);\n\n    Mesh m3 = Primitives::hex_mesh(cone, 6, 4, 1.0/3.0);",
     "checks": [
@@ -2832,7 +2832,7 @@
   {
     "test_name": "Nurbscurve_interpolated",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.015,
     "line": 944,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    std::vector<Point> points = {\n        Point(14, 9, 0), Point(15.342777, 13.734889, 0), Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0), Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0), Point(41, 13, 0)\n    };\n\n    NurbsCurve c = Primitives::create_interpolated(points, CurveKnotStyle::Chord);\n\n\n    // Verify curve passes through all input points\n    auto [d0, d1] = c.domain();\n    std::vector<double> knots = c.get_knots();\n\n    // Verify endpoints are exact\n\n    // Test with 4 points\n    std::vector<Point> pts4 = {Point(0,0,0), Point(1,2,0), Point(3,1,0), Point(5,3,0)};\n    NurbsCurve c4 = Primitives::create_interpolated(pts4, CurveKnotStyle::Chord);\n    auto [d4_0, d4_1] = c4.domain();",
     "checks": [
@@ -2929,6 +2929,801 @@
       {
         "line": 983,
         "code_line": "TOLERANCE.is_point_close(c4.point_at(d4_1), pts4[3])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "FoldedPlates",
+    "passed": true,
+    "time_ms": 3.31,
+    "line": 990,
+    "code": "    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)",
+    "checks": [
+      {
+        "line": 997,
+        "code_line": "fp.mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 998,
+        "code_line": "fp.mesh.number_of_faces() > 0",
+        "passed": true
+      },
+      {
+        "line": 999,
+        "code_line": "fp.mesh.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "fp.flags.size() == fp.mesh.number_of_faces()",
+        "passed": true
+      },
+      {
+        "line": 1001,
+        "code_line": "fp.adjacency.size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1002,
+        "code_line": "fp.polylines.size() == fp.mesh.number_of_faces()",
+        "passed": true
+      },
+      {
+        "line": 1003,
+        "code_line": "fp.insertion_lines.size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1006,
+        "code_line": "fp.polylines[i].size() > 0",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "fp.polylines[i][j].point_count() >= 3",
         "passed": true
       }
     ],

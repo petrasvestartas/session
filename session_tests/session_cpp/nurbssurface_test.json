@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.526,
+    "time_ms": 0.469,
     "line": 22,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Get mesh\n        Mesh m = s.mesh();\n\n        // Point division matching Rhino's 4x6 grid\n        auto [v, uv] = s.divide_by_count(4, 6);\n\n        // Minimal and Full String Representation\n        std::string sstr = s.str();\n        std::string srepr = s.repr();\n\n        // Copy (duplicates everything except guid)\n        NurbsSurface scopy = s;\n        NurbsSurface sother = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n    ",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "Booleans Queries",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.032,
     "line": 119,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 5.0);\n\n        // Validity surface and knots\n        bool is_valid = s.is_valid();\n        bool are_knots_valid = s.is_valid_knot_vector(0) && s.is_valid_knot_vector(1);\n\n        // Are control points weights enabled?\n        bool is_rational = s.is_rational();\n\n        // Sphere has one seam that is closed, but two poles\n        bool is_closed = s.is_closed(0) == true && s.is_closed(1) == false;\n\n        // sphere cannot be truly periodic because it has poles\n        bool is_periodic = s.is_periodic(0) && s.is_periodic(1);\n\n        // Planarity\n        Plane plane = Plane::xy_plane();\n        bool is_planar = s.is_planar(&plane);\n\n        // Surface is collapsed to a point\n        bool is_point = s.is_singular(0) && s.is_singular(1) && s.is_singular(2) && s.is_singular(3);\n\n        // Most surfaces are clamped except periodic surfaces\n        bool is_clamped = s.is_clamped(0, 2) && s.is_clamped(1, 2);\n",
     "checks": [
@@ -327,7 +327,7 @@
   {
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.014,
     "line": 158,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Check the dimentions of a surface\n        // Mostly 3d\n        // But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n        // Planar geometry: texture coordinates\n        int dimensions = s.dimension();\n\n        // Degree types 1 - linear, 2 - quadratic, 3 - cubic\n        int order_u = s.order(0);\n        int order_v = s.order(1);\n\n        // Control vertex count\n        int cv_count_u = s.cv_count(0);\n        int cv_count_v = s.cv_count(1);\n        int cv_count = s.cv_count();\n        int cv_size = s.cv_size();\n\n        // Number of knots\n        int k_count_0 = s.knot_count(0);\n        int k_count_1 = s.knot_count(1);\n\n        // Span count\n        int s_count_0 = s.span_count(0);\n        int s_count_1 = s.span_count(1);\n",
     "checks": [
@@ -471,7 +471,7 @@
   {
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.015,
     "line": 341,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        // Create simple bilinear surface\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        // Evaluate at corner\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        Point pt_corner = surf.point_at(dom_u.first, dom_v.first);\n\n        // Evaluate at center (should be center of unit square)\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        Point pt_mid = surf.point_at(u_mid, v_mid);\n\n        // Test derivatives\n        auto derivs = surf.evaluate(u_mid, v_mid, 1);\n\n        // Test normal (for flat plane in XY, normal should point in +Z)\n        Vector normal = surf.normal_at(u_mid, v_mid);\n",
     "checks": [
@@ -521,7 +521,7 @@
   {
     "test_name": "Geometric_queries",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 380,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create and setup surface\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n",
     "checks": [
@@ -596,7 +596,7 @@
   {
     "test_name": "Isocurve",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.025,
     "line": 431,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create surface\n        std::vector<Point> points;\n        for (int i = 0; i < 3; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 2, 2, 3, 3, points);\n\n        // Extract iso-u curve (v varies)\n        auto dom_u = surf.domain(0);\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        NurbsCurve* iso_u = surf.iso_curve(0, u_mid);\n\n        // Extract iso-v curve (u varies)\n        auto dom_v = surf.domain(1);\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        NurbsCurve* iso_v = surf.iso_curve(1, v_mid);\n\n\n        if (iso_u != nullptr) delete iso_u;\n        if (iso_v != nullptr) delete iso_v;",
     "checks": [
@@ -631,7 +631,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 463,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        // Create simple surface\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        // Apply translation\n        Xform xf = Xform::translation(1.0, 2.0, 3.0);\n        surf.transform(xf);\n\n        // Check transformed CV\n        Point pt = surf.get_cv(0, 0);\n",
     "checks": [
@@ -656,7 +656,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 15.438,
+    "time_ms": 14.355,
     "line": 487,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        std::vector<Point> points;\n        for (int i = 0; i < 3; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 2, 2, 3, 3, points);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.facecolors.push_back(Color(255, 128, 64, 255));\n        surf.pointcolors.push_back(Color(0, 255, 0, 255));\n        surf.linecolors.push_back(Color(0, 0, 255, 255));\n\n        // JSON object\n        nlohmann::ordered_json json = surf.jsondump();\n        NurbsSurface loaded_json = NurbsSurface::jsonload(json);\n\n        // String\n        std::string json_string = surf.json_dumps();\n        NurbsSurface loaded_json_string = NurbsSurface::json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_nurbssurface.json\").string();\n        surf.json_dump(filename);\n        NurbsSurface loaded_from_file = NurbsSurface::json_load(filename);\n",
     "checks": [
@@ -681,7 +681,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 11.76,
+    "time_ms": 10.884,
     "line": 521,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        std::vector<Point> points;\n        for (int i = 0; i < 3; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 2, 2, 3, 3, points);\n        surf.name = \"test_nurbssurface\";\n        surf.width = 2.0;\n        surf.facecolors.push_back(Color(255, 128, 64, 255));\n        surf.pointcolors.push_back(Color(0, 255, 0, 255));\n        surf.linecolors.push_back(Color(0, 0, 255, 255));\n\n        //   pb_dumps()      │ string/bytes │ to protobuf bytes\n        //   pb_loads(b)     │ string/bytes │ from protobuf bytes\n        //   pb_dump(path)   │ file         │ write to file\n        //   pb_load(path)   │ file         │ read from file\n\n        // String\n        std::string proto_string = surf.pb_dumps();\n        NurbsSurface loaded_proto_string = NurbsSurface::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_nurbssurface.bin\").string();\n        surf.pb_dump(filename);\n        NurbsSurface loaded = NurbsSurface::pb_load(filename);\n",
     "checks": [
@@ -866,7 +866,7 @@
   {
     "test_name": "Corner_points",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 679,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 10.0, 0.0),\n            Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        // Get corner points\n        Point p00 = surf.point_at_corner(0, 0);\n        Point p10 = surf.point_at_corner(1, 0);\n        Point p01 = surf.point_at_corner(0, 1);\n        Point p11 = surf.point_at_corner(1, 1);\n",
     "checks": [
@@ -921,7 +921,7 @@
   {
     "test_name": "Zero_cvs",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 721,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(1.0, 2.0, 3.0), Point(0.0, 0.0, 0.0),\n            Point(0.0, 0.0, 0.0), Point(4.0, 5.0, 6.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        // Zero all CVs\n        surf.zero_cvs();\n\n        Point pt0 = surf.get_cv(0, 0);\n        Point pt1 = surf.get_cv(1, 1);\n\n                   TOLERANCE.is_close(pt0[1], 0.0) &&\n                   TOLERANCE.is_close(pt0[2], 0.0));\n                   TOLERANCE.is_close(pt1[1], 0.0) &&\n                   TOLERANCE.is_close(pt1[2], 0.0));",
     "checks": [
@@ -941,7 +941,7 @@
   {
     "test_name": "Get_knots",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.011,
     "line": 745,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points;\n        for (int i = 0; i < 4; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 3, 2, 4, 3, points);\n\n        auto knots_u = surf.get_knots(0);\n        auto knots_v = surf.get_knots(1);\n",
     "checks": [
@@ -971,7 +971,7 @@
   {
     "test_name": "Make_non_rational",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.016,
     "line": 763,
     "code": "        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create surface, then make rational with all weights = 1\n        std::vector<Point> points;\n        for (int i = 0; i < 3; ++i)\n            for (int j = 0; j < 3; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 2, 2, 3, 3, points);\n        surf.make_rational();\n\n        // Set all weights to 1.0\n        for (int i = 0; i < 3; ++i) {\n            for (int j = 0; j < 3; ++j) {\n                surf.set_weight(i, j, 1.0);",
     "checks": [
@@ -991,7 +991,7 @@
   {
     "test_name": "Create_clamped_uniform",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 790,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        NurbsSurface surf;\n        surf.create_clamped_uniform(3, 4, 3, 4, 4, 1.0, 2.0);\n\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n",
     "checks": [
@@ -1041,7 +1041,7 @@
   {
     "test_name": "Knot_multiplicity",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.022,
     "line": 809,
     "code": "        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points;\n        for (int i = 0; i < 4; ++i)\n            for (int j = 0; j < 4; ++j)\n                points.push_back(Point(static_cast<double>(i), static_cast<double>(j), 0.0));\n        NurbsSurface surf = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Check first knot multiplicity (should be equal to degree for clamped)\n        int mult_u_start = surf.knot_multiplicity(0, 0);\n        int mult_v_start = surf.knot_multiplicity(1, 0);\n\n        // Check last knot multiplicity\n        int last_u = surf.knot_count(0) - 1;\n        int last_v = surf.knot_count(1) - 1;\n        int mult_u_end = surf.knot_multiplicity(0, last_u);\n        int mult_v_end = surf.knot_multiplicity(1, last_v);\n",
     "checks": [

@@ -26062,6 +26062,7 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.arc",
+        "Primitives.closest_on_line",
         "Primitives.create_extrusion",
         "Primitives.create_planar",
         "Primitives.create_ruled",
@@ -38495,6 +38496,273 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Primitives.diamond_subdivision",
+      "implementations": {
+        "cpp": {
+          "sig": "void diamond_subdivision()",
+          "code": "void diamond_subdivision();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.build_topology",
+      "implementations": {
+        "cpp": {
+          "sig": "void build_topology()",
+          "code": "void build_topology();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_face_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_planes()",
+          "code": "void compute_face_planes();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_edge_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_planes()",
+          "code": "void compute_edge_planes();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_face_edge_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_edge_planes()",
+          "code": "void compute_face_edge_planes();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_face_polylines",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_polylines()",
+          "code": "void compute_face_polylines();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_insertion_vectors",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_insertion_vectors()",
+          "code": "void compute_insertion_vectors();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.closest_on_line",
+      "implementations": {
+        "cpp": {
+          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
+          "code": "static Point closest_on_line(const Point& pt, const Point& a, const Point& b);",
+          "file": "primitives.h"
+        }
+      },
+      "related": [
+        "Primitives.pt"
+      ]
+    },
+    {
+      "name": "Primitives.line_plane_t",
+      "implementations": {
+        "cpp": {
+          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
+          "code": "static bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.intersect_3_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
+          "code": "static bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.chamfer_polyline",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
+          "code": "static Polyline chamfer_polyline(const Polyline& pl, double value);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "FoldedPlates.constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "FoldedPlates(const NurbsSurface& surface, int u_divisions, int v_divisions,\n                           double thickness, double chamfer,\n                           const std::vector<Plane>& base_planes,\n                           const std::vector<double>& face_positions)",
+          "code": "FoldedPlates::FoldedPlates(const NurbsSurface& surface, int u_divisions, int v_divisions,\n                           double thickness, double chamfer,\n                           const std::vector<Plane>& base_planes,\n                           const std::vector<double>& face_positions)\n    : _srf(surface), _udiv(std::max(1, u_divisions)), _vdiv(std::max(1, v_divisions)),\n      _thick(thickness), _cham(chamfer), _base_planes(base_planes), _face_pos(face_positions), _f(0)\n{\n    diamond_subdivision();\n    build_topology();\n    compute_face_planes();\n    compute_edge_planes();\n    compute_face_edge_planes();\n    compute_face_polylines();\n    compute_insertion_vectors();\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.build_topology",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.diamond_subdivision"
+      ]
+    },
+    {
+      "name": "FoldedPlates.closest_on_line",
+      "implementations": {
+        "cpp": {
+          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
+          "code": "Point FoldedPlates::closest_on_line(const Point& pt, const Point& a, const Point& b) {\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double len2 = dx*dx + dy*dy + dz*dz;\n    if (len2 < 1e-20) return a;\n    double t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2;\n    return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz);\n}",
+          "file": "primitives.cpp"
+        }
+      }
+    },
+    {
+      "name": "FoldedPlates.line_plane_t",
+      "implementations": {
+        "cpp": {
+          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
+          "code": "bool FoldedPlates::line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t) {\n    Vector n = pl.z_axis();\n    const Point& o = pl.origin();\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double denom = n[0]*dx + n[1]*dy + n[2]*dz;\n    if (std::abs(denom) < 1e-12) return false;\n    t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom;\n    return true;\n}",
+          "file": "primitives.cpp"
+        }
+      }
+    },
+    {
+      "name": "FoldedPlates.intersect_3_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
+          "code": "bool FoldedPlates::intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result) {\n    Vector n0 = p0.z_axis(), n1 = p1.z_axis(), n2 = p2.z_axis();\n    double d0 = n0[0]*p0.origin()[0] + n0[1]*p0.origin()[1] + n0[2]*p0.origin()[2];\n    double d1 = n1[0]*p1.origin()[0] + n1[1]*p1.origin()[1] + n1[2]*p1.origin()[2];\n    double d2 = n2[0]*p2.origin()[0] + n2[1]*p2.origin()[1] + n2[2]*p2.origin()[2];\n    Vector c12 = n1.cross(n2), c20 = n2.cross(n0), c01 = n0.cross(n1);\n    double det = n0.dot(c12);\n    if (std::abs(det) < 1e-12) return false;\n    double inv = 1.0 / det;\n    result = Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                   (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                   (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv);\n    return true;\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.compute_face_polylines"
+      ]
+    },
+    {
+      "name": "FoldedPlates.chamfer_polyline",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
+          "code": "Polyline FoldedPlates::chamfer_polyline(const Polyline& pl, double value) {\n    if (std::abs(value) < 1e-10) return pl;\n    size_t n = pl.point_count();\n    if (n < 2) return pl;\n    size_t segs = pl.is_closed() ? n - 1 : n - 1;\n    Polyline result;\n    for (size_t i = 0; i < segs; i++) {\n        Point a = pl.get_point(i), b = pl.get_point(i + 1);\n        double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n        double len = std::sqrt(dx*dx + dy*dy + dz*dz);\n        if (len < 1e-10) continue;\n        if (value < 0) {\n            double r = std::abs(value) / len;\n            result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz));\n            result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz));\n        }",
+          "file": "primitives.cpp"
+        }
+      }
+    },
+    {
+      "name": "FoldedPlates.diamond_subdivision",
+      "implementations": {
+        "cpp": {
+          "sig": "void diamond_subdivision()",
+          "code": "void FoldedPlates::diamond_subdivision() {\n    auto du = _srf.domain(0);\n    auto dv = _srf.domain(1);\n    double su = (du.second - du.first) / _udiv;\n    double sv = (dv.second - dv.first) / _vdiv;\n    std::vector<std::vector<Point>> tris;\n    int fc = 0;\n\n    auto plane_valid = [](const Plane& p) {\n        Vector z = p.z_axis();\n        return std::abs(z[0]) + std::abs(z[1]) + std::abs(z[2]) > 0.01;\n    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "FoldedPlates.build_topology",
+      "implementations": {
+        "cpp": {
+          "sig": "void build_topology()",
+          "code": "void FoldedPlates::build_topology() {\n    _fkeys.clear();\n    for (auto& [fk, _] : mesh.face) _fkeys.push_back(fk);\n    std::sort(_fkeys.begin(), _fkeys.end());\n    _f = (int)_fkeys.size();\n\n    _fv.resize(_f);\n    for (int i = 0; i < _f; i++) _fv[i] = mesh.face[_fkeys[i]];\n\n    std::map<std::pair<size_t,size_t>, std::vector<int>> ef_map;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            ef_map[key].push_back(i);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "FoldedPlates.compute_face_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_planes()",
+          "code": "void FoldedPlates::compute_face_planes() {\n    _fplanes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& verts = _fv[i];\n        int n = (int)verts.size();\n        double cx = 0, cy = 0, cz = 0, w = 0;\n        for (int j = 0; j < n; j++) {\n            Point pa = mesh.vertex_position(verts[j]).value();\n            Point pb = mesh.vertex_position(verts[(j+1)%n]).value();\n            double d = std::sqrt((pb[0]-pa[0])*(pb[0]-pa[0])+(pb[1]-pa[1])*(pb[1]-pa[1])+(pb[2]-pa[2])*(pb[2]-pa[2]));\n            cx += d * (pa[0]+pb[0]) * 0.5;\n            cy += d * (pa[1]+pb[1]) * 0.5;\n            cz += d * (pa[2]+pb[2]) * 0.5;\n            w += d;\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "FoldedPlates.compute_edge_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_planes()",
+          "code": "void FoldedPlates::compute_edge_planes() {\n    _eplanes.resize(_ef.size());\n    for (auto& [ep, ei] : _eidx) {\n        Point v1 = mesh.vertex_position(ep.first).value();\n        Point v2 = mesh.vertex_position(ep.second).value();\n        Point mid((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5);\n        Vector edir(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2]);\n        edir.normalize_self();\n\n        auto& cf = _ef[ei];\n        Vector z(0,0,1);\n        if (cf.size() == 2) {\n            Vector fn0 = mesh.face_normal(_fkeys[cf[0]]).value();\n            Vector fn1 = mesh.face_normal(_fkeys[cf[1]]).value();\n            Vector avg((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5);\n            avg.normalize_self();\n            z = edir.cross(avg);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "FoldedPlates.compute_face_edge_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_edge_planes()",
+          "code": "void FoldedPlates::compute_face_edge_planes() {\n    _fe_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        _fe_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            size_t v1 = v[j], v2 = v[(j+1)%n];\n            auto key = std::make_pair(std::min(v1,v2), std::max(v1,v2));\n            auto& cf = _ef[_eidx[key]];\n\n            if (cf.size() == 2) {\n                _fe_planes[i][j] = _eplanes[_eidx[key]];\n            }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "FoldedPlates.compute_face_polylines",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_polylines()",
+          "code": "void FoldedPlates::compute_face_polylines() {\n    polylines.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& sides = _fe_planes[i];\n        int n = (int)sides.size();\n\n        for (size_t j = 0; j < _face_pos.size(); j++) {\n            Plane base0 = _fplanes[i].translate_by_normal(-_face_pos[j]);\n            Plane base1 = _fplanes[i].translate_by_normal(-(_face_pos[j] + _thick));\n\n            Polyline pl0, pl1;\n            for (int k = 0; k < n; k++) {\n                Point pt;\n                if (intersect_3_planes(base0, sides[k], sides[(k+1)%n], pt))\n                    pl0.add_point(pt);\n                if (intersect_3_planes(base1, sides[k], sides[(k+1)%n], pt))\n                    pl1.add_point(pt);\n            }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor",
+        "FoldedPlates.intersect_3_planes"
+      ]
+    },
+    {
+      "name": "FoldedPlates.compute_insertion_vectors",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_insertion_vectors()",
+          "code": "void FoldedPlates::compute_insertion_vectors() {\n    for (int i = 0; i < _f; i++) {\n        if (flags[i]) continue;\n        if (polylines[i].empty() || polylines[i][0].point_count() < 4) continue;\n\n        const Polyline& pl = polylines[i][0];\n        Vector vec(pl.get_point(2)[0] - pl.get_point(0)[0],\n                   pl.get_point(2)[1] - pl.get_point(0)[1],\n                   pl.get_point(2)[2] - pl.get_point(0)[2]);\n        vec.normalize_self();\n        vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5);\n\n        for (int j = 0; j < 3; j++) {\n            Point a = pl.get_point(j);\n            Point b = pl.get_point((j + 1) % 3);\n            Point mid((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n            insertion_lines.push_back(Line::from_point_and_vector(mid, vec));\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.constructor"
+      ]
+    },
+    {
       "name": "Quaternion.constructor",
       "implementations": {
         "cpp": {
@@ -44020,6 +44288,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Primitives.test_FoldedPlates",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"FoldedPlates\")",
+          "code": "MINI_TEST(\"Primitives\", \"FoldedPlates\") {\n    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n    MINI_CHECK(fp.mesh.is_valid());\n    MINI_CHECK(fp.mesh.number_of_faces() > 0);\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0);\n    MINI_CHECK(fp.flags.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.adjacency.size() > 0);\n    MINI_CHECK(fp.polylines.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.insertion_lines.size() > 0);\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        MINI_CHECK(fp.polylines[i].size() > 0);\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3);\n    }\n}",
+          "file": "primitives_test.cpp"
+        }
+      }
+    },
+    {
       "name": "Quaternion.test_Json_roundtrip",
       "implementations": {
         "cpp": {
@@ -44764,11 +45042,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "subdivide",
-        "n",
-        "points",
         "circle",
+        "n",
+        "subdivide",
+        "points",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -44782,11 +45060,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "length",
+        "arc",
+        "subdivide",
         "ellipse",
         "by",
-        "length",
-        "subdivide",
-        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -44800,9 +45078,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
         "through",
         "arc",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -44816,11 +45094,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "adaptive",
         "open",
+        "from",
         "curve",
         "points",
+        "adaptive",
         "polyline",
         "to_polyline_adaptive",
         "create",
@@ -44836,9 +45114,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "curve",
         "evaluation",
         "at",
-        "curve",
         "parameter",
         "set_domain",
         "point_at",
@@ -44858,10 +45136,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "length",
-        "along",
         "curve",
+        "length",
+        "frames",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -44883,8 +45161,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "ellipse",
+        "frames",
         "perpendicular",
         "divide_by_count",
         "frame_at",
@@ -44908,8 +45186,8 @@ window.API_INDEX = {
       "tags": [
         "cylinder",
         "evaluate",
-        "surface",
         "point",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -44924,8 +45202,8 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
         "from",
+        "faces",
         "and",
         "mesh",
         "vertices",
@@ -44969,6 +45247,7 @@ window.API_INDEX = {
     "std": "std geometry class",
     "NormalWeighting": "NormalWeighting geometry class",
     "knot": "knot geometry class",
+    "FoldedPlates": "FoldedPlates geometry class",
     "Geometry": "Geometry geometry class",
     "GlobalTolerance": "GlobalTolerance geometry class"
   },
@@ -47129,6 +47408,7 @@ window.API_INDEX = {
       "Point.constructor",
       "PointCloud.constructor",
       "Polyline.constructor",
+      "FoldedPlates.constructor",
       "Quaternion.constructor",
       "Session.constructor",
       "Tolerance.constructor",
@@ -47340,6 +47620,50 @@ window.API_INDEX = {
     ],
     "transform_geometry": [
       "Primitives.transform_geometry"
+    ],
+    "diamond_subdivision": [
+      "Primitives.diamond_subdivision",
+      "FoldedPlates.diamond_subdivision"
+    ],
+    "build_topology": [
+      "Primitives.build_topology",
+      "FoldedPlates.build_topology"
+    ],
+    "compute_face_planes": [
+      "Primitives.compute_face_planes",
+      "FoldedPlates.compute_face_planes"
+    ],
+    "compute_edge_planes": [
+      "Primitives.compute_edge_planes",
+      "FoldedPlates.compute_edge_planes"
+    ],
+    "compute_face_edge_planes": [
+      "Primitives.compute_face_edge_planes",
+      "FoldedPlates.compute_face_edge_planes"
+    ],
+    "compute_face_polylines": [
+      "Primitives.compute_face_polylines",
+      "FoldedPlates.compute_face_polylines"
+    ],
+    "compute_insertion_vectors": [
+      "Primitives.compute_insertion_vectors",
+      "FoldedPlates.compute_insertion_vectors"
+    ],
+    "closest_on_line": [
+      "Primitives.closest_on_line",
+      "FoldedPlates.closest_on_line"
+    ],
+    "line_plane_t": [
+      "Primitives.line_plane_t",
+      "FoldedPlates.line_plane_t"
+    ],
+    "intersect_3_planes": [
+      "Primitives.intersect_3_planes",
+      "FoldedPlates.intersect_3_planes"
+    ],
+    "chamfer_polyline": [
+      "Primitives.chamfer_polyline",
+      "FoldedPlates.chamfer_polyline"
     ],
     "type": [
       "Quaternion.type"
