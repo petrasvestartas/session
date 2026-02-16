@@ -102,7 +102,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 109,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"xform.h\"\n\n    Line l(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    l.xform = Xform::translation(10.0, 0.0, 0.0);\n    Line l_transformed = l.transformed(); // Make a copy\n    l.transform(); // After the call, \"xform\" is reset\n\n}\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 12.858,
+    "time_ms": 6.032,
     "line": 123,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n\n}\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 6.589,
+    "time_ms": 8.865,
     "line": 150,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n\n}\n",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "To_vector",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 181,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(1.0, 2.0, 3.0, 4.0, 6.0, 9.0);\n    Vector v = l.to_vector();\n\n}\n",
     "checks": [

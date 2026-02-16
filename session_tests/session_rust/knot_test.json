@@ -102,7 +102,7 @@
   {
     "test_name": "Is_clamped",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 112,
     "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 180,
     "code": "        use crate::knot;\n\n        // Reverse knot vector\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0_orig, t1_orig) = knot::get_domain(4, 4, &k);\n        let reverse_result = knot::reverse(4, 4, &mut k);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_preserved = (t0 - t0_orig).abs() < 1e-10;\n        let t1_preserved = (t1 - t1_orig).abs() < 1e-10;\n",
     "checks": [

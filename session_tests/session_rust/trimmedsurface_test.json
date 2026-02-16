@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.156,
+    "time_ms": 0.167,
     "line": 5,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Create a bilinear surface\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(6.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 6.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(6.0, 6.0, 0.0));\n\n        // Outer trim loop (rectangle in UV space)\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0), Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0), Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let ts = TrimmedSurface::create(&srf, &outer);\n\n        // String representations\n        let sstr = ts.to_string();\n        let srepr = ts.repr();\n\n        // Copy (new guid)\n        let tscopy = ts.duplicate();\n",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.16,
+    "time_ms": 0.159,
     "line": 276,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n        use crate::tolerance::TOLERANCE;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n        ts.xform = Xform::translation(10.0, 20.0, 30.0);\n        let ts2 = ts.transformed();\n\n        let (u0, _u1) = ts2.surface().domain(0).unwrap();\n        let (v0, _v1) = ts2.surface().domain(1).unwrap();\n        let pt = ts2.point_at(u0, v0).unwrap();\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 14.051,
+    "time_ms": 5.873,
     "line": 310,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(5.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 5.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(5.0, 5.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0), Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0), Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n        ts.name = \"test_trimmedsurface\".to_string();\n        ts.width = 2.0;\n        ts.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // JSON object\n        let json = ts.jsondump().unwrap();\n        let loaded_json = TrimmedSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = ts.json_dumps();\n        let loaded_json_string = TrimmedSurface::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_trimmedsurface.json\");\n        ts.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = TrimmedSurface::json_load(filename.to_str().unwrap());\n",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.588,
+    "time_ms": 12.055,
     "line": 355,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(5.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 5.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(5.0, 5.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0), Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0), Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n        ts.name = \"test_trimmedsurface\".to_string();\n        ts.width = 2.0;\n        ts.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // String\n        let proto_string = ts.pb_dumps();\n        let loaded_proto_string = TrimmedSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_trimmedsurface.bin\");\n        ts.pb_dump(filename.to_str().unwrap());\n        let loaded = TrimmedSurface::pb_load(filename.to_str().unwrap());\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.159,
+    "time_ms": 0.151,
     "line": 135,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(5.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 5.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(5.0, 5.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0), Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0), Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n        ts.name = \"test_accessors\".to_string();\n        ts.width = 2.5;\n\n        let got_srf = ts.surface();\n        let got_loop = ts.get_outer_loop();\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "Add_inner_loop",
     "passed": true,
-    "time_ms": 0.298,
+    "time_ms": 0.296,
     "line": 170,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(10.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 10.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(10.0, 10.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n\n        // Add inner loops (holes in UV)\n        let hole1 = NurbsCurve::create(true, 1, &[\n            Point::new(0.2, 0.2, 0.0), Point::new(0.4, 0.2, 0.0),\n            Point::new(0.4, 0.4, 0.0), Point::new(0.2, 0.4, 0.0),\n        ]);\n        let hole2 = NurbsCurve::create(true, 1, &[\n            Point::new(0.6, 0.6, 0.0), Point::new(0.8, 0.6, 0.0),\n            Point::new(0.8, 0.8, 0.0), Point::new(0.6, 0.8, 0.0),\n        ]);\n\n        ts.add_inner_loop(hole1);\n        ts.add_inner_loop(hole2);\n\n        let got = ts.get_inner_loop(0);\n\n\n        ts.clear_inner_loops();",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "Constructor_hole",
     "passed": true,
-    "time_ms": 0.305,
+    "time_ms": 0.266,
     "line": 92,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Create surface with bump\n        let n = 8usize;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            for j in 0..n {\n                let x = i as f64;\n                let y = j as f64;\n                let r2 = (x - 1.5) * (x - 1.5) + (y - 1.5) * (y - 1.5);\n                let z = 5.0 * (-r2 / 1.0).exp() + 0.3 * (crate::tolerance::PI * x / 7.0).sin() * (crate::tolerance::PI * y / 7.0).sin();\n                pts.push(Point::new(x, y, z));\n\n        let srf = NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap();\n\n        // Create outer loop (full boundary in UV)\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = TrimmedSurface::create(&srf, &outer);\n\n        // Add hole as UV curve directly\n        let hole = NurbsCurve::create(true, 1, &[\n            Point::new(0.4, 0.4, 0.0), Point::new(0.6, 0.4, 0.0),\n            Point::new(0.6, 0.6, 0.0), Point::new(0.4, 0.6, 0.0),\n        ]);\n        ts.add_inner_loop(hole);\n",
     "checks": [
@@ -222,7 +222,7 @@
   {
     "test_name": "Constructor_planar",
     "passed": true,
-    "time_ms": 229.231,
+    "time_ms": 226.926,
     "line": 46,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::PI;\n\n        // Planar curve boundary\n        let pts = vec![Point::new(0.0,0.0,0.0), Point::new(3.0,1.0,0.0), Point::new(5.0,0.5,0.0), Point::new(6.0,3.0,0.0), Point::new(4.0,5.0,0.0), Point::new(1.0,4.0,0.0)];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = TrimmedSurface::create_planar(&bnd).unwrap();\n\n        // Rotated planar\n        let pts = vec![Point::new(0.0,0.0,0.0), Point::new(3.0,1.0,-2.0), Point::new(5.0,2.0,-3.0), Point::new(4.0,4.0,0.0), Point::new(1.0,3.0,2.0)];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = TrimmedSurface::create_planar(&bnd).unwrap();\n\n        // Triangle\n        let bnd = NurbsCurve::create(true, 1, &[Point::new(0.0,0.0,0.0), Point::new(6.0,3.0,3.0), Point::new(2.0,5.0,1.0)]);\n        let _ts = TrimmedSurface::create_planar(&bnd).unwrap();\n\n        // Trapezoid\n        let bnd = NurbsCurve::create(true, 1, &[Point::new(0.0,0.0,6.0), Point::new(5.0,0.0,6.0), Point::new(4.0,4.0,2.0), Point::new(1.0,4.0,2.0)]);\n        let _ts = TrimmedSurface::create_planar(&bnd).unwrap();\n\n        // Rectangle with a hole\n        let bnd = NurbsCurve::create(true, 1, &[Point::new(0.0,0.0,0.0), Point::new(6.0,0.0,0.0), Point::new(6.0,6.0,0.0), Point::new(0.0,6.0,0.0)]);\n        let mut ts = TrimmedSurface::create_planar(&bnd).unwrap();\n        ts.add_hole(&NurbsCurve::create(true, 1, &[Point::new(2.0,2.0,0.0), Point::new(4.0,2.0,0.0), Point::new(4.0,4.0,0.0), Point::new(2.0,4.0,0.0)]));\n\n        // Hexagon with 2 holes\n        let r = 4.0f64;\n        let mut pts = Vec::new();\n        for k in 0..6 {\n            let a = k as f64 * PI / 3.0;\n            pts.push(Point::new(r * a.cos(), r * a.sin(), r * a.cos() * 0.5));\n        let bnd = NurbsCurve::create(true, 1, &pts);\n        let mut ts = TrimmedSurface::create_planar(&bnd).unwrap();\n        ts.add_holes(&[\n            NurbsCurve::create(true, 1, &[Point::new(1.5,0.5,0.75), Point::new(2.5,0.5,1.25), Point::new(2.0,1.5,1.0)]),\n            NurbsCurve::create(true, 1, &[Point::new(-2.0,-0.5,-1.0), Point::new(-1.0,-0.5,-0.5), Point::new(-1.0,-1.5,-0.5), Point::new(-2.0,-1.5,-1.0)]),\n        ]);\n\npub fn run_trimmedsurface_constructor_hole() -> TestResult {\n    MINI_TEST!(\"Constructor_hole\", {\n        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Create surface with bump",
     "checks": [],
@@ -231,7 +231,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 0.159,
+    "time_ms": 0.17,
     "line": 249,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(6.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 6.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(6.0, 6.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.05, 0.05, 0.0), Point::new(0.95, 0.05, 0.0),\n            Point::new(0.95, 0.95, 0.0), Point::new(0.05, 0.95, 0.0),\n        ]);\n\n        let ts = TrimmedSurface::create(&srf, &outer);\n        let m = ts.mesh();\n",
     "checks": [
@@ -256,7 +256,7 @@
   {
     "test_name": "Point_at",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.136,
     "line": 213,
     "code": "        use crate::trimmedsurface::TrimmedSurface;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(4.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 4.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(4.0, 4.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let ts = TrimmedSurface::create(&srf, &outer);\n\n        let (u0, u1) = ts.surface().domain(0).unwrap();\n        let (v0, v1) = ts.surface().domain(1).unwrap();\n        let u_mid = (u0 + u1) / 2.0;\n        let v_mid = (v0 + v1) / 2.0;\n\n        let pt = ts.point_at(u_mid, v_mid).unwrap();\n        let nm = ts.normal_at(u_mid, v_mid);\n",
     "checks": [

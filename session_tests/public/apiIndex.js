@@ -27403,7 +27403,6 @@ window.API_INDEX = {
       "related": [
         "Session.add",
         "Session.add_bbox",
-        "Session.add_curve",
         "Session.add_edge",
         "Session.add_mesh",
         "Session.add_nurbssurface",
@@ -27439,7 +27438,6 @@ window.API_INDEX = {
         "Session.add_plane",
         "Session.add_pointcloud",
         "Session.add_polyline",
-        "Session.add_surface",
         "Session.cache_geometry_aabb",
         "Session.get_object",
         "Session.remove_object",
@@ -38922,13 +38920,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "void add_surface(std::shared_ptr<NurbsSurface> surface)",
-          "code": "void Session::add_surface(std::shared_ptr<NurbsSurface> surface) {\n  add(add_nurbssurface(surface));\n}",
-          "file": "session.cpp"
+          "code": "void add_surface(std::shared_ptr<NurbsSurface> surface);",
+          "file": "session.h"
         }
       },
       "related": [
-        "Session.add",
-        "Session.add_nurbssurface"
+        "Session.add"
       ]
     },
     {
@@ -38936,13 +38933,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "void add_curve(std::shared_ptr<NurbsCurve> curve)",
-          "code": "void Session::add_curve(std::shared_ptr<NurbsCurve> curve) {\n  add(add_nurbscurve(curve));\n}",
-          "file": "session.cpp"
+          "code": "void add_curve(std::shared_ptr<NurbsCurve> curve);",
+          "file": "session.h"
         }
       },
       "related": [
-        "Session.add",
-        "Session.add_nurbscurve"
+        "Session.add"
       ]
     },
     {
@@ -42997,7 +42993,27 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n        \n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n\n\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n        \n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n        s.insert_knot(0, 0.1, 2);\n        MINI_CHECK(s.knot_count(0) == 8);\n        MINI_CHECK(s.knot(0, 3) == 0.1);\n        MINI_CHECK(s.knot_multiplicity(0, 3) == 2);\n    }",
+          "file": "nurbssurface_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Domain",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Domain\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Domain\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n        // Get domain 0 - 1\n        std::pair<double, double> domain_u = s.domain(0);\n        std::pair<double, double> domain_v = s.domain(1);\n        MINI_CHECK(TOLERANCE.is_close(domain_u.first, 0));\n        MINI_CHECK(TOLERANCE.is_close(domain_u.second, 1));\n\n        // Set Domain\n        bool is_set_u = s.set_domain(0, -1.1, 2.3);\n        bool is_set_v = s.set_domain(1, -5.1, 1.3);\n        MINI_CHECK(TOLERANCE.is_close(s.domain(1).first, -5.1));\n        MINI_CHECK(TOLERANCE.is_close(s.domain(1).second, 1.3));\n\n        // Get sorted list of distinct knot values\n        std::vector<double> span_vector = s.get_span_vector(0);\n        double first_item = span_vector.front();\n        double last_item = span_vector.back();\n        MINI_CHECK(TOLERANCE.is_close(first_item, -1.1));\n        MINI_CHECK(TOLERANCE.is_close(last_item, 2.3));\n    }",
+          "file": "nurbssurface_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Division",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Division\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Division\") {\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n    }",
           "file": "nurbssurface_test.cpp"
         }
       }
@@ -45042,11 +45058,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "circle",
         "subdivide",
         "points",
         "n",
+        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -45060,11 +45076,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "arc",
+        "by",
+        "subdivide",
         "length",
         "ellipse",
-        "arc",
-        "subdivide",
-        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -45078,8 +45094,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "through",
+        "arc",
         "points",
         "nurbscurve",
         "primitives",
@@ -45094,12 +45110,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
         "curve",
+        "open",
         "adaptive",
         "points",
-        "from",
         "polyline",
+        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -45116,8 +45132,8 @@ window.API_INDEX = {
       "tags": [
         "curve",
         "evaluation",
-        "at",
         "parameter",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -45161,9 +45177,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "frames",
         "perpendicular",
         "ellipse",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -45185,9 +45201,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "surface",
+        "evaluate",
         "cylinder",
         "point",
-        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -45203,8 +45219,8 @@ window.API_INDEX = {
       "title": "Mesh from Vertices and Faces",
       "tags": [
         "vertices",
-        "from",
         "mesh",
+        "from",
         "faces",
         "and",
         "add_vertex",
