@@ -2,7 +2,7 @@
   {
     "test_name": "Is_zero",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.017,
     "line": 7,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "Is_close",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 13,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Is_between",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 31,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Runtime_modification",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.011,
     "line": 49,
     "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
     "checks": [

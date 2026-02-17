@@ -2,273 +2,273 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 2.051,
+    "time_ms": 10.67,
     "line": 8,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Point division matching Rhino's 4x6 grid\n    v, uv = s.divide_by_count(4, 6)",
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get mesh\n    m = s.mesh()\n\n    # Point division matching Rhino's 4x6 grid\n    p, v, uv = s.divide_by_count_points(4, 6)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)",
     "checks": [
       {
-        "line": 49,
+        "line": 52,
         "code_line": "s.is_valid() == True",
         "passed": true
       },
       {
-        "line": 50,
+        "line": 53,
         "code_line": "s.cv_count_dir(0) == 4",
         "passed": true
       },
       {
-        "line": 51,
+        "line": 54,
         "code_line": "s.cv_count_dir(1) == 4",
         "passed": true
       },
       {
-        "line": 52,
+        "line": 55,
         "code_line": "s.cv_count_dir(None) == 16",
         "passed": true
       },
       {
-        "line": 53,
+        "line": 56,
         "code_line": "s.degree(0) == 3",
         "passed": true
       },
       {
-        "line": 54,
+        "line": 57,
         "code_line": "s.degree(1) == 3",
         "passed": true
       },
       {
-        "line": 55,
+        "line": 58,
         "code_line": "s.order(0) == 4",
         "passed": true
       },
       {
-        "line": 56,
+        "line": 59,
         "code_line": "s.order(1) == 4",
         "passed": true
       },
       {
-        "line": 57,
+        "line": 60,
         "code_line": "s.dimension() == 3",
         "passed": true
       },
       {
-        "line": 58,
+        "line": 61,
         "code_line": "not s.is_rational()",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 62,
         "code_line": "s.knot_count(0) == 6",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 63,
         "code_line": "s.knot_count(1) == 6",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 64,
         "code_line": "s.name == \"my_nurbssurface\"",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 65,
         "code_line": "s.guid",
         "passed": true
       },
       {
-        "line": 63,
+        "line": 66,
         "code_line": "sstr == \"NurbsSurface(name=my_nurbssurface, degree=(3,3), cvs=(4,4))\"",
         "passed": true
       },
       {
-        "line": 64,
-        "code_line": "\"name=my_nurbssurface\" in srepr",
-        "passed": true
-      },
-      {
-        "line": 65,
-        "code_line": "scopy.cv_count_dir(None) == s.cv_count_dir(None)",
-        "passed": true
-      },
-      {
-        "line": 66,
-        "code_line": "scopy.guid != s.guid",
+        "line": 67,
+        "code_line": "srepr == \"NurbsSurface(\\n  name=my_nurbssurface,\\n  degree=(3,3),\\n  cvs=(4,4),\\n  rational=false,\\n  control_points=[\\n    0, 0, 0\\n    -1, 0.75, 2\\n    -1, 4.25, 2\\n    0, 5, 0\\n    0.75, -1, 2\\n    1.25, 1.25, 4\\n    1.25, 3.75, 4\\n    0.75, 6, 2\\n    4.25, -1, 2\\n    3.75, 1.25, 4\\n    3.75, 3.75, 4\\n    4.25, 6, 2\\n    5, 0, 0\\n    6, 0.75, 2\\n    6, 4.25, 2\\n    5, 5, 0\\n  ]\\n)\"",
         "passed": true
       },
       {
         "line": 68,
-        "code_line": "TOLERANCE.is_point_close(v[0][0], Point(0.000000000000000, 0.000000000000000, 0.000000000000000))",
+        "code_line": "scopy.cv_count_dir(None) == s.cv_count_dir(None)",
         "passed": true
       },
       {
         "line": 69,
-        "code_line": "TOLERANCE.is_point_close(v[0][1], Point(-0.416666666666667, 0.578703703703704, 0.833333333333333))",
+        "code_line": "scopy.guid != s.guid",
         "passed": true
       },
       {
         "line": 70,
-        "code_line": "TOLERANCE.is_point_close(v[0][2], Point(-0.666666666666667, 1.462962962962963, 1.333333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[0][0], Point(0.000000000000000, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
         "line": 71,
-        "code_line": "TOLERANCE.is_point_close(v[0][3], Point(-0.750000000000000, 2.500000000000000, 1.500000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[0][1], Point(-0.416666666666667, 0.578703703703704, 0.833333333333333))",
         "passed": true
       },
       {
         "line": 72,
-        "code_line": "TOLERANCE.is_point_close(v[0][4], Point(-0.666666666666667, 3.537037037037037, 1.333333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[0][2], Point(-0.666666666666667, 1.462962962962963, 1.333333333333333))",
         "passed": true
       },
       {
         "line": 73,
-        "code_line": "TOLERANCE.is_point_close(v[0][5], Point(-0.416666666666667, 4.421296296296297, 0.833333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[0][3], Point(-0.750000000000000, 2.500000000000000, 1.500000000000000))",
         "passed": true
       },
       {
         "line": 74,
-        "code_line": "TOLERANCE.is_point_close(v[0][6], Point(0.000000000000000, 5.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[0][4], Point(-0.666666666666667, 3.537037037037037, 1.333333333333333))",
         "passed": true
       },
       {
         "line": 75,
-        "code_line": "TOLERANCE.is_point_close(v[1][0], Point(0.992187500000000, -0.562500000000000, 1.125000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[0][5], Point(-0.416666666666667, 4.421296296296297, 0.833333333333333))",
         "passed": true
       },
       {
         "line": 76,
-        "code_line": "TOLERANCE.is_point_close(v[1][1], Point(0.881510416666667, 0.333912037037037, 1.958333333333334))",
+        "code_line": "TOLERANCE.is_point_close(p[0][6], Point(0.000000000000000, 5.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
         "line": 77,
-        "code_line": "TOLERANCE.is_point_close(v[1][2], Point(0.815104166666667, 1.379629629629630, 2.458333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[1][0], Point(0.992187500000000, -0.562500000000000, 1.125000000000000))",
         "passed": true
       },
       {
         "line": 78,
-        "code_line": "TOLERANCE.is_point_close(v[1][3], Point(0.792968750000000, 2.500000000000000, 2.625000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[1][1], Point(0.881510416666667, 0.333912037037037, 1.958333333333334))",
         "passed": true
       },
       {
         "line": 79,
-        "code_line": "TOLERANCE.is_point_close(v[1][4], Point(0.815104166666667, 3.620370370370370, 2.458333333333334))",
+        "code_line": "TOLERANCE.is_point_close(p[1][2], Point(0.815104166666667, 1.379629629629630, 2.458333333333333))",
         "passed": true
       },
       {
         "line": 80,
-        "code_line": "TOLERANCE.is_point_close(v[1][5], Point(0.881510416666667, 4.666087962962964, 1.958333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[1][3], Point(0.792968750000000, 2.500000000000000, 2.625000000000000))",
         "passed": true
       },
       {
         "line": 81,
-        "code_line": "TOLERANCE.is_point_close(v[1][6], Point(0.992187500000000, 5.562500000000000, 1.125000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[1][4], Point(0.815104166666667, 3.620370370370370, 2.458333333333334))",
         "passed": true
       },
       {
         "line": 82,
-        "code_line": "TOLERANCE.is_point_close(v[2][0], Point(2.500000000000000, -0.750000000000000, 1.500000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[1][5], Point(0.881510416666667, 4.666087962962964, 1.958333333333333))",
         "passed": true
       },
       {
         "line": 83,
-        "code_line": "TOLERANCE.is_point_close(v[2][1], Point(2.500000000000000, 0.252314814814815, 2.333333333333334))",
+        "code_line": "TOLERANCE.is_point_close(p[1][6], Point(0.992187500000000, 5.562500000000000, 1.125000000000000))",
         "passed": true
       },
       {
         "line": 84,
-        "code_line": "TOLERANCE.is_point_close(v[2][2], Point(2.500000000000000, 1.351851851851852, 2.833333333333334))",
+        "code_line": "TOLERANCE.is_point_close(p[2][0], Point(2.500000000000000, -0.750000000000000, 1.500000000000000))",
         "passed": true
       },
       {
         "line": 85,
-        "code_line": "TOLERANCE.is_point_close(v[2][3], Point(2.500000000000000, 2.500000000000000, 3.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[2][1], Point(2.500000000000000, 0.252314814814815, 2.333333333333334))",
         "passed": true
       },
       {
         "line": 86,
-        "code_line": "TOLERANCE.is_point_close(v[2][4], Point(2.500000000000000, 3.648148148148148, 2.833333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[2][2], Point(2.500000000000000, 1.351851851851852, 2.833333333333334))",
         "passed": true
       },
       {
         "line": 87,
-        "code_line": "TOLERANCE.is_point_close(v[2][5], Point(2.500000000000000, 4.747685185185186, 2.333333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[2][3], Point(2.500000000000000, 2.500000000000000, 3.000000000000000))",
         "passed": true
       },
       {
         "line": 88,
-        "code_line": "TOLERANCE.is_point_close(v[2][6], Point(2.500000000000000, 5.750000000000000, 1.500000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[2][4], Point(2.500000000000000, 3.648148148148148, 2.833333333333333))",
         "passed": true
       },
       {
         "line": 89,
-        "code_line": "TOLERANCE.is_point_close(v[3][0], Point(4.007812500000000, -0.562500000000000, 1.125000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[2][5], Point(2.500000000000000, 4.747685185185186, 2.333333333333333))",
         "passed": true
       },
       {
         "line": 90,
-        "code_line": "TOLERANCE.is_point_close(v[3][1], Point(4.118489583333334, 0.333912037037037, 1.958333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[2][6], Point(2.500000000000000, 5.750000000000000, 1.500000000000000))",
         "passed": true
       },
       {
         "line": 91,
-        "code_line": "TOLERANCE.is_point_close(v[3][2], Point(4.184895833333334, 1.379629629629630, 2.458333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[3][0], Point(4.007812500000000, -0.562500000000000, 1.125000000000000))",
         "passed": true
       },
       {
         "line": 92,
-        "code_line": "TOLERANCE.is_point_close(v[3][3], Point(4.207031250000000, 2.500000000000000, 2.625000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[3][1], Point(4.118489583333334, 0.333912037037037, 1.958333333333333))",
         "passed": true
       },
       {
         "line": 93,
-        "code_line": "TOLERANCE.is_point_close(v[3][4], Point(4.184895833333333, 3.620370370370370, 2.458333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[3][2], Point(4.184895833333334, 1.379629629629630, 2.458333333333333))",
         "passed": true
       },
       {
         "line": 94,
-        "code_line": "TOLERANCE.is_point_close(v[3][5], Point(4.118489583333333, 4.666087962962964, 1.958333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[3][3], Point(4.207031250000000, 2.500000000000000, 2.625000000000000))",
         "passed": true
       },
       {
         "line": 95,
-        "code_line": "TOLERANCE.is_point_close(v[3][6], Point(4.007812500000000, 5.562500000000000, 1.125000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[3][4], Point(4.184895833333333, 3.620370370370370, 2.458333333333333))",
         "passed": true
       },
       {
         "line": 96,
-        "code_line": "TOLERANCE.is_point_close(v[4][0], Point(5.000000000000000, 0.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[3][5], Point(4.118489583333333, 4.666087962962964, 1.958333333333333))",
         "passed": true
       },
       {
         "line": 97,
-        "code_line": "TOLERANCE.is_point_close(v[4][1], Point(5.416666666666668, 0.578703703703704, 0.833333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[3][6], Point(4.007812500000000, 5.562500000000000, 1.125000000000000))",
         "passed": true
       },
       {
         "line": 98,
-        "code_line": "TOLERANCE.is_point_close(v[4][2], Point(5.666666666666668, 1.462962962962963, 1.333333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[4][0], Point(5.000000000000000, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
         "line": 99,
-        "code_line": "TOLERANCE.is_point_close(v[4][3], Point(5.750000000000000, 2.500000000000000, 1.500000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[4][1], Point(5.416666666666668, 0.578703703703704, 0.833333333333333))",
         "passed": true
       },
       {
         "line": 100,
-        "code_line": "TOLERANCE.is_point_close(v[4][4], Point(5.666666666666666, 3.537037037037037, 1.333333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[4][2], Point(5.666666666666668, 1.462962962962963, 1.333333333333333))",
         "passed": true
       },
       {
         "line": 101,
-        "code_line": "TOLERANCE.is_point_close(v[4][5], Point(5.416666666666667, 4.421296296296297, 0.833333333333333))",
+        "code_line": "TOLERANCE.is_point_close(p[4][3], Point(5.750000000000000, 2.500000000000000, 1.500000000000000))",
         "passed": true
       },
       {
         "line": 102,
-        "code_line": "TOLERANCE.is_point_close(v[4][6], Point(5.000000000000000, 5.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(p[4][4], Point(5.666666666666666, 3.537037037037037, 1.333333333333333))",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "TOLERANCE.is_point_close(p[4][5], Point(5.416666666666667, 4.421296296296297, 0.833333333333333))",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "TOLERANCE.is_point_close(p[4][6], Point(5.000000000000000, 5.000000000000000, 0.000000000000000))",
         "passed": true
       }
     ],
@@ -277,47 +277,47 @@
   {
     "test_name": "Booleans Queries",
     "passed": true,
-    "time_ms": 1.332,
-    "line": 105,
+    "time_ms": 1.26,
+    "line": 107,
     "code": "    from session_py import NurbsSurface\n    from session_py import Plane\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 5.0)\n\n    # Validity surface and knots\n    is_valid = s.is_valid()\n    are_knots_valid = s.is_valid_knot_vector(0) and s.is_valid_knot_vector(1)\n\n    # Are control points weights enabled?\n    is_rational = s.is_rational()\n\n    # Sphere has one seam that is closed, but two poles\n    is_closed = s.is_closed(0) == True and s.is_closed(1) == False\n\n    # sphere cannot be truly periodic because it has poles\n    is_periodic = s.is_periodic(0) and s.is_periodic(1)\n\n    # Planarity\n    plane = Plane.xy_plane()\n    is_planar = s.is_planar(plane)\n\n    # Surface is collapsed to a point\n    is_point = s.is_singular(0) and s.is_singular(1) and s.is_singular(2) and s.is_singular(3)\n\n    # Most surfaces are clamped except periodic surfaces\n    is_clamped = s.is_clamped(0, 2) and s.is_clamped(1, 2)",
     "checks": [
       {
-        "line": 136,
+        "line": 138,
         "code_line": "is_valid",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 139,
         "code_line": "are_knots_valid",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 140,
         "code_line": "is_rational",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 141,
         "code_line": "is_closed",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 142,
         "code_line": "not is_periodic",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 143,
         "code_line": "not is_planar",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 144,
         "code_line": "not is_point",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 145,
         "code_line": "is_clamped",
         "passed": true
       }
@@ -327,62 +327,62 @@
   {
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.147,
-    "line": 146,
+    "time_ms": 0.122,
+    "line": 148,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check the dimentions of a surface\n    # Mostly 3d\n    # But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n    # Planar geometry: texture coordinates\n    dimensions = s.dimension()\n\n    # Degree types 1 - linear, 2 - quadratic, 3 - cubic\n    order_u = s.order(0)\n    order_v = s.order(1)\n\n    # Control vertex count\n    cv_count_u = s.cv_count_dir(0)\n    cv_count_v = s.cv_count_dir(1)\n    cv_count = s.cv_count_dir(None)\n    cv_size = s.cv_size()\n\n    # Number of knots\n    k_count_0 = s.knot_count(0)\n    k_count_1 = s.knot_count(1)\n\n    # Span count\n    s_count_0 = s.span_count(0)\n    s_count_1 = s.span_count(1)",
     "checks": [
       {
-        "line": 200,
+        "line": 202,
         "code_line": "dimensions == 3",
         "passed": true
       },
       {
-        "line": 201,
+        "line": 203,
         "code_line": "order_u == 4",
         "passed": true
       },
       {
-        "line": 202,
+        "line": 204,
         "code_line": "order_v == 4",
         "passed": true
       },
       {
-        "line": 203,
+        "line": 205,
         "code_line": "cv_count_u",
         "passed": true
       },
       {
-        "line": 204,
+        "line": 206,
         "code_line": "cv_count_v",
         "passed": true
       },
       {
-        "line": 205,
+        "line": 207,
         "code_line": "cv_count",
         "passed": true
       },
       {
-        "line": 206,
+        "line": 208,
         "code_line": "cv_size",
         "passed": true
       },
       {
-        "line": 207,
+        "line": 209,
         "code_line": "k_count_0",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 210,
         "code_line": "k_count_1",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 211,
         "code_line": "s_count_0",
         "passed": true
       },
       {
-        "line": 210,
+        "line": 212,
         "code_line": "s_count_1",
         "passed": true
       }
@@ -392,42 +392,42 @@
   {
     "test_name": "Control Vertices Access",
     "passed": true,
-    "time_ms": 0.29,
-    "line": 213,
+    "time_ms": 0.256,
+    "line": 215,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    s.make_rational()\n\n    # Raw CV access - cv() returns view of internal storage\n    cv_arr = s.cv(0, 0)\n    cv_arr[2] = 10.0\n\n    # Point and Weight\n    # NOTE\n    # point is (Xw, Yw, Zw, w)\n    # cv pointer is (X, Y, Z)\n    cv = s.get_cv(0, 0)\n    ok, x, y, z, w = s.get_cv_4d(0, 0)\n\n    s.set_cv(0, 0, Point(0, 0, 5))\n    s.set_cv_4d(0, 0, 0, 0, 4, 0.5)\n\n    w = s.weight(0, 0)\n    s.set_weight(0, 0, 1)",
     "checks": [
       {
-        "line": 246,
+        "line": 248,
         "code_line": "cv_arr[2] == 0",
         "passed": true
       },
       {
-        "line": 248,
+        "line": 250,
         "code_line": "cv_arr[2] == 10",
         "passed": true
       },
       {
-        "line": 255,
+        "line": 257,
         "code_line": "cv == Point(0, 0, 10)",
         "passed": true
       },
       {
-        "line": 257,
+        "line": 259,
         "code_line": "x == 0 and y == 0 and z == 10 and w == 1",
         "passed": true
       },
       {
-        "line": 260,
+        "line": 262,
         "code_line": "s.get_cv(0, 0) == Point(0, 0, 5)",
         "passed": true
       },
       {
-        "line": 262,
+        "line": 264,
         "code_line": "s.get_cv(0, 0) == Point(0, 0, 8) and s.cv(0, 0)[2] == 4 and s.weight(0, 0) == 0.5",
         "passed": true
       },
       {
-        "line": 266,
+        "line": 268,
         "code_line": "s.weight(0, 0) == 1",
         "passed": true
       }
@@ -435,150 +435,550 @@
     "failures": []
   },
   {
-    "test_name": "Accessors",
+    "test_name": "Knot Access",
     "passed": true,
-    "time_ms": 0.152,
-    "line": 269,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(5) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 2, 5, 4, points)\n\n    # Test knot access\n    knot_val = surf.knot(0, 2)\n\n    # Test set knot\n    surf.set_knot(0, 2, 5.0)\n    new_val = surf.knot(0, 2)",
+    "time_ms": 0.502,
+    "line": 271,
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get knot vectors and individual knot\n    knots_u = s.get_knots(0)\n    for i in range(s.knot_count(0)):\n        knot = s.knot(0, i)\n\n    knots_v = s.get_knots(1)\n    for i in range(s.knot_count(1)):\n        knot = s.knot(1, i)\n\n    # Set knots\n    is_set = s.set_knot(0, 2, 0.5)\n    is_set = s.set_knot(0, 2, 0.0)\n\n    # Verify start multiplicity\n    mult_u_start = s.knot_multiplicity(0, 0)\n    mult_v_start = s.knot_multiplicity(1, 0)\n\n    s.insert_knot(0, 0.1, 2)",
     "checks": [
       {
-        "line": 284,
-        "code_line": "surf.dimension() == 3",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 285,
-        "code_line": "not surf.is_rational()",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 286,
-        "code_line": "surf.order(0) == 4",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 287,
-        "code_line": "surf.order(1) == 3",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 288,
-        "code_line": "surf.degree(0) == 3",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 289,
-        "code_line": "surf.degree(1) == 2",
+        "line": 305,
+        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
-        "line": 290,
-        "code_line": "surf.cv_count_dir(0) == 5",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 291,
-        "code_line": "surf.cv_count_dir(1) == 4",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 292,
-        "code_line": "surf.cv_count_dir(None) == 20",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 293,
-        "code_line": "surf.cv_size() == 3",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 294,
-        "code_line": "surf.knot_count(0) == 7",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 295,
-        "code_line": "surf.knot_count(1) == 5",
-        "passed": true
-      },
-      {
-        "line": 296,
-        "code_line": "surf.span_count(0) == 2",
-        "passed": true
-      },
-      {
-        "line": 297,
-        "code_line": "surf.span_count(1) == 2",
-        "passed": true
-      },
-      {
-        "line": 298,
-        "code_line": "new_val == 5.0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Knot_operations",
-    "passed": true,
-    "time_ms": 0.135,
-    "line": 301,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Verify domain\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)",
-    "checks": [
-      {
-        "line": 313,
-        "code_line": "u0 == 0.0",
+        "line": 310,
+        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
         "line": 314,
-        "code_line": "u1 > u0",
+        "code_line": "s.knot(0, 2) == 0.5",
         "passed": true
       },
       {
-        "line": 315,
-        "code_line": "v0 == 0.0",
+        "line": 320,
+        "code_line": "mult_u_start == 3",
         "passed": true
       },
       {
-        "line": 316,
-        "code_line": "v1 > v0",
+        "line": 321,
+        "code_line": "mult_v_start == 3",
         "passed": true
       },
       {
-        "line": 317,
-        "code_line": "surf.is_clamped(0, 0)",
+        "line": 324,
+        "code_line": "s.knot_count(0) == 8",
         "passed": true
       },
       {
-        "line": 318,
-        "code_line": "surf.is_clamped(1, 0)",
+        "line": 325,
+        "code_line": "s.knot(0, 3) == 0.1",
+        "passed": true
+      },
+      {
+        "line": 326,
+        "code_line": "s.knot_multiplicity(0, 3) == 2",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "test_name": "Rational_operations",
+    "test_name": "Domain",
     "passed": true,
-    "time_ms": 0.064,
-    "line": 321,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create non-rational surface, then make rational\n    points = [Point(0.0, 0.0, 0.0)] * 9\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n\n    # Make it rational\n    surf.make_rational()\n\n    # Set a control point and weight\n    surf.set_cv(1, 1, Point(1.0, 2.0, 3.0))\n    surf.set_weight(1, 1, 2.0)\n\n    # Verify weight\n    w = surf.weight(1, 1)",
+    "time_ms": 0.157,
+    "line": 329,
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get domain 0 - 1\n    domain_u = s.domain(0)\n    domain_v = s.domain(1)\n\n    # Set Domain\n    is_set_u = s.set_domain(0, -1.1, 2.3)\n    is_set_v = s.set_domain(1, -5.1, 1.3)\n\n    # Get sorted list of distinct knot values\n    span_vector = s.get_span_vector(0)\n    first_item = span_vector[0]\n    last_item = span_vector[-1]",
     "checks": [
       {
-        "line": 340,
-        "code_line": "surf.is_rational()",
+        "line": 362,
+        "code_line": "TOLERANCE.is_close(domain_u[0], 0)",
         "passed": true
       },
       {
-        "line": 341,
-        "code_line": "surf.cv_size() == 4",
+        "line": 363,
+        "code_line": "TOLERANCE.is_close(domain_u[1], 1)",
         "passed": true
       },
       {
-        "line": 342,
-        "code_line": "w == 2.0",
+        "line": 368,
+        "code_line": "is_set_u and TOLERANCE.is_close(s.domain(1)[0], -5.1)",
+        "passed": true
+      },
+      {
+        "line": 369,
+        "code_line": "is_set_v and TOLERANCE.is_close(s.domain(1)[1], 1.3)",
+        "passed": true
+      },
+      {
+        "line": 375,
+        "code_line": "TOLERANCE.is_close(first_item, -1.1)",
+        "passed": true
+      },
+      {
+        "line": 376,
+        "code_line": "TOLERANCE.is_close(last_item, 2.3)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Division",
+    "passed": true,
+    "time_ms": 5.776,
+    "line": 379,
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # points, normals, uv\n    division_points, vectors, uvs0 = s.divide_by_count_points(3, 3)\n\n    # planes, uv\n    planes, uvs1 = s.divide_by_count_planes(3, 3)",
+    "checks": [
+      {
+        "line": 416,
+        "code_line": "TOLERANCE.is_point_close(division_points[0][0], Point(0, 0, 0))",
+        "passed": true
+      },
+      {
+        "line": 417,
+        "code_line": "TOLERANCE.is_point_close(division_points[0][1], Point(-0.666666666666667, 1.46296296296296, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 418,
+        "code_line": "TOLERANCE.is_point_close(division_points[0][2], Point(-0.666666666666667, 3.53703703703704, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 419,
+        "code_line": "TOLERANCE.is_point_close(division_points[0][3], Point(0, 5, 0))",
+        "passed": true
+      },
+      {
+        "line": 420,
+        "code_line": "TOLERANCE.is_point_close(division_points[1][0], Point(1.46296296296296, -0.666666666666667, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 421,
+        "code_line": "TOLERANCE.is_point_close(division_points[1][1], Point(1.3641975308642, 1.3641975308642, 2.66666666666667))",
+        "passed": true
+      },
+      {
+        "line": 422,
+        "code_line": "TOLERANCE.is_point_close(division_points[1][2], Point(1.3641975308642, 3.6358024691358, 2.66666666666667))",
+        "passed": true
+      },
+      {
+        "line": 423,
+        "code_line": "TOLERANCE.is_point_close(division_points[1][3], Point(1.46296296296296, 5.66666666666667, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 424,
+        "code_line": "TOLERANCE.is_point_close(division_points[2][0], Point(3.53703703703704, -0.666666666666667, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 425,
+        "code_line": "TOLERANCE.is_point_close(division_points[2][1], Point(3.6358024691358, 1.3641975308642, 2.66666666666667))",
+        "passed": true
+      },
+      {
+        "line": 426,
+        "code_line": "TOLERANCE.is_point_close(division_points[2][2], Point(3.6358024691358, 3.6358024691358, 2.66666666666667))",
+        "passed": true
+      },
+      {
+        "line": 427,
+        "code_line": "TOLERANCE.is_point_close(division_points[2][3], Point(3.53703703703704, 5.66666666666667, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 428,
+        "code_line": "TOLERANCE.is_point_close(division_points[3][0], Point(5, 0, 0))",
+        "passed": true
+      },
+      {
+        "line": 429,
+        "code_line": "TOLERANCE.is_point_close(division_points[3][1], Point(5.66666666666667, 1.46296296296296, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 430,
+        "code_line": "TOLERANCE.is_point_close(division_points[3][2], Point(5.66666666666667, 3.53703703703704, 1.33333333333333))",
+        "passed": true
+      },
+      {
+        "line": 431,
+        "code_line": "TOLERANCE.is_point_close(division_points[3][3], Point(5, 5, 0))",
+        "passed": true
+      },
+      {
+        "line": 432,
+        "code_line": "TOLERANCE.is_vector_close(vectors[0][0], Vector(-0.704360725060499, -0.704360725060499, -0.0880450906325624))",
+        "passed": true
+      },
+      {
+        "line": 433,
+        "code_line": "TOLERANCE.is_vector_close(vectors[0][1], Vector(-0.722897836195991, -0.327787263130091, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 434,
+        "code_line": "TOLERANCE.is_vector_close(vectors[0][2], Vector(-0.722897836195991, 0.327787263130091, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 435,
+        "code_line": "TOLERANCE.is_vector_close(vectors[0][3], Vector(-0.704360725060499, 0.704360725060499, -0.0880450906325624))",
+        "passed": true
+      },
+      {
+        "line": 436,
+        "code_line": "TOLERANCE.is_vector_close(vectors[1][0], Vector(-0.327787263130091, -0.722897836195991, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 437,
+        "code_line": "TOLERANCE.is_vector_close(vectors[1][1], Vector(-0.280457757277237, -0.280457757277237, 0.917979788865771))",
+        "passed": true
+      },
+      {
+        "line": 438,
+        "code_line": "TOLERANCE.is_vector_close(vectors[1][2], Vector(-0.280457757277237, 0.280457757277237, 0.917979788865771))",
+        "passed": true
+      },
+      {
+        "line": 439,
+        "code_line": "TOLERANCE.is_vector_close(vectors[1][3], Vector(-0.327787263130091, 0.722897836195991, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 440,
+        "code_line": "TOLERANCE.is_vector_close(vectors[2][0], Vector(0.327787263130091, -0.722897836195991, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 441,
+        "code_line": "TOLERANCE.is_vector_close(vectors[2][1], Vector(0.280457757277237, -0.280457757277237, 0.917979788865771))",
+        "passed": true
+      },
+      {
+        "line": 442,
+        "code_line": "TOLERANCE.is_vector_close(vectors[2][2], Vector(0.280457757277237, 0.280457757277237, 0.917979788865771))",
+        "passed": true
+      },
+      {
+        "line": 443,
+        "code_line": "TOLERANCE.is_vector_close(vectors[2][3], Vector(0.327787263130091, 0.722897836195991, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 444,
+        "code_line": "TOLERANCE.is_vector_close(vectors[3][0], Vector(0.704360725060499, -0.704360725060499, -0.0880450906325624))",
+        "passed": true
+      },
+      {
+        "line": 445,
+        "code_line": "TOLERANCE.is_vector_close(vectors[3][1], Vector(0.722897836195991, -0.327787263130091, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 446,
+        "code_line": "TOLERANCE.is_vector_close(vectors[3][2], Vector(0.722897836195991, 0.327787263130091, 0.608255068661856))",
+        "passed": true
+      },
+      {
+        "line": 447,
+        "code_line": "TOLERANCE.is_vector_close(vectors[3][3], Vector(0.704360725060499, 0.704360725060499, -0.0880450906325624))",
+        "passed": true
+      },
+      {
+        "line": 448,
+        "code_line": "TOLERANCE.is_close(uvs0[0][0][0], 0.0) and TOLERANCE.is_close(uvs0[0][0][1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 449,
+        "code_line": "TOLERANCE.is_close(uvs0[0][1][0], 0.0) and TOLERANCE.is_close(uvs0[0][1][1], 0.333333333333333)",
+        "passed": true
+      },
+      {
+        "line": 450,
+        "code_line": "TOLERANCE.is_close(uvs0[0][2][0], 0.0) and TOLERANCE.is_close(uvs0[0][2][1], 0.666666666666667)",
+        "passed": true
+      },
+      {
+        "line": 451,
+        "code_line": "TOLERANCE.is_close(uvs0[0][3][0], 0.0) and TOLERANCE.is_close(uvs0[0][3][1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 452,
+        "code_line": "TOLERANCE.is_close(uvs0[1][0][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][0][1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 453,
+        "code_line": "TOLERANCE.is_close(uvs0[1][1][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][1][1], 0.333333333333333)",
+        "passed": true
+      },
+      {
+        "line": 454,
+        "code_line": "TOLERANCE.is_close(uvs0[1][2][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][2][1], 0.666666666666667)",
+        "passed": true
+      },
+      {
+        "line": 455,
+        "code_line": "TOLERANCE.is_close(uvs0[1][3][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][3][1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 456,
+        "code_line": "TOLERANCE.is_close(uvs0[2][0][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][0][1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 457,
+        "code_line": "TOLERANCE.is_close(uvs0[2][1][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][1][1], 0.333333333333333)",
+        "passed": true
+      },
+      {
+        "line": 458,
+        "code_line": "TOLERANCE.is_close(uvs0[2][2][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][2][1], 0.666666666666667)",
+        "passed": true
+      },
+      {
+        "line": 459,
+        "code_line": "TOLERANCE.is_close(uvs0[2][3][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][3][1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 460,
+        "code_line": "TOLERANCE.is_close(uvs0[3][0][0], 1.0) and TOLERANCE.is_close(uvs0[3][0][1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 461,
+        "code_line": "TOLERANCE.is_close(uvs0[3][1][0], 1.0) and TOLERANCE.is_close(uvs0[3][1][1], 0.333333333333333)",
+        "passed": true
+      },
+      {
+        "line": 462,
+        "code_line": "TOLERANCE.is_close(uvs0[3][2][0], 1.0) and TOLERANCE.is_close(uvs0[3][2][1], 0.666666666666667)",
+        "passed": true
+      },
+      {
+        "line": 463,
+        "code_line": "TOLERANCE.is_close(uvs0[3][3][0], 1.0) and TOLERANCE.is_close(uvs0[3][3][1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 464,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][0].x_axis, Vector(0.317999364001908, -0.423999152002544, 0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 465,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][1].x_axis, Vector(0.657483781160109, -0.0556600026378928, 0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 466,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][2].x_axis, Vector(0.657483781160109, 0.055660002637893, 0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 467,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][3].x_axis, Vector(0.317999364001908, 0.423999152002544, 0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 468,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][0].x_axis, Vector(0.93542594448836, -0.158100159631836, 0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 469,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][1].x_axis, Vector(0.957938608304167, -0.0211991946512679, 0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 470,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][2].x_axis, Vector(0.957938608304167, 0.0211991946512677, 0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 471,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][3].x_axis, Vector(0.93542594448836, 0.158100159631835, 0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 472,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][0].x_axis, Vector(0.93542594448836, 0.158100159631835, -0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 473,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][1].x_axis, Vector(0.957938608304167, 0.0211991946512679, -0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 474,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][2].x_axis, Vector(0.957938608304167, -0.021199194651268, -0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 475,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][3].x_axis, Vector(0.93542594448836, -0.158100159631836, -0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 476,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][0].x_axis, Vector(0.317999364001908, 0.423999152002544, -0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 477,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][1].x_axis, Vector(0.657483781160109, 0.0556600026378928, -0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 478,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][2].x_axis, Vector(0.657483781160109, -0.0556600026378928, -0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 479,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][3].x_axis, Vector(0.317999364001908, -0.423999152002544, -0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 480,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][0].y_axis, Vector(-0.423999152002544, 0.317999364001908, 0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 481,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][1].y_axis, Vector(-0.158100159631836, 0.93542594448836, 0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 482,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][2].y_axis, Vector(0.158100159631835, 0.93542594448836, -0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 483,
+        "code_line": "TOLERANCE.is_vector_close(planes[0][3].y_axis, Vector(0.423999152002544, 0.317999364001908, -0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 484,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][0].y_axis, Vector(-0.0556600026378928, 0.657483781160109, 0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 485,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][1].y_axis, Vector(-0.0211991946512679, 0.957938608304167, 0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 486,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][2].y_axis, Vector(0.0211991946512679, 0.957938608304167, -0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 487,
+        "code_line": "TOLERANCE.is_vector_close(planes[1][3].y_axis, Vector(0.0556600026378928, 0.657483781160109, -0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 488,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][0].y_axis, Vector(0.0556600026378928, 0.657483781160109, 0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 489,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][1].y_axis, Vector(0.0211991946512678, 0.957938608304167, 0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 490,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][2].y_axis, Vector(-0.0211991946512678, 0.957938608304167, -0.286189127792116))",
+        "passed": true
+      },
+      {
+        "line": 491,
+        "code_line": "TOLERANCE.is_vector_close(planes[2][3].y_axis, Vector(-0.0556600026378928, 0.657483781160109, -0.751410035611553))",
+        "passed": true
+      },
+      {
+        "line": 492,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][0].y_axis, Vector(0.423999152002544, 0.317999364001908, 0.847998304005088))",
+        "passed": true
+      },
+      {
+        "line": 493,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][1].y_axis, Vector(0.158100159631835, 0.93542594448836, 0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 494,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][2].y_axis, Vector(-0.158100159631836, 0.93542594448836, -0.316200319263671))",
+        "passed": true
+      },
+      {
+        "line": 495,
+        "code_line": "TOLERANCE.is_vector_close(planes[3][3].y_axis, Vector(-0.423999152002544, 0.317999364001908, -0.847998304005088))",
         "passed": true
       }
     ],
@@ -587,157 +987,41 @@
   {
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 0.222,
-    "line": 345,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create simple bilinear surface\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Evaluate at corner\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    pt_corner = surf.point_at(u0, v0)\n\n    # Evaluate at center (should be center of unit square)\n    u_mid = (u0 + u1) / 2.0\n    v_mid = (v0 + v1) / 2.0\n    pt_mid = surf.point_at(u_mid, v_mid)\n\n    # Test derivatives\n    derivs = surf.evaluate(u_mid, v_mid, 1)\n\n    # Test normal (for flat plane in XY, normal should point in +Z)\n    normal = surf.normal_at(u_mid, v_mid)",
-    "checks": [
-      {
-        "line": 374,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 375,
-        "code_line": "TOLERANCE.is_close(pt_corner[0], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 376,
-        "code_line": "TOLERANCE.is_close(pt_corner[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 377,
-        "code_line": "TOLERANCE.is_close(pt_corner[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 378,
-        "code_line": "TOLERANCE.is_close(pt_mid[0], 0.5)",
-        "passed": true
-      },
-      {
-        "line": 379,
-        "code_line": "TOLERANCE.is_close(pt_mid[1], 0.5)",
-        "passed": true
-      },
-      {
-        "line": 380,
-        "code_line": "len(derivs) == 3",
-        "passed": true
-      },
-      {
-        "line": 381,
-        "code_line": "TOLERANCE.is_close(abs(normal[2]), 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Geometric_queries",
-    "passed": true,
-    "time_ms": 0.212,
-    "line": 384,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create and setup surface\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)",
-    "checks": [
-      {
-        "line": 396,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 397,
-        "code_line": "not surf.is_closed(0)",
-        "passed": true
-      },
-      {
-        "line": 398,
-        "code_line": "not surf.is_closed(1)",
-        "passed": true
-      },
-      {
-        "line": 399,
-        "code_line": "not surf.is_periodic(0)",
-        "passed": true
-      },
-      {
-        "line": 400,
-        "code_line": "not surf.is_periodic(1)",
-        "passed": true
-      },
-      {
-        "line": 401,
-        "code_line": "surf.is_clamped(0, 0)",
-        "passed": true
-      },
-      {
-        "line": 402,
-        "code_line": "surf.is_clamped(1, 0)",
-        "passed": true
-      },
-      {
-        "line": 403,
-        "code_line": "surf.is_planar(None, 1e-6)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Modification",
-    "passed": true,
-    "time_ms": 0.136,
-    "line": 406,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0), Point(2.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 2, points)\n\n    cv_before = surf.get_cv(0, 0)\n\n    # Test reverse in u direction\n    surf.reverse(0)\n    cv_after = surf.get_cv(2, 0)\n\n    # Reverse back\n    surf.reverse(0)\n\n    # Test transpose\n    order_u_before = surf.order(0)\n    order_v_before = surf.order(1)\n    surf.transpose()",
-    "checks": [
-      {
-        "line": 432,
-        "code_line": "cv_after[0] == cv_before[0]",
-        "passed": true
-      },
-      {
-        "line": 433,
-        "code_line": "surf.order(0) == order_v_before",
-        "passed": true
-      },
-      {
-        "line": 434,
-        "code_line": "surf.order(1) == order_u_before",
-        "passed": true
-      }
-    ],
+    "time_ms": 0.148,
+    "line": 498,
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)",
+    "checks": [],
     "failures": []
   },
   {
     "test_name": "Isocurve",
     "passed": true,
-    "time_ms": 0.177,
-    "line": 437,
+    "time_ms": 0.206,
+    "line": 529,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create surface\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n\n    # Extract iso-u curve (v varies)\n    u0, u1 = surf.domain(0)\n    u_mid = (u0 + u1) / 2.0\n    iso_u = surf.iso_curve(0, u_mid)\n\n    # Extract iso-v curve (u varies)\n    v0, v1 = surf.domain(1)\n    v_mid = (v0 + v1) / 2.0\n    iso_v = surf.iso_curve(1, v_mid)",
     "checks": [
       {
-        "line": 456,
+        "line": 548,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 457,
+        "line": 549,
         "code_line": "iso_u is not None",
         "passed": true
       },
       {
-        "line": 458,
+        "line": 550,
         "code_line": "iso_u.is_valid()",
         "passed": true
       },
       {
-        "line": 459,
+        "line": 551,
         "code_line": "iso_v is not None",
         "passed": true
       },
       {
-        "line": 460,
+        "line": 552,
         "code_line": "iso_v.is_valid()",
         "passed": true
       }
@@ -747,22 +1031,22 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.098,
-    "line": 463,
+    "time_ms": 0.122,
+    "line": 555,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Xform\n\n    # Create simple surface\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Apply translation\n    xf = Xform.translation(1.0, 2.0, 3.0)\n    surf.transform(xf)\n\n    # Check transformed CV\n    pt = surf.get_cv(0, 0)",
     "checks": [
       {
-        "line": 483,
+        "line": 575,
         "code_line": "TOLERANCE.is_close(pt[0], 1.0)",
         "passed": true
       },
       {
-        "line": 484,
+        "line": 576,
         "code_line": "TOLERANCE.is_close(pt[1], 2.0)",
         "passed": true
       },
       {
-        "line": 485,
+        "line": 577,
         "code_line": "TOLERANCE.is_close(pt[2], 3.0)",
         "passed": true
       }
@@ -772,22 +1056,22 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 16.266,
-    "line": 488,
+    "time_ms": 14.809,
+    "line": 580,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n    surf.name = \"test_nurbssurface\"\n    surf.width = 2.0\n    surf.facecolors = [Color(255, 128, 64, 255)]\n    surf.pointcolors = [Color(0, 255, 0, 255)]\n    surf.linecolors = [Color(0, 0, 255, 255)]\n\n    # JSON object\n    json_obj = surf.__jsondump__()\n    loaded_json = NurbsSurface.__jsonload__(json_obj)\n\n    # String\n    json_string = surf.json_dumps()\n    loaded_json_string = NurbsSurface.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.json\"\n    surf.json_dump(filename)\n    loaded_from_file = NurbsSurface.json_load(filename)",
     "checks": [
       {
-        "line": 516,
+        "line": 608,
         "code_line": "loaded_json == surf",
         "passed": true
       },
       {
-        "line": 517,
+        "line": 609,
         "code_line": "loaded_json_string == surf",
         "passed": true
       },
       {
-        "line": 518,
+        "line": 610,
         "code_line": "loaded_from_file == surf",
         "passed": true
       }
@@ -797,17 +1081,17 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 13.14,
-    "line": 521,
+    "time_ms": 15.302,
+    "line": 613,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n    surf.name = \"test_nurbssurface\"\n    surf.width = 2.0\n    surf.facecolors = [Color(255, 128, 64, 255)]\n    surf.pointcolors = [Color(0, 255, 0, 255)]\n    surf.linecolors = [Color(0, 0, 255, 255)]\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # String\n    proto_string = surf.pb_dumps()\n    loaded_proto_string = NurbsSurface.pb_loads(proto_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.bin\"\n    surf.pb_dump(filename)\n    loaded = NurbsSurface.pb_load(filename)",
     "checks": [
       {
-        "line": 550,
+        "line": 642,
         "code_line": "loaded_proto_string == surf",
         "passed": true
       },
       {
-        "line": 551,
+        "line": 643,
         "code_line": "loaded == surf",
         "passed": true
       }
@@ -817,57 +1101,57 @@
   {
     "test_name": "Advanced_accessors",
     "passed": true,
-    "time_ms": 0.089,
-    "line": 554,
+    "time_ms": 0.088,
+    "line": 646,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create rational surface for testing get_cv_4d/set_cv_4d\n    points = [Point(0.0, 0.0, 0.0)] * 9\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n    surf.make_rational()\n\n    # Test set_cv_4d with homogeneous coordinates\n    x, y, z, w = 2.0, 3.0, 4.0, 2.0\n\n    # Set CV using set_cv_4d\n    surf.set_cv_4d(1, 1, x, y, z, w)\n\n    # Get CV and verify using get_cv_4d\n    ok, rx, ry, rz, rw = surf.get_cv_4d(1, 1)\n\n    # Also test get_cv\n    pt = surf.get_cv(1, 1)\n    retrieved_w = surf.weight(1, 1)\n\n    # Test knot_multiplicity\n    mult = surf.knot_count(0)\n    first_knot_mult = 0\n    if mult > 0:\n        first_val = surf.knot(0, 0)\n        count = 1\n        for i in range(1, mult):\n            val = surf.knot(0, i)\n            if abs(val - first_val) < 1e-10:\n                count += 1\n            else:\n                break\n        first_knot_mult = count\n\n    # get_cv returns Euclidean coordinates, so it divides homogeneous coords by w",
     "checks": [
       {
-        "line": 591,
+        "line": 683,
         "code_line": "surf.is_rational()",
         "passed": true
       },
       {
-        "line": 592,
+        "line": 684,
         "code_line": "TOLERANCE.is_close(rx, x)",
         "passed": true
       },
       {
-        "line": 593,
+        "line": 685,
         "code_line": "TOLERANCE.is_close(ry, y)",
         "passed": true
       },
       {
-        "line": 594,
+        "line": 686,
         "code_line": "TOLERANCE.is_close(rz, z)",
         "passed": true
       },
       {
-        "line": 595,
+        "line": 687,
         "code_line": "TOLERANCE.is_close(rw, w)",
         "passed": true
       },
       {
-        "line": 597,
+        "line": 689,
         "code_line": "TOLERANCE.is_close(pt[0], x/w)",
         "passed": true
       },
       {
-        "line": 598,
+        "line": 690,
         "code_line": "TOLERANCE.is_close(pt[1], y/w)",
         "passed": true
       },
       {
-        "line": 599,
+        "line": 691,
         "code_line": "TOLERANCE.is_close(pt[2], z/w)",
         "passed": true
       },
       {
-        "line": 600,
+        "line": 692,
         "code_line": "TOLERANCE.is_close(retrieved_w, w)",
         "passed": true
       },
       {
-        "line": 601,
+        "line": 693,
         "code_line": "first_knot_mult > 0",
         "passed": true
       }
@@ -877,18 +1161,18 @@
   {
     "test_name": "Clamp_operations",
     "passed": true,
-    "time_ms": 0.125,
-    "line": 604,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Test clamp_end\n    was_clamped_before = surf.is_clamped(0, 2)\n    surf.clamp_end(0, 2)\n    is_clamped_after = surf.is_clamped(0, 2)",
+    "time_ms": 0.134,
+    "line": 696,
+    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    surf.clamp_end(0, 2)",
     "checks": [
       {
-        "line": 617,
+        "line": 706,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 618,
-        "code_line": "is_clamped_after",
+        "line": 707,
+        "code_line": "surf.is_clamped(0, 2)",
         "passed": true
       }
     ],
@@ -897,48 +1181,33 @@
   {
     "test_name": "Singularity",
     "passed": true,
-    "time_ms": 0.118,
-    "line": 621,
+    "time_ms": 0.127,
+    "line": 710,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create a simple surface with all CVs at different points (non-singular)\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Test is_singular for each side\n    is_singular_south = surf.is_singular(0)\n    is_singular_east = surf.is_singular(1)\n    is_singular_north = surf.is_singular(2)\n    is_singular_west = surf.is_singular(3)",
     "checks": [
       {
-        "line": 639,
+        "line": 728,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 640,
+        "line": 729,
         "code_line": "not is_singular_south",
         "passed": true
       },
       {
-        "line": 641,
+        "line": 730,
         "code_line": "not is_singular_east",
         "passed": true
       },
       {
-        "line": 642,
+        "line": 731,
         "code_line": "not is_singular_north",
         "passed": true
       },
       {
-        "line": 643,
+        "line": 732,
         "code_line": "not is_singular_west",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Bounding_box",
-    "passed": true,
-    "time_ms": 0.257,
-    "line": 646,
-    "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 3, points)\n\n    # Get bounding box\n    bbox = surf.get_bounding_box()",
-    "checks": [
-      {
-        "line": 657,
-        "code_line": "surf.is_valid()",
         "passed": true
       }
     ],
@@ -947,47 +1216,47 @@
   {
     "test_name": "Domain_operations",
     "passed": true,
-    "time_ms": 0.069,
-    "line": 660,
+    "time_ms": 0.094,
+    "line": 735,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(0.0, 0.0, 0.0)] * 9\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n\n    # Get initial domain\n    dom_u = surf.domain(0)\n    dom_v = surf.domain(1)\n\n    # Set new domain\n    surf.set_domain(0, 0.0, 10.0)\n    surf.set_domain(1, 5.0, 15.0)\n\n    new_dom_u = surf.domain(0)\n    new_dom_v = surf.domain(1)\n\n    # Get span vectors\n    span_u = surf.get_span_vector(0)\n    span_v = surf.get_span_vector(1)",
     "checks": [
       {
-        "line": 683,
+        "line": 758,
         "code_line": "dom_u[0] == 0.0 and dom_u[1] > 0.0",
         "passed": true
       },
       {
-        "line": 684,
+        "line": 759,
         "code_line": "dom_v[0] == 0.0 and dom_v[1] > 0.0",
         "passed": true
       },
       {
-        "line": 685,
+        "line": 760,
         "code_line": "TOLERANCE.is_close(new_dom_u[0], 0.0)",
         "passed": true
       },
       {
-        "line": 686,
+        "line": 761,
         "code_line": "TOLERANCE.is_close(new_dom_u[1], 10.0)",
         "passed": true
       },
       {
-        "line": 687,
+        "line": 762,
         "code_line": "TOLERANCE.is_close(new_dom_v[0], 5.0)",
         "passed": true
       },
       {
-        "line": 688,
+        "line": 763,
         "code_line": "TOLERANCE.is_close(new_dom_v[1], 15.0)",
         "passed": true
       },
       {
-        "line": 689,
+        "line": 764,
         "code_line": "len(span_u) > 0",
         "passed": true
       },
       {
-        "line": 690,
+        "line": 765,
         "code_line": "len(span_v) > 0",
         "passed": true
       }
@@ -997,27 +1266,27 @@
   {
     "test_name": "Corner_points",
     "passed": true,
-    "time_ms": 0.075,
-    "line": 693,
+    "time_ms": 0.096,
+    "line": 768,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 10.0, 0.0),\n        Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Get corner points\n    p00 = surf.point_at_corner(0, 0)\n    p10 = surf.point_at_corner(1, 0)\n    p01 = surf.point_at_corner(0, 1)\n    p11 = surf.point_at_corner(1, 1)",
     "checks": [
       {
-        "line": 710,
+        "line": 785,
         "code_line": "TOLERANCE.is_close(p00[0], 0.0)",
         "passed": true
       },
       {
-        "line": 711,
+        "line": 786,
         "code_line": "TOLERANCE.is_close(p10[0], 10.0)",
         "passed": true
       },
       {
-        "line": 712,
+        "line": 787,
         "code_line": "TOLERANCE.is_close(p01[1], 10.0)",
         "passed": true
       },
       {
-        "line": 713,
+        "line": 788,
         "code_line": "TOLERANCE.is_close(p11[0], 10.0) and TOLERANCE.is_close(p11[1], 10.0)",
         "passed": true
       }
@@ -1027,22 +1296,22 @@
   {
     "test_name": "Swap_coordinates",
     "passed": true,
-    "time_ms": 0.06,
-    "line": 716,
+    "time_ms": 0.067,
+    "line": 791,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        Point(1.0, 2.0, 3.0), Point(0.0, 0.0, 0.0),\n        Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Swap X and Y\n    surf.swap_coordinates(0, 1)\n\n    pt = surf.get_cv(0, 0)",
     "checks": [
       {
-        "line": 732,
+        "line": 807,
         "code_line": "TOLERANCE.is_close(pt[0], 2.0)",
         "passed": true
       },
       {
-        "line": 733,
+        "line": 808,
         "code_line": "TOLERANCE.is_close(pt[1], 1.0)",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 809,
         "code_line": "TOLERANCE.is_close(pt[2], 3.0)",
         "passed": true
       }
@@ -1052,17 +1321,17 @@
   {
     "test_name": "Zero_cvs",
     "passed": true,
-    "time_ms": 0.086,
-    "line": 737,
+    "time_ms": 0.093,
+    "line": 812,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        Point(1.0, 2.0, 3.0), Point(0.0, 0.0, 0.0),\n        Point(0.0, 0.0, 0.0), Point(4.0, 5.0, 6.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Zero all CVs\n    surf.zero_cvs()\n\n    pt0 = surf.get_cv(0, 0)\n    pt1 = surf.get_cv(1, 1)",
     "checks": [
       {
-        "line": 754,
+        "line": 829,
         "code_line": "TOLERANCE.is_close(pt0[0], 0.0) and",
         "passed": true
       },
       {
-        "line": 757,
+        "line": 832,
         "code_line": "TOLERANCE.is_close(pt1[0], 0.0) and",
         "passed": true
       }
@@ -1072,27 +1341,27 @@
   {
     "test_name": "Get_knots",
     "passed": true,
-    "time_ms": 0.097,
-    "line": 762,
+    "time_ms": 0.096,
+    "line": 837,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 3, 2, 4, 3, points)\n\n    knots_u = surf.get_knots(0)\n    knots_v = surf.get_knots(1)",
     "checks": [
       {
-        "line": 773,
+        "line": 848,
         "code_line": "len(knots_u) == surf.knot_count(0)",
         "passed": true
       },
       {
-        "line": 774,
+        "line": 849,
         "code_line": "len(knots_v) == surf.knot_count(1)",
         "passed": true
       },
       {
-        "line": 775,
+        "line": 850,
         "code_line": "len(knots_u) > 0",
         "passed": true
       },
       {
-        "line": 776,
+        "line": 851,
         "code_line": "len(knots_v) > 0",
         "passed": true
       }
@@ -1102,17 +1371,17 @@
   {
     "test_name": "Make_non_rational",
     "passed": true,
-    "time_ms": 0.098,
-    "line": 779,
+    "time_ms": 0.118,
+    "line": 854,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create surface, then make rational with all weights = 1\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n    surf.make_rational()\n\n    # Set all weights to 1.0\n    for i in range(3):\n        for j in range(3):\n            surf.set_weight(i, j, 1.0)\n\n    was_rational = surf.is_rational()\n    surf.make_non_rational()\n    is_rational_after = surf.is_rational()",
     "checks": [
       {
-        "line": 798,
+        "line": 873,
         "code_line": "was_rational",
         "passed": true
       },
       {
-        "line": 799,
+        "line": 874,
         "code_line": "not is_rational_after",
         "passed": true
       }
@@ -1122,47 +1391,47 @@
   {
     "test_name": "Create_clamped_uniform",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 802,
+    "time_ms": 0.053,
+    "line": 877,
     "code": "    from session_py import NurbsSurface\n\n    surf = NurbsSurface()\n    surf.create_clamped_uniform(3, 4, 3, 4, 4, 1.0, 2.0)\n\n    dom_u = surf.domain(0)\n    dom_v = surf.domain(1)",
     "checks": [
       {
-        "line": 812,
+        "line": 887,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 813,
+        "line": 888,
         "code_line": "surf.dimension() == 3",
         "passed": true
       },
       {
-        "line": 814,
+        "line": 889,
         "code_line": "surf.order(0) == 4",
         "passed": true
       },
       {
-        "line": 815,
+        "line": 890,
         "code_line": "surf.order(1) == 3",
         "passed": true
       },
       {
-        "line": 816,
+        "line": 891,
         "code_line": "surf.cv_count_dir(0) == 4",
         "passed": true
       },
       {
-        "line": 817,
+        "line": 892,
         "code_line": "surf.cv_count_dir(1) == 4",
         "passed": true
       },
       {
-        "line": 818,
+        "line": 893,
         "code_line": "surf.is_clamped(0, 0) and surf.is_clamped(0, 1)",
         "passed": true
       },
       {
-        "line": 819,
+        "line": 894,
         "code_line": "surf.is_clamped(1, 0) and surf.is_clamped(1, 1)",
         "passed": true
       }
@@ -1172,318 +1441,28 @@
   {
     "test_name": "Knot_multiplicity",
     "passed": true,
-    "time_ms": 0.124,
-    "line": 822,
+    "time_ms": 0.128,
+    "line": 897,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check first knot multiplicity (should be equal to degree for clamped)\n    mult_u_start = surf.knot_multiplicity(0, 0)\n    mult_v_start = surf.knot_multiplicity(1, 0)\n\n    # Check last knot multiplicity\n    last_u = surf.knot_count(0) - 1\n    last_v = surf.knot_count(1) - 1\n    mult_u_end = surf.knot_multiplicity(0, last_u)\n    mult_v_end = surf.knot_multiplicity(1, last_v)",
     "checks": [
       {
-        "line": 840,
+        "line": 915,
         "code_line": "mult_u_start >= surf.degree(0)",
         "passed": true
       },
       {
-        "line": 841,
+        "line": 916,
         "code_line": "mult_v_start >= surf.degree(1)",
         "passed": true
       },
       {
-        "line": 842,
+        "line": 917,
         "code_line": "mult_u_end >= surf.degree(0)",
         "passed": true
       },
       {
-        "line": 843,
+        "line": 918,
         "code_line": "mult_v_end >= surf.degree(1)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Sphere",
-    "passed": true,
-    "time_ms": 0.452,
-    "line": 846,
-    "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    w = math.sqrt(2.0) / 2.0  # 0.707107\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5, False, False, 1.0, 1.0)\n    surf.name = \"unit_sphere\"\n\n    # U-knots: periodic around equator with multiplicity 2\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: from south pole to north pole\n    v_knots = [-pi * 0.5, -pi * 0.5, 0, 0, pi * 0.5, pi * 0.5]\n    for i in range(6):\n        surf.set_knot(1, i, v_knots[i])\n\n    # Set up control points for sphere (9 around, 5 latitude levels)\n    # Latitude levels: south pole, -45deg, equator, +45deg, north pole\n    lat_weights = [w, 0.5, w, 0.5, w]\n    lat_z = [-radius, -radius * w, 0.0, radius * w, radius]\n    lat_r = [0.0, radius * w, radius, radius * w, 0.0]\n\n    for j in range(5):\n        r = lat_r[j]\n        z = lat_z[j]\n        # 9 points around (0, 45, 90, 135, 180, 225, 270, 315, 360=0)\n        angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n        for i in range(9):\n            x = r * math.cos(angles[i])\n            y = r * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            # Weight: w for cardinal directions (0, 90, 180, 270), 0.5 for diagonals at non-pole latitudes\n            weight = w if i % 2 == 0 else lat_weights[j]\n            if j == 0 or j == 4:\n                weight = w  # poles\n            surf.set_weight(i, j, weight)\n\n    # Verify sphere properties\n\n    # Check point on equator at angle 0 (should be at (radius, 0, 0))\n    pt = surf.point_at(0.0, 0.0)\n\n    # Check north pole\n    north = surf.point_at(0.0, pi * 0.5)",
-    "checks": [
-      {
-        "line": 891,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 892,
-        "code_line": "surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 893,
-        "code_line": "surf.degree(0) == 2",
-        "passed": true
-      },
-      {
-        "line": 894,
-        "code_line": "surf.degree(1) == 2",
-        "passed": true
-      },
-      {
-        "line": 895,
-        "code_line": "surf.cv_count_dir(0) == 9",
-        "passed": true
-      },
-      {
-        "line": 896,
-        "code_line": "surf.cv_count_dir(1) == 5",
-        "passed": true
-      },
-      {
-        "line": 900,
-        "code_line": "TOLERANCE.is_close(pt[0], radius)",
-        "passed": true
-      },
-      {
-        "line": 901,
-        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 902,
-        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 906,
-        "code_line": "TOLERANCE.is_close(north[2], radius)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Cylinder",
-    "passed": true,
-    "time_ms": 0.32,
-    "line": 909,
-    "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 1.5\n    height = 3.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cylinder\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from bottom to top\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cylinder (9 around, 2 heights)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for j in range(2):\n        z = 0.0 if j == 0 else height\n        for i in range(9):\n            x = radius * math.cos(angles[i])\n            y = radius * math.sin(angles[i])\n            # For diagonal points (45, 135, etc), radius needs to be scaled\n            if i % 2 == 1:\n                x = radius * math.sqrt(2.0) * math.cos(angles[i])\n                y = radius * math.sqrt(2.0) * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            weight = 1.0 if i % 2 == 0 else w\n            surf.set_weight(i, j, weight)\n\n    # Verify cylinder properties\n\n    # Check point on bottom circle at angle 0\n    pt_bottom = surf.point_at(0.0, 0.0)\n\n    # Check point on top circle at angle 0\n    pt_top = surf.point_at(0.0, height)\n\n    # Check midpoint at angle PI/2\n    pt_mid = surf.point_at(pi * 0.5, height * 0.5)",
-    "checks": [
-      {
-        "line": 949,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 950,
-        "code_line": "surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 951,
-        "code_line": "surf.degree(0) == 2",
-        "passed": true
-      },
-      {
-        "line": 952,
-        "code_line": "surf.degree(1) == 1",
-        "passed": true
-      },
-      {
-        "line": 953,
-        "code_line": "surf.cv_count_dir(0) == 9",
-        "passed": true
-      },
-      {
-        "line": 954,
-        "code_line": "surf.cv_count_dir(1) == 2",
-        "passed": true
-      },
-      {
-        "line": 958,
-        "code_line": "TOLERANCE.is_close(pt_bottom[0], radius)",
-        "passed": true
-      },
-      {
-        "line": 959,
-        "code_line": "TOLERANCE.is_close(pt_bottom[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 960,
-        "code_line": "TOLERANCE.is_close(pt_bottom[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 964,
-        "code_line": "TOLERANCE.is_close(pt_top[0], radius)",
-        "passed": true
-      },
-      {
-        "line": 965,
-        "code_line": "TOLERANCE.is_close(pt_top[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 966,
-        "code_line": "TOLERANCE.is_close(pt_top[2], height)",
-        "passed": true
-      },
-      {
-        "line": 970,
-        "code_line": "TOLERANCE.is_close(pt_mid[0], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 971,
-        "code_line": "TOLERANCE.is_close(pt_mid[1], radius)",
-        "passed": true
-      },
-      {
-        "line": 972,
-        "code_line": "TOLERANCE.is_close(pt_mid[2], height * 0.5)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Torus",
-    "passed": true,
-    "time_ms": 0.685,
-    "line": 975,
-    "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    major_radius = 3.0\n    minor_radius = 1.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 9, False, False, 1.0, 1.0)\n    surf.name = \"unit_torus\"\n\n    # Both U and V knots: periodic for circles\n    knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, knots[i])\n        surf.set_knot(1, i, knots[i])\n\n    # Set up control points for torus\n    # U: major angle (around torus), V: minor angle (around tube)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for i in range(9):\n        major_angle = angles[i]\n        cos_ma = math.cos(major_angle)\n        sin_ma = math.sin(major_angle)\n        major_scale = 1.0 if i % 2 == 0 else math.sqrt(2.0)\n\n        for j in range(9):\n            minor_angle = angles[j]\n            cos_mi = math.cos(minor_angle)\n            sin_mi = math.sin(minor_angle)\n            minor_scale = 1.0 if j % 2 == 0 else math.sqrt(2.0)\n\n            r = major_radius + minor_radius * minor_scale * cos_mi\n            x = r * major_scale * cos_ma\n            y = r * major_scale * sin_ma\n            z = minor_radius * minor_scale * sin_mi\n\n            surf.set_cv(i, j, Point(x, y, z))\n\n            # Weight is product of major and minor weights\n            w_major = 1.0 if i % 2 == 0 else w\n            w_minor = 1.0 if j % 2 == 0 else w\n            surf.set_weight(i, j, w_major * w_minor)\n\n    # Verify torus properties\n\n    # Check point at (0, 0) - should be on outer edge of torus\n    pt = surf.point_at(0.0, 0.0)\n\n    # Check point at (PI, 0) - should be on opposite side of torus\n    pt_opp = surf.point_at(pi, 0.0)",
-    "checks": [
-      {
-        "line": 1024,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 1025,
-        "code_line": "surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 1026,
-        "code_line": "surf.degree(0) == 2",
-        "passed": true
-      },
-      {
-        "line": 1027,
-        "code_line": "surf.degree(1) == 2",
-        "passed": true
-      },
-      {
-        "line": 1028,
-        "code_line": "surf.cv_count_dir(0) == 9",
-        "passed": true
-      },
-      {
-        "line": 1029,
-        "code_line": "surf.cv_count_dir(1) == 9",
-        "passed": true
-      },
-      {
-        "line": 1033,
-        "code_line": "TOLERANCE.is_close(pt[0], major_radius + minor_radius)",
-        "passed": true
-      },
-      {
-        "line": 1034,
-        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1035,
-        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1039,
-        "code_line": "TOLERANCE.is_close(pt_opp[0], -(major_radius + minor_radius))",
-        "passed": true
-      },
-      {
-        "line": 1040,
-        "code_line": "TOLERANCE.is_close(pt_opp[1], 0.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Cone",
-    "passed": true,
-    "time_ms": 0.268,
-    "line": 1043,
-    "code": "    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    height = 4.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cone\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from apex to base\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cone (9 around, 2 heights: apex and base)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    # Apex (j=0) - all points collapse to the apex\n    for i in range(9):\n        surf.set_cv(i, 0, Point(0.0, 0.0, height))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 0, weight)\n\n    # Base (j=1) - circle at z=0\n    for i in range(9):\n        x = radius * math.cos(angles[i])\n        y = radius * math.sin(angles[i])\n        if i % 2 == 1:\n            x = radius * math.sqrt(2.0) * math.cos(angles[i])\n            y = radius * math.sqrt(2.0) * math.sin(angles[i])\n        surf.set_cv(i, 1, Point(x, y, 0.0))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 1, weight)\n\n    # Verify cone properties\n\n    # Check apex\n    apex = surf.point_at(0.0, 0.0)\n\n    # Check point on base circle at angle 0\n    base = surf.point_at(0.0, height)\n\n    # Check midpoint - should be at half radius, half height\n    mid = surf.point_at(0.0, height * 0.5)",
-    "checks": [
-      {
-        "line": 1087,
-        "code_line": "surf.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 1088,
-        "code_line": "surf.is_rational()",
-        "passed": true
-      },
-      {
-        "line": 1089,
-        "code_line": "surf.degree(0) == 2",
-        "passed": true
-      },
-      {
-        "line": 1090,
-        "code_line": "surf.degree(1) == 1",
-        "passed": true
-      },
-      {
-        "line": 1091,
-        "code_line": "surf.cv_count_dir(0) == 9",
-        "passed": true
-      },
-      {
-        "line": 1092,
-        "code_line": "surf.cv_count_dir(1) == 2",
-        "passed": true
-      },
-      {
-        "line": 1096,
-        "code_line": "TOLERANCE.is_close(apex[0], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1097,
-        "code_line": "TOLERANCE.is_close(apex[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1098,
-        "code_line": "TOLERANCE.is_close(apex[2], height)",
-        "passed": true
-      },
-      {
-        "line": 1102,
-        "code_line": "TOLERANCE.is_close(base[0], radius)",
-        "passed": true
-      },
-      {
-        "line": 1103,
-        "code_line": "TOLERANCE.is_close(base[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1104,
-        "code_line": "TOLERANCE.is_close(base[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 1108,
-        "code_line": "TOLERANCE.is_close(mid[0], radius * 0.5)",
-        "passed": true
-      },
-      {
-        "line": 1109,
-        "code_line": "TOLERANCE.is_close(mid[2], height * 0.5)",
         "passed": true
       }
     ],

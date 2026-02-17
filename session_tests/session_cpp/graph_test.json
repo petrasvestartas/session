@@ -2,7 +2,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 13.404,
+    "time_ms": 16.034,
     "line": 10,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    Graph original(\"./serialization/test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    std::string filename = \"./serialization/test_graph.json\";\n    encoders::json_dump(original, filename);\n    Graph loaded = encoders::json_load<Graph>(filename);\n\n\n    std::filesystem::remove(filename);\n}\n\n} // namespace session_cpp",
     "checks": [

@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.021,
     "line": 5,
     "code": "        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor\n        let mut p = Point::new(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        let x = p[0];\n        let y = p[1];\n        let z = p[2];\n\n        // Minimal and full string representation\n        let pstr = p.str();\n        let prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        let pcopy = p.duplicate();\n        let pother = Point::new(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        let mut pmult = p.duplicate();\n        pmult *= 2.0;\n        let mut pdiv = p.duplicate();\n        pdiv /= 2.0;\n        let mut padd = p.duplicate();\n        padd += Vector::new(1.0, 1.0, 1.0);\n        let mut psub = p.duplicate();\n        psub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &p * 2.0;\n        let result_div = &p / 2.0;\n        let result_add = &p + Vector::new(1.0, 1.0, 1.0);\n        let diff_point = &p - Vector::new(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        let p1 = Point::new(1.0, 2.0, 3.0);\n        let p2 = Point::new(4.0, 5.0, 6.0);\n        let psum = Point::sum(&p1, &p2);\n        let pdif = Point::sub(&p2, &p1);\n",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 81,
     "code": "        use crate::Point;\n        use crate::Xform;\n\n        let mut p = Point::new(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        let p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 12.613,
+    "time_ms": 9.522,
     "line": 97,
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::with_name(1.5, 2.5, 3.5, \"test_point\");\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_point.json\";\n        p.json_dump(filename).unwrap();\n        let loaded = Point::json_load(filename).unwrap();\n\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 8.755,
+    "time_ms": 11.582,
     "line": 128,
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::new(1.5, 2.5, 3.5);\n        p.name = \"test_point\".to_string();\n        p.width = 2.0;\n        p.pointcolor = Color::new(255, 128, 64, 255);\n\n        let filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        let loaded = Point::pb_load(filename);\n",
     "checks": [

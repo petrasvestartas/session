@@ -6908,8 +6908,8 @@ window.API_INDEX = {
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "return from_polygons(faces, 1e-10)",
-          "code": "return Mesh::from_polygons(faces, 1e-10);\n}",
+          "sig": "return from_polygons(polygons, 0.01)",
+          "code": "return Mesh::from_polygons(polygons, 0.01);\n}",
           "file": "primitives.cpp"
         },
         "rust": {
@@ -12989,6 +12989,7 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.cv_size",
         "NurbsSurface.destroy",
+        "NurbsSurface.divide_by_count",
         "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.divide_by_count_points",
         "NurbsSurface.domain",
@@ -13018,7 +13019,6 @@ window.API_INDEX = {
         "NurbsSurface.mesh_grid",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
-        "NurbsSurface.point_and_normal_at",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
         "NurbsSurface.reverse",
@@ -13432,6 +13432,9 @@ window.API_INDEX = {
         "NurbsSurface.cv_count_dir",
         "NurbsSurface.degree",
         "NurbsSurface.dimension",
+        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.is_clamped",
         "NurbsSurface.is_duplicate",
         "NurbsSurface.is_trimmed",
@@ -13535,6 +13538,7 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
         "NurbsSurface._from_curve_internal",
@@ -13568,6 +13572,7 @@ window.API_INDEX = {
         "NurbsSurface.dimension",
         "NurbsSurface.domain",
         "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
         "NurbsSurface.extend",
         "NurbsSurface.find_span",
         "NurbsSurface.get_knots",
@@ -13597,9 +13602,11 @@ window.API_INDEX = {
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
         "NurbsSurface.new",
+        "NurbsSurface.normal_at",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_knot",
@@ -13640,6 +13647,8 @@ window.API_INDEX = {
         "NurbsSurface.__ne__",
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._compute_bbox_diagonal",
         "NurbsSurface._create_impl",
         "NurbsSurface._span_subs",
@@ -13659,7 +13668,6 @@ window.API_INDEX = {
         "NurbsSurface.cv_count_dir",
         "NurbsSurface.cv_size",
         "NurbsSurface.dimension",
-        "NurbsSurface.divide_by_count",
         "NurbsSurface.duplicate",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -13739,10 +13747,9 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.destroy",
         "NurbsSurface.dimension",
-        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.domain",
         "NurbsSurface.duplicate",
-        "NurbsSurface.evaluate",
         "NurbsSurface.extend",
         "NurbsSurface.find_span",
         "NurbsSurface.get_bounding_box",
@@ -13861,6 +13868,7 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.destroy",
         "NurbsSurface.dimension",
+        "NurbsSurface.evaluate",
         "NurbsSurface.extend",
         "NurbsSurface.get_cv",
         "NurbsSurface.is_closed",
@@ -13870,8 +13878,10 @@ window.API_INDEX = {
         "NurbsSurface.knot_count",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_rational",
+        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner",
         "NurbsSurface.reverse",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
@@ -14029,7 +14039,7 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.destroy",
         "NurbsSurface.dimension",
-        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.domain",
         "NurbsSurface.duplicate",
         "NurbsSurface.evaluate",
@@ -14070,6 +14080,7 @@ window.API_INDEX = {
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
         "NurbsSurface.new",
+        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads",
@@ -14133,7 +14144,7 @@ window.API_INDEX = {
         "NurbsSurface.cv_count_total",
         "NurbsSurface.cv_size",
         "NurbsSurface.destroy",
-        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_cv_4d",
         "NurbsSurface.get_inner_loop",
@@ -14289,6 +14300,7 @@ window.API_INDEX = {
         "NurbsSurface.closest_point",
         "NurbsSurface.create",
         "NurbsSurface.cv",
+        "NurbsSurface.evaluate",
         "NurbsSurface.extend",
         "NurbsSurface.get_cv_4d",
         "NurbsSurface.insert_knot",
@@ -14296,6 +14308,7 @@ window.API_INDEX = {
         "NurbsSurface.knot",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_rational",
+        "NurbsSurface.normal_at",
         "NurbsSurface.point_at",
         "NurbsSurface.reverse",
         "NurbsSurface.set_cv",
@@ -14373,6 +14386,7 @@ window.API_INDEX = {
         "NurbsSurface.__repr__",
         "NurbsSurface.__str__",
         "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._create_impl",
         "NurbsSurface._find_span",
         "NurbsSurface._from_curve_internal",
@@ -14585,7 +14599,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.divide_by_count",
-        "NurbsSurface.evaluate",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.extend",
         "NurbsSurface.fix_closed_gap",
         "NurbsSurface.get_bounding_box",
@@ -14598,7 +14613,6 @@ window.API_INDEX = {
         "NurbsSurface.knot_multiplicity",
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.mesh",
-        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
         "NurbsSurface.set_domain",
@@ -14764,13 +14778,16 @@ window.API_INDEX = {
         "NurbsSurface.basis_functions",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
+        "NurbsSurface.evaluate",
         "NurbsSurface.find_span",
         "NurbsSurface.iso_curve",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.make_periodic_uniform_knot_vector",
+        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed_stored"
       ]
@@ -14780,23 +14797,51 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_basis_functions(dir: int, span: int, t: float) -> np.ndarray",
-          "code": "def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in knot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        knot_base = span + d\n        knot = self.m_knot[dir]\n\n        if knot[knot_base - 1] == knot[knot_base]:\n            out = np.zeros(order)\n            if t <= knot[knot_base]:\n                out[0] = 1.0\n            else:\n                out[order - 1] = 1.0\n            return out\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = knot_base\n        k_left = knot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - knot[k_left]\n            right[j] = knot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]\n    \n    ###########################################################################\n    # EVALUATION\n    ###########################################################################\n    \n    def point_at(self, u: float, v: float) -> Point:\n        \"\"\"Evaluate point on surface at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Point\n            Point on surface.\n        \"\"\"",
+          "code": "def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in knot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        knot_base = span + d\n        knot = self.m_knot[dir]\n\n        if knot[knot_base - 1] == knot[knot_base]:\n            out = np.zeros(order)\n            if t <= knot[knot_base]:\n                out[0] = 1.0\n            else:\n                out[order - 1] = 1.0\n            return out\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = knot_base\n        k_left = knot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - knot[k_left]\n            right[j] = knot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]\n\n    def _basis_functions_derivatives(self, dir: int, span: int, t: float, deriv_order: int) -> list:\n        if dir < 0 or dir >= 2:\n            return []\n        order = self.m_order[dir]\n        degree = order - 1\n        kv = self.m_knot[dir]\n        knot_base = span + degree\n\n        ders = [[0.0] * order for _ in range(deriv_order + 1)]\n\n        if kv[knot_base - 1] == kv[knot_base]:\n            return ders\n\n        ndu = [[0.0] * order for _ in range(order)]\n        ndu[0][0] = 1.0\n        left = [0.0] * (degree + 1)\n        right = [0.0] * (degree + 1)\n\n        for j in range(1, degree + 1):",
           "file": "nurbssurface.py"
         }
       },
       "related": [
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._find_span",
         "NurbsSurface.area",
         "NurbsSurface.basis_functions",
+        "NurbsSurface.basis_functions_derivatives",
+        "NurbsSurface.degree",
+        "NurbsSurface.evaluate",
         "NurbsSurface.find_span",
         "NurbsSurface.iso_curve",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.make_periodic_uniform_knot_vector",
+        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed_stored"
+      ]
+    },
+    {
+      "name": "NurbsSurface._basis_functions_derivatives",
+      "implementations": {
+        "python": {
+          "sig": "_basis_functions_derivatives(dir: int, span: int, t: float, deriv_order: int) -> list",
+          "code": "def _basis_functions_derivatives(self, dir: int, span: int, t: float, deriv_order: int) -> list:\n\n        if dir < 0 or dir >= 2:\n            return []\n        order = self.m_order[dir]\n        degree = order - 1\n        kv = self.m_knot[dir]\n        knot_base = span + degree\n\n        ders = [[0.0] * order for _ in range(deriv_order + 1)]\n\n        if kv[knot_base - 1] == kv[knot_base]:\n            return ders\n\n        ndu = [[0.0] * order for _ in range(order)]\n        ndu[0][0] = 1.0\n        left = [0.0] * (degree + 1)\n        right = [0.0] * (degree + 1)\n\n        for j in range(1, degree + 1):\n            left[j] = t - kv[knot_base - j]\n            right[j] = kv[knot_base + j - 1] - t\n            saved = 0.0\n            for r in range(j):\n                ndu[j][r] = right[r + 1] + left[j - r]\n                temp = ndu[r][j - 1] / ndu[j][r]\n                ndu[r][j] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            ndu[j][j] = saved\n\n        for j in range(degree + 1):\n            ders[0][j] = ndu[j][degree]\n\n        a = [[0.0] * order for _ in range(2)]\n        for r in range(degree + 1):\n            s1, s2 = 0, 1\n            a[0][0] = 1.0\n            for k in range(1, deriv_order + 1):\n                d = 0.0\n                rk = r - k\n                pk = degree - k\n                if r >= k:\n                    a[s2][0] = a[s1][0] / ndu[pk + 1][rk]\n                    d = a[s2][0] * ndu[rk][pk]\n                j1 = 1 if rk >= -1 else -rk\n                j2 = k - 1 if r - 1 <= pk else degree - r\n                for j in range(j1, j2 + 1):\n                    a[s2][j] = (a[s1][j] - a[s1][j - 1]) / ndu[pk + 1][rk + j]\n                    d += a[s2][j] * ndu[rk + j][pk]\n                if r <= pk:\n                    a[s2][k] = -a[s1][k - 1] / ndu[pk + 1][r]\n                    d += a[s2][k] * ndu[r][pk]\n                ders[k][r] = d\n                s1, s2 = s2, s1\n\n        factorial = degree\n        for k in range(1, deriv_order + 1):\n            for j in range(degree + 1):\n                ders[k][j] *= factorial\n            factorial *= (degree - k)\n\n        return ders\n\n    ###########################################################################\n    # EVALUATION\n    ###########################################################################\n    \n    def point_at(self, u: float, v: float) -> Point:\n        \"\"\"Evaluate point on surface at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Point\n            Point on surface.",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface.basis_functions",
+        "NurbsSurface.basis_functions_derivatives",
+        "NurbsSurface.degree",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.knot",
+        "NurbsSurface.normal_at",
+        "NurbsSurface.order",
+        "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner"
       ]
     },
     {
@@ -14808,8 +14853,8 @@ window.API_INDEX = {
           "file": "nurbssurface.py"
         },
         "cpp": {
-          "sig": "void point_at(double u, double v, double& ox, double& oy, double& oz)",
-          "code": "void NurbsSurface::point_at(double u, double v, double& ox, double& oy, double& oz) const {\n    if (!is_valid()) { ox = oy = oz = 0; return; }",
+          "sig": "Point point_at(double u, double v)",
+          "code": "Point NurbsSurface::point_at(double u, double v) const {\n    if (!is_valid()) return Point(0, 0, 0);\n    \n    // Find spans - returns indices in range [0, cv_count-order]\n    int span_u = find_span(0, u);\n    int span_v = find_span(1, v);\n    \n    // Compute basis functions\n    std::vector<double> Nu, Nv;\n    basis_functions(0, span_u, u, Nu);\n    basis_functions(1, span_v, v, Nv);\n    \n    // Evaluate surface point - OpenNURBS lines 1107-1117\n    // CV index starts at span (since span is in range [0, cv_count-order])\n    int cv_size_val = m_is_rat ? (m_dim + 1) : m_dim;\n    std::vector<double> point(cv_size_val, 0.0);\n    \n    for (int j0 = 0; j0 < m_order[0]; j0++) {\n        int cv_i = span_u + j0;\n        for (int j1 = 0; j1 < m_order[1]; j1++) {\n            int cv_j = span_v + j1;\n            double c = Nu[j0] * Nv[j1];\n            const double* cv_ptr = cv(cv_i, cv_j);\n            if (cv_ptr) {\n                for (int d = 0; d < cv_size_val; d++) {\n                    point[d] += c * cv_ptr[d];\n                }",
           "file": "nurbssurface.cpp"
         },
         "rust": {
@@ -14820,6 +14865,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._compute_bbox_diagonal",
         "NurbsSurface._find_span",
         "NurbsSurface._span_subs",
@@ -14834,7 +14880,8 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.cv_size",
         "NurbsSurface.divide_by_count",
-        "NurbsSurface.evaluate",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.find_span",
         "NurbsSurface.fix_closed_gap",
         "NurbsSurface.get_bounding_box",
@@ -14848,6 +14895,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
+        "NurbsSurface.point_and_normal_at",
         "NurbsSurface.point_at_corner",
         "NurbsSurface.set_outer_loop",
         "NurbsSurface.weight"
@@ -14858,7 +14906,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_at_corner(u_end: int, v_end: int) -> Point",
-          "code": "def point_at_corner(self, u_end: int, v_end: int) -> Point:\n\n        \"\"\"Get point at corner (u_end, v_end) where end is 0 or 1.\n        \n        Parameters\n        ----------\n        u_end : int\n            U corner (0 or 1).\n        v_end : int\n            V corner (0 or 1).\n        \n        Returns\n        -------\n        Point\n            Corner point.\n        \"\"\"\n        i = 0 if u_end == 0 else self.m_cv_count[0] - 1\n        j = 0 if v_end == 0 else self.m_cv_count[1] - 1\n        return self.get_cv(i, j)\n    \n    def normal_at(self, u: float, v: float) -> Vector:\n        \"\"\"Get normal vector at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Vector\n            Normal vector at (u, v).\n        \"\"\"\n        derivs = self.evaluate(u, v, 1)\n        if len(derivs) < 3:\n            return Vector(0, 0, 1)\n        \n        du = derivs[1]\n        dv = derivs[2]\n        normal = dv.cross(du)\n        \n        mag = normal.magnitude()\n        if mag < 1e-14:\n            return Vector(0, 0, 1)\n        \n        return normal / mag\n    \n    def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n        \"\"\"Evaluate point and derivatives on surface.\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        num_derivs : int, optional\n            Number of derivatives to compute. Defaults to 0.\n        \n        Returns\n        -------\n        list of Vector\n            [point, du, dv, duu, duv, dvv, ...] depending on num_derivs.\n        \"\"\"\n        if not self.is_valid():\n            return [Vector(0, 0, 0)]\n        \n        # For now, implement basic evaluation (point only)\n        # Full derivative implementation would require basis_functions_derivatives\n        pt = self.point_at(u, v)\n        result = [Vector(pt.x, pt.y, pt[2])]\n        \n        if num_derivs > 0:\n            # Approximate derivatives with finite differences\n            h = 1e-6\n            u0, u1 = self.domain(0)\n            v0, v1 = self.domain(1)\n            \n            # du derivative",
+          "code": "def point_at_corner(self, u_end: int, v_end: int) -> Point:\n\n        \"\"\"Get point at corner (u_end, v_end) where end is 0 or 1.\n        \n        Parameters\n        ----------\n        u_end : int\n            U corner (0 or 1).\n        v_end : int\n            V corner (0 or 1).\n        \n        Returns\n        -------\n        Point\n            Corner point.\n        \"\"\"\n        i = 0 if u_end == 0 else self.m_cv_count[0] - 1\n        j = 0 if v_end == 0 else self.m_cv_count[1] - 1\n        return self.get_cv(i, j)\n    \n    def normal_at(self, u: float, v: float) -> Vector:\n        \"\"\"Get normal vector at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Vector\n            Normal vector at (u, v).\n        \"\"\"\n        derivs = self.evaluate(u, v, 1)\n        if len(derivs) < 3:\n            return Vector(0, 0, 1)\n        \n        du = derivs[1]\n        dv = derivs[2]\n        normal = dv.cross(du)\n        \n        mag = normal.magnitude()\n        if mag < 1e-14:\n            return Vector(0, 0, 1)\n        \n        return normal / mag\n    \n    def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n        if not self.is_valid() or num_derivs < 0:\n            return []\n        max_derivs = min(num_derivs, 2)\n        span_u = self._find_span(0, u)\n        span_v = self._find_span(1, v)\n        ders_u = self._basis_functions_derivatives(0, span_u, u, max_derivs)\n        ders_v = self._basis_functions_derivatives(1, span_v, v, max_derivs)\n\n        cv_size_val = (self.m_dim + 1) if self.m_is_rat else self.m_dim\n\n        # Compute all homogeneous derivatives\n        skl_all = []\n        for k in range(max_derivs + 1):\n            for l in range(max_derivs - k + 1):\n                skl = [0.0] * cv_size_val\n                for i in range(self.m_order[0]):\n                    cv_i = span_u + i\n                    for j in range(self.m_order[1]):\n                        cv_j = span_v + j\n                        coeff = ders_u[k][i] * ders_v[l][j]\n                        cv_data = self.cv(cv_i, cv_j)\n                        if cv_data is not None:\n                            for d in range(cv_size_val):\n                                skl[d] += coeff * cv_data[d]\n                skl_all.append((k, l, skl))\n\n        if not self.m_is_rat:\n            result = []\n            for k, l, skl in skl_all:\n                result.append(Vector(\n                    skl[0],",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -14873,17 +14921,23 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
+        "NurbsSurface._find_span",
         "NurbsSurface._span_subs",
         "NurbsSurface.basis_functions",
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
+        "NurbsSurface.cv_size",
         "NurbsSurface.domain",
         "NurbsSurface.evaluate",
+        "NurbsSurface.find_span",
         "NurbsSurface.get_cv",
         "NurbsSurface.is_valid",
         "NurbsSurface.mesh",
         "NurbsSurface.normal_at",
+        "NurbsSurface.order",
         "NurbsSurface.point_at"
       ]
     },
@@ -14892,7 +14946,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "normal_at(u: float, v: float) -> Vector",
-          "code": "def normal_at(self, u: float, v: float) -> Vector:\n\n        \"\"\"Get normal vector at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Vector\n            Normal vector at (u, v).\n        \"\"\"\n        derivs = self.evaluate(u, v, 1)\n        if len(derivs) < 3:\n            return Vector(0, 0, 1)\n        \n        du = derivs[1]\n        dv = derivs[2]\n        normal = dv.cross(du)\n        \n        mag = normal.magnitude()\n        if mag < 1e-14:\n            return Vector(0, 0, 1)\n        \n        return normal / mag\n    \n    def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n        \"\"\"Evaluate point and derivatives on surface.\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        num_derivs : int, optional\n            Number of derivatives to compute. Defaults to 0.\n        \n        Returns\n        -------\n        list of Vector\n            [point, du, dv, duu, duv, dvv, ...] depending on num_derivs.\n        \"\"\"\n        if not self.is_valid():\n            return [Vector(0, 0, 0)]\n        \n        # For now, implement basic evaluation (point only)\n        # Full derivative implementation would require basis_functions_derivatives\n        pt = self.point_at(u, v)\n        result = [Vector(pt.x, pt.y, pt[2])]\n        \n        if num_derivs > 0:\n            # Approximate derivatives with finite differences\n            h = 1e-6\n            u0, u1 = self.domain(0)\n            v0, v1 = self.domain(1)\n            \n            # du derivative\n            if u + h <= u1:\n                pt_u = self.point_at(u + h, v)\n                du = Vector((pt_u.x - pt.x) / h,\n                           (pt_u.y - pt.y) / h,\n                           (pt_u.z - pt.z) / h)\n            else:\n                pt_u = self.point_at(u - h, v)\n                du = Vector((pt.x - pt_u.x) / h,\n                           (pt.y - pt_u.y) / h,\n                           (pt.z - pt_u.z) / h)\n            result.append(du)\n            \n            # dv derivative\n            if v + h <= v1:\n                pt_v = self.point_at(u, v + h)\n                dv = Vector((pt_v.x - pt.x) / h,\n                           (pt_v.y - pt.y) / h,\n                           (pt_v.z - pt.z) / h)\n            else:",
+          "code": "def normal_at(self, u: float, v: float) -> Vector:\n\n        \"\"\"Get normal vector at parameter (u, v).\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        \n        Returns\n        -------\n        Vector\n            Normal vector at (u, v).\n        \"\"\"\n        derivs = self.evaluate(u, v, 1)\n        if len(derivs) < 3:\n            return Vector(0, 0, 1)\n        \n        du = derivs[1]\n        dv = derivs[2]\n        normal = dv.cross(du)\n        \n        mag = normal.magnitude()\n        if mag < 1e-14:\n            return Vector(0, 0, 1)\n        \n        return normal / mag\n    \n    def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n        if not self.is_valid() or num_derivs < 0:\n            return []\n        max_derivs = min(num_derivs, 2)\n        span_u = self._find_span(0, u)\n        span_v = self._find_span(1, v)\n        ders_u = self._basis_functions_derivatives(0, span_u, u, max_derivs)\n        ders_v = self._basis_functions_derivatives(1, span_v, v, max_derivs)\n\n        cv_size_val = (self.m_dim + 1) if self.m_is_rat else self.m_dim\n\n        # Compute all homogeneous derivatives\n        skl_all = []\n        for k in range(max_derivs + 1):\n            for l in range(max_derivs - k + 1):\n                skl = [0.0] * cv_size_val\n                for i in range(self.m_order[0]):\n                    cv_i = span_u + i\n                    for j in range(self.m_order[1]):\n                        cv_j = span_v + j\n                        coeff = ders_u[k][i] * ders_v[l][j]\n                        cv_data = self.cv(cv_i, cv_j)\n                        if cv_data is not None:\n                            for d in range(cv_size_val):\n                                skl[d] += coeff * cv_data[d]\n                skl_all.append((k, l, skl))\n\n        if not self.m_is_rat:\n            result = []\n            for k, l, skl in skl_all:\n                result.append(Vector(\n                    skl[0],\n                    skl[1] if self.m_dim > 1 else 0,\n                    skl[2] if self.m_dim > 2 else 0\n                ))\n            return result\n\n        # Rational: proper quotient rule (NURBS Book A4.2)\n        w00 = skl_all[0][2][self.m_dim]\n        if abs(w00) < 1e-14:\n            return [Vector(0, 0, 0)] * len(skl_all)\n        dim = self.m_dim\n        pt = Vector(skl_all[0][2][0] / w00,\n                    skl_all[0][2][1] / w00 if dim > 1 else 0,\n                    skl_all[0][2][2] / w00 if dim > 2 else 0)\n        result = [pt]\n\n        # Build lookup for weight derivatives\n        wders = {}\n        for k, l, skl in skl_all:\n            wders[(k, l)] = skl[dim]",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -14907,25 +14961,35 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._compute_bbox_diagonal",
+        "NurbsSurface._find_span",
         "NurbsSurface._span_subs",
         "NurbsSurface.add_inner_loop",
         "NurbsSurface.basis_functions",
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.clear_inner_loops",
         "NurbsSurface.clear_outer_loop",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_size",
         "NurbsSurface.divide_by_count",
-        "NurbsSurface.domain",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.evaluate",
+        "NurbsSurface.find_span",
+        "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
         "NurbsSurface.inner_loop_count",
         "NurbsSurface.is_valid",
         "NurbsSurface.new",
+        "NurbsSurface.order",
         "NurbsSurface.point_and_normal_at",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.set_outer_loop"
+        "NurbsSurface.set_outer_loop",
+        "NurbsSurface.weight"
       ]
     },
     {
@@ -14933,7 +14997,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "evaluate(u: float, v: float, num_derivs: int = 0) -> List[Vector]",
-          "code": "def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n\n        \"\"\"Evaluate point and derivatives on surface.\n        \n        Parameters\n        ----------\n        u : float\n            Parameter in u direction.\n        v : float\n            Parameter in v direction.\n        num_derivs : int, optional\n            Number of derivatives to compute. Defaults to 0.\n        \n        Returns\n        -------\n        list of Vector\n            [point, du, dv, duu, duv, dvv, ...] depending on num_derivs.\n        \"\"\"\n        if not self.is_valid():\n            return [Vector(0, 0, 0)]\n        \n        # For now, implement basic evaluation (point only)\n        # Full derivative implementation would require basis_functions_derivatives\n        pt = self.point_at(u, v)\n        result = [Vector(pt.x, pt.y, pt[2])]\n        \n        if num_derivs > 0:\n            # Approximate derivatives with finite differences\n            h = 1e-6\n            u0, u1 = self.domain(0)\n            v0, v1 = self.domain(1)\n            \n            # du derivative\n            if u + h <= u1:\n                pt_u = self.point_at(u + h, v)\n                du = Vector((pt_u.x - pt.x) / h,\n                           (pt_u.y - pt.y) / h,\n                           (pt_u.z - pt.z) / h)\n            else:\n                pt_u = self.point_at(u - h, v)\n                du = Vector((pt.x - pt_u.x) / h,\n                           (pt.y - pt_u.y) / h,\n                           (pt.z - pt_u.z) / h)\n            result.append(du)\n            \n            # dv derivative\n            if v + h <= v1:\n                pt_v = self.point_at(u, v + h)\n                dv = Vector((pt_v.x - pt.x) / h,\n                           (pt_v.y - pt.y) / h,\n                           (pt_v.z - pt.z) / h)\n            else:\n                pt_v = self.point_at(u, v - h)\n                dv = Vector((pt.x - pt_v.x) / h,\n                           (pt.y - pt_v.y) / h,\n                           (pt.z - pt_v.z) / h)\n            result.append(dv)\n        \n        return result\n    \n    ###########################################################################\n    # TRANSFORMATION\n    ###########################################################################\n    \n    def transform(self, xform: Optional[Xform] = None) -> bool:\n        \"\"\"Apply transformation to surface (in-place).\n        \n        Parameters\n        ----------\n        xform : Xform, optional\n            Transformation to apply. If None, uses self.xform.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if xform is None:\n            xform = self.xform\n        \n        for i in range(self.m_cv_count[0]):",
+          "code": "def evaluate(self, u: float, v: float, num_derivs: int = 0) -> List[Vector]:\n\n        if not self.is_valid() or num_derivs < 0:\n            return []\n        max_derivs = min(num_derivs, 2)\n        span_u = self._find_span(0, u)\n        span_v = self._find_span(1, v)\n        ders_u = self._basis_functions_derivatives(0, span_u, u, max_derivs)\n        ders_v = self._basis_functions_derivatives(1, span_v, v, max_derivs)\n\n        cv_size_val = (self.m_dim + 1) if self.m_is_rat else self.m_dim\n\n        # Compute all homogeneous derivatives\n        skl_all = []\n        for k in range(max_derivs + 1):\n            for l in range(max_derivs - k + 1):\n                skl = [0.0] * cv_size_val\n                for i in range(self.m_order[0]):\n                    cv_i = span_u + i\n                    for j in range(self.m_order[1]):\n                        cv_j = span_v + j\n                        coeff = ders_u[k][i] * ders_v[l][j]\n                        cv_data = self.cv(cv_i, cv_j)\n                        if cv_data is not None:\n                            for d in range(cv_size_val):\n                                skl[d] += coeff * cv_data[d]\n                skl_all.append((k, l, skl))\n\n        if not self.m_is_rat:\n            result = []\n            for k, l, skl in skl_all:\n                result.append(Vector(\n                    skl[0],\n                    skl[1] if self.m_dim > 1 else 0,\n                    skl[2] if self.m_dim > 2 else 0\n                ))\n            return result\n\n        # Rational: proper quotient rule (NURBS Book A4.2)\n        w00 = skl_all[0][2][self.m_dim]\n        if abs(w00) < 1e-14:\n            return [Vector(0, 0, 0)] * len(skl_all)\n        dim = self.m_dim\n        pt = Vector(skl_all[0][2][0] / w00,\n                    skl_all[0][2][1] / w00 if dim > 1 else 0,\n                    skl_all[0][2][2] / w00 if dim > 2 else 0)\n        result = [pt]\n\n        # Build lookup for weight derivatives\n        wders = {}\n        for k, l, skl in skl_all:\n            wders[(k, l)] = skl[dim]\n\n        # Cartesian derivatives lookup\n        aders = {(0, 0): pt}\n        for k, l, skl in skl_all[1:]:\n            a = [skl[0], skl[1] if dim > 1 else 0, skl[2] if dim > 2 else 0]\n            for i in range(1, k + 1):\n                from math import comb\n                prev = aders.get((k - i, l))\n                if prev is not None:\n                    c = comb(k, i) * wders.get((i, 0), 0)\n                    a[0] -= c * prev[0]\n                    a[1] -= c * prev[1]\n                    a[2] -= c * prev[2]\n            for j in range(1, l + 1):\n                from math import comb\n                prev = aders.get((k, l - j))\n                if prev is not None:\n                    c = comb(l, j) * wders.get((0, j), 0)\n                    a[0] -= c * prev[0]\n                    a[1] -= c * prev[1]\n                    a[2] -= c * prev[2]\n            v = Vector(a[0] / w00, a[1] / w00, a[2] / w00)\n            aders[(k, l)] = v\n            result.append(v)\n\n        return result\n    \n    ###########################################################################\n    # TRANSFORMATION",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -14943,26 +15007,32 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "evaluate(u: f64, v: f64, num_derivs: usize) -> Vec<Vector>",
-          "code": "pub fn evaluate(&self, u: f64, v: f64, num_derivs: usize) -> Vec<Vector> {\n        let mut result = Vec::new();\n\n        if !self.is_valid() {\n            result.push(Vector::new(0.0, 0.0, 0.0));\n            return result;\n        }\n\n        let pt_opt = self.point_at(u, v);\n        if pt_opt.is_none() {\n            result.push(Vector::new(0.0, 0.0, 0.0));\n            return result;\n        }\n        let pt = pt_opt.unwrap();\n        result.push(Vector::new(pt[0], pt[1], pt[2]));\n\n        if num_derivs > 0 {\n            // Finite difference step (match Python implementation semantics)\n            let h = 1e-6;\n            let (_, u1) = match self.domain(0) { Some(d) => d, None => (u - h, u + h) };\n            let (_, v1) = match self.domain(1) { Some(d) => d, None => (v - h, v + h) };\n\n            // du derivative (forward if possible, else backward)\n            let du_vec = if u + h <= u1 {\n                if let Some(pt_u) = self.point_at(u + h, v) {\n                    Vector::new(\n                        (pt_u[0] - pt[0]) / h,\n                        (pt_u[1] - pt[1]) / h,\n                        (pt_u[2] - pt[2]) / h,\n                    )\n                } else {\n                    Vector::new(0.0, 0.0, 0.0)\n                }\n            } else {\n                if let Some(pt_um) = self.point_at(u - h, v) {\n                    Vector::new(\n                        (pt[0] - pt_um[0]) / h,\n                        (pt[1] - pt_um[1]) / h,\n                        (pt[2] - pt_um[2]) / h,\n                    )\n                } else {\n                    Vector::new(0.0, 0.0, 0.0)\n                }\n            };\n            result.push(du_vec);\n\n            // dv derivative (forward if possible, else backward)\n            let dv_vec = if v + h <= v1 {\n                if let Some(pt_v) = self.point_at(u, v + h) {\n                    Vector::new(\n                        (pt_v[0] - pt[0]) / h,\n                        (pt_v[1] - pt[1]) / h,\n                        (pt_v[2] - pt[2]) / h,\n                    )\n                } else {\n                    Vector::new(0.0, 0.0, 0.0)\n                }\n            } else {\n                if let Some(pt_vm) = self.point_at(u, v - h) {\n                    Vector::new(\n                        (pt[0] - pt_vm[0]) / h,\n                        (pt[1] - pt_vm[1]) / h,\n                        (pt[2] - pt_vm[2]) / h,\n                    )\n                } else {\n                    Vector::new(0.0, 0.0, 0.0)\n                }\n            };\n            result.push(dv_vec);\n        }\n\n        result\n    }",
+          "code": "pub fn evaluate(&self, u: f64, v: f64, num_derivs: usize) -> Vec<Vector> {\n        let mut result = Vec::new();\n        if !self.is_valid() || num_derivs > 2 { return result; }\n        let max_derivs = num_derivs.min(2);\n\n        let span_u = self.find_span(0, u);\n        let span_v = self.find_span(1, v);\n        if span_u < 0 || span_v < 0 { return result; }\n        let span_u = span_u as usize;\n        let span_v = span_v as usize;\n\n        let ders_u = self.basis_functions_derivatives(0, span_u, u, max_derivs);\n        let ders_v = self.basis_functions_derivatives(1, span_v, v, max_derivs);\n\n        let cv_size_val = if self.m_is_rat { self.m_dim + 1 } else { self.m_dim };\n\n        // Compute all homogeneous derivatives\n        let mut skl_all: Vec<(usize, usize, Vec<f64>)> = Vec::new();\n        for k in 0..=max_derivs {\n            for l in 0..=(max_derivs - k) {\n                let mut skl = vec![0.0; cv_size_val];\n                for i in 0..self.m_order[0] {\n                    let cv_i = span_u + i;\n                    for j in 0..self.m_order[1] {\n                        let cv_j = span_v + j;\n                        let coeff = ders_u[k][i] * ders_v[l][j];\n                        if let Some(cv_ptr) = self.cv(cv_i, cv_j) {\n                            for d in 0..cv_size_val {\n                                skl[d] += coeff * cv_ptr[d];\n                            }\n                        }\n                    }\n                }\n                skl_all.push((k, l, skl));\n            }\n        }\n\n        if !self.m_is_rat {\n            for (_, _, skl) in &skl_all {\n                result.push(Vector::new(\n                    skl[0],\n                    if self.m_dim > 1 { skl[1] } else { 0.0 },\n                    if self.m_dim > 2 { skl[2] } else { 0.0 },\n                ));\n            }\n            return result;\n        }\n\n        // Rational: proper quotient rule (NURBS Book A4.2)\n        let w00 = skl_all[0].2[self.m_dim];\n        if w00.abs() < 1e-14 {\n            return vec![Vector::new(0.0, 0.0, 0.0); skl_all.len()];\n        }\n        let dim = self.m_dim;\n        let pt = Vector::new(\n            skl_all[0].2[0] / w00,\n            if dim > 1 { skl_all[0].2[1] / w00 } else { 0.0 },\n            if dim > 2 { skl_all[0].2[2] / w00 } else { 0.0 },\n        );\n        result.push(pt.clone());\n\n        // Build lookup for weight derivatives\n        let mut wders = std::collections::HashMap::new();\n        for (k, l, skl) in &skl_all {\n            wders.insert((*k, *l), skl[dim]);\n        }\n\n        // Cartesian derivatives lookup\n        let mut aders: std::collections::HashMap<(usize, usize), Vector> = std::collections::HashMap::new();\n        aders.insert((0, 0), pt);\n\n        fn binom(n: usize, k: usize) -> f64 {\n            if k > n { return 0.0; }\n            let mut r = 1.0;\n            for i in 0..k { r = r * (n - i) as f64 / (i + 1) as f64; }\n            r\n        }\n\n        for idx in 1..skl_all.len() {\n            let (k, l, ref skl) = skl_all[idx];\n            let mut a = [\n                skl[0],\n                if dim > 1 { skl[1] } else { 0.0 },\n                if dim > 2 { skl[2] } else { 0.0 },\n            ];\n            for i in 1..=k {\n                if let Some(prev) = aders.get(&(k - i, l)) {\n                    let c = binom(k, i) * wders.get(&(i, 0)).copied().unwrap_or(0.0);\n                    a[0] -= c * prev[0];\n                    a[1] -= c * prev[1];\n                    a[2] -= c * prev[2];\n                }\n            }\n            for j in 1..=l {\n                if let Some(prev) = aders.get(&(k, l - j)) {\n                    let c = binom(l, j) * wders.get(&(0, j)).copied().unwrap_or(0.0);\n                    a[0] -= c * prev[0];\n                    a[1] -= c * prev[1];\n                    a[2] -= c * prev[2];\n                }\n            }\n            let v = Vector::new(a[0] / w00, a[1] / w00, a[2] / w00);\n            aders.insert((k, l), v.clone());\n            result.push(v);\n        }\n\n        result\n    }",
           "file": "nurbssurface.rs"
         }
       },
       "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
+        "NurbsSurface._find_span",
         "NurbsSurface.basis_functions",
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.boundary_curves_3d",
         "NurbsSurface.closest_point",
         "NurbsSurface.cv",
-        "NurbsSurface.cv_count",
-        "NurbsSurface.domain",
+        "NurbsSurface.cv_size",
+        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
+        "NurbsSurface.find_span",
         "NurbsSurface.grid_idx",
         "NurbsSurface.is_valid",
         "NurbsSurface.mesh",
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
-        "NurbsSurface.point_at",
+        "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.transform"
+        "NurbsSurface.weight"
       ]
     },
     {
@@ -14988,7 +15058,6 @@ window.API_INDEX = {
         "NurbsSurface.clamp_end",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
-        "NurbsSurface.evaluate",
         "NurbsSurface.get_cv",
         "NurbsSurface.increase_degree",
         "NurbsSurface.is_valid",
@@ -15224,7 +15293,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_bounding_box() -> BoundingBox",
-          "code": "def get_bounding_box(self) -> BoundingBox:\n\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        BoundingBox\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return BoundingBox()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))\n\n        center = Point((min_pt.x + max_pt.x) / 2.0,\n                      (min_pt.y + max_pt.y) / 2.0,\n                      (min_pt.z + max_pt.z) / 2.0)\n        half_size = Vector((max_pt.x - min_pt.x) / 2.0,\n                          (max_pt.y - min_pt.y) / 2.0,\n                          (max_pt.z - min_pt.z) / 2.0)\n\n        return BoundingBox(center, Vector.x_axis(), Vector.y_axis(), Vector.z_axis(), half_size)\n    \n    def divide_by_count(self, nu: int, nv: int):\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def clear_outer_loop(self):\n        self.m_outer_loop = NurbsCurve()\n\n    def add_inner_loop(self, loop):\n        self.m_inner_loops.append(loop)\n\n    def get_inner_loop(self, index):\n        return self.m_inner_loops[index]\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops = []\n\n    def _compute_bbox_diagonal(self):\n        import math\n        minx = miny = minz = 1e30\n        maxx = maxy = maxz = -1e30\n        for i in range(self.cv_count(0)):\n            for j in range(self.cv_count(1)):",
+          "code": "def get_bounding_box(self) -> BoundingBox:\n\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        BoundingBox\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return BoundingBox()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))\n\n        center = Point((min_pt.x + max_pt.x) / 2.0,\n                      (min_pt.y + max_pt.y) / 2.0,\n                      (min_pt.z + max_pt.z) / 2.0)\n        half_size = Vector((max_pt.x - min_pt.x) / 2.0,\n                          (max_pt.y - min_pt.y) / 2.0,\n                          (max_pt.z - min_pt.z) / 2.0)\n\n        return BoundingBox(center, Vector.x_axis(), Vector.y_axis(), Vector.z_axis(), half_size)\n    \n    def divide_by_count(self, nu: int, nv: int):\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def divide_by_count_points(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        grid_vector = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            row_vector = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                row_vector.append(self.normal_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            grid_vector.append(row_vector)\n            params.append(param_row)\n\n        return grid, grid_vector, params\n\n    def divide_by_count_planes(self, nu: int, nv: int):\n        if not self.is_valid():",
           "file": "nurbssurface.py"
         },
         "rust": {
@@ -15234,22 +15303,17 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsSurface._compute_bbox_diagonal",
-        "NurbsSurface.add_inner_loop",
-        "NurbsSurface.clear_inner_loops",
-        "NurbsSurface.clear_outer_loop",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.domain",
         "NurbsSurface.get_cv",
-        "NurbsSurface.get_inner_loop",
-        "NurbsSurface.get_outer_loop",
-        "NurbsSurface.inner_loop_count",
         "NurbsSurface.is_valid",
         "NurbsSurface.new",
-        "NurbsSurface.point_at",
-        "NurbsSurface.set_outer_loop"
+        "NurbsSurface.normal_at",
+        "NurbsSurface.point_at"
       ]
     },
     {
@@ -15257,12 +15321,81 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "divide_by_count(nu: int, nv: int)",
-          "code": "def divide_by_count(self, nu: int, nv: int):\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def clear_outer_loop(self):\n        self.m_outer_loop = NurbsCurve()\n\n    def add_inner_loop(self, loop):\n        self.m_inner_loops.append(loop)\n\n    def get_inner_loop(self, index):\n        return self.m_inner_loops[index]\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops = []\n\n    def _compute_bbox_diagonal(self):\n        import math\n        minx = miny = minz = 1e30\n        maxx = maxy = maxz = -1e30\n        for i in range(self.cv_count(0)):\n            for j in range(self.cv_count(1)):\n                p = self.get_cv(i, j)\n                if p[0] < minx: minx = p[0]\n                if p[1] < miny: miny = p[1]\n                if p[2] < minz: minz = p[2]\n                if p[0] > maxx: maxx = p[0]\n                if p[1] > maxy: maxy = p[1]\n                if p[2] > maxz: maxz = p[2]\n        dx, dy, dz = maxx-minx, maxy-miny, maxz-minz\n        return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n    def _span_subs(self, dir, sp, osp, max_angle_deg, bbox_diag):\n        import math\n        n = len(sp) - 1\n        n_other = len(osp) - 1\n        subs = [1] * n\n        deg_u = self.degree(0)\n        deg_v = self.degree(1)\n        degree_dir = deg_u if dir == 0 else deg_v\n        s_positions = [(osp[k] + osp[k + 1]) * 0.5 for k in range(n_other)]\n        for i in range(n):\n            t0, t1 = sp[i], sp[i + 1]\n            if degree_dir > 1:\n                max_angle = 0.0\n                for s in s_positions:\n                    prev_n = None\n                    total_angle = 0.0\n                    for k in range(5):\n                        t = t0 + k * (t1 - t0) / 4.0\n                        if dir == 0:\n                            nv = self.normal_at(t, s)\n                        else:\n                            nv = self.normal_at(s, t)\n                        if prev_n is not None:",
+          "code": "def divide_by_count(self, nu: int, nv: int):\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def divide_by_count_points(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        grid_vector = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            row_vector = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                row_vector.append(self.normal_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            grid_vector.append(row_vector)\n            params.append(param_row)\n\n        return grid, grid_vector, params\n\n    def divide_by_count_planes(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                origin = self.point_at(u, v)\n                derivs = self.evaluate(u, v, 1)\n                su = derivs[2]\n                sv = derivs[1]\n                x_axis = su.duplicate()\n                if x_axis.magnitude() > 1e-14:\n                    x_axis.normalize_self()\n                y_axis = sv.duplicate()\n                if y_axis.magnitude() > 1e-14:\n                    y_axis.normalize_self()\n                n = self.normal_at(u, v)\n                plane = Plane()\n                plane._origin = origin\n                plane._x_axis = x_axis\n                plane._y_axis = y_axis\n                plane._z_axis = n\n                plane._update_equation()\n                row.append(plane)\n                param_row.append((u, v))\n            grid.append(row)",
           "file": "nurbssurface.py"
         },
         "rust": {
           "sig": "divide_by_count(nu: usize, nv: usize) -> (Vec<Vec<Point>>, Vec<Vec<(f64, f64)>>)",
           "code": "pub fn divide_by_count(&self, nu: usize, nv: usize) -> (Vec<Vec<Point>>, Vec<Vec<(f64, f64)>>) {\n        let (u0, u1) = match self.domain(0) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new()),\n        };\n        let (v0, v1) = match self.domain(1) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new()),\n        };\n\n        let mut grid = vec![vec![Point::new(0.0, 0.0, 0.0); nv + 1]; nu + 1];\n        let mut params = vec![vec![(0.0, 0.0); nv + 1]; nu + 1];\n\n        for i in 0..=nu {\n            let u = if nu > 0 {\n                u0 + (u1 - u0) * (i as f64 / nu as f64)\n            } else {\n                u0\n            };\n\n            for j in 0..=nv {\n                let v = if nv > 0 {\n                    v0 + (v1 - v0) * (j as f64 / nv as f64)\n                } else {\n                    v0\n                };\n\n                grid[i][j] = self.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                params[i][j] = (u, v);\n            }\n        }\n\n        (grid, params)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
+        "NurbsSurface.domain",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.new",
+        "NurbsSurface.normal_at",
+        "NurbsSurface.point_at"
+      ]
+    },
+    {
+      "name": "NurbsSurface.divide_by_count_points",
+      "implementations": {
+        "python": {
+          "sig": "divide_by_count_points(nu: int, nv: int)",
+          "code": "def divide_by_count_points(self, nu: int, nv: int):\n\n        if not self.is_valid():\n            return [], [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        grid_vector = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            row_vector = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                row_vector.append(self.normal_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            grid_vector.append(row_vector)\n            params.append(param_row)\n\n        return grid, grid_vector, params\n\n    def divide_by_count_planes(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                origin = self.point_at(u, v)\n                derivs = self.evaluate(u, v, 1)\n                su = derivs[2]\n                sv = derivs[1]\n                x_axis = su.duplicate()\n                if x_axis.magnitude() > 1e-14:\n                    x_axis.normalize_self()\n                y_axis = sv.duplicate()\n                if y_axis.magnitude() > 1e-14:\n                    y_axis.normalize_self()\n                n = self.normal_at(u, v)\n                plane = Plane()\n                plane._origin = origin\n                plane._x_axis = x_axis\n                plane._y_axis = y_axis\n                plane._z_axis = n\n                plane._update_equation()\n                row.append(plane)\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def clear_outer_loop(self):\n        self.m_outer_loop = NurbsCurve()\n\n    def add_inner_loop(self, loop):\n        self.m_inner_loops.append(loop)\n\n    def get_inner_loop(self, index):\n        return self.m_inner_loops[index]",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::tuple<std::vector<std::vector<Point>>, std::vector<std::vector<Vector>>, std::vector<std::vector<std::pair<double,double>>>> divide_by_count_points(int nu, int nv)",
+          "code": "std::tuple<std::vector<std::vector<Point>>, std::vector<std::vector<Vector>>, std::vector<std::vector<std::pair<double,double>>>>\nNurbsSurface::divide_by_count_points(int nu, int nv) const {\n    std::vector<std::vector<Point>> grid;\n    std::vector<std::vector<Vector>> grid_vector;\n    std::vector<std::vector<std::pair<double,double>>> params;\n\n    if (!is_valid()) {\n        return {grid, grid_vector, params}",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "divide_by_count_points(nu: usize, nv: usize) -> (Vec<Vec<Point>>, Vec<Vec<Vector>>, Vec<Vec<(f64, f64)>>)",
+          "code": "pub fn divide_by_count_points(&self, nu: usize, nv: usize) -> (Vec<Vec<Point>>, Vec<Vec<Vector>>, Vec<Vec<(f64, f64)>>) {\n        if !self.is_valid() {\n            return (Vec::new(), Vec::new(), Vec::new());\n        }\n\n        let (u0, u1) = match self.domain(0) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new(), Vec::new()),\n        };\n        let (v0, v1) = match self.domain(1) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new(), Vec::new()),\n        };\n\n        let mut grid = vec![vec![Point::new(0.0, 0.0, 0.0); nv + 1]; nu + 1];\n        let mut grid_vector = vec![vec![Vector::new(0.0, 0.0, 0.0); nv + 1]; nu + 1];\n        let mut params = vec![vec![(0.0, 0.0); nv + 1]; nu + 1];\n\n        for i in 0..=nu {\n            let u = if nu > 0 {\n                u0 + (u1 - u0) * (i as f64 / nu as f64)\n            } else {\n                u0\n            };\n            for j in 0..=nv {\n                let v = if nv > 0 {\n                    v0 + (v1 - v0) * (j as f64 / nv as f64)\n                } else {\n                    v0\n                };\n                grid[i][j] = self.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                grid_vector[i][j] = self.normal_at(u, v);\n                params[i][j] = (u, v);\n            }\n        }\n\n        (grid, grid_vector, params)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.add_inner_loop",
+        "NurbsSurface.clear_outer_loop",
+        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.domain",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.get_inner_loop",
+        "NurbsSurface.get_outer_loop",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.new",
+        "NurbsSurface.normal_at",
+        "NurbsSurface.point_at",
+        "NurbsSurface.set_outer_loop"
+      ]
+    },
+    {
+      "name": "NurbsSurface.divide_by_count_planes",
+      "implementations": {
+        "python": {
+          "sig": "divide_by_count_planes(nu: int, nv: int)",
+          "code": "def divide_by_count_planes(self, nu: int, nv: int):\n\n        if not self.is_valid():\n            return [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                origin = self.point_at(u, v)\n                derivs = self.evaluate(u, v, 1)\n                su = derivs[2]\n                sv = derivs[1]\n                x_axis = su.duplicate()\n                if x_axis.magnitude() > 1e-14:\n                    x_axis.normalize_self()\n                y_axis = sv.duplicate()\n                if y_axis.magnitude() > 1e-14:\n                    y_axis.normalize_self()\n                n = self.normal_at(u, v)\n                plane = Plane()\n                plane._origin = origin\n                plane._x_axis = x_axis\n                plane._y_axis = y_axis\n                plane._z_axis = n\n                plane._update_equation()\n                row.append(plane)\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def clear_outer_loop(self):\n        self.m_outer_loop = NurbsCurve()\n\n    def add_inner_loop(self, loop):\n        self.m_inner_loops.append(loop)\n\n    def get_inner_loop(self, index):\n        return self.m_inner_loops[index]\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops = []\n\n    def _compute_bbox_diagonal(self):\n        import math\n        minx = miny = minz = 1e30\n        maxx = maxy = maxz = -1e30\n        for i in range(self.cv_count(0)):\n            for j in range(self.cv_count(1)):\n                p = self.get_cv(i, j)\n                if p[0] < minx: minx = p[0]\n                if p[1] < miny: miny = p[1]\n                if p[2] < minz: minz = p[2]\n                if p[0] > maxx: maxx = p[0]\n                if p[1] > maxy: maxy = p[1]\n                if p[2] > maxz: maxz = p[2]\n        dx, dy, dz = maxx-minx, maxy-miny, maxz-minz\n        return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n    def _span_subs(self, dir, sp, osp, max_angle_deg, bbox_diag):\n        import math\n        n = len(sp) - 1\n        n_other = len(osp) - 1",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::pair<std::vector<std::vector<Plane>>, std::vector<std::vector<std::pair<double,double>>>> divide_by_count_planes(int nu, int nv)",
+          "code": "std::pair<std::vector<std::vector<Plane>>, std::vector<std::vector<std::pair<double,double>>>>\nNurbsSurface::divide_by_count_planes(int nu, int nv) const {\n    std::vector<std::vector<Plane>> grid;\n    std::vector<std::vector<std::pair<double,double>>> params;\n\n    if (!is_valid()) {\n        return {grid, params}",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "divide_by_count_planes(nu: usize, nv: usize) -> (Vec<Vec<Plane>>, Vec<Vec<(f64, f64)>>)",
+          "code": "pub fn divide_by_count_planes(&self, nu: usize, nv: usize) -> (Vec<Vec<Plane>>, Vec<Vec<(f64, f64)>>) {\n        if !self.is_valid() {\n            return (Vec::new(), Vec::new());\n        }\n\n        let (u0, u1) = match self.domain(0) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new()),\n        };\n        let (v0, v1) = match self.domain(1) {\n            Some(d) => d,\n            None => return (Vec::new(), Vec::new()),\n        };\n\n        let mut grid = Vec::with_capacity(nu + 1);\n        let mut params = vec![vec![(0.0, 0.0); nv + 1]; nu + 1];\n\n        for i in 0..=nu {\n            let u = if nu > 0 {\n                u0 + (u1 - u0) * (i as f64 / nu as f64)\n            } else {\n                u0\n            };\n            let mut row = Vec::with_capacity(nv + 1);\n            for j in 0..=nv {\n                let v = if nv > 0 {\n                    v0 + (v1 - v0) * (j as f64 / nv as f64)\n                } else {\n                    v0\n                };\n                let origin = self.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                let derivs = self.evaluate(u, v, 1);\n                let su = &derivs[2];\n                let sv = &derivs[1];\n                let mut x_axis = su.clone();\n                if x_axis.magnitude() > 1e-14 { x_axis.normalize(); }\n                let mut y_axis = sv.clone();\n                if y_axis.magnitude() > 1e-14 { y_axis.normalize(); }\n                let n = self.normal_at(u, v);\n                let plane = Plane::from_axes(origin, x_axis, y_axis, n);\n                row.push(plane);\n                params[i][j] = (u, v);\n            }\n            grid.push(row);\n        }\n\n        (grid, params)\n    }",
           "file": "nurbssurface.rs"
         }
       },
@@ -15274,15 +15407,17 @@ window.API_INDEX = {
         "NurbsSurface.clear_outer_loop",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
-        "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count",
         "NurbsSurface.divide_by_count_points",
         "NurbsSurface.domain",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
         "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
         "NurbsSurface.inner_loop_count",
+        "NurbsSurface.is_valid",
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.point_at",
@@ -15312,8 +15447,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15345,8 +15480,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.inner_loop_count",
@@ -15377,8 +15512,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15412,8 +15547,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15446,8 +15581,8 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_outer_loop",
         "NurbsSurface.inner_loop_count",
@@ -15479,8 +15614,7 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15511,8 +15645,7 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15539,8 +15672,7 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.get_bounding_box",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.get_cv",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
@@ -15566,7 +15698,7 @@ window.API_INDEX = {
         "NurbsSurface.clear_inner_loops",
         "NurbsSurface.clear_outer_loop",
         "NurbsSurface.degree",
-        "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
         "NurbsSurface.get_inner_loop",
         "NurbsSurface.get_outer_loop",
         "NurbsSurface.get_span_vector",
@@ -15675,7 +15807,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "boundary_curves_3d()",
-          "code": "def boundary_curves_3d(self):\n\n        \"\"\"Return 3D boundary curves evaluated on the surface.\n\n        Returns list of NurbsCurves: [outer_boundary, hole0, hole1, ...]\n        The outer_loop and inner_loops are stored in UV parameter space.\n        This method evaluates them on the surface to produce 3D curves.\n        \"\"\"\n        if not self.is_trimmed():\n            return []\n        curves = []\n        for loop in [self.m_outer_loop] + self.m_inner_loops:\n            pts_3d = []\n            for i in range(loop.cv_count()):\n                uv = loop.get_cv(i)\n                pts_3d.append(self.point_at(uv[0], uv[1]))\n            curves.append(NurbsCurve.create(True, 1, pts_3d))\n        return curves\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):",
+          "code": "def boundary_curves_3d(self):\n\n        \"\"\"Return 3D boundary curves evaluated on the surface.\n\n        Returns list of NurbsCurves: [outer_boundary, hole0, hole1, ...]\n        The outer_loop and inner_loops are stored in UV parameter space.\n        This method evaluates them on the surface to produce 3D curves.\n        \"\"\"\n        if not self.is_trimmed():\n            return []\n        curves = []\n        for loop in [self.m_outer_loop] + self.m_inner_loops:\n            pts_3d = []\n            for i in range(loop.cv_count()):\n                uv = loop.get_cv(i)\n                pts_3d.append(self.point_at(uv[0], uv[1]))\n            curves.append(NurbsCurve.create(True, 1, pts_3d))\n        return curves\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):",
           "file": "nurbssurface.py"
         }
       },
@@ -15711,7 +15843,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "jsondump() -> dict",
-          "code": "def jsondump(self) -> dict:\n\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################",
+          "code": "def jsondump(self) -> dict:\n\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -15764,7 +15896,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "jsonload(data: dict) -> 'NurbsSurface'",
-          "code": "def jsonload(data: dict) -> 'NurbsSurface':\n\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.",
+          "code": "def jsonload(data: dict) -> 'NurbsSurface':\n\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -15819,7 +15951,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_string() -> str",
-          "code": "def to_string(self) -> str:\n\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int",
+          "code": "def to_string(self) -> str:\n\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int",
           "file": "nurbssurface.py"
         },
         "rust": {
@@ -15861,7 +15993,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__() -> str",
-          "code": "def __str__(self) -> str:\n\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int\n            Number of CVs in u and v directions.\n        knot_delta0, knot_delta1 : float, optional\n            Knot spacing.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self._create_impl(dimension, False, order0, order1, cv_count0, cv_count1):\n            return False",
+          "code": "def __str__(self) -> str:\n\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int\n            Number of CVs in u and v directions.\n        knot_delta0, knot_delta1 : float, optional\n            Knot spacing.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self._create_impl(dimension, False, order0, order1, cv_count0, cv_count1):\n            return False",
           "file": "nurbssurface.py"
         }
       },
@@ -15896,7 +16028,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__() -> str",
-          "code": "def __repr__(self) -> str:\n\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]}, {p[1]}, {p[2]}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int\n            Number of CVs in u and v directions.\n        knot_delta0, knot_delta1 : float, optional\n            Knot spacing.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self._create_impl(dimension, False, order0, order1, cv_count0, cv_count1):\n            return False\n        \n        self.make_clamped_uniform_knot_vector(0, knot_delta0)\n        self.make_clamped_uniform_knot_vector(1, knot_delta1)",
+          "code": "def __repr__(self) -> str:\n\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)\n\n    @staticmethod\n    def _make_curves_compatible(curves):\n        from .primitives import Primitives\n        Primitives._make_curves_compatible(curves)\n\n    @staticmethod\n    def create_planar(curves):\n        from .primitives import Primitives\n        if isinstance(curves, list):\n            if len(curves) == 1:\n                return Primitives.create_planar(curves[0])\n            if not curves:\n                return NurbsSurface()\n            return Primitives.create_planar(curves[0])\n        return Primitives.create_planar(curves)\n\n    ###########################################################################\n    # ADDITIONAL CREATION METHODS\n    ###########################################################################\n    \n    def create_clamped_uniform(self, dimension: int, order0: int, order1: int,\n                              cv_count0: int, cv_count1: int,\n                              knot_delta0: float = 1.0, knot_delta1: float = 1.0) -> bool:\n        \"\"\"Create clamped uniform NURBS surface.\n        \n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface.\n        order0, order1 : int\n            Orders in u and v directions.\n        cv_count0, cv_count1 : int\n            Number of CVs in u and v directions.\n        knot_delta0, knot_delta1 : float, optional\n            Knot spacing.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self._create_impl(dimension, False, order0, order1, cv_count0, cv_count1):\n            return False\n        \n        self.make_clamped_uniform_knot_vector(0, knot_delta0)\n        self.make_clamped_uniform_knot_vector(1, knot_delta1)",
           "file": "nurbssurface.py"
         }
       },
@@ -17706,6 +17838,7 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -17781,6 +17914,7 @@ window.API_INDEX = {
         "Plane.constructor",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -17855,6 +17989,7 @@ window.API_INDEX = {
         "Plane.constructor",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -17927,6 +18062,7 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -18002,6 +18138,7 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.duplicate",
         "Plane.format",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -18082,6 +18219,7 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -18165,6 +18303,7 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.duplicate",
         "Plane.format",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -18246,6 +18385,7 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.constructor",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -18839,6 +18979,7 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.duplicate",
         "Plane.format",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -25515,6 +25656,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives.chevron_mesh",
         "Primitives.circle",
         "Primitives.create_revolve",
         "Primitives.ellipse",
@@ -27969,6 +28111,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_unit",
+        "Tolerance.temporary",
         "Tolerance.units"
       ]
     },
@@ -28046,6 +28189,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_absolute",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28095,6 +28239,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_relative",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28147,6 +28292,7 @@ window.API_INDEX = {
         "Tolerance.round_to",
         "Tolerance.set_angular",
         "Tolerance.set_angulardeflection",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28197,6 +28343,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_approximation",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28251,6 +28398,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_precision",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28305,6 +28453,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_lineardeflection",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28359,6 +28508,7 @@ window.API_INDEX = {
         "Tolerance.reset",
         "Tolerance.round_to",
         "Tolerance.set_angulardeflection",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit",
         "Tolerance.units"
@@ -28410,6 +28560,7 @@ window.API_INDEX = {
         "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
         "Tolerance.round_to",
+        "Tolerance.temporary",
         "Tolerance.units"
       ]
     },
@@ -28677,6 +28828,11 @@ window.API_INDEX = {
           "code": "def is_allclose(self, A, B):\n\n        \"\"\"Check if two lists of values are element-wise close enough to be considered equal.\"\"\"\n        rtol = self.relative\n        atol = self.absolute\n        return all(\n            (\n                self.is_allclose(a, b)\n                if hasattr(a, \"__iter__\")\n                else self.compare(a, b, rtol, atol)\n            )\n            for a, b in zip(A, B)\n        )\n\n    def is_angle_zero(self, a):\n        \"\"\"Check if an angle is close enough to zero to be considered zero.\"\"\"\n        return abs(a) <= self.angular\n\n    def is_angles_close(self, a, b):\n        \"\"\"Check if two angles are close enough to be considered equal.\"\"\"\n        return abs(a - b) <= self.angular\n\n    def is_point_close(self, a, b):\n        \"\"\"Check if two 3D points are equal within absolute tolerance.\"\"\"\n        dx = b.x - a.x\n        dy = b.y - a.y\n        dz = b.z - a.z\n        return (dx * dx + dy * dy + dz * dz) <= self.absolute * self.absolute\n\n    def is_vector_close(self, a, b):\n        \"\"\"Check if two 3D vectors are equal within absolute tolerance.\"\"\"\n        dx = b.x - a.x\n        dy = b.y - a.y\n        dz = b.z - a.z\n        return (dx * dx + dy * dy + dz * dz) <= self.absolute * self.absolute\n\n    def key(self, xyz, precision=None, sanitize=True):\n        \"\"\"Compute the geometric key of a point.\"\"\"\n        x, y, z = xyz\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(x)},{int(y)},{int(z)}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(x / factor) * factor)},{int(round(y / factor) * factor)},{int(round(z / factor) * factor)}\"\n\n        if sanitize:\n            minzero = f\"-{0.0:.{precision}f}\"\n            if f\"{x:.{precision}f}\" == minzero:\n                x = 0.0\n            if f\"{y:.{precision}f}\" == minzero:\n                y = 0.0\n            if f\"{z:.{precision}f}\" == minzero:\n                z = 0.0\n\n        return f\"{x:.{precision}f},{y:.{precision}f},{z:.{precision}f}\"\n\n    def key_xy(self, xy, precision=None, sanitize=True):\n        \"\"\"Compute the geometric key of a point in the XY plane.\"\"\"\n        x, y = xy\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(x)},{int(y)}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return (\n                f\"{int(round(x / factor) * factor)},{int(round(y / factor) * factor)}\"",
           "file": "tolerance.py"
         },
+        "cpp": {
+          "sig": "bool is_allclose(const std::vector<double>& a, const std::vector<double>& b)",
+          "code": "bool Tolerance::is_allclose(const std::vector<double>& a, const std::vector<double>& b) const {\n    if (a.size() != b.size()) return false;\n    double rtol = relative();\n    double atol = absolute();\n    for (size_t i = 0; i < a.size(); ++i) {\n        if (!compare(a[i], b[i], rtol, atol)) return false;\n    }",
+          "file": "tolerance.cpp"
+        },
         "rust": {
           "sig": "is_allclose(a: &[f64], b: &[f64]) -> bool",
           "code": "pub fn is_allclose(&self, a: &[f64], b: &[f64]) -> bool {\n        let rtol = self.relative();\n        let atol = self.absolute();\n        a.iter()\n            .zip(b.iter())\n            .all(|(x, y)| self.compare(*x, *y, rtol, atol))\n    }",
@@ -28684,6 +28840,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Tolerance.Tolerance",
         "Tolerance.absolute",
         "Tolerance.angular",
         "Tolerance.angulardeflection",
@@ -28920,7 +29077,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "key_xy(xy, precision=None, sanitize=True)",
-          "code": "def key_xy(self, xy, precision=None, sanitize=True):\n\n        \"\"\"Compute the geometric key of a point in the XY plane.\"\"\"\n        x, y = xy\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(x)},{int(y)}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return (\n                f\"{int(round(x / factor) * factor)},{int(round(y / factor) * factor)}\"\n            )\n\n        if sanitize:\n            minzero = f\"-{0.0:.{precision}f}\"\n            if f\"{x:.{precision}f}\" == minzero:\n                x = 0.0\n            if f\"{y:.{precision}f}\" == minzero:\n                y = 0.0\n\n        return f\"{x:.{precision}f},{y:.{precision}f}\"\n\n    def format_number(self, number, precision=None):\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def key_xy(self, xy, precision=None, sanitize=True):\n\n        \"\"\"Compute the geometric key of a point in the XY plane.\"\"\"\n        x, y = xy\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(x)},{int(y)}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return (\n                f\"{int(round(x / factor) * factor)},{int(round(y / factor) * factor)}\"\n            )\n\n        if sanitize:\n            minzero = f\"-{0.0:.{precision}f}\"\n            if f\"{x:.{precision}f}\" == minzero:\n                x = 0.0\n            if f\"{y:.{precision}f}\" == minzero:\n                y = 0.0\n\n        return f\"{x:.{precision}f},{y:.{precision}f}\"\n\n    def format_number(self, number, precision=None):\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -28936,7 +29093,6 @@ window.API_INDEX = {
       },
       "related": [
         "Tolerance.Tolerance",
-        "Tolerance.__repr__",
         "Tolerance.absolute",
         "Tolerance.angular",
         "Tolerance.angulardeflection",
@@ -28947,7 +29103,6 @@ window.API_INDEX = {
         "Tolerance.is_angles_close",
         "Tolerance.is_between",
         "Tolerance.is_close",
-        "Tolerance.is_finite",
         "Tolerance.is_negative",
         "Tolerance.is_point_close",
         "Tolerance.is_vector_close",
@@ -28957,6 +29112,7 @@ window.API_INDEX = {
         "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
         "Tolerance.round_to",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit"
       ]
@@ -28966,7 +29122,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "format_number(number, precision=None)",
-          "code": "def format_number(self, number, precision=None):\n\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def format_number(self, number, precision=None):\n\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -28999,6 +29155,7 @@ window.API_INDEX = {
         "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
         "Tolerance.round_to",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit"
       ]
@@ -29008,7 +29165,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "precision_from_tolerance(tol=None)",
-          "code": "def precision_from_tolerance(self, tol=None):\n\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def precision_from_tolerance(self, tol=None):\n\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -29035,6 +29192,46 @@ window.API_INDEX = {
         "Tolerance.key_xy",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
+        "Tolerance.relative",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.tolerance",
+        "Tolerance.unit"
+      ]
+    },
+    {
+      "name": "Tolerance.temporary",
+      "implementations": {
+        "python": {
+          "sig": "temporary(**kwargs)",
+          "code": "def temporary(self, **kwargs):\n\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "ToleranceGuard temporary()",
+          "code": "ToleranceGuard Tolerance::temporary() {\n    return ToleranceGuard(*this);\n}",
+          "file": "tolerance.cpp"
+        },
+        "rust": {
+          "sig": "temporary(f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,",
+          "code": "pub fn temporary<F, R>(&mut self, f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,\n    {\n        let saved = self.clone();\n        let result = f(self);\n        *self = saved;\n        result\n    }",
+          "file": "tolerance.rs"
+        }
+      },
+      "related": [
+        "Tolerance.Tolerance",
+        "Tolerance.ToleranceGuard",
+        "Tolerance.__repr__",
+        "Tolerance.absolute",
+        "Tolerance.angular",
+        "Tolerance.angulardeflection",
+        "Tolerance.approximation",
+        "Tolerance.format_number",
+        "Tolerance.is_finite",
+        "Tolerance.key_xy",
+        "Tolerance.lineardeflection",
+        "Tolerance.precision",
+        "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
         "Tolerance.round_to",
         "Tolerance.tolerance",
@@ -29074,6 +29271,7 @@ window.API_INDEX = {
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit"
       ]
@@ -29095,12 +29293,12 @@ window.API_INDEX = {
         "Tolerance.approximation",
         "Tolerance.format_number",
         "Tolerance.is_finite",
-        "Tolerance.key_xy",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
         "Tolerance.relative",
         "Tolerance.round_to",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit"
       ]
@@ -29123,9 +29321,9 @@ window.API_INDEX = {
         "Tolerance.Tolerance",
         "Tolerance.__repr__",
         "Tolerance.format_number",
-        "Tolerance.key_xy",
         "Tolerance.precision_from_tolerance",
         "Tolerance.round_to",
+        "Tolerance.temporary",
         "Tolerance.tolerance"
       ]
     },
@@ -36205,6 +36403,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "NormalWeighting.loft",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1)",
+          "code": "static Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
       "name": "NormalWeighting.transform",
       "implementations": {
         "cpp": {
@@ -36381,6 +36589,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "return acos(cos_angle)",
           "code": "return std::acos(cos_angle);\n}",
+          "file": "mesh.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.loft",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1)",
+          "code": "Mesh Mesh::loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1) {\n    if (polylines0.empty() || polylines1.empty()) return Mesh();\n    if (polylines0.size() != polylines1.size()) return Mesh();\n\n    // Find border polyline (largest bbox diagonal) among polylines0\n    int border_idx = 0;\n    double max_diag = 0.0;\n    for (size_t i = 0; i < polylines0.size(); ++i) {\n        auto pts = polylines0[i].get_points();\n        if (pts.empty()) continue;\n        double minx = pts[0][0], miny = pts[0][1], minz = pts[0][2];\n        double maxx = minx, maxy = miny, maxz = minz;\n        for (const auto& p : pts) {\n            if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];\n            if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];\n            if (p[2] < minz) minz = p[2]; if (p[2] > maxz) maxz = p[2];\n        }",
           "file": "mesh.cpp"
         }
       }
@@ -37163,45 +37381,17 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "NurbsSurface.divide_by_count_points",
-      "implementations": {
-        "cpp": {
-          "sig": "std::tuple<std::vector<std::vector<Point>>, std::vector<std::vector<Vector>>, std::vector<std::vector<std::pair<double,double>>>> divide_by_count_points(int nu, int nv)",
-          "code": "std::tuple<std::vector<std::vector<Point>>, std::vector<std::vector<Vector>>, std::vector<std::vector<std::pair<double,double>>>>\nNurbsSurface::divide_by_count_points(int nu, int nv) const {\n    std::vector<std::vector<Point>> grid;\n    std::vector<std::vector<Vector>> grid_vector;\n    std::vector<std::vector<std::pair<double,double>>> params;\n\n    if (!is_valid()) {\n        return {grid, grid_vector, params}",
-          "file": "nurbssurface.cpp"
-        }
-      },
-      "related": [
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.is_valid"
-      ]
-    },
-    {
-      "name": "NurbsSurface.divide_by_count_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "std::pair<std::vector<std::vector<Plane>>, std::vector<std::vector<std::pair<double,double>>>> divide_by_count_planes(int nu, int nv)",
-          "code": "std::pair<std::vector<std::vector<Plane>>, std::vector<std::vector<std::pair<double,double>>>>\nNurbsSurface::divide_by_count_planes(int nu, int nv) const {\n    std::vector<std::vector<Plane>> grid;\n    std::vector<std::vector<std::pair<double,double>>> params;\n\n    if (!is_valid()) {\n        return {grid, params}",
-          "file": "nurbssurface.cpp"
-        }
-      },
-      "related": [
-        "NurbsSurface.divide_by_count",
-        "NurbsSurface.is_valid"
-      ]
-    },
-    {
       "name": "NurbsSurface.point_and_normal_at",
       "implementations": {
         "cpp": {
-          "sig": "void point_and_normal_at(double u, double v,\n                                       double& px, double& py, double& pz,\n                                       double& nx, double& ny, double& nz)",
-          "code": "void NurbsSurface::point_and_normal_at(double u, double v,\n                                       double& px, double& py, double& pz,\n                                       double& nx, double& ny, double& nz) const {\n    if (!is_valid()) { px = py = pz = 0; nx = 0; ny = 0; nz = 1; return; }",
-          "file": "nurbssurface.cpp"
+          "sig": "void point_and_normal_at(double u, double v,\n                             double& px, double& py, double& pz,\n                             double& nx, double& ny, double& nz)",
+          "code": "void point_and_normal_at(double u, double v,\n                             double& px, double& py, double& pz,\n                             double& nx, double& ny, double& nz) const {\n        Point p = point_at(u, v);\n        px = p[0]; py = p[1]; pz = p[2];\n        Vector n = normal_at(u, v);\n        nx = n[0]; ny = n[1]; nz = n[2];\n    }",
+          "file": "nurbssurface.h"
         }
       },
       "related": [
-        "NurbsSurface.is_valid",
-        "NurbsSurface.normal_at"
+        "NurbsSurface.normal_at",
+        "NurbsSurface.point_at"
       ]
     },
     {
@@ -37359,12 +37549,15 @@ window.API_INDEX = {
         "NurbsSurface.area",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
+        "NurbsSurface.evaluate",
         "NurbsSurface.iso_curve",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.make_periodic_uniform_knot_vector",
+        "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at",
+        "NurbsSurface.point_at_corner",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed_stored"
       ]
@@ -37380,6 +37573,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface._find_span",
         "NurbsSurface.area",
         "NurbsSurface.basis_functions_derivatives",
@@ -37407,6 +37601,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface.basis_functions",
         "NurbsSurface.degree",
         "NurbsSurface.evaluate",
@@ -38444,6 +38640,29 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Primitives.chevron_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale)",
+          "code": "Mesh Primitives::chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale) {\n    NurbsSurface srf = surface;\n\n    // Measure arc lengths to determine long direction\n    auto du0 = srf.domain(0);\n    auto dv0 = srf.domain(1);\n    int nsamp = 50;\n    double u_arc = 0, v_arc = 0;\n    {\n        double v_mid = (dv0.first + dv0.second) / 2.0;\n        Point prev = srf.point_at(du0.first, v_mid);\n        for (int i = 1; i <= nsamp; i++) {\n            Point curr = srf.point_at(du0.first + (du0.second - du0.first) * i / nsamp, v_mid);\n            u_arc += prev.distance(curr);\n            prev = curr;\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "Primitives.arc"
+      ]
+    },
+    {
+      "name": "Primitives.annen_surfaces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<NurbsSurface> annen_surfaces()",
+          "code": "std::vector<NurbsSurface> Primitives::annen_surfaces() {\n    std::vector<NurbsSurface> surfaces;\n    std::vector<std::string> prefixes = {\n        \"session_data/annen_surfaces/\",\n        \"../session_data/annen_surfaces/\"\n    }",
+          "file": "primitives.cpp"
+        }
+      }
+    },
+    {
       "name": "Primitives.unit_cylinder_geometry",
       "implementations": {
         "cpp": {
@@ -38556,7 +38775,10 @@ window.API_INDEX = {
           "code": "void compute_edge_planes();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.compute_edge_planes_method"
+      ]
     },
     {
       "name": "Primitives.compute_face_edge_planes",
@@ -38632,6 +38854,99 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Primitives.compute_bisector_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_bisector_planes()",
+          "code": "void compute_bisector_planes();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_edges",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edges()",
+          "code": "void compute_edges();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_edge_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_faces()",
+          "code": "void compute_edge_faces();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.compute_edge_planes_method",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_planes_method()",
+          "code": "void compute_edge_planes_method();",
+          "file": "primitives.h"
+        }
+      },
+      "related": [
+        "Primitives.compute_edge_planes"
+      ]
+    },
+    {
+      "name": "Primitives.compute_connectors",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_connectors()",
+          "code": "void compute_connectors();",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.dihedral_plane",
+      "implementations": {
+        "cpp": {
+          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
+          "code": "static Plane dihedral_plane(const Plane& p0, const Plane& p1);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.move_plane_by_axis",
+      "implementations": {
+        "cpp": {
+          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis = 2)",
+          "code": "static Plane move_plane_by_axis(const Plane& pl, double dist, int axis = 2);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.outline_from_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline outline_from_planes(const Plane& face_plane, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bise_planes)",
+          "code": "static Polyline outline_from_planes(const Plane& face_plane, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bise_planes);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
+      "name": "Primitives.make_rectangle",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
+          "code": "static Polyline make_rectangle(const Plane& pl, double w, double h);",
+          "file": "primitives.h"
+        }
+      }
+    },
+    {
       "name": "FoldedPlates.constructor",
       "implementations": {
         "cpp": {
@@ -38648,6 +38963,27 @@ window.API_INDEX = {
         "FoldedPlates.compute_face_polylines",
         "FoldedPlates.compute_insertion_vectors",
         "FoldedPlates.diamond_subdivision"
+      ]
+    },
+    {
+      "name": "CrossConnectors.constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "CrossConnectors(const Mesh& m,\n                                 double face_thickness,\n                                 const std::vector<double>& face_positions,\n                                 int edge_divisions,\n                                 double rect_width,\n                                 double rect_height,\n                                 double rect_thickness,\n                                 double chamfer)",
+          "code": "CrossConnectors::CrossConnectors(const Mesh& m,\n                                 double face_thickness,\n                                 const std::vector<double>& face_positions,\n                                 int edge_divisions,\n                                 double rect_width,\n                                 double rect_height,\n                                 double rect_thickness,\n                                 double chamfer)\n    : mesh(m), _f(0), _thick(face_thickness), _rect_w(rect_width), _rect_h(rect_height),\n      _rect_t(rect_thickness), _cham(chamfer), _edge_div(std::max(1, edge_divisions)),\n      _face_pos(face_positions)\n{\n    if (_face_pos.empty()) _face_pos.push_back(0);\n    std::sort(_face_pos.begin(), _face_pos.end());\n\n    build_topology();\n    compute_face_planes();\n    compute_face_edge_planes();\n    compute_bisector_planes();\n    compute_face_polylines();\n    compute_edges();\n    compute_edge_faces();\n    compute_edge_planes_method();\n    compute_connectors();\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.build_topology",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.compute_face_planes",
+        "CrossConnectors.compute_face_polylines"
       ]
     },
     {
@@ -38783,6 +39119,181 @@ window.API_INDEX = {
       },
       "related": [
         "FoldedPlates.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.build_topology",
+      "implementations": {
+        "cpp": {
+          "sig": "void build_topology()",
+          "code": "void CrossConnectors::build_topology() {\n    _fkeys.clear();\n    for (auto& [fk, _] : mesh.face) _fkeys.push_back(fk);\n    std::sort(_fkeys.begin(), _fkeys.end());\n    _f = (int)_fkeys.size();\n\n    _fv.resize(_f);\n    for (int i = 0; i < _f; i++) _fv[i] = mesh.face[_fkeys[i]];\n\n    _eidx.clear();\n    int ei = 0;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            if (_eidx.find(key) == _eidx.end()) {\n                _eidx[key] = ei++;\n            }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_face_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_planes()",
+          "code": "void CrossConnectors::compute_face_planes() {\n    face_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& verts = _fv[i];\n        int n = (int)verts.size();\n        // Edge-length-weighted center (matches Python center_point)\n        double cx = 0, cy = 0, cz = 0, w = 0;\n        for (int j = 0; j < n; j++) {\n            Point pa = mesh.vertex_position(verts[j]).value();\n            Point pb = mesh.vertex_position(verts[(j+1)%n]).value();\n            double d = pa.distance(pb);\n            cx += d * (pa[0]+pb[0]) * 0.5;\n            cy += d * (pa[1]+pb[1]) * 0.5;\n            cz += d * (pa[2]+pb[2]) * 0.5;\n            w += d;\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_face_edge_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_edge_planes()",
+          "code": "void CrossConnectors::compute_face_edge_planes() {\n    // Python: Plane(midpoint, edge_direction_v1_minus_v2, averaged_face_normals)\n    // Rhino Plane(origin, xaxis, yaxis) \u00e2\u2020\u2019 ZAxis = cross(X,Y)\n    fe_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        fe_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            size_t v1 = v[j], v2 = v[(j+1)%n];\n            Point p1 = mesh.vertex_position(v1).value();\n            Point p2 = mesh.vertex_position(v2).value();\n            Point mid((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5);\n\n            auto key = std::make_pair(std::min(v1,v2), std::max(v1,v2));\n\n            // Average face normals of all faces sharing this edge\n            Vector sum(0,0,0);\n            int count = 0;\n            for (int fi = 0; fi < _f; fi++) {\n                auto& fv = _fv[fi];\n                int fn = (int)fv.size();\n                for (int k = 0; k < fn; k++) {\n                    auto ek = std::make_pair(std::min(fv[k], fv[(k+1)%fn]), std::max(fv[k], fv[(k+1)%fn]));\n                    if (ek == key) {\n                        Vector fn_vec = mesh.face_normal(_fkeys[fi]).value_or(Vector(0,0,1));\n                        sum = Vector(sum[0]+fn_vec[0], sum[1]+fn_vec[1], sum[2]+fn_vec[2]);\n                        count++;\n                        break;\n                    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.dihedral_plane",
+      "implementations": {
+        "cpp": {
+          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
+          "code": "Plane CrossConnectors::dihedral_plane(const Plane& p0, const Plane& p1) {\n    Line isect_line;\n    if (!Intersection::plane_plane(p0, p1, isect_line))\n        return p0;\n\n    Point centerDihedral;\n    if (!Intersection::line_plane(isect_line, p0, centerDihedral, false)) {\n        Point a = isect_line.start(), b = isect_line.end();\n        centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.compute_bisector_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_bisector_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_bisector_planes()",
+          "code": "void CrossConnectors::compute_bisector_planes() {\n    // Python: bi_planes[i][j] = dihedral_plane(fe_planes[i][(j+1)%n], fe_planes[i][j])\n    bisector_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        int n = (int)fe_planes[i].size();\n        bisector_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            bisector_planes[i][j] = dihedral_plane(fe_planes[i][(j+1)%n], fe_planes[i][j]);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor",
+        "CrossConnectors.dihedral_plane"
+      ]
+    },
+    {
+      "name": "CrossConnectors.move_plane_by_axis",
+      "implementations": {
+        "cpp": {
+          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis)",
+          "code": "Plane CrossConnectors::move_plane_by_axis(const Plane& pl, double dist, int axis) {\n    Vector dir;\n    if (axis == 0) dir = pl.x_axis();\n    else if (axis == 1) dir = pl.y_axis();\n    else dir = pl.z_axis();\n    Point o = pl.origin();\n    Point new_o(o[0]+dir[0]*dist, o[1]+dir[1]*dist, o[2]+dir[2]*dist);\n    return Plane(new_o, pl.x_axis(), pl.y_axis(), pl.z_axis());\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_face_polylines"
+      ]
+    },
+    {
+      "name": "CrossConnectors.outline_from_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& bise_planes)",
+          "code": "Polyline CrossConnectors::outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& bise_planes) {\n    // Python outline_from_face_edge_corner T=2 mode:\n    // PlanePlane(edge[i], edge[(i+1)%n]) \u00e2\u2020\u2019 line, LinePlane(line, face_plane) \u00e2\u2020\u2019 point\n    Polyline pl;\n    int n = (int)edge_planes.size();\n    for (int i = 0; i < n; i++) {\n        const Plane& plane = edge_planes[i];\n        const Plane& plane1 = edge_planes[(i+1)%n];\n\n        // Skip parallel edges\n        double angle = std::acos(std::min(1.0, std::max(-1.0, plane.z_axis().dot(plane1.z_axis()))));\n        if (angle < 0.01 && angle > -0.01) continue;\n\n        Line line;\n        if (!Intersection::plane_plane(plane, plane1, line)) continue;\n        Point pt;\n        if (!Intersection::line_plane(line, face_plane, pt, false)) continue;\n        pl.add_point(pt);\n    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.compute_face_polylines"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_face_polylines",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_face_polylines()",
+          "code": "void CrossConnectors::compute_face_polylines() {\n    // Python: 2 polylines per face_position (bottom at -thick/2, top at +thick/2)\n    face_polylines.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        for (size_t j = 0; j < _face_pos.size(); j++) {\n            Plane base_bot = move_plane_by_axis(face_planes[i], _face_pos[j] + _thick * -0.5);\n            Plane base_top = move_plane_by_axis(face_planes[i], _face_pos[j] + _thick *  0.5);\n            Polyline pline0 = outline_from_planes(base_bot, fe_planes[i], bisector_planes[i]);\n            Polyline pline1 = outline_from_planes(base_top, fe_planes[i], bisector_planes[i]);\n            face_polylines[i].push_back(pline0);\n            face_polylines[i].push_back(pline1);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_edges",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edges()",
+          "code": "void CrossConnectors::compute_edges() {\n    edges.clear();\n    std::set<std::pair<size_t,size_t>> seen;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            if (seen.insert(key).second)\n                edges.push_back(key);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_edge_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_faces()",
+          "code": "void CrossConnectors::compute_edge_faces() {\n    edge_faces.resize(edges.size());\n    std::map<std::pair<size_t,size_t>, int> edge_idx;\n    for (size_t i = 0; i < edges.size(); i++) edge_idx[edges[i]] = (int)i;\n\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            auto it = edge_idx.find(key);\n            if (it != edge_idx.end())\n                edge_faces[it->second].push_back(i);\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_edge_planes_method",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_edge_planes_method()",
+          "code": "void CrossConnectors::compute_edge_planes_method() {\n    // Python: Plane(origin, xaxis, yaxis) where:\n    //   origin = edge midpoint\n    //   zaxis = edge direction (unitized)\n    //   yaxis = average of adjacent face plane ZAxes\n    //   xaxis = cross(zaxis, yaxis), oriented toward first face\n    // ZAxis is implicitly cross(X,Y) = edge direction in Rhino\n    // Store as Plane(mid, xaxis, yaxis, zaxis)\n    edge_planes.resize(edges.size());\n    _e90_multiple_planes.resize(edges.size());\n\n    for (size_t i = 0; i < edges.size(); i++) {\n        if (edge_faces[i].size() < 2) {\n            edge_planes[i] = Plane();\n            _e90_multiple_planes[i] = {Plane()}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor"
+      ]
+    },
+    {
+      "name": "CrossConnectors.make_rectangle",
+      "implementations": {
+        "cpp": {
+          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
+          "code": "Polyline CrossConnectors::make_rectangle(const Plane& pl, double w, double h) {\n    Vector x = pl.x_axis();\n    Vector y = pl.y_axis();\n    Point o = pl.origin();\n    double hw = w * 0.5, hh = h * 0.5;\n    Polyline rect;\n    rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]));\n    rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]));\n    rect.add_point(rect.get_point(0));\n    return rect;\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.compute_connectors"
+      ]
+    },
+    {
+      "name": "CrossConnectors.compute_connectors",
+      "implementations": {
+        "cpp": {
+          "sig": "void compute_connectors()",
+          "code": "void CrossConnectors::compute_connectors() {\n    // Python: Rectangle3d(plane_offset, Interval(-w/2,w/2), Interval(-h/2,h/2))\n    // Rectangles are in XY plane of edge plane, offset along Z (edge direction) by \u00c2\u00b1rect_thickness/2\n    edge_polylines.resize(edges.size());\n    for (size_t i = 0; i < edges.size(); i++) {\n        if (edge_faces[i].size() < 2) continue;\n\n        for (size_t j = 0; j < _e90_multiple_planes[i].size(); j++) {\n            const Plane& epl = _e90_multiple_planes[i][j];\n            if (_rect_w > 0 && _rect_h > 0) {\n                // Type 0: rectangle connectors\n                Plane pl0 = move_plane_by_axis(epl, _rect_t *  0.5);\n                Plane pl1 = move_plane_by_axis(epl, _rect_t * -0.5);\n                edge_polylines[i].push_back(make_rectangle(pl0, _rect_w, _rect_h));\n                edge_polylines[i].push_back(make_rectangle(pl1, _rect_w, _rect_h));\n            }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors.constructor",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis"
       ]
     },
     {
@@ -39132,10 +39643,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Tolerance.ToleranceGuard",
         "Tolerance.__repr__",
         "Tolerance.compare",
         "Tolerance.constructor",
         "Tolerance.format_number",
+        "Tolerance.is_allclose",
         "Tolerance.is_angle_zero",
         "Tolerance.is_angles_close",
         "Tolerance.is_between",
@@ -39159,6 +39672,7 @@ window.API_INDEX = {
         "Tolerance.set_precision",
         "Tolerance.set_relative",
         "Tolerance.set_unit",
+        "Tolerance.temporary",
         "Tolerance.tolerance",
         "Tolerance.unit"
       ]
@@ -39314,6 +39828,20 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Tolerance.ToleranceGuard",
+      "implementations": {
+        "cpp": {
+          "sig": "public:\n    explicit ToleranceGuard(Tolerance& t)",
+          "code": "public:\n    explicit ToleranceGuard(Tolerance& t);",
+          "file": "tolerance.h"
+        }
+      },
+      "related": [
+        "Tolerance.Tolerance",
+        "Tolerance.temporary"
+      ]
+    },
+    {
       "name": "Tolerance.constructor",
       "implementations": {
         "cpp": {
@@ -39333,6 +39861,16 @@ window.API_INDEX = {
         "Tolerance.relative",
         "Tolerance.unit"
       ]
+    },
+    {
+      "name": "ToleranceGuard.constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "ToleranceGuard(Tolerance& t)",
+          "code": "ToleranceGuard::ToleranceGuard(Tolerance& t)\n    : target_(t),\n      saved_unit_(t._unit),\n      saved_absolute_(t._absolute), saved_relative_(t._relative),\n      saved_angular_(t._angular), saved_approximation_(t._approximation),\n      saved_precision_(t._precision),\n      saved_lineardeflection_(t._lineardeflection), saved_angulardeflection_(t._angulardeflection),\n      saved_has_absolute_(t._has_absolute), saved_has_relative_(t._has_relative),\n      saved_has_angular_(t._has_angular), saved_has_approximation_(t._has_approximation),\n      saved_has_precision_(t._has_precision),\n      saved_has_lineardeflection_(t._has_lineardeflection), saved_has_angulardeflection_(t._has_angulardeflection) {}",
+          "file": "tolerance.cpp"
+        }
+      }
     },
     {
       "name": "std.stoi",
@@ -40689,6 +41227,8 @@ window.API_INDEX = {
         "NurbsSurface.cv_count_total",
         "NurbsSurface.deep_copy_from",
         "NurbsSurface.divide_by_count",
+        "NurbsSurface.divide_by_count_planes",
+        "NurbsSurface.divide_by_count_points",
         "NurbsSurface.duplicate",
         "NurbsSurface.evaluate",
         "NurbsSurface.extend",
@@ -40817,6 +41357,7 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
+        "Plane.from_axes",
         "Plane.from_frame",
         "Plane.from_point_normal",
         "Plane.from_points",
@@ -40841,6 +41382,28 @@ window.API_INDEX = {
         "Plane.xz_plane",
         "Plane.y_axis",
         "Plane.yz_plane",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.from_axes",
+      "implementations": {
+        "rust": {
+          "sig": "from_axes(origin: Point, x_axis: Vector, y_axis: Vector, z_axis: Vector) -> Self",
+          "code": "pub fn from_axes(origin: Point, x_axis: Vector, y_axis: Vector, z_axis: Vector) -> Self {\n        let a = z_axis[0];\n        let b = z_axis[1];\n        let c = z_axis[2];\n        let d = -(a * origin[0] + b * origin[1] + c * origin[2]);\n        Self {\n            guid: Uuid::new_v4().to_string(),\n            name: \"my_plane\".to_string(),\n            width: 1.0,\n            _origin: origin,\n            _x_axis: x_axis,\n            _y_axis: y_axis,\n            _z_axis: z_axis,\n            _a: a,\n            _b: b,\n            _c: c,\n            _d: d,\n            xform: Xform::identity(),\n        }\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.c",
+        "Plane.d",
+        "Plane.new",
+        "Plane.origin",
+        "Plane.str",
+        "Plane.x_axis",
+        "Plane.y_axis",
         "Plane.z_axis"
       ]
     },
@@ -41624,6 +42187,16 @@ window.API_INDEX = {
         "GlobalTolerance.precision",
         "GlobalTolerance.tolerance"
       ]
+    },
+    {
+      "name": "GlobalTolerance.temporary",
+      "implementations": {
+        "rust": {
+          "sig": "temporary(f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,",
+          "code": "pub fn temporary<F, R>(&self, f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,\n    {\n        let saved = self.inner.read().clone();\n        let result = f(&mut self.inner.write());\n        *self.inner.write() = saved;\n        result\n    }",
+          "file": "tolerance.rs"
+        }
+      }
     },
     {
       "name": "GlobalTolerance.with_tolerance",
@@ -42819,6 +43392,26 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Mesh.test_Loft",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Loft\")",
+          "code": "MINI_TEST(\"Mesh\", \"Loft\") {\n        // Two rectangles at z=0 and z=1\n        std::vector<Point> bot_pts = {\n            Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(0,0,0)\n        };\n        std::vector<Point> top_pts = {\n            Point(0,0,1), Point(1,0,1), Point(1,1,1), Point(0,1,1), Point(0,0,1)\n        };\n        Polyline bot(bot_pts);\n        Polyline top(top_pts);\n\n        Mesh mesh = Mesh::loft({bot}, {top});\n\n        MINI_CHECK(mesh.number_of_vertices() == 8);\n        MINI_CHECK(mesh.number_of_faces() == 8);\n        MINI_CHECK(mesh.is_valid());\n    }",
+          "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Loft_with_hole",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Loft_with_hole\")",
+          "code": "MINI_TEST(\"Mesh\", \"Loft_with_hole\") {\n        // Outer rectangle\n        std::vector<Point> outer_bot = {\n            Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0), Point(0,0,0)\n        };\n        std::vector<Point> outer_top = {\n            Point(0,0,1), Point(4,0,1), Point(4,4,1), Point(0,4,1), Point(0,0,1)\n        };\n        // Inner hole\n        std::vector<Point> inner_bot = {\n            Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0), Point(1,1,0)\n        };\n        std::vector<Point> inner_top = {\n            Point(1,1,1), Point(3,1,1), Point(3,3,1), Point(1,3,1), Point(1,1,1)\n        };\n\n        Polyline ob(outer_bot), ot(outer_top);\n        Polyline ib(inner_bot), it(inner_top);\n\n        Mesh mesh = Mesh::loft({ob, ib}, {ot, it});\n\n        MINI_CHECK(mesh.number_of_vertices() == 16);\n        MINI_CHECK(mesh.number_of_faces() == 24);\n        MINI_CHECK(mesh.is_valid());\n    }",
+          "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
       "name": "NurbsCurve.test_Constructor",
       "implementations": {
         "cpp": {
@@ -42963,7 +43556,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Constructor\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Constructor\")\ndef test_nurbssurface_constructor():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Point division matching Rhino's 4x6 grid\n    v, uv = s.divide_by_count(4, 6)\n\n    MINI_CHECK(s.is_valid() == True)\n    MINI_CHECK(s.cv_count_dir(0) == 4)\n    MINI_CHECK(s.cv_count_dir(1) == 4)\n    MINI_CHECK(s.cv_count_dir(None) == 16)\n    MINI_CHECK(s.degree(0) == 3)\n    MINI_CHECK(s.degree(1) == 3)\n    MINI_CHECK(s.order(0) == 4)\n    MINI_CHECK(s.order(1) == 4)\n    MINI_CHECK(s.dimension() == 3)\n    MINI_CHECK(not s.is_rational())\n    MINI_CHECK(s.knot_count(0) == 6)\n    MINI_CHECK(s.knot_count(1) == 6)\n    MINI_CHECK(s.name == \"my_nurbssurface\")\n    MINI_CHECK(s.guid)\n    MINI_CHECK(sstr == \"NurbsSurface(name=my_nurbssurface, degree=(3,3), cvs=(4,4))\")\n    MINI_CHECK(\"name=my_nurbssurface\" in srepr)\n    MINI_CHECK(scopy.cv_count_dir(None) == s.cv_count_dir(None))\n    MINI_CHECK(scopy.guid != s.guid)\n\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][0], Point(0.000000000000000, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][1], Point(-0.416666666666667, 0.578703703703704, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][2], Point(-0.666666666666667, 1.462962962962963, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][3], Point(-0.750000000000000, 2.500000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][4], Point(-0.666666666666667, 3.537037037037037, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][5], Point(-0.416666666666667, 4.421296296296297, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[0][6], Point(0.000000000000000, 5.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][0], Point(0.992187500000000, -0.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][1], Point(0.881510416666667, 0.333912037037037, 1.958333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][2], Point(0.815104166666667, 1.379629629629630, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][3], Point(0.792968750000000, 2.500000000000000, 2.625000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][4], Point(0.815104166666667, 3.620370370370370, 2.458333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][5], Point(0.881510416666667, 4.666087962962964, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[1][6], Point(0.992187500000000, 5.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][0], Point(2.500000000000000, -0.750000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][1], Point(2.500000000000000, 0.252314814814815, 2.333333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][2], Point(2.500000000000000, 1.351851851851852, 2.833333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][3], Point(2.500000000000000, 2.500000000000000, 3.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][4], Point(2.500000000000000, 3.648148148148148, 2.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][5], Point(2.500000000000000, 4.747685185185186, 2.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[2][6], Point(2.500000000000000, 5.750000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][0], Point(4.007812500000000, -0.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][1], Point(4.118489583333334, 0.333912037037037, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][2], Point(4.184895833333334, 1.379629629629630, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][3], Point(4.207031250000000, 2.500000000000000, 2.625000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][4], Point(4.184895833333333, 3.620370370370370, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][5], Point(4.118489583333333, 4.666087962962964, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[3][6], Point(4.007812500000000, 5.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][0], Point(5.000000000000000, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][1], Point(5.416666666666668, 0.578703703703704, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][2], Point(5.666666666666668, 1.462962962962963, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][3], Point(5.750000000000000, 2.500000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][4], Point(5.666666666666666, 3.537037037037037, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][5], Point(5.416666666666667, 4.421296296296297, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(v[4][6], Point(5.000000000000000, 5.000000000000000, 0.000000000000000)))",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Constructor\")\ndef test_nurbssurface_constructor():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get mesh\n    m = s.mesh()\n\n    # Point division matching Rhino's 4x6 grid\n    p, v, uv = s.divide_by_count_points(4, 6)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    MINI_CHECK(s.is_valid() == True)\n    MINI_CHECK(s.cv_count_dir(0) == 4)\n    MINI_CHECK(s.cv_count_dir(1) == 4)\n    MINI_CHECK(s.cv_count_dir(None) == 16)\n    MINI_CHECK(s.degree(0) == 3)\n    MINI_CHECK(s.degree(1) == 3)\n    MINI_CHECK(s.order(0) == 4)\n    MINI_CHECK(s.order(1) == 4)\n    MINI_CHECK(s.dimension() == 3)\n    MINI_CHECK(not s.is_rational())\n    MINI_CHECK(s.knot_count(0) == 6)\n    MINI_CHECK(s.knot_count(1) == 6)\n    MINI_CHECK(s.name == \"my_nurbssurface\")\n    MINI_CHECK(s.guid)\n    MINI_CHECK(sstr == \"NurbsSurface(name=my_nurbssurface, degree=(3,3), cvs=(4,4))\")\n    MINI_CHECK(srepr == \"NurbsSurface(\\n  name=my_nurbssurface,\\n  degree=(3,3),\\n  cvs=(4,4),\\n  rational=false,\\n  control_points=[\\n    0, 0, 0\\n    -1, 0.75, 2\\n    -1, 4.25, 2\\n    0, 5, 0\\n    0.75, -1, 2\\n    1.25, 1.25, 4\\n    1.25, 3.75, 4\\n    0.75, 6, 2\\n    4.25, -1, 2\\n    3.75, 1.25, 4\\n    3.75, 3.75, 4\\n    4.25, 6, 2\\n    5, 0, 0\\n    6, 0.75, 2\\n    6, 4.25, 2\\n    5, 5, 0\\n  ]\\n)\")\n    MINI_CHECK(scopy.cv_count_dir(None) == s.cv_count_dir(None))\n    MINI_CHECK(scopy.guid != s.guid)\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][0], Point(0.000000000000000, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][1], Point(-0.416666666666667, 0.578703703703704, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][2], Point(-0.666666666666667, 1.462962962962963, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][3], Point(-0.750000000000000, 2.500000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][4], Point(-0.666666666666667, 3.537037037037037, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][5], Point(-0.416666666666667, 4.421296296296297, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[0][6], Point(0.000000000000000, 5.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][0], Point(0.992187500000000, -0.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][1], Point(0.881510416666667, 0.333912037037037, 1.958333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][2], Point(0.815104166666667, 1.379629629629630, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][3], Point(0.792968750000000, 2.500000000000000, 2.625000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][4], Point(0.815104166666667, 3.620370370370370, 2.458333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][5], Point(0.881510416666667, 4.666087962962964, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[1][6], Point(0.992187500000000, 5.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][0], Point(2.500000000000000, -0.750000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][1], Point(2.500000000000000, 0.252314814814815, 2.333333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][2], Point(2.500000000000000, 1.351851851851852, 2.833333333333334)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][3], Point(2.500000000000000, 2.500000000000000, 3.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][4], Point(2.500000000000000, 3.648148148148148, 2.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][5], Point(2.500000000000000, 4.747685185185186, 2.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[2][6], Point(2.500000000000000, 5.750000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][0], Point(4.007812500000000, -0.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][1], Point(4.118489583333334, 0.333912037037037, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][2], Point(4.184895833333334, 1.379629629629630, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][3], Point(4.207031250000000, 2.500000000000000, 2.625000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][4], Point(4.184895833333333, 3.620370370370370, 2.458333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][5], Point(4.118489583333333, 4.666087962962964, 1.958333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[3][6], Point(4.007812500000000, 5.562500000000000, 1.125000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][0], Point(5.000000000000000, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][1], Point(5.416666666666668, 0.578703703703704, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][2], Point(5.666666666666668, 1.462962962962963, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][3], Point(5.750000000000000, 2.500000000000000, 1.500000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][4], Point(5.666666666666666, 3.537037037037037, 1.333333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][5], Point(5.416666666666667, 4.421296296296297, 0.833333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(p[4][6], Point(5.000000000000000, 5.000000000000000, 0.000000000000000)))",
           "file": "nurbssurface_test.py"
         }
       }
@@ -43020,6 +43613,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
           "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n        \n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n        s.insert_knot(0, 0.1, 2);\n        MINI_CHECK(s.knot_count(0) == 8);\n        MINI_CHECK(s.knot(0, 3) == 0.1);\n        MINI_CHECK(s.knot_multiplicity(0, 3) == 2);\n    }",
           "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot Access\")\ndef test_knot_access():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get knot vectors and individual knot\n    knots_u = s.get_knots(0)\n    for i in range(s.knot_count(0)):\n        knot = s.knot(0, i)\n        MINI_CHECK(knot == knots_u[i])\n\n    knots_v = s.get_knots(1)\n    for i in range(s.knot_count(1)):\n        knot = s.knot(1, i)\n        MINI_CHECK(knot == knots_v[i])\n\n    # Set knots\n    is_set = s.set_knot(0, 2, 0.5)\n    MINI_CHECK(s.knot(0, 2) == 0.5)\n    is_set = s.set_knot(0, 2, 0.0)\n\n    # Verify start multiplicity\n    mult_u_start = s.knot_multiplicity(0, 0)\n    mult_v_start = s.knot_multiplicity(1, 0)\n    MINI_CHECK(mult_u_start == 3)\n    MINI_CHECK(mult_v_start == 3)\n\n    s.insert_knot(0, 0.1, 2)\n    MINI_CHECK(s.knot_count(0) == 8)\n    MINI_CHECK(s.knot(0, 3) == 0.1)\n    MINI_CHECK(s.knot_multiplicity(0, 3) == 2)",
+          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -43030,6 +43628,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Domain\")",
           "code": "MINI_TEST(\"NurbsSurface\", \"Domain\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n        // Get domain 0 - 1\n        std::pair<double, double> domain_u = s.domain(0);\n        std::pair<double, double> domain_v = s.domain(1);\n        MINI_CHECK(TOLERANCE.is_close(domain_u.first, 0));\n        MINI_CHECK(TOLERANCE.is_close(domain_u.second, 1));\n\n        // Set Domain\n        bool is_set_u = s.set_domain(0, -1.1, 2.3);\n        bool is_set_v = s.set_domain(1, -5.1, 1.3);\n        MINI_CHECK(is_set_u && TOLERANCE.is_close(s.domain(1).first, -5.1));\n        MINI_CHECK(is_set_v && TOLERANCE.is_close(s.domain(1).second, 1.3));\n\n        // Get sorted list of distinct knot values\n        std::vector<double> span_vector = s.get_span_vector(0);\n        double first_item = span_vector.front();\n        double last_item = span_vector.back();\n        MINI_CHECK(TOLERANCE.is_close(first_item, -1.1));\n        MINI_CHECK(TOLERANCE.is_close(last_item, 2.3));\n    }",
           "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Domain\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Domain\")\ndef test_domain():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get domain 0 - 1\n    domain_u = s.domain(0)\n    domain_v = s.domain(1)\n    MINI_CHECK(TOLERANCE.is_close(domain_u[0], 0))\n    MINI_CHECK(TOLERANCE.is_close(domain_u[1], 1))\n\n    # Set Domain\n    is_set_u = s.set_domain(0, -1.1, 2.3)\n    is_set_v = s.set_domain(1, -5.1, 1.3)\n    MINI_CHECK(is_set_u and TOLERANCE.is_close(s.domain(1)[0], -5.1))\n    MINI_CHECK(is_set_v and TOLERANCE.is_close(s.domain(1)[1], 1.3))\n\n    # Get sorted list of distinct knot values\n    span_vector = s.get_span_vector(0)\n    first_item = span_vector[0]\n    last_item = span_vector[-1]\n    MINI_CHECK(TOLERANCE.is_close(first_item, -1.1))\n    MINI_CHECK(TOLERANCE.is_close(last_item, 2.3))",
+          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -43040,6 +43643,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Division\")",
           "code": "MINI_TEST(\"NurbsSurface\", \"Division\") {\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // points, normals, uv\n        auto [division_points, vectors, uvs0] = s.divide_by_count_points(3, 3);\n\n        // planes, normals, uv\n        auto [planes, uvs1] = s.divide_by_count_planes(3, 3);\n\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[0][0], Point(0, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[0][1], Point(-0.666666666666667, 1.46296296296296, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[0][2], Point(-0.666666666666667, 3.53703703703704, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[0][3], Point(0, 5, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[1][0], Point(1.46296296296296, -0.666666666666667, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[1][1], Point(1.3641975308642, 1.3641975308642, 2.66666666666667)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[1][2], Point(1.3641975308642, 3.6358024691358, 2.66666666666667)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[1][3], Point(1.46296296296296, 5.66666666666667, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[2][0], Point(3.53703703703704, -0.666666666666667, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[2][1], Point(3.6358024691358, 1.3641975308642, 2.66666666666667)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[2][2], Point(3.6358024691358, 3.6358024691358, 2.66666666666667)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[2][3], Point(3.53703703703704, 5.66666666666667, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[3][0], Point(5, 0, 0)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[3][1], Point(5.66666666666667, 1.46296296296296, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[3][2], Point(5.66666666666667, 3.53703703703704, 1.33333333333333)));\n        MINI_CHECK(TOLERANCE.is_point_close(division_points[3][3], Point(5, 5, 0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][0], Vector(-0.704360725060499, -0.704360725060499, -0.0880450906325624)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][1], Vector(-0.722897836195991, -0.327787263130091, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][2], Vector(-0.722897836195991, 0.327787263130091, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][3], Vector(-0.704360725060499, 0.704360725060499, -0.0880450906325624)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][0], Vector(-0.327787263130091, -0.722897836195991, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][1], Vector(-0.280457757277237, -0.280457757277237, 0.917979788865771)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][2], Vector(-0.280457757277237, 0.280457757277237, 0.917979788865771)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][3], Vector(-0.327787263130091, 0.722897836195991, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][0], Vector(0.327787263130091, -0.722897836195991, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][1], Vector(0.280457757277237, -0.280457757277237, 0.917979788865771)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][2], Vector(0.280457757277237, 0.280457757277237, 0.917979788865771)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][3], Vector(0.327787263130091, 0.722897836195991, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][0], Vector(0.704360725060499, -0.704360725060499, -0.0880450906325624)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][1], Vector(0.722897836195991, -0.327787263130091, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][2], Vector(0.722897836195991, 0.327787263130091, 0.608255068661856)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][3], Vector(0.704360725060499, 0.704360725060499, -0.0880450906325624)));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[0][0].first, 0.0) && TOLERANCE.is_close(uvs0[0][0].second, 0.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[0][1].first, 0.0) && TOLERANCE.is_close(uvs0[0][1].second, 0.333333333333333));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[0][2].first, 0.0) && TOLERANCE.is_close(uvs0[0][2].second, 0.666666666666667));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[0][3].first, 0.0) && TOLERANCE.is_close(uvs0[0][3].second, 1.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[1][0].first, 0.333333333333333) && TOLERANCE.is_close(uvs0[1][0].second, 0.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[1][1].first, 0.333333333333333) && TOLERANCE.is_close(uvs0[1][1].second, 0.333333333333333));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[1][2].first, 0.333333333333333) && TOLERANCE.is_close(uvs0[1][2].second, 0.666666666666667));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[1][3].first, 0.333333333333333) && TOLERANCE.is_close(uvs0[1][3].second, 1.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[2][0].first, 0.666666666666667) && TOLERANCE.is_close(uvs0[2][0].second, 0.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[2][1].first, 0.666666666666667) && TOLERANCE.is_close(uvs0[2][1].second, 0.333333333333333));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[2][2].first, 0.666666666666667) && TOLERANCE.is_close(uvs0[2][2].second, 0.666666666666667));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[2][3].first, 0.666666666666667) && TOLERANCE.is_close(uvs0[2][3].second, 1.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[3][0].first, 1.0) && TOLERANCE.is_close(uvs0[3][0].second, 0.0));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[3][1].first, 1.0) && TOLERANCE.is_close(uvs0[3][1].second, 0.333333333333333));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[3][2].first, 1.0) && TOLERANCE.is_close(uvs0[3][2].second, 0.666666666666667));\n        MINI_CHECK(TOLERANCE.is_close(uvs0[3][3].first, 1.0) && TOLERANCE.is_close(uvs0[3][3].second, 1.0));\n        MINI_CHECK(TOLERANCE.is_vector_close(planes[0][0].x_axis(), Vector(0.317999364001908, -0.423999152002544, 0.847998304005088)));        \n        MINI_CHECK(TOLERANCE.is_vector_close(planes[0][1].x_axis(), Vector(0.657483781160109, -0.0556600026378928, 0.751410035611553)));       \n        MINI_CHECK(TOLERANCE.is_vector_close(planes[0][2].x_axis(), Vector(0.657483781160109, 0.055660002637893, 0.751410035611553)));\n        MINI_CHECK(TOLERANCE.is_vector_close(planes[0][3].x_axis(), Vector(0.317999364001908, 0.423999152002544, 0.847998304005088)));\n        MINI_CHECK(TOLERANCE.is_vector_close(planes[1][0].x_axis(), Vector(0.93542594448836, -0.158100159631836, 0.316200319263671)));\n        MINI_CHECK(TOLERANCE.is_vector_close(planes[1][1].x_axis(), Vector(0.957938608304167, -0.0211991946512679, 0.286189127792116)));       \n        MINI_CHECK(TOLERANCE.is_vector_close(planes[1][2].x_axis(), Vector(0.957938608304167, 0.0211991946512677, 0.286189127792116)));        \n        MINI_CHECK(TOLERANCE.is_vector_close(planes[1][3].x_axis(), Vector(0",
           "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Division\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Division\")\ndef test_division():\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # points, normals, uv\n    division_points, vectors, uvs0 = s.divide_by_count_points(3, 3)\n\n    # planes, uv\n    planes, uvs1 = s.divide_by_count_planes(3, 3)\n\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[0][0], Point(0, 0, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[0][1], Point(-0.666666666666667, 1.46296296296296, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[0][2], Point(-0.666666666666667, 3.53703703703704, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[0][3], Point(0, 5, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[1][0], Point(1.46296296296296, -0.666666666666667, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[1][1], Point(1.3641975308642, 1.3641975308642, 2.66666666666667)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[1][2], Point(1.3641975308642, 3.6358024691358, 2.66666666666667)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[1][3], Point(1.46296296296296, 5.66666666666667, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[2][0], Point(3.53703703703704, -0.666666666666667, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[2][1], Point(3.6358024691358, 1.3641975308642, 2.66666666666667)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[2][2], Point(3.6358024691358, 3.6358024691358, 2.66666666666667)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[2][3], Point(3.53703703703704, 5.66666666666667, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[3][0], Point(5, 0, 0)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[3][1], Point(5.66666666666667, 1.46296296296296, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[3][2], Point(5.66666666666667, 3.53703703703704, 1.33333333333333)))\n    MINI_CHECK(TOLERANCE.is_point_close(division_points[3][3], Point(5, 5, 0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][0], Vector(-0.704360725060499, -0.704360725060499, -0.0880450906325624)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][1], Vector(-0.722897836195991, -0.327787263130091, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][2], Vector(-0.722897836195991, 0.327787263130091, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[0][3], Vector(-0.704360725060499, 0.704360725060499, -0.0880450906325624)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][0], Vector(-0.327787263130091, -0.722897836195991, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][1], Vector(-0.280457757277237, -0.280457757277237, 0.917979788865771)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][2], Vector(-0.280457757277237, 0.280457757277237, 0.917979788865771)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[1][3], Vector(-0.327787263130091, 0.722897836195991, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][0], Vector(0.327787263130091, -0.722897836195991, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][1], Vector(0.280457757277237, -0.280457757277237, 0.917979788865771)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][2], Vector(0.280457757277237, 0.280457757277237, 0.917979788865771)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[2][3], Vector(0.327787263130091, 0.722897836195991, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][0], Vector(0.704360725060499, -0.704360725060499, -0.0880450906325624)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][1], Vector(0.722897836195991, -0.327787263130091, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][2], Vector(0.722897836195991, 0.327787263130091, 0.608255068661856)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vectors[3][3], Vector(0.704360725060499, 0.704360725060499, -0.0880450906325624)))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[0][0][0], 0.0) and TOLERANCE.is_close(uvs0[0][0][1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[0][1][0], 0.0) and TOLERANCE.is_close(uvs0[0][1][1], 0.333333333333333))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[0][2][0], 0.0) and TOLERANCE.is_close(uvs0[0][2][1], 0.666666666666667))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[0][3][0], 0.0) and TOLERANCE.is_close(uvs0[0][3][1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[1][0][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][0][1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[1][1][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][1][1], 0.333333333333333))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[1][2][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][2][1], 0.666666666666667))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[1][3][0], 0.333333333333333) and TOLERANCE.is_close(uvs0[1][3][1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[2][0][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][0][1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[2][1][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][1][1], 0.333333333333333))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[2][2][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][2][1], 0.666666666666667))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[2][3][0], 0.666666666666667) and TOLERANCE.is_close(uvs0[2][3][1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[3][0][0], 1.0) and TOLERANCE.is_close(uvs0[3][0][1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[3][1][0], 1.0) and TOLERANCE.is_close(uvs0[3][1][1], 0.333333333333333))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[3][2][0], 1.0) and TOLERANCE.is_close(uvs0[3][2][1], 0.666666666666667))\n    MINI_CHECK(TOLERANCE.is_close(uvs0[3][3][0], 1.0) and TOLERANCE.is_close(uvs0[3][3][1], 1.0))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[0][0].x_axis, Vector(0.317999364001908, -0.423999152002544, 0.847998304005088)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[0][1].x_axis, Vector(0.657483781160109, -0.0556600026378928, 0.751410035611553)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[0][2].x_axis, Vector(0.657483781160109, 0.055660002637893, 0.751410035611553)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[0][3].x_axis, Vector(0.317999364001908, 0.423999152002544, 0.847998304005088)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[1][0].x_axis, Vector(0.93542594448836, -0.158100159631836, 0.316200319263671)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[1][1].x_axis, Vector(0.957938608304167, -0.0211991946512679, 0.286189127792116)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[1][2].x_axis, Vector(0.957938608304167, 0.0211991946512677, 0.286189127792116)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[1][3].x_axis, Vector(0.93542594448836, 0.158100159631835, 0.316200319263671)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[2][0].x_axis, Vector(0.93542594448836, 0.158100159631835, -0.316200319263671)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[2][1].x_axis, Vector(0.957938608304167, 0.0211991946512679, -0.286189127792116)))\n    MINI_CHECK(TOLERANCE.is_vector_close(planes[2][2].x_axis, Vector(0.957938608304167, -0.021199194651268, -0.286189127792116)))\n    MINI_CHECK(TOLERANC",
+          "file": "nurbssurface_test.py"
         }
       }
     },
@@ -43048,42 +43656,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Evaluation\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Evaluation\") {\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        // Create simple bilinear surface\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        // Evaluate at corner\n        auto dom_u = surf.domain(0);\n        auto dom_v = surf.domain(1);\n\n        Point pt_corner = surf.point_at(dom_u.first, dom_v.first);\n\n        // Evaluate at center (should be center of unit square)\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n        Point pt_mid = surf.point_at(u_mid, v_mid);\n\n        // Test derivatives\n        auto derivs = surf.evaluate(u_mid, v_mid, 1);\n\n        // Test normal (for flat plane in XY, normal should point in +Z)\n        Vector normal = surf.normal_at(u_mid, v_mid);\n\n        MINI_CHECK(surf.is_valid());\n        MINI_CHECK(TOLERANCE.is_close(pt_corner[0], 0.0));\n        MINI_CHECK(TOLERANCE.is_close(pt_corner[1], 0.0));\n        MINI_CHECK(TOLERANCE.is_close(pt_corner[2], 0.0));\n        MINI_CHECK(TOLERANCE.is_close(pt_mid[0], 0.5));\n        MINI_CHECK(TOLERANCE.is_close(pt_mid[1], 0.5));\n        MINI_CHECK(derivs.size() == 3);\n        MINI_CHECK(TOLERANCE.is_close(std::abs(normal[2]), 1.0));\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Evaluation\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n \n    }",
           "file": "nurbssurface_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")\ndef test_evaluation():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create simple bilinear surface\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    # Evaluate at corner\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    pt_corner = surf.point_at(u0, v0)\n\n    # Evaluate at center (should be center of unit square)\n    u_mid = (u0 + u1) / 2.0\n    v_mid = (v0 + v1) / 2.0\n    pt_mid = surf.point_at(u_mid, v_mid)\n\n    # Test derivatives\n    derivs = surf.evaluate(u_mid, v_mid, 1)\n\n    # Test normal (for flat plane in XY, normal should point in +Z)\n    normal = surf.normal_at(u_mid, v_mid)\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(pt_corner[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_corner[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_corner[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_mid[0], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(pt_mid[1], 0.5))\n    MINI_CHECK(len(derivs) == 3)\n    MINI_CHECK(TOLERANCE.is_close(abs(normal[2]), 1.0))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Geometric_queries",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"NurbsSurface\", \"Geometric_queries\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Geometric_queries\") {\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        // Create and setup surface\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, points);\n\n        MINI_CHECK(surf.is_valid());\n        MINI_CHECK(!surf.is_closed(0));\n        MINI_CHECK(!surf.is_closed(1));\n        MINI_CHECK(!surf.is_periodic(0));\n        MINI_CHECK(!surf.is_periodic(1));\n        MINI_CHECK(surf.is_clamped(0, 0));\n        MINI_CHECK(surf.is_clamped(1, 0));\n        MINI_CHECK(surf.is_planar(nullptr, 1e-6));\n    }",
-          "file": "nurbssurface_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Geometric_queries\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Geometric_queries\")\ndef test_geometric_queries():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create and setup surface\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, points)\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(not surf.is_closed(0))\n    MINI_CHECK(not surf.is_closed(1))\n    MINI_CHECK(not surf.is_periodic(0))\n    MINI_CHECK(not surf.is_periodic(1))\n    MINI_CHECK(surf.is_clamped(0, 0))\n    MINI_CHECK(surf.is_clamped(1, 0))\n    MINI_CHECK(surf.is_planar(None, 1e-6))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Modification",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"NurbsSurface\", \"Modification\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Modification\") {\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n            Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0), Point(2.0, 1.0, 0.0),\n        };\n        NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 3, 2, points);\n\n        Point cv_before = surf.get_cv(0, 0);\n\n        // Test reverse in u direction\n        surf.reverse(0);\n        Point cv_after = surf.get_cv(2, 0);\n\n        // Reverse back\n        surf.reverse(0);\n\n        // Test transpose\n        int order_u_before = surf.order(0);\n        int order_v_before = surf.order(1);\n        surf.transpose();\n\n        MINI_CHECK(cv_after[0] == cv_before[0]);\n        MINI_CHECK(surf.order(0) == order_v_before);\n        MINI_CHECK(surf.order(1) == order_u_before);\n    }",
-          "file": "nurbssurface_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Modification\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Modification\")\ndef test_modification():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0), Point(2.0, 1.0, 0.0),\n    ]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 2, points)\n\n    cv_before = surf.get_cv(0, 0)\n\n    # Test reverse in u direction\n    surf.reverse(0)\n    cv_after = surf.get_cv(2, 0)\n\n    # Reverse back\n    surf.reverse(0)\n\n    # Test transpose\n    order_u_before = surf.order(0)\n    order_v_before = surf.order(1)\n    surf.transpose()\n\n    MINI_CHECK(cv_after[0] == cv_before[0])\n    MINI_CHECK(surf.order(0) == order_v_before)\n    MINI_CHECK(surf.order(1) == order_u_before)",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")\ndef test_evaluation():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)",
           "file": "nurbssurface_test.py"
         }
       }
@@ -43173,7 +43751,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Clamp_operations\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Clamp_operations\")\ndef test_clamp_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Test clamp_end\n    was_clamped_before = surf.is_clamped(0, 2)\n    surf.clamp_end(0, 2)\n    is_clamped_after = surf.is_clamped(0, 2)\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(is_clamped_after)",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Clamp_operations\")\ndef test_clamp_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    surf.clamp_end(0, 2)\n\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_clamped(0, 2))",
           "file": "nurbssurface_test.py"
         }
       }
@@ -43308,7 +43886,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Knot_multiplicity\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot_multiplicity\")\ndef test_knot_multiplicity():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check first knot multiplicity (should be equal to degree for clamped)\n    mult_u_start = surf.knot_multiplicity(0, 0)\n    mult_v_start = surf.knot_multiplicity(1, 0)\n\n    # Check last knot multiplicity\n    last_u = surf.knot_count(0) - 1\n    last_v = surf.knot_count(1) - 1\n    mult_u_end = surf.knot_multiplicity(0, last_u)\n    mult_v_end = surf.knot_multiplicity(1, last_v)\n\n    MINI_CHECK(mult_u_start >= surf.degree(0))\n    MINI_CHECK(mult_v_start >= surf.degree(1))\n    MINI_CHECK(mult_u_end >= surf.degree(0))\n    MINI_CHECK(mult_v_end >= surf.degree(1))",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot_multiplicity\")\ndef test_knot_multiplicity():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check first knot multiplicity (should be equal to degree for clamped)\n    mult_u_start = surf.knot_multiplicity(0, 0)\n    mult_v_start = surf.knot_multiplicity(1, 0)\n\n    # Check last knot multiplicity\n    last_u = surf.knot_count(0) - 1\n    last_v = surf.knot_count(1) - 1\n    mult_u_end = surf.knot_multiplicity(0, last_u)\n    mult_v_end = surf.knot_multiplicity(1, last_v)\n\n    MINI_CHECK(mult_u_start >= surf.degree(0))\n    MINI_CHECK(mult_v_start >= surf.degree(1))\n    MINI_CHECK(mult_u_end >= surf.degree(0))\n    MINI_CHECK(mult_v_end >= surf.degree(1))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "nurbssurface_test.py"
         }
       }
@@ -44138,12 +44716,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\")",
-          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\") {\n    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_a = {Point(3,0,0), Point(-2,0,5)};\n    std::vector<Point> pts_b = {Point(3,5,5), Point(-2,5,0)};\n    NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n    NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n    NurbsSurface srf = Primitives::create_ruled(crvA, crvB);\n    srf.name = \"ruled\";\n\n    Mesh m = srf.mesh(45);\n\n    MINI_CHECK(srf.is_valid());\n    MINI_CHECK(srf.degree(0) == 1);\n    MINI_CHECK(srf.degree(1) == 1);\n    MINI_CHECK(srf.cv_count(0) == 2);\n    MINI_CHECK(srf.cv_count(1) == 2);\n\n    auto [rd, rv, ruv] = srf.divide_by_count_points(4, 4);\n    MINI_CHECK(rd.size() == 5);\n    MINI_CHECK(rd[0].size() == 5);\n\n    std::vector<Point> pts;\n    for (int i = 0; i < (int)rd.size(); i++)\n        for (int j = 0; j < (int)rd[i].size(); j++)\n            pts.push_back(rd[i][j]);\n\n    std::vector<Vector> normals;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n    std::vector<std::pair<double,double>> uvs;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            uvs.push_back(ruv[i][j]);\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)));\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector( 0.577350269189626, -0.577350269189626,  0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector( 1.0/3.0, -2.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0, -0.707106781186547,  0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector(-1.0/3.0, -2.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector(-0.577350269189626, -0.577350269189626,  0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector( 2.0/3.0, -1.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector( 0.408248290463863, -0.408248290463863,  0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0, -0.447213595499958,  0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector(-0.408248290463863, -0.408248290463863,  0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector(-2.0/3.0, -1.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector( 0.707106781186547,  0.0,  0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector( 0.447213595499958,  0.0,  0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0, 0.0, 1.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector(-0.447213595499958,  0.0,  0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector(-0.707106781186547,  0.0,  0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector( 2.0/3.0, 1.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector( 0.408248290463863,  0.408248290463863,  0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, 0.447213595499958,  0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector(-0.408248290463863,  0.408248290463863,  0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector(-2.0/3.0, 1.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector( 0.577350269189626,  0.577350269189626,  0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector( 1.0/3.0, 2.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, 0.707106781186547,  0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector(-1.0/3.0, 2.0/3.0, 2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector(-0.577350269189626,  0.577350269189626,  0.577350269189626)));\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0].first,  0.00) && TOLERANCE.is_close(uvs[0].second,  0.00));\n    MINI_CHECK(TOLERANCE.is_close(uvs[1].first,  0.00) && TOLERANCE.is_close(uvs[1].second,  0.25));\n    MINI_CHECK(TOLERANCE.is_close(uvs[4].first,  0.00) && TOLERANCE.is_close(uvs[4].second,  1.00));\n    MINI_CHECK(TOLERANCE.is_close(uvs[6].first,  0.25) && TOLERANCE.is_close(uvs[6].second,  0.25));\n    MINI_CHECK(TOLERANCE.is_close(uvs[12].first, 0.50) && TOLERANCE.is_close(uvs[12].second, 0.50));\n    MINI_CHECK(TOLERANCE.is_close(uvs[24].first, 1.00) && TOLERANCE.is_close(uvs[24].second, 1.00));\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\") {\n    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_a = {Point(3,0,0), Point(-2,0,5)};\n    std::vector<Point> pts_b = {Point(3,5,5), Point(-2,5,0)};\n    NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n    NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n    NurbsSurface srf = Primitives::create_ruled(crvA, crvB);\n    srf.name = \"ruled\";\n\n    Mesh m = srf.mesh(45);\n\n    MINI_CHECK(srf.is_valid());\n    MINI_CHECK(srf.degree(0) == 1);\n    MINI_CHECK(srf.degree(1) == 1);\n    MINI_CHECK(srf.cv_count(0) == 2);\n    MINI_CHECK(srf.cv_count(1) == 2);\n\n    auto [rd, rv, ruv] = srf.divide_by_count_points(4, 4);\n    MINI_CHECK(rd.size() == 5);\n    MINI_CHECK(rd[0].size() == 5);\n\n    std::vector<Point> pts;\n    for (int i = 0; i < (int)rd.size(); i++)\n        for (int j = 0; j < (int)rd[i].size(); j++)\n            pts.push_back(rd[i][j]);\n\n    std::vector<Vector> normals;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n    std::vector<std::pair<double,double>> uvs;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            uvs.push_back(ruv[i][j]);\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)));\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)));\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector(-0.577350269189626,  0.577350269189626, -0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector(-1.0/3.0,  2.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0,  0.707106781186547, -0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector( 1.0/3.0,  2.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector( 0.577350269189626,  0.577350269189626, -0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector(-2.0/3.0,  1.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector(-0.408248290463863,  0.408248290463863, -0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0,  0.447213595499958, -0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector( 0.408248290463863,  0.408248290463863, -0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector( 2.0/3.0,  1.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector(-0.707106781186547,  0.0, -0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector(-0.447213595499958,  0.0, -0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0,  0.0, -1.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector( 0.447213595499958,  0.0, -0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector( 0.707106781186547,  0.0, -0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector(-2.0/3.0, -1.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector(-0.408248290463863, -0.408248290463863, -0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, -0.447213595499958, -0.894427190999916)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector( 0.408248290463863, -0.408248290463863, -0.816496580927726)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector( 2.0/3.0, -1.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector(-0.577350269189626, -0.577350269189626, -0.577350269189626)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector(-1.0/3.0, -2.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, -0.707106781186547, -0.707106781186547)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector( 1.0/3.0, -2.0/3.0, -2.0/3.0)));\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector( 0.577350269189626, -0.577350269189626, -0.577350269189626)));\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0].first,  0.00) && TOLERANCE.is_close(uvs[0].second,  0.00));\n    MINI_CHECK(TOLERANCE.is_close(uvs[1].first,  0.00) && TOLERANCE.is_close(uvs[1].second,  0.25));\n    MINI_CHECK(TOLERANCE.is_close(uvs[4].first,  0.00) && TOLERANCE.is_close(uvs[4].second,  1.00));\n    MINI_CHECK(TOLERANCE.is_close(uvs[6].first,  0.25) && TOLERANCE.is_close(uvs[6].second,  0.25));\n    MINI_CHECK(TOLERANCE.is_close(uvs[12].first, 0.50) && TOLERANCE.is_close(uvs[12].second, 0.50));\n    MINI_CHECK(TOLERANCE.is_close(uvs[24].first, 1.00) && TOLERANCE.is_close(uvs[24].second, 1.00));\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\")\ndef test_nurbssurface_ruled():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3.0, 0.0, 0.0), Point(-2.0, 0.0, 5.0)]\n    pts_b = [Point(3.0, 5.0, 5.0), Point(-2.0, 5.0, 0.0)]\n    crv_a = NurbsCurve.create(False, 1, pts_a)\n    crv_b = NurbsCurve.create(False, 1, pts_b)\n    srf = Primitives.create_ruled(crv_a, crv_b)\n    _m = srf.mesh()\n\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.degree(0) == 1)\n    MINI_CHECK(srf.degree(1) == 1)\n    MINI_CHECK(srf.cv_count_dir(0) == 2)\n    MINI_CHECK(srf.cv_count_dir(1) == 2)\n\n    rd, ruv = srf.divide_by_count(4, 4)\n    MINI_CHECK(len(rd) == 5)\n    MINI_CHECK(len(rd[0]) == 5)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(srf.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector( 0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector( 1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0, -0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector(-1.0/3.0, -2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector(-0.577350269189626, -0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector( 2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector( 0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0, -0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector(-0.408248290463863, -0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector(-2.0/3.0, -1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector( 0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector( 0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0, 0.0, 1.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector(-0.447213595499958,  0.0,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector(-0.707106781186547,  0.0,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector( 2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector( 0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, 0.447213595499958,  0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector(-0.408248290463863,  0.408248290463863,  0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector(-2.0/3.0, 1.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector( 0.577350269189626,  0.577350269189626,  0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector( 1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, 0.707106781186547,  0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector(-1.0/3.0, 2.0/3.0, 2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector(-0.577350269189626,  0.577350269189626,  0.577350269189626)))\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0][0],  0.00) and TOLERANCE.is_close(uvs[0][1],  0.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[1][0],  0.00) and TOLERANCE.is_close(uvs[1][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[4][0],  0.00) and TOLERANCE.is_close(uvs[4][1],  1.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[6][0],  0.25) and TOLERANCE.is_close(uvs[6][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[12][0], 0.50) and TOLERANCE.is_close(uvs[12][1], 0.50))\n    MINI_CHECK(TOLERANCE.is_close(uvs[24][0], 1.00) and TOLERANCE.is_close(uvs[24][1], 1.00))",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface_ruled\")\ndef test_nurbssurface_ruled():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3.0, 0.0, 0.0), Point(-2.0, 0.0, 5.0)]\n    pts_b = [Point(3.0, 5.0, 5.0), Point(-2.0, 5.0, 0.0)]\n    crv_a = NurbsCurve.create(False, 1, pts_a)\n    crv_b = NurbsCurve.create(False, 1, pts_b)\n    srf = Primitives.create_ruled(crv_a, crv_b)\n    _m = srf.mesh()\n\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.degree(0) == 1)\n    MINI_CHECK(srf.degree(1) == 1)\n    MINI_CHECK(srf.cv_count_dir(0) == 2)\n    MINI_CHECK(srf.cv_count_dir(1) == 2)\n\n    rd, ruv = srf.divide_by_count(4, 4)\n    MINI_CHECK(len(rd) == 5)\n    MINI_CHECK(len(rd[0]) == 5)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(srf.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])\n\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0],  Point( 3.00, 0.00, 0.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1],  Point( 3.00, 1.25, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2],  Point( 3.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3],  Point( 3.00, 3.75, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4],  Point( 3.00, 5.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5],  Point( 1.75, 0.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6],  Point( 1.75, 1.25, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7],  Point( 1.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[8],  Point( 1.75, 3.75, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[9],  Point( 1.75, 5.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[10], Point( 0.50, 0.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[11], Point( 0.50, 1.25, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[12], Point( 0.50, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[13], Point( 0.50, 3.75, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[14], Point( 0.50, 5.00, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[15], Point(-0.75, 0.00, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[16], Point(-0.75, 1.25, 3.125)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[17], Point(-0.75, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[18], Point(-0.75, 3.75, 1.875)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[19], Point(-0.75, 5.00, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[20], Point(-2.00, 0.00, 5.00)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[21], Point(-2.00, 1.25, 3.75)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[22], Point(-2.00, 2.50, 2.50)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[23], Point(-2.00, 3.75, 1.25)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[24], Point(-2.00, 5.00, 0.00)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[0],  Vector(-0.577350269189626,  0.577350269189626, -0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[1],  Vector(-1.0/3.0,  2.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[2],  Vector( 0.0,  0.707106781186547, -0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[3],  Vector( 1.0/3.0,  2.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[4],  Vector( 0.577350269189626,  0.577350269189626, -0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[5],  Vector(-2.0/3.0,  1.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[6],  Vector(-0.408248290463863,  0.408248290463863, -0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[7],  Vector( 0.0,  0.447213595499958, -0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[8],  Vector( 0.408248290463863,  0.408248290463863, -0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[9],  Vector( 2.0/3.0,  1.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[10], Vector(-0.707106781186547,  0.0, -0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[11], Vector(-0.447213595499958,  0.0, -0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[12], Vector( 0.0,  0.0, -1.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[13], Vector( 0.447213595499958,  0.0, -0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[14], Vector( 0.707106781186547,  0.0, -0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[15], Vector(-2.0/3.0, -1.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[16], Vector(-0.408248290463863, -0.408248290463863, -0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[17], Vector( 0.0, -0.447213595499958, -0.894427190999916)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[18], Vector( 0.408248290463863, -0.408248290463863, -0.816496580927726)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[19], Vector( 2.0/3.0, -1.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[20], Vector(-0.577350269189626, -0.577350269189626, -0.577350269189626)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[21], Vector(-1.0/3.0, -2.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[22], Vector( 0.0, -0.707106781186547, -0.707106781186547)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[23], Vector( 1.0/3.0, -2.0/3.0, -2.0/3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(normals[24], Vector( 0.577350269189626, -0.577350269189626, -0.577350269189626)))\n\n    MINI_CHECK(TOLERANCE.is_close(uvs[0][0],  0.00) and TOLERANCE.is_close(uvs[0][1],  0.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[1][0],  0.00) and TOLERANCE.is_close(uvs[1][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[4][0],  0.00) and TOLERANCE.is_close(uvs[4][1],  1.00))\n    MINI_CHECK(TOLERANCE.is_close(uvs[6][0],  0.25) and TOLERANCE.is_close(uvs[6][1],  0.25))\n    MINI_CHECK(TOLERANCE.is_close(uvs[12][0], 0.50) and TOLERANCE.is_close(uvs[12][1], 0.50))\n    MINI_CHECK(TOLERANCE.is_close(uvs[24][0], 1.00) and TOLERANCE.is_close(uvs[24][1], 1.00))",
           "file": "primitives_test.py"
         }
       }
@@ -44314,11 +44892,31 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Primitives.test_Mesh_chevron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_chevron\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_chevron\") {\n    auto surfaces = Primitives::annen_surfaces();\n    MINI_CHECK(surfaces.size() == 23);\n    for (size_t i = 0; i < surfaces.size(); i++)\n        MINI_CHECK(surfaces[i].is_valid());\n\n    Mesh m = Primitives::chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n    MINI_CHECK(m.number_of_faces() > 0);\n}",
+          "file": "primitives_test.cpp"
+        }
+      }
+    },
+    {
       "name": "Primitives.test_FoldedPlates",
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"FoldedPlates\")",
           "code": "MINI_TEST(\"Primitives\", \"FoldedPlates\") {\n    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n    MINI_CHECK(fp.mesh.is_valid());\n    MINI_CHECK(fp.mesh.number_of_faces() > 0);\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0);\n    MINI_CHECK(fp.flags.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.adjacency.size() > 0);\n    MINI_CHECK(fp.polylines.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.insertion_lines.size() > 0);\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        MINI_CHECK(fp.polylines[i].size() > 0);\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3);\n    }\n}",
+          "file": "primitives_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_CrossConnectors",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"CrossConnectors\")",
+          "code": "MINI_TEST(\"Primitives\", \"CrossConnectors\") {\n    std::vector<std::vector<Point>> polys = {\n        {Point(-574.485,-574.300,-182.370), Point(-620.030,-480.441,-136.145), Point(-527.510,-476.289,-53.723), Point(-431.548,-637.846,-118.351), Point(-574.485,-574.300,-182.370)},\n        {Point(-545.761,-545.585,-211.069), Point(-589.029,-456.419,-167.156), Point(-501.135,-452.475,-88.854), Point(-409.971,-605.954,-150.251), Point(-545.761,-545.585,-211.069)},\n        {Point(-224.289,-691.254,-65.097), Point(-125.302,-566.359,58.481), Point(125.182,-566.359,58.481), Point(212.579,-691.254,-65.097), Point(-224.289,-691.254,-65.097)},\n        {Point(-213.075,-656.691,-99.659), Point(-119.037,-538.041,17.739), Point(118.923,-538.041,17.739), Point(201.950,-656.691,-99.659), Point(-213.075,-656.691,-99.659)},\n        {Point(456.309,-628.504,-127.534), Point(523.010,-466.370,-45.103), Point(622.146,-472.434,-134.186), Point(574.882,-574.852,-181.916), Point(456.309,-628.504,-127.534)},\n        {Point(433.493,-597.079,-158.975), Point(496.859,-443.052,-80.665), Point(591.038,-448.812,-165.294), Point(546.138,-546.110,-210.638), Point(433.493,-597.079,-158.975)},\n        {Point(-431.100,-638.600,-118.653), Point(-527.510,-476.289,-53.723), Point(-481.982,-362.651,39.785), Point(-234.426,-365.823,142.950), Point(-125.302,-566.359,58.481), Point(-223.832,-690.677,-64.527), Point(-431.100,-638.600,-118.653)},\n        {Point(-409.545,-606.670,-150.538), Point(-501.135,-452.475,-88.854), Point(-457.883,-344.518,-0.022), Point(-222.705,-347.532,97.985), Point(-119.037,-538.041,17.739), Point(-212.641,-656.144,-99.118), Point(-409.545,-606.670,-150.538)},\n        {Point(212.526,-691.178,-65.022), Point(125.182,-566.359,58.481), Point(238.785,-380.979,136.566), Point(478.593,-374.909,36.915), Point(523.010,-466.370,-45.103), Point(455.692,-630.004,-128.297), Point(212.526,-691.178,-65.022)},\n        {Point(201.900,-656.619,-99.589), Point(118.923,-538.041,17.739), Point(226.846,-361.930,91.920), Point(454.664,-356.164,-2.748), Point(496.859,-443.052,-80.665), Point(432.907,-598.504,-159.699), Point(201.900,-656.619,-99.589)},\n        {Point(-481.982,-362.651,39.785), Point(-527.510,-476.289,-53.723), Point(-620.401,-480.458,-136.475), Point(-698.046,-172.509,-57.884), Point(-595.889,-174.723,29.899), Point(-481.982,-362.651,39.785)},\n        {Point(-457.883,-344.518,-0.022), Point(-501.135,-452.475,-88.854), Point(-589.381,-456.435,-167.469), Point(-663.144,-163.884,-92.807), Point(-566.094,-165.987,-9.413), Point(-457.883,-344.518,-0.022)},\n        {Point(-125.302,-566.359,58.481), Point(-234.426,-365.823,142.950), Point(-149.707,-204.103,211.069), Point(150.116,-204.103,211.069), Point(238.785,-380.979,136.566), Point(125.182,-566.359,58.481), Point(-125.302,-566.359,58.481)},\n        {Point(-119.037,-538.041,17.739), Point(-222.705,-347.532,97.985), Point(-142.222,-193.898,162.698), Point(142.610,-193.898,162.698), Point(226.846,-361.930,91.920), Point(118.923,-538.041,17.739), Point(-119.037,-538.041,17.739)},\n        {Point(478.593,-374.909,36.915), Point(596.484,-174.710,29.388), Point(698.046,-172.509,-57.884), Point(622.420,-472.451,-134.432), Point(523.010,-466.370,-45.103), Point(478.593,-374.909,36.915)},\n        {Point(454.664,-356.164,-2.748), Point(566.659,-165.975,-9.899), Point(663.144,-163.884,-92.807), Point(591.299,-448.828,-165.528), Point(496.859,-443.052,-80.665), Point(454.664,-356.164,-2.748)},\n        {Point(-481.982,-362.651,39.785), Point(-595.889,-174.723,29.899), Point(-515.848,-0.000,98.678), Point(-247.814,-0.000,211.069), Point(-149.707,-204.103,211.069), Point(-234.426,-365.823,142.950), Point(-481.982,-362.651,39.785)},\n        {Point(-457.883,-344.518,-0.022), Point(-566.094,-165.987,-9.413), Point(-490.055,-0.000,55.926), Point(-235.423,-0.000,162.698), Point(-142.222,-193.898,162.698), Point(-222.705,-347.532,97.985), Point(-457.883,-344.518,-0.022)},\n        {Point(238.785,-380.979,136.566), Point(150.116,-204.103,211.069), Point(252.071,0.000,211.069), Point(512.707,0.000,101.376), Point(596.484,-174.710,29.388), Point(478.593,-374.909,36.915), Point(238.785,-380.979,136.566)},\n        {Point(226.846,-361.930,91.920), Point(142.610,-193.898,162.698), Point(239.467,-0.000,162.698), Point(487.072,-0.000,58.490), Point(566.659,-165.975,-9.899), Point(454.664,-356.164,-2.748), Point(226.846,-361.930,91.920)},\n        {Point(-515.848,0.000,98.678), Point(-595.889,-174.723,29.899), Point(-698.269,-172.505,-58.075), Point(-698.269,172.505,-58.075), Point(-595.889,174.723,29.899), Point(-515.848,0.000,98.678)},\n        {Point(-490.055,-0.000,55.926), Point(-566.094,-165.987,-9.413), Point(-663.356,-163.879,-92.989), Point(-663.356,163.879,-92.989), Point(-566.094,165.987,-9.413), Point(-490.055,-0.000,55.926)},\n        {Point(-149.707,-204.103,211.069), Point(-247.814,0.000,211.069), Point(-149.707,204.103,211.069), Point(150.116,204.103,211.069), Point(252.071,0.000,211.069), Point(150.116,-204.103,211.069), Point(-149.707,-204.103,211.069)},\n        {Point(-142.222,-193.898,162.698), Point(-235.423,-0.000,162.698), Point(-142.222,193.898,162.698), Point(142.610,193.898,162.698), Point(239.467,0.000,162.698), Point(142.610,-193.898,162.698), Point(-142.222,-193.898,162.698)},\n        {Point(512.707,0.000,101.376), Point(596.484,174.710,29.388), Point(698.269,172.505,-58.075), Point(698.269,-172.505,-58.075), Point(596.484,-174.710,29.388), Point(512.707,0.000,101.376)},\n        {Point(487.072,0.000,58.490), Point(566.659,165.975,-9.899), Point(663.356,163.879,-92.989), Point(663.356,-163.879,-92.989), Point(566.659,-165.975,-9.899), Point(487.072,0.000,58.490)},\n        {Point(-515.848,-0.000,98.678), Point(-595.889,174.723,29.899), Point(-481.982,362.651,39.785), Point(-234.426,365.823,142.950), Point(-149.707,204.103,211.069), Point(-247.814,-0.000,211.069), Point(-515.848,-0.000,98.678)},\n        {Point(-490.055,-0.000,55.926), Point(-566.094,165.987,-9.413), Point(-457.883,344.518,-0.022), Point(-222.705,347.532,97.985), Point(-142.222,193.898,162.698), Point(-235.423,-0.000,162.698), Point(-490.055,-0.000,55.926)},\n        {Point(252.071,0.000,211.069), Point(150.116,204.103,211.069), Point(238.785,380.979,136.566), Point(478.593,374.909,36.915), Point(596.484,174.710,29.388), Point(512.707,-0.000,101.376), Point(252.071,0.000,211.069)},\n        {Point(239.467,-0.000,162.698), Point(142.610,193.898,162.698), Point(226.846,361.930,91.920), Point(454.664,356.164,-2.748), Point(566.659,165.975,-9.899), Point(487.072,-0.000,58.490), Point(239.467,-0.000,162.698)},\n        {Point(-481.982,362.651,39.785), Point(-595.889,174.723,29.899), Point(-698.046,172.509,-57.884), Point(-622.420,472.451,-134.432), Point(-523.550,466.403,-45.588), Point(-481.982,362.651,39.785)},\n        {Point(-457.883,344.518,-0.022), Point(-566.094,165.987,-9.413), Point(-663.144,163.884,-92.807), Point(-591.299,448.828,-165.528), Point(-497.372,443.083,-81.126), Point(-457.883,344.518,-0.022)},\n        {Point(-149.707,204.103,211.069), Point(-234.426,365.823,142.950), Point(-125.302,566.359,58.481), Point(125.182,566.359,58.481), Point(238.785,380.979,136.566), Point(150.116,204.103,211.069), Point(-149.707,204.103,211.069)},\n        {Point(-142.222,193.898,162.698), Point(-222.705,347.532,97.985), Point(-119.037,538.041,17.739), Point(118.923,538.041,17.739), Point(226.846,361.930,91.920), Point(142.610,193.898,162.698), Point(-142.222,193.898,162.698)},\n        {Point(478.593,374.909,36.915), Point(527.834,476.304,-54.011), Point(620.401,480.458,-136.475), Point(698.046,172.509,-57.884), Point(596.484,174.710,29.388), Point(478.593,374.909,36.915)},\n        {Point(454.664,356.164,-2.748), Point(501.442,452.489,-89.128), Point(589.381,456.435,-167.469), Point(663.144,163.884,-92.807), Point(566.659,165.975,-9.899), Point(454.664,356.164,-2.748)},\n        {Point(-481.982,362.651,39.785), Point(-523.550,466.403,-45.588), Point(-441.383,636.016,-121.338), Point(-22",
           "file": "primitives_test.cpp"
         }
       }
@@ -44992,97 +45590,17 @@ window.API_INDEX = {
           "file": "xform_test.py"
         }
       }
-    },
-    {
-      "name": "NurbsSurface.test_Accessors",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Accessors\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Accessors\")\ndef test_accessors():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(5) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 2, 5, 4, points)\n\n    # Test knot access\n    knot_val = surf.knot(0, 2)\n\n    # Test set knot\n    surf.set_knot(0, 2, 5.0)\n    new_val = surf.knot(0, 2)\n\n    MINI_CHECK(surf.dimension() == 3)\n    MINI_CHECK(not surf.is_rational())\n    MINI_CHECK(surf.order(0) == 4)\n    MINI_CHECK(surf.order(1) == 3)\n    MINI_CHECK(surf.degree(0) == 3)\n    MINI_CHECK(surf.degree(1) == 2)\n    MINI_CHECK(surf.cv_count_dir(0) == 5)\n    MINI_CHECK(surf.cv_count_dir(1) == 4)\n    MINI_CHECK(surf.cv_count_dir(None) == 20)\n    MINI_CHECK(surf.cv_size() == 3)\n    MINI_CHECK(surf.knot_count(0) == 7)\n    MINI_CHECK(surf.knot_count(1) == 5)\n    MINI_CHECK(surf.span_count(0) == 2)\n    MINI_CHECK(surf.span_count(1) == 2)\n    MINI_CHECK(new_val == 5.0)",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Knot_operations",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Knot_operations\")\ndef test_knot_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(4) for j in range(4)]\n    surf = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Verify domain\n    u0, u1 = surf.domain(0)\n    v0, v1 = surf.domain(1)\n\n    MINI_CHECK(u0 == 0.0)\n    MINI_CHECK(u1 > u0)\n    MINI_CHECK(v0 == 0.0)\n    MINI_CHECK(v1 > v0)\n    MINI_CHECK(surf.is_clamped(0, 0))\n    MINI_CHECK(surf.is_clamped(1, 0))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Rational_operations",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Rational_operations\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Rational_operations\")\ndef test_rational_operations():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Create non-rational surface, then make rational\n    points = [Point(0.0, 0.0, 0.0)] * 9\n    surf = NurbsSurface.create(False, False, 2, 2, 3, 3, points)\n\n    # Make it rational\n    surf.make_rational()\n\n    # Set a control point and weight\n    surf.set_cv(1, 1, Point(1.0, 2.0, 3.0))\n    surf.set_weight(1, 1, 2.0)\n\n    # Verify weight\n    w = surf.weight(1, 1)\n\n    MINI_CHECK(surf.is_rational())\n    MINI_CHECK(surf.cv_size() == 4)\n    MINI_CHECK(w == 2.0)",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Bounding_box",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Bounding_box\")\ndef test_bounding_box():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [Point(float(i), float(j), 0.0) for i in range(3) for j in range(3)]\n    surf = NurbsSurface.create(False, False, 1, 1, 3, 3, points)\n\n    # Get bounding box\n    bbox = surf.get_bounding_box()\n\n    MINI_CHECK(surf.is_valid())",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Sphere",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Sphere\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Sphere\")\ndef test_sphere():\n    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    w = math.sqrt(2.0) / 2.0  # 0.707107\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 5, False, False, 1.0, 1.0)\n    surf.name = \"unit_sphere\"\n\n    # U-knots: periodic around equator with multiplicity 2\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: from south pole to north pole\n    v_knots = [-pi * 0.5, -pi * 0.5, 0, 0, pi * 0.5, pi * 0.5]\n    for i in range(6):\n        surf.set_knot(1, i, v_knots[i])\n\n    # Set up control points for sphere (9 around, 5 latitude levels)\n    # Latitude levels: south pole, -45deg, equator, +45deg, north pole\n    lat_weights = [w, 0.5, w, 0.5, w]\n    lat_z = [-radius, -radius * w, 0.0, radius * w, radius]\n    lat_r = [0.0, radius * w, radius, radius * w, 0.0]\n\n    for j in range(5):\n        r = lat_r[j]\n        z = lat_z[j]\n        # 9 points around (0, 45, 90, 135, 180, 225, 270, 315, 360=0)\n        angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n        for i in range(9):\n            x = r * math.cos(angles[i])\n            y = r * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            # Weight: w for cardinal directions (0, 90, 180, 270), 0.5 for diagonals at non-pole latitudes\n            weight = w if i % 2 == 0 else lat_weights[j]\n            if j == 0 or j == 4:\n                weight = w  # poles\n            surf.set_weight(i, j, weight)\n\n    # Verify sphere properties\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_rational())\n    MINI_CHECK(surf.degree(0) == 2)\n    MINI_CHECK(surf.degree(1) == 2)\n    MINI_CHECK(surf.cv_count_dir(0) == 9)\n    MINI_CHECK(surf.cv_count_dir(1) == 5)\n\n    # Check point on equator at angle 0 (should be at (radius, 0, 0))\n    pt = surf.point_at(0.0, 0.0)\n    MINI_CHECK(TOLERANCE.is_close(pt[0], radius))\n    MINI_CHECK(TOLERANCE.is_close(pt[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt[2], 0.0))\n\n    # Check north pole\n    north = surf.point_at(0.0, pi * 0.5)\n    MINI_CHECK(TOLERANCE.is_close(north[2], radius))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Cylinder",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Cylinder\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Cylinder\")\ndef test_cylinder():\n    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 1.5\n    height = 3.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cylinder\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from bottom to top\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cylinder (9 around, 2 heights)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for j in range(2):\n        z = 0.0 if j == 0 else height\n        for i in range(9):\n            x = radius * math.cos(angles[i])\n            y = radius * math.sin(angles[i])\n            # For diagonal points (45, 135, etc), radius needs to be scaled\n            if i % 2 == 1:\n                x = radius * math.sqrt(2.0) * math.cos(angles[i])\n                y = radius * math.sqrt(2.0) * math.sin(angles[i])\n            surf.set_cv(i, j, Point(x, y, z))\n            weight = 1.0 if i % 2 == 0 else w\n            surf.set_weight(i, j, weight)\n\n    # Verify cylinder properties\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_rational())\n    MINI_CHECK(surf.degree(0) == 2)\n    MINI_CHECK(surf.degree(1) == 1)\n    MINI_CHECK(surf.cv_count_dir(0) == 9)\n    MINI_CHECK(surf.cv_count_dir(1) == 2)\n\n    # Check point on bottom circle at angle 0\n    pt_bottom = surf.point_at(0.0, 0.0)\n    MINI_CHECK(TOLERANCE.is_close(pt_bottom[0], radius))\n    MINI_CHECK(TOLERANCE.is_close(pt_bottom[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_bottom[2], 0.0))\n\n    # Check point on top circle at angle 0\n    pt_top = surf.point_at(0.0, height)\n    MINI_CHECK(TOLERANCE.is_close(pt_top[0], radius))\n    MINI_CHECK(TOLERANCE.is_close(pt_top[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_top[2], height))\n\n    # Check midpoint at angle PI/2\n    pt_mid = surf.point_at(pi * 0.5, height * 0.5)\n    MINI_CHECK(TOLERANCE.is_close(pt_mid[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt_mid[1], radius))\n    MINI_CHECK(TOLERANCE.is_close(pt_mid[2], height * 0.5))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Torus",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Torus\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Torus\")\ndef test_torus():\n    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    major_radius = 3.0\n    minor_radius = 1.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 3, 9, 9, False, False, 1.0, 1.0)\n    surf.name = \"unit_torus\"\n\n    # Both U and V knots: periodic for circles\n    knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, knots[i])\n        surf.set_knot(1, i, knots[i])\n\n    # Set up control points for torus\n    # U: major angle (around torus), V: minor angle (around tube)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    for i in range(9):\n        major_angle = angles[i]\n        cos_ma = math.cos(major_angle)\n        sin_ma = math.sin(major_angle)\n        major_scale = 1.0 if i % 2 == 0 else math.sqrt(2.0)\n\n        for j in range(9):\n            minor_angle = angles[j]\n            cos_mi = math.cos(minor_angle)\n            sin_mi = math.sin(minor_angle)\n            minor_scale = 1.0 if j % 2 == 0 else math.sqrt(2.0)\n\n            r = major_radius + minor_radius * minor_scale * cos_mi\n            x = r * major_scale * cos_ma\n            y = r * major_scale * sin_ma\n            z = minor_radius * minor_scale * sin_mi\n\n            surf.set_cv(i, j, Point(x, y, z))\n\n            # Weight is product of major and minor weights\n            w_major = 1.0 if i % 2 == 0 else w\n            w_minor = 1.0 if j % 2 == 0 else w\n            surf.set_weight(i, j, w_major * w_minor)\n\n    # Verify torus properties\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_rational())\n    MINI_CHECK(surf.degree(0) == 2)\n    MINI_CHECK(surf.degree(1) == 2)\n    MINI_CHECK(surf.cv_count_dir(0) == 9)\n    MINI_CHECK(surf.cv_count_dir(1) == 9)\n\n    # Check point at (0, 0) - should be on outer edge of torus\n    pt = surf.point_at(0.0, 0.0)\n    MINI_CHECK(TOLERANCE.is_close(pt[0], major_radius + minor_radius))\n    MINI_CHECK(TOLERANCE.is_close(pt[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pt[2], 0.0))\n\n    # Check point at (PI, 0) - should be on opposite side of torus\n    pt_opp = surf.point_at(pi, 0.0)\n    MINI_CHECK(TOLERANCE.is_close(pt_opp[0], -(major_radius + minor_radius)))\n    MINI_CHECK(TOLERANCE.is_close(pt_opp[1], 0.0))",
-          "file": "nurbssurface_test.py"
-        }
-      }
-    },
-    {
-      "name": "NurbsSurface.test_Cone",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"NurbsSurface\", \"Cone\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Cone\")\ndef test_cone():\n    import math\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    radius = 2.0\n    height = 4.0\n    w = math.sqrt(2.0) / 2.0\n    pi = PI\n\n    surf = NurbsSurface.create_raw(3, True, 3, 2, 9, 2, False, False, 1.0, 1.0)\n    surf.name = \"unit_cone\"\n\n    # U-knots: periodic for circle\n    u_knots = [0, 0, pi * 0.5, pi * 0.5, pi, pi, pi * 1.5, pi * 1.5, pi * 2.0, pi * 2.0]\n    for i in range(10):\n        surf.set_knot(0, i, u_knots[i])\n\n    # V-knots: linear from apex to base\n    surf.set_knot(1, 0, 0.0)\n    surf.set_knot(1, 1, height)\n\n    # Set up control points for cone (9 around, 2 heights: apex and base)\n    angles = [0, pi * 0.25, pi * 0.5, pi * 0.75, pi, pi * 1.25, pi * 1.5, pi * 1.75, pi * 2.0]\n\n    # Apex (j=0) - all points collapse to the apex\n    for i in range(9):\n        surf.set_cv(i, 0, Point(0.0, 0.0, height))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 0, weight)\n\n    # Base (j=1) - circle at z=0\n    for i in range(9):\n        x = radius * math.cos(angles[i])\n        y = radius * math.sin(angles[i])\n        if i % 2 == 1:\n            x = radius * math.sqrt(2.0) * math.cos(angles[i])\n            y = radius * math.sqrt(2.0) * math.sin(angles[i])\n        surf.set_cv(i, 1, Point(x, y, 0.0))\n        weight = 1.0 if i % 2 == 0 else w\n        surf.set_weight(i, 1, weight)\n\n    # Verify cone properties\n    MINI_CHECK(surf.is_valid())\n    MINI_CHECK(surf.is_rational())\n    MINI_CHECK(surf.degree(0) == 2)\n    MINI_CHECK(surf.degree(1) == 1)\n    MINI_CHECK(surf.cv_count_dir(0) == 9)\n    MINI_CHECK(surf.cv_count_dir(1) == 2)\n\n    # Check apex\n    apex = surf.point_at(0.0, 0.0)\n    MINI_CHECK(TOLERANCE.is_close(apex[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(apex[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(apex[2], height))\n\n    # Check point on base circle at angle 0\n    base = surf.point_at(0.0, height)\n    MINI_CHECK(TOLERANCE.is_close(base[0], radius))\n    MINI_CHECK(TOLERANCE.is_close(base[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(base[2], 0.0))\n\n    # Check midpoint - should be at half radius, half height\n    mid = surf.point_at(0.0, height * 0.5)\n    MINI_CHECK(TOLERANCE.is_close(mid[0], radius * 0.5))\n    MINI_CHECK(TOLERANCE.is_close(mid[2], height * 0.5))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
-          "file": "nurbssurface_test.py"
-        }
-      }
     }
   ],
   "recipes": [
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "into",
+        "n",
+        "points",
         "subdivide",
         "circle",
-        "n",
-        "into",
-        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -45096,11 +45614,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "subdivide",
-        "ellipse",
-        "length",
         "by",
+        "length",
+        "arc",
+        "ellipse",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -45114,9 +45632,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "through",
         "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -45130,12 +45648,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
+        "open",
         "from",
+        "adaptive",
+        "points",
         "curve",
         "polyline",
-        "points",
-        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -45150,8 +45668,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
         "curve",
+        "evaluation",
         "parameter",
         "at",
         "set_domain",
@@ -45172,9 +45690,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
-        "curve",
         "along",
+        "curve",
+        "length",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -45197,9 +45715,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -45220,10 +45738,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
         "cylinder",
-        "point",
+        "evaluate",
         "surface",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -45238,10 +45756,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "and",
-        "from",
-        "vertices",
         "mesh",
+        "from",
+        "and",
+        "vertices",
         "faces",
         "add_vertex",
         "add_face",
@@ -45284,6 +45802,8 @@ window.API_INDEX = {
     "NormalWeighting": "NormalWeighting geometry class",
     "knot": "knot geometry class",
     "FoldedPlates": "FoldedPlates geometry class",
+    "CrossConnectors": "CrossConnectors geometry class",
+    "ToleranceGuard": "ToleranceGuard geometry class",
     "Geometry": "Geometry geometry class",
     "GlobalTolerance": "GlobalTolerance geometry class"
   },
@@ -46460,7 +46980,8 @@ window.API_INDEX = {
       "NurbsSurface._basis_functions"
     ],
     "_basis_functions_derivatives": [
-      "NurbsCurve._basis_functions_derivatives"
+      "NurbsCurve._basis_functions_derivatives",
+      "NurbsSurface._basis_functions_derivatives"
     ],
     "_evaluate_nurbs_de_boor_inplace": [
       "NurbsCurve._evaluate_nurbs_de_boor_inplace"
@@ -46510,6 +47031,12 @@ window.API_INDEX = {
     ],
     "get_bounding_box": [
       "NurbsSurface.get_bounding_box"
+    ],
+    "divide_by_count_points": [
+      "NurbsSurface.divide_by_count_points"
+    ],
+    "divide_by_count_planes": [
+      "NurbsSurface.divide_by_count_planes"
     ],
     "set_outer_loop": [
       "NurbsSurface.set_outer_loop"
@@ -47210,6 +47737,10 @@ window.API_INDEX = {
       "Tolerance.precision_from_tolerance",
       "GlobalTolerance.precision_from_tolerance"
     ],
+    "temporary": [
+      "Tolerance.temporary",
+      "GlobalTolerance.temporary"
+    ],
     "round_to": [
       "Tolerance.round_to"
     ],
@@ -47445,9 +47976,11 @@ window.API_INDEX = {
       "PointCloud.constructor",
       "Polyline.constructor",
       "FoldedPlates.constructor",
+      "CrossConnectors.constructor",
       "Quaternion.constructor",
       "Session.constructor",
       "Tolerance.constructor",
+      "ToleranceGuard.constructor",
       "Tree.constructor",
       "TreeNode.constructor",
       "Vector.constructor",
@@ -47519,6 +48052,10 @@ window.API_INDEX = {
     ],
     "sqrt": [
       "std.sqrt"
+    ],
+    "loft": [
+      "NormalWeighting.loft",
+      "Mesh.loft"
     ],
     "build_triangle_bvh": [
       "NormalWeighting.build_triangle_bvh",
@@ -47596,12 +48133,6 @@ window.API_INDEX = {
     "slerp": [
       "NurbsCurve.slerp"
     ],
-    "divide_by_count_points": [
-      "NurbsSurface.divide_by_count_points"
-    ],
-    "divide_by_count_planes": [
-      "NurbsSurface.divide_by_count_planes"
-    ],
     "point_and_normal_at": [
       "NurbsSurface.point_and_normal_at"
     ],
@@ -47651,6 +48182,12 @@ window.API_INDEX = {
     "wave_surface": [
       "Primitives.wave_surface"
     ],
+    "chevron_mesh": [
+      "Primitives.chevron_mesh"
+    ],
+    "annen_surfaces": [
+      "Primitives.annen_surfaces"
+    ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"
     ],
@@ -47669,11 +48206,13 @@ window.API_INDEX = {
     ],
     "build_topology": [
       "Primitives.build_topology",
-      "FoldedPlates.build_topology"
+      "FoldedPlates.build_topology",
+      "CrossConnectors.build_topology"
     ],
     "compute_face_planes": [
       "Primitives.compute_face_planes",
-      "FoldedPlates.compute_face_planes"
+      "FoldedPlates.compute_face_planes",
+      "CrossConnectors.compute_face_planes"
     ],
     "compute_edge_planes": [
       "Primitives.compute_edge_planes",
@@ -47681,11 +48220,13 @@ window.API_INDEX = {
     ],
     "compute_face_edge_planes": [
       "Primitives.compute_face_edge_planes",
-      "FoldedPlates.compute_face_edge_planes"
+      "FoldedPlates.compute_face_edge_planes",
+      "CrossConnectors.compute_face_edge_planes"
     ],
     "compute_face_polylines": [
       "Primitives.compute_face_polylines",
-      "FoldedPlates.compute_face_polylines"
+      "FoldedPlates.compute_face_polylines",
+      "CrossConnectors.compute_face_polylines"
     ],
     "compute_insertion_vectors": [
       "Primitives.compute_insertion_vectors",
@@ -47706,6 +48247,42 @@ window.API_INDEX = {
     "chamfer_polyline": [
       "Primitives.chamfer_polyline",
       "FoldedPlates.chamfer_polyline"
+    ],
+    "compute_bisector_planes": [
+      "Primitives.compute_bisector_planes",
+      "CrossConnectors.compute_bisector_planes"
+    ],
+    "compute_edges": [
+      "Primitives.compute_edges",
+      "CrossConnectors.compute_edges"
+    ],
+    "compute_edge_faces": [
+      "Primitives.compute_edge_faces",
+      "CrossConnectors.compute_edge_faces"
+    ],
+    "compute_edge_planes_method": [
+      "Primitives.compute_edge_planes_method",
+      "CrossConnectors.compute_edge_planes_method"
+    ],
+    "compute_connectors": [
+      "Primitives.compute_connectors",
+      "CrossConnectors.compute_connectors"
+    ],
+    "dihedral_plane": [
+      "Primitives.dihedral_plane",
+      "CrossConnectors.dihedral_plane"
+    ],
+    "move_plane_by_axis": [
+      "Primitives.move_plane_by_axis",
+      "CrossConnectors.move_plane_by_axis"
+    ],
+    "outline_from_planes": [
+      "Primitives.outline_from_planes",
+      "CrossConnectors.outline_from_planes"
+    ],
+    "make_rectangle": [
+      "Primitives.make_rectangle",
+      "CrossConnectors.make_rectangle"
     ],
     "type": [
       "Quaternion.type"
@@ -47770,6 +48347,9 @@ window.API_INDEX = {
     "set_angulardeflection": [
       "Tolerance.set_angulardeflection",
       "GlobalTolerance.set_angulardeflection"
+    ],
+    "ToleranceGuard": [
+      "Tolerance.ToleranceGuard"
     ],
     "stoi": [
       "std.stoi"
@@ -47881,6 +48461,9 @@ window.API_INDEX = {
     ],
     "transform_self": [
       "NurbsSurface.transform_self"
+    ],
+    "from_axes": [
+      "Plane.from_axes"
     ],
     "origin_ref": [
       "Plane.origin_ref"
