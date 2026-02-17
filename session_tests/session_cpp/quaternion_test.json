@@ -2,7 +2,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 12.205,
+    "time_ms": 6.64,
     "line": 10,
     "code": "    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");\n\n}\n\n} // namespace session_cpp",
     "checks": [
