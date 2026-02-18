@@ -14895,7 +14895,6 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
-        "NurbsSurface.point_and_normal_at",
         "NurbsSurface.point_at_corner",
         "NurbsSurface.set_outer_loop",
         "NurbsSurface.weight"
@@ -14985,7 +14984,6 @@ window.API_INDEX = {
         "NurbsSurface.is_valid",
         "NurbsSurface.new",
         "NurbsSurface.order",
-        "NurbsSurface.point_and_normal_at",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
         "NurbsSurface.set_outer_loop",
@@ -25659,10 +25657,14 @@ window.API_INDEX = {
         "Primitives.chevron_mesh",
         "Primitives.circle",
         "Primitives.create_revolve",
+        "Primitives.dodecahedron",
         "Primitives.ellipse",
         "Primitives.hyperbola",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
         "Primitives.parabola",
-        "Primitives.pt"
+        "Primitives.pt",
+        "Primitives.wave_surface"
       ]
     },
     {
@@ -26200,16 +26202,22 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives.annen_surfaces",
         "Primitives.arc",
+        "Primitives.chevron_mesh",
         "Primitives.closest_on_line",
         "Primitives.create_extrusion",
         "Primitives.create_planar",
         "Primitives.create_ruled",
         "Primitives.create_sweep1",
         "Primitives.create_sweep2",
+        "Primitives.cube",
+        "Primitives.dodecahedron",
+        "Primitives.icosahedron",
         "Primitives.lerp_vec",
         "Primitives.longest_edge_dir",
         "Primitives.make_bilinear",
+        "Primitives.octahedron",
         "Primitives.wave_surface"
       ]
     },
@@ -26463,7 +26471,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "hex_mesh(surface, u_count, v_count, t=1.0/3.0)",
-          "code": "def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        closed_u = surface.is_closed(0)\n        singular_south = surface.is_singular(0)\n        singular_north = surface.is_singular(2)\n\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                if closed_u and i == u_count:\n                    grid[i][j] = grid[0][j]; continue\n                if singular_south and j == 0 and i > 0:\n                    grid[i][j] = grid[0][0]; continue\n                if singular_north and j == v_count and i > 0:\n                    grid[i][j] = grid[0][v_count]; continue\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                if closed_u and i == u_count:\n                    mid_a[i][j] = mid_a[0][j]; continue\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                if closed_u and i == u_count:\n                    mid_b[i][j] = mid_b[0][j]; continue\n                v = dv[0] + sv * (j + (1.0 - t))\n                mid_b[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        def dedup_face(v):\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh",
+          "code": "def hex_mesh(surface, u_count, v_count, t=1.0/3.0):\n\n        mesh = Mesh()\n        du = surface.domain(0)\n        dv = surface.domain(1)\n        su = (du[1] - du[0]) / u_count\n        sv = (dv[1] - dv[0]) / v_count\n\n        nu, nv = u_count + 1, v_count + 1\n        closed_u = surface.is_closed(0)\n        singular_south = surface.is_singular(0)\n        singular_north = surface.is_singular(2)\n\n        grid = [[0]*nv for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(nv):\n                if closed_u and i == u_count:\n                    grid[i][j] = grid[0][j]; continue\n                if singular_south and j == 0 and i > 0:\n                    grid[i][j] = grid[0][0]; continue\n                if singular_north and j == v_count and i > 0:\n                    grid[i][j] = grid[0][v_count]; continue\n                v = dv[0] + sv * j\n                grid[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_a = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                if closed_u and i == u_count:\n                    mid_a[i][j] = mid_a[0][j]; continue\n                v = dv[0] + sv * (j + t)\n                mid_a[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        mid_b = [[0]*v_count for _ in range(nu)]\n        for i in range(nu):\n            u = du[0] + su * i\n            for j in range(v_count):\n                if closed_u and i == u_count:\n                    mid_b[i][j] = mid_b[0][j]; continue\n                v = dv[0] + sv * (j + (1.0 - t))\n                mid_b[i][j] = mesh.add_vertex(surface.point_at(u, v))\n\n        def dedup_face(v):\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh\n\n    @staticmethod\n    def tetrahedron(edge=2.0):\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26479,7 +26487,8 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.dedup_face",
-        "Primitives.diamond_mesh"
+        "Primitives.diamond_mesh",
+        "Primitives.tetrahedron"
       ]
     },
     {
@@ -26487,12 +26496,900 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "dedup_face(v)",
-          "code": "def dedup_face(v):\n\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh",
+          "code": "def dedup_face(v):\n\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh\n\n    @staticmethod\n    def tetrahedron(edge=2.0):\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],",
           "file": "primitives.py"
         }
       },
       "related": [
-        "Primitives.hex_mesh"
+        "Primitives.cube",
+        "Primitives.hex_mesh",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
+        "Primitives.tetrahedron"
+      ]
+    },
+    {
+      "name": "Primitives.tetrahedron",
+      "implementations": {
+        "python": {
+          "sig": "tetrahedron(edge=2.0)",
+          "code": "def tetrahedron(edge=2.0):\n\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh tetrahedron(double edge)",
+          "code": "Mesh Primitives::tetrahedron(double edge) {\n    double a = edge / 2.0;\n    double h = edge * std::sqrt(2.0 / 3.0);\n    double r = edge / std::sqrt(3.0);\n    double z0 = -h / 4.0;\n    double z1 = 3.0 * h / 4.0;\n    std::vector<std::vector<Point>> faces = {\n        {Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)}",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "tetrahedron(edge: f64) -> Mesh",
+          "code": "pub fn tetrahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let h = edge * (2.0_f64 / 3.0).sqrt();\n        let r = edge / 3.0_f64.sqrt();\n        let z0 = -h / 4.0;\n        let z1 = 3.0 * h / 4.0;\n        let faces = vec![\n            vec![Point::new(a, -r/2.0, z0), Point::new(-a, -r/2.0, z0), Point::new(0.0, r, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(-a, -r/2.0, z0), Point::new(a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(0.0, r, z0), Point::new(-a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(a, -r/2.0, z0), Point::new(0.0, r, z0)],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.cube",
+        "Primitives.dedup_face",
+        "Primitives.dodecahedron",
+        "Primitives.hex_mesh",
+        "Primitives.icosahedron",
+        "Primitives.octahedron"
+      ]
+    },
+    {
+      "name": "Primitives.cube",
+      "implementations": {
+        "python": {
+          "sig": "cube(edge=2.0)",
+          "code": "def cube(edge=2.0):\n\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh cube(double edge)",
+          "code": "Mesh Primitives::cube(double edge) {\n    double a = edge / 2.0;\n    Point v0(-a,-a,-a), v1(a,-a,-a), v2(a,a,-a), v3(-a,a,-a);\n    Point v4(-a,-a,a), v5(a,-a,a), v6(a,a,a), v7(-a,a,a);\n    std::vector<std::vector<Point>> faces = {\n        {v3, v2, v1, v0}",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "cube(edge: f64) -> Mesh",
+          "code": "pub fn cube(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let v0 = Point::new(-a,-a,-a); let v1 = Point::new(a,-a,-a);\n        let v2 = Point::new(a,a,-a);   let v3 = Point::new(-a,a,-a);\n        let v4 = Point::new(-a,-a,a);  let v5 = Point::new(a,-a,a);\n        let v6 = Point::new(a,a,a);    let v7 = Point::new(-a,a,a);\n        let faces = vec![\n            vec![v3.clone(), v2.clone(), v1.clone(), v0.clone()],\n            vec![v4.clone(), v5.clone(), v6.clone(), v7.clone()],\n            vec![v0.clone(), v1.clone(), v5.clone(), v4.clone()],\n            vec![v2.clone(), v3.clone(), v7.clone(), v6.clone()],\n            vec![v0.clone(), v4.clone(), v7.clone(), v3.clone()],\n            vec![v1.clone(), v2.clone(), v6.clone(), v5.clone()],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.dedup_face",
+        "Primitives.dodecahedron",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
+        "Primitives.pt",
+        "Primitives.tetrahedron",
+        "Primitives.wave_surface"
+      ]
+    },
+    {
+      "name": "Primitives.octahedron",
+      "implementations": {
+        "python": {
+          "sig": "octahedron(edge=2.0)",
+          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh octahedron(double edge)",
+          "code": "Mesh Primitives::octahedron(double edge) {\n    double a = edge / std::sqrt(2.0);\n    Point px(a,0,0), nx(-a,0,0);\n    Point py(0,a,0), ny(0,-a,0);\n    Point pz(0,0,a), nz(0,0,-a);\n    std::vector<std::vector<Point>> faces = {\n        {pz, px, py}",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "octahedron(edge: f64) -> Mesh",
+          "code": "pub fn octahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0_f64.sqrt();\n        let px = Point::new(a,0.0,0.0); let nx = Point::new(-a,0.0,0.0);\n        let py = Point::new(0.0,a,0.0); let ny = Point::new(0.0,-a,0.0);\n        let pz = Point::new(0.0,0.0,a); let nz = Point::new(0.0,0.0,-a);\n        let faces = vec![\n            vec![pz.clone(), px.clone(), py.clone()], vec![pz.clone(), py.clone(), nx.clone()],\n            vec![pz.clone(), nx.clone(), ny.clone()], vec![pz.clone(), ny.clone(), px.clone()],\n            vec![nz.clone(), py.clone(), px.clone()], vec![nz.clone(), nx.clone(), py.clone()],\n            vec![nz.clone(), ny.clone(), nx.clone()], vec![nz.clone(), px.clone(), ny.clone()],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.arc",
+        "Primitives.chevron_mesh",
+        "Primitives.cube",
+        "Primitives.dedup_face",
+        "Primitives.dodecahedron",
+        "Primitives.icosahedron",
+        "Primitives.pt",
+        "Primitives.tetrahedron",
+        "Primitives.wave_surface"
+      ]
+    },
+    {
+      "name": "Primitives.icosahedron",
+      "implementations": {
+        "python": {
+          "sig": "icosahedron(edge=2.0)",
+          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh icosahedron(double edge)",
+          "code": "Mesh Primitives::icosahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double s = edge / 2.0;\n    double sp = s * phi;\n    Point verts[12] = {\n        Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n        Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n        Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n    }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "icosahedron(edge: f64) -> Mesh",
+          "code": "pub fn icosahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let s = edge / 2.0;\n        let sp = s * phi;\n        let verts = vec![\n            Point::new(-s, sp, 0.0), Point::new(s, sp, 0.0), Point::new(-s,-sp, 0.0), Point::new(s,-sp, 0.0),\n            Point::new(0.0,-s, sp), Point::new(0.0, s, sp), Point::new(0.0,-s,-sp), Point::new(0.0, s,-sp),\n            Point::new(sp, 0.0,-s), Point::new(sp, 0.0, s), Point::new(-sp, 0.0,-s), Point::new(-sp, 0.0, s),\n        ];\n        let idx: [[usize; 3]; 20] = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone()]).collect();\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.arc",
+        "Primitives.chevron_mesh",
+        "Primitives.cube",
+        "Primitives.dedup_face",
+        "Primitives.dodecahedron",
+        "Primitives.octahedron",
+        "Primitives.pt",
+        "Primitives.tetrahedron",
+        "Primitives.wave_surface"
+      ]
+    },
+    {
+      "name": "Primitives.dodecahedron",
+      "implementations": {
+        "python": {
+          "sig": "dodecahedron(edge=2.0)",
+          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh dodecahedron(double edge)",
+          "code": "Mesh Primitives::dodecahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double ip = 1.0 / phi;\n    double s = edge / (2.0 * ip); // scale so actual edge length = edge\n    Point verts[20] = {\n        Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n        Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n        Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n        Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n        Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n        Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n        Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n        Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n    }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "dodecahedron(edge: f64) -> Mesh",
+          "code": "pub fn dodecahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let ip = 1.0 / phi;\n        let s = edge / (2.0 * ip);\n        let verts = vec![\n            Point::new( s,  s,  s), Point::new( s,  s, -s), Point::new( s, -s,  s), Point::new( s, -s, -s),\n            Point::new(-s,  s,  s), Point::new(-s,  s, -s), Point::new(-s, -s,  s), Point::new(-s, -s, -s),\n            Point::new(0.0,  s*ip,  s*phi), Point::new(0.0,  s*ip, -s*phi),\n            Point::new(0.0, -s*ip,  s*phi), Point::new(0.0, -s*ip, -s*phi),\n            Point::new( s*ip,  s*phi, 0.0), Point::new( s*ip, -s*phi, 0.0),\n            Point::new(-s*ip,  s*phi, 0.0), Point::new(-s*ip, -s*phi, 0.0),\n            Point::new( s*phi, 0.0,  s*ip), Point::new( s*phi, 0.0, -s*ip),\n            Point::new(-s*phi, 0.0,  s*ip), Point::new(-s*phi, 0.0, -s*ip),\n        ];\n        let idx: [[usize; 5]; 12] = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone(), verts[f[3]].clone(), verts[f[4]].clone()]).collect();\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.arc",
+        "Primitives.chevron_mesh",
+        "Primitives.cube",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
+        "Primitives.pt",
+        "Primitives.tetrahedron",
+        "Primitives.wave_surface"
+      ]
+    },
+    {
+      "name": "Primitives.wave_surface",
+      "implementations": {
+        "python": {
+          "sig": "wave_surface(size, amplitude)",
+          "code": "def wave_surface(size, amplitude):\n\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0\n            StepV1 = baseStepV\n            running = True\n            ListV = []\n            iterations = 0\n\n            p0 = p1 = p2 = p6 = p7 = p8 = None\n            savept6 = savept7 = savept8 = None\n\n            while running and iterations < 1000:\n                iterations += 1\n                ListV.append(StepV1)\n\n                if iterations == 1:\n                    p0 = srf.point_at(ctU, ctV)\n                    p1 = srf.point_at(ctU + StepU * 0.5, ctV)\n                    p2 = srf.point_at(ctU + StepU, ctV)\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n                else:\n                    p0, p1, p2 = savept6, savept7, savept8\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "NurbsSurface wave_surface(double size, double amplitude)",
+          "code": "NurbsSurface Primitives::wave_surface(double size, double amplitude) {\n    // Approximate z = amplitude * sin(2\u00cf\u20ac*x/size) * sin(2\u00cf\u20ac*y/size)\n    // 13x13 CVs, degree 3, one full period per direction\n    // Edges are at sin(0)=sin(2\u00cf\u20ac)=0, so tiles connect seamlessly\n    const int n = 13;\n    const double PI2 = 2.0 * 3.14159265358979323846;\n\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double u = static_cast<double>(i) / (n - 1);\n        double x = size * u;\n        for (int j = 0; j < n; ++j) {\n            double v = static_cast<double>(j) / (n - 1);\n            double y = size * v;\n            double z = amplitude * std::sin(PI2 * u) * std::sin(PI2 * v);\n            pts.push_back(Point(x, y, z));\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "wave_surface(size: f64, amplitude: f64) -> NurbsSurface",
+          "code": "pub fn wave_surface(size: f64, amplitude: f64) -> NurbsSurface {\n        let n = 13;\n        let pi2 = 2.0 * std::f64::consts::PI;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            let u = i as f64 / (n - 1) as f64;\n            let x = size * u;\n            for j in 0..n {\n                let v = j as f64 / (n - 1) as f64;\n                let y = size * v;\n                let z = amplitude * (pi2 * u).sin() * (pi2 * v).sin();\n                pts.push(Point::new(x, y, z));\n            }\n        }\n        NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap_or_default()\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.arc",
+        "Primitives.chevron_mesh",
+        "Primitives.cube",
+        "Primitives.dodecahedron",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
+        "Primitives.pt"
+      ]
+    },
+    {
+      "name": "Primitives.chevron_mesh",
+      "implementations": {
+        "python": {
+          "sig": "chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799)",
+          "code": "def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0\n            StepV1 = baseStepV\n            running = True\n            ListV = []\n            iterations = 0\n\n            p0 = p1 = p2 = p6 = p7 = p8 = None\n            savept6 = savept7 = savept8 = None\n\n            while running and iterations < 1000:\n                iterations += 1\n                ListV.append(StepV1)\n\n                if iterations == 1:\n                    p0 = srf.point_at(ctU, ctV)\n                    p1 = srf.point_at(ctU + StepU * 0.5, ctV)\n                    p2 = srf.point_at(ctU + StepU, ctV)\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n                else:\n                    p0, p1, p2 = savept6, savept7, savept8\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n\n                polygons.append([p0, p6, p7, p1])\n                polygons.append([p1, p7, p8, p2])\n\n                ctV += StepV1\n                thresh -= StepV1\n                StepV1 += StepV1 * scale\n\n                if ctV + StepV1 > half_v:\n                    ListV.append(thresh)\n                    ListV.reverse()\n                    revCt = totalV / 2.0",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale)",
+          "code": "Mesh Primitives::chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale) {\n    NurbsSurface srf = surface;\n\n    // Measure arc lengths to determine long direction\n    auto du0 = srf.domain(0);\n    auto dv0 = srf.domain(1);\n    int nsamp = 50;\n    double u_arc = 0, v_arc = 0;\n    {\n        double v_mid = (dv0.first + dv0.second) / 2.0;\n        Point prev = srf.point_at(du0.first, v_mid);\n        for (int i = 1; i <= nsamp; i++) {\n            Point curr = srf.point_at(du0.first + (du0.second - du0.first) * i / nsamp, v_mid);\n            u_arc += prev.distance(curr);\n            prev = curr;\n        }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh",
+          "code": "pub fn chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh {\n        let mut srf = surface.clone();\n\n        let du0 = srf.domain(0).unwrap();\n        let dv0 = srf.domain(1).unwrap();\n        let nsamp = 50;\n        let mut u_arc = 0.0_f64;\n        let mut v_arc = 0.0_f64;\n\n        {\n            let v_mid = (dv0.0 + dv0.1) / 2.0;\n            let mut prev = srf.point_at(du0.0, v_mid).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(du0.0 + (du0.1 - du0.0) * i as f64 / nsamp as f64, v_mid).unwrap();\n                u_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n        {\n            let u_mid = (du0.0 + du0.1) / 2.0;\n            let mut prev = srf.point_at(u_mid, dv0.0).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(u_mid, dv0.0 + (dv0.1 - dv0.0) * i as f64 / nsamp as f64).unwrap();\n                v_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n\n        if u_arc > v_arc {\n            srf.transpose();\n            std::mem::swap(&mut u_arc, &mut v_arc);\n        }\n\n        let du = srf.domain(0).unwrap();\n        let dv = srf.domain(1).unwrap();\n        let param_v = dv.1 - dv.0;\n        let _half_v = dv.1 * 0.5;\n        let step_u = (du.1 - du.0) / u_divisions as f64;\n        let total_v = param_v;\n        let base_step_v = if v_arc > 1e-10 { v_division_dist * param_v / v_arc } else { v_division_dist };\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        let mut ct_u = 0.0_f64;\n\n        for _j in 0..u_divisions {\n            let mut ct_v = 0.0_f64;\n            let mut thresh = total_v / 2.0;\n            let mut step_v1 = base_step_v;\n            let mut running = true;\n            let mut list_v: Vec<f64> = Vec::new();\n            let mut iterations = 0;\n\n            let (mut p0, mut p1, mut p2, mut p6, mut p7, mut p8);\n            let (mut savept6, mut savept7, mut savept8);\n            p0 = Point::new(0.0,0.0,0.0); p1 = p0.clone(); p2 = p0.clone();\n            p6 = p0.clone(); p7 = p0.clone(); p8 = p0.clone();\n            savept6 = p0.clone(); savept7 = p0.clone(); savept8 = p0.clone();\n\n            while running && iterations < 1000 {\n                iterations += 1;\n                list_v.push(step_v1);\n\n                if iterations == 1 {\n                    p0 = srf.point_at(ct_u, ct_v).unwrap();\n                    p1 = srf.point_at(ct_u + step_u * 0.5, ct_v).unwrap();\n                    p2 = srf.point_at(ct_u + step_u, ct_v).unwrap();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                } else {\n                    p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                }\n\n                polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n\n                ct_v += step_v1;\n                thresh -= step_v1;\n                step_v1 += step_v1 * scale;\n\n                if ct_v + step_v1 > total_v / 2.0 {\n                    list_v.push(thresh);\n                    list_v.reverse();\n                    let mut rev_ct = total_v / 2.0;\n\n                    for i in 0..list_v.len() - 1 {\n                        rev_ct += list_v[i];\n\n                        if i == 0 {\n                            p0 = srf.point_at(ct_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            p1 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * shift / 2.0).unwrap();\n                            p2 = srf.point_at(ct_u + step_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            polygons.push(vec![p6.clone(), p0.clone(), p1.clone(), p7.clone()]);\n                            polygons.push(vec![p7.clone(), p1.clone(), p2.clone(), p8.clone()]);\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        } else if i == list_v.len() - 2 {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1]).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1]).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1]).unwrap();\n                        } else {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        }\n\n                        polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n                        polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                    }\n\n                    running = false;\n                }\n            }\n            ct_u += step_u;\n        }\n\n        Mesh::from_polygons(polygons, Some(0.01))\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.arc",
+        "Primitives.dodecahedron",
+        "Primitives.icosahedron",
+        "Primitives.octahedron",
+        "Primitives.pt",
+        "Primitives.wave_surface"
+      ]
+    },
+    {
+      "name": "Primitives.annen_surfaces",
+      "implementations": {
+        "python": {
+          "sig": "annen_surfaces()",
+          "code": "def annen_surfaces():\n\n        surfaces = []\n        prefixes = [\"session_data/annen_surfaces/\", \"../session_data/annen_surfaces/\"]\n        for i in range(23):\n            fname = f\"surface_{i}.json\"\n            for prefix in prefixes:\n                path = prefix + fname\n                if not os.path.exists(path):\n                    continue\n                srf = NurbsSurface.json_load(path)\n                if srf.is_valid():\n                    surfaces.append(srf)\n                    break\n        return surfaces\n\n\nclass FoldedPlates:\n    def __init__(self, surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None):\n        self._srf = surface\n        self._udiv = max(1, u_divisions)\n        self._vdiv = max(1, v_divisions)\n        self._thick = thickness\n        self._cham = chamfer\n        self._base_planes = base_planes if base_planes is not None else []\n        self._face_pos = face_positions if face_positions is not None else [0.0]\n        self._f = 0\n        self.mesh = Mesh()\n        self.flags = []\n        self.adjacency = []\n        self.polylines = []\n        self.insertion_lines = []\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self._ef = []\n        self._fplanes = []\n        self._eplanes = []\n        self._fe_planes = []\n\n        self._diamond_subdivision()\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_edge_planes()\n        self._compute_face_edge_planes()\n        self._compute_face_polylines()\n        self._compute_insertion_vectors()\n\n    @staticmethod\n    def closest_on_line(pt, a, b):\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurface> annen_surfaces()",
+          "code": "std::vector<NurbsSurface> Primitives::annen_surfaces() {\n    std::vector<NurbsSurface> surfaces;\n    std::vector<std::string> prefixes = {\n        \"session_data/annen_surfaces/\",\n        \"../session_data/annen_surfaces/\"\n    }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "annen_surfaces() -> Vec<NurbsSurface>",
+          "code": "pub fn annen_surfaces() -> Vec<NurbsSurface> {\n        let mut surfaces = Vec::new();\n        let prefixes = [\"session_data/annen_surfaces/\", \"../session_data/annen_surfaces/\"];\n        for i in 0..23 {\n            let fname = format!(\"surface_{}.json\", i);\n            for prefix in &prefixes {\n                let path = format!(\"{}{}\", prefix, fname);\n                if !std::path::Path::new(&path).exists() { continue; }\n                let srf = NurbsSurface::json_load(&path);\n                if srf.is_valid() { surfaces.push(srf); break; }\n            }\n        }\n        surfaces\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives.build_topology",
+        "Primitives.closest_on_line",
+        "Primitives.compute_edge_planes",
+        "Primitives.compute_face_edge_planes",
+        "Primitives.compute_face_planes",
+        "Primitives.compute_face_polylines",
+        "Primitives.compute_insertion_vectors",
+        "Primitives.diamond_subdivision",
+        "Primitives.intersect_3_planes",
+        "Primitives.line_plane_t",
+        "Primitives.pt"
+      ]
+    },
+    {
+      "name": "FoldedPlates.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__(surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None)",
+          "code": "def __init__(self, surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None):\n\n        self._srf = surface\n        self._udiv = max(1, u_divisions)\n        self._vdiv = max(1, v_divisions)\n        self._thick = thickness\n        self._cham = chamfer\n        self._base_planes = base_planes if base_planes is not None else []\n        self._face_pos = face_positions if face_positions is not None else [0.0]\n        self._f = 0\n        self.mesh = Mesh()\n        self.flags = []\n        self.adjacency = []\n        self.polylines = []\n        self.insertion_lines = []\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self._ef = []\n        self._fplanes = []\n        self._eplanes = []\n        self._fe_planes = []\n\n        self._diamond_subdivision()\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_edge_planes()\n        self._compute_face_edge_planes()\n        self._compute_face_polylines()\n        self._compute_insertion_vectors()\n\n    @staticmethod\n    def closest_on_line(pt, a, b):\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.build_topology",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t"
+      ]
+    },
+    {
+      "name": "FoldedPlates.closest_on_line",
+      "implementations": {
+        "python": {
+          "sig": "closest_on_line(pt, a, b)",
+          "code": "def closest_on_line(pt, a, b):\n\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
+          "code": "Point FoldedPlates::closest_on_line(const Point& pt, const Point& a, const Point& b) {\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double len2 = dx*dx + dy*dy + dz*dz;\n    if (len2 < 1e-20) return a;\n    double t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2;\n    return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz);\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates.line_plane_t",
+      "implementations": {
+        "python": {
+          "sig": "line_plane_t(a, b, pl)",
+          "code": "def line_plane_t(a, b, pl):\n\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
+          "code": "bool FoldedPlates::line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t) {\n    Vector n = pl.z_axis();\n    const Point& o = pl.origin();\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double denom = n[0]*dx + n[1]*dy + n[2]*dz;\n    if (std::abs(denom) < 1e-12) return false;\n    t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom;\n    return true;\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates.intersect_3_planes",
+      "implementations": {
+        "python": {
+          "sig": "intersect_3_planes(p0, p1, p2)",
+          "code": "def intersect_3_planes(p0, p1, p2):\n\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
+          "code": "bool FoldedPlates::intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result) {\n    Vector n0 = p0.z_axis(), n1 = p1.z_axis(), n2 = p2.z_axis();\n    double d0 = n0[0]*p0.origin()[0] + n0[1]*p0.origin()[1] + n0[2]*p0.origin()[2];\n    double d1 = n1[0]*p1.origin()[0] + n1[1]*p1.origin()[1] + n1[2]*p1.origin()[2];\n    double d2 = n2[0]*p2.origin()[0] + n2[1]*p2.origin()[1] + n2[2]*p2.origin()[2];\n    Vector c12 = n1.cross(n2), c20 = n2.cross(n0), c01 = n0.cross(n1);\n    double det = n0.dot(c12);\n    if (std::abs(det) < 1e-12) return false;\n    double inv = 1.0 / det;\n    result = Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                   (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                   (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv);\n    return true;\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.line_plane_t",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates.chamfer_polyline",
+      "implementations": {
+        "python": {
+          "sig": "chamfer_polyline(pl, value)",
+          "code": "def chamfer_polyline(pl, value):\n\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
+          "code": "Polyline FoldedPlates::chamfer_polyline(const Polyline& pl, double value) {\n    if (std::abs(value) < 1e-10) return pl;\n    size_t n = pl.point_count();\n    if (n < 2) return pl;\n    size_t segs = pl.is_closed() ? n - 1 : n - 1;\n    Polyline result;\n    for (size_t i = 0; i < segs; i++) {\n        Point a = pl.get_point(i), b = pl.get_point(i + 1);\n        double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n        double len = std::sqrt(dx*dx + dy*dy + dz*dz);\n        if (len < 1e-10) continue;\n        if (value < 0) {\n            double r = std::abs(value) / len;\n            result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz));\n            result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz));\n        }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates._diamond_subdivision",
+      "implementations": {
+        "python": {
+          "sig": "_diamond_subdivision()",
+          "code": "def _diamond_subdivision(self):\n\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polygons(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates.build_topology",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates.plane_valid",
+      "implementations": {
+        "python": {
+          "sig": "plane_valid(p)",
+          "code": "def plane_valid(p):\n\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polygons(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates._build_topology",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.build_topology",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.diamond_subdivision",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t"
+      ]
+    },
+    {
+      "name": "FoldedPlates._build_topology",
+      "implementations": {
+        "python": {
+          "sig": "_build_topology()",
+          "code": "def _build_topology(self):\n\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)\n            neighbors = set()\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                for fi in self._ef[self._eidx[key]]:\n                    if fi != i:\n                        neighbors.add(fi)\n            for ni in neighbors:\n                self.adjacency.append([i, ni, -1, -1])\n\n    def _compute_face_planes(self):\n        self._fplanes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = math.sqrt((pb[0]-pa[0])**2 + (pb[1]-pa[1])**2 + (pb[2]-pa[2])**2)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self._fplanes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_edge_planes(self):\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.build_topology",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.plane_valid"
+      ]
+    },
+    {
+      "name": "FoldedPlates._compute_face_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_planes()",
+          "code": "def _compute_face_planes(self):\n\n        self._fplanes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = math.sqrt((pb[0]-pa[0])**2 + (pb[1]-pa[1])**2 + (pb[2]-pa[2])**2)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self._fplanes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_edge_planes(self):\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)\n\n            self._eplanes[ei] = Plane.from_point_normal(mid, z)\n\n    def _compute_face_edge_planes(self):\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.compute_face_polylines"
+      ]
+    },
+    {
+      "name": "FoldedPlates._compute_edge_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_edge_planes()",
+          "code": "def _compute_edge_planes(self):\n\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)\n\n            self._eplanes[ei] = Plane.from_point_normal(mid, z)\n\n    def _compute_face_edge_planes(self):\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.intersect_3_planes"
+      ]
+    },
+    {
+      "name": "FoldedPlates._compute_face_edge_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_edge_planes()",
+          "code": "def _compute_face_edge_planes(self):\n\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.intersect_3_planes"
+      ]
+    },
+    {
+      "name": "FoldedPlates._compute_face_polylines",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_polylines()",
+          "code": "def _compute_face_polylines(self):\n\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:\n    def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.intersect_3_planes"
+      ]
+    },
+    {
+      "name": "FoldedPlates._compute_insertion_vectors",
+      "implementations": {
+        "python": {
+          "sig": "_compute_insertion_vectors()",
+          "code": "def _compute_insertion_vectors(self):\n\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:\n    def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []\n        self._e90_multiple_planes = []\n\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_face_edge_planes()\n        self._compute_bisector_planes()\n        self._compute_face_polylines()\n        self._compute_edges()\n        self._compute_edge_faces()\n        self._compute_edge_planes_method()\n        self._compute_connectors()\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates.build_topology",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors"
+      ]
+    },
+    {
+      "name": "CrossConnectors.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__(mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0)",
+          "code": "def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []\n        self._e90_multiple_planes = []\n\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_face_edge_planes()\n        self._compute_bisector_planes()\n        self._compute_face_polylines()\n        self._compute_edges()\n        self._compute_edge_faces()\n        self._compute_edge_planes_method()\n        self._compute_connectors()\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1\n\n    def _compute_face_planes(self):\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.build_topology",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.compute_face_planes",
+        "CrossConnectors.compute_face_polylines"
+      ]
+    },
+    {
+      "name": "CrossConnectors._build_topology",
+      "implementations": {
+        "python": {
+          "sig": "_build_topology()",
+          "code": "def _build_topology(self):\n\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1\n\n    def _compute_face_planes(self):\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors.build_topology",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.compute_face_planes",
+        "CrossConnectors.dihedral_plane"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_face_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_planes()",
+          "code": "def _compute_face_planes(self):\n\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.compute_face_planes",
+        "CrossConnectors.dihedral_plane"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_face_edge_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_edge_planes()",
+          "code": "def _compute_face_edge_planes(self):\n\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin\n        ray0 = Line(o0[0], o0[1], o0[2], o0[0]+z0[0], o0[1]+z0[1], o0[2]+z0[2])\n        ray1 = Line(o1[0], o1[1], o1[2], o1[0]+z1[0], o1[1]+z1[1], o1[2]+z1[2])\n\n        parallel = abs(z0.dot(z1)) > 0.9999\n        dist2 = (o0[0]-o1[0])**2 + (o0[1]-o1[1])**2 + (o0[2]-o1[2])**2\n\n        if not parallel and dist2 > 0.001:\n            result = intersection.line_line_parameters(ray0, ray1, 0.01, False, False)\n            if result is not None:\n                t0, t1 = result\n                center = Point(o0[0]+t0*z0[0], o0[1]+t0*z0[1], o0[2]+t0*z0[2])\n                v0 = Vector(o0[0]-center[0], o0[1]-center[1], o0[2]-center[2])\n                v1 = Vector(o1[0]-center[0], o1[1]-center[1], o1[2]-center[2])\n                v0.normalize_self()\n                v1.normalize_self()\n                bisector = Vector(v0[0]+v1[0], v0[1]+v1[1], v0[2]+v1[2])\n                return Plane(centerDihedral, line_dir, bisector)\n\n        bisector = Vector(z0[0]+z1[0], z0[1]+z1[1], z0[2]+z1[2])\n        return Plane(centerDihedral, line_dir, bisector)\n\n    def _compute_bisector_planes(self):",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.dihedral_plane"
+      ]
+    },
+    {
+      "name": "CrossConnectors.dihedral_plane",
+      "implementations": {
+        "python": {
+          "sig": "dihedral_plane(p0, p1)",
+          "code": "def dihedral_plane(p0, p1):\n\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin\n        ray0 = Line(o0[0], o0[1], o0[2], o0[0]+z0[0], o0[1]+z0[1], o0[2]+z0[2])\n        ray1 = Line(o1[0], o1[1], o1[2], o1[0]+z1[0], o1[1]+z1[1], o1[2]+z1[2])\n\n        parallel = abs(z0.dot(z1)) > 0.9999\n        dist2 = (o0[0]-o1[0])**2 + (o0[1]-o1[1])**2 + (o0[2]-o1[2])**2\n\n        if not parallel and dist2 > 0.001:\n            result = intersection.line_line_parameters(ray0, ray1, 0.01, False, False)\n            if result is not None:\n                t0, t1 = result\n                center = Point(o0[0]+t0*z0[0], o0[1]+t0*z0[1], o0[2]+t0*z0[2])\n                v0 = Vector(o0[0]-center[0], o0[1]-center[1], o0[2]-center[2])\n                v1 = Vector(o1[0]-center[0], o1[1]-center[1], o1[2]-center[2])\n                v0.normalize_self()\n                v1.normalize_self()\n                bisector = Vector(v0[0]+v1[0], v0[1]+v1[1], v0[2]+v1[2])\n                return Plane(centerDihedral, line_dir, bisector)\n\n        bisector = Vector(z0[0]+z1[0], z0[1]+z1[1], z0[2]+z1[2])\n        return Plane(centerDihedral, line_dir, bisector)\n\n    def _compute_bisector_planes(self):\n        self.bisector_planes = [None] * self._f\n        for i in range(self._f):\n            n = len(self.fe_planes[i])\n            self.bisector_planes[i] = [None] * n\n            for j in range(n):\n                self.bisector_planes[i][j] = CrossConnectors.dihedral_plane(\n                    self.fe_planes[i][(j+1)%n], self.fe_planes[i][j])\n\n    @staticmethod\n    def move_plane_by_axis(pl, dist, axis=2):\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
+          "code": "Plane CrossConnectors::dihedral_plane(const Plane& p0, const Plane& p1) {\n    Line isect_line;\n    if (!Intersection::plane_plane(p0, p1, isect_line))\n        return p0;\n\n    Point centerDihedral;\n    if (!Intersection::line_plane(isect_line, p0, centerDihedral, false)) {\n        Point a = isect_line.start(), b = isect_line.end();\n        centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_bisector_planes",
+      "implementations": {
+        "python": {
+          "sig": "_compute_bisector_planes()",
+          "code": "def _compute_bisector_planes(self):\n\n        self.bisector_planes = [None] * self._f\n        for i in range(self._f):\n            n = len(self.fe_planes[i])\n            self.bisector_planes[i] = [None] * n\n            for j in range(n):\n                self.bisector_planes[i][j] = CrossConnectors.dihedral_plane(\n                    self.fe_planes[i][(j+1)%n], self.fe_planes[i][j])\n\n    @staticmethod\n    def move_plane_by_axis(pl, dist, axis=2):\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_polylines",
+        "CrossConnectors.dihedral_plane",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors.move_plane_by_axis",
+      "implementations": {
+        "python": {
+          "sig": "move_plane_by_axis(pl, dist, axis=2)",
+          "code": "def move_plane_by_axis(pl, dist, axis=2):\n\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis)",
+          "code": "Plane CrossConnectors::move_plane_by_axis(const Plane& pl, double dist, int axis) {\n    Vector dir;\n    if (axis == 0) dir = pl.x_axis();\n    else if (axis == 1) dir = pl.y_axis();\n    else dir = pl.z_axis();\n    Point o = pl.origin();\n    Point new_o(o[0]+dir[0]*dist, o[1]+dir[1]*dist, o[2]+dir[2]*dist);\n    return Plane(new_o, pl.x_axis(), pl.y_axis(), pl.z_axis());\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_polylines",
+        "CrossConnectors.dihedral_plane",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors.outline_from_planes",
+      "implementations": {
+        "python": {
+          "sig": "outline_from_planes(face_plane, edge_planes, bise_planes)",
+          "code": "def outline_from_planes(face_plane, edge_planes, bise_planes):\n\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Polyline outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& /*bise_planes*/)",
+          "code": "Polyline CrossConnectors::outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& /*bise_planes*/) {\n    // Python outline_from_face_edge_corner T=2 mode:\n    // PlanePlane(edge[i], edge[(i+1)%n]) \u00e2\u2020\u2019 line, LinePlane(line, face_plane) \u00e2\u2020\u2019 point\n    Polyline pl;\n    int n = (int)edge_planes.size();\n    for (int i = 0; i < n; i++) {\n        const Plane& plane = edge_planes[i];\n        const Plane& plane1 = edge_planes[(i+1)%n];\n\n        // Skip parallel edges\n        double angle = std::acos(std::min(1.0, std::max(-1.0, plane.z_axis().dot(plane1.z_axis()))));\n        if (angle < 0.01 && angle > -0.01) continue;\n\n        Line line;\n        if (!Intersection::plane_plane(plane, plane1, line)) continue;\n        Point pt;\n        if (!Intersection::line_plane(line, face_plane, pt, false)) continue;\n        pl.add_point(pt);\n    }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_polylines",
+        "CrossConnectors.dihedral_plane",
+        "CrossConnectors.move_plane_by_axis"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_face_polylines",
+      "implementations": {
+        "python": {
+          "sig": "_compute_face_polylines()",
+          "code": "def _compute_face_polylines(self):\n\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_polylines",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_edges",
+      "implementations": {
+        "python": {
+          "sig": "_compute_edges()",
+          "code": "def _compute_edges(self):\n\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_edge_faces",
+      "implementations": {
+        "python": {
+          "sig": "_compute_edge_faces()",
+          "code": "def _compute_edge_faces(self):\n\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_edge_planes_method",
+      "implementations": {
+        "python": {
+          "sig": "_compute_edge_planes_method()",
+          "code": "def _compute_edge_planes_method(self):\n\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
+      ]
+    },
+    {
+      "name": "CrossConnectors.make_rectangle",
+      "implementations": {
+        "python": {
+          "sig": "make_rectangle(pl, w, h)",
+          "code": "def make_rectangle(pl, w, h):\n\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    bot0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n                    bot1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n\n                    emx = self.edge_planes[i].z_axis\n                    emy = self.edge_planes[i].y_axis\n                    emz = Vector(-self.edge_planes[i].x_axis[0], -self.edge_planes[i].x_axis[1], -self.edge_planes[i].x_axis[2])\n                    e_plane_main = Plane.from_frame(self.edge_planes[i].origin, emx, emy, emz)\n\n                    sides = [\n                        top0, e_plane, top1,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * 0.5),\n                        bot1, e_plane, bot0,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * -0.5)\n                    ]\n\n                    base0 = CrossConnectors.move_plane_by_axis(epl, -self._rect_t * 0.5)\n                    type1_0 = Polyline()\n                    ns = len(sides)\n                    for s in range(ns):\n                        line = intersection.plane_plane(sides[s], sides[(s+1)%ns])\n                        if line is None:\n                            continue\n                        pt = intersection.line_plane(line, base0, False)\n                        if pt is None:\n                            continue\n                        type1_0.add_point(pt)\n                    if type1_0.point_count() > 0:\n                        type1_0.add_point(type1_0.get_point(0))\n\n                    type1_1 = Polyline()\n                    zdir = epl.z_axis\n                    for p in range(type1_0.point_count()):\n                        pp = type1_0.get_point(p)\n                        type1_1.add_point(Point(pp[0]+zdir[0]*self._rect_t, pp[1]+zdir[1]*self._rect_t, pp[2]+zdir[2]*self._rect_t))\n\n                    self.edge_polylines[i].append(type1_0)\n                    self.edge_polylines[i].append(type1_1)",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
+          "code": "Polyline CrossConnectors::make_rectangle(const Plane& pl, double w, double h) {\n    Vector x = pl.x_axis();\n    Vector y = pl.y_axis();\n    Point o = pl.origin();\n    double hw = w * 0.5, hh = h * 0.5;\n    Polyline rect;\n    rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]));\n    rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]));\n    rect.add_point(rect.get_point(0));\n    return rect;\n}",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new"
+      ]
+    },
+    {
+      "name": "CrossConnectors._compute_connectors",
+      "implementations": {
+        "python": {
+          "sig": "_compute_connectors()",
+          "code": "def _compute_connectors(self):\n\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    bot0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n                    bot1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n\n                    emx = self.edge_planes[i].z_axis\n                    emy = self.edge_planes[i].y_axis\n                    emz = Vector(-self.edge_planes[i].x_axis[0], -self.edge_planes[i].x_axis[1], -self.edge_planes[i].x_axis[2])\n                    e_plane_main = Plane.from_frame(self.edge_planes[i].origin, emx, emy, emz)\n\n                    sides = [\n                        top0, e_plane, top1,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * 0.5),\n                        bot1, e_plane, bot0,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * -0.5)\n                    ]\n\n                    base0 = CrossConnectors.move_plane_by_axis(epl, -self._rect_t * 0.5)\n                    type1_0 = Polyline()\n                    ns = len(sides)\n                    for s in range(ns):\n                        line = intersection.plane_plane(sides[s], sides[(s+1)%ns])\n                        if line is None:\n                            continue\n                        pt = intersection.line_plane(line, base0, False)\n                        if pt is None:\n                            continue\n                        type1_0.add_point(pt)\n                    if type1_0.point_count() > 0:\n                        type1_0.add_point(type1_0.get_point(0))\n\n                    type1_1 = Polyline()\n                    zdir = epl.z_axis\n                    for p in range(type1_0.point_count()):\n                        pp = type1_0.get_point(p)\n                        type1_1.add_point(Point(pp[0]+zdir[0]*self._rect_t, pp[1]+zdir[1]*self._rect_t, pp[2]+zdir[2]*self._rect_t))\n\n                    self.edge_polylines[i].append(type1_0)\n                    self.edge_polylines[i].append(type1_1)",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -37381,20 +38278,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "NurbsSurface.point_and_normal_at",
-      "implementations": {
-        "cpp": {
-          "sig": "void point_and_normal_at(double u, double v,\n                             double& px, double& py, double& pz,\n                             double& nx, double& ny, double& nz)",
-          "code": "void point_and_normal_at(double u, double v,\n                             double& px, double& py, double& pz,\n                             double& nx, double& ny, double& nz) const {\n        Point p = point_at(u, v);\n        px = p[0]; py = p[1]; pz = p[2];\n        Vector n = normal_at(u, v);\n        nx = n[0]; ny = n[1]; nz = n[2];\n    }",
-          "file": "nurbssurface.h"
-        }
-      },
-      "related": [
-        "NurbsSurface.normal_at",
-        "NurbsSurface.point_at"
-      ]
-    },
-    {
       "name": "NurbsSurface.mesh_grid",
       "implementations": {
         "cpp": {
@@ -38577,92 +39460,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Primitives.tetrahedron",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh tetrahedron(double edge)",
-          "code": "Mesh Primitives::tetrahedron(double edge) {\n    double a = edge / 2.0;\n    double h = edge * std::sqrt(2.0 / 3.0);\n    double r = edge / std::sqrt(3.0);\n    double z0 = -h / 4.0;\n    double z1 = 3.0 * h / 4.0;\n    std::vector<std::vector<Point>> faces = {\n        {Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)}",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "Primitives.cube",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh cube(double edge)",
-          "code": "Mesh Primitives::cube(double edge) {\n    double a = edge / 2.0;\n    Point v0(-a,-a,-a), v1(a,-a,-a), v2(a,a,-a), v3(-a,a,-a);\n    Point v4(-a,-a,a), v5(a,-a,a), v6(a,a,a), v7(-a,a,a);\n    std::vector<std::vector<Point>> faces = {\n        {v3, v2, v1, v0}",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "Primitives.octahedron",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh octahedron(double edge)",
-          "code": "Mesh Primitives::octahedron(double edge) {\n    double a = edge / std::sqrt(2.0);\n    Point px(a,0,0), nx(-a,0,0);\n    Point py(0,a,0), ny(0,-a,0);\n    Point pz(0,0,a), nz(0,0,-a);\n    std::vector<std::vector<Point>> faces = {\n        {pz, px, py}",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "Primitives.icosahedron",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh icosahedron(double edge)",
-          "code": "Mesh Primitives::icosahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double s = edge / 2.0;\n    double sp = s * phi;\n    Point verts[12] = {\n        Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n        Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n        Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n    }",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "Primitives.dodecahedron",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh dodecahedron(double edge)",
-          "code": "Mesh Primitives::dodecahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double ip = 1.0 / phi;\n    double s = edge / (2.0 * ip); // scale so actual edge length = edge\n    Point verts[20] = {\n        Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n        Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n        Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n        Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n        Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n        Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n        Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n        Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n    }",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "Primitives.wave_surface",
-      "implementations": {
-        "cpp": {
-          "sig": "NurbsSurface wave_surface(double size, double amplitude)",
-          "code": "NurbsSurface Primitives::wave_surface(double size, double amplitude) {\n    // Approximate z = amplitude * sin(2\u00cf\u20ac*x/size) * sin(2\u00cf\u20ac*y/size)\n    // 13x13 CVs, degree 3, one full period per direction\n    // Edges are at sin(0)=sin(2\u00cf\u20ac)=0, so tiles connect seamlessly\n    const int n = 13;\n    const double PI2 = 2.0 * 3.14159265358979323846;\n\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double u = static_cast<double>(i) / (n - 1);\n        double x = size * u;\n        for (int j = 0; j < n; ++j) {\n            double v = static_cast<double>(j) / (n - 1);\n            double y = size * v;\n            double z = amplitude * std::sin(PI2 * u) * std::sin(PI2 * v);\n            pts.push_back(Point(x, y, z));\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "Primitives.pt"
-      ]
-    },
-    {
-      "name": "Primitives.chevron_mesh",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale)",
-          "code": "Mesh Primitives::chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale) {\n    NurbsSurface srf = surface;\n\n    // Measure arc lengths to determine long direction\n    auto du0 = srf.domain(0);\n    auto dv0 = srf.domain(1);\n    int nsamp = 50;\n    double u_arc = 0, v_arc = 0;\n    {\n        double v_mid = (dv0.first + dv0.second) / 2.0;\n        Point prev = srf.point_at(du0.first, v_mid);\n        for (int i = 1; i <= nsamp; i++) {\n            Point curr = srf.point_at(du0.first + (du0.second - du0.first) * i / nsamp, v_mid);\n            u_arc += prev.distance(curr);\n            prev = curr;\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "Primitives.arc"
-      ]
-    },
-    {
-      "name": "Primitives.annen_surfaces",
-      "implementations": {
-        "cpp": {
-          "sig": "std::vector<NurbsSurface> annen_surfaces()",
-          "code": "std::vector<NurbsSurface> Primitives::annen_surfaces() {\n    std::vector<NurbsSurface> surfaces;\n    std::vector<std::string> prefixes = {\n        \"session_data/annen_surfaces/\",\n        \"../session_data/annen_surfaces/\"\n    }",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
       "name": "Primitives.unit_cylinder_geometry",
       "implementations": {
         "cpp": {
@@ -38745,7 +39542,10 @@ window.API_INDEX = {
           "code": "void diamond_subdivision();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.build_topology",
@@ -38755,7 +39555,10 @@ window.API_INDEX = {
           "code": "void build_topology();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.compute_face_planes",
@@ -38765,7 +39568,10 @@ window.API_INDEX = {
           "code": "void compute_face_planes();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.compute_edge_planes",
@@ -38777,6 +39583,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives.annen_surfaces",
         "Primitives.compute_edge_planes_method"
       ]
     },
@@ -38788,7 +39595,10 @@ window.API_INDEX = {
           "code": "void compute_face_edge_planes();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.compute_face_polylines",
@@ -38798,7 +39608,10 @@ window.API_INDEX = {
           "code": "void compute_face_polylines();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.compute_insertion_vectors",
@@ -38808,7 +39621,10 @@ window.API_INDEX = {
           "code": "void compute_insertion_vectors();",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.closest_on_line",
@@ -38820,6 +39636,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives.annen_surfaces",
         "Primitives.pt"
       ]
     },
@@ -38831,7 +39648,10 @@ window.API_INDEX = {
           "code": "static bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t);",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.intersect_3_planes",
@@ -38841,7 +39661,10 @@ window.API_INDEX = {
           "code": "static bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result);",
           "file": "primitives.h"
         }
-      }
+      },
+      "related": [
+        "Primitives.annen_surfaces"
+      ]
     },
     {
       "name": "Primitives.chamfer_polyline",
@@ -38987,49 +39810,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "FoldedPlates.closest_on_line",
-      "implementations": {
-        "cpp": {
-          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
-          "code": "Point FoldedPlates::closest_on_line(const Point& pt, const Point& a, const Point& b) {\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double len2 = dx*dx + dy*dy + dz*dz;\n    if (len2 < 1e-20) return a;\n    double t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2;\n    return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz);\n}",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "FoldedPlates.line_plane_t",
-      "implementations": {
-        "cpp": {
-          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
-          "code": "bool FoldedPlates::line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t) {\n    Vector n = pl.z_axis();\n    const Point& o = pl.origin();\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double denom = n[0]*dx + n[1]*dy + n[2]*dz;\n    if (std::abs(denom) < 1e-12) return false;\n    t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom;\n    return true;\n}",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
-      "name": "FoldedPlates.intersect_3_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
-          "code": "bool FoldedPlates::intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result) {\n    Vector n0 = p0.z_axis(), n1 = p1.z_axis(), n2 = p2.z_axis();\n    double d0 = n0[0]*p0.origin()[0] + n0[1]*p0.origin()[1] + n0[2]*p0.origin()[2];\n    double d1 = n1[0]*p1.origin()[0] + n1[1]*p1.origin()[1] + n1[2]*p1.origin()[2];\n    double d2 = n2[0]*p2.origin()[0] + n2[1]*p2.origin()[1] + n2[2]*p2.origin()[2];\n    Vector c12 = n1.cross(n2), c20 = n2.cross(n0), c01 = n0.cross(n1);\n    double det = n0.dot(c12);\n    if (std::abs(det) < 1e-12) return false;\n    double inv = 1.0 / det;\n    result = Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                   (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                   (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv);\n    return true;\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.compute_face_polylines"
-      ]
-    },
-    {
-      "name": "FoldedPlates.chamfer_polyline",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
-          "code": "Polyline FoldedPlates::chamfer_polyline(const Polyline& pl, double value) {\n    if (std::abs(value) < 1e-10) return pl;\n    size_t n = pl.point_count();\n    if (n < 2) return pl;\n    size_t segs = pl.is_closed() ? n - 1 : n - 1;\n    Polyline result;\n    for (size_t i = 0; i < segs; i++) {\n        Point a = pl.get_point(i), b = pl.get_point(i + 1);\n        double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n        double len = std::sqrt(dx*dx + dy*dy + dz*dz);\n        if (len < 1e-10) continue;\n        if (value < 0) {\n            double r = std::abs(value) / len;\n            result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz));\n            result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz));\n        }",
-          "file": "primitives.cpp"
-        }
-      }
-    },
-    {
       "name": "FoldedPlates.diamond_subdivision",
       "implementations": {
         "cpp": {
@@ -39039,7 +39819,15 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.chamfer_polyline",
+        "FoldedPlates.closest_on_line",
+        "FoldedPlates.constructor",
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.line_plane_t",
+        "FoldedPlates.new",
+        "FoldedPlates.plane_valid"
       ]
     },
     {
@@ -39052,7 +39840,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates._diamond_subdivision",
+        "FoldedPlates.constructor",
+        "FoldedPlates.new",
+        "FoldedPlates.plane_valid"
       ]
     },
     {
@@ -39065,7 +39859,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.constructor",
+        "FoldedPlates.new"
       ]
     },
     {
@@ -39078,7 +39877,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._build_topology",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.constructor",
+        "FoldedPlates.new"
       ]
     },
     {
@@ -39091,7 +39896,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.constructor",
+        "FoldedPlates.new"
       ]
     },
     {
@@ -39104,8 +39915,15 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
         "FoldedPlates.constructor",
-        "FoldedPlates.intersect_3_planes"
+        "FoldedPlates.intersect_3_planes",
+        "FoldedPlates.new"
       ]
     },
     {
@@ -39118,7 +39936,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "FoldedPlates.constructor"
+        "FoldedPlates.__init__",
+        "FoldedPlates._compute_edge_planes",
+        "FoldedPlates._compute_face_edge_planes",
+        "FoldedPlates._compute_face_polylines",
+        "FoldedPlates._compute_insertion_vectors",
+        "FoldedPlates.constructor",
+        "FoldedPlates.new"
       ]
     },
     {
@@ -39131,7 +39955,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
+        "CrossConnectors.__init__",
+        "CrossConnectors._build_topology",
+        "CrossConnectors.constructor",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -39144,7 +39971,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
+        "CrossConnectors.__init__",
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors.constructor",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -39157,20 +39988,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
-      ]
-    },
-    {
-      "name": "CrossConnectors.dihedral_plane",
-      "implementations": {
-        "cpp": {
-          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
-          "code": "Plane CrossConnectors::dihedral_plane(const Plane& p0, const Plane& p1) {\n    Line isect_line;\n    if (!Intersection::plane_plane(p0, p1, isect_line))\n        return p0;\n\n    Point centerDihedral;\n    if (!Intersection::line_plane(isect_line, p0, centerDihedral, false)) {\n        Point a = isect_line.start(), b = isect_line.end();\n        centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.compute_bisector_planes"
+        "CrossConnectors.__init__",
+        "CrossConnectors._build_topology",
+        "CrossConnectors._compute_face_edge_planes",
+        "CrossConnectors._compute_face_planes",
+        "CrossConnectors.constructor",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -39183,35 +40006,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_face_edge_planes",
         "CrossConnectors.constructor",
-        "CrossConnectors.dihedral_plane"
-      ]
-    },
-    {
-      "name": "CrossConnectors.move_plane_by_axis",
-      "implementations": {
-        "cpp": {
-          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis)",
-          "code": "Plane CrossConnectors::move_plane_by_axis(const Plane& pl, double dist, int axis) {\n    Vector dir;\n    if (axis == 0) dir = pl.x_axis();\n    else if (axis == 1) dir = pl.y_axis();\n    else dir = pl.z_axis();\n    Point o = pl.origin();\n    Point new_o(o[0]+dir[0]*dist, o[1]+dir[1]*dist, o[2]+dir[2]*dist);\n    return Plane(new_o, pl.x_axis(), pl.y_axis(), pl.z_axis());\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_face_polylines"
-      ]
-    },
-    {
-      "name": "CrossConnectors.outline_from_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& bise_planes)",
-          "code": "Polyline CrossConnectors::outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& bise_planes) {\n    // Python outline_from_face_edge_corner T=2 mode:\n    // PlanePlane(edge[i], edge[(i+1)%n]) \u00e2\u2020\u2019 line, LinePlane(line, face_plane) \u00e2\u2020\u2019 point\n    Polyline pl;\n    int n = (int)edge_planes.size();\n    for (int i = 0; i < n; i++) {\n        const Plane& plane = edge_planes[i];\n        const Plane& plane1 = edge_planes[(i+1)%n];\n\n        // Skip parallel edges\n        double angle = std::acos(std::min(1.0, std::max(-1.0, plane.z_axis().dot(plane1.z_axis()))));\n        if (angle < 0.01 && angle > -0.01) continue;\n\n        Line line;\n        if (!Intersection::plane_plane(plane, plane1, line)) continue;\n        Point pt;\n        if (!Intersection::line_plane(line, face_plane, pt, false)) continue;\n        pl.add_point(pt);\n    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.compute_face_polylines"
+        "CrossConnectors.dihedral_plane",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -39224,8 +40024,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_face_polylines",
         "CrossConnectors.constructor",
         "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
         "CrossConnectors.outline_from_planes"
       ]
     },
@@ -39239,7 +40043,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.constructor",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
       ]
     },
     {
@@ -39252,7 +40063,15 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.constructor",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
       ]
     },
     {
@@ -39265,20 +40084,15 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "CrossConnectors.constructor"
-      ]
-    },
-    {
-      "name": "CrossConnectors.make_rectangle",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
-          "code": "Polyline CrossConnectors::make_rectangle(const Plane& pl, double w, double h) {\n    Vector x = pl.x_axis();\n    Vector y = pl.y_axis();\n    Point o = pl.origin();\n    double hw = w * 0.5, hh = h * 0.5;\n    Polyline rect;\n    rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]));\n    rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]));\n    rect.add_point(rect.get_point(0));\n    return rect;\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.compute_connectors"
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
+        "CrossConnectors._compute_face_polylines",
+        "CrossConnectors.constructor",
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new",
+        "CrossConnectors.outline_from_planes"
       ]
     },
     {
@@ -39291,9 +40105,15 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "CrossConnectors.__init__",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_faces",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors._compute_edges",
         "CrossConnectors.constructor",
         "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis"
+        "CrossConnectors.move_plane_by_axis",
+        "CrossConnectors.new"
       ]
     },
     {
@@ -41692,6 +42512,52 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "FoldedPlates.new",
+      "implementations": {
+        "rust": {
+          "sig": "new(surface: &NurbsSurface, u_divisions: usize, v_divisions: usize,\n               thickness: f64, chamfer: f64, base_planes: &[Plane], face_positions: &[f64]) -> Self",
+          "code": "pub fn new(surface: &NurbsSurface, u_divisions: usize, v_divisions: usize,\n               thickness: f64, chamfer: f64, base_planes: &[Plane], face_positions: &[f64]) -> Self {\n        let mut fp = Self {\n            mesh: Mesh::new(),\n            flags: Vec::new(),\n            adjacency: Vec::new(),\n            polylines: Vec::new(),\n            insertion_lines: Vec::new(),\n            _srf: surface.clone(),\n            _udiv: u_divisions.max(1),\n            _vdiv: v_divisions.max(1),\n            _thick: thickness,\n            _cham: chamfer,\n            _base_planes: base_planes.to_vec(),\n            _face_pos: if face_positions.is_empty() { vec![0.0] } else { face_positions.to_vec() },\n            _f: 0,\n            _fkeys: Vec::new(),\n            _fv: Vec::new(),\n            _fplanes: Vec::new(),\n            _fe_planes: Vec::new(),\n            _eplanes: Vec::new(),\n            _eidx: std::collections::BTreeMap::new(),\n            _ef: Vec::new(),\n        };\n        fp.diamond_subdivision();\n        fp.build_topology();\n        fp.compute_face_planes();\n        fp.compute_edge_planes();\n        fp.compute_face_edge_planes();\n        fp.compute_face_polylines();\n        fp.compute_insertion_vectors();\n        fp\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "FoldedPlates.build_topology",
+        "FoldedPlates.compute_edge_planes",
+        "FoldedPlates.compute_face_edge_planes",
+        "FoldedPlates.compute_face_planes",
+        "FoldedPlates.compute_face_polylines",
+        "FoldedPlates.compute_insertion_vectors",
+        "FoldedPlates.diamond_subdivision"
+      ]
+    },
+    {
+      "name": "CrossConnectors.new",
+      "implementations": {
+        "rust": {
+          "sig": "new(m: &Mesh, face_thickness: f64, face_positions: &[f64],\n               edge_divisions: usize, rect_width: f64, rect_height: f64,\n               rect_thickness: f64, chamfer: f64) -> Self",
+          "code": "pub fn new(m: &Mesh, face_thickness: f64, face_positions: &[f64],\n               edge_divisions: usize, rect_width: f64, rect_height: f64,\n               rect_thickness: f64, chamfer: f64) -> Self {\n        let mut face_pos = if face_positions.is_empty() { vec![0.0] } else { face_positions.to_vec() };\n        face_pos.sort_by(|a, b| a.partial_cmp(b).unwrap());\n\n        let mut cc = Self {\n            mesh: m.clone(),\n            face_planes: Vec::new(),\n            fe_planes: Vec::new(),\n            bisector_planes: Vec::new(),\n            face_polylines: Vec::new(),\n            edges: Vec::new(),\n            edge_faces: Vec::new(),\n            edge_planes: Vec::new(),\n            edge_polylines: Vec::new(),\n            _f: 0,\n            _thick: face_thickness,\n            _rect_w: rect_width,\n            _rect_h: rect_height,\n            _rect_t: rect_thickness,\n            _cham: chamfer,\n            _edge_div: edge_divisions.max(1),\n            _face_pos: face_pos,\n            _fkeys: Vec::new(),\n            _fv: Vec::new(),\n            _eidx: std::collections::BTreeMap::new(),\n            _e90_multiple_planes: Vec::new(),\n        };\n        cc.build_topology();\n        cc.compute_face_planes();\n        cc.compute_face_edge_planes();\n        cc.compute_bisector_planes();\n        cc.compute_face_polylines();\n        cc.compute_edges();\n        cc.compute_edge_faces();\n        cc.compute_edge_planes_method();\n        cc.compute_connectors();\n        cc\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "CrossConnectors._compute_bisector_planes",
+        "CrossConnectors._compute_connectors",
+        "CrossConnectors._compute_edge_planes_method",
+        "CrossConnectors.build_topology",
+        "CrossConnectors.compute_bisector_planes",
+        "CrossConnectors.compute_connectors",
+        "CrossConnectors.compute_edge_faces",
+        "CrossConnectors.compute_edge_planes_method",
+        "CrossConnectors.compute_edges",
+        "CrossConnectors.compute_face_edge_planes",
+        "CrossConnectors.compute_face_planes",
+        "CrossConnectors.compute_face_polylines",
+        "CrossConnectors.dihedral_plane",
+        "CrossConnectors.make_rectangle",
+        "CrossConnectors.move_plane_by_axis"
+      ]
+    },
+    {
       "name": "Quaternion.new",
       "implementations": {
         "rust": {
@@ -43596,7 +44462,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Control Vertices Access\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Control Vertices Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n        s.make_rational(); // to change weights\n\n\n        // const - to read, non-const point to write\n        const double* const_pointer_cv = s.cv(0,0);\n        MINI_CHECK( const_pointer_cv[2] == 0);\n        double* pointer_cv = s.cv(0,0);\n        pointer_cv[2] = 10.0; // modifies surface because it is a pointer\n        MINI_CHECK( pointer_cv[2] == 10);\n\n        // Point and Weight\n        // NOTE\n        // point is (Xw, Yw, Zw, w)\n        // cv pointer is (X, Y, Z)\n        Point cv = s.get_cv(0,0);\n        MINI_CHECK( cv == Point(0,0,10));\n        double x, y, z, w;\n        s.get_cv_4d(0,0, x, y, z, w);\n        MINI_CHECK( x == 0 && y == 0 && z == 10 && w == 1);\n\n        s.set_cv(0,0, Point(0, 0, 5));\n        MINI_CHECK(  s.get_cv(0,0) == Point(0,0,5) );\n        s.set_cv_4d(0,0, 0, 0, 4, 0.5);\n        MINI_CHECK( s.get_cv(0,0) == Point(0, 0, 8) && s.cv(0,0)[2] == 4 && s.weight(0,0) == 0.5 );\n\n        w = s.weight(0,0);\n        s.set_weight(0,0,1);\n        MINI_CHECK( s.weight(0,0) == 1); \n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Control Vertices Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n        s.make_rational(); // to change weights\n\n        // const - to read, non-const point to write\n        const double* const_pointer_cv = s.cv(0,0);\n        MINI_CHECK( const_pointer_cv[2] == 0);\n        double* pointer_cv = s.cv(0,0);\n        pointer_cv[2] = 10.0; // modifies surface because it is a pointer\n        MINI_CHECK( pointer_cv[2] == 10);\n\n        // Point and Weight\n        // NOTE\n        // point is (Xw, Yw, Zw, w)\n        // cv pointer is (X, Y, Z)\n        Point cv = s.get_cv(0,0);\n        MINI_CHECK( cv == Point(0,0,10));\n        double x, y, z, w;\n        s.get_cv_4d(0,0, x, y, z, w);\n        MINI_CHECK( x == 0 && y == 0 && z == 10 && w == 1);\n\n        s.set_cv(0,0, Point(0, 0, 5));\n        MINI_CHECK(  s.get_cv(0,0) == Point(0,0,5) );\n        s.set_cv_4d(0,0, 0, 0, 4, 0.5);\n        MINI_CHECK( s.get_cv(0,0) == Point(0, 0, 8) && s.cv(0,0)[2] == 4 && s.weight(0,0) == 0.5 );\n\n        w = s.weight(0,0);\n        s.set_weight(0,0,1);\n        MINI_CHECK( s.weight(0,0) == 1); \n    }",
           "file": "nurbssurface_test.cpp"
         },
         "python": {
@@ -43611,7 +44477,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Knot Access\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n\n        \n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n        s.insert_knot(0, 0.1, 2);\n        MINI_CHECK(s.knot_count(0) == 8);\n        MINI_CHECK(s.knot(0, 3) == 0.1);\n        MINI_CHECK(s.knot_multiplicity(0, 3) == 2);\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Knot Access\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Get knot vectors and individual knot\n        std::vector<double> knots_u = s.get_knots(0);\n        for (int i = 0; i < s.knot_count(0); i++){\n            double knot = s.knot(0, i);\n            MINI_CHECK(knot == knots_u[i]);\n        }\n\n        std::vector<double> knots_v = s.get_knots(1);\n        for (int i = 0; i < s.knot_count(1); i++){\n            double knot = s.knot(1, i);\n            MINI_CHECK(knot == knots_v[i]);\n        }\n\n        // Set knots\n        bool is_set = s.set_knot(0, 2, 0.5);\n        MINI_CHECK(s.knot(0, 2) == 0.5);\n        is_set = s.set_knot(0, 2, 0.0); // reset\n\n        // Verify start multiplicity\n        int mult_u_start = s.knot_multiplicity(0, 0);\n        int mult_v_start = s.knot_multiplicity(1, 0);\n        MINI_CHECK(mult_u_start == 3);\n        MINI_CHECK(mult_v_start == 3);\n\n        s.insert_knot(0, 0.1, 2);\n        MINI_CHECK(s.knot_count(0) == 8);\n        MINI_CHECK(s.knot(0, 3) == 0.1);\n        MINI_CHECK(s.knot_multiplicity(0, 3) == 2);\n    }",
           "file": "nurbssurface_test.cpp"
         },
         "python": {
@@ -43626,7 +44492,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Domain\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Domain\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n\n        // Get domain 0 - 1\n        std::pair<double, double> domain_u = s.domain(0);\n        std::pair<double, double> domain_v = s.domain(1);\n        MINI_CHECK(TOLERANCE.is_close(domain_u.first, 0));\n        MINI_CHECK(TOLERANCE.is_close(domain_u.second, 1));\n\n        // Set Domain\n        bool is_set_u = s.set_domain(0, -1.1, 2.3);\n        bool is_set_v = s.set_domain(1, -5.1, 1.3);\n        MINI_CHECK(is_set_u && TOLERANCE.is_close(s.domain(1).first, -5.1));\n        MINI_CHECK(is_set_v && TOLERANCE.is_close(s.domain(1).second, 1.3));\n\n        // Get sorted list of distinct knot values\n        std::vector<double> span_vector = s.get_span_vector(0);\n        double first_item = span_vector.front();\n        double last_item = span_vector.back();\n        MINI_CHECK(TOLERANCE.is_close(first_item, -1.1));\n        MINI_CHECK(TOLERANCE.is_close(last_item, 2.3));\n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Domain\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        // Get domain 0 - 1\n        std::pair<double, double> domain_u = s.domain(0);\n        std::pair<double, double> domain_v = s.domain(1);\n        MINI_CHECK(TOLERANCE.is_close(domain_u.first, 0));\n        MINI_CHECK(TOLERANCE.is_close(domain_u.second, 1));\n\n        // Set Domain\n        bool is_set_u = s.set_domain(0, -1.1, 2.3);\n        bool is_set_v = s.set_domain(1, -5.1, 1.3);\n        MINI_CHECK(is_set_u && TOLERANCE.is_close(s.domain(1).first, -5.1));\n        MINI_CHECK(is_set_v && TOLERANCE.is_close(s.domain(1).second, 1.3));\n\n        // Get sorted list of distinct knot values\n        std::vector<double> span_vector = s.get_span_vector(0);\n        double first_item = span_vector.front();\n        double last_item = span_vector.back();\n        MINI_CHECK(TOLERANCE.is_close(first_item, -1.1));\n        MINI_CHECK(TOLERANCE.is_close(last_item, 2.3));\n    }",
           "file": "nurbssurface_test.cpp"
         },
         "python": {
@@ -43656,12 +44522,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurface\", \"Evaluation\")",
-          "code": "MINI_TEST(\"NurbsSurface\", \"Evaluation\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n \n    }",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Evaluation\") {\n        // uncomment #include \"nurbssurface.h\"\n\n        std::vector<Point> points = {\n            // i=0\n            Point(0.0, 0.0, 0.0),\n            Point(-1.0, 0.75, 2.0),\n            Point(-1.0, 4.25, 2.0),\n            Point(0.0, 5.0, 0.0),\n            // i=1\n            Point(0.75, -1.0, 2.0),\n            Point(1.25, 1.25, 4.0),\n            Point(1.25, 3.75, 4.0),\n            Point(0.75, 6.0, 2.0),\n            // i=2\n            Point(4.25, -1.0, 2.0),\n            Point(3.75, 1.25, 4.0),\n            Point(3.75, 3.75, 4.0),\n            Point(4.25, 6.0, 2.0),\n            // i=3\n            Point(5.0, 0.0, 0.0),\n            Point(6.0, 0.75, 2.0),\n            Point(6.0, 4.25, 2.0),\n            Point(5.0, 5.0, 0.0),\n        };\n\n        NurbsSurface s = NurbsSurface::create(false, false, 3, 3, 4, 4, points);\n\n        double u = 0.5, v = 0.5;\n\n        // point_at(u, v) - returns Point\n        Point p1 = s.point_at(u, v);\n        MINI_CHECK(TOLERANCE.is_point_close(p1, Point(2.5, 2.5, 3.0)));\n\n        // normal_at(u, v) - returns Vector\n        Vector n1 = s.normal_at(u, v);\n        MINI_CHECK(TOLERANCE.is_vector_close(n1, Vector(0, 0, 1)));\n\n        // evaluate(u, v, num_derivs) - returns vector of derivatives\n        auto derivs = s.evaluate(u, v, 1);\n        MINI_CHECK(TOLERANCE.is_vector_close(derivs[0], Vector(2.5, 2.5, 3.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(derivs[1], Vector(0.0, 6.9375, 0.0)));\n        MINI_CHECK(TOLERANCE.is_vector_close(derivs[2], Vector(6.9375, 0.0, 0.0)));\n\n        // point_at_corner(u_end, v_end) - corner point\n        Point p_corner = s.point_at_corner(1, 1);\n        MINI_CHECK(TOLERANCE.is_point_close(p_corner, Point(5.0, 5.0, 0.0)));\n    }",
           "file": "nurbssurface_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")",
-          "code": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")\ndef test_evaluation():\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Evaluation\")\ndef test_evaluation():\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    u = 0.5\n    v = 0.5\n\n    # point_at(u, v) - returns Point\n    p1 = s.point_at(u, v)\n    MINI_CHECK(TOLERANCE.is_point_close(p1, Point(2.5, 2.5, 3.0)))\n\n    # normal_at(u, v) - returns Vector\n    n1 = s.normal_at(u, v)\n    MINI_CHECK(TOLERANCE.is_vector_close(n1, Vector(0, 0, 1)))\n\n    # evaluate(u, v, num_derivs) - returns vector of derivatives\n    derivs = s.evaluate(u, v, 1)\n    MINI_CHECK(TOLERANCE.is_vector_close(derivs[0], Vector(2.5, 2.5, 3.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(derivs[1], Vector(0.0, 6.9375, 0.0)))\n    MINI_CHECK(TOLERANCE.is_vector_close(derivs[2], Vector(6.9375, 0.0, 0.0)))\n\n    # point_at_corner(u_end, v_end) - corner point\n    p_corner = s.point_at_corner(1, 1)\n    MINI_CHECK(TOLERANCE.is_point_close(p_corner, Point(5.0, 5.0, 0.0)))",
           "file": "nurbssurface_test.py"
         }
       }
@@ -44886,7 +45752,97 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbscurve_interpolated\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Nurbscurve_interpolated\")\ndef test_nurbscurve_interpolated():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import knot\n\n    points = [\n        Point(14, 9, 0), Point(15.342777, 13.734889, 0), Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0), Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0), Point(41, 13, 0)\n    ]\n\n    c = Primitives.create_interpolated(points, knot.CurveKnotStyle.Chord)\n\n    MINI_CHECK(c.is_valid())\n    MINI_CHECK(c.degree() == 3)\n    MINI_CHECK(c.order() == 4)\n    MINI_CHECK(c.cv_count() == 9)\n    MINI_CHECK(c.is_rational() == False)\n\n    d0, d1 = c.domain()\n    knots = c.get_knots()\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[3]), points[1]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[4]), points[2]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[5]), points[3]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[6]), points[4]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[7]), points[5]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[6]))\n\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(8), points[6]))\n\n    pts4 = [Point(0,0,0), Point(1,2,0), Point(3,1,0), Point(5,3,0)]\n    c4 = Primitives.create_interpolated(pts4, knot.CurveKnotStyle.Chord)\n    MINI_CHECK(c4.is_valid())\n    MINI_CHECK(c4.degree() == 3)\n    MINI_CHECK(c4.cv_count() == 6)\n    d4_0, d4_1 = c4.domain()\n    MINI_CHECK(TOLERANCE.is_point_close(c4.point_at(d4_0), pts4[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c4.point_at(d4_1), pts4[3]))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbscurve_interpolated\")\ndef test_nurbscurve_interpolated():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import knot\n\n    points = [\n        Point(14, 9, 0), Point(15.342777, 13.734889, 0), Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0), Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0), Point(41, 13, 0)\n    ]\n\n    c = Primitives.create_interpolated(points, knot.CurveKnotStyle.Chord)\n\n    MINI_CHECK(c.is_valid())\n    MINI_CHECK(c.degree() == 3)\n    MINI_CHECK(c.order() == 4)\n    MINI_CHECK(c.cv_count() == 9)\n    MINI_CHECK(c.is_rational() == False)\n\n    d0, d1 = c.domain()\n    knots = c.get_knots()\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[3]), points[1]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[4]), points[2]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[5]), points[3]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[6]), points[4]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(knots[7]), points[5]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[6]))\n\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(8), points[6]))\n\n    pts4 = [Point(0,0,0), Point(1,2,0), Point(3,1,0), Point(5,3,0)]\n    c4 = Primitives.create_interpolated(pts4, knot.CurveKnotStyle.Chord)\n    MINI_CHECK(c4.is_valid())\n    MINI_CHECK(c4.degree() == 3)\n    MINI_CHECK(c4.cv_count() == 6)\n    d4_0, d4_1 = c4.domain()\n    MINI_CHECK(TOLERANCE.is_point_close(c4.point_at(d4_0), pts4[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c4.point_at(d4_1), pts4[3]))",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_tetrahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_tetrahedron\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_tetrahedron\") {\n    Mesh m = Primitives::tetrahedron(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 4);\n    MINI_CHECK(m.number_of_faces() == 4);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_tetrahedron\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_tetrahedron\")\ndef test_mesh_tetrahedron():\n    from session_py import Primitives\n\n    m = Primitives.tetrahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 4)\n    MINI_CHECK(m.number_of_faces() == 4)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_cube",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_cube\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_cube\") {\n    Mesh m = Primitives::cube(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 8);\n    MINI_CHECK(m.number_of_faces() == 6);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_cube\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_cube\")\ndef test_mesh_cube():\n    from session_py import Primitives\n\n    m = Primitives.cube(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 8)\n    MINI_CHECK(m.number_of_faces() == 6)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_octahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_octahedron\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_octahedron\") {\n    Mesh m = Primitives::octahedron(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 6);\n    MINI_CHECK(m.number_of_faces() == 8);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_octahedron\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_octahedron\")\ndef test_mesh_octahedron():\n    from session_py import Primitives\n\n    m = Primitives.octahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 6)\n    MINI_CHECK(m.number_of_faces() == 8)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_icosahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_icosahedron\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_icosahedron\") {\n    Mesh m = Primitives::icosahedron(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 12);\n    MINI_CHECK(m.number_of_faces() == 20);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_icosahedron\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_icosahedron\")\ndef test_mesh_icosahedron():\n    from session_py import Primitives\n\n    m = Primitives.icosahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 12)\n    MINI_CHECK(m.number_of_faces() == 20)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh_dodecahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh_dodecahedron\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh_dodecahedron\") {\n    Mesh m = Primitives::dodecahedron(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 20);\n    MINI_CHECK(m.number_of_faces() == 12);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_dodecahedron\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_dodecahedron\")\ndef test_mesh_dodecahedron():\n    from session_py import Primitives\n\n    m = Primitives.dodecahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 20)\n    MINI_CHECK(m.number_of_faces() == 12)",
+          "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Nurbssurface_wave",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface_wave\")",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface_wave\") {\n    NurbsSurface srf = Primitives::wave_surface(10.0, 2.0);\n    MINI_CHECK(srf.is_valid());\n    MINI_CHECK(srf.degree(0) == 3);\n    MINI_CHECK(srf.degree(1) == 3);\n    MINI_CHECK(srf.cv_count(0) == 13);\n    MINI_CHECK(srf.cv_count(1) == 13);\n    Point corner = srf.point_at(0.0, 0.0);\n    MINI_CHECK(std::abs(corner[2]) < 0.1);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface_wave\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface_wave\")\ndef test_nurbssurface_wave():\n    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.degree(0) == 3)\n    MINI_CHECK(srf.degree(1) == 3)\n    MINI_CHECK(srf.cv_count(0) == 13)\n    MINI_CHECK(srf.cv_count(1) == 13)\n    corner = srf.point_at(0.0, 0.0)\n    MINI_CHECK(abs(corner[2]) < 0.1)",
           "file": "primitives_test.py"
         }
       }
@@ -44898,6 +45854,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh_chevron\")",
           "code": "MINI_TEST(\"Primitives\", \"Mesh_chevron\") {\n    auto surfaces = Primitives::annen_surfaces();\n    MINI_CHECK(surfaces.size() == 23);\n    for (size_t i = 0; i < surfaces.size(); i++)\n        MINI_CHECK(surfaces[i].is_valid());\n\n    Mesh m = Primitives::chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n    MINI_CHECK(m.number_of_faces() > 0);\n}",
           "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh_chevron\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh_chevron\")\ndef test_mesh_chevron():\n    from session_py import Primitives\n\n    surfaces = Primitives.annen_surfaces()\n    MINI_CHECK(len(surfaces) == 23)\n    for i in range(len(surfaces)):\n        MINI_CHECK(surfaces[i].is_valid())\n\n    m = Primitives.chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)\n    MINI_CHECK(m.number_of_faces() > 0)",
+          "file": "primitives_test.py"
         }
       }
     },
@@ -44908,6 +45869,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Primitives\", \"FoldedPlates\")",
           "code": "MINI_TEST(\"Primitives\", \"FoldedPlates\") {\n    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n    MINI_CHECK(fp.mesh.is_valid());\n    MINI_CHECK(fp.mesh.number_of_faces() > 0);\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0);\n    MINI_CHECK(fp.flags.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.adjacency.size() > 0);\n    MINI_CHECK(fp.polylines.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.insertion_lines.size() > 0);\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        MINI_CHECK(fp.polylines[i].size() > 0);\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3);\n    }\n}",
           "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"FoldedPlates\")",
+          "code": "@MINI_TEST(\"Primitives\", \"FoldedPlates\")\ndef test_folded_plates():\n    from session_py import Primitives\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import FoldedPlates\n\n    arc = Primitives.arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0))\n    srf = Primitives.create_extrusion(arc, Vector(0, 30, 0))\n    srf.transpose()\n\n    fp = FoldedPlates(srf, 5, 2, 0.5, 0.3)\n\n    MINI_CHECK(fp.mesh.is_valid())\n    MINI_CHECK(fp.mesh.number_of_faces() > 0)\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0)\n    MINI_CHECK(len(fp.flags) == fp.mesh.number_of_faces())\n    MINI_CHECK(len(fp.adjacency) > 0)\n    MINI_CHECK(len(fp.polylines) == fp.mesh.number_of_faces())\n    MINI_CHECK(len(fp.insertion_lines) > 0)\n\n    for i in range(len(fp.polylines)):\n        MINI_CHECK(len(fp.polylines[i]) > 0)\n        for j in range(len(fp.polylines[i])):\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3)",
+          "file": "primitives_test.py"
         }
       }
     },
@@ -44918,6 +45884,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Primitives\", \"CrossConnectors\")",
           "code": "MINI_TEST(\"Primitives\", \"CrossConnectors\") {\n    std::vector<std::vector<Point>> polys = {\n        {Point(-574.485,-574.300,-182.370), Point(-620.030,-480.441,-136.145), Point(-527.510,-476.289,-53.723), Point(-431.548,-637.846,-118.351), Point(-574.485,-574.300,-182.370)},\n        {Point(-545.761,-545.585,-211.069), Point(-589.029,-456.419,-167.156), Point(-501.135,-452.475,-88.854), Point(-409.971,-605.954,-150.251), Point(-545.761,-545.585,-211.069)},\n        {Point(-224.289,-691.254,-65.097), Point(-125.302,-566.359,58.481), Point(125.182,-566.359,58.481), Point(212.579,-691.254,-65.097), Point(-224.289,-691.254,-65.097)},\n        {Point(-213.075,-656.691,-99.659), Point(-119.037,-538.041,17.739), Point(118.923,-538.041,17.739), Point(201.950,-656.691,-99.659), Point(-213.075,-656.691,-99.659)},\n        {Point(456.309,-628.504,-127.534), Point(523.010,-466.370,-45.103), Point(622.146,-472.434,-134.186), Point(574.882,-574.852,-181.916), Point(456.309,-628.504,-127.534)},\n        {Point(433.493,-597.079,-158.975), Point(496.859,-443.052,-80.665), Point(591.038,-448.812,-165.294), Point(546.138,-546.110,-210.638), Point(433.493,-597.079,-158.975)},\n        {Point(-431.100,-638.600,-118.653), Point(-527.510,-476.289,-53.723), Point(-481.982,-362.651,39.785), Point(-234.426,-365.823,142.950), Point(-125.302,-566.359,58.481), Point(-223.832,-690.677,-64.527), Point(-431.100,-638.600,-118.653)},\n        {Point(-409.545,-606.670,-150.538), Point(-501.135,-452.475,-88.854), Point(-457.883,-344.518,-0.022), Point(-222.705,-347.532,97.985), Point(-119.037,-538.041,17.739), Point(-212.641,-656.144,-99.118), Point(-409.545,-606.670,-150.538)},\n        {Point(212.526,-691.178,-65.022), Point(125.182,-566.359,58.481), Point(238.785,-380.979,136.566), Point(478.593,-374.909,36.915), Point(523.010,-466.370,-45.103), Point(455.692,-630.004,-128.297), Point(212.526,-691.178,-65.022)},\n        {Point(201.900,-656.619,-99.589), Point(118.923,-538.041,17.739), Point(226.846,-361.930,91.920), Point(454.664,-356.164,-2.748), Point(496.859,-443.052,-80.665), Point(432.907,-598.504,-159.699), Point(201.900,-656.619,-99.589)},\n        {Point(-481.982,-362.651,39.785), Point(-527.510,-476.289,-53.723), Point(-620.401,-480.458,-136.475), Point(-698.046,-172.509,-57.884), Point(-595.889,-174.723,29.899), Point(-481.982,-362.651,39.785)},\n        {Point(-457.883,-344.518,-0.022), Point(-501.135,-452.475,-88.854), Point(-589.381,-456.435,-167.469), Point(-663.144,-163.884,-92.807), Point(-566.094,-165.987,-9.413), Point(-457.883,-344.518,-0.022)},\n        {Point(-125.302,-566.359,58.481), Point(-234.426,-365.823,142.950), Point(-149.707,-204.103,211.069), Point(150.116,-204.103,211.069), Point(238.785,-380.979,136.566), Point(125.182,-566.359,58.481), Point(-125.302,-566.359,58.481)},\n        {Point(-119.037,-538.041,17.739), Point(-222.705,-347.532,97.985), Point(-142.222,-193.898,162.698), Point(142.610,-193.898,162.698), Point(226.846,-361.930,91.920), Point(118.923,-538.041,17.739), Point(-119.037,-538.041,17.739)},\n        {Point(478.593,-374.909,36.915), Point(596.484,-174.710,29.388), Point(698.046,-172.509,-57.884), Point(622.420,-472.451,-134.432), Point(523.010,-466.370,-45.103), Point(478.593,-374.909,36.915)},\n        {Point(454.664,-356.164,-2.748), Point(566.659,-165.975,-9.899), Point(663.144,-163.884,-92.807), Point(591.299,-448.828,-165.528), Point(496.859,-443.052,-80.665), Point(454.664,-356.164,-2.748)},\n        {Point(-481.982,-362.651,39.785), Point(-595.889,-174.723,29.899), Point(-515.848,-0.000,98.678), Point(-247.814,-0.000,211.069), Point(-149.707,-204.103,211.069), Point(-234.426,-365.823,142.950), Point(-481.982,-362.651,39.785)},\n        {Point(-457.883,-344.518,-0.022), Point(-566.094,-165.987,-9.413), Point(-490.055,-0.000,55.926), Point(-235.423,-0.000,162.698), Point(-142.222,-193.898,162.698), Point(-222.705,-347.532,97.985), Point(-457.883,-344.518,-0.022)},\n        {Point(238.785,-380.979,136.566), Point(150.116,-204.103,211.069), Point(252.071,0.000,211.069), Point(512.707,0.000,101.376), Point(596.484,-174.710,29.388), Point(478.593,-374.909,36.915), Point(238.785,-380.979,136.566)},\n        {Point(226.846,-361.930,91.920), Point(142.610,-193.898,162.698), Point(239.467,-0.000,162.698), Point(487.072,-0.000,58.490), Point(566.659,-165.975,-9.899), Point(454.664,-356.164,-2.748), Point(226.846,-361.930,91.920)},\n        {Point(-515.848,0.000,98.678), Point(-595.889,-174.723,29.899), Point(-698.269,-172.505,-58.075), Point(-698.269,172.505,-58.075), Point(-595.889,174.723,29.899), Point(-515.848,0.000,98.678)},\n        {Point(-490.055,-0.000,55.926), Point(-566.094,-165.987,-9.413), Point(-663.356,-163.879,-92.989), Point(-663.356,163.879,-92.989), Point(-566.094,165.987,-9.413), Point(-490.055,-0.000,55.926)},\n        {Point(-149.707,-204.103,211.069), Point(-247.814,0.000,211.069), Point(-149.707,204.103,211.069), Point(150.116,204.103,211.069), Point(252.071,0.000,211.069), Point(150.116,-204.103,211.069), Point(-149.707,-204.103,211.069)},\n        {Point(-142.222,-193.898,162.698), Point(-235.423,-0.000,162.698), Point(-142.222,193.898,162.698), Point(142.610,193.898,162.698), Point(239.467,0.000,162.698), Point(142.610,-193.898,162.698), Point(-142.222,-193.898,162.698)},\n        {Point(512.707,0.000,101.376), Point(596.484,174.710,29.388), Point(698.269,172.505,-58.075), Point(698.269,-172.505,-58.075), Point(596.484,-174.710,29.388), Point(512.707,0.000,101.376)},\n        {Point(487.072,0.000,58.490), Point(566.659,165.975,-9.899), Point(663.356,163.879,-92.989), Point(663.356,-163.879,-92.989), Point(566.659,-165.975,-9.899), Point(487.072,0.000,58.490)},\n        {Point(-515.848,-0.000,98.678), Point(-595.889,174.723,29.899), Point(-481.982,362.651,39.785), Point(-234.426,365.823,142.950), Point(-149.707,204.103,211.069), Point(-247.814,-0.000,211.069), Point(-515.848,-0.000,98.678)},\n        {Point(-490.055,-0.000,55.926), Point(-566.094,165.987,-9.413), Point(-457.883,344.518,-0.022), Point(-222.705,347.532,97.985), Point(-142.222,193.898,162.698), Point(-235.423,-0.000,162.698), Point(-490.055,-0.000,55.926)},\n        {Point(252.071,0.000,211.069), Point(150.116,204.103,211.069), Point(238.785,380.979,136.566), Point(478.593,374.909,36.915), Point(596.484,174.710,29.388), Point(512.707,-0.000,101.376), Point(252.071,0.000,211.069)},\n        {Point(239.467,-0.000,162.698), Point(142.610,193.898,162.698), Point(226.846,361.930,91.920), Point(454.664,356.164,-2.748), Point(566.659,165.975,-9.899), Point(487.072,-0.000,58.490), Point(239.467,-0.000,162.698)},\n        {Point(-481.982,362.651,39.785), Point(-595.889,174.723,29.899), Point(-698.046,172.509,-57.884), Point(-622.420,472.451,-134.432), Point(-523.550,466.403,-45.588), Point(-481.982,362.651,39.785)},\n        {Point(-457.883,344.518,-0.022), Point(-566.094,165.987,-9.413), Point(-663.144,163.884,-92.807), Point(-591.299,448.828,-165.528), Point(-497.372,443.083,-81.126), Point(-457.883,344.518,-0.022)},\n        {Point(-149.707,204.103,211.069), Point(-234.426,365.823,142.950), Point(-125.302,566.359,58.481), Point(125.182,566.359,58.481), Point(238.785,380.979,136.566), Point(150.116,204.103,211.069), Point(-149.707,204.103,211.069)},\n        {Point(-142.222,193.898,162.698), Point(-222.705,347.532,97.985), Point(-119.037,538.041,17.739), Point(118.923,538.041,17.739), Point(226.846,361.930,91.920), Point(142.610,193.898,162.698), Point(-142.222,193.898,162.698)},\n        {Point(478.593,374.909,36.915), Point(527.834,476.304,-54.011), Point(620.401,480.458,-136.475), Point(698.046,172.509,-57.884), Point(596.484,174.710,29.388), Point(478.593,374.909,36.915)},\n        {Point(454.664,356.164,-2.748), Point(501.442,452.489,-89.128), Point(589.381,456.435,-167.469), Point(663.144,163.884,-92.807), Point(566.659,165.975,-9.899), Point(454.664,356.164,-2.748)},\n        {Point(-481.982,362.651,39.785), Point(-523.550,466.403,-45.588), Point(-441.383,636.016,-121.338), Point(-22",
           "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"CrossConnectors\")",
+          "code": "@MINI_TEST(\"Primitives\", \"CrossConnectors\")\ndef test_cross_connectors():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py.primitives import CrossConnectors\n\n    polys = [\n        [Point(-574.485,-574.300,-182.370), Point(-620.030,-480.441,-136.145), Point(-527.510,-476.289,-53.723), Point(-431.548,-637.846,-118.351), Point(-574.485,-574.300,-182.370)],\n        [Point(-545.761,-545.585,-211.069), Point(-589.029,-456.419,-167.156), Point(-501.135,-452.475,-88.854), Point(-409.971,-605.954,-150.251), Point(-545.761,-545.585,-211.069)],\n        [Point(-224.289,-691.254,-65.097), Point(-125.302,-566.359,58.481), Point(125.182,-566.359,58.481), Point(212.579,-691.254,-65.097), Point(-224.289,-691.254,-65.097)],\n        [Point(-213.075,-656.691,-99.659), Point(-119.037,-538.041,17.739), Point(118.923,-538.041,17.739), Point(201.950,-656.691,-99.659), Point(-213.075,-656.691,-99.659)],\n        [Point(456.309,-628.504,-127.534), Point(523.010,-466.370,-45.103), Point(622.146,-472.434,-134.186), Point(574.882,-574.852,-181.916), Point(456.309,-628.504,-127.534)],\n        [Point(433.493,-597.079,-158.975), Point(496.859,-443.052,-80.665), Point(591.038,-448.812,-165.294), Point(546.138,-546.110,-210.638), Point(433.493,-597.079,-158.975)],\n        [Point(-431.100,-638.600,-118.653), Point(-527.510,-476.289,-53.723), Point(-481.982,-362.651,39.785), Point(-234.426,-365.823,142.950), Point(-125.302,-566.359,58.481), Point(-223.832,-690.677,-64.527), Point(-431.100,-638.600,-118.653)],\n        [Point(-409.545,-606.670,-150.538), Point(-501.135,-452.475,-88.854), Point(-457.883,-344.518,-0.022), Point(-222.705,-347.532,97.985), Point(-119.037,-538.041,17.739), Point(-212.641,-656.144,-99.118), Point(-409.545,-606.670,-150.538)],\n        [Point(212.526,-691.178,-65.022), Point(125.182,-566.359,58.481), Point(238.785,-380.979,136.566), Point(478.593,-374.909,36.915), Point(523.010,-466.370,-45.103), Point(455.692,-630.004,-128.297), Point(212.526,-691.178,-65.022)],\n        [Point(201.900,-656.619,-99.589), Point(118.923,-538.041,17.739), Point(226.846,-361.930,91.920), Point(454.664,-356.164,-2.748), Point(496.859,-443.052,-80.665), Point(432.907,-598.504,-159.699), Point(201.900,-656.619,-99.589)],\n        [Point(-481.982,-362.651,39.785), Point(-527.510,-476.289,-53.723), Point(-620.401,-480.458,-136.475), Point(-698.046,-172.509,-57.884), Point(-595.889,-174.723,29.899), Point(-481.982,-362.651,39.785)],\n        [Point(-457.883,-344.518,-0.022), Point(-501.135,-452.475,-88.854), Point(-589.381,-456.435,-167.469), Point(-663.144,-163.884,-92.807), Point(-566.094,-165.987,-9.413), Point(-457.883,-344.518,-0.022)],\n        [Point(-125.302,-566.359,58.481), Point(-234.426,-365.823,142.950), Point(-149.707,-204.103,211.069), Point(150.116,-204.103,211.069), Point(238.785,-380.979,136.566), Point(125.182,-566.359,58.481), Point(-125.302,-566.359,58.481)],\n        [Point(-119.037,-538.041,17.739), Point(-222.705,-347.532,97.985), Point(-142.222,-193.898,162.698), Point(142.610,-193.898,162.698), Point(226.846,-361.930,91.920), Point(118.923,-538.041,17.739), Point(-119.037,-538.041,17.739)],\n        [Point(478.593,-374.909,36.915), Point(596.484,-174.710,29.388), Point(698.046,-172.509,-57.884), Point(622.420,-472.451,-134.432), Point(523.010,-466.370,-45.103), Point(478.593,-374.909,36.915)],\n        [Point(454.664,-356.164,-2.748), Point(566.659,-165.975,-9.899), Point(663.144,-163.884,-92.807), Point(591.299,-448.828,-165.528), Point(496.859,-443.052,-80.665), Point(454.664,-356.164,-2.748)],\n        [Point(-481.982,-362.651,39.785), Point(-595.889,-174.723,29.899), Point(-515.848,-0.000,98.678), Point(-247.814,-0.000,211.069), Point(-149.707,-204.103,211.069), Point(-234.426,-365.823,142.950), Point(-481.982,-362.651,39.785)],\n        [Point(-457.883,-344.518,-0.022), Point(-566.094,-165.987,-9.413), Point(-490.055,-0.000,55.926), Point(-235.423,-0.000,162.698), Point(-142.222,-193.898,162.698), Point(-222.705,-347.532,97.985), Point(-457.883,-344.518,-0.022)],\n        [Point(238.785,-380.979,136.566), Point(150.116,-204.103,211.069), Point(252.071,0.000,211.069), Point(512.707,0.000,101.376), Point(596.484,-174.710,29.388), Point(478.593,-374.909,36.915), Point(238.785,-380.979,136.566)],\n        [Point(226.846,-361.930,91.920), Point(142.610,-193.898,162.698), Point(239.467,-0.000,162.698), Point(487.072,-0.000,58.490), Point(566.659,-165.975,-9.899), Point(454.664,-356.164,-2.748), Point(226.846,-361.930,91.920)],\n        [Point(-515.848,0.000,98.678), Point(-595.889,-174.723,29.899), Point(-698.269,-172.505,-58.075), Point(-698.269,172.505,-58.075), Point(-595.889,174.723,29.899), Point(-515.848,0.000,98.678)],\n        [Point(-490.055,-0.000,55.926), Point(-566.094,-165.987,-9.413), Point(-663.356,-163.879,-92.989), Point(-663.356,163.879,-92.989), Point(-566.094,165.987,-9.413), Point(-490.055,-0.000,55.926)],\n        [Point(-149.707,-204.103,211.069), Point(-247.814,0.000,211.069), Point(-149.707,204.103,211.069), Point(150.116,204.103,211.069), Point(252.071,0.000,211.069), Point(150.116,-204.103,211.069), Point(-149.707,-204.103,211.069)],\n        [Point(-142.222,-193.898,162.698), Point(-235.423,-0.000,162.698), Point(-142.222,193.898,162.698), Point(142.610,193.898,162.698), Point(239.467,0.000,162.698), Point(142.610,-193.898,162.698), Point(-142.222,-193.898,162.698)],\n        [Point(512.707,0.000,101.376), Point(596.484,174.710,29.388), Point(698.269,172.505,-58.075), Point(698.269,-172.505,-58.075), Point(596.484,-174.710,29.388), Point(512.707,0.000,101.376)],\n        [Point(487.072,0.000,58.490), Point(566.659,165.975,-9.899), Point(663.356,163.879,-92.989), Point(663.356,-163.879,-92.989), Point(566.659,-165.975,-9.899), Point(487.072,0.000,58.490)],\n        [Point(-515.848,-0.000,98.678), Point(-595.889,174.723,29.899), Point(-481.982,362.651,39.785), Point(-234.426,365.823,142.950), Point(-149.707,204.103,211.069), Point(-247.814,-0.000,211.069), Point(-515.848,-0.000,98.678)],\n        [Point(-490.055,-0.000,55.926), Point(-566.094,165.987,-9.413), Point(-457.883,344.518,-0.022), Point(-222.705,347.532,97.985), Point(-142.222,193.898,162.698), Point(-235.423,-0.000,162.698), Point(-490.055,-0.000,55.926)],\n        [Point(252.071,0.000,211.069), Point(150.116,204.103,211.069), Point(238.785,380.979,136.566), Point(478.593,374.909,36.915), Point(596.484,174.710,29.388), Point(512.707,-0.000,101.376), Point(252.071,0.000,211.069)],\n        [Point(239.467,-0.000,162.698), Point(142.610,193.898,162.698), Point(226.846,361.930,91.920), Point(454.664,356.164,-2.748), Point(566.659,165.975,-9.899), Point(487.072,-0.000,58.490), Point(239.467,-0.000,162.698)],\n        [Point(-481.982,362.651,39.785), Point(-595.889,174.723,29.899), Point(-698.046,172.509,-57.884), Point(-622.420,472.451,-134.432), Point(-523.550,466.403,-45.588), Point(-481.982,362.651,39.785)],\n        [Point(-457.883,344.518,-0.022), Point(-566.094,165.987,-9.413), Point(-663.144,163.884,-92.807), Point(-591.299,448.828,-165.528), Point(-497.372,443.083,-81.126), Point(-457.883,344.518,-0.022)],\n        [Point(-149.707,204.103,211.069), Point(-234.426,365.823,142.950), Point(-125.302,566.359,58.481), Point(125.182,566.359,58.481), Point(238.785,380.979,136.566), Point(150.116,204.103,211.069), Point(-149.707,204.103,211.069)],\n        [Point(-142.222,193.898,162.698), Point(-222.705,347.532,97.985), Point(-119.037,538.041,17.739), Point(118.923,538.041,17.739), Point(226.846,361.930,91.920), Point(142.610,193.898,162.698), Point(-142.222,193.898,162.698)],\n        [Point(478.593,374.909,36.915), Point(527.834,476.304,-54.011), Point(620.401,480.458,-136.475), Point(698.046,172.509,-57.884), Point(596.484,174.710,29.388), Point(478.593,374.909,36.915)],\n        [Point(454.664,356.164,-2.748), Point(501.442,452.489,-89.128), Point(589.381,456.435,-167.469), Point(663.144,163.884,-92.807), Point(566.659,165.975,-9.899), Point(454.664,356.164,-2.748)],",
+          "file": "primitives_test.py"
         }
       }
     },
@@ -45596,11 +46567,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "n",
-        "points",
         "subdivide",
+        "into",
         "circle",
+        "points",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -45614,11 +46585,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "subdivide",
         "by",
         "length",
-        "arc",
         "ellipse",
-        "subdivide",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -45632,9 +46603,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
-        "points",
         "arc",
+        "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -45648,12 +46619,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
         "from",
+        "polyline",
+        "curve",
         "adaptive",
         "points",
-        "curve",
-        "polyline",
+        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -45668,10 +46639,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "at",
         "curve",
         "evaluation",
         "parameter",
-        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -45690,10 +46661,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "frames",
+        "length",
         "along",
         "curve",
-        "length",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -45715,8 +46686,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "perpendicular",
+        "frames",
         "ellipse",
         "divide_by_count",
         "frame_at",
@@ -45756,11 +46727,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "from",
-        "and",
-        "vertices",
         "faces",
+        "and",
+        "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -45789,6 +46760,8 @@ window.API_INDEX = {
     "PointCloud": "A collection of 3D points with optional colors",
     "Polyline": "A polyline defined by a sequence of points",
     "Primitives": "Factory for creating geometric primitives (circle, ellipse, arc, etc.)",
+    "FoldedPlates": "FoldedPlates geometry class",
+    "CrossConnectors": "CrossConnectors geometry class",
     "Quaternion": "A quaternion for representing rotations",
     "Session": "Session management for geometry objects",
     "Tolerance": "Tolerance values for geometric comparisons",
@@ -45801,8 +46774,6 @@ window.API_INDEX = {
     "std": "std geometry class",
     "NormalWeighting": "NormalWeighting geometry class",
     "knot": "knot geometry class",
-    "FoldedPlates": "FoldedPlates geometry class",
-    "CrossConnectors": "CrossConnectors geometry class",
     "ToleranceGuard": "ToleranceGuard geometry class",
     "Geometry": "Geometry geometry class",
     "GlobalTolerance": "GlobalTolerance geometry class"
@@ -45823,6 +46794,8 @@ window.API_INDEX = {
       "Point.__init__",
       "PointCloud.__init__",
       "Polyline.__init__",
+      "FoldedPlates.__init__",
+      "CrossConnectors.__init__",
       "Quaternion.__init__",
       "Session.__init__",
       "Tolerance.__init__",
@@ -47541,6 +48514,105 @@ window.API_INDEX = {
     "dedup_face": [
       "Primitives.dedup_face"
     ],
+    "tetrahedron": [
+      "Primitives.tetrahedron"
+    ],
+    "cube": [
+      "Primitives.cube"
+    ],
+    "octahedron": [
+      "Primitives.octahedron"
+    ],
+    "icosahedron": [
+      "Primitives.icosahedron"
+    ],
+    "dodecahedron": [
+      "Primitives.dodecahedron"
+    ],
+    "wave_surface": [
+      "Primitives.wave_surface"
+    ],
+    "chevron_mesh": [
+      "Primitives.chevron_mesh"
+    ],
+    "annen_surfaces": [
+      "Primitives.annen_surfaces"
+    ],
+    "closest_on_line": [
+      "FoldedPlates.closest_on_line",
+      "Primitives.closest_on_line"
+    ],
+    "line_plane_t": [
+      "FoldedPlates.line_plane_t",
+      "Primitives.line_plane_t"
+    ],
+    "intersect_3_planes": [
+      "FoldedPlates.intersect_3_planes",
+      "Primitives.intersect_3_planes"
+    ],
+    "chamfer_polyline": [
+      "FoldedPlates.chamfer_polyline",
+      "Primitives.chamfer_polyline"
+    ],
+    "_diamond_subdivision": [
+      "FoldedPlates._diamond_subdivision"
+    ],
+    "plane_valid": [
+      "FoldedPlates.plane_valid"
+    ],
+    "_build_topology": [
+      "FoldedPlates._build_topology",
+      "CrossConnectors._build_topology"
+    ],
+    "_compute_face_planes": [
+      "FoldedPlates._compute_face_planes",
+      "CrossConnectors._compute_face_planes"
+    ],
+    "_compute_edge_planes": [
+      "FoldedPlates._compute_edge_planes"
+    ],
+    "_compute_face_edge_planes": [
+      "FoldedPlates._compute_face_edge_planes",
+      "CrossConnectors._compute_face_edge_planes"
+    ],
+    "_compute_face_polylines": [
+      "FoldedPlates._compute_face_polylines",
+      "CrossConnectors._compute_face_polylines"
+    ],
+    "_compute_insertion_vectors": [
+      "FoldedPlates._compute_insertion_vectors"
+    ],
+    "dihedral_plane": [
+      "CrossConnectors.dihedral_plane",
+      "Primitives.dihedral_plane"
+    ],
+    "_compute_bisector_planes": [
+      "CrossConnectors._compute_bisector_planes"
+    ],
+    "move_plane_by_axis": [
+      "CrossConnectors.move_plane_by_axis",
+      "Primitives.move_plane_by_axis"
+    ],
+    "outline_from_planes": [
+      "CrossConnectors.outline_from_planes",
+      "Primitives.outline_from_planes"
+    ],
+    "_compute_edges": [
+      "CrossConnectors._compute_edges"
+    ],
+    "_compute_edge_faces": [
+      "CrossConnectors._compute_edge_faces"
+    ],
+    "_compute_edge_planes_method": [
+      "CrossConnectors._compute_edge_planes_method"
+    ],
+    "make_rectangle": [
+      "CrossConnectors.make_rectangle",
+      "Primitives.make_rectangle"
+    ],
+    "_compute_connectors": [
+      "CrossConnectors._compute_connectors"
+    ],
     "identity": [
       "Quaternion.identity",
       "Xform.identity"
@@ -48133,9 +49205,6 @@ window.API_INDEX = {
     "slerp": [
       "NurbsCurve.slerp"
     ],
-    "point_and_normal_at": [
-      "NurbsSurface.point_and_normal_at"
-    ],
     "mesh_grid": [
       "NurbsSurface.mesh_grid"
     ],
@@ -48163,30 +49232,6 @@ window.API_INDEX = {
     ],
     "average_normal": [
       "Polyline.average_normal"
-    ],
-    "tetrahedron": [
-      "Primitives.tetrahedron"
-    ],
-    "cube": [
-      "Primitives.cube"
-    ],
-    "octahedron": [
-      "Primitives.octahedron"
-    ],
-    "icosahedron": [
-      "Primitives.icosahedron"
-    ],
-    "dodecahedron": [
-      "Primitives.dodecahedron"
-    ],
-    "wave_surface": [
-      "Primitives.wave_surface"
-    ],
-    "chevron_mesh": [
-      "Primitives.chevron_mesh"
-    ],
-    "annen_surfaces": [
-      "Primitives.annen_surfaces"
     ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"
@@ -48232,22 +49277,6 @@ window.API_INDEX = {
       "Primitives.compute_insertion_vectors",
       "FoldedPlates.compute_insertion_vectors"
     ],
-    "closest_on_line": [
-      "Primitives.closest_on_line",
-      "FoldedPlates.closest_on_line"
-    ],
-    "line_plane_t": [
-      "Primitives.line_plane_t",
-      "FoldedPlates.line_plane_t"
-    ],
-    "intersect_3_planes": [
-      "Primitives.intersect_3_planes",
-      "FoldedPlates.intersect_3_planes"
-    ],
-    "chamfer_polyline": [
-      "Primitives.chamfer_polyline",
-      "FoldedPlates.chamfer_polyline"
-    ],
     "compute_bisector_planes": [
       "Primitives.compute_bisector_planes",
       "CrossConnectors.compute_bisector_planes"
@@ -48267,22 +49296,6 @@ window.API_INDEX = {
     "compute_connectors": [
       "Primitives.compute_connectors",
       "CrossConnectors.compute_connectors"
-    ],
-    "dihedral_plane": [
-      "Primitives.dihedral_plane",
-      "CrossConnectors.dihedral_plane"
-    ],
-    "move_plane_by_axis": [
-      "Primitives.move_plane_by_axis",
-      "CrossConnectors.move_plane_by_axis"
-    ],
-    "outline_from_planes": [
-      "Primitives.outline_from_planes",
-      "CrossConnectors.outline_from_planes"
-    ],
-    "make_rectangle": [
-      "Primitives.make_rectangle",
-      "CrossConnectors.make_rectangle"
     ],
     "type": [
       "Quaternion.type"
@@ -48403,6 +49416,8 @@ window.API_INDEX = {
       "Point.new",
       "PointCloud.new",
       "Polyline.new",
+      "FoldedPlates.new",
+      "CrossConnectors.new",
       "Quaternion.new",
       "Session.new",
       "Tolerance.new",

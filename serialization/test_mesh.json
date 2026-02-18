@@ -6,12 +6,12 @@
     "y": 0.0,
     "z": 0.0
   },
-  "edgedata": null,
+  "edgedata": {},
   "face": {
-    "0": [
-      0,
+    "1": [
       1,
-      2
+      2,
+      3
     ]
   },
   "facecolors": [
@@ -20,20 +20,20 @@
     255,
     255
   ],
-  "facedata": null,
-  "guid": "83bbc52d-af69-4e2c-b2c2-2de9a702df82",
+  "facedata": {},
+  "guid": "e3647c24-dd4f-4aa3-a9d5-99c3ca38ee84",
   "halfedge": {
-    "0": {
-      "1": 0,
-      "2": null
-    },
     "1": {
-      "0": null,
-      "2": 0
+      "2": 1,
+      "3": null
     },
     "2": {
-      "0": 0,
-      "1": null
+      "1": null,
+      "3": 1
+    },
+    "3": {
+      "1": 1,
+      "2": null
     }
   },
   "linecolors": [
@@ -69,19 +69,19 @@
   ],
   "type": "Mesh",
   "vertex": {
-    "0": {
+    "1": {
       "attributes": {},
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
     },
-    "1": {
+    "2": {
       "attributes": {},
       "x": 1.0,
       "y": 0.0,
       "z": 0.0
     },
-    "2": {
+    "3": {
       "attributes": {},
       "x": 0.0,
       "y": 1.0,

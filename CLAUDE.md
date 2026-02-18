@@ -1,239 +1,56 @@
 # CLAUDE.md
 
-Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer.
-
-- use always bun instead of npm.
+Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer. Use bun instead of npm.
 
 ## Style
-
-- Be least verbose, without any print messages and exccesive comments
-- When pushing code to github 
-
-## Workflow
-
-Run claude always: claude --dangerously-skip-permissions
+- Least verbose, no print messages, no excessive comments
+- C++ is ground truth — port to Rust and Python with identical APIs, variable names, test logic, line counts
 
 ## Structure
 ```
 session_cpp/     # C++ (submodule)
 session_py/      # Python (submodule)
 session_rust/    # Rust (submodule)
-session_proto/   # Protobuf schemas (submodule)
+session_proto/   # Protobuf schemas
 session_tests/   # Vue 3 test viewer
 ```
 
-## Build
-
-**C++:**
+## Build & Test
 ```bash
-cd session_cpp && mkdir -p build && cd build && cmake .. && make tests -j$(nproc)
-```
-
-**Python:**
-```bash
-uv venv uvsession --python 3.11 && source uvsession/bin/activate
-cd session_py && uv pip install -e . && pytest -v
-```
-
-**Rust:**
-```bash
-cd session_rust && cargo build --release && cargo test
-```
-
-## Test Viewer
-
-```bash
-./bash/minitest.sh            # Run all tests + launch viewer at localhost:8769
-```
-
-## Fast Development Workflow
-
-### Build Time Reference
-| Component | First Build | Incremental |
-|-----------|-------------|-------------|
-| C++ (with protobuf) | 15-25 min | 1-5 min |
-| Rust | 5-10 min | 10-30 sec |
-| Python | instant | instant |
-| Vue | 1-2 min | 10-30 sec |
-
-### Single-Language Development (FASTEST)
-When working on one language, skip others:
-```bash
-./bash/minitest.sh --py --no-web      # Python only (instant)
-./bash/minitest.sh --rust --no-web    # Rust only (fast)
+./bash/minitest.sh --py --no-web      # Python only (fastest)
+./bash/minitest.sh --rust --no-web    # Rust only
 ./bash/minitest.sh --cpp --no-web     # C++ only
+./bash/minitest.sh                    # All + viewer at localhost:8769
+./bash/quicktest.sh <class> --py      # Single class test
+./bash/git_push.sh "message"          # Push all submodules
 ```
-
-### Quick Single-Class Test
-Test one class without full rebuild:
-```bash
-./bash/quicktest.sh point             # Test Point in all languages
-./bash/quicktest.sh point --py        # Test Point in Python only
-./bash/quicktest.sh mesh --rust       # Test Mesh in Rust only
-```
-
-### Fast Mode (Skip Dependencies)
-After first build, use fast mode to skip pip/npm/protobuf:
-```bash
-./bash/minitest.sh --fast             # Skip dependency installs
-./bash/minitest.sh --fast --py        # Fast Python only
-```
-
-### Development Order (Recommended)
-1. **Prototype in Python** (instant feedback)
-2. **Port to Rust** (fast incremental builds)
-3. **Port to C++** (slowest, do last)
-4. **Run full minitest** before commit
-
-### Web Viewer Control
-```bash
-./bash/minitest.sh --no-web           # Skip Vue entirely
-./bash/minitest.sh --kill             # Stop running dev server
-```
-
-### Pre-warm Builds (First Time Setup)
-Run once to cache dependencies:
-```bash
-# Build C++ with protobuf (slow, but cached after)
-cd session_cpp && cmake -B build -DENABLE_PROTOBUF=ON && cmake --build build --config Release
-
-# Build Rust dependencies (slow, but cached after)
-cd session_rust && cargo build --release --features protobuf
-```
-
-### IDE Integration Tips
-- **VS Code:** Use language-specific tasks for single-language builds
-- **Rust:** `cargo watch -x run` for auto-rebuild on save
-- **Python:** Run tests directly: `python -m session_py.point_test`
-- **C++:** Use ccache/sccache (auto-detected by CMakeLists.txt)
+Dev order: Python → Rust → C++. Use `/build` command for full reference.
 
 ## Git
+- NEVER add Claude/AI as git contributor, author, or co-author
+- Check CI: `gh run list --limit 5`, failures: `gh run view <id> --log-failed`
+- CI: macOS-15 (ARM64), manylinux_2_28 (Linux), chmod +x bash scripts in CI
 
-```bash
-git clone --recurse-submodules <url>
-git submodule update --init --recursive
-./bash/git_push.sh "message"
-```
+## Minitest Rules (essentials)
+- Tests identical across all 3 languages (names, logic, line count)
+- One test per API method; constructor test groups: ctor, [], ==, !=, str, repr
+- JSON fields alphabetically ordered across all languages
+- Every class needs: json_dump/json_load + to_proto/from_proto tests
+- Operators go inside constructor test, not separate tests
+- Use `/test-rules` command for full import patterns and conventions
 
-## GitHub Actions
+## Code Style
+- Python: one import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions.
+- C++: never `#include "tolerance.h"` in production code. Use `std::cout << point` not manual coords.
+- Rust: `use crate::tolerance::{TOLERANCE, PI};` at top. Geometry imports inside MINI_TEST blocks.
 
-- after pushing with ./bash/git_push.sh, check GitHub Actions build status using: gh run list --limit 5
-- if build fails, view logs with: gh run view <run-id> --log-failed
-- fix the failing code locally, run ./bash/minitest.sh to verify, then push again
-- all three languages (C++, Python, Rust) must pass CI before merge
-- **macOS runners:** use `macos-15` for ARM64, `macos-15-intel` for Intel x64
-- **Linux:** use `manylinux_2_28_x86_64` container for glibc compatibility
-- **Bash scripts:** Always `chmod +x` bash scripts before running in CI (execute permissions not preserved from Windows)
+## Custom Commands
+- `/new-class <name>` — full checklist for adding a new geometry class
+- `/build` — all build/test/git commands
+- `/test-rules` — detailed minitest conventions and import patterns
+- `/decompile` — Rhino reverse engineering reference
 
-## MINITEST
-
-### Adding New Datastructure to Test Viewer (3 Languages)
-
-1. **Create implementation files:**
-   - `session_rust/src/name.rs` - Rust implementation
-   - `session_py/src/session_py/name.py` - Python implementation
-   - `session_cpp/src/name.h` + `name.cpp` - C++ implementation
-
-2. **Create minitest files:**
-   - `session_rust/src/name_minitest.rs` - use `MINI_TEST!`, `MINI_CHECK!`, `REGISTER_MINI_TEST!`
-   - `session_py/src/session_py/name_minitest.py` - use `@MINI_TEST`, `MINI_CHECK`
-   - `session_cpp/src/name_minitest.cpp` - use `MINI_TEST`, `MINI_CHECK`
-
-3. **Register in build system:**
-   - **Rust:** Add `pub mod name_minitest;` to `session_rust/src/lib.rs`
-   - **C++:** Add `src/name_minitest.cpp` to `MINITEST_SOURCES` in `session_cpp/CMakeLists.txt`
-   - **Shell:** Add `"name"` to `CLASS_NAMES` array in `bash/minitest.sh`
-
-4. **Verify:** Run `./bash/minitest.sh` - all tests must pass in all 3 languages
-
-### Test Requirements
-
-- datastructures name_test.py, name_test.rs, name_test.cpp must include separate tests for each class api method
-- when using math pi constant, use it from tolerance class
-- all api functions must be tested across all three languages (C++, Python, Rust)
-- test names and test logic must be identical across languages
-- each test should verify one specific api method or behavior
-- api method order in all implementations: constructors/factory methods, accessors/getters, in-place mutators (*_self methods), copy-return operators (arithmetic returning new objects), utility methods (is_valid, distance_to, etc.), serialization (to_proto, from_proto, json_dump, json_load), string representation (str, repr)
-- json serialization requires json_dump and json_load methods on all geometry classes
-- protobuf serialization requires to_proto and from_proto methods on all geometry classes
-- test files output to session_tests/session_{lang}/ as JSON for the Vue test viewer
-- common methods across all geometry classes (Color, Point, Vector, Line, Plane, Polyline, Xform): constructor with default parameters, guid and name metadata fields, duplicate() for rust and python and cpp = operator duplicates the instance, /clone() creates new instance with new GUID, index operator [] for component access, equality operators == and !=, __str__/__repr__/to_string for string representation, __jsondump__/__jsonload__ for JSON dict conversion, json_dump(filepath)/json_load(filepath) for file I/O, to_proto/from_proto for protobuf serialization
-- visual geometry classes (Point, Line, Plane, Polyline) have: width, color, xform fields, transform()/transformed() methods
-- arithmetic classes (Point, Vector, Line, Polyline) have: in-place operators (+=, -=, *=, /=), copy operators (+, -, *, /)
-- duplicate() copies all data (coordinates, name, visual properties) but generates a new GUID for the copy, in C++ the = operator and copy constructor behave the same way
-- constructor test groups related functionality: default constructor, constructor overloads, index operator [], equality operators == !=, str() and repr() output, all tested together in single "constructor" test
-- Vue test viewer shows serialized JSON output at bottom of each test result, showing exact JSON structure for each geometry class
-- protobuf schemas defined in session_proto/*.proto files, defines binary serialization format for all geometry classes
-- check if all tests passes in all languages
-- check if you implemented minitest for json de/serialization and protobuf de/serialization
-- check if all the operators minitests are part of constructor test not separate tests
-- run ./bash/minitest.sh
-
-### JSON Serialization Conventions
-
-**Alphabetical Field Ordering:** All JSON serialization (`jsondump`/`__jsondump__`) must output fields in **alphabetical order** to match Rust's `serde_json` output. This ensures consistent JSON output across all three languages (C++, Python, Rust).
-
-Example for Point:
-```json
-{
-  "guid": "...",
-  "name": "...",
-  "pointcolor": {...},
-  "type": "Point",
-  "width": 1.0,
-  "x": 0.0,
-  "xform": {...},
-  "y": 0.0,
-  "z": 0.0
-}
-```
-
-**Implementation:**
-- **C++:** Use `nlohmann::ordered_json` and add fields in alphabetical order
-- **Python:** Return dict with keys in alphabetical order
-- **Rust:** Uses `serde_json::json!` which outputs alphabetically by default
-
-**Nested Objects:** Also use alphabetical ordering for nested object fields (e.g., vertex data `attributes, x, y, z`).
-
-### Code Style Rules
-
-- **Python imports:** Each import must be on a separate line. Never use `from session_py import Mesh, Point`. Use separate lines instead.
-- **C++ tolerance.h:** Never include `#include "tolerance.h"` in main source files. It is only for minitest files, not production code.
-- **C++ Point/Vector output:** Use `std::cout << point` or `std::cout << vector` directly instead of printing individual coordinates. The stream operator is overloaded for cleaner output. Never use `std::setprecision` or `std::fixed` or manual `[0],[1],[2]` indexing for printing — just use `<<`.
-
-### Git Rules
-
-- **NEVER add Claude/AI as a git contributor, author, or co-author.** All commits must be attributed to the human user only.
-- Do not modify git author settings or add AI attribution to commits.
-- Do not add Claude to CONTRIBUTORS, AUTHORS, or similar files.
-
-
-## Reverse Engineering
-
-See `SKILLS_RHINO_DECOMPILE.md` for Ghidra-based decompilation of Rhino 8 DLLs.
-
-Key tools:
-- **Ghidra**: Headless analysis with custom Java scripts
-- **ILSpy**: .NET decompilation for RhinoCommon.dll
-- **Target DLLs**: TL.DLL (math), RhinoCore.dll (commands), rhcommon_c.dll (wrapper)
-
-Key functions found:
-- `TL_CubicNurbThroughPoints` - NURBS curve interpolation
-- `TL_CubicNurbInterpolate` - Tridiagonal solver
-- `TL_GrevilleAbcissa` - Greville point calculation
-
-## 17.01.2026
-
-- session_cpp is the nurbscurve ground truth: nurbscurve.cpp nurbscurve.h nurbscurve.h, the style, the variable names, the api, the implemenetation code, number of coding lines in tests, everything.
-- copy this implementation by translating to session_py and session_rust
-- there are already partial implementation, but they must be completely aligned.
-- after finishing run ./bash/minitest.sh and check 10 times the output of mini tests if they all passes
-- If it is too much to handle, start with one test at a time, from top to bottom. Begin with a complex task and plan the process.
-- Every test in each language must be exactly the same, including the number of lines, code, API usage, variable names, and so on.
-- Do not move on to another test if the current test fails. Fix it first. If the syntax is not the same, correct it, and only then proceed to the next test.
-- Constantly run ./minitest.sh. Do not continue to the next step until the current one is fixed. Always check the JSON contents generated by the minitests, which are visualized on the website. The JSON files indicate whether the results have failed.
-
-## 18.01.2026
-
-  nurbscurve evaluate was fixed — now matches rhino opennurbs DerivativeAt output.
-  Tested with 11-CV degree-2 curve at t=0.5, all 3 derivatives match. 
+## Reference Files
+- `.claude/skills/` — language-specific templates for common patterns
+- `SKILLS_RHINO_GEOMETRY.md` — 711 C exports + ~7100 C++ methods from Rhino
+- `SKILLS_RHINO_DECOMPILE.md` — Ghidra decompilation guide
