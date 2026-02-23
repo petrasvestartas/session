@@ -39,15 +39,25 @@
         <div
           v-if="testsSuites.length"
           class="suites-section">
-          <button
-            v-for="s in testsSuites"
-            :key="s"
-            type="button"
-            class="suite-button"
-            :class="{ active: s === selectedSuite }"
-            @click="selectSuite(s)">
-            {{ suiteLabel(s) }}
-          </button>
+          <template v-for="s in testsSuites" :key="s">
+            <button
+              type="button"
+              class="suite-button"
+              :class="{ active: s === selectedSuite }"
+              @click="selectSuite(s)">
+              {{ suiteLabel(s) }}
+            </button>
+            <div v-if="s === selectedSuite && suiteFunctions.length" class="functions-section">
+              <button
+                v-for="fn in suiteFunctions" :key="fn.name"
+                type="button"
+                class="fn-button"
+                @click="scrollToTest(fn.name)">
+                <span class="fn-dot" :style="{ color: fn.passed ? '#50fa7b' : '#ff5555' }">●</span>
+                {{ fn.name }}
+              </button>
+            </div>
+          </template>
         </div>
 
         <router-link
@@ -163,6 +173,30 @@ const suiteLabel = (suite) => {
 const selectSuite = (suite) => {
   selectedSuite.value = suite;
   router.push({ path: '/tests', query: { suite } });
+};
+
+const suiteFunctions = computed(() => {
+  if (!selectedSuite.value || typeof window.TEST_DATA === 'undefined') return [];
+  const data = window.TEST_DATA;
+  const names = new Map();
+  for (const [key, testArray] of Object.entries(data)) {
+    if (!Array.isArray(testArray)) continue;
+    const parts = key.split('_');
+    parts.pop();
+    const suite = parts.join('_');
+    if (suite !== selectedSuite.value) continue;
+    for (const t of testArray) {
+      const n = t.test_name || '(unnamed)';
+      if (!names.has(n)) names.set(n, true);
+      if (!t.passed) names.set(n, false);
+    }
+  }
+  return Array.from(names.entries()).map(([name, passed]) => ({ name, passed }));
+});
+
+const scrollToTest = (name) => {
+  const el = document.getElementById('test-' + name);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 onMounted(() => {
@@ -367,7 +401,7 @@ img.repo-icon {
   padding: 0.25rem 0.75rem;
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: #888888;
   font-family: inherit;
   font-size: 20px;
   font-weight: 300;
@@ -378,13 +412,43 @@ img.repo-icon {
 }
 
 .suite-button:hover {
-  color: #aaaaaa;
+  color: #ffffff;
 }
 
 .suite-button.active {
   background: #1a1a1a;
   color: #ffffff;
   font-weight: 600;
+}
+
+.functions-section {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+}
+
+.fn-button {
+  padding: 0.1rem 0.5rem;
+  background: transparent;
+  border: none;
+  color: #888888;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fn-button:hover {
+  color: #ffffff;
+}
+
+.fn-dot {
+  font-size: 8px;
 }
 
 .main-content {

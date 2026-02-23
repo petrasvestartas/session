@@ -62,18 +62,33 @@ fi
 FAST_ARG=""
 [[ "$FAST_MODE" == "true" ]] && FAST_ARG="--fast"
 
-# Regenerate Python protos (skip in fast mode)
+# Regenerate Python protos — skip if all _pb2.py are up-to-date
 regenerate_python_protos() {
     local proto_dir="${REPO_ROOT}/session_proto"
     local py_proto_out="${REPO_ROOT}/session_py/src/session_py/proto"
 
     if [[ ! -d "$proto_dir" ]]; then
-        log "Warning: ${proto_dir} not found, skipping Python protobuf regeneration"
+        return 0
+    fi
+
+    # Check if any .proto is newer than its _pb2.py
+    local stale=false
+    for proto_file in "${proto_dir}"/*.proto; do
+        [[ -f "$proto_file" ]] || continue
+        local base=$(basename "$proto_file" .proto)
+        local pb2="${py_proto_out}/${base}_pb2.py"
+        if [[ ! -f "$pb2" ]] || [[ "$proto_file" -nt "$pb2" ]]; then
+            stale=true
+            break
+        fi
+    done
+
+    if [[ "$stale" == "false" ]]; then
+        log "Protos up-to-date, skipping regeneration"
         return 0
     fi
 
     mkdir -p "$py_proto_out"
-
     log "Regenerating Python protobuf bindings..."
     for proto_file in "${proto_dir}"/*.proto; do
         if [[ -f "$proto_file" ]]; then
@@ -93,24 +108,69 @@ regenerate_python_protos() {
     done
 }
 
-if [[ "$FAST_MODE" == "false" && "$RUN_PYTHON" == "true" ]]; then
+if [[ "$RUN_PYTHON" == "true" ]]; then
     regenerate_python_protos
 fi
 
-# Run language tests (each script handles its own JSON, no cleanup needed)
-if [[ "$RUN_PYTHON" == "true" ]]; then
-    log "=== Python Tests ==="
-    "${SCRIPT_DIR}/test_py.sh" $FAST_ARG --no-viewer
-fi
+# Count enabled languages
+LANG_COUNT=0
+[[ "$RUN_PYTHON" == "true" ]] && LANG_COUNT=$((LANG_COUNT + 1))
+[[ "$RUN_CPP" == "true" ]] && LANG_COUNT=$((LANG_COUNT + 1))
+[[ "$RUN_RUST" == "true" ]] && LANG_COUNT=$((LANG_COUNT + 1))
 
-if [[ "$RUN_CPP" == "true" ]]; then
-    log "=== C++ Tests ==="
-    "${SCRIPT_DIR}/test_cpp.sh" $FAST_ARG --no-viewer
-fi
+# Run language tests — parallel when 2+ languages, sequential for single
+if [[ $LANG_COUNT -ge 2 ]]; then
+    TMPDIR_LANG=$(mktemp -d)
+    trap "rm -rf $TMPDIR_LANG" EXIT
+    LANG_PIDS=()
+    LANG_NAMES=()
 
-if [[ "$RUN_RUST" == "true" ]]; then
-    log "=== Rust Tests ==="
-    "${SCRIPT_DIR}/test_rust.sh" --no-viewer
+    if [[ "$RUN_PYTHON" == "true" ]]; then
+        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG --no-viewer >"${TMPDIR_LANG}/py.log" 2>&1 &
+        LANG_PIDS+=($!)
+        LANG_NAMES+=("Python")
+    fi
+    if [[ "$RUN_CPP" == "true" ]]; then
+        "${SCRIPT_DIR}/test_cpp.sh" $FAST_ARG --no-viewer >"${TMPDIR_LANG}/cpp.log" 2>&1 &
+        LANG_PIDS+=($!)
+        LANG_NAMES+=("C++")
+    fi
+    if [[ "$RUN_RUST" == "true" ]]; then
+        "${SCRIPT_DIR}/test_rust.sh" --no-viewer >"${TMPDIR_LANG}/rust.log" 2>&1 &
+        LANG_PIDS+=($!)
+        LANG_NAMES+=("Rust")
+    fi
+
+    log "Running ${LANG_NAMES[*]} in parallel..."
+    LANG_FAILED=()
+    for i in "${!LANG_PIDS[@]}"; do
+        if ! wait "${LANG_PIDS[$i]}"; then
+            LANG_FAILED+=("${LANG_NAMES[$i]}")
+        fi
+    done
+
+    # Print buffered output sequentially
+    for f in "${TMPDIR_LANG}"/*.log; do
+        [[ -f "$f" ]] && cat "$f"
+    done
+
+    if [[ ${#LANG_FAILED[@]} -gt 0 ]]; then
+        log "FAILED: ${LANG_FAILED[*]}"
+        exit 1
+    fi
+else
+    if [[ "$RUN_PYTHON" == "true" ]]; then
+        log "=== Python Tests ==="
+        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG --no-viewer
+    fi
+    if [[ "$RUN_CPP" == "true" ]]; then
+        log "=== C++ Tests ==="
+        "${SCRIPT_DIR}/test_cpp.sh" $FAST_ARG --no-viewer
+    fi
+    if [[ "$RUN_RUST" == "true" ]]; then
+        log "=== Rust Tests ==="
+        "${SCRIPT_DIR}/test_rust.sh" --no-viewer
+    fi
 fi
 
 # Consolidate ALL JSON (reads existing files from ALL languages)
@@ -118,10 +178,26 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
-# Regenerate browser API index for Vue chatbot
-log "=== Regenerating Browser API Index ==="
-cd "$REPO_ROOT"
-python -m session_mcp.generate_browser_index || log "Warning: Failed to generate browser index"
+# Regenerate browser API index — skip if no source files changed
+API_INDEX="${REPO_ROOT}/session_tests/public/apiIndex.js"
+REGEN_API=false
+if [[ ! -f "$API_INDEX" ]]; then
+    REGEN_API=true
+else
+    for ext in py cpp h rs; do
+        if [[ -n $(find "${REPO_ROOT}/session_py" "${REPO_ROOT}/session_cpp" "${REPO_ROOT}/session_rust" -name "*.${ext}" -newer "$API_INDEX" 2>/dev/null | head -1) ]]; then
+            REGEN_API=true
+            break
+        fi
+    done
+fi
+if [[ "$REGEN_API" == "true" ]]; then
+    log "=== Regenerating Browser API Index ==="
+    cd "$REPO_ROOT"
+    python -m session_mcp.generate_browser_index || log "Warning: Failed to generate browser index"
+else
+    log "API index up-to-date, skipping"
+fi
 
 # Check for CI environment
 if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then

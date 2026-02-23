@@ -70,13 +70,46 @@ if [[ -n "$CLASS_FILTER" ]]; then
     log_lang "py" "Running ${CLASS_FILTER} tests..."
     "$PYTHON" -m "session_py.${CLASS_FILTER}_test"
 else
+    MAX_JOBS="${MINITEST_PY_JOBS:-6}"
+    PIDS=()
+    CLASSES=()
+    FAILED=()
+
     for class_name in "${CLASS_NAMES[@]}"; do
-        log_lang "py" "Running ${class_name} tests..."
-        "$PYTHON" -m "session_py.${class_name}_test"
+        # Throttle: wait until a slot opens
+        while [[ ${#PIDS[@]} -ge $MAX_JOBS ]]; do
+            NEW_PIDS=()
+            NEW_CLASSES=()
+            for i in "${!PIDS[@]}"; do
+                if kill -0 "${PIDS[$i]}" 2>/dev/null; then
+                    NEW_PIDS+=("${PIDS[$i]}")
+                    NEW_CLASSES+=("${CLASSES[$i]}")
+                else
+                    wait "${PIDS[$i]}" 2>/dev/null || FAILED+=("${CLASSES[$i]}")
+                fi
+            done
+            PIDS=("${NEW_PIDS[@]}")
+            CLASSES=("${NEW_CLASSES[@]}")
+            [[ ${#PIDS[@]} -ge $MAX_JOBS ]] && sleep 0.1
+        done
+
+        "$PYTHON" -m "session_py.${class_name}_test" &
+        PIDS+=($!)
+        CLASSES+=("$class_name")
     done
+
+    # Wait for remaining
+    for i in "${!PIDS[@]}"; do
+        wait "${PIDS[$i]}" 2>/dev/null || FAILED+=("${CLASSES[$i]}")
+    done
+
+    if [[ ${#FAILED[@]} -gt 0 ]]; then
+        log_lang "py" "FAILED: ${FAILED[*]}"
+        exit 1
+    fi
 fi
 
-log_lang "py" "Tests complete"
+log_lang "py" "Tests complete (${#CLASS_NAMES[@]} modules)"
 
 # Update viewer if requested
 if [[ "$UPDATE_VIEWER" == "true" ]]; then

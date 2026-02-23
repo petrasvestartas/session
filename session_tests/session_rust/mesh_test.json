@@ -2,42 +2,42 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.013,
-    "line": 5,
+    "time_ms": 0.007,
+    "line": 6,
     "code": "        use crate::Mesh;\n\n        let mesh = Mesh::new();\n\n        let num_vertices = mesh.number_of_vertices();\n        let num_faces = mesh.number_of_faces();\n        let num_edges = mesh.number_of_edges();\n        let is_empty = mesh.is_empty();\n        let euler = mesh.euler();\n",
     "checks": [
       {
-        "line": 16,
+        "line": 17,
         "code_line": "num_vertices == 0",
         "passed": true
       },
       {
-        "line": 17,
+        "line": 18,
         "code_line": "num_faces == 0",
         "passed": true
       },
       {
-        "line": 18,
+        "line": 19,
         "code_line": "num_edges == 0",
         "passed": true
       },
       {
-        "line": 19,
+        "line": 20,
         "code_line": "is_empty",
         "passed": true
       },
       {
-        "line": 20,
+        "line": 21,
         "code_line": "euler == 0",
         "passed": true
       },
       {
-        "line": 21,
+        "line": 22,
         "code_line": "mesh.name == \"my_mesh\"",
         "passed": true
       },
       {
-        "line": 22,
+        "line": 23,
         "code_line": "!mesh.guid.is_empty()",
         "passed": true
       }
@@ -47,32 +47,32 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.023,
-    "line": 244,
+    "time_ms": 0.016,
+    "line": 245,
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        mesh.xform = Xform::translation(10.0, 20.0, 30.0);\n        let mesh_transformed = mesh.transformed();\n        mesh.transform();\n\n        let pos0 = mesh.vertex_position(v0).unwrap();",
     "checks": [
       {
-        "line": 260,
+        "line": 261,
         "code_line": "pos0[0] == 10.0",
         "passed": true
       },
       {
-        "line": 261,
+        "line": 262,
         "code_line": "pos0[1] == 20.0",
         "passed": true
       },
       {
-        "line": 262,
+        "line": 263,
         "code_line": "pos0[2] == 30.0",
         "passed": true
       },
       {
-        "line": 263,
+        "line": 264,
         "code_line": "mesh.xform == Xform::identity()",
         "passed": true
       },
       {
-        "line": 264,
+        "line": 265,
         "code_line": "mesh_transformed.xform == Xform::identity()",
         "passed": true
       }
@@ -82,22 +82,22 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 12.494,
-    "line": 269,
+    "time_ms": 10.976,
+    "line": 270,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_mesh.json\";\n        mesh.json_dump(filename).unwrap();\n        let loaded = Mesh::json_load(filename).unwrap();\n",
     "checks": [
       {
-        "line": 289,
+        "line": 290,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 290,
+        "line": 291,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 291,
+        "line": 292,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       }
@@ -107,27 +107,27 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 10.486,
-    "line": 296,
+    "time_ms": 12.258,
+    "line": 297,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        mesh.name = \"test_mesh_proto\".to_string();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let filename = \"serialization/test_mesh.bin\";\n        mesh.pb_dump(filename);\n        let loaded = Mesh::pb_load(filename);\n",
     "checks": [
       {
-        "line": 311,
+        "line": 312,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 312,
+        "line": 313,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 313,
+        "line": 314,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 314,
+        "line": 315,
         "code_line": "loaded.guid == mesh.guid",
         "passed": true
       }
@@ -137,42 +137,42 @@
   {
     "test_name": "Add_face",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 47,
+    "time_ms": 0.008,
+    "line": 48,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None);\n\n        let invalid1 = mesh.add_face(vec![v0, v1], None);\n\n        let invalid2 = mesh.add_face(vec![v0, v1, 999], None);\n\n        let invalid3 = mesh.add_face(vec![v0, v1, v0], None);",
     "checks": [
       {
-        "line": 57,
+        "line": 58,
         "code_line": "f.is_some()",
         "passed": true
       },
       {
-        "line": 58,
+        "line": 59,
         "code_line": "mesh.number_of_faces() == 1",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 60,
         "code_line": "mesh.number_of_edges() == 3",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 61,
         "code_line": "mesh.euler() == 1",
         "passed": true
       },
       {
-        "line": 63,
+        "line": 64,
         "code_line": "invalid1.is_none()",
         "passed": true
       },
       {
-        "line": 66,
+        "line": 67,
         "code_line": "invalid2.is_none()",
         "passed": true
       },
       {
-        "line": 69,
+        "line": 70,
         "code_line": "invalid3.is_none()",
         "passed": true
       }
@@ -182,32 +182,32 @@
   {
     "test_name": "Add_vertex",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 27,
+    "time_ms": 0.004,
+    "line": 28,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(1.0, 2.0, 3.0), None);\n\n\n        let pos = mesh.vertex_position(v0).unwrap();\n\n        let v1 = mesh.add_vertex(Point::new(4.0, 5.0, 6.0), Some(42));",
     "checks": [
       {
-        "line": 34,
+        "line": 35,
         "code_line": "mesh.number_of_vertices() == 1",
         "passed": true
       },
       {
-        "line": 35,
+        "line": 36,
         "code_line": "!mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 38,
+        "line": 39,
         "code_line": "pos[0] == 1.0 && pos[1] == 2.0 && pos[2] == 3.0",
         "passed": true
       },
       {
-        "line": 41,
+        "line": 42,
         "code_line": "v1 == 42",
         "passed": true
       },
       {
-        "line": 42,
+        "line": 43,
         "code_line": "mesh.number_of_vertices() == 2",
         "passed": true
       }
@@ -217,27 +217,27 @@
   {
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 223,
+    "time_ms": 0.005,
+    "line": 224,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n\n\n        mesh.clear();\n",
     "checks": [
       {
-        "line": 233,
+        "line": 234,
         "code_line": "!mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 237,
+        "line": 238,
         "code_line": "mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 238,
+        "line": 239,
         "code_line": "mesh.number_of_vertices() == 0",
         "passed": true
       },
       {
-        "line": 239,
+        "line": 240,
         "code_line": "mesh.number_of_faces() == 0",
         "passed": true
       }
@@ -247,12 +247,12 @@
   {
     "test_name": "Face_area",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 172,
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let area = mesh.face_area(f).unwrap();\n",
+    "time_ms": 0.005,
+    "line": 173,
+    "code": "        use crate::Mesh;\n        use crate::Point;\n\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let area = mesh.face_area(f).unwrap();\n",
     "checks": [
       {
-        "line": 185,
+        "line": 186,
         "code_line": "TOLERANCE.is_close(area, 0.5)",
         "passed": true
       }
@@ -262,22 +262,22 @@
   {
     "test_name": "Face_normal",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 152,
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::tolerance::TOLERANCE;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let normal = mesh.face_normal(f).unwrap();\n",
+    "time_ms": 0.005,
+    "line": 153,
+    "code": "        use crate::Mesh;\n        use crate::Point;\n\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let normal = mesh.face_normal(f).unwrap();\n",
     "checks": [
       {
-        "line": 165,
+        "line": 166,
         "code_line": "TOLERANCE.is_close(normal[2], 1.0)",
         "passed": true
       },
       {
-        "line": 166,
+        "line": 167,
         "code_line": "TOLERANCE.is_close(normal[0], 0.0)",
         "passed": true
       },
       {
-        "line": 167,
+        "line": 168,
         "code_line": "TOLERANCE.is_close(normal[1], 0.0)",
         "passed": true
       }
@@ -287,27 +287,27 @@
   {
     "test_name": "Face_vertices",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 74,
+    "time_ms": 0.004,
+    "line": 75,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        let f = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let vertices = mesh.face_vertices(f).unwrap();\n",
     "checks": [
       {
-        "line": 86,
+        "line": 87,
         "code_line": "vertices.len() == 3",
         "passed": true
       },
       {
-        "line": 87,
+        "line": 88,
         "code_line": "vertices[0] == v0",
         "passed": true
       },
       {
-        "line": 88,
+        "line": 89,
         "code_line": "vertices[1] == v1",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 90,
         "code_line": "vertices[2] == v2",
         "passed": true
       }
@@ -317,32 +317,32 @@
   {
     "test_name": "From_polygons",
     "passed": true,
-    "time_ms": 0.022,
-    "line": 190,
+    "time_ms": 0.014,
+    "line": 191,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let triangle = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n\n        let mesh = Mesh::from_polygons(vec![triangle], None);\n\n        let tri1 = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let tri2 = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n        ];\n\n        let mesh2 = Mesh::from_polygons(vec![tri1, tri2], None);",
     "checks": [
       {
-        "line": 201,
+        "line": 202,
         "code_line": "mesh.number_of_vertices() == 3",
         "passed": true
       },
       {
-        "line": 202,
+        "line": 203,
         "code_line": "mesh.number_of_faces() == 1",
         "passed": true
       },
       {
-        "line": 203,
+        "line": 204,
         "code_line": "mesh.number_of_edges() == 3",
         "passed": true
       },
       {
-        "line": 217,
+        "line": 218,
         "code_line": "mesh2.number_of_vertices() == 4",
         "passed": true
       },
       {
-        "line": 218,
+        "line": 219,
         "code_line": "mesh2.number_of_faces() == 2",
         "passed": true
       }
@@ -352,22 +352,22 @@
   {
     "test_name": "Is_vertex_on_boundary",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 134,
+    "time_ms": 0.003,
+    "line": 135,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v2], None);\n",
     "checks": [
       {
-        "line": 145,
+        "line": 146,
         "code_line": "mesh.is_vertex_on_boundary(v0)",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 147,
         "code_line": "mesh.is_vertex_on_boundary(v1)",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 148,
         "code_line": "mesh.is_vertex_on_boundary(v2)",
         "passed": true
       }
@@ -377,22 +377,22 @@
   {
     "test_name": "To_vertices_and_faces",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 354,
+    "time_ms": 0.007,
+    "line": 355,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n",
     "checks": [
       {
-        "line": 367,
+        "line": 368,
         "code_line": "vertices.len() == 3",
         "passed": true
       },
       {
-        "line": 368,
+        "line": 369,
         "code_line": "faces.len() == 1",
         "passed": true
       },
       {
-        "line": 369,
+        "line": 370,
         "code_line": "faces[0].len() == 3",
         "passed": true
       }
@@ -402,22 +402,22 @@
   {
     "test_name": "Vertex_faces",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 113,
+    "time_ms": 0.006,
+    "line": 114,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = mesh.add_vertex(Point::new(1.0, 1.0, 0.0), None);\n\n        let f1 = mesh.add_face(vec![v0, v1, v2], None).unwrap();\n        let f2 = mesh.add_face(vec![v1, v3, v2], None).unwrap();\n\n        let faces = mesh.vertex_faces(v1);",
     "checks": [
       {
-        "line": 127,
+        "line": 128,
         "code_line": "faces.len() == 2",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 129,
         "code_line": "faces.contains(&f1)",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 130,
         "code_line": "faces.contains(&f2)",
         "passed": true
       }
@@ -427,22 +427,22 @@
   {
     "test_name": "Vertex_neighbors",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 94,
+    "time_ms": 0.004,
+    "line": 95,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v2], None);\n\n        let neighbors = mesh.vertex_neighbors(v0);",
     "checks": [
       {
-        "line": 106,
+        "line": 107,
         "code_line": "neighbors.len() == 2",
         "passed": true
       },
       {
-        "line": 107,
+        "line": 108,
         "code_line": "neighbors.contains(&v1)",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 109,
         "code_line": "neighbors.contains(&v2)",
         "passed": true
       }
@@ -452,12 +452,12 @@
   {
     "test_name": "Vertex_normal",
     "passed": true,
-    "time_ms": 0.02,
-    "line": 335,
+    "time_ms": 0.011,
+    "line": 336,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = mesh.add_vertex(Point::new(1.0, 1.0, 0.0), None);\n\n        mesh.add_face(vec![v0, v1, v3], None);\n        mesh.add_face(vec![v0, v3, v2], None);\n\n        let normal = mesh.vertex_normal(v0).unwrap();",
     "checks": [
       {
-        "line": 349,
+        "line": 350,
         "code_line": "normal[2].abs() == 1.0",
         "passed": true
       }
@@ -467,27 +467,27 @@
   {
     "test_name": "Vertex_position",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 319,
+    "time_ms": 0.002,
+    "line": 320,
     "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(1.0, 2.0, 3.0), None);\n\n        let pos = mesh.vertex_position(v0).unwrap();",
     "checks": [
       {
-        "line": 327,
+        "line": 328,
         "code_line": "pos[0] == 1.0",
         "passed": true
       },
       {
-        "line": 328,
+        "line": 329,
         "code_line": "pos[1] == 2.0",
         "passed": true
       },
       {
-        "line": 329,
+        "line": 330,
         "code_line": "pos[2] == 3.0",
         "passed": true
       },
       {
-        "line": 330,
+        "line": 331,
         "code_line": "mesh.vertex_position(999).is_none()",
         "passed": true
       }

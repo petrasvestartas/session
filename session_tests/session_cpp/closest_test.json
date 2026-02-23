@@ -1,0 +1,202 @@
+[
+  {
+    "test_name": "Line_point",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 19,
+    "code": "    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    auto [cp1, t1, d1] = Closest::line_point(l, Point(5.0, 5.0, 0.0));\n\n    auto [cp2, t2, d2] = Closest::line_point(l, Point(-5.0, 0.0, 0.0));\n\n    auto [cp3, t3, d3] = Closest::line_point(l, Point(15.0, 0.0, 0.0));",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "TOLERANCE.is_close(cp1[0], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "TOLERANCE.is_close(cp1[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "TOLERANCE.is_close(t1, 0.5)",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "TOLERANCE.is_close(d1, 5.0)",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "TOLERANCE.is_close(cp2[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "TOLERANCE.is_close(t2, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "TOLERANCE.is_close(d2, 5.0)",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "TOLERANCE.is_close(cp3[0], 10.0)",
+        "passed": true
+      },
+      {
+        "line": 35,
+        "code_line": "TOLERANCE.is_close(t3, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 36,
+        "code_line": "TOLERANCE.is_close(d3, 5.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Polyline_point",
+    "passed": true,
+    "time_ms": 0.033,
+    "line": 39,
+    "code": "    Polyline pl({Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0)});\n\n    auto [cp1, t1, d1] = Closest::polyline_point(pl, Point(5.0, 5.0, 0.0));\n\n    auto [cp2, t2, d2] = Closest::polyline_point(pl, Point(10.0, 5.0, 0.0));",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "TOLERANCE.is_close(d1, 5.0)",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "TOLERANCE.is_close(cp2[0], 10.0)",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "TOLERANCE.is_close(cp2[1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Curve_point",
+    "passed": true,
+    "time_ms": 0.056,
+    "line": 51,
+    "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0), Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0), Point(4.0, 0.0, 0.0)\n    };\n    NurbsCurve crv = NurbsCurve::create(false, 3, pts);\n\n    auto [t, dist] = Closest::curve_point(crv, Point(2.0, 3.0, 0.0));\n    Point cp = crv.point_at(t);\n\n    auto [t2, dist2] = Closest::curve_point(crv, Point(0.0, 0.0, 0.0));",
+    "checks": [
+      {
+        "line": 59,
+        "code_line": "dist < 1.6",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "TOLERANCE.is_close(cp.distance(Point(2.0, 3.0, 0.0)), dist)",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "dist2 < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Surface_point",
+    "passed": true,
+    "time_ms": 0.139,
+    "line": 67,
+    "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 1.0), Point(2.0, 1.0, 1.0), Point(3.0, 1.0, 0.0),\n        Point(0.0, 2.0, 0.0), Point(1.0, 2.0, 1.0), Point(2.0, 2.0, 1.0), Point(3.0, 2.0, 0.0),\n        Point(0.0, 3.0, 0.0), Point(1.0, 3.0, 0.0), Point(2.0, 3.0, 0.0), Point(3.0, 3.0, 0.0),\n    };\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    auto [u, v, dist] = Closest::surface_point(srf, Point(1.5, 1.5, 2.0));\n    Point cp = srf.point_at(u, v);\n\n    auto [u2, v2, dist2] = Closest::surface_point(srf, Point(0.0, 0.0, 0.0));",
+    "checks": [
+      {
+        "line": 77,
+        "code_line": "dist < 1.5",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(cp.distance(Point(1.5, 1.5, 2.0)), dist)",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "dist2 < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_point",
+    "passed": true,
+    "time_ms": 0.794,
+    "line": 85,
+    "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point(m, Point(1.0, 1.0, 1.0));",
+    "checks": [
+      {
+        "line": 89,
+        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Pointcloud_point",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 96,
+    "code": "    PointCloud pc({Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0)}, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point(pc, Point(4.0, 0.0, 0.0));\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point(pc, Point(10.0, 10.0, 0.0));",
+    "checks": [
+      {
+        "line": 100,
+        "code_line": "TOLERANCE.is_close(cp1[0], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "i1 == 1",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "i2 == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

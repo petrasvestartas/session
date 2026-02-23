@@ -23,7 +23,7 @@
         </thead>
         <tbody>
           <template v-for="g in groupedTests" :key="g.name">
-            <tr class="test-name-row">
+            <tr class="test-name-row" :id="'test-' + g.name">
               <td :colspan="3">
                 <strong>{{ g.name }}</strong>
               </td>

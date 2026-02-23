@@ -51,15 +51,15 @@ stop_server() {
 ensure_node_deps() {
     local repo_root="$1"
     local tests_dir="${repo_root}/session_tests"
-    local fast_mode="${2:-false}"
 
     if ! command -v npm >/dev/null 2>&1; then
         log "npm not found. Please install Node.js first."
         return 1
     fi
 
-    if [[ "$fast_mode" == "true" && -d "${tests_dir}/node_modules" ]]; then
-        log "Fast mode: Skipping npm install"
+    local lock="${tests_dir}/node_modules/.package-lock.json"
+    if [[ -f "$lock" && "$lock" -nt "${tests_dir}/package.json" ]]; then
+        log "npm deps up-to-date, skipping install"
         return 0
     fi
 

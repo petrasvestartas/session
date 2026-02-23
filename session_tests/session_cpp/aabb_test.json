@@ -1,0 +1,127 @@
+[
+  {
+    "test_name": "Build_empty",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 13,
+    "code": "    AABBTree tree;\n    tree.build(nullptr, 0);",
+    "checks": [
+      {
+        "line": 16,
+        "code_line": "tree.empty()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Build_single",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 19,
+    "code": "    BvhAABB aabb = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};\n    AABBTree tree;\n    tree.build(&aabb, 1);",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "tree.size() == 1",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "tree.nodes[0].object_id == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Build_multiple",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 27,
+    "code": "    std::vector<BvhAABB> aabbs = {\n        {0.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {5.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {10.0, 0.0, 0.0, 1.0, 1.0, 1.0}\n    };\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
+    "checks": [
+      {
+        "line": 35,
+        "code_line": "tree.size() == 5",
+        "passed": true
+      },
+      {
+        "line": 36,
+        "code_line": "tree.nodes[0].object_id == -1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Node_count",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 39,
+    "code": "    std::vector<BvhAABB> aabbs;\n    for (int i = 0; i < 100; i++) {\n        aabbs.push_back({static_cast<double>(i), 0.0, 0.0, 0.5, 0.5, 0.5});\n    }\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "tree.size() == 199",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_point_aabb",
+    "passed": true,
+    "time_ms": 1.856,
+    "line": 49,
+    "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
+    "checks": [
+      {
+        "line": 53,
+        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 57,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh_point_aabb_matches_bvh",
+    "passed": true,
+    "time_ms": 0.523,
+    "line": 60,
+    "code": "    Mesh m = Primitives::cube(2.0);\n    Point tp(0.3, 0.7, 1.5);\n\n    auto [cp_bvh, fk_bvh, d_bvh] = Closest::mesh_point(m, tp);\n    auto [cp_aabb, fk_aabb, d_aabb] = Closest::mesh_point_aabb(m, tp);\n",
+    "checks": [
+      {
+        "line": 67,
+        "code_line": "TOLERANCE.is_close(d_bvh, d_aabb)",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "TOLERANCE.is_close(cp_bvh[0], cp_aabb[0])",
+        "passed": true
+      },
+      {
+        "line": 69,
+        "code_line": "TOLERANCE.is_close(cp_bvh[1], cp_aabb[1])",
+        "passed": true
+      },
+      {
+        "line": 70,
+        "code_line": "TOLERANCE.is_close(cp_bvh[2], cp_aabb[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

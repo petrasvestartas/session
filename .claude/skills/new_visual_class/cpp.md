@@ -2,47 +2,166 @@
 
 Extends basic class with visual properties.
 
-## Header Additions (src/name.h)
+## Header Template (src/name.h)
+
+Use `///` section separators and `///` docstrings on every public method.
+Order: Factory → Constructors → Accessors → domain-specific → Transformation → JSON → Protobuf → String → private Internal Helpers.
 
 ```cpp
-#include "color.h"
-#include "xform.h"
+#pragma once
 
+#include "point.h"
+#include "xform.h"
+#include "color.h"
+#include "guid.h"
+#include "json.h"
+#include <vector>
+#include <string>
+
+namespace session_cpp {
+
+/**
+ * @class Name
+ * @brief One-line summary of what this class represents.
+ *
+ * 2-3 sentences: what it stores, how it's defined, key design choices.
+ */
 class Name {
-    // ... basic fields ...
+public:
+    std::string guid = ::guid();
+    std::string name = "my_name";
+    double width = 1.0;
+    Color surfacecolor = Color::black();  // or pointcolors/linecolors vectors
+    Xform xform = Xform::identity();
+
+    // Core data members
+    // ...
 
 public:
-    double width = 1.0;
-    Color color = Color::red();
-    Xform xform;
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Static Factory Methods
+    ///////////////////////////////////////////////////////////////////////////////////////////
 
-    // ... basic methods ...
+    /// Create a Name from parameters. One sentence on what it does.
+    static Name create(/* params */);
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Constructors & Destructor
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    Name();
+    Name(const Name& other);
+    Name& operator=(const Name& other);
+    bool operator==(const Name& other) const;
+    bool operator!=(const Name& other) const;
+    ~Name();
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Accessors
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Return true if internal state is consistent and non-empty.
+    bool is_valid() const;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Evaluation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Evaluate a 3D point at the given parameter(s).
+    Point point_at(/* params */) const;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Meshing (if applicable)
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Generate a triangle mesh using adaptive subdivision.
+    Mesh mesh() const;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Transformation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Apply the stored xform to all geometry and reset xform to identity.
     void transform();
+
+    /// Return a copy with the stored xform applied.
     Name transformed() const;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // JSON Serialization
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Convert to JSON object with fields in alphabetical order.
+    nlohmann::ordered_json jsondump() const;
+
+    /// Construct from a JSON object.
+    static Name jsonload(const nlohmann::json& data);
+
+    /// Write JSON to a file.
+    void json_dump(const std::string& filename) const;
+
+    /// Read from a JSON file.
+    static Name json_load(const std::string& filename);
+
+    /// Serialize to a JSON string.
+    std::string json_dumps() const;
+
+    /// Deserialize from a JSON string.
+    static Name json_loads(const std::string& json_string);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Protobuf Serialization
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Serialize to a protobuf binary string.
+    std::string pb_dumps() const;
+
+    /// Deserialize from a protobuf binary string.
+    static Name pb_loads(const std::string& data);
+
+    /// Write protobuf to a file.
+    void pb_dump(const std::string& filename) const;
+
+    /// Read from a protobuf file.
+    static Name pb_load(const std::string& filename);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // String Representation
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    /// Simple string (type and key properties).
+    std::string str() const;
+
+    /// Detailed string with all internal state.
+    std::string repr() const;
+
+    /// Stream output operator (calls str()).
+    friend std::ostream& operator<<(std::ostream& os, const Name& obj);
+
+private:
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Internal Helpers
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    void deep_copy_from(const Name& src);
 };
+
+} // namespace session_cpp
 ```
 
-## Implementation Additions (src/name.cpp)
+## Implementation (src/name.cpp)
 
 ```cpp
 Name::Name(const Name& other)
-    : guid(generate_guid())
+    : guid(::guid())
     , name(other.name)
-    , _x(other._x), _y(other._y), _z(other._z)
     , width(other.width)
-    , color(other.color)
+    , surfacecolor(other.surfacecolor)
     , xform(other.xform) {}
 
 void Name::transform() {
-    double nx = xform[0]*_x + xform[1]*_y + xform[2]*_z + xform[3];
-    double ny = xform[4]*_x + xform[5]*_y + xform[6]*_z + xform[7];
-    double nz = xform[8]*_x + xform[9]*_y + xform[10]*_z + xform[11];
-
-    _x = nx;
-    _y = ny;
-    _z = nz;
-    xform = Xform();
+    // Apply xform to geometry, then reset
+    xform = Xform::identity();
 }
 
 Name Name::transformed() const {
@@ -52,36 +171,34 @@ Name Name::transformed() const {
 }
 ```
 
-## JSON Additions
+## JSON (fields alphabetically ordered)
 
 ```cpp
 nlohmann::ordered_json Name::jsondump() const {
     nlohmann::ordered_json j;
-    j["color"] = color.jsondump();
     j["guid"] = guid;
     j["name"] = name;
+    j["surfacecolor"] = surfacecolor.jsondump();
     j["type"] = "Name";
     j["width"] = width;
-    j["x"] = _x;
     j["xform"] = xform.jsondump();
-    j["y"] = _y;
-    j["z"] = _z;
+    // ... domain fields alphabetically ...
     return j;
 }
 ```
 
-## Test Additions
+## Test
 
 ```cpp
 MINI_TEST("Name", "transformation") {
-    Name obj(1.0, 2.0, 3.0);
+    Name obj = Name::create(/* params */);
     obj.xform = Xform::translation(10.0, 0.0, 0.0);
 
     Name copy = obj.transformed();
-    MINI_CHECK(copy[0] == 11.0);
-    MINI_CHECK(obj[0] == 1.0);  // Original unchanged
+    MINI_CHECK(/* transformed value */);
+    MINI_CHECK(/* original unchanged */);
 
     obj.transform();
-    MINI_CHECK(obj[0] == 11.0);
+    MINI_CHECK(/* now transformed */);
 }
 ```

@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.039,
     "line": 8,
     "code": "        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        // Default constructor - XY plane at origin\n        let pl = Plane::default();\n\n        // Origin and axes\n        let origin = pl.origin();\n        let x_axis = pl.x_axis();\n        let y_axis = pl.y_axis();\n        let z_axis = pl.z_axis();\n\n        // Plane equation coefficients (ax + by + cz + d = 0)\n        let a = pl.a();\n        let b = pl.b();\n        let c = pl.c();\n        let d = pl.d();\n\n        // Index access for axes\n        let ax0 = &pl[0];\n        let ax1 = &pl[1];\n        let ax2 = &pl[2];\n\n        // Minimal and Full String Representation\n        let plstr = pl.str();\n        let plrepr = pl.repr();\n\n        // Copy (duplicates everything except guid)\n        let plcopy = pl.duplicate();\n\n        // From point and normal\n        let p = Point::new(0.0, 0.0, 5.0);\n        let n = Vector::new(0.0, 0.0, 1.0);\n        let pl_pn = Plane::from_point_normal(p, n);\n\n        // From three points\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0)];\n        let pl_pts = Plane::from_points(pts);\n\n        // From two points\n        let p1 = Point::new(0.0, 0.0, 0.0);\n        let p2 = Point::new(1.0, 0.0, 0.0);\n        let pl_2pts = Plane::from_two_points(p1, p2);\n\n        // Standard planes\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n\n        // Translation operators\n        let offset = Vector::new(1.0, 2.0, 3.0);\n\n        // In-place add\n        let mut pl_iadd = Plane::xy_plane();\n        pl_iadd += offset.clone();\n\n        // In-place subtract\n        let mut pl_isub = Plane::xy_plane();\n        pl_isub -= offset.clone();\n\n        // Copy add/subtract\n        let pl_base = Plane::xy_plane();\n        let pl_add = pl_base.clone() + offset.clone();\n        let pl_sub = pl_base.clone() - offset.clone();\n",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 13.002,
+    "time_ms": 12.648,
     "line": 220,
     "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_plane.json\";\n        pl.json_dump(fname).unwrap();\n        let loaded = Plane::json_load(fname).unwrap();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 10.511,
+    "time_ms": 8.734,
     "line": 242,
     "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        // pb_dump(fname) / pb_load(fname) - file-based serialization\n        let fname = \"serialization/test_plane.bin\";\n        pl.pb_dump(fname);\n        let loaded = Plane::pb_load(fname);\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Is_coplanar",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.015,
     "line": 157,
     "code": "        use crate::Plane;\n        use crate::Vector;\n\n        // Same direction (parallel planes)\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let same_dir = Plane::is_same_direction(&p1, &p2, true);\n\n        // Flipped direction\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n        let same_dir_flipped = Plane::is_same_direction(&p1, &p3, true);\n        let same_dir_strict = Plane::is_same_direction(&p1, &p3, false);\n\n        // Same position\n        let mut p4 = Plane::xy_plane();\n        let same_pos = Plane::is_same_position(&p1, &p4);\n        p4 += Vector::new(0.0, 0.0, 1.0);\n        let diff_pos = Plane::is_same_position(&p1, &p4);\n\n        // Coplanar\n        let p5 = Plane::xy_plane();\n        let mut p6 = Plane::xy_plane();\n        let coplanar = Plane::is_coplanar(&p5, &p6, true);\n        p6.reverse();\n        let coplanar_reversed = Plane::is_coplanar(&p5, &p6, true);\n        p6 += Vector::new(0.0, 0.0, 1.0);\n        let not_coplanar = Plane::is_coplanar(&p5, &p6, true);\n",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "Is_right_hand",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.006,
     "line": 125,
     "code": "        use crate::Plane;\n\n        // All standard planes should be right-handed\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n        let mut default_pl = Plane::default();\n\n        let xy_rh = xy.is_right_hand();\n        let yz_rh = yz.is_right_hand();\n        let xz_rh = xz.is_right_hand();\n        let default_rh = default_pl.is_right_hand();\n\n        // After reverse, should still be right-handed\n        default_pl.reverse();\n        let reversed_rh = default_pl.is_right_hand();\n\n        // After rotate, should still be right-handed\n        default_pl.rotate(PI / 4.0);\n        let rotated_rh = default_pl.is_right_hand();\n",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 199,
     "code": "        use crate::Plane;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        pl.transform();\n\n        // Transformed - returns new plane\n        let mut pl2 = Plane::xy_plane();\n        pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl3 = pl2.transformed();\n",
     "checks": [
