@@ -42,7 +42,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 13.98,
+    "time_ms": 8.644,
     "line": 211,
     "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.json_dump(filename).unwrap();\n        let loaded = Color::json_load(filename).unwrap();\n",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 11.106,
+    "time_ms": 6.644,
     "line": 234,
     "code": "        use crate::Color;\n\n        let mut color = Color::new(255, 128, 64, 255);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"serialization/test_color.bin\";\n        color.pb_dump(filename);\n        let loaded = Color::pb_load(filename);\n",
     "checks": [

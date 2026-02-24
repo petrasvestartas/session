@@ -2,9 +2,9 @@
   {
     "test_name": "CrossConnectors",
     "passed": true,
-    "time_ms": 9.213,
+    "time_ms": 11.466,
     "line": 1076,
-    "code": "        use crate::primitives::CrossConnectors;\n        use crate::mesh::Mesh;\n        use crate::point::Point;\n\n        let mut polys: Vec<Vec<Point>> = vec![\n            vec![Point::new(-574.485,-574.300,-182.370), Point::new(-620.030,-480.441,-136.145), Point::new(-527.510,-476.289,-53.723), Point::new(-431.548,-637.846,-118.351), Point::new(-574.485,-574.300,-182.370)],\n            vec![Point::new(-545.761,-545.585,-211.069), Point::new(-589.029,-456.419,-167.156), Point::new(-501.135,-452.475,-88.854), Point::new(-409.971,-605.954,-150.251), Point::new(-545.761,-545.585,-211.069)],\n            vec![Point::new(-224.289,-691.254,-65.097), Point::new(-125.302,-566.359,58.481), Point::new(125.182,-566.359,58.481), Point::new(212.579,-691.254,-65.097), Point::new(-224.289,-691.254,-65.097)],\n            vec![Point::new(-213.075,-656.691,-99.659), Point::new(-119.037,-538.041,17.739), Point::new(118.923,-538.041,17.739), Point::new(201.950,-656.691,-99.659), Point::new(-213.075,-656.691,-99.659)],\n            vec![Point::new(456.309,-628.504,-127.534), Point::new(523.010,-466.370,-45.103), Point::new(622.146,-472.434,-134.186), Point::new(574.882,-574.852,-181.916), Point::new(456.309,-628.504,-127.534)],\n            vec![Point::new(433.493,-597.079,-158.975), Point::new(496.859,-443.052,-80.665), Point::new(591.038,-448.812,-165.294), Point::new(546.138,-546.110,-210.638), Point::new(433.493,-597.079,-158.975)],\n            vec![Point::new(-431.100,-638.600,-118.653), Point::new(-527.510,-476.289,-53.723), Point::new(-481.982,-362.651,39.785), Point::new(-234.426,-365.823,142.950), Point::new(-125.302,-566.359,58.481), Point::new(-223.832,-690.677,-64.527), Point::new(-431.100,-638.600,-118.653)],\n            vec![Point::new(-409.545,-606.670,-150.538), Point::new(-501.135,-452.475,-88.854), Point::new(-457.883,-344.518,-0.022), Point::new(-222.705,-347.532,97.985), Point::new(-119.037,-538.041,17.739), Point::new(-212.641,-656.144,-99.118), Point::new(-409.545,-606.670,-150.538)],\n            vec![Point::new(212.526,-691.178,-65.022), Point::new(125.182,-566.359,58.481), Point::new(238.785,-380.979,136.566), Point::new(478.593,-374.909,36.915), Point::new(523.010,-466.370,-45.103), Point::new(455.692,-630.004,-128.297), Point::new(212.526,-691.178,-65.022)],\n            vec![Point::new(201.900,-656.619,-99.589), Point::new(118.923,-538.041,17.739), Point::new(226.846,-361.930,91.920), Point::new(454.664,-356.164,-2.748), Point::new(496.859,-443.052,-80.665), Point::new(432.907,-598.504,-159.699), Point::new(201.900,-656.619,-99.589)],\n            vec![Point::new(-481.982,-362.651,39.785), Point::new(-527.510,-476.289,-53.723), Point::new(-620.401,-480.458,-136.475), Point::new(-698.046,-172.509,-57.884), Point::new(-595.889,-174.723,29.899), Point::new(-481.982,-362.651,39.785)],\n            vec![Point::new(-457.883,-344.518,-0.022), Point::new(-501.135,-452.475,-88.854), Point::new(-589.381,-456.435,-167.469), Point::new(-663.144,-163.884,-92.807), Point::new(-566.094,-165.987,-9.413), Point::new(-457.883,-344.518,-0.022)],\n            vec![Point::new(-125.302,-566.359,58.481), Point::new(-234.426,-365.823,142.950), Point::new(-149.707,-204.103,211.069), Point::new(150.116,-204.103,211.069), Point::new(238.785,-380.979,136.566), Point::new(125.182,-566.359,58.481), Point::new(-125.302,-566.359,58.481)],\n            vec![Point::new(-119.037,-538.041,17.739), Point::new(-222.705,-347.532,97.985), Point::new(-142.222,-193.898,162.698), Point::new(142.610,-193.898,162.698), Point::new(226.846,-361.930,91.920), Point::new(118.923,-538.041,17.739), Point::new(-119.037,-538.041,17.739)],\n            vec![Point::new(478.593,-374.909,36.915), Point::new(596.484,-174.710,29.388), Point::new(698.046,-172.509,-57.884), Point::new(622.420,-472.451,-134.432), Point::new(523.010,-466.370,-45.103), Point::new(478.593,-374.909,36.915)],\n            vec![Point::new(454.664,-356.164,-2.748), Point::new(566.659,-165.975,-9.899), Point::new(663.144,-163.884,-92.807), Point::new(591.299,-448.828,-165.528), Point::new(496.859,-443.052,-80.665), Point::new(454.664,-356.164,-2.748)],\n            vec![Point::new(-481.982,-362.651,39.785), Point::new(-595.889,-174.723,29.899), Point::new(-515.848,-0.000,98.678), Point::new(-247.814,-0.000,211.069), Point::new(-149.707,-204.103,211.069), Point::new(-234.426,-365.823,142.950), Point::new(-481.982,-362.651,39.785)],\n            vec![Point::new(-457.883,-344.518,-0.022), Point::new(-566.094,-165.987,-9.413), Point::new(-490.055,-0.000,55.926), Point::new(-235.423,-0.000,162.698), Point::new(-142.222,-193.898,162.698), Point::new(-222.705,-347.532,97.985), Point::new(-457.883,-344.518,-0.022)],\n            vec![Point::new(238.785,-380.979,136.566), Point::new(150.116,-204.103,211.069), Point::new(252.071,0.000,211.069), Point::new(512.707,0.000,101.376), Point::new(596.484,-174.710,29.388), Point::new(478.593,-374.909,36.915), Point::new(238.785,-380.979,136.566)],\n            vec![Point::new(226.846,-361.930,91.920), Point::new(142.610,-193.898,162.698), Point::new(239.467,-0.000,162.698), Point::new(487.072,-0.000,58.490), Point::new(566.659,-165.975,-9.899), Point::new(454.664,-356.164,-2.748), Point::new(226.846,-361.930,91.920)],\n            vec![Point::new(-515.848,0.000,98.678), Point::new(-595.889,-174.723,29.899), Point::new(-698.269,-172.505,-58.075), Point::new(-698.269,172.505,-58.075), Point::new(-595.889,174.723,29.899), Point::new(-515.848,0.000,98.678)],\n            vec![Point::new(-490.055,-0.000,55.926), Point::new(-566.094,-165.987,-9.413), Point::new(-663.356,-163.879,-92.989), Point::new(-663.356,163.879,-92.989), Point::new(-566.094,165.987,-9.413), Point::new(-490.055,-0.000,55.926)],\n            vec![Point::new(-149.707,-204.103,211.069), Point::new(-247.814,0.000,211.069), Point::new(-149.707,204.103,211.069), Point::new(150.116,204.103,211.069), Point::new(252.071,0.000,211.069), Point::new(150.116,-204.103,211.069), Point::new(-149.707,-204.103,211.069)],\n            vec![Point::new(-142.222,-193.898,162.698), Point::new(-235.423,-0.000,162.698), Point::new(-142.222,193.898,162.698), Point::new(142.610,193.898,162.698), Point::new(239.467,0.000,162.698), Point::new(142.610,-193.898,162.698), Point::new(-142.222,-193.898,162.698)],\n            vec![Point::new(512.707,0.000,101.376), Point::new(596.484,174.710,29.388), Point::new(698.269,172.505,-58.075), Point::new(698.269,-172.505,-58.075), Point::new(596.484,-174.710,29.388), Point::new(512.707,0.000,101.376)],\n            vec![Point::new(487.072,0.000,58.490), Point::new(566.659,165.975,-9.899), Point::new(663.356,163.879,-92.989), Point::new(663.356,-163.879,-92.989), Point::new(566.659,-165.975,-9.899), Point::new(487.072,0.000,58.490)],\n            vec![Point::new(-515.848,-0.000,98.678), Point::new(-595.889,174.723,29.899), Point::new(-481.982,362.651,39.785), Point::new(-234.426,365.823,142.950), Point::new(-149.707,204.103,211.069), Point::new(-247.814,-0.000,211.069), Point::new(-515.848,-0.000,98.678)],\n            vec![Point::new(-490.055,-0.000,55.926), Point::new(-566.094,165.987,-9.413), Point::new(-457.883,344.518,-0.022), Point::new(-222.705,347.532,97.985), Point::new(-142.222,193.898,162.698), Point::new(-235.423,-0.000,162.698), Point::new(-490.055,-0.000,55.926)],\n            vec![Point::new(252.071,0.000,211.069), Point::new(150.116,204.103,211.069), Point::new(238.785,380.979,136.566), Point::new(478.593,374.909,36.915), Point::new(596.484,174.710,29.388), Point::new(512.707,-0.000,101.376), Point::new(252.071,0.000,211.069)],\n            vec![Point::new(239.467,-0.000,162.698), Point::new(142.610,193.898,162.698), Point::new(226.846,361.930,91.920), Point::new(454.664,356.164,-2.748), Point::new(566.659,165.975,-9.899), Point::new(487.072,-0.000,58.490), Point::new(239.467,-0.000,162.698)],\n            vec![Point::new(-481.982,362.651,39.785), Point::new(-595.889,174.723,29.899), Point::new(-698.046,172.509,-57.884), Point::new(-622.420,472.451,-134.432), Point::new(-523.550,466.403,-45.588), Point::new(-481.982,362.651,39.785)],\n            vec![Point::new(-457.883,344.518,-0.022), Point::new(-566.094,165.987,-9.413), Point::new(-663.144,163.884,-92.807), Point::new(-591.299,448.828,-165.528), Point::new(-497.372,443.083,-81.126), Point::new(-457.883,344.518,-0.022)],\n            vec![Point::new(-149.707,204.103,211.069), Point::new(-234.426,365.823,142.950), Point::new(-125.302,566.359,58.481), Point::new(125.182,566.359,58.481), Point::new(238.785,380.979,136.566), Point::new(150.116,204.103,211.069), Point::new(-149.707,204.103,211.069)],\n            vec![Point::new(-142.222,193.898,162.698), Point::new(-222.705,347.532,97.985), Point::new(-119.037,538.041,17.739), Point::new(118.923,538.041,17.739), Point::new(226.846,361.930,91.920), Point::new(142.610,193.898,162.698), Point::new(-142.222,193.898,162.698)],\n            vec![Point::new(478.593,374.909,36.915), Point::new(527.834,476.304,-54.011), Point::new(620.401,480.458,-136.475), Point::new(698.046,172.509,-57.884), Point::new(596.484,174.710,29.388), Point::new(478.593,374.909,36.915)],\n            vec![Point::new(454.664,356.164,-2.748), Point::new(501.442,452.489,-89.128), Point::new(589.381,456.435,-167.469), Point::new(663.144,163.884,-92.807), Point::new(566.659,165.975,-9.899), Point::new(454.664,356.164,-2.748)],\n            vec![Point::new(-481.982,362.651,39.785), Point::new(-523.550,466.403,-45.588), Point::new(-441.383,636.016,-121.338), Point::new(-223.832,690.677,-64.527), Point::new(-125.302,566.359,58.481), Point::new(-234.426,365.823,142.950), Point::new(-481.982,362.651,39.785)],\n            vec![Point::new(-457.883,344.518,-0.022), Point::new(-497.372,443.083,-81.126), Point::new(-419.314,604.215,-153.089), Point::new(-212.641,656.144,-99.118), Point::new(-119.037,538.041,17.739), Point::new(-222.705,347.532,97.985), Point::new(-457.883,344.518,-0.022)],\n            vec![Point::new(238.785,380.979,136.566), Point::new(125.182,566.359,58.481), Point::new(212.526,691.178,-65.022), Point::new(446.073,632.424,-125.794), Point::new(527.834,476.304,-54.011), Point::new(478.593,374.909,36.915), Point::new(238.785,380.979,136.566)],\n            vec![Point::new(226.846,361.930,91.920), Point::new(118.923,538.041,17.739), Point::new(201.900,656.619,-99.589), Point::new(423.769,600.803,-157.321), Point::new(501.442,452.489,-89.128), Point::new(454.664,356.164,-2.748), Point::new(226.846,361.930,91.920)],\n            vec![Point::new(-622.146,472.434,-134.186), Point::new(-574.882,574.852,-181.916), Point::new(-441.854,635.045,-120.904), Point::new(-523.550,466.403,-45.588), Point::new(-622.146,472.434,-134.186)],\n            vec![Point::new(-591.038,448.812,-165.294), Point::new(-546.138,546.110,-210.638), Point::new(-419.761,603.293,-152.677), Point::new(-497.372,443.083,-81.126), Point::new(-591.038,448.812,-165.294)],\n            vec![Point::new(-125.302,566.359,58.481), Point::new(-224.289,691.254,-65.097), Point::new(212.579,691.254,-65.097), Point::new(125.182,566.359,58.481), Point::new(-125.302,566.359,58.481)],\n            vec![Point::new(-119.037,538.041,17.739), Point::new(-213.075,656.691,-99.659), Point::new(201.950,656.691,-99.659), Point::new(118.923,538.041,17.739), Point::new(-119.037,538.041,17.739)],\n            vec![Point::new(527.834,476.304,-54.011), Point::new(446.780,631.075,-125.173), Point::new(574.485,574.300,-182.370), Point::new(620.030,480.441,-136.145), Point::new(527.834,476.304,-54.011)],\n            vec![Point::new(501.442,452.489,-89.128), Point::new(424.440,599.521,-156.732), Point::new(545.761,545.585,-211.069), Point::new(589.029,456.419,-167.156), Point::new(501.442,452.489,-89.128)],\n        ];\n\n        for poly in polys.iter_mut() {\n            if poly.len() > 3 && poly[0].distance(&poly[poly.len()-1], None) < 1e-6 {\n                poly.pop();\n\n        let m = Mesh::from_polygons(polys, Some(1.0));\n        let cc = CrossConnectors::new(&m, 2.0, &[0.0], 2, 10.0, 10.0, 2.0, 0.0);\n\n\n        for i in 0..cc.face_polylines.len() {\n            for pl in &cc.face_polylines[i] {\n\n        for i in 0..cc.edge_polylines.len() {\n            for pl in &cc.edge_polylines[i] {",
+    "code": "        use crate::primitives::CrossConnectors;\n        use crate::mesh::Mesh;\n        use crate::point::Point;\n\n        let mut polys: Vec<Vec<Point>> = vec![\n            vec![Point::new(-574.485,-574.300,-182.370), Point::new(-620.030,-480.441,-136.145), Point::new(-527.510,-476.289,-53.723), Point::new(-431.548,-637.846,-118.351), Point::new(-574.485,-574.300,-182.370)],\n            vec![Point::new(-545.761,-545.585,-211.069), Point::new(-589.029,-456.419,-167.156), Point::new(-501.135,-452.475,-88.854), Point::new(-409.971,-605.954,-150.251), Point::new(-545.761,-545.585,-211.069)],\n            vec![Point::new(-224.289,-691.254,-65.097), Point::new(-125.302,-566.359,58.481), Point::new(125.182,-566.359,58.481), Point::new(212.579,-691.254,-65.097), Point::new(-224.289,-691.254,-65.097)],\n            vec![Point::new(-213.075,-656.691,-99.659), Point::new(-119.037,-538.041,17.739), Point::new(118.923,-538.041,17.739), Point::new(201.950,-656.691,-99.659), Point::new(-213.075,-656.691,-99.659)],\n            vec![Point::new(456.309,-628.504,-127.534), Point::new(523.010,-466.370,-45.103), Point::new(622.146,-472.434,-134.186), Point::new(574.882,-574.852,-181.916), Point::new(456.309,-628.504,-127.534)],\n            vec![Point::new(433.493,-597.079,-158.975), Point::new(496.859,-443.052,-80.665), Point::new(591.038,-448.812,-165.294), Point::new(546.138,-546.110,-210.638), Point::new(433.493,-597.079,-158.975)],\n            vec![Point::new(-431.100,-638.600,-118.653), Point::new(-527.510,-476.289,-53.723), Point::new(-481.982,-362.651,39.785), Point::new(-234.426,-365.823,142.950), Point::new(-125.302,-566.359,58.481), Point::new(-223.832,-690.677,-64.527), Point::new(-431.100,-638.600,-118.653)],\n            vec![Point::new(-409.545,-606.670,-150.538), Point::new(-501.135,-452.475,-88.854), Point::new(-457.883,-344.518,-0.022), Point::new(-222.705,-347.532,97.985), Point::new(-119.037,-538.041,17.739), Point::new(-212.641,-656.144,-99.118), Point::new(-409.545,-606.670,-150.538)],\n            vec![Point::new(212.526,-691.178,-65.022), Point::new(125.182,-566.359,58.481), Point::new(238.785,-380.979,136.566), Point::new(478.593,-374.909,36.915), Point::new(523.010,-466.370,-45.103), Point::new(455.692,-630.004,-128.297), Point::new(212.526,-691.178,-65.022)],\n            vec![Point::new(201.900,-656.619,-99.589), Point::new(118.923,-538.041,17.739), Point::new(226.846,-361.930,91.920), Point::new(454.664,-356.164,-2.748), Point::new(496.859,-443.052,-80.665), Point::new(432.907,-598.504,-159.699), Point::new(201.900,-656.619,-99.589)],\n            vec![Point::new(-481.982,-362.651,39.785), Point::new(-527.510,-476.289,-53.723), Point::new(-620.401,-480.458,-136.475), Point::new(-698.046,-172.509,-57.884), Point::new(-595.889,-174.723,29.899), Point::new(-481.982,-362.651,39.785)],\n            vec![Point::new(-457.883,-344.518,-0.022), Point::new(-501.135,-452.475,-88.854), Point::new(-589.381,-456.435,-167.469), Point::new(-663.144,-163.884,-92.807), Point::new(-566.094,-165.987,-9.413), Point::new(-457.883,-344.518,-0.022)],\n            vec![Point::new(-125.302,-566.359,58.481), Point::new(-234.426,-365.823,142.950), Point::new(-149.707,-204.103,211.069), Point::new(150.116,-204.103,211.069), Point::new(238.785,-380.979,136.566), Point::new(125.182,-566.359,58.481), Point::new(-125.302,-566.359,58.481)],\n            vec![Point::new(-119.037,-538.041,17.739), Point::new(-222.705,-347.532,97.985), Point::new(-142.222,-193.898,162.698), Point::new(142.610,-193.898,162.698), Point::new(226.846,-361.930,91.920), Point::new(118.923,-538.041,17.739), Point::new(-119.037,-538.041,17.739)],\n            vec![Point::new(478.593,-374.909,36.915), Point::new(596.484,-174.710,29.388), Point::new(698.046,-172.509,-57.884), Point::new(622.420,-472.451,-134.432), Point::new(523.010,-466.370,-45.103), Point::new(478.593,-374.909,36.915)],\n            vec![Point::new(454.664,-356.164,-2.748), Point::new(566.659,-165.975,-9.899), Point::new(663.144,-163.884,-92.807), Point::new(591.299,-448.828,-165.528), Point::new(496.859,-443.052,-80.665), Point::new(454.664,-356.164,-2.748)],\n            vec![Point::new(-481.982,-362.651,39.785), Point::new(-595.889,-174.723,29.899), Point::new(-515.848,-0.000,98.678), Point::new(-247.814,-0.000,211.069), Point::new(-149.707,-204.103,211.069), Point::new(-234.426,-365.823,142.950), Point::new(-481.982,-362.651,39.785)],\n            vec![Point::new(-457.883,-344.518,-0.022), Point::new(-566.094,-165.987,-9.413), Point::new(-490.055,-0.000,55.926), Point::new(-235.423,-0.000,162.698), Point::new(-142.222,-193.898,162.698), Point::new(-222.705,-347.532,97.985), Point::new(-457.883,-344.518,-0.022)],\n            vec![Point::new(238.785,-380.979,136.566), Point::new(150.116,-204.103,211.069), Point::new(252.071,0.000,211.069), Point::new(512.707,0.000,101.376), Point::new(596.484,-174.710,29.388), Point::new(478.593,-374.909,36.915), Point::new(238.785,-380.979,136.566)],\n            vec![Point::new(226.846,-361.930,91.920), Point::new(142.610,-193.898,162.698), Point::new(239.467,-0.000,162.698), Point::new(487.072,-0.000,58.490), Point::new(566.659,-165.975,-9.899), Point::new(454.664,-356.164,-2.748), Point::new(226.846,-361.930,91.920)],\n            vec![Point::new(-515.848,0.000,98.678), Point::new(-595.889,-174.723,29.899), Point::new(-698.269,-172.505,-58.075), Point::new(-698.269,172.505,-58.075), Point::new(-595.889,174.723,29.899), Point::new(-515.848,0.000,98.678)],\n            vec![Point::new(-490.055,-0.000,55.926), Point::new(-566.094,-165.987,-9.413), Point::new(-663.356,-163.879,-92.989), Point::new(-663.356,163.879,-92.989), Point::new(-566.094,165.987,-9.413), Point::new(-490.055,-0.000,55.926)],\n            vec![Point::new(-149.707,-204.103,211.069), Point::new(-247.814,0.000,211.069), Point::new(-149.707,204.103,211.069), Point::new(150.116,204.103,211.069), Point::new(252.071,0.000,211.069), Point::new(150.116,-204.103,211.069), Point::new(-149.707,-204.103,211.069)],\n            vec![Point::new(-142.222,-193.898,162.698), Point::new(-235.423,-0.000,162.698), Point::new(-142.222,193.898,162.698), Point::new(142.610,193.898,162.698), Point::new(239.467,0.000,162.698), Point::new(142.610,-193.898,162.698), Point::new(-142.222,-193.898,162.698)],\n            vec![Point::new(512.707,0.000,101.376), Point::new(596.484,174.710,29.388), Point::new(698.269,172.505,-58.075), Point::new(698.269,-172.505,-58.075), Point::new(596.484,-174.710,29.388), Point::new(512.707,0.000,101.376)],\n            vec![Point::new(487.072,0.000,58.490), Point::new(566.659,165.975,-9.899), Point::new(663.356,163.879,-92.989), Point::new(663.356,-163.879,-92.989), Point::new(566.659,-165.975,-9.899), Point::new(487.072,0.000,58.490)],\n            vec![Point::new(-515.848,-0.000,98.678), Point::new(-595.889,174.723,29.899), Point::new(-481.982,362.651,39.785), Point::new(-234.426,365.823,142.950), Point::new(-149.707,204.103,211.069), Point::new(-247.814,-0.000,211.069), Point::new(-515.848,-0.000,98.678)],\n            vec![Point::new(-490.055,-0.000,55.926), Point::new(-566.094,165.987,-9.413), Point::new(-457.883,344.518,-0.022), Point::new(-222.705,347.532,97.985), Point::new(-142.222,193.898,162.698), Point::new(-235.423,-0.000,162.698), Point::new(-490.055,-0.000,55.926)],\n            vec![Point::new(252.071,0.000,211.069), Point::new(150.116,204.103,211.069), Point::new(238.785,380.979,136.566), Point::new(478.593,374.909,36.915), Point::new(596.484,174.710,29.388), Point::new(512.707,-0.000,101.376), Point::new(252.071,0.000,211.069)],\n            vec![Point::new(239.467,-0.000,162.698), Point::new(142.610,193.898,162.698), Point::new(226.846,361.930,91.920), Point::new(454.664,356.164,-2.748), Point::new(566.659,165.975,-9.899), Point::new(487.072,-0.000,58.490), Point::new(239.467,-0.000,162.698)],\n            vec![Point::new(-481.982,362.651,39.785), Point::new(-595.889,174.723,29.899), Point::new(-698.046,172.509,-57.884), Point::new(-622.420,472.451,-134.432), Point::new(-523.550,466.403,-45.588), Point::new(-481.982,362.651,39.785)],\n            vec![Point::new(-457.883,344.518,-0.022), Point::new(-566.094,165.987,-9.413), Point::new(-663.144,163.884,-92.807), Point::new(-591.299,448.828,-165.528), Point::new(-497.372,443.083,-81.126), Point::new(-457.883,344.518,-0.022)],\n            vec![Point::new(-149.707,204.103,211.069), Point::new(-234.426,365.823,142.950), Point::new(-125.302,566.359,58.481), Point::new(125.182,566.359,58.481), Point::new(238.785,380.979,136.566), Point::new(150.116,204.103,211.069), Point::new(-149.707,204.103,211.069)],\n            vec![Point::new(-142.222,193.898,162.698), Point::new(-222.705,347.532,97.985), Point::new(-119.037,538.041,17.739), Point::new(118.923,538.041,17.739), Point::new(226.846,361.930,91.920), Point::new(142.610,193.898,162.698), Point::new(-142.222,193.898,162.698)],\n            vec![Point::new(478.593,374.909,36.915), Point::new(527.834,476.304,-54.011), Point::new(620.401,480.458,-136.475), Point::new(698.046,172.509,-57.884), Point::new(596.484,174.710,29.388), Point::new(478.593,374.909,36.915)],\n            vec![Point::new(454.664,356.164,-2.748), Point::new(501.442,452.489,-89.128), Point::new(589.381,456.435,-167.469), Point::new(663.144,163.884,-92.807), Point::new(566.659,165.975,-9.899), Point::new(454.664,356.164,-2.748)],\n            vec![Point::new(-481.982,362.651,39.785), Point::new(-523.550,466.403,-45.588), Point::new(-441.383,636.016,-121.338), Point::new(-223.832,690.677,-64.527), Point::new(-125.302,566.359,58.481), Point::new(-234.426,365.823,142.950), Point::new(-481.982,362.651,39.785)],\n            vec![Point::new(-457.883,344.518,-0.022), Point::new(-497.372,443.083,-81.126), Point::new(-419.314,604.215,-153.089), Point::new(-212.641,656.144,-99.118), Point::new(-119.037,538.041,17.739), Point::new(-222.705,347.532,97.985), Point::new(-457.883,344.518,-0.022)],\n            vec![Point::new(238.785,380.979,136.566), Point::new(125.182,566.359,58.481), Point::new(212.526,691.178,-65.022), Point::new(446.073,632.424,-125.794), Point::new(527.834,476.304,-54.011), Point::new(478.593,374.909,36.915), Point::new(238.785,380.979,136.566)],\n            vec![Point::new(226.846,361.930,91.920), Point::new(118.923,538.041,17.739), Point::new(201.900,656.619,-99.589), Point::new(423.769,600.803,-157.321), Point::new(501.442,452.489,-89.128), Point::new(454.664,356.164,-2.748), Point::new(226.846,361.930,91.920)],\n            vec![Point::new(-622.146,472.434,-134.186), Point::new(-574.882,574.852,-181.916), Point::new(-441.854,635.045,-120.904), Point::new(-523.550,466.403,-45.588), Point::new(-622.146,472.434,-134.186)],\n            vec![Point::new(-591.038,448.812,-165.294), Point::new(-546.138,546.110,-210.638), Point::new(-419.761,603.293,-152.677), Point::new(-497.372,443.083,-81.126), Point::new(-591.038,448.812,-165.294)],\n            vec![Point::new(-125.302,566.359,58.481), Point::new(-224.289,691.254,-65.097), Point::new(212.579,691.254,-65.097), Point::new(125.182,566.359,58.481), Point::new(-125.302,566.359,58.481)],\n            vec![Point::new(-119.037,538.041,17.739), Point::new(-213.075,656.691,-99.659), Point::new(201.950,656.691,-99.659), Point::new(118.923,538.041,17.739), Point::new(-119.037,538.041,17.739)],\n            vec![Point::new(527.834,476.304,-54.011), Point::new(446.780,631.075,-125.173), Point::new(574.485,574.300,-182.370), Point::new(620.030,480.441,-136.145), Point::new(527.834,476.304,-54.011)],\n            vec![Point::new(501.442,452.489,-89.128), Point::new(424.440,599.521,-156.732), Point::new(545.761,545.585,-211.069), Point::new(589.029,456.419,-167.156), Point::new(501.442,452.489,-89.128)],\n        ];\n\n        for poly in polys.iter_mut() {\n            if poly.len() > 3 && poly[0].distance(&poly[poly.len()-1], None) < 1e-6 {\n                poly.pop();\n\n        let m = Mesh::from_polylines(polys, Some(1.0));\n        let cc = CrossConnectors::new(&m, 2.0, &[0.0], 2, 10.0, 10.0, 2.0, 0.0);\n\n\n        for i in 0..cc.face_polylines.len() {\n            for pl in &cc.face_polylines[i] {\n\n        for i in 0..cc.edge_polylines.len() {\n            for pl in &cc.edge_polylines[i] {",
     "checks": [
       {
         "line": 1139,
@@ -2487,7 +2487,7 @@
   {
     "test_name": "FoldedPlates",
     "passed": true,
-    "time_ms": 3.095,
+    "time_ms": 4.017,
     "line": 1047,
     "code": "        use crate::primitives::{Primitives, FoldedPlates};\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let arc = Primitives::arc(&Point::new(-10.0, 0.0, 0.0), &Point::new(0.0, 0.0, 10.0), &Point::new(10.0, 0.0, 0.0));\n        let mut srf = Primitives::create_extrusion(&arc, &Vector::new(0.0, 30.0, 0.0));\n        srf.transpose();\n\n        let fp = FoldedPlates::new(&srf, 5, 2, 0.5, 0.3, &[], &[0.0]);\n\n\n        for i in 0..fp.polylines.len() {\n            for j in 0..fp.polylines[i].len() {",
     "checks": [
@@ -3282,7 +3282,7 @@
   {
     "test_name": "Mesh_arrow",
     "passed": true,
-    "time_ms": 0.08,
+    "time_ms": 0.093,
     "line": 6,
     "code": "        use crate::primitives::Primitives;\n        use crate::line::Line;\n\n        let line = Line::new(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n        let m = Primitives::arrow_mesh(&line, 1.0);\n",
     "checks": [
@@ -3302,7 +3302,7 @@
   {
     "test_name": "Mesh_chevron",
     "passed": true,
-    "time_ms": 5.363,
+    "time_ms": 6.576,
     "line": 1030,
     "code": "        use crate::primitives::Primitives;\n\n        let surfaces = Primitives::annen_surfaces();\n        for i in 0..surfaces.len() {\n\n        let m = Primitives::chevron_mesh(&surfaces[0], 4, 900.0, 0.5, 0.05799);",
     "checks": [
@@ -3447,7 +3447,7 @@
   {
     "test_name": "Mesh_cone_subdivisions",
     "passed": true,
-    "time_ms": 0.245,
+    "time_ms": 0.259,
     "line": 893,
     "code": "        use crate::primitives::Primitives;\n\n        let cone = Primitives::cone_surface(0.0, 0.0, 0.0, 3.0, 5.0);\n\n        let m1 = Primitives::quad_mesh(&cone, 8, 4);\n\n        let m2 = Primitives::diamond_mesh(&cone, 8, 4);\n\n        let m3 = Primitives::hex_mesh(&cone, 6, 4, 1.0/3.0);",
     "checks": [
@@ -3502,7 +3502,7 @@
   {
     "test_name": "Mesh_cube",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.062,
     "line": 971,
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::cube(2.0);",
     "checks": [
@@ -3527,7 +3527,7 @@
   {
     "test_name": "Mesh_cylinder",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.055,
     "line": 19,
     "code": "        use crate::primitives::Primitives;\n        use crate::line::Line;\n\n        let line = Line::new(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n        let m = Primitives::cylinder_mesh(&line, 1.0);\n",
     "checks": [
@@ -3547,7 +3547,7 @@
   {
     "test_name": "Mesh_diamond_mesh",
     "passed": true,
-    "time_ms": 0.1,
+    "time_ms": 0.12,
     "line": 857,
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::diamond_mesh(&cyl, 8, 4);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::diamond_mesh(&sph, 8, 4);",
     "checks": [
@@ -3587,7 +3587,7 @@
   {
     "test_name": "Mesh_dodecahedron",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.068,
     "line": 1004,
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::dodecahedron(2.0);",
     "checks": [
@@ -3612,7 +3612,7 @@
   {
     "test_name": "Mesh_hex_mesh",
     "passed": true,
-    "time_ms": 0.183,
+    "time_ms": 0.205,
     "line": 875,
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::hex_mesh(&cyl, 6, 4, 1.0/3.0);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::hex_mesh(&sph, 6, 4, 1.0/3.0);",
     "checks": [
@@ -3652,7 +3652,7 @@
   {
     "test_name": "Mesh_icosahedron",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.055,
     "line": 993,
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::icosahedron(2.0);",
     "checks": [
@@ -3677,7 +3677,7 @@
   {
     "test_name": "Mesh_octahedron",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.027,
     "line": 982,
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::octahedron(2.0);",
     "checks": [
@@ -3702,7 +3702,7 @@
   {
     "test_name": "Mesh_quad_mesh",
     "passed": true,
-    "time_ms": 0.128,
+    "time_ms": 0.167,
     "line": 839,
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::quad_mesh(&cyl, 8, 4);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::quad_mesh(&sph, 8, 4);",
     "checks": [
@@ -3742,7 +3742,7 @@
   {
     "test_name": "Mesh_tetrahedron",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.014,
     "line": 960,
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::tetrahedron(2.0);",
     "checks": [
@@ -3792,7 +3792,7 @@
   {
     "test_name": "Nurbscurve_circle",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.001,
     "line": 50,
     "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n",
     "checks": [
@@ -3842,7 +3842,7 @@
   {
     "test_name": "Nurbscurve_hyperbola",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.019,
     "line": 106,
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n\n        let center = Point::new(0.0, 0.0, 0.0);\n        let c = Primitives::hyperbola(&center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -3867,7 +3867,7 @@
   {
     "test_name": "Nurbscurve_interpolated",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.018,
     "line": 916,
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n        use crate::knot::CurveKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0), Point::new(15.342777, 13.734889, 0.0), Point::new(21.897914, 32.239195, 0.0),\n            Point::new(24.678472, 0.354555, 0.0), Point::new(33.813678, 24.76858, 0.0),\n            Point::new(39.626394, 15.47249, 0.0), Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = Primitives::create_interpolated(&points, CurveKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n        let knots = c.get_knots();\n\n\n        let pts4 = vec![Point::new(0.0,0.0,0.0), Point::new(1.0,2.0,0.0), Point::new(3.0,1.0,0.0), Point::new(5.0,3.0,0.0)];\n        let c4 = Primitives::create_interpolated(&pts4, CurveKnotStyle::Chord);\n        let (d4_0, d4_1) = c4.domain();",
     "checks": [
@@ -3997,7 +3997,7 @@
   {
     "test_name": "Nurbscurve_polyline",
     "passed": true,
-    "time_ms": 0.081,
+    "time_ms": 0.138,
     "line": 32,
     "code": "        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c = NurbsCurve::create(false, 1, &[\n            Point::new(0.0,0.0,0.0), Point::new(1.0,2.0,0.0), Point::new(2.0,0.0,0.0),\n            Point::new(3.0,2.0,0.0), Point::new(4.0,0.0,0.0)]);\n",
     "checks": [
@@ -4037,7 +4037,7 @@
   {
     "test_name": "Nurbscurve_spiral",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.021,
     "line": 120,
     "code": "        use crate::primitives::Primitives;\n\n        let c = Primitives::spiral(1.0, 2.0, 1.0, 5.0);\n",
     "checks": [
@@ -4232,7 +4232,7 @@
   {
     "test_name": "Nurbssurface_edge",
     "passed": true,
-    "time_ms": 0.352,
+    "time_ms": 0.451,
     "line": 794,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let pts_south = vec![Point::new(1.0, 20.569076, 0.0), Point::new(1.0, 22.569076, 3.0), Point::new(1.0, 25.569076, 3.0), Point::new(1.0, 27.569076, 0.0)];\n        let pts_west  = vec![Point::new(10.0, 20.569076, 0.0), Point::new(5.5, 20.569076, 3.5), Point::new(1.0, 20.569076, 0.0)];\n        let pts_north = vec![Point::new(10.0, 20.569076, 0.0), Point::new(10.0, 22.569076, 3.0), Point::new(10.0, 25.569076, 3.0), Point::new(10.0, 27.569076, 0.0)];\n        let pts_east  = vec![Point::new(10.0, 27.569076, 0.0), Point::new(5.5, 27.569076, 3.5), Point::new(1.0, 27.569076, 0.0)];\n\n        let south = NurbsCurve::create(false, 3, &pts_south);\n        let west  = NurbsCurve::create(false, 2, &pts_west);\n        let north = NurbsCurve::create(false, 3, &pts_north);\n        let east  = NurbsCurve::create(false, 2, &pts_east);\n\n        let surf = Primitives::create_edge(&south, &west, &north, &east);\n        let m = surf.mesh();\n\n",
     "checks": [
@@ -4332,7 +4332,7 @@
   {
     "test_name": "Nurbssurface_extrusion",
     "passed": true,
-    "time_ms": 0.603,
+    "time_ms": 0.694,
     "line": 489,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let dir = Vector::new(0.0, 1.0, 5.0);\n\n        let c1 = NurbsCurve::create(false, 1, &[Point::new(13.0,0.0,0.0), Point::new(18.0,0.0,0.0)]);\n        let s_line = Primitives::create_extrusion(&c1, &dir);\n        let m_line = s_line.mesh();\n\n        let c2 = Primitives::circle(24.0, 0.0, 0.0, 3.0);\n        let s_circle = Primitives::create_extrusion(&c2, &dir);\n        let m_circle = s_circle.mesh();\n\n        let c3 = NurbsCurve::create(false, 2, &[Point::new(30.0,0.0,0.0), Point::new(33.0,5.0,0.0), Point::new(37.0,0.0,0.0)]);\n        let s_arc = Primitives::create_extrusion(&c3, &dir);\n        let m_arc = s_arc.mesh();\n\n        let c4 = NurbsCurve::create(false, 1, &[Point::new(40.0,3.0,0.0), Point::new(45.0,0.0,0.0), Point::new(50.0,3.0,0.0), Point::new(55.0,0.0,0.0)]);\n        let s_wavy = Primitives::create_extrusion(&c4, &dir);\n        let m_wavy = s_wavy.mesh();\n\n\n\n",
     "checks": [
@@ -4562,7 +4562,7 @@
   {
     "test_name": "Nurbssurface_loft",
     "passed": true,
-    "time_ms": 0.108,
+    "time_ms": 0.121,
     "line": 564,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c1 = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n        let c2 = Primitives::circle(0.0, 0.0, 2.0, 1.0);\n        let c3 = Primitives::circle(0.0, 0.0, 4.0, 1.5);\n        let c4 = Primitives::circle(0.0, 0.0, 6.0, 0.8);\n\n        let srf = Primitives::create_loft(&[c1, c2, c3, c4], 3);\n\n\n        let open_pts = vec![\n            vec![Point::new(10.0, -12.0, 0.0), Point::new(10.0, -10.0, 3.0), Point::new(10.0, -7.0, 3.0), Point::new(10.0, -5.0, 0.0)],\n            vec![Point::new(5.5, -12.0, 3.5), Point::new(5.5, -10.0, 1.5), Point::new(5.5, -7.0, 1.5), Point::new(5.5, -5.0, 3.5)],\n            vec![Point::new(1.0, -12.0, 0.0), Point::new(1.0, -10.0, 3.0), Point::new(1.0, -7.0, 3.0), Point::new(1.0, -5.0, 0.0)],\n        ];\n        let open_curves = vec![\n            NurbsCurve::create(false, 3, &open_pts[0]),\n            NurbsCurve::create(false, 3, &open_pts[1]),\n            NurbsCurve::create(false, 3, &open_pts[2]),\n        ];\n        let open_srf = Primitives::create_loft(&open_curves, 3);\n\n",
     "checks": [
@@ -4842,7 +4842,7 @@
   {
     "test_name": "Nurbssurface_planar",
     "passed": true,
-    "time_ms": 10.967,
+    "time_ms": 14.406,
     "line": 397,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let c1 = 0.7_f64.cos(); let s1 = 0.7_f64.sin();\n        let c2 = 0.96_f64.cos(); let s2 = 0.96_f64.sin();\n        let c3 = 0.52_f64.cos(); let s3 = 0.52_f64.sin();\n        let c4 = 1.13_f64.cos(); let s4 = 1.13_f64.sin();\n\n        let ca = NurbsCurve::create(false, 1, &[\n            Point::new(0.0,0.0,0.0), Point::new(4.0,0.0,0.0),\n            Point::new(4.0,3.0*c1,3.0*s1), Point::new(0.0,3.0*c1,3.0*s1),\n            Point::new(0.0,0.0,0.0)]);\n        let s_quad = Primitives::create_planar(&ca);\n        let m_quad = s_quad.mesh();\n\n        let cb1 = NurbsCurve::create(false, 1, &[\n            Point::new(8.0,0.0,0.0), Point::new(8.0+5.0*c2,0.0,5.0*s2),\n            Point::new(8.0+2.0*c2,3.0,2.0*s2), Point::new(8.0,0.0,0.0)]);\n        let s_triangle = Primitives::create_planar(&cb1);\n        let m_triangle = s_triangle.mesh();\n\n        let ox = 18.0;\n        let cb2 = NurbsCurve::create(false, 1, &[\n            Point::new(ox+0.0*c3,0.0*s3,0.0),\n            Point::new(ox+4.0*c3,4.0*s3,0.0),\n            Point::new(ox+5.0*c3-2.0*s3,5.0*s3+2.0*c3,0.0),\n            Point::new(ox+3.0*c3-4.0*s3,3.0*s3+4.0*c3,0.0),\n            Point::new(ox-1.0*c3-3.0*s3,-1.0*s3+3.0*c3,0.0),\n            Point::new(ox+0.0*c3,0.0*s3,0.0)]);\n        let s_polygon = Primitives::create_planar(&cb2);\n        let m_polygon = s_polygon.mesh();\n\n        let cc = NurbsCurve::create(false, 3, &[\n            Point::new(26.0,0.0,0.0),\n            Point::new(29.0,1.0*c4,1.0*s4),\n            Point::new(31.0,0.5*c4,0.5*s4),\n            Point::new(32.0,3.0*c4,3.0*s4),\n            Point::new(30.0,5.0*c4,5.0*s4),\n            Point::new(27.0,4.0*c4,4.0*s4),\n            Point::new(26.0,0.0,0.0)]);\n        let s_nurbs = Primitives::create_planar(&cc);\n        let m_nurbs = s_nurbs.mesh();\n\n\n\n",
     "checks": [
@@ -5052,7 +5052,7 @@
   {
     "test_name": "Nurbssurface_quad_sphere",
     "passed": true,
-    "time_ms": 0.098,
+    "time_ms": 0.154,
     "line": 227,
     "code": "        use crate::primitives::Primitives;\n\n        let r = 5.0_f64;\n        let faces = Primitives::quad_sphere(0.0, 0.0, 0.0, r);\n\n        for f in 0..6 {\n\n        let mut max_err = 0.0_f64;\n        for f in 0..6 {\n            for i in 0..=4 {\n                let u = i as f64 / 4.0;\n                for j in 0..=4 {\n                    let v = j as f64 / 4.0;\n                    let p = faces[f].point_at(u, v).unwrap();\n                    let dist = (p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt();\n                    let err = (dist - r).abs();\n                    if err > max_err { max_err = err; }",
     "checks": [
@@ -5252,7 +5252,7 @@
   {
     "test_name": "Nurbssurface_revolve",
     "passed": true,
-    "time_ms": 6.894,
+    "time_ms": 8.301,
     "line": 648,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pa = NurbsCurve::create(false, 3, &[\n            Point::new(1.5, 0.0, 0.0), Point::new(1.5, 0.0, 0.3), Point::new(0.3, 0.0, 0.5),\n            Point::new(0.3, 0.0, 2.5), Point::new(0.2, 0.0, 3.0), Point::new(2.0, 0.0, 4.5), Point::new(1.8, 0.0, 5.0)]);\n        let s_vase = Primitives::create_revolve(&pa, &Point::new(0.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_vase = s_vase.mesh();\n\n        let w = (2.0_f64).sqrt() / 2.0;\n        let cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0];\n        let ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        let rr = 5.0; let r = 1.5; let tcx = 14.0;\n        let mut pb = NurbsCurve::new(3, true, 3, 9);\n        for i in 0..10 { pb.set_knot(i, ck[i]); }\n        for i in 0..9 { pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i]); }\n        let s_torus = Primitives::create_revolve(&pb, &Point::new(tcx,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_torus = s_torus.mesh();\n\n        let pc = NurbsCurve::create(false, 1, &[Point::new(29.0, 0.0, -0.5), Point::new(29.0, 0.0, 0.5)]);\n        let s_elbow = Primitives::create_revolve(&pc, &Point::new(26.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), crate::tolerance::PI / 2.0);\n        let m_elbow = s_elbow.mesh();\n\n        let sr = 2.0; let scx = 36.0;\n        let mut pd = NurbsCurve::new(3, true, 3, 5);\n        let sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0];\n        for i in 0..6 { pd.set_knot(i, sk[i]); }\n        let spx = [0.0, sr, sr, sr, 0.0]; let spz = [-sr, -sr, 0.0, sr, sr]; let spw = [1.0, w, 1.0, w, 1.0];\n        for i in 0..5 { pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i]); }\n        let s_sphere = Primitives::create_revolve(&pd, &Point::new(scx,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_sphere = s_sphere.mesh();\n\n        let pe = NurbsCurve::create(false, 1, &[Point::new(44.0, 0.0, 3.0), Point::new(46.0, 0.0, 0.0)]);\n        let s_cone = Primitives::create_revolve(&pe, &Point::new(44.0,0.0,0.0), &Vector::new(0.0,0.0,1.0), 2.0 * crate::tolerance::PI);\n        let m_cone = s_cone.mesh();\n\n\n\n\n",
     "checks": [
@@ -5512,7 +5512,7 @@
   {
     "test_name": "Nurbssurface_ruled",
     "passed": true,
-    "time_ms": 1.05,
+    "time_ms": 1.424,
     "line": 291,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pts_a = vec![Point::new(3.0,0.0,0.0), Point::new(-2.0,0.0,5.0)];\n        let pts_b = vec![Point::new(3.0,5.0,5.0), Point::new(-2.0,5.0,0.0)];\n        let crv_a = NurbsCurve::create(false, 1, &pts_a);\n        let crv_b = NurbsCurve::create(false, 1, &pts_b);\n        let srf = Primitives::create_ruled(&crv_a, &crv_b);\n        let _m = srf.mesh();\n\n\n        let (rd, ruv) = srf.divide_by_count(4, 4);\n\n        let mut pts: Vec<Point> = Vec::new();\n        for i in 0..rd.len() {\n            for j in 0..rd[i].len() {\n                pts.push(rd[i][j].clone());\n\n        let mut normals: Vec<Vector> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                normals.push(srf.normal_at(ruv[i][j].0, ruv[i][j].1));\n\n        let mut uvs: Vec<(f64, f64)> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                uvs.push(ruv[i][j]);\n\n\n",
     "checks": [
@@ -5837,7 +5837,7 @@
   {
     "test_name": "Nurbssurface_sphere",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 192,
     "code": "        use crate::primitives::Primitives;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n\n\n        let p00 = s.point_at(0.0, 0.0).unwrap();\n\n        let p_top = s.point_at(0.0, 2.0).unwrap();\n\n        let p_eq = s.point_at(0.0, 1.0).unwrap();\n\n        let p_eq2 = s.point_at(1.0, 1.0).unwrap();",
     "checks": [
@@ -5937,7 +5937,7 @@
   {
     "test_name": "Nurbssurface_sweep",
     "passed": true,
-    "time_ms": 16.056,
+    "time_ms": 21.442,
     "line": 747,
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let rail = NurbsCurve::create(false, 2, &[Point::new(0.0,0.0,0.0), Point::new(0.0,5.0,0.0), Point::new(2.0,9.0,0.0)]);\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let s_sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let m_sweep1 = s_sweep1.mesh();\n\n        let rail1 = NurbsCurve::create(false, 2, &[Point::new(6.0,-1.0,0.0), Point::new(7.0,3.0,0.0), Point::new(8.0,4.0,0.0)]);\n        let rail2 = NurbsCurve::create(false, 2, &[Point::new(10.0,-1.0,0.0), Point::new(10.0,3.0,0.0), Point::new(9.0,4.0,0.0)]);\n        let shape1 = NurbsCurve::create(false, 2, &[Point::new(6.0,-1.0,0.0), Point::new(8.0,-1.0,2.0), Point::new(10.0,-1.0,0.0)]);\n        let shape2 = NurbsCurve::create(false, 2, &[Point::new(8.0,4.0,0.0), Point::new(8.5,4.0,1.5), Point::new(9.0,4.0,0.0)]);\n        let s_sweep2 = Primitives::create_sweep2(&rail1, &rail2, &[shape1, shape2]);\n        let m_sweep2 = s_sweep2.mesh();\n\n",
     "checks": [
@@ -6072,7 +6072,7 @@
   {
     "test_name": "Nurbssurface_torus",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 261,
     "code": "        use crate::primitives::Primitives;\n\n        let s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n\n\n        let p00 = s.point_at(0.0, 0.0).unwrap();\n\n        let p10 = s.point_at(1.0, 0.0).unwrap();\n\n        let p_top = s.point_at(0.0, 1.0).unwrap();",
     "checks": [
@@ -6157,7 +6157,7 @@
   {
     "test_name": "Nurbssurface_wave",
     "passed": true,
-    "time_ms": 0.111,
+    "time_ms": 0.132,
     "line": 1015,
     "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::wave_surface(10.0, 2.0);\n        let corner = srf.point_at(0.0, 0.0).unwrap();",
     "checks": [

@@ -71,10 +71,14 @@ window.API_INDEX = {
         "BoundingBox.corners",
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
+        "BoundingBox.from_mesh_with_plane",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_nurbssurface_with_plane",
         "BoundingBox.from_plane",
         "BoundingBox.from_pointcloud",
+        "BoundingBox.from_pointcloud_with_plane",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
@@ -111,11 +115,15 @@ window.API_INDEX = {
         "BoundingBox.corners",
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
+        "BoundingBox.from_mesh_with_plane",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_nurbssurface_with_plane",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
         "BoundingBox.from_pointcloud",
+        "BoundingBox.from_pointcloud_with_plane",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
         "BoundingBox.inflate",
@@ -129,7 +137,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_line(cls, line, inflate: float = 0.0)",
-          "code": "def from_line(cls, line, inflate: float = 0.0):\n\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt",
+          "code": "def from_line(cls, line, inflate: float = 0.0):\n\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()",
           "file": "boundingbox.py"
         },
         "cpp": {
@@ -147,13 +155,14 @@ window.API_INDEX = {
         "BoundingBox.__init__",
         "BoundingBox.from_mesh",
         "BoundingBox.from_nurbscurve",
+        "BoundingBox.from_nurbssurface",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.point_at"
+        "BoundingBox.inflate"
       ]
     },
     {
@@ -161,7 +170,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_polyline(cls, polyline, inflate: float = 0.0, plane=None)",
-          "code": "def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue",
+          "code": "def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:",
           "file": "boundingbox.py"
         },
         "cpp": {
@@ -180,8 +189,10 @@ window.API_INDEX = {
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
         "BoundingBox.from_nurbscurve",
+        "BoundingBox.from_nurbssurface",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.inflate",
@@ -193,24 +204,99 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_mesh(cls, mesh, inflate: float = 0.0, plane=None)",
-          "code": "def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]",
+          "code": "def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)",
           "file": "boundingbox.py"
         },
         "cpp": {
           "sig": "BoundingBox from_mesh(const Mesh& mesh, const Plane& plane, double inflate_amount)",
           "code": "BoundingBox BoundingBox::from_mesh(const Mesh& mesh, const Plane& plane, double inflate_amount) {\n    auto [vertices, faces] = mesh.to_vertices_and_faces();\n    return from_points(vertices, plane, inflate_amount);\n}",
           "file": "boundingbox.cpp"
+        },
+        "rust": {
+          "sig": "from_mesh(mesh: &crate::mesh::Mesh, inflate: f64) -> Self",
+          "code": "pub fn from_mesh(mesh: &crate::mesh::Mesh, inflate: f64) -> Self {\n        let (vertices, _) = mesh.to_vertices_and_faces();\n        Self::from_points(&vertices, inflate)\n    }",
+          "file": "boundingbox.rs"
         }
       },
       "related": [
         "BoundingBox.from_line",
+        "BoundingBox.from_mesh_with_plane",
         "BoundingBox.from_nurbscurve",
+        "BoundingBox.from_nurbssurface",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
         "BoundingBox.inflate",
+        "BoundingBox.point_at"
+      ]
+    },
+    {
+      "name": "BoundingBox.from_pointcloud",
+      "implementations": {
+        "python": {
+          "sig": "from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None)",
+          "code": "def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]\n                            fp = deriv[2][axis_idx]\n\n                        if abs(f) < 1e-12:\n                            break",
+          "file": "boundingbox.py"
+        },
+        "cpp": {
+          "sig": "BoundingBox from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount)",
+          "code": "BoundingBox BoundingBox::from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount) {\n    return from_points(pointcloud.get_points(), plane, inflate_amount);\n}",
+          "file": "boundingbox.cpp"
+        },
+        "rust": {
+          "sig": "from_pointcloud(pointcloud: &crate::pointcloud::PointCloud, inflate: f64) -> Self",
+          "code": "pub fn from_pointcloud(pointcloud: &crate::pointcloud::PointCloud, inflate: f64) -> Self {\n        Self::from_points(&pointcloud.get_points(), inflate)\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.from_line",
+        "BoundingBox.from_mesh",
+        "BoundingBox.from_nurbscurve",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud_with_plane",
+        "BoundingBox.from_points",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.from_polyline",
+        "BoundingBox.inflate",
+        "BoundingBox.point_at"
+      ]
+    },
+    {
+      "name": "BoundingBox.from_nurbssurface",
+      "implementations": {
+        "python": {
+          "sig": "from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None)",
+          "code": "def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]\n                            fp = deriv[2][axis_idx]\n\n                        if abs(f) < 1e-12:\n                            break\n\n                        if abs(fp) > 1e-14:\n                            t_new = t_root - f / fp\n                            if t_lo <= t_new <= t_hi:\n                                t_root = t_new\n                            else:\n                                if f * d_start < 0:",
+          "file": "boundingbox.py"
+        },
+        "cpp": {
+          "sig": "BoundingBox from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount)",
+          "code": "BoundingBox BoundingBox::from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount) {\n    if (!surface.is_valid() || surface.cv_count(0) == 0 || surface.cv_count(1) == 0) {\n        return BoundingBox();\n    }",
+          "file": "boundingbox.cpp"
+        },
+        "rust": {
+          "sig": "from_nurbssurface(surface: &crate::nurbssurface::NurbsSurface, inflate: f64) -> Self",
+          "code": "pub fn from_nurbssurface(surface: &crate::nurbssurface::NurbsSurface, inflate: f64) -> Self {\n        if !surface.is_valid() || surface.cv_count_dir(Some(0)) == 0 || surface.cv_count_dir(Some(1)) == 0 {\n            return BoundingBox::default();\n        }\n        let mut points = Vec::new();\n        for i in 0..surface.cv_count_dir(Some(0)) {\n            for j in 0..surface.cv_count_dir(Some(1)) {\n                if let Some(pt) = surface.get_cv(i, j) {\n                    points.push(pt);\n                }\n            }\n        }\n        Self::from_points(&points, inflate)\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.from_line",
+        "BoundingBox.from_mesh",
+        "BoundingBox.from_nurbscurve",
+        "BoundingBox.from_nurbssurface_with_plane",
+        "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
+        "BoundingBox.from_points",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.from_polyline",
+        "BoundingBox.inflate",
+        "BoundingBox.new",
         "BoundingBox.point_at"
       ]
     },
@@ -237,7 +323,9 @@ window.API_INDEX = {
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
         "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
@@ -251,7 +339,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_points_with_plane(cls, points: List[Point], plane, inflate: float = 0.0)",
-          "code": "def from_points_with_plane(cls, points: List[Point], plane, inflate: float = 0.0):\n\n        if not points:\n            return cls()\n\n        from .xform import Xform\n        origin = plane.origin\n        x_axis = plane.x_axis\n        y_axis = plane.y_axis\n        z_axis = plane.z_axis\n        plane_to_xy = Xform.plane_to_xy(origin, x_axis, y_axis, z_axis)\n\n        min_x = min_y = min_z = float('inf')\n        max_x = max_y = max_z = float('-inf')\n\n        for pt in points:\n            local_pt = plane_to_xy.transformed_point(pt)\n            min_x = min(min_x, local_pt.x)\n            min_y = min(min_y, local_pt.y)\n            min_z = min(min_z, local_pt.z)\n            max_x = max(max_x, local_pt.x)\n            max_y = max(max_y, local_pt.y)\n            max_z = max(max_z, local_pt.z)\n\n        local_center = Point((min_x + max_x) * 0.5, (min_y + max_y) * 0.5, (min_z + max_z) * 0.5)\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate\n        )\n\n        xy_to_plane = Xform.xy_to_plane(origin, x_axis, y_axis, z_axis)\n        world_center = xy_to_plane.transformed_point(local_center)\n\n        return cls(world_center, x_axis, y_axis, z_axis, half_size)\n\n    def point_at(self, x: float, y: float, z: float) -> Point:\n        return Point(\n            self.center.x + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center.y + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center.z + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x - self.half_size[0],\n            self.center.y - self.half_size[1],\n            self.center.z - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x + self.half_size[0],\n            self.center.y + self.half_size[1],\n            self.center.z + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),",
+          "code": "def from_points_with_plane(cls, points: List[Point], plane, inflate: float = 0.0):\n\n        if not points:\n            return cls()\n\n        from .xform import Xform\n        origin = plane.origin\n        x_axis = plane.x_axis\n        y_axis = plane.y_axis\n        z_axis = plane.z_axis\n        plane_to_xy = Xform.plane_to_xy(origin, x_axis, y_axis, z_axis)\n\n        min_x = min_y = min_z = float('inf')\n        max_x = max_y = max_z = float('-inf')\n\n        for pt in points:\n            local_pt = plane_to_xy.transformed_point(pt)\n            min_x = min(min_x, local_pt.x)\n            min_y = min(min_y, local_pt.y)\n            min_z = min(min_z, local_pt.z)\n            max_x = max(max_x, local_pt.x)\n            max_y = max(max_y, local_pt.y)\n            max_z = max(max_z, local_pt.z)\n\n        local_center = Point((min_x + max_x) * 0.5, (min_y + max_y) * 0.5, (min_z + max_z) * 0.5)\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate\n        )\n\n        xy_to_plane = Xform.xy_to_plane(origin, x_axis, y_axis, z_axis)\n        world_center = xy_to_plane.transformed_point(local_center)\n\n        return cls(world_center, x_axis, y_axis, z_axis, half_size)\n\n    def aabb(self):\n        ex, ey, ez = self.half_size[0], self.half_size[1], self.half_size[2]\n        hx = abs(self.x_axis[0]) * ex + abs(self.y_axis[0]) * ey + abs(self.z_axis[0]) * ez\n        hy = abs(self.x_axis[1]) * ex + abs(self.y_axis[1]) * ey + abs(self.z_axis[1]) * ez\n        hz = abs(self.x_axis[2]) * ex + abs(self.y_axis[2]) * ey + abs(self.z_axis[2]) * ez\n        return BoundingBox(self.center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz))\n\n    def point_at(self, x: float, y: float, z: float) -> Point:\n        return Point(\n            self.center.x + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center.y + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center.z + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x - self.half_size[0],\n            self.center.y - self.half_size[1],\n            self.center.z - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x + self.half_size[0],\n            self.center.y + self.half_size[1],\n            self.center.z + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.",
           "file": "boundingbox.py"
         },
         "rust": {
@@ -261,12 +349,18 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BoundingBox.aabb",
         "BoundingBox.corners",
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
+        "BoundingBox.from_mesh_with_plane",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_nurbssurface_with_plane",
         "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
+        "BoundingBox.from_pointcloud_with_plane",
         "BoundingBox.from_points",
         "BoundingBox.from_polyline",
         "BoundingBox.inflate",
@@ -276,6 +370,36 @@ window.API_INDEX = {
         "BoundingBox.point_at",
         "BoundingBox.transform",
         "BoundingBox.transformed"
+      ]
+    },
+    {
+      "name": "BoundingBox.aabb",
+      "implementations": {
+        "python": {
+          "sig": "aabb()",
+          "code": "def aabb(self):\n\n        ex, ey, ez = self.half_size[0], self.half_size[1], self.half_size[2]\n        hx = abs(self.x_axis[0]) * ex + abs(self.y_axis[0]) * ey + abs(self.z_axis[0]) * ez\n        hy = abs(self.x_axis[1]) * ex + abs(self.y_axis[1]) * ey + abs(self.z_axis[1]) * ez\n        hz = abs(self.x_axis[2]) * ex + abs(self.y_axis[2]) * ey + abs(self.z_axis[2]) * ez\n        return BoundingBox(self.center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz))\n\n    def point_at(self, x: float, y: float, z: float) -> Point:\n        return Point(\n            self.center.x + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center.y + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center.z + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x - self.half_size[0],\n            self.center.y - self.half_size[1],\n            self.center.z - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center.x + self.half_size[0],\n            self.center.y + self.half_size[1],\n            self.center.z + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,",
+          "file": "boundingbox.py"
+        },
+        "cpp": {
+          "sig": "BoundingBox aabb()",
+          "code": "BoundingBox BoundingBox::aabb() const {\n    double ex = half_size[0];\n    double ey = half_size[1];\n    double ez = half_size[2];\n    double hx = std::abs(x_axis[0]) * ex + std::abs(y_axis[0]) * ey + std::abs(z_axis[0]) * ez;\n    double hy = std::abs(x_axis[1]) * ex + std::abs(y_axis[1]) * ey + std::abs(z_axis[1]) * ez;\n    double hz = std::abs(x_axis[2]) * ex + std::abs(y_axis[2]) * ey + std::abs(z_axis[2]) * ez;\n    return BoundingBox(center, Vector(1,0,0), Vector(0,1,0), Vector(0,0,1), Vector(hx, hy, hz));\n}",
+          "file": "boundingbox.cpp"
+        },
+        "rust": {
+          "sig": "aabb() -> Self",
+          "code": "pub fn aabb(&self) -> Self {\n        let ex = self.half_size[0];\n        let ey = self.half_size[1];\n        let ez = self.half_size[2];\n        let hx = self.x_axis[0].abs() * ex + self.y_axis[0].abs() * ey + self.z_axis[0].abs() * ez;\n        let hy = self.x_axis[1].abs() * ex + self.y_axis[1].abs() * ey + self.z_axis[1].abs() * ez;\n        let hz = self.x_axis[2].abs() * ex + self.y_axis[2].abs() * ey + self.z_axis[2].abs() * ez;\n        BoundingBox::new(\n            self.center.clone(),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(hx, hy, hz),\n        )\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.corners",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.inflate",
+        "BoundingBox.max_point",
+        "BoundingBox.min_point",
+        "BoundingBox.new",
+        "BoundingBox.point_at",
+        "BoundingBox.two_rectangles"
       ]
     },
     {
@@ -299,11 +423,13 @@ window.API_INDEX = {
       },
       "related": [
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.corners",
-        "BoundingBox.from_line",
         "BoundingBox.from_mesh",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_pointcloud",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
         "BoundingBox.inflate",
@@ -335,6 +461,7 @@ window.API_INDEX = {
       },
       "related": [
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.corners",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.inflate",
@@ -366,6 +493,7 @@ window.API_INDEX = {
       },
       "related": [
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.collides_with",
         "BoundingBox.corners",
         "BoundingBox.from_point",
@@ -400,6 +528,7 @@ window.API_INDEX = {
       },
       "related": [
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.collides_with",
         "BoundingBox.from_point",
         "BoundingBox.from_points",
@@ -433,6 +562,7 @@ window.API_INDEX = {
       },
       "related": [
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.collides_with",
         "BoundingBox.corners",
         "BoundingBox.from_point",
@@ -466,16 +596,20 @@ window.API_INDEX = {
       "related": [
         "BoundingBox.__init__",
         "BoundingBox._separating_plane_exists",
+        "BoundingBox.aabb",
         "BoundingBox.collides_with",
         "BoundingBox.corners",
         "BoundingBox.from_line",
         "BoundingBox.from_mesh",
+        "BoundingBox.from_mesh_with_plane",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
         "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_nurbssurface_with_plane",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
         "BoundingBox.from_pointcloud",
+        "BoundingBox.from_pointcloud_with_plane",
         "BoundingBox.from_points",
         "BoundingBox.from_points_with_plane",
         "BoundingBox.from_polyline",
@@ -6030,12 +6164,14 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(point: Point = None)",
-          "code": "def __init__(self, point: Point = None):\n\n        if point is None:\n            point = Point(0.0, 0.0, 0.0)\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n        self.attributes = {}\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.",
+          "code": "def __init__(self, point: Point = None):\n\n        if point is None:\n            point = Point(0.0, 0.0, 0.0)\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n        self.attributes = {}\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:",
           "file": "mesh.py"
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.normal",
@@ -6050,15 +6186,16 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__getitem__(index)",
-          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.",
+          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.",
           "file": "mesh.py"
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
-        "VertexData.new",
         "VertexData.normal",
         "VertexData.position",
         "VertexData.set_color",
@@ -6071,13 +6208,15 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__setitem__(index, value)",
-          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list",
+          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict",
           "file": "mesh.py"
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6092,7 +6231,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "position() -> Point",
-          "code": "def position(self) -> Point:\n\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}",
+          "code": "def position(self) -> Point:\n\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).",
           "file": "mesh.py"
         },
         "rust": {
@@ -6102,8 +6241,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.new",
@@ -6118,7 +6259,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_position(point: Point)",
-          "code": "def set_position(self, point: Point):\n\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}",
+          "code": "def set_position(self, point: Point):\n\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"",
           "file": "mesh.py"
         },
         "rust": {
@@ -6128,8 +6269,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.new",
@@ -6144,7 +6287,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "color() -> List[float]",
-          "code": "def color(self) -> List[float]:\n\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"",
+          "code": "def color(self) -> List[float]:\n\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}",
           "file": "mesh.py"
         },
         "rust": {
@@ -6154,8 +6297,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.new",
         "VertexData.normal",
@@ -6170,7 +6315,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_color(r: float, g: float, b: float)",
-          "code": "def set_color(self, r: float, g: float, b: float):\n\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    ###########################################################################################\n    # Basic Queries",
+          "code": "def set_color(self, r: float, g: float, b: float):\n\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"",
           "file": "mesh.py"
         },
         "rust": {
@@ -6180,8 +6325,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.new",
@@ -6196,7 +6343,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "normal() -> Optional[List[float]]",
-          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)",
+          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()",
           "file": "mesh.py"
         },
         "rust": {
@@ -6206,8 +6353,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.new",
@@ -6222,7 +6371,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_normal(nx: float, ny: float, nz: float)",
-          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:",
+          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}",
           "file": "mesh.py"
         },
         "rust": {
@@ -6232,8 +6381,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "VertexData.__eq__",
         "VertexData.__getitem__",
         "VertexData.__init__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.new",
@@ -6244,22 +6395,201 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Mesh.__init__",
+      "name": "VertexData.__eq__",
       "implementations": {
         "python": {
-          "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()",
+          "sig": "__eq__(other)",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face",
           "file": "mesh.py"
         }
       },
       "related": [
+        "VertexData.__getitem__",
+        "VertexData.__init__",
+        "VertexData.__ne__",
+        "VertexData.__setitem__",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal",
+        "VertexData.set_position"
+      ]
+    },
+    {
+      "name": "VertexData.__ne__",
+      "implementations": {
+        "python": {
+          "sig": "__ne__(other)",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "VertexData.__eq__",
+        "VertexData.__getitem__",
+        "VertexData.__init__",
+        "VertexData.__setitem__",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal",
+        "VertexData.set_position"
+      ]
+    },
+    {
+      "name": "Mesh.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__()",
+          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.repr",
+        "Mesh.str"
+      ]
+    },
+    {
+      "name": "Mesh.__copy__",
+      "implementations": {
+        "python": {
+          "sig": "__copy__()",
+          "code": "def __copy__(self):\n\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.is_empty",
+        "Mesh.is_valid",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.repr",
+        "Mesh.str"
+      ]
+    },
+    {
+      "name": "Mesh.__eq__",
+      "implementations": {
+        "python": {
+          "sig": "__eq__(other)",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.clear",
         "Mesh.euler",
         "Mesh.is_empty",
         "Mesh.is_valid",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.repr",
+        "Mesh.str"
+      ]
+    },
+    {
+      "name": "Mesh.__ne__",
+      "implementations": {
+        "python": {
+          "sig": "__ne__(other)",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.euler",
+        "Mesh.is_empty",
+        "Mesh.is_valid",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.repr",
+        "Mesh.str"
+      ]
+    },
+    {
+      "name": "Mesh.__str__",
+      "implementations": {
+        "python": {
+          "sig": "__str__()",
+          "code": "def __str__(self):\n\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.euler",
+        "Mesh.is_empty",
+        "Mesh.is_valid",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.repr",
+        "Mesh.str"
+      ]
+    },
+    {
+      "name": "Mesh.__repr__",
+      "implementations": {
+        "python": {
+          "sig": "__repr__()",
+          "code": "def __repr__(self):\n\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__str__",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.euler",
+        "Mesh.is_empty",
+        "Mesh.is_valid",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.repr"
       ]
     },
     {
@@ -6277,7 +6607,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
         "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_vertex",
         "Mesh.clear",
         "Mesh.euler",
@@ -6302,7 +6637,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
         "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_vertex",
         "Mesh.clear",
         "Mesh.euler",
@@ -6332,7 +6672,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
         "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_vertex",
         "Mesh.clear",
         "Mesh.euler",
@@ -6358,11 +6703,16 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__init__",
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.clear",
         "Mesh.euler",
+        "Mesh.from_lines",
         "Mesh.is_valid",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -6392,7 +6742,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__init__",
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.clear",
@@ -6423,7 +6777,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__init__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.clear",
@@ -6454,7 +6811,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__init__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.build_triangle_bvh",
@@ -6487,11 +6847,17 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.clear",
         "Mesh.euler",
         "Mesh.face_normals",
-        "Mesh.from_polygons",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vid",
         "Mesh.get_vkey",
         "Mesh.is_empty",
         "Mesh.is_valid",
@@ -6528,7 +6894,10 @@ window.API_INDEX = {
         "Mesh.euler",
         "Mesh.face_normals",
         "Mesh.face_vertices",
-        "Mesh.from_polygons",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vid",
         "Mesh.get_vkey",
         "Mesh.is_empty",
         "Mesh.is_valid",
@@ -6595,7 +6964,6 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.face_area",
         "Mesh.face_normal",
-        "Mesh.get_vkey",
         "Mesh.is_vertex_on_boundary",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
@@ -6833,6 +7201,7 @@ window.API_INDEX = {
         "Mesh.face_vertices",
         "Mesh.is_vertex_on_boundary",
         "Mesh.new",
+        "Mesh.str",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_faces",
         "Mesh.vertex_index",
@@ -6849,7 +7218,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_angle_in_face(vertex_key: int, face_key: int) -> Optional[float]",
-          "code": "def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_position(vertex_key)\n        prev_pos = self.vertex_position(prev_vertex)\n        next_pos = self.vertex_position(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos.x - center.x, prev_pos.y - center.y, prev_pos.z - center.z)\n        v = Vector(next_pos.x - center.x, next_pos.y - center.y, next_pos.z - center.z)\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:",
+          "code": "def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_position(vertex_key)\n        prev_pos = self.vertex_position(prev_vertex)\n        next_pos = self.vertex_position(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos.x - center.x, prev_pos.y - center.y, prev_pos.z - center.z)\n        v = Vector(next_pos.x - center.x, next_pos.y - center.y, next_pos.z - center.z)\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -6868,10 +7237,11 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
-        "Mesh.from_polygons",
+        "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.is_vertex_on_boundary",
         "Mesh.new",
+        "Mesh.str",
         "Mesh.vertex_faces",
         "Mesh.vertex_index",
         "Mesh.vertex_neighbors",
@@ -6887,7 +7257,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_normals() -> Dict[int, Vector]",
-          "code": "def face_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:",
+          "code": "def face_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    @staticmethod\n    def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n        mesh = Mesh()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -6906,11 +7276,12 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.face_area",
         "Mesh.face_normal",
-        "Mesh.from_polygons",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
         "Mesh.new",
+        "Mesh.str",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
@@ -6922,7 +7293,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals() -> Dict[int, Vector]",
-          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())",
+          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    @staticmethod\n    def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def from_lines(",
           "file": "mesh.py"
         },
         "cpp": {
@@ -6941,10 +7312,12 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.face_area",
         "Mesh.face_normals",
-        "Mesh.from_polygons",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
+        "Mesh.str",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted"
@@ -6955,7 +7328,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals_weighted(weighting: NormalWeighting) -> Dict[int, Vector]",
-          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.",
+          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        normals = {}\n        for vertex_key in self.vertex:\n            normal = self.vertex_normal_weighted(vertex_key, weighting)\n            if normal is not None:\n                normals[vertex_key] = normal\n        return normals\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    @staticmethod\n    def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -6974,33 +7347,34 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.face_area",
         "Mesh.face_normals",
-        "Mesh.from_polygons",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
         "Mesh.new",
-        "Mesh.to_vertices_and_faces",
+        "Mesh.str",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals"
       ]
     },
     {
-      "name": "Mesh.from_polygons",
+      "name": "Mesh.from_polylines",
       "implementations": {
         "python": {
-          "sig": "from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\"",
-          "code": "def from_polygons(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering",
+          "sig": "from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\"",
+          "code": "def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    @staticmethod\n    def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p.x for p in all_pts]\n            ys = [p.y for p in all_pts]\n            zs = [p.z for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6",
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "return from_polygons(polygons, 0.01)",
-          "code": "return Mesh::from_polygons(polygons, 0.01);\n}",
+          "sig": "return from_polylines(polygons, 0.01)",
+          "code": "return Mesh::from_polylines(polygons, 0.01);\n}",
           "file": "primitives.cpp"
         },
         "rust": {
-          "sig": "from_polygons(polygons: Vec<Vec<Point>>, precision: Option<f64>) -> Self",
-          "code": "pub fn from_polygons(polygons: Vec<Vec<Point>>, precision: Option<f64>) -> Self {\n        let mut mesh = Mesh::new();\n        let mut map_eps: HashMap<(i64, i64, i64), usize> = HashMap::new();\n        let mut map_exact: HashMap<(u64, u64, u64), usize> = HashMap::new();\n        let eps = precision.unwrap_or(0.0);\n        let use_eps = eps > 0.0;\n\n        let mut get_vkey = |p: &Point, mesh: &mut Mesh| -> usize {\n            if use_eps {\n                let kx = (p[0] / eps).round() as i64;\n                let ky = (p[1] / eps).round() as i64;\n                let kz = (p[2] / eps).round() as i64;\n                let key = (kx, ky, kz);\n                if let Some(&vk) = map_eps.get(&key) {\n                    return vk;\n                }\n                let vk = mesh.add_vertex(p.clone(), None);\n                map_eps.insert(key, vk);\n                vk\n            } else {\n                let key = (p[0].to_bits(), p[1].to_bits(), p[2].to_bits());\n                if let Some(&vk) = map_exact.get(&key) {\n                    return vk;\n                }\n                let vk = mesh.add_vertex(p.clone(), None);\n                map_exact.insert(key, vk);\n                vk\n            }\n        };\n\n        for poly in polygons.into_iter() {\n            if poly.len() < 3 {\n                continue;\n            }\n            let mut vkeys: Vec<usize> = Vec::with_capacity(poly.len());\n            for p in &poly {\n                let vk = get_vkey(p, &mut mesh);\n                vkeys.push(vk);\n            }\n            let _ = mesh.add_face(vkeys, None);\n        }\n\n        mesh\n    }",
+          "sig": "from_polylines(polygons: Vec<Vec<Point>>, precision: Option<f64>) -> Self",
+          "code": "pub fn from_polylines(polygons: Vec<Vec<Point>>, precision: Option<f64>) -> Self {\n        let mut mesh = Mesh::new();\n        let mut map_eps: HashMap<(i64, i64, i64), usize> = HashMap::new();\n        let mut map_exact: HashMap<(u64, u64, u64), usize> = HashMap::new();\n        let eps = precision.unwrap_or(0.0);\n        let use_eps = eps > 0.0;\n\n        let mut get_vkey = |p: &Point, mesh: &mut Mesh| -> usize {\n            if use_eps {\n                let kx = (p[0] / eps).round() as i64;\n                let ky = (p[1] / eps).round() as i64;\n                let kz = (p[2] / eps).round() as i64;\n                let key = (kx, ky, kz);\n                if let Some(&vk) = map_eps.get(&key) {\n                    return vk;\n                }\n                let vk = mesh.add_vertex(p.clone(), None);\n                map_eps.insert(key, vk);\n                vk\n            } else {\n                let key = (p[0].to_bits(), p[1].to_bits(), p[2].to_bits());\n                if let Some(&vk) = map_exact.get(&key) {\n                    return vk;\n                }\n                let vk = mesh.add_vertex(p.clone(), None);\n                map_exact.insert(key, vk);\n                vk\n            }\n        };\n\n        for poly in polygons.into_iter() {\n            if poly.len() < 3 {\n                continue;\n            }\n            let mut vkeys: Vec<usize> = Vec::with_capacity(poly.len());\n            for p in &poly {\n                let vk = get_vkey(p, &mut mesh);\n                vkeys.push(vk);\n            }\n            let _ = mesh.add_face(vkeys, None);\n        }\n\n        mesh\n    }",
           "file": "mesh.rs"
         }
       },
@@ -7008,11 +7382,12 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.face_normals",
+        "Mesh.from_lines",
+        "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
         "Mesh.new",
-        "Mesh.to_vertices_and_faces",
+        "Mesh.str",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted"
       ]
@@ -7022,23 +7397,103 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_vkey(p: Point) -> int",
-          "code": "def get_vkey(p: Point) -> int:\n\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict",
+          "code": "def get_vkey(p: Point) -> int:\n\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)\n                map_eps[key] = vk\n                return vk\n            else:\n                key = (p.x, p.y, p.z)\n                if key in map_exact:\n                    return map_exact[key]\n                vk = mesh.add_vertex(p)\n                map_exact[key] = vk\n                return vk\n\n        for poly in polygons:\n            if len(poly) < 3:\n                continue\n            vkeys = [get_vkey(p) for p in poly]\n            mesh.add_face(vkeys)\n\n        return mesh\n\n    @staticmethod\n    def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p.x for p in all_pts]\n            ys = [p.y for p in all_pts]\n            zs = [p.z for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:",
           "file": "mesh.py"
         }
       },
       "related": [
-        "Mesh.__jsondump__",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.face_normals",
-        "Mesh.face_vertices",
-        "Mesh.from_polygons",
-        "Mesh.jsondump",
-        "Mesh.to_vertices_and_faces",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vid",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted"
+      ]
+    },
+    {
+      "name": "Mesh.from_vertices_and_faces",
+      "implementations": {
+        "python": {
+          "sig": "from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\"",
+          "code": "def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p.x for p in all_pts]\n            ys = [p.y for p in all_pts]\n            zs = [p.z for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v].x, verts[v].y\n            nbrs.sort(key=lambda n: math.atan2(verts[n].y - vy, verts[n].x - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []\n\n        for u in adj:\n            for v in adj[u]:\n                if (u, v) in visited:\n                    continue\n                cycle = []\n                cu, cv = u, v\n                valid = True\n                while True:\n                    if (cu, cv) in visited:\n                        break\n                    visited.add((cu, cv))\n                    cycle.append(cu)",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "Mesh from_vertices_and_faces(const std::vector<Point>& vertices,\n                                    const std::vector<std::vector<size_t>>& faces)",
+          "code": "Mesh Mesh::from_vertices_and_faces(const std::vector<Point>& vertices,\n                                    const std::vector<std::vector<size_t>>& faces) {\n    Mesh mesh;\n    for (const auto& pt : vertices)\n        mesh.add_vertex(pt);\n    for (const auto& f : faces)\n        mesh.add_face(f);\n    return mesh;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "from_vertices_and_faces(vertices: Vec<Point>, faces: Vec<Vec<usize>>) -> Self",
+          "code": "pub fn from_vertices_and_faces(vertices: Vec<Point>, faces: Vec<Vec<usize>>) -> Self {\n        let mut mesh = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::with_capacity(vertices.len());\n        for pt in vertices {\n            vkeys.push(mesh.add_vertex(pt, None));\n        }\n        for f in faces {\n            let mapped: Vec<usize> = f.iter().map(|&i| vkeys[i]).collect();\n            mesh.add_face(mapped, None);\n        }\n        mesh\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.face_normals",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.get_vid",
+        "Mesh.get_vkey",
+        "Mesh.new",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted"
+      ]
+    },
+    {
+      "name": "Mesh.from_lines",
+      "implementations": {
+        "python": {
+          "sig": "from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\"",
+          "code": "def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p.x for p in all_pts]\n            ys = [p.y for p in all_pts]\n            zs = [p.z for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v].x, verts[v].y\n            nbrs.sort(key=lambda n: math.atan2(verts[n].y - vy, verts[n].x - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []\n\n        for u in adj:\n            for v in adj[u]:\n                if (u, v) in visited:\n                    continue\n                cycle = []\n                cu, cv = u, v\n                valid = True\n                while True:\n                    if (cu, cv) in visited:\n                        break\n                    visited.add((cu, cv))\n                    cycle.append(cu)\n                    cv_nbrs = adj.get(cv, [])\n                    if cu not in cv_nbrs:\n                        valid = False\n                        break\n                    idx = cv_nbrs.index(cu)\n                    prev_idx = (idx - 1) % len(cv_nbrs)\n                    nxt = cv_nbrs[prev_idx]\n                    cu, cv = cv, nxt\n                    if len(cycle) > nv * 2:\n                        valid = False\n                        break\n                if valid and len(cycle) >= 3:",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "Mesh from_lines(const std::vector<Line>& lines, bool delete_boundary_face, std::optional<double> precision)",
+          "code": "Mesh Mesh::from_lines(const std::vector<Line>& lines, bool delete_boundary_face, std::optional<double> precision) {\n    if (lines.empty()) return Mesh();\n\n    // Collect all endpoints\n    std::vector<Point> all_pts;\n    all_pts.reserve(lines.size() * 2);\n    for (const auto& ln : lines) {\n        all_pts.push_back(ln.start());\n        all_pts.push_back(ln.end());\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "from_lines(lines: &[Line], delete_boundary_face: bool, precision: Option<f64>) -> Self",
+          "code": "pub fn from_lines(lines: &[Line], delete_boundary_face: bool, precision: Option<f64>) -> Self {\n        if lines.is_empty() {\n            return Mesh::new();\n        }\n\n        let mut all_pts: Vec<Point> = Vec::with_capacity(lines.len() * 2);\n        for ln in lines {\n            all_pts.push(ln.start());\n            all_pts.push(ln.end());\n        }\n\n        let mut eps = precision.unwrap_or(0.0);\n        if eps <= 0.0 {\n            let (mut minx, mut miny, mut minz) = (all_pts[0][0], all_pts[0][1], all_pts[0][2]);\n            let (mut maxx, mut maxy, mut maxz) = (minx, miny, minz);\n            for p in &all_pts {\n                if p[0] < minx { minx = p[0]; } if p[0] > maxx { maxx = p[0]; }\n                if p[1] < miny { miny = p[1]; } if p[1] > maxy { maxy = p[1]; }\n                if p[2] < minz { minz = p[2]; } if p[2] > maxz { maxz = p[2]; }\n            }\n            let diag = ((maxx-minx).powi(2) + (maxy-miny).powi(2) + (maxz-minz).powi(2)).sqrt();\n            eps = diag * 1e-6;\n            if eps < 1e-12 { eps = 1e-12; }\n        }\n\n        let mut vmap: HashMap<(i64, i64, i64), usize> = HashMap::new();\n        let mut verts: Vec<Point> = Vec::new();\n        let mut get_vid = |p: &Point| -> usize {\n            let kx = (p[0] / eps).round() as i64;\n            let ky = (p[1] / eps).round() as i64;\n            let kz = (p[2] / eps).round() as i64;\n            let key = (kx, ky, kz);\n            if let Some(&id) = vmap.get(&key) {\n                return id;\n            }\n            let id = verts.len();\n            verts.push(p.clone());\n            vmap.insert(key, id);\n            id\n        };\n\n        let mut adj: HashMap<usize, Vec<usize>> = HashMap::new();\n        for ln in lines {\n            let a = get_vid(&ln.start());\n            let b = get_vid(&ln.end());\n            if a == b { continue; }\n            adj.entry(a).or_default().push(b);\n            adj.entry(b).or_default().push(a);\n        }\n\n        let nv = verts.len();\n\n        for (v, nbrs) in adj.iter_mut() {\n            nbrs.sort();\n            nbrs.dedup();\n            let vx = verts[*v][0];\n            let vy = verts[*v][1];\n            nbrs.sort_by(|&a, &b| {\n                let aa = (verts[a][1] - vy).atan2(verts[a][0] - vx);\n                let ba = (verts[b][1] - vy).atan2(verts[b][0] - vx);\n                aa.partial_cmp(&ba).unwrap_or(std::cmp::Ordering::Equal)\n            });\n        }\n\n        let mut visited: HashSet<(usize, usize)> = HashSet::new();\n        let mut face_cycles: Vec<Vec<usize>> = Vec::new();\n\n        let adj_keys: Vec<usize> = {\n            let mut keys: Vec<usize> = adj.keys().copied().collect();\n            keys.sort();\n            keys\n        };\n\n        for &u in &adj_keys {\n            let nbrs: Vec<usize> = adj.get(&u).cloned().unwrap_or_default();\n            for &v in &nbrs {\n                if visited.contains(&(u, v)) { continue; }\n                let mut cycle: Vec<usize> = Vec::new();\n                let (mut cu, mut cv) = (u, v);\n                let mut valid = true;\n                loop {\n                    if visited.contains(&(cu, cv)) { break; }\n                    visited.insert((cu, cv));\n                    cycle.push(cu);\n                    let cv_nbrs = match adj.get(&cv) {\n                        Some(n) => n,\n                        None => { valid = false; break; }\n                    };\n                    let idx = match cv_nbrs.iter().position(|&x| x == cu) {\n                        Some(i) => i,\n                        None => { valid = false; break; }\n                    };\n                    let prev_idx = if idx == 0 { cv_nbrs.len() - 1 } else { idx - 1 };\n                    let nxt = cv_nbrs[prev_idx];\n                    cu = cv;\n                    cv = nxt;\n                    if cycle.len() > nv * 2 { valid = false; break; }\n                }\n                if valid && cycle.len() >= 3 {\n                    face_cycles.push(cycle);\n                }\n            }\n        }\n\n        if delete_boundary_face && !face_cycles.is_empty() {\n            let max_idx = face_cycles.iter().enumerate()\n                .max_by_key(|(_, c)| c.len())\n                .map(|(i, _)| i).unwrap();\n            face_cycles.remove(max_idx);\n        }\n\n        let mut mesh = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::with_capacity(verts.len());\n        for pt in &verts {\n            vkeys.push(mesh.add_vertex(pt.clone(), None));\n        }\n        for cycle in &face_cycles {\n            let mapped: Vec<usize> = cycle.iter().map(|&i| vkeys[i]).collect();\n            mesh.add_face(mapped, None);\n        }\n        mesh\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vid",
+        "Mesh.get_vkey",
+        "Mesh.is_empty",
+        "Mesh.new",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted"
+      ]
+    },
+    {
+      "name": "Mesh.get_vid",
+      "implementations": {
+        "python": {
+          "sig": "get_vid(p)",
+          "code": "def get_vid(p):\n\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v].x, verts[v].y\n            nbrs.sort(key=lambda n: math.atan2(verts[n].y - vy, verts[n].x - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []\n\n        for u in adj:\n            for v in adj[u]:\n                if (u, v) in visited:\n                    continue\n                cycle = []\n                cu, cv = u, v\n                valid = True\n                while True:\n                    if (cu, cv) in visited:\n                        break\n                    visited.add((cu, cv))\n                    cycle.append(cu)\n                    cv_nbrs = adj.get(cv, [])\n                    if cu not in cv_nbrs:\n                        valid = False\n                        break\n                    idx = cv_nbrs.index(cu)\n                    prev_idx = (idx - 1) % len(cv_nbrs)\n                    nxt = cv_nbrs[prev_idx]\n                    cu, cv = cv, nxt\n                    if len(cycle) > nv * 2:\n                        valid = False\n                        break\n                if valid and len(cycle) >= 3:\n                    face_cycles.append(cycle)\n\n        if delete_boundary_face and face_cycles:\n            max_idx = max(range(len(face_cycles)), key=lambda i: len(face_cycles[i]))\n            face_cycles.pop(max_idx)\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in verts:\n            vkeys.append(mesh.add_vertex(pt))\n        for cycle in face_cycles:\n            mesh.add_face([vkeys[i] for i in cycle])\n        return mesh\n\n    ###########################################################################################\n    # COMPAS-style Export Methods\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.from_lines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vkey",
+        "Mesh.vertex_index"
       ]
     },
     {
@@ -7063,17 +7518,14 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.face_area",
-        "Mesh.face_normals",
         "Mesh.face_vertices",
-        "Mesh.from_polygons",
-        "Mesh.get_vkey",
+        "Mesh.get_vid",
         "Mesh.jsondump",
+        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.vertex_normal_weighted"
       ]
     },
     {
@@ -7099,12 +7551,10 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.build_triangle_bvh",
         "Mesh.face_vertices",
-        "Mesh.from_polygons",
-        "Mesh.get_vkey",
         "Mesh.jsondump",
         "Mesh.new",
-        "Mesh.vertex_index",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.str",
+        "Mesh.vertex_index"
       ]
     },
     {
@@ -7118,12 +7568,12 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__jsonload__",
-        "Mesh.get_vkey",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.jsondump",
         "Mesh.jsonload",
+        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_index"
       ]
@@ -7143,7 +7593,8 @@ window.API_INDEX = {
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
-        "Mesh.jsonload"
+        "Mesh.jsonload",
+        "Mesh.str"
       ]
     },
     {
@@ -7172,6 +7623,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7205,6 +7657,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7242,6 +7695,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7278,6 +7732,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7490,6 +7945,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7517,7 +7973,8 @@ window.API_INDEX = {
         "Mesh.is_empty",
         "Mesh.new",
         "Mesh.pb_dump",
-        "Mesh.pb_load"
+        "Mesh.pb_load",
+        "Mesh.str"
       ]
     },
     {
@@ -7550,6 +8007,7 @@ window.API_INDEX = {
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
+        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed"
       ]
@@ -7575,7 +8033,8 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.pb_dump",
-        "Mesh.pb_loads"
+        "Mesh.pb_loads",
+        "Mesh.str"
       ]
     },
     {
@@ -9778,6 +10237,7 @@ window.API_INDEX = {
         "NurbsCurve.get_cv",
         "NurbsCurve.get_knots",
         "NurbsCurve.invalidate_rmf_cache",
+        "NurbsCurve.jsondump",
         "NurbsCurve.knot",
         "NurbsCurve.knot_array",
         "NurbsCurve.knot_count",
@@ -9869,6 +10329,7 @@ window.API_INDEX = {
         "NurbsCurve.is_duplicate",
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_singular",
+        "NurbsCurve.jsondump",
         "NurbsCurve.knot",
         "NurbsCurve.knot_multiplicity",
         "NurbsCurve.length",
@@ -26000,7 +26461,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "dedup_face(v)",
-          "code": "def dedup_face(v):\n\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh\n\n    @staticmethod\n    def tetrahedron(edge=2.0):\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],",
+          "code": "def dedup_face(v):\n\n            r = []\n            n = len(v)\n            for k in range(n):\n                if v[k] != v[(k + 1) % n]:\n                    r.append(v[k])\n            return r\n\n        u_end = u_count - 1 if closed_u else u_count\n        for i in range(u_end + 1):\n            for j in range(nv):\n                if (i + j) % 2 != 0:\n                    continue\n                center = grid[i][j]\n                il = i - 1 if i > 0 else (u_count - 1 if closed_u else -1)\n                ul = mid_a[il][j]   if (il >= 0 and j < v_count)         else (grid[il][j] if il >= 0 else center)\n                ll = mid_b[il][j-1] if (il >= 0 and j > 0)               else (grid[il][j] if il >= 0 else center)\n                bt = mid_a[i][j-1]  if j > 0                             else center\n                lr = mid_b[i+1][j-1] if (i < u_count and j > 0)          else (grid[i+1][j] if i < u_count else center)\n                ur = mid_a[i+1][j]   if (i < u_count and j < v_count)    else (grid[i+1][j] if i < u_count else center)\n                tp = mid_b[i][j]     if j < v_count                      else center\n\n                face = dedup_face([ul, ll, bt, lr, ur, tp])\n                if len(face) >= 3:\n                    mesh.add_face(face)\n        return mesh\n\n    @staticmethod\n    def tetrahedron(edge=2.0):\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],",
           "file": "primitives.py"
         }
       },
@@ -26017,7 +26478,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "tetrahedron(edge=2.0)",
-          "code": "def tetrahedron(edge=2.0):\n\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)",
+          "code": "def tetrahedron(edge=2.0):\n\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26027,7 +26488,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "tetrahedron(edge: f64) -> Mesh",
-          "code": "pub fn tetrahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let h = edge * (2.0_f64 / 3.0).sqrt();\n        let r = edge / 3.0_f64.sqrt();\n        let z0 = -h / 4.0;\n        let z1 = 3.0 * h / 4.0;\n        let faces = vec![\n            vec![Point::new(a, -r/2.0, z0), Point::new(-a, -r/2.0, z0), Point::new(0.0, r, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(-a, -r/2.0, z0), Point::new(a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(0.0, r, z0), Point::new(-a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(a, -r/2.0, z0), Point::new(0.0, r, z0)],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "code": "pub fn tetrahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let h = edge * (2.0_f64 / 3.0).sqrt();\n        let r = edge / 3.0_f64.sqrt();\n        let z0 = -h / 4.0;\n        let z1 = 3.0 * h / 4.0;\n        let faces = vec![\n            vec![Point::new(a, -r/2.0, z0), Point::new(-a, -r/2.0, z0), Point::new(0.0, r, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(-a, -r/2.0, z0), Point::new(a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(0.0, r, z0), Point::new(-a, -r/2.0, z0)],\n            vec![Point::new(0.0, 0.0, z1), Point::new(a, -r/2.0, z0), Point::new(0.0, r, z0)],\n        ];\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26045,7 +26506,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cube(edge=2.0)",
-          "code": "def cube(edge=2.0):\n\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
+          "code": "def cube(edge=2.0):\n\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a,-a,-a), Point(a,-a,-a), Point(a,a,-a), Point(-a,a,-a)\n        v4, v5, v6, v7 = Point(-a,-a,a), Point(a,-a,a), Point(a,a,a), Point(-a,a,a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26055,7 +26516,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "cube(edge: f64) -> Mesh",
-          "code": "pub fn cube(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let v0 = Point::new(-a,-a,-a); let v1 = Point::new(a,-a,-a);\n        let v2 = Point::new(a,a,-a);   let v3 = Point::new(-a,a,-a);\n        let v4 = Point::new(-a,-a,a);  let v5 = Point::new(a,-a,a);\n        let v6 = Point::new(a,a,a);    let v7 = Point::new(-a,a,a);\n        let faces = vec![\n            vec![v3.clone(), v2.clone(), v1.clone(), v0.clone()],\n            vec![v4.clone(), v5.clone(), v6.clone(), v7.clone()],\n            vec![v0.clone(), v1.clone(), v5.clone(), v4.clone()],\n            vec![v2.clone(), v3.clone(), v7.clone(), v6.clone()],\n            vec![v0.clone(), v4.clone(), v7.clone(), v3.clone()],\n            vec![v1.clone(), v2.clone(), v6.clone(), v5.clone()],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "code": "pub fn cube(edge: f64) -> Mesh {\n        let a = edge / 2.0;\n        let v0 = Point::new(-a,-a,-a); let v1 = Point::new(a,-a,-a);\n        let v2 = Point::new(a,a,-a);   let v3 = Point::new(-a,a,-a);\n        let v4 = Point::new(-a,-a,a);  let v5 = Point::new(a,-a,a);\n        let v6 = Point::new(a,a,a);    let v7 = Point::new(-a,a,a);\n        let faces = vec![\n            vec![v3.clone(), v2.clone(), v1.clone(), v0.clone()],\n            vec![v4.clone(), v5.clone(), v6.clone(), v7.clone()],\n            vec![v0.clone(), v1.clone(), v5.clone(), v4.clone()],\n            vec![v2.clone(), v3.clone(), v7.clone(), v6.clone()],\n            vec![v0.clone(), v4.clone(), v7.clone(), v3.clone()],\n            vec![v1.clone(), v2.clone(), v6.clone(), v5.clone()],\n        ];\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26074,7 +26535,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "octahedron(edge=2.0)",
-          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0",
+          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a,0,0), Point(-a,0,0)\n        py, ny = Point(0,a,0), Point(0,-a,0)\n        pz, nz = Point(0,0,a), Point(0,0,-a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26084,7 +26545,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "octahedron(edge: f64) -> Mesh",
-          "code": "pub fn octahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0_f64.sqrt();\n        let px = Point::new(a,0.0,0.0); let nx = Point::new(-a,0.0,0.0);\n        let py = Point::new(0.0,a,0.0); let ny = Point::new(0.0,-a,0.0);\n        let pz = Point::new(0.0,0.0,a); let nz = Point::new(0.0,0.0,-a);\n        let faces = vec![\n            vec![pz.clone(), px.clone(), py.clone()], vec![pz.clone(), py.clone(), nx.clone()],\n            vec![pz.clone(), nx.clone(), ny.clone()], vec![pz.clone(), ny.clone(), px.clone()],\n            vec![nz.clone(), py.clone(), px.clone()], vec![nz.clone(), nx.clone(), py.clone()],\n            vec![nz.clone(), ny.clone(), nx.clone()], vec![nz.clone(), px.clone(), ny.clone()],\n        ];\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "code": "pub fn octahedron(edge: f64) -> Mesh {\n        let a = edge / 2.0_f64.sqrt();\n        let px = Point::new(a,0.0,0.0); let nx = Point::new(-a,0.0,0.0);\n        let py = Point::new(0.0,a,0.0); let ny = Point::new(0.0,-a,0.0);\n        let pz = Point::new(0.0,0.0,a); let nz = Point::new(0.0,0.0,-a);\n        let faces = vec![\n            vec![pz.clone(), px.clone(), py.clone()], vec![pz.clone(), py.clone(), nx.clone()],\n            vec![pz.clone(), nx.clone(), ny.clone()], vec![pz.clone(), ny.clone(), px.clone()],\n            vec![nz.clone(), py.clone(), px.clone()], vec![nz.clone(), nx.clone(), py.clone()],\n            vec![nz.clone(), ny.clone(), nx.clone()], vec![nz.clone(), px.clone(), ny.clone()],\n        ];\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26105,7 +26566,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "icosahedron(edge=2.0)",
-          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr",
+          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s,-sp, 0), Point(s,-sp, 0),\n            Point(0,-s, sp), Point(0, s, sp), Point(0,-s,-sp), Point(0, s,-sp),\n            Point(sp, 0,-s), Point(sp, 0, s), Point(-sp, 0,-s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26115,7 +26576,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "icosahedron(edge: f64) -> Mesh",
-          "code": "pub fn icosahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let s = edge / 2.0;\n        let sp = s * phi;\n        let verts = vec![\n            Point::new(-s, sp, 0.0), Point::new(s, sp, 0.0), Point::new(-s,-sp, 0.0), Point::new(s,-sp, 0.0),\n            Point::new(0.0,-s, sp), Point::new(0.0, s, sp), Point::new(0.0,-s,-sp), Point::new(0.0, s,-sp),\n            Point::new(sp, 0.0,-s), Point::new(sp, 0.0, s), Point::new(-sp, 0.0,-s), Point::new(-sp, 0.0, s),\n        ];\n        let idx: [[usize; 3]; 20] = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone()]).collect();\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "code": "pub fn icosahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let s = edge / 2.0;\n        let sp = s * phi;\n        let verts = vec![\n            Point::new(-s, sp, 0.0), Point::new(s, sp, 0.0), Point::new(-s,-sp, 0.0), Point::new(s,-sp, 0.0),\n            Point::new(0.0,-s, sp), Point::new(0.0, s, sp), Point::new(0.0,-s,-sp), Point::new(0.0, s,-sp),\n            Point::new(sp, 0.0,-s), Point::new(sp, 0.0, s), Point::new(-sp, 0.0,-s), Point::new(-sp, 0.0, s),\n        ];\n        let idx: [[usize; 3]; 20] = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone()]).collect();\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26136,7 +26597,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "dodecahedron(edge=2.0)",
-          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polygons(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0",
+          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26146,7 +26607,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "dodecahedron(edge: f64) -> Mesh",
-          "code": "pub fn dodecahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let ip = 1.0 / phi;\n        let s = edge / (2.0 * ip);\n        let verts = vec![\n            Point::new( s,  s,  s), Point::new( s,  s, -s), Point::new( s, -s,  s), Point::new( s, -s, -s),\n            Point::new(-s,  s,  s), Point::new(-s,  s, -s), Point::new(-s, -s,  s), Point::new(-s, -s, -s),\n            Point::new(0.0,  s*ip,  s*phi), Point::new(0.0,  s*ip, -s*phi),\n            Point::new(0.0, -s*ip,  s*phi), Point::new(0.0, -s*ip, -s*phi),\n            Point::new( s*ip,  s*phi, 0.0), Point::new( s*ip, -s*phi, 0.0),\n            Point::new(-s*ip,  s*phi, 0.0), Point::new(-s*ip, -s*phi, 0.0),\n            Point::new( s*phi, 0.0,  s*ip), Point::new( s*phi, 0.0, -s*ip),\n            Point::new(-s*phi, 0.0,  s*ip), Point::new(-s*phi, 0.0, -s*ip),\n        ];\n        let idx: [[usize; 5]; 12] = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone(), verts[f[3]].clone(), verts[f[4]].clone()]).collect();\n        Mesh::from_polygons(faces, Some(1e-10))\n    }",
+          "code": "pub fn dodecahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let ip = 1.0 / phi;\n        let s = edge / (2.0 * ip);\n        let verts = vec![\n            Point::new( s,  s,  s), Point::new( s,  s, -s), Point::new( s, -s,  s), Point::new( s, -s, -s),\n            Point::new(-s,  s,  s), Point::new(-s,  s, -s), Point::new(-s, -s,  s), Point::new(-s, -s, -s),\n            Point::new(0.0,  s*ip,  s*phi), Point::new(0.0,  s*ip, -s*phi),\n            Point::new(0.0, -s*ip,  s*phi), Point::new(0.0, -s*ip, -s*phi),\n            Point::new( s*ip,  s*phi, 0.0), Point::new( s*ip, -s*phi, 0.0),\n            Point::new(-s*ip,  s*phi, 0.0), Point::new(-s*ip, -s*phi, 0.0),\n            Point::new( s*phi, 0.0,  s*ip), Point::new( s*phi, 0.0, -s*ip),\n            Point::new(-s*phi, 0.0,  s*ip), Point::new(-s*phi, 0.0, -s*ip),\n        ];\n        let idx: [[usize; 5]; 12] = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone(), verts[f[3]].clone(), verts[f[4]].clone()]).collect();\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26205,7 +26666,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh",
-          "code": "pub fn chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh {\n        let mut srf = surface.clone();\n\n        let du0 = srf.domain(0).unwrap();\n        let dv0 = srf.domain(1).unwrap();\n        let nsamp = 50;\n        let mut u_arc = 0.0_f64;\n        let mut v_arc = 0.0_f64;\n\n        {\n            let v_mid = (dv0.0 + dv0.1) / 2.0;\n            let mut prev = srf.point_at(du0.0, v_mid).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(du0.0 + (du0.1 - du0.0) * i as f64 / nsamp as f64, v_mid).unwrap();\n                u_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n        {\n            let u_mid = (du0.0 + du0.1) / 2.0;\n            let mut prev = srf.point_at(u_mid, dv0.0).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(u_mid, dv0.0 + (dv0.1 - dv0.0) * i as f64 / nsamp as f64).unwrap();\n                v_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n\n        if u_arc > v_arc {\n            srf.transpose();\n            std::mem::swap(&mut u_arc, &mut v_arc);\n        }\n\n        let du = srf.domain(0).unwrap();\n        let dv = srf.domain(1).unwrap();\n        let param_v = dv.1 - dv.0;\n        let _half_v = dv.1 * 0.5;\n        let step_u = (du.1 - du.0) / u_divisions as f64;\n        let total_v = param_v;\n        let base_step_v = if v_arc > 1e-10 { v_division_dist * param_v / v_arc } else { v_division_dist };\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        let mut ct_u = 0.0_f64;\n\n        for _j in 0..u_divisions {\n            let mut ct_v = 0.0_f64;\n            let mut thresh = total_v / 2.0;\n            let mut step_v1 = base_step_v;\n            let mut running = true;\n            let mut list_v: Vec<f64> = Vec::new();\n            let mut iterations = 0;\n\n            let d = Point::new(0.0,0.0,0.0);\n            let (mut p0, mut p1, mut p2) = (d.clone(), d.clone(), d.clone());\n            let (mut p6, mut p7, mut p8) = (d.clone(), d.clone(), d.clone());\n            let (mut savept6, mut savept7, mut savept8) = (d.clone(), d.clone(), d);\n\n            while running && iterations < 1000 {\n                iterations += 1;\n                list_v.push(step_v1);\n\n                if iterations == 1 {\n                    p0 = srf.point_at(ct_u, ct_v).unwrap();\n                    p1 = srf.point_at(ct_u + step_u * 0.5, ct_v).unwrap();\n                    p2 = srf.point_at(ct_u + step_u, ct_v).unwrap();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                } else {\n                    p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                }\n\n                polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n\n                ct_v += step_v1;\n                thresh -= step_v1;\n                step_v1 += step_v1 * scale;\n\n                if ct_v + step_v1 > total_v / 2.0 {\n                    list_v.push(thresh);\n                    list_v.reverse();\n                    let mut rev_ct = total_v / 2.0;\n\n                    for i in 0..list_v.len() - 1 {\n                        rev_ct += list_v[i];\n\n                        if i == 0 {\n                            p0 = srf.point_at(ct_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            p1 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * shift / 2.0).unwrap();\n                            p2 = srf.point_at(ct_u + step_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            polygons.push(vec![p6.clone(), p0.clone(), p1.clone(), p7.clone()]);\n                            polygons.push(vec![p7.clone(), p1.clone(), p2.clone(), p8.clone()]);\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        } else if i == list_v.len() - 2 {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1]).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1]).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1]).unwrap();\n                        } else {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        }\n\n                        polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n                        polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                    }\n\n                    running = false;\n                }\n            }\n            ct_u += step_u;\n        }\n\n        Mesh::from_polygons(polygons, Some(0.01))\n    }",
+          "code": "pub fn chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh {\n        let mut srf = surface.clone();\n\n        let du0 = srf.domain(0).unwrap();\n        let dv0 = srf.domain(1).unwrap();\n        let nsamp = 50;\n        let mut u_arc = 0.0_f64;\n        let mut v_arc = 0.0_f64;\n\n        {\n            let v_mid = (dv0.0 + dv0.1) / 2.0;\n            let mut prev = srf.point_at(du0.0, v_mid).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(du0.0 + (du0.1 - du0.0) * i as f64 / nsamp as f64, v_mid).unwrap();\n                u_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n        {\n            let u_mid = (du0.0 + du0.1) / 2.0;\n            let mut prev = srf.point_at(u_mid, dv0.0).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(u_mid, dv0.0 + (dv0.1 - dv0.0) * i as f64 / nsamp as f64).unwrap();\n                v_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n\n        if u_arc > v_arc {\n            srf.transpose();\n            std::mem::swap(&mut u_arc, &mut v_arc);\n        }\n\n        let du = srf.domain(0).unwrap();\n        let dv = srf.domain(1).unwrap();\n        let param_v = dv.1 - dv.0;\n        let _half_v = dv.1 * 0.5;\n        let step_u = (du.1 - du.0) / u_divisions as f64;\n        let total_v = param_v;\n        let base_step_v = if v_arc > 1e-10 { v_division_dist * param_v / v_arc } else { v_division_dist };\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        let mut ct_u = 0.0_f64;\n\n        for _j in 0..u_divisions {\n            let mut ct_v = 0.0_f64;\n            let mut thresh = total_v / 2.0;\n            let mut step_v1 = base_step_v;\n            let mut running = true;\n            let mut list_v: Vec<f64> = Vec::new();\n            let mut iterations = 0;\n\n            let d = Point::new(0.0,0.0,0.0);\n            let (mut p0, mut p1, mut p2) = (d.clone(), d.clone(), d.clone());\n            let (mut p6, mut p7, mut p8) = (d.clone(), d.clone(), d.clone());\n            let (mut savept6, mut savept7, mut savept8) = (d.clone(), d.clone(), d);\n\n            while running && iterations < 1000 {\n                iterations += 1;\n                list_v.push(step_v1);\n\n                if iterations == 1 {\n                    p0 = srf.point_at(ct_u, ct_v).unwrap();\n                    p1 = srf.point_at(ct_u + step_u * 0.5, ct_v).unwrap();\n                    p2 = srf.point_at(ct_u + step_u, ct_v).unwrap();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                } else {\n                    p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                }\n\n                polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n\n                ct_v += step_v1;\n                thresh -= step_v1;\n                step_v1 += step_v1 * scale;\n\n                if ct_v + step_v1 > total_v / 2.0 {\n                    list_v.push(thresh);\n                    list_v.reverse();\n                    let mut rev_ct = total_v / 2.0;\n\n                    for i in 0..list_v.len() - 1 {\n                        rev_ct += list_v[i];\n\n                        if i == 0 {\n                            p0 = srf.point_at(ct_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            p1 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * shift / 2.0).unwrap();\n                            p2 = srf.point_at(ct_u + step_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            polygons.push(vec![p6.clone(), p0.clone(), p1.clone(), p7.clone()]);\n                            polygons.push(vec![p7.clone(), p1.clone(), p2.clone(), p8.clone()]);\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        } else if i == list_v.len() - 2 {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1]).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1]).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1]).unwrap();\n                        } else {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        }\n\n                        polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n                        polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                    }\n\n                    running = false;\n                }\n            }\n            ct_u += step_u;\n        }\n\n        Mesh::from_polylines(polygons, Some(0.01))\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26389,7 +26850,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_diamond_subdivision()",
-          "code": "def _diamond_subdivision(self):\n\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polygons(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)",
+          "code": "def _diamond_subdivision(self):\n\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polylines(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)",
           "file": "primitives.py"
         }
       },
@@ -26410,7 +26871,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "plane_valid(p)",
-          "code": "def plane_valid(p):\n\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polygons(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)",
+          "code": "def plane_valid(p):\n\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polylines(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)",
           "file": "primitives.py"
         }
       },
@@ -35571,44 +36032,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "BoundingBox.from_pointcloud",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount) {\n    return from_points(pointcloud.get_points(), plane, inflate_amount);\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_nurbssurface",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount) {\n    if (!surface.is_valid() || surface.cv_count(0) == 0 || surface.cv_count(1) == 0) {\n        return BoundingBox();\n    }",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.aabb",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox aabb()",
-          "code": "BoundingBox BoundingBox::aabb() const {\n    double ex = half_size[0];\n    double ey = half_size[1];\n    double ez = half_size[2];\n    double hx = std::abs(x_axis[0]) * ex + std::abs(y_axis[0]) * ey + std::abs(z_axis[0]) * ez;\n    double hy = std::abs(x_axis[1]) * ex + std::abs(y_axis[1]) * ey + std::abs(z_axis[1]) * ez;\n    double hz = std::abs(x_axis[2]) * ex + std::abs(y_axis[2]) * ey + std::abs(z_axis[2]) * ez;\n    return BoundingBox(center, Vector(1,0,0), Vector(0,1,0), Vector(0,0,1), Vector(hx, hy, hz));\n}",
-          "file": "boundingbox.cpp"
-        }
-      }
-    },
-    {
       "name": "BoundingBox.collides_with_rtcd",
       "implementations": {
         "cpp": {
@@ -36553,6 +36976,46 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "NormalWeighting.from_vertices_and_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh from_vertices_and_faces(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces)",
+          "code": "static Mesh from_vertices_and_faces(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "NormalWeighting.from_polylines",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh from_polylines(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt)",
+          "code": "static Mesh from_polylines(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "NormalWeighting.from_lines",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh from_lines(const std::vector<Line>& lines, bool delete_boundary_face = false, std::optional<double> precision = std::nullopt)",
+          "code": "static Mesh from_lines(const std::vector<Line>& lines, bool delete_boundary_face = false, std::optional<double> precision = std::nullopt);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "NormalWeighting.loft",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1)",
+          "code": "static Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
       "name": "NormalWeighting.number_of_vertices",
       "implementations": {
         "cpp": {
@@ -36830,26 +37293,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.from_polygons",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt)",
-          "code": "static Mesh from_polygons(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt);",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "NormalWeighting.loft",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1)",
-          "code": "static Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1);",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
       "name": "NormalWeighting.transform",
       "implementations": {
         "cpp": {
@@ -36903,7 +37346,10 @@ window.API_INDEX = {
           "code": "std::string json_dumps() const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.str"
+      ]
     },
     {
       "name": "NormalWeighting.json_loads",
@@ -36913,7 +37359,10 @@ window.API_INDEX = {
           "code": "static Mesh json_loads(const std::string& json_string);",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.str"
+      ]
     },
     {
       "name": "NormalWeighting.pb_dumps",
@@ -36925,7 +37374,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_dump"
+        "NormalWeighting.pb_dump",
+        "NormalWeighting.str"
       ]
     },
     {
@@ -36938,7 +37388,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_load"
+        "NormalWeighting.pb_load",
+        "NormalWeighting.str"
       ]
     },
     {
@@ -36951,7 +37402,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_dumps"
+        "NormalWeighting.pb_dumps",
+        "NormalWeighting.str"
       ]
     },
     {
@@ -36964,7 +37416,40 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_loads"
+        "NormalWeighting.pb_loads",
+        "NormalWeighting.str"
+      ]
+    },
+    {
+      "name": "NormalWeighting.str",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string str()",
+          "code": "std::string str() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "NormalWeighting.json_dumps",
+        "NormalWeighting.json_loads",
+        "NormalWeighting.pb_dump",
+        "NormalWeighting.pb_dumps",
+        "NormalWeighting.pb_load",
+        "NormalWeighting.pb_loads",
+        "NormalWeighting.repr"
+      ]
+    },
+    {
+      "name": "NormalWeighting.repr",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string repr()",
+          "code": "std::string repr() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "NormalWeighting.str"
       ]
     },
     {
@@ -37086,10 +37571,10 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__jsondump__",
-        "Mesh.get_vkey",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
+        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_index"
       ]
@@ -37115,7 +37600,8 @@ window.API_INDEX = {
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
-        "Mesh.new"
+        "Mesh.new",
+        "Mesh.str"
       ]
     },
     {
@@ -37130,6 +37616,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.build_triangle_aabb_tree",
         "Mesh.clear",
+        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.triangle_bvh_ray_cast"
       ]
@@ -37184,6 +37671,66 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Mesh.str",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string str()",
+          "code": "std::string Mesh::str() const {\n    return fmt::format(\"Mesh(name={}",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.__jsonload__",
+        "Mesh.__ne__",
+        "Mesh.__str__",
+        "Mesh.build_triangle_bvh",
+        "Mesh.clone_with_new_guid",
+        "Mesh.face_area",
+        "Mesh.face_normals",
+        "Mesh.from_polylines",
+        "Mesh.json_dump",
+        "Mesh.json_dumps",
+        "Mesh.json_load",
+        "Mesh.json_loads",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.new",
+        "Mesh.pb_dump",
+        "Mesh.pb_dumps",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.repr",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_index",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted"
+      ]
+    },
+    {
+      "name": "Mesh.repr",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string repr()",
+          "code": "std::string Mesh::repr() const {\n    return fmt::format(\"Mesh(\\n  name={}",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.str"
+      ]
+    },
+    {
       "name": "NurbsCurve.constructor",
       "implementations": {
         "cpp": {
@@ -37235,7 +37782,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "nlohmann::ordered_json jsondump()",
-          "code": "nlohmann::ordered_json NurbsCurve::jsondump() const {\n    nlohmann::ordered_json j;\n\n    // Build control_points array\n    nlohmann::json cps = nlohmann::json::array();\n    for (int i = 0; i < m_cv_count; i++) {\n        Point p = get_cv(i);\n        cps.push_back({p[0], p[1], p[2]}",
+          "code": "nlohmann::ordered_json NurbsCurve::jsondump() const {\n    nlohmann::ordered_json j;\n\n    // Build control_points array (4D for rational to preserve weights)\n    nlohmann::json cps = nlohmann::json::array();\n    for (int i = 0; i < m_cv_count; i++) {\n        if (m_is_rat) {\n            double x, y, z, w;\n            get_cv_4d(i, x, y, z, w);\n            cps.push_back({x, y, z, w}",
           "file": "nurbscurve.cpp"
         },
         "rust": {
@@ -37251,13 +37798,15 @@ window.API_INDEX = {
         "NurbsCurve.cv_count",
         "NurbsCurve.format",
         "NurbsCurve.get_cv",
+        "NurbsCurve.get_cv_4d",
         "NurbsCurve.json_dump",
         "NurbsCurve.json_dumps",
         "NurbsCurve.json_loads",
         "NurbsCurve.new",
         "NurbsCurve.order",
         "NurbsCurve.transform",
-        "NurbsCurve.transformed"
+        "NurbsCurve.transformed",
+        "NurbsCurve.weight"
       ]
     },
     {
@@ -41070,9 +41619,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BoundingBox.aabb",
         "BoundingBox.collides_with",
         "BoundingBox.from_nurbscurve",
         "BoundingBox.from_nurbscurve_with_plane",
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_nurbssurface_with_plane",
         "BoundingBox.from_plane",
         "BoundingBox.from_point",
         "BoundingBox.from_points",
@@ -41102,6 +41654,58 @@ window.API_INDEX = {
         "BoundingBox.inflate",
         "BoundingBox.new",
         "BoundingBox.point_at"
+      ]
+    },
+    {
+      "name": "BoundingBox.from_mesh_with_plane",
+      "implementations": {
+        "rust": {
+          "sig": "from_mesh_with_plane(mesh: &crate::mesh::Mesh, plane: &Plane, inflate: f64) -> Self",
+          "code": "pub fn from_mesh_with_plane(mesh: &crate::mesh::Mesh, plane: &Plane, inflate: f64) -> Self {\n        let (vertices, _) = mesh.to_vertices_and_faces();\n        Self::from_points_with_plane(&vertices, plane, inflate)\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.from_mesh",
+        "BoundingBox.from_point",
+        "BoundingBox.from_points",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.inflate"
+      ]
+    },
+    {
+      "name": "BoundingBox.from_pointcloud_with_plane",
+      "implementations": {
+        "rust": {
+          "sig": "from_pointcloud_with_plane(pointcloud: &crate::pointcloud::PointCloud, plane: &Plane, inflate: f64) -> Self",
+          "code": "pub fn from_pointcloud_with_plane(pointcloud: &crate::pointcloud::PointCloud, plane: &Plane, inflate: f64) -> Self {\n        Self::from_points_with_plane(&pointcloud.get_points(), plane, inflate)\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.from_point",
+        "BoundingBox.from_pointcloud",
+        "BoundingBox.from_points",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.inflate"
+      ]
+    },
+    {
+      "name": "BoundingBox.from_nurbssurface_with_plane",
+      "implementations": {
+        "rust": {
+          "sig": "from_nurbssurface_with_plane(surface: &crate::nurbssurface::NurbsSurface, plane: &Plane, inflate: f64) -> Self",
+          "code": "pub fn from_nurbssurface_with_plane(surface: &crate::nurbssurface::NurbsSurface, plane: &Plane, inflate: f64) -> Self {\n        if !surface.is_valid() || surface.cv_count_dir(Some(0)) == 0 || surface.cv_count_dir(Some(1)) == 0 {\n            return BoundingBox::default();\n        }\n        let mut points = Vec::new();\n        for i in 0..surface.cv_count_dir(Some(0)) {\n            for j in 0..surface.cv_count_dir(Some(1)) {\n                if let Some(pt) = surface.get_cv(i, j) {\n                    points.push(pt);\n                }\n            }\n        }\n        Self::from_points_with_plane(&points, plane, inflate)\n    }",
+          "file": "boundingbox.rs"
+        }
+      },
+      "related": [
+        "BoundingBox.from_nurbssurface",
+        "BoundingBox.from_point",
+        "BoundingBox.from_points",
+        "BoundingBox.from_points_with_plane",
+        "BoundingBox.inflate",
+        "BoundingBox.new"
       ]
     },
     {
@@ -41331,7 +41935,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "VertexData.__getitem__",
+        "VertexData.__eq__",
+        "VertexData.__ne__",
         "VertexData.__setitem__",
         "VertexData.color",
         "VertexData.normal",
@@ -41353,10 +41958,13 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.clone_with_new_guid",
         "Mesh.face_area",
         "Mesh.face_normal",
         "Mesh.face_normals",
-        "Mesh.from_polygons",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
         "Mesh.json_load",
         "Mesh.json_loads",
         "Mesh.jsonload",
@@ -41364,6 +41972,7 @@ window.API_INDEX = {
         "Mesh.pb_dumps",
         "Mesh.pb_loads",
         "Mesh.ray_cast_bvh",
+        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.vertex_angle_in_face",
@@ -41384,6 +41993,20 @@ window.API_INDEX = {
       "related": [
         "Mesh.is_empty",
         "Mesh.new"
+      ]
+    },
+    {
+      "name": "Mesh.clone_with_new_guid",
+      "implementations": {
+        "rust": {
+          "sig": "clone_with_new_guid() -> Self",
+          "code": "pub fn clone_with_new_guid(&self) -> Self {\n        let mut m = self.clone();\n        m.guid = uuid::Uuid::new_v4().to_string();\n        m\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.new",
+        "Mesh.str"
       ]
     },
     {
@@ -43573,13 +44196,33 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Constructor\")",
-          "code": "MINI_TEST(\"Mesh\", \"Constructor\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n\n        size_t num_vertices = mesh.number_of_vertices();\n        size_t num_faces = mesh.number_of_faces();\n        size_t num_edges = mesh.number_of_edges();\n        bool is_empty = mesh.is_empty();\n        int euler = mesh.euler();\n\n        MINI_CHECK(num_vertices == 0);\n        MINI_CHECK(num_faces == 0);\n        MINI_CHECK(num_edges == 0);\n        MINI_CHECK(is_empty);\n        MINI_CHECK(euler == 0);\n        MINI_CHECK(mesh.name == \"my_mesh\");\n        MINI_CHECK(!mesh.guid.empty());\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Constructor\") {\n        // uncomment #include \"mesh.h\"\n\n        const int sides = 6;\n\n        // Create hexagon vertices in XY plane\n        std::vector<Point> vertices;\n        for (int i = 0; i < sides; ++i) {\n            double angle = 2.0 * TOLERANCE.PI * i / sides;\n            double x = 1.0 * std::cos(angle);\n            double y = 1.0 * std::sin(angle);\n            vertices.push_back({x, y, 0.0});\n        }\n\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 2, 3, 4, 5},\n        };\n\n        Mesh mesh = Mesh::from_vertices_and_faces(vertices, faces);\n\n        size_t num_vertices = mesh.number_of_vertices();\n        size_t num_faces = mesh.number_of_faces();\n        size_t num_edges = mesh.number_of_edges();\n        bool is_empty = mesh.is_empty();\n        int euler = mesh.euler();\n\n        // String representations\n        std::string sstr = mesh.str();\n        std::string srepr = mesh.repr();\n\n        // Copy (new guid)\n        Mesh mcopy = mesh;\n\n        MINI_CHECK(mesh.is_valid());\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n\n    mesh = Mesh()\n\n    num_vertices = mesh.number_of_vertices()\n    num_faces = mesh.number_of_faces()\n    num_edges = mesh.number_of_edges()\n    is_empty = mesh.is_empty()\n    euler = mesh.euler()\n\n    MINI_CHECK(num_vertices == 0)\n    MINI_CHECK(num_faces == 0)\n    MINI_CHECK(num_edges == 0)\n    MINI_CHECK(is_empty)\n    MINI_CHECK(euler == 0)\n    MINI_CHECK(mesh.name == \"my_mesh\")\n    MINI_CHECK(mesh.guid)",
+          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n    from session_py import Point\n\n    sides = 6\n\n    # Create hexagon vertices in XY plane\n    vertices = []\n    for i in range(sides):\n        angle = 2.0 * TOLERANCE.PI * i / sides\n        x = 1.0 * math.cos(angle)\n        y = 1.0 * math.sin(angle)\n        vertices.append(Point(x, y, 0.0))\n\n    # Add center point as last vertex\n    vertices.append(Point(0.0, 0.0, 0.0))\n    faces = [\n        [0, 1, 6],\n        [1, 2, 6],\n        [2, 3, 6],\n        [3, 4, 6],\n        [4, 5, 6],\n        [5, 0, 6],\n    ]\n\n    mesh = Mesh.from_vertices_and_faces(vertices, faces)\n\n    num_vertices = mesh.number_of_vertices()\n    num_faces = mesh.number_of_faces()\n    num_edges = mesh.number_of_edges()\n    is_empty = mesh.is_empty()\n    euler = mesh.euler()\n\n    # String representations\n    sstr = str(mesh)\n    srepr = repr(mesh)\n\n    # Copy (new guid)\n    import copy\n    mcopy = copy.copy(mesh)\n\n    MINI_CHECK(num_vertices == 7)\n    MINI_CHECK(num_faces == 6)\n    MINI_CHECK(num_edges == 12)\n    MINI_CHECK(not is_empty)\n    MINI_CHECK(euler == 1)\n    MINI_CHECK(mesh.name == \"my_mesh\")\n    MINI_CHECK(mesh.guid)\n    MINI_CHECK(\"Mesh\" in sstr)\n    MINI_CHECK(\"name=my_mesh\" in srepr)\n    MINI_CHECK(mcopy.guid != mesh.guid)\n    MINI_CHECK(mcopy == mesh)\n    MINI_CHECK(not (mcopy != mesh))",
           "file": "mesh_test.py"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_From Polylines",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"From Polylines\")",
+          "code": "MINI_TEST(\"Mesh\", \"From Polylines\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> hex0 = {\n            Point(0.5, 0.866025, 0), Point(-0.5, 0.866025, 0), Point(-1, 0, 0),\n            Point(-0.5, -0.866025, 0), Point(0.5, -0.866025, 0), Point(1, 0, 0),\n        };\n        std::vector<Point> hex1 = {\n            Point(2, 1.732051, 0), Point(1, 1.732051, 0), Point(0.5, 0.866025, 0),\n            Point(1, 0, 0), Point(2, 0, 0), Point(2.5, 0.866025, 0),\n        };\n        std::vector<Point> hex2 = {\n            Point(2.0, 0, 0), Point(1, 0, 0), Point(0.5, -0.866025, 0),\n            Point(1.0, -1.732051, 0), Point(2.0, -1.732051, 0), Point(2.5, -0.866025, 0),\n        };\n\n        Mesh mesh = Mesh::from_polylines({hex0, hex1, hex2}, std::nullopt);\n        MINI_CHECK(mesh.number_of_vertices() == 13);\n        MINI_CHECK(mesh.number_of_faces() == 3);\n        MINI_CHECK(mesh.number_of_edges() == 15);\n    }",
+          "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_From Lines",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"From Lines\")",
+          "code": "MINI_TEST(\"Mesh\", \"From Lines\") {\n        // uncomment #include \"mesh.h\"\n        \n        std::vector<Point> hex0 = {\n            Point(0.5, 0.866025, 0), Point(-0.5, 0.866025, 0), Point(-1, 0, 0),\n            Point(-0.5, -0.866025, 0), Point(0.5, -0.866025, 0), Point(1, 0, 0),\n        };\n        std::vector<Point> hex1 = {\n            Point(2, 1.732051, 0), Point(1, 1.732051, 0), Point(0.5, 0.866025, 0),\n            Point(1, 0, 0), Point(2, 0, 0), Point(2.5, 0.866025, 0),\n        };\n        std::vector<Point> hex2 = {\n            Point(2.0, 0, 0), Point(1, 0, 0), Point(0.5, -0.866025, 0),\n            Point(1.0, -1.732051, 0), Point(2.0, -1.732051, 0), Point(2.5, -0.866025, 0),\n        };\n\n        Mesh mesh = Mesh::from_polylines({hex0, hex1, hex2}, std::nullopt);\n        MINI_CHECK(mesh.number_of_vertices() == 13);\n        MINI_CHECK(mesh.number_of_faces() == 3);\n        MINI_CHECK(mesh.number_of_edges() == 15);\n    }",
+          "file": "mesh_test.cpp"
         }
       }
     },
@@ -43704,21 +44347,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Mesh.test_From_polygons",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Mesh\", \"From_polygons\")",
-          "code": "MINI_TEST(\"Mesh\", \"From_polygons\") {\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> triangle = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n\n        Mesh mesh = Mesh::from_polygons({triangle}, std::nullopt);\n        MINI_CHECK(mesh.number_of_vertices() == 3);\n        MINI_CHECK(mesh.number_of_faces() == 1);\n        MINI_CHECK(mesh.number_of_edges() == 3);\n\n        std::vector<Point> tri1 = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        std::vector<Point> tri2 = {\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n        };\n\n        Mesh mesh2 = Mesh::from_polygons({tri1, tri2}, std::nullopt);\n        MINI_CHECK(mesh2.number_of_vertices() == 4);\n        MINI_CHECK(mesh2.number_of_faces() == 2);\n    }",
-          "file": "mesh_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Mesh\", \"From_polygons\")",
-          "code": "@MINI_TEST(\"Mesh\", \"From_polygons\")\ndef test_mesh_from_polygons():\n    from session_py import Mesh\n    from session_py import Point\n\n    triangle = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n\n    mesh = Mesh.from_polygons([triangle])\n    MINI_CHECK(mesh.number_of_vertices() == 3)\n    MINI_CHECK(mesh.number_of_faces() == 1)\n    MINI_CHECK(mesh.number_of_edges() == 3)\n\n    tri1 = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n    tri2 = [\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n\n    mesh2 = Mesh.from_polygons([tri1, tri2])\n    MINI_CHECK(mesh2.number_of_vertices() == 4)\n    MINI_CHECK(mesh2.number_of_faces() == 2)",
-          "file": "mesh_test.py"
-        }
-      }
-    },
-    {
       "name": "Mesh.test_Clear",
       "implementations": {
         "cpp": {
@@ -43818,7 +44446,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"To_vertices_and_faces\")",
-          "code": "@MINI_TEST(\"Mesh\", \"To_vertices_and_faces\")\ndef test_mesh_to_vertices_and_faces():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v2])\n\n    vertices, faces = mesh.to_vertices_and_faces()\n\n    MINI_CHECK(len(vertices) == 3)\n    MINI_CHECK(len(faces) == 1)\n    MINI_CHECK(len(faces[0]) == 3)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Mesh\", \"To_vertices_and_faces\")\ndef test_mesh_to_vertices_and_faces():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v2])\n\n    vertices, faces = mesh.to_vertices_and_faces()\n\n    MINI_CHECK(len(vertices) == 3)\n    MINI_CHECK(len(faces) == 1)\n    MINI_CHECK(len(faces[0]) == 3)",
           "file": "mesh_test.py"
         }
       }
@@ -43840,6 +44468,21 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Mesh\", \"Loft_with_hole\")",
           "code": "MINI_TEST(\"Mesh\", \"Loft_with_hole\") {\n        // Outer rectangle\n        std::vector<Point> outer_bot = {\n            Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0), Point(0,0,0)\n        };\n        std::vector<Point> outer_top = {\n            Point(0,0,1), Point(4,0,1), Point(4,4,1), Point(0,4,1), Point(0,0,1)\n        };\n        // Inner hole\n        std::vector<Point> inner_bot = {\n            Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0), Point(1,1,0)\n        };\n        std::vector<Point> inner_top = {\n            Point(1,1,1), Point(3,1,1), Point(3,3,1), Point(1,3,1), Point(1,1,1)\n        };\n\n        Polyline ob(outer_bot), ot(outer_top);\n        Polyline ib(inner_bot), it(inner_top);\n\n        Mesh mesh = Mesh::loft({ob, ib}, {ot, it});\n\n        MINI_CHECK(mesh.number_of_vertices() == 16);\n        MINI_CHECK(mesh.number_of_faces() == 24);\n        MINI_CHECK(mesh.is_valid());\n    }",
           "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_From_lines",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"From_lines\")",
+          "code": "MINI_TEST(\"Mesh\", \"From_lines\") {\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"line.h\"\n\n        // Grid of unit segments forming 4 quads (3x3 grid)\n        std::vector<Line> lines;\n        for (int i = 0; i <= 2; ++i) {\n            for (int j = 0; j < 2; ++j) {\n                lines.push_back(Line::from_points(Point(i,j,0), Point(i,j+1,0)));\n                lines.push_back(Line::from_points(Point(j,i,0), Point(j+1,i,0)));\n            }\n        }\n        Mesh mesh = Mesh::from_lines(lines, true);\n        MINI_CHECK(mesh.number_of_vertices() == 9);\n        MINI_CHECK(mesh.number_of_faces() == 4);\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"From_lines\")",
+          "code": "@MINI_TEST(\"Mesh\", \"From_lines\")\ndef test_mesh_from_lines():\n    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    # Grid of unit segments forming 4 quads (3x3 grid)\n    lines = []\n    for i in range(3):\n        for j in range(2):\n            lines.append(Line.from_points(Point(i,j,0), Point(i,j+1,0)))\n            lines.append(Line.from_points(Point(j,i,0), Point(j+1,i,0)))\n    mesh = Mesh.from_lines(lines, True)\n    MINI_CHECK(mesh.number_of_vertices() == 9)\n    MINI_CHECK(mesh.number_of_faces() == 4)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "mesh_test.py"
         }
       }
     },
@@ -45984,6 +46627,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Mesh.test_From_polylines",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"From_polylines\")",
+          "code": "@MINI_TEST(\"Mesh\", \"From_polylines\")\ndef test_mesh_from_polylines():\n    from session_py import Mesh\n    from session_py import Point\n\n    triangle = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n\n    mesh = Mesh.from_polylines([triangle])\n    MINI_CHECK(mesh.number_of_vertices() == 3)\n    MINI_CHECK(mesh.number_of_faces() == 1)\n    MINI_CHECK(mesh.number_of_edges() == 3)\n\n    tri1 = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n    tri2 = [\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n\n    mesh2 = Mesh.from_polylines([tri1, tri2])\n    MINI_CHECK(mesh2.number_of_vertices() == 4)\n    MINI_CHECK(mesh2.number_of_faces() == 2)",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
       "name": "NurbsSurface.test_Isocurve",
       "implementations": {
         "python": {
@@ -46098,11 +46751,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
-        "n",
-        "into",
-        "circle",
         "points",
+        "circle",
+        "subdivide",
+        "into",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -46116,11 +46769,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
-        "by",
-        "subdivide",
-        "ellipse",
         "arc",
+        "subdivide",
+        "length",
+        "ellipse",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -46134,9 +46787,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "arc",
         "through",
         "points",
-        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -46150,12 +46803,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "polyline",
+        "points",
+        "from",
         "open",
         "adaptive",
-        "polyline",
-        "from",
         "curve",
-        "points",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -46192,9 +46845,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "length",
         "frames",
+        "along",
         "curve",
         "divide_by_count",
         "frame_at",
@@ -46217,9 +46870,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "frames",
         "ellipse",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -46241,9 +46894,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "cylinder",
-        "point",
         "evaluate",
         "surface",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -46258,11 +46911,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
         "mesh",
+        "and",
         "faces",
         "from",
-        "and",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -46357,11 +47010,20 @@ window.API_INDEX = {
     "from_mesh": [
       "BoundingBox.from_mesh"
     ],
+    "from_pointcloud": [
+      "BoundingBox.from_pointcloud"
+    ],
+    "from_nurbssurface": [
+      "BoundingBox.from_nurbssurface"
+    ],
     "from_nurbscurve": [
       "BoundingBox.from_nurbscurve"
     ],
     "from_points_with_plane": [
       "BoundingBox.from_points_with_plane"
+    ],
+    "aabb": [
+      "BoundingBox.aabb"
     ],
     "point_at": [
       "BoundingBox.point_at",
@@ -46733,6 +47395,7 @@ window.API_INDEX = {
       "Color.__str__",
       "Graph.__str__",
       "Line.__str__",
+      "Mesh.__str__",
       "NurbsCurve.__str__",
       "NurbsSurface.__str__",
       "Objects.__str__",
@@ -46750,6 +47413,7 @@ window.API_INDEX = {
       "Color.__repr__",
       "Graph.__repr__",
       "Line.__repr__",
+      "Mesh.__repr__",
       "NurbsCurve.__repr__",
       "NurbsSurface.__repr__",
       "Objects.__repr__",
@@ -46766,6 +47430,8 @@ window.API_INDEX = {
     ],
     "__eq__": [
       "Color.__eq__",
+      "VertexData.__eq__",
+      "Mesh.__eq__",
       "NurbsCurve.__eq__",
       "NurbsSurface.__eq__",
       "Plane.__eq__",
@@ -46777,6 +47443,8 @@ window.API_INDEX = {
     ],
     "__ne__": [
       "Color.__ne__",
+      "VertexData.__ne__",
+      "Mesh.__ne__",
       "NurbsCurve.__ne__",
       "NurbsSurface.__ne__",
       "Plane.__ne__",
@@ -47102,6 +47770,9 @@ window.API_INDEX = {
       "PointCloud.set_normal",
       "NormalWeighting.set_normal"
     ],
+    "__copy__": [
+      "Mesh.__copy__"
+    ],
     "number_of_faces": [
       "Mesh.number_of_faces",
       "NormalWeighting.number_of_faces"
@@ -47176,12 +47847,23 @@ window.API_INDEX = {
       "Mesh.vertex_normals_weighted",
       "NormalWeighting.vertex_normals_weighted"
     ],
-    "from_polygons": [
-      "Mesh.from_polygons",
-      "NormalWeighting.from_polygons"
+    "from_polylines": [
+      "Mesh.from_polylines",
+      "NormalWeighting.from_polylines"
     ],
     "get_vkey": [
       "Mesh.get_vkey"
+    ],
+    "from_vertices_and_faces": [
+      "Mesh.from_vertices_and_faces",
+      "NormalWeighting.from_vertices_and_faces"
+    ],
+    "from_lines": [
+      "Mesh.from_lines",
+      "NormalWeighting.from_lines"
+    ],
+    "get_vid": [
+      "Mesh.get_vid"
     ],
     "vertex_index": [
       "Mesh.vertex_index",
@@ -47717,6 +48399,8 @@ window.API_INDEX = {
       "Edge.str",
       "Graph.str",
       "Line.str",
+      "NormalWeighting.str",
+      "Mesh.str",
       "NurbsCurve.str",
       "NurbsSurface.str",
       "Objects.str",
@@ -47734,6 +48418,8 @@ window.API_INDEX = {
       "Vector.repr",
       "Color.repr",
       "Line.repr",
+      "NormalWeighting.repr",
+      "Mesh.repr",
       "NurbsCurve.repr",
       "NurbsSurface.repr",
       "Point.repr",
@@ -48568,15 +49254,6 @@ window.API_INDEX = {
       "Vertex.constructor",
       "Xform.constructor"
     ],
-    "from_pointcloud": [
-      "BoundingBox.from_pointcloud"
-    ],
-    "from_nurbssurface": [
-      "BoundingBox.from_nurbssurface"
-    ],
-    "aabb": [
-      "BoundingBox.aabb"
-    ],
     "collides_with_rtcd": [
       "BoundingBox.collides_with_rtcd"
     ],
@@ -48949,6 +49626,15 @@ window.API_INDEX = {
     "from_nurbscurve_with_plane": [
       "BoundingBox.from_nurbscurve_with_plane"
     ],
+    "from_mesh_with_plane": [
+      "BoundingBox.from_mesh_with_plane"
+    ],
+    "from_pointcloud_with_plane": [
+      "BoundingBox.from_pointcloud_with_plane"
+    ],
+    "from_nurbssurface_with_plane": [
+      "BoundingBox.from_nurbssurface_with_plane"
+    ],
     "to_json": [
       "BoundingBox.to_json",
       "Quaternion.to_json"
@@ -48965,6 +49651,9 @@ window.API_INDEX = {
     ],
     "ray_cast_bvh": [
       "Mesh.ray_cast_bvh"
+    ],
+    "clone_with_new_guid": [
+      "Mesh.clone_with_new_guid"
     ],
     "default": [
       "NurbsCurve.default"

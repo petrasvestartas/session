@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.046,
     "line": 5,
     "code": "        use crate::brep::BRep;\n        use crate::Point;\n\n        let b = BRep::new();\n\n        let sstr = b.str();\n        let srepr = b.repr();\n\n        let bcopy = b.duplicate();\n",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 1.352,
+    "time_ms": 1.132,
     "line": 143,
     "code": "        use crate::brep::BRep;\n        use crate::Point;\n        use crate::Xform;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.xform = Xform::translation(10.0, 20.0, 30.0);\n        let moved = b.transformed();\n\n        let pt = moved.point_at(0, 0.0, 0.0);\n        let pt_orig = b.point_at(0, 0.0, 0.0);\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 17.89,
+    "time_ms": 18.845,
     "line": 162,
     "code": "        use crate::brep::BRep;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.name = \"test_brep\".to_string();\n        b.width = 2.0;\n        b.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // String\n        let json_string = b.json_dumps();\n        let loaded_json_string = BRep::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_brep.json\");\n        b.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = BRep::json_load(filename.to_str().unwrap());\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 16.668,
+    "time_ms": 13.487,
     "line": 188,
     "code": "        use crate::brep::BRep;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.name = \"test_brep\".to_string();\n        b.width = 2.0;\n        b.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // String\n        let proto_data = b.pb_dumps();\n        let loaded_proto = BRep::pb_loads(&proto_data).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_brep.bin\");\n        b.pb_dump(filename.to_str().unwrap());\n        let loaded = BRep::pb_load(filename.to_str().unwrap());\n",
     "checks": [
@@ -122,7 +122,7 @@
   {
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.904,
+    "time_ms": 0.944,
     "line": 45,
     "code": "        use crate::brep::BRep;\n        use crate::Point;\n        use crate::NurbsSurface;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n\n        let fc = b.face_count();\n        let ec = b.edge_count();\n        let vc = b.vertex_count();\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Add_face",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.034,
     "line": 66,
     "code": "        use crate::brep::{BRep, BRepLoopType, BRepTrimType};\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let mut b = BRep::new();\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0)); srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0)); srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        let si = b.add_surface(&srf);\n        let fi = b.add_face(si as i32, false);\n        let li = b.add_loop(fi as i32, BRepLoopType::Outer);\n\n        let trim = NurbsCurve::create(false, 1, &[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);\n        let ci = b.add_curve_2d(&trim);\n        b.add_trim(ci as i32, -1, li as i32, false, BRepTrimType::Boundary);\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "Create_box",
     "passed": true,
-    "time_ms": 1.053,
+    "time_ms": 1.008,
     "line": 29,
     "code": "        use crate::brep::BRep;\n        use crate::Point;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n",
     "checks": [
@@ -232,7 +232,7 @@
   {
     "test_name": "Create_cylinder",
     "passed": true,
-    "time_ms": 0.744,
+    "time_ms": 103.675,
     "line": 214,
     "code": "        use crate::brep::BRep;\n        use crate::Mesh;\n\n        let cyl = BRep::create_cylinder(1.0, 2.0);\n        let m = cyl.mesh();\n",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "Create_sphere",
     "passed": true,
-    "time_ms": 3.331,
+    "time_ms": 40.713,
     "line": 231,
     "code": "        use crate::brep::BRep;\n        use crate::Mesh;\n\n        let sph = BRep::create_sphere(2.0);\n        let m = sph.mesh();\n",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "From_nurbscurves",
     "passed": true,
-    "time_ms": 43.848,
+    "time_ms": 84.411,
     "line": 283,
     "code": "        use crate::brep::BRep;\n        use crate::NurbsCurve;\n        use crate::Mesh;\n        use crate::Point;\n\n        let hx = 1.0_f64; let hy = 1.5_f64; let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx,-hy,-hz), Point::new( hx,-hy,-hz),\n            Point::new( hx, hy,-hz), Point::new(-hx, hy,-hz),\n            Point::new(-hx,-hy, hz), Point::new( hx,-hy, hz),\n            Point::new( hx, hy, hz), Point::new(-hx, hy, hz),\n        ];\n\n        let bottom = NurbsCurve::create(false, 1, &[c[0].clone(),c[3].clone(),c[2].clone(),c[1].clone(),c[0].clone()]);\n        let top = NurbsCurve::create(false, 1, &[c[4].clone(),c[5].clone(),c[6].clone(),c[7].clone(),c[4].clone()]);\n        let front = NurbsCurve::create(false, 1, &[c[0].clone(),c[1].clone(),c[5].clone(),c[4].clone(),c[0].clone()]);\n        let right = NurbsCurve::create(false, 1, &[c[1].clone(),c[2].clone(),c[6].clone(),c[5].clone(),c[1].clone()]);\n        let back = NurbsCurve::create(false, 1, &[c[2].clone(),c[3].clone(),c[7].clone(),c[6].clone(),c[2].clone()]);\n        let left = NurbsCurve::create(false, 1, &[c[3].clone(),c[0].clone(),c[4].clone(),c[7].clone(),c[3].clone()]);\n\n        let b = BRep::from_nurbscurves(&[bottom, top, front, right, back, left], &[]);\n        let m = b.mesh();\n",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "From_nurbscurves_holes",
     "passed": true,
-    "time_ms": 217.216,
+    "time_ms": 54.109,
     "line": 315,
     "code": "        use crate::brep::BRep;\n        use crate::brep::BRepLoopType;\n        use crate::NurbsCurve;\n        use crate::Mesh;\n        use crate::Point;\n        use crate::primitives::Primitives;\n\n        let outer = NurbsCurve::create(false, 1, &[Point::new(-5.0,-5.0,0.0), Point::new(5.0,-5.0,0.0), Point::new(5.0,5.0,0.0), Point::new(-5.0,5.0,0.0), Point::new(-5.0,-5.0,0.0)]);\n        let hole = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n\n        let b = BRep::from_nurbscurves(&[outer], &[vec![hole]]);\n        let m = b.mesh();\n",
     "checks": [
@@ -387,7 +387,7 @@
   {
     "test_name": "From_polylines",
     "passed": true,
-    "time_ms": 1.204,
+    "time_ms": 134.297,
     "line": 248,
     "code": "        use crate::brep::BRep;\n        use crate::polyline::Polyline;\n        use crate::Mesh;\n        use crate::Point;\n\n        let hx = 1.0_f64; let hy = 1.5_f64; let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx,-hy,-hz), Point::new( hx,-hy,-hz),\n            Point::new( hx, hy,-hz), Point::new(-hx, hy,-hz),\n            Point::new(-hx,-hy, hz), Point::new( hx,-hy, hz),\n            Point::new( hx, hy, hz), Point::new(-hx, hy, hz),\n        ];\n\n        let bottom = Polyline::new(vec![c[0].clone(),c[3].clone(),c[2].clone(),c[1].clone(),c[0].clone()]);\n        let top = Polyline::new(vec![c[4].clone(),c[5].clone(),c[6].clone(),c[7].clone(),c[4].clone()]);\n        let front = Polyline::new(vec![c[0].clone(),c[1].clone(),c[5].clone(),c[4].clone(),c[0].clone()]);\n        let right = Polyline::new(vec![c[1].clone(),c[2].clone(),c[6].clone(),c[5].clone(),c[1].clone()]);\n        let back = Polyline::new(vec![c[2].clone(),c[3].clone(),c[7].clone(),c[6].clone(),c[2].clone()]);\n        let left = Polyline::new(vec![c[3].clone(),c[0].clone(),c[4].clone(),c[7].clone(),c[3].clone()]);\n\n        let b = BRep::from_polylines(&[bottom, top, front, right, back, left]);\n        let m = b.mesh();\n",
     "checks": [
@@ -432,7 +432,7 @@
   {
     "test_name": "Is_solid",
     "passed": true,
-    "time_ms": 1.09,
+    "time_ms": 1.11,
     "line": 121,
     "code": "        use crate::brep::BRep;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n\n        let mut single = BRep::new();\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0)); srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0)); srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n        let si = single.add_surface(&srf);\n        single.add_face(si as i32, false);\n        single.add_vertex(&Point::new(0.0, 0.0, 0.0));\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 1.05,
+    "time_ms": 182.555,
     "line": 93,
     "code": "        use crate::brep::BRep;\n        use crate::Mesh;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n        let m = b.mesh();\n",
     "checks": [
@@ -477,7 +477,7 @@
   {
     "test_name": "Point_at",
     "passed": true,
-    "time_ms": 0.866,
+    "time_ms": 1.112,
     "line": 107,
     "code": "        use crate::brep::BRep;\n        use crate::Point;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n        let pt = b.point_at(0, 0.5, 0.5);\n",
     "checks": [
