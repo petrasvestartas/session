@@ -37,6 +37,7 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - JSON fields alphabetically ordered across all languages
 - Every class needs: json_dump/json_load + to_proto/from_proto tests
 - Operators go inside constructor test, not separate tests
+- Method order: constructors → accessors → mutators (*_self) → operators → utilities → serialization → str/repr
 - Use `/test-rules` command for full import patterns and conventions
 
 ## Code Style

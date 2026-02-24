@@ -27,9 +27,4 @@ Build and test commands reference.
 - Rust: `cd session_rust && cargo build --release && cargo test`
 - Python: `source uvsession/bin/activate && cd session_py && uv pip install -e . && pytest -v`
 
-## Git
-```bash
-./bash/git_push.sh "message"
-gh run list --limit 5                 # Check CI status
-gh run view <run-id> --log-failed     # View failures
-```
+
