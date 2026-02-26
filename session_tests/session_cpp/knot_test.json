@@ -147,7 +147,7 @@
   {
     "test_name": "Is_clamped",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 99,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool clamped_both = knot::is_clamped(4, 4, k, 2);\n    bool clamped_start = knot::is_clamped(4, 4, k, 0);\n    bool clamped_end = knot::is_clamped(4, 4, k, 1);\n\n    // Periodic knot vector (not clamped)\n    auto k2 = knot::make_periodic_uniform(4, 5, 1.0);\n    bool not_clamped = knot::is_clamped(4, 5, k2, 2);\n",
     "checks": [
