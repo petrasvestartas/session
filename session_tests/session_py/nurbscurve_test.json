@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 40.512,
+    "time_ms": 47.591,
     "line": 7,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    # The first the curve is closed or open\n    # For linear curves use degree 1\n    # When 3 points use degree 2 curve, Rhino default\n    # When x>3 points use degree 3 curve\n    curve = NurbsCurve.create(False, 2, points)\n    curve.set_domain(0.0, 1.0)\n\n    # Minimal and Full String Representation\n    cstr = str(curve)\n    crepr = repr(curve)\n\n    # Copy (duplicates everything except guid)\n    ccopy = curve.duplicate()\n    cother = NurbsCurve.create(False, 2, points)\n\n    # Point division\n    divided, _ = curve.divide_by_count(10, True)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 3.465,
+    "time_ms": 4.203,
     "line": 49,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Plane\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    #############################################\n    # Boolean Queries\n    #############################################\n\n    # Whole curve\n    is_valid = curve.is_valid()\n\n    # Check whole knot vector for\n    # For correct size: order + cv_count - 2\n    # Non-decreasing (can repeat, can't go down)\n    # Valid domain exists\n    is_valid_knot_vector = curve.is_valid_knot_vector()\n\n    # Check if the curve is clamped at start, end, or both\n    is_clamped_start = curve.is_clamped(0)\n    is_clamped_end = curve.is_clamped(1)\n    is_clamped_both = curve.is_clamped(2)\n\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # circles, ellipses, parabolas, hyperbolas exactly\n    is_rational = curve.is_rational()\n    closed = curve.is_closed()\n    periodic = curve.is_periodic()\n    linear = curve.is_linear()\n    planar = curve.is_planar()\n    arc = curve.is_arc()\n    plane = Plane.xy_plane()\n    on_plane = curve.is_in_plane(plane)\n    is_open = curve.is_natural()\n    is_polyline, _, _ = curve.is_polyline()\n    is_singular = curve.is_singular()\n    is_duplicate = curve.is_duplicate(curve, False)\n    is_continuous = curve.is_continuous(1, curve.domain_middle())\n\n\n    #############################################\n    # Knot Operations\n    #############################################\n\n    # Insert knot into curve\n    # Useful for splitting curves at a parameter\n    # Increase local control without changing shape\n    copy_curve = curve.duplicate()\n    before_pt = copy_curve.point_at(1.5)\n    copy_curve.insert_knot(1.5, 1)\n\n    # Useful for controlling curve by cv on lying on it\n    greville0 = curve.greville_abcissa(0)\n\n    greville = curve.get_greville_abcissae()\n\n    #############################################\n    # Accessors\n    #############################################\n    # Memory layout 2-2D, 3-3D\n    dimension = curve.dimension()\n    # Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n    degree = curve.degree()\n    # Is rational is related to control points having weights\n    # is_rational = false means control points [x, y, z]\n    # is_rational = false means control points [xw, yw, zw]\n    # Rational curves are used to represent:\n    # Order = degree + 1, control points + order = knots\n    order = curve.order()\n    # Number of control vertices\n    cv_count = curve.cv_count()\n    # Number of floats per 1 control vertex\n    cv_size = curve.cv_size()\n    # The knots are a list of (degree+control_points-1) numbers\n    knot_count = curve.knot_count()\n    # Span = a knot interval where a single polynomial segment is evaluated\n    # Knot vector: [0, 0, 0 \u2191, 1 \u2191, 2 \u2191, 3, 3, 3]  (cubic, 5 CVs)\n    span_count = curve.span_count()\n    #####################################################\n    # Control Vertex Access\n    #  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n    #          \u2514\u2500\u2500\u2500 CV 0 \u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500 CV 1 \u2500\u2500\u2500\u2518\n    #####################################################\n\n    # Get pointer to control vertex\n    # Each CV occupies m_cv_stride doubles:\n    # (3 for non-rational, 4 for rational)\n    # cv(index) returns pointer to m_cv[index * m_cv_stride]\n    p = curve.cv(1)\n\n    # Returns the control vertex as Point object\n    cv_point = curve.get_cv(1)\n\n    # Raw homogeneous coords\n    x, y, z, w = curve.get_cv_4d(1)\n\n    # Use for regular points on curve, Polyline, B-Spline\n    curve.set_cv(2, Point(2.0, 0.0, 0.5))\n\n    # Use for rational curvers like circles, ellipses\n    curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707)\n    x, y, z, w = curve.get_cv_4d(2)\n\n    # Get weight of a control vertex (1.0 if non-rational)\n    weight = curve.weight(2)\n\n    # Set the weight of a control vertex\n    curve.set_weight(2, 0.5)\n\n    #####################################################\n    # Knot Access\n    #####################################################\n\n    # Get knot value at index\n    knot3 = curve.knot(3)\n\n    # Set knot value at index\n    # ATTENTION you can brake increasing rule\n    end_knot = curve.knot(4)\n    curve.set_knot(4, end_knot)\n\n    # Count repeated knots at index [0, 0, 1, 1, 2]\n    m0 = curve.knot_multiplicity(0)  # 2 (two 0's)\n    m1 = curve.knot_multiplicity(1)  # 2 (still counting the 0's)\n    m2 = curve.knot_multiplicity(2)  # 1 (single 0.5)\n    m3 = curve.knot_multiplicity(3)  # 2 (single 1's)\n    m4 = curve.knot_multiplicity(4)  # 2 (single 2)\n\n    # Superflous knots are used for extension of clamped curves\n    superfluous_knot = curve.superfluous_knot(1)\n\n    # Direct memory access to knot values, fast, read-only\n    # Vector return is slower and makes a copy\n    knots = curve.knot_array()\n    k0 = knots[0]\n    knot_vector = curve.get_knots()\n\n    # Control vertex array access\n    cvs = curve.cv_array()\n    cx0 = cvs[0]\n\n    #####################################################\n    # Domain & Parameterization - HERE\n    #####################################################\n\n    # get start and end of the curve interval\n    start, end = curve.domain()\n\n    # Get start, middle and end values of the interval\n    start = curve.domain_start()\n    middle = curve.domain_middle()\n    end = curve.domain_end()\n\n    # Change curve domain\n    curve.set_domain(0.0, 1.0)\n\n    # Span of distict knot intervals\n    intervals = curve.get_span_vector()\n\n    #####################################################\n    # Geometric checks\n    #####################################################\n\n    found, t_out = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end())",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "Conversions",
     "passed": true,
-    "time_ms": 85.931,
+    "time_ms": 131.988,
     "line": 282,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    # to_polyline_adaptive\n    adaptive_pts, adaptive_params = curve.to_polyline_adaptive(0.1, 0.0, 0.0)\n\n\n    # divide_by_count\n    div_pts, div_params = curve.divide_by_count(10, True)\n\n\n    # divide_by_length\n    len_pts, len_params = curve.divide_by_length(0.5)",
     "checks": [
@@ -437,7 +437,7 @@
   {
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 68.853,
+    "time_ms": 100.035,
     "line": 329,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n\n    points = [\n        Point(1.957614, 1.140253, -0.191281),\n        Point(0.912252, 1.886721, 0),\n        Point(3.089381, 2.701879, -0.696251),\n        Point(5.015145, 1.189141, 0.35799),\n        Point(1.854155, 0.514663, 0.347694),\n        Point(3.309532, 1.328666, 0),\n        Point(3.544072, 2.194233, 0.696217),\n        Point(2.903513, 2.091287, 0.696217),\n        Point(2.752484, 1.45432, 0),\n        Point(2.406227, 1.288248, 0),\n        Point(2.15032, 1.868606, 0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    # Length\n\n    # Get point at parameter t\n    point_at = curve.point_at(0.5)\n\n    # Get point and derivatives at parameter t\n    derivatives = curve.evaluate(0.5, 2)\n\n    # Tangent vector at parameter t\n    tangent = curve.tangent_at(0.5)\n\n    # normalized=true (default): t in [0,1] mapped to domain\n    f = curve.plane_at(0.5, True)\n\n\n    # Perpendicular frame at (RMF with Frenet initialization, matches Rhino)\n    pf = curve.perpendicular_plane_at(0.5, True)\n\n    # Get multiple rotation minimization frames along the curve (matches Rhino)\n    frames = curve.get_perpendicular_planes(4)\n    # Frame 0 (start)\n    # Frame 2 (middle)\n    # Frame 4 (end)\n\n    # Points\n    p0 = curve.point_at_start()\n    p1 = curve.point_at_middle()\n    p2 = curve.point_at_end()\n\n    curve.set_start_point(Point(1.957614, 1.140253, 2.0))\n    curve.set_end_point(Point(2.15032, 1.868606, 2.0))",
     "checks": [
@@ -662,7 +662,7 @@
   {
     "test_name": "Modifications",
     "passed": true,
-    "time_ms": 7.23,
+    "time_ms": 8.934,
     "line": 428,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    curve = NurbsCurve.create(False, 2, points)\n\n    # Reverse the curve\n    curve_reversed = curve.duplicate()\n    curve_reversed.reverse()\n\n    # Swap coordinates axes\n    curve.swap_coordinates(0, 1)\n\n    # Trim curve at domain parameter\n    ct = curve.duplicate()\n    a = ct.domain_start() + (ct.domain_end() - ct.domain_start()) / 3.0\n    b = ct.domain_start() + 2.0 * (ct.domain_end() - ct.domain_start()) / 3.0\n    ct.trim(a, b)\n\n    # Split curve at domain middle\n    split_t = curve.domain_middle()\n    curve_left, curve_right = curve.split(split_t)\n\n    # Extend curve smoothly at both ends\n    curve_extended = curve.duplicate()\n    curve_extended.extend(curve.domain_start() - 0.5, curve.domain_end() + 0.5)\n\n    # Enable curve weights - Make rational or non-rational\n    curve_rational = curve.duplicate()\n    original_length = curve.length()\n    curve_rational.make_rational()\n    curve_rational.set_weight(2, 10)\n\n    curve_rational.make_non_rational(True)\n\n    # Clamp ends - create unclamped curve manually\n    points_open = points\n    curve_open = NurbsCurve(3, False, 3, 5)  # dim=3, non-rational, order=3 (deg 2), 5 CVs\n\n    for i in range(5):\n        curve_open.set_cv(i, points_open[i])\n\n    for i in range(curve_open.knot_count()):\n        curve_open.set_knot(i, i * 1.0)\n\n    # Now clamp, making 2 knots at the ends the same\n    curve_open.clamp_end(2)\n    knots = curve_open.get_knots()\n\n    # Increase degree without change the shape\n    raised = curve.duplicate()\n    raised.increase_degree(3)\n\n    # Change closed curve seam\n    closed_pts = [\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(-1.0, 0.0, 0.0),\n        Point(0.0, -1.0, 0.0)\n    ]\n    c = NurbsCurve.create(True, 2, closed_pts)\n    expected_start = c.point_at(c.domain_middle())\n    c.change_closed_curve_seam(c.domain_middle())",
     "checks": [
@@ -752,7 +752,7 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 13.506,
+    "time_ms": 15.267,
     "line": 518,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n    curve = NurbsCurve.create(False, 2, points)\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # JSON object\n    json_obj = curve.__jsondump__()\n    loaded_json = NurbsCurve.__jsonload__(json_obj)\n\n    # String\n    json_string = curve.json_dumps()\n    loaded_json_string = NurbsCurve.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.json\"\n    curve.json_dump(filename)\n    loaded_from_file = NurbsCurve.json_load(filename)",
     "checks": [
@@ -777,7 +777,7 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.627,
+    "time_ms": 16.331,
     "line": 557,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n    curve = NurbsCurve.create(False, 2, points)\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # String\n    proto_string = curve.pb_dumps()\n    loaded_proto_string = NurbsCurve.pb_loads(proto_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbscurve.bin\"\n    curve.pb_dump(filename)\n    loaded = NurbsCurve.pb_load(filename)",
     "checks": [
@@ -797,7 +797,7 @@
   {
     "test_name": "Transformations",
     "passed": true,
-    "time_ms": 2.976,
+    "time_ms": 5.199,
     "line": 589,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Xform\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0)\n    ]\n\n    # transform() - Apply stored xform (in-place)\n    curve1 = NurbsCurve.create(False, 2, points)\n    curve1.xform = Xform.translation(0.0, 0.0, 1.0)\n    curve1.transform()\n\n    # transform(xform) - Apply custom xform (in-place)\n    curve2 = NurbsCurve.create(False, 2, points)\n    x = Xform.translation(0.0, 0.0, 1.0)\n    curve2.transform(x)\n\n    # transformed() - Get copy with stored xform applied\n    curve3 = NurbsCurve.create(False, 2, points)\n    curve3.xform = Xform.translation(0.0, 0.0, 10.0)\n    curve3_transformed = curve3.transformed()\n\n    # transformed(xform) - Get copy with custom xform\n    curve4 = NurbsCurve.create(False, 2, points)\n    x = Xform.translation(0.0, 0.0, 10.0)\n    curve4_transformed = curve4.transformed(x)",
     "checks": [
@@ -847,7 +847,7 @@
   {
     "test_name": "Create_interpolated",
     "passed": true,
-    "time_ms": 0.528,
+    "time_ms": 0.66,
     "line": 632,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.knot import CurveKnotStyle\n\n    points = [\n        Point(14, 9, 0), Point(21, 22, 0), Point(26, 10, 0),\n        Point(35, 19, 0), Point(41, 13, 0)\n    ]\n\n    c = NurbsCurve.create_interpolated(points, CurveKnotStyle.Chord)\n\n\n    d0, d1 = c.domain()\n\n    # Periodic closed curve\n    closed_pts = [\n        Point(4, 20, 0), Point(-2, 20, 0), Point(-2, 25, 0), Point(-3, 28, 0), Point(-10, 28, 0),\n        Point(-10, 21, 0), Point(-13, 16, 0), Point(-8, 14, 0), Point(-6, 11, 0), Point(0, 15, 0)\n    ]\n\n    cp = NurbsCurve.create_interpolated(closed_pts, CurveKnotStyle.ChordPeriodic)",
     "checks": [
@@ -922,7 +922,7 @@
   {
     "test_name": "Create_fitted",
     "passed": true,
-    "time_ms": 0.949,
+    "time_ms": 1.159,
     "line": 671,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.tolerance import PI\n\n    # Open: 21 points on sine wave \u2192 fit with 8 CVs\n    pts = [Point(i * 2.0 * PI / 20.0, 3.0 * math.sin(i * 2.0 * PI / 20.0), 0.0) for i in range(21)]\n\n    c = NurbsCurve.create_fitted(pts, 8, 3, False)\n\n    d0, d1 = c.domain()\n\n    # Periodic: 24 points on circle \u2192 fit with 10 free CVs\n    cpts = [Point(math.cos(i * 2.0 * PI / 24.0), math.sin(i * 2.0 * PI / 24.0), 0.0) for i in range(24)]\n\n    cp = NurbsCurve.create_fitted(cpts, 10, 3, True)",
     "checks": [

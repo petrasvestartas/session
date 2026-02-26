@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.255,
+    "time_ms": 0.235,
     "line": 8,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    sides = 6\n\n    # Create hexagon vertices in XY plane\n    vertices = []\n    for i in range(sides):\n        angle = 2.0 * TOLERANCE.PI * i / sides\n        x = 1.0 * math.cos(angle)\n        y = 1.0 * math.sin(angle)\n        vertices.append(Point(x, y, 0.0))\n\n    # Add center point as last vertex\n    vertices.append(Point(0.0, 0.0, 0.0))\n    faces = [\n        [0, 1, 6],\n        [1, 2, 6],\n        [2, 3, 6],\n        [3, 4, 6],\n        [4, 5, 6],\n        [5, 0, 6],\n    ]\n\n    mesh = Mesh.from_vertices_and_faces(vertices, faces)\n\n    num_vertices = mesh.number_of_vertices()\n    num_faces = mesh.number_of_faces()\n    num_edges = mesh.number_of_edges()\n    is_empty = mesh.is_empty()\n    euler = mesh.euler()\n\n    # String representations\n    sstr = str(mesh)\n    srepr = repr(mesh)\n\n    # Copy (new guid)\n    import copy\n    mcopy = copy.copy(mesh)",
     "checks": [
@@ -72,7 +72,7 @@
   {
     "test_name": "Add_vertex",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.046,
     "line": 64,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n\n\n    pos = mesh.vertex_position(v0)\n\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Add_face",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.13,
     "line": 83,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    f = mesh.add_face([v0, v1, v2])\n\n    invalid1 = mesh.add_face([v0, v1])\n\n    invalid2 = mesh.add_face([v0, v1, 999])\n\n    invalid3 = mesh.add_face([v0, v1, v0])",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "Face_vertices",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.039,
     "line": 109,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    f = mesh.add_face([v0, v1, v2])\n    vertices = mesh.face_vertices(f)",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Vertex_neighbors",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.039,
     "line": 128,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v2])\n\n    neighbors = mesh.vertex_neighbors(v0)",
     "checks": [
@@ -207,7 +207,7 @@
   {
     "test_name": "Vertex_faces",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.048,
     "line": 146,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n\n    f1 = mesh.add_face([v0, v1, v2])\n    f2 = mesh.add_face([v1, v3, v2])\n\n    faces = mesh.vertex_faces(v1)",
     "checks": [
@@ -232,7 +232,7 @@
   {
     "test_name": "Is_vertex_on_boundary",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.035,
     "line": 166,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v2])",
     "checks": [
@@ -255,24 +255,229 @@
     "failures": []
   },
   {
+    "test_name": "Vertex_edges",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 183,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    f0 = mesh.add_face([v0,v1,v2,v3])\n    f1 = mesh.add_face([v1,v4,v2])\n\n    edges = mesh.vertex_edges(v1)",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "len(edges) == 3",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "(v1,v0) in edges",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "(v1,v2) in edges",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "(v1,v4) in edges",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Face_edges",
+    "passed": true,
+    "time_ms": 0.051,
+    "line": 204,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    f0 = mesh.add_face([v0,v1,v2,v3])\n    mesh.add_face([v1,v4,v2])\n\n    edges = mesh.face_edges(f0)",
+    "checks": [
+      {
+        "line": 219,
+        "code_line": "len(edges) == 4",
+        "passed": true
+      },
+      {
+        "line": 220,
+        "code_line": "edges[0] == (v0,v1)",
+        "passed": true
+      },
+      {
+        "line": 221,
+        "code_line": "edges[1] == (v1,v2)",
+        "passed": true
+      },
+      {
+        "line": 222,
+        "code_line": "edges[2] == (v2,v3)",
+        "passed": true
+      },
+      {
+        "line": 223,
+        "code_line": "edges[3] == (v3,v0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Face_neighbors",
+    "passed": true,
+    "time_ms": 0.057,
+    "line": 226,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    f0 = mesh.add_face([v0,v1,v2,v3])\n    f1 = mesh.add_face([v1,v4,v2])\n\n    nb0 = mesh.face_neighbors(f0)\n\n    nb1 = mesh.face_neighbors(f1)",
+    "checks": [
+      {
+        "line": 241,
+        "code_line": "len(nb0) == 1",
+        "passed": true
+      },
+      {
+        "line": 242,
+        "code_line": "nb0[0] == f1",
+        "passed": true
+      },
+      {
+        "line": 245,
+        "code_line": "len(nb1) == 1",
+        "passed": true
+      },
+      {
+        "line": 246,
+        "code_line": "nb1[0] == f0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_vertices",
+    "passed": true,
+    "time_ms": 0.032,
+    "line": 249,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    mesh.add_face([v0,v1,v2])\n\n    ev = mesh.edge_vertices(v0, v1)",
+    "checks": [
+      {
+        "line": 261,
+        "code_line": "ev[0] == v0",
+        "passed": true
+      },
+      {
+        "line": 262,
+        "code_line": "ev[1] == v1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_faces",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 265,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    f0 = mesh.add_face([v0,v1,v2,v3])\n    f1 = mesh.add_face([v1,v4,v2])\n\n    a, b = mesh.edge_faces(v1, v2)\n\n    c, d = mesh.edge_faces(v0, v1)",
+    "checks": [
+      {
+        "line": 280,
+        "code_line": "a is not None and b is not None",
+        "passed": true
+      },
+      {
+        "line": 281,
+        "code_line": "(a == f0 and b == f1) or (a == f1 and b == f0)",
+        "passed": true
+      },
+      {
+        "line": 284,
+        "code_line": "(c is not None) != (d is not None)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_edges",
+    "passed": true,
+    "time_ms": 0.055,
+    "line": 287,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    mesh.add_face([v0,v1,v2,v3])\n    mesh.add_face([v1,v4,v2])\n\n    ee = mesh.edge_edges(v1, v2)",
+    "checks": [
+      {
+        "line": 302,
+        "code_line": "len(ee) == 4",
+        "passed": true
+      },
+      {
+        "line": 303,
+        "code_line": "(v1,v2) not in ee",
+        "passed": true
+      },
+      {
+        "line": 304,
+        "code_line": "(v2,v1) not in ee",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is_edge_on_boundary",
+    "passed": true,
+    "time_ms": 0.054,
+    "line": 307,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    mesh.add_face([v0,v1,v2,v3])\n    mesh.add_face([v1,v4,v2])",
+    "checks": [
+      {
+        "line": 321,
+        "code_line": "mesh.is_edge_on_boundary(v0, v1)",
+        "passed": true
+      },
+      {
+        "line": 322,
+        "code_line": "not mesh.is_edge_on_boundary(v1, v2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is_face_on_boundary",
+    "passed": true,
+    "time_ms": 0.054,
+    "line": 325,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0,0,0))\n    v1 = mesh.add_vertex(Point(1,0,0))\n    v2 = mesh.add_vertex(Point(1,1,0))\n    v3 = mesh.add_vertex(Point(0,1,0))\n    v4 = mesh.add_vertex(Point(2,0,0))\n    f0 = mesh.add_face([v0,v1,v2,v3])\n    f1 = mesh.add_face([v1,v4,v2])",
+    "checks": [
+      {
+        "line": 339,
+        "code_line": "mesh.is_face_on_boundary(f0)",
+        "passed": true
+      },
+      {
+        "line": 340,
+        "code_line": "mesh.is_face_on_boundary(f1)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
     "test_name": "Face_normal",
     "passed": true,
-    "time_ms": 0.075,
-    "line": 183,
+    "time_ms": 0.074,
+    "line": 343,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    f = mesh.add_face([v0, v1, v2])\n    normal = mesh.face_normal(f)",
     "checks": [
       {
-        "line": 196,
+        "line": 356,
         "code_line": "TOLERANCE.is_close(normal[2], 1.0)",
         "passed": true
       },
       {
-        "line": 197,
+        "line": 357,
         "code_line": "TOLERANCE.is_close(normal[0], 0.0)",
         "passed": true
       },
       {
-        "line": 198,
+        "line": 358,
         "code_line": "TOLERANCE.is_close(normal[1], 0.0)",
         "passed": true
       }
@@ -282,12 +487,12 @@
   {
     "test_name": "Face_area",
     "passed": true,
-    "time_ms": 0.052,
-    "line": 201,
+    "time_ms": 0.054,
+    "line": 361,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    f = mesh.add_face([v0, v1, v2])\n    area = mesh.face_area(f)",
     "checks": [
       {
-        "line": 214,
+        "line": 374,
         "code_line": "TOLERANCE.is_close(area, 0.5)",
         "passed": true
       }
@@ -297,32 +502,32 @@
   {
     "test_name": "From_polylines",
     "passed": true,
-    "time_ms": 0.091,
-    "line": 217,
+    "time_ms": 0.1,
+    "line": 377,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    triangle = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n\n    mesh = Mesh.from_polylines([triangle])\n\n    tri1 = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n    tri2 = [\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n\n    mesh2 = Mesh.from_polylines([tri1, tri2])",
     "checks": [
       {
-        "line": 229,
+        "line": 389,
         "code_line": "mesh.number_of_vertices() == 3",
         "passed": true
       },
       {
-        "line": 230,
+        "line": 390,
         "code_line": "mesh.number_of_faces() == 1",
         "passed": true
       },
       {
-        "line": 231,
+        "line": 391,
         "code_line": "mesh.number_of_edges() == 3",
         "passed": true
       },
       {
-        "line": 245,
+        "line": 405,
         "code_line": "mesh2.number_of_vertices() == 4",
         "passed": true
       },
       {
-        "line": 246,
+        "line": 406,
         "code_line": "mesh2.number_of_faces() == 2",
         "passed": true
       }
@@ -332,28 +537,48 @@
   {
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.033,
-    "line": 249,
+    "time_ms": 0.04,
+    "line": 409,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n\n    mesh.clear()",
     "checks": [
       {
-        "line": 260,
+        "line": 420,
         "code_line": "not mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 264,
+        "line": 424,
         "code_line": "mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 265,
+        "line": 425,
         "code_line": "mesh.number_of_vertices() == 0",
         "passed": true
       },
       {
-        "line": 266,
+        "line": 426,
         "code_line": "mesh.number_of_faces() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Unify_winding",
+    "passed": true,
+    "time_ms": 0.109,
+    "line": 429,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    f0 = mesh.add_face([v0, v1, v2])\n    f1 = mesh.add_face([v0, v3, v2])\n\n    changed = mesh.unify_winding()\n\n    n0 = mesh.face_normal(f0)\n    n1 = mesh.face_normal(f1)\n    dot = n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]",
+    "checks": [
+      {
+        "line": 449,
+        "code_line": "changed",
+        "passed": true
+      },
+      {
+        "line": 450,
+        "code_line": "TOLERANCE.is_close(dot, 1.0)",
         "passed": true
       }
     ],
@@ -362,32 +587,32 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.187,
-    "line": 269,
+    "time_ms": 0.194,
+    "line": 453,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    mesh.xform = Xform.translation(10.0, 20.0, 30.0)\n    mesh_transformed = mesh.transformed()\n    mesh.transform()\n\n    pos0 = mesh.vertex_position(v0)",
     "checks": [
       {
-        "line": 286,
+        "line": 470,
         "code_line": "pos0[0] == 10.0",
         "passed": true
       },
       {
-        "line": 287,
+        "line": 471,
         "code_line": "pos0[1] == 20.0",
         "passed": true
       },
       {
-        "line": 288,
+        "line": 472,
         "code_line": "pos0[2] == 30.0",
         "passed": true
       },
       {
-        "line": 289,
+        "line": 473,
         "code_line": "mesh.xform == Xform.identity()",
         "passed": true
       },
       {
-        "line": 290,
+        "line": 474,
         "code_line": "mesh_transformed.xform == Xform.identity()",
         "passed": true
       }
@@ -397,22 +622,22 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 15.233,
-    "line": 293,
+    "time_ms": 18.159,
+    "line": 477,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded = Mesh.json_load(filename)",
     "checks": [
       {
-        "line": 317,
+        "line": 501,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 318,
+        "line": 502,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 503,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       }
@@ -422,27 +647,27 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 14.55,
-    "line": 322,
+    "time_ms": 18.426,
+    "line": 506,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh_proto\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded = Mesh.pb_load(filename)",
     "checks": [
       {
-        "line": 344,
+        "line": 528,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 345,
+        "line": 529,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 346,
+        "line": 530,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 347,
+        "line": 531,
         "code_line": "loaded.guid == mesh.guid",
         "passed": true
       }
@@ -452,27 +677,27 @@
   {
     "test_name": "Vertex_position",
     "passed": true,
-    "time_ms": 0.029,
-    "line": 350,
+    "time_ms": 0.026,
+    "line": 534,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n\n    pos = mesh.vertex_position(v0)",
     "checks": [
       {
-        "line": 359,
+        "line": 543,
         "code_line": "pos[0] == 1.0",
         "passed": true
       },
       {
-        "line": 360,
+        "line": 544,
         "code_line": "pos[1] == 2.0",
         "passed": true
       },
       {
-        "line": 361,
+        "line": 545,
         "code_line": "pos[2] == 3.0",
         "passed": true
       },
       {
-        "line": 362,
+        "line": 546,
         "code_line": "mesh.vertex_position(999) is None",
         "passed": true
       }
@@ -482,12 +707,12 @@
   {
     "test_name": "Vertex_normal",
     "passed": true,
-    "time_ms": 0.15,
-    "line": 365,
+    "time_ms": 0.133,
+    "line": 549,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v3])\n    mesh.add_face([v0, v3, v2])\n\n    normal = mesh.vertex_normal(v0)",
     "checks": [
       {
-        "line": 380,
+        "line": 564,
         "code_line": "abs(normal[2]) == 1.0",
         "passed": true
       }
@@ -497,23 +722,58 @@
   {
     "test_name": "To_vertices_and_faces",
     "passed": true,
-    "time_ms": 0.057,
-    "line": 383,
+    "time_ms": 0.052,
+    "line": 567,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n\n    mesh.add_face([v0, v1, v2])\n\n    vertices, faces = mesh.to_vertices_and_faces()",
     "checks": [
       {
-        "line": 397,
+        "line": 581,
         "code_line": "len(vertices) == 3",
         "passed": true
       },
       {
-        "line": 398,
+        "line": 582,
         "code_line": "len(faces) == 1",
         "passed": true
       },
       {
-        "line": 399,
+        "line": 583,
         "code_line": "len(faces[0]) == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From_polygon_with_holes",
+    "passed": true,
+    "time_ms": 1.64,
+    "line": 586,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)],\n    ], False)\n\n    mesh_sorted = Mesh.from_polygon_with_holes([\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)],\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n    ], True)",
+    "checks": [
+      {
+        "line": 595,
+        "code_line": "mesh.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 596,
+        "code_line": "mesh.number_of_faces() > 0",
+        "passed": true
+      },
+      {
+        "line": 597,
+        "code_line": "mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 603,
+        "code_line": "mesh_sorted.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 604,
+        "code_line": "mesh_sorted.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       }
     ],
@@ -522,17 +782,17 @@
   {
     "test_name": "From_lines",
     "passed": true,
-    "time_ms": 0.505,
-    "line": 402,
+    "time_ms": 0.435,
+    "line": 607,
     "code": "    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    # Grid of unit segments forming 4 quads (3x3 grid)\n    lines = []\n    for i in range(3):\n        for j in range(2):\n            lines.append(Line.from_points(Point(i,j,0), Point(i,j+1,0)))\n            lines.append(Line.from_points(Point(j,i,0), Point(j+1,i,0)))\n    mesh = Mesh.from_lines(lines, True)",
     "checks": [
       {
-        "line": 415,
+        "line": 620,
         "code_line": "mesh.number_of_vertices() == 9",
         "passed": true
       },
       {
-        "line": 416,
+        "line": 621,
         "code_line": "mesh.number_of_faces() == 8",
         "passed": true
       }

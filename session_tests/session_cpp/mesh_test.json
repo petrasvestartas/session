@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.074,
+    "time_ms": 0.036,
     "line": 17,
     "code": "        // uncomment #include \"mesh.h\"\n\n        const int sides = 6;\n\n        // Create hexagon vertices in XY plane\n        std::vector<Point> vertices;\n        for (int i = 0; i < sides; ++i) {\n            double angle = 2.0 * TOLERANCE.PI * i / sides;\n            double x = 1.0 * std::cos(angle);\n            double y = 1.0 * std::sin(angle);\n            vertices.push_back({x, y, 0.0});\n        }\n\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 2, 3, 4, 5},\n        };\n\n        Mesh mesh = Mesh::from_vertices_and_faces(vertices, faces);\n\n        std::string sstr = mesh.str();\n        std::string srepr = mesh.repr();\n\n        // Copy (new guid)\n        Mesh mcopy = mesh;\n",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 0.096,
+    "time_ms": 0.037,
     "line": 46,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> hex0 = {\n            Point(0.5, 0.866025, 0), Point(-0.5, 0.866025, 0), Point(-1, 0, 0),\n            Point(-0.5, -0.866025, 0), Point(0.5, -0.866025, 0), Point(1, 0, 0),\n        };\n        std::vector<Point> hex1 = {\n            Point(2, 1.732051, 0), Point(1, 1.732051, 0), Point(0.5, 0.866025, 0),\n            Point(1, 0, 0), Point(2, 0, 0), Point(2.5, 0.866025, 0),\n        };\n        std::vector<Point> hex2 = {\n            Point(2.0, 0, 0), Point(1, 0, 0), Point(0.5, -0.866025, 0),\n            Point(1.0, -1.732051, 0), Point(2.0, -1.732051, 0), Point(2.5, -0.866025, 0),\n        };\n\n        Mesh mesh = Mesh::from_polylines({hex0, hex1, hex2});",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "From Lines",
     "passed": true,
-    "time_ms": 0.193,
+    "time_ms": 0.097,
     "line": 68,
     "code": "        std::vector<Line> lines = {\n            Line::from_points(Point(3.723844, 0.971574, 0), Point(3.218847, 0.841359, 0)),\n            Line::from_points(Point(3.723844, 0.971574, 0), Point(3.852993, 0.371225, 0)),\n            Line::from_points(Point(3.852993, 0.371225, 0), Point(4.593264, 0.584361, 0)),\n            Line::from_points(Point(3.904452, -0.157402, 0), Point(3.236395, -0.051356, 0)),\n            Line::from_points(Point(4.995604, -0.149798, 0), Point(4.411839, -0.996413, 0)),\n            Line::from_points(Point(3.904452, -0.157402, 0), Point(4.29633, -0.224964, 0)),\n            Line::from_points(Point(4.29633, -0.224964, 0), Point(3.57903, -0.987075, 0)),\n            Line::from_points(Point(3.236395, -0.051356, 0), Point(3.218847, 0.841359, 0)),\n            Line::from_points(Point(4.593264, 0.584361, 0), Point(4.995604, -0.149798, 0)),\n            Line::from_points(Point(4.411839, -0.996413, 0), Point(3.57903, -0.987075, 0)),\n        };\n\n        Mesh mesh = Mesh::from_lines(lines, true);",
     "checks": [
@@ -65,39 +65,84 @@
     "failures": []
   },
   {
-    "test_name": "Loft",
+    "test_name": "From_polygon_with_holes",
     "passed": true,
-    "time_ms": 0.505,
+    "time_ms": 0.196,
     "line": 88,
-    "code": "        Polyline bot(std::vector<Point>{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(0,0,0)});\n        Polyline top(std::vector<Point>{Point(0,0,1), Point(1,0,1), Point(1,1,1), Point(0,1,1), Point(0,0,1)});\n        Mesh mesh = Mesh::loft({bot}, {top});\n\n        Polyline ob(std::vector<Point>{Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0), Point(0,0,0)});\n        Polyline ot(std::vector<Point>{Point(0,0,1), Point(4,0,1), Point(4,4,1), Point(0,4,1), Point(0,0,1)});\n        Polyline ib(std::vector<Point>{Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0), Point(1,1,0)});\n        Polyline it(std::vector<Point>{Point(1,1,1), Point(3,1,1), Point(3,3,1), Point(1,3,1), Point(1,1,1)});\n        Mesh mesh_hole = Mesh::loft({ob, ib}, {ot, it});",
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh = Mesh::from_polygon_with_holes({\n            {{0,0,0},{4,0,0},{4,4,0},{0,4,0}},\n            {{1,1,0},{3,1,0},{3,3,0},{1,3,0}},\n        }, false);\n\n        Mesh mesh_sorted = Mesh::from_polygon_with_holes({\n            {{1,1,0},{3,1,0},{3,3,0},{1,3,0}},\n            {{0,0,0},{4,0,0},{4,4,0},{0,4,0}},\n        }, true);",
     "checks": [
       {
-        "line": 92,
+        "line": 96,
         "code_line": "mesh.number_of_vertices() == 8",
         "passed": true
       },
       {
-        "line": 93,
-        "code_line": "mesh.number_of_faces() == 8",
+        "line": 97,
+        "code_line": "mesh.number_of_faces() > 0",
         "passed": true
       },
       {
-        "line": 94,
+        "line": 98,
         "code_line": "mesh.is_valid()",
         "passed": true
       },
       {
-        "line": 101,
+        "line": 104,
+        "code_line": "mesh_sorted.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "mesh_sorted.number_of_faces() == mesh.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Loft",
+    "passed": true,
+    "time_ms": 0.28,
+    "line": 108,
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"polyline.h\"\n        // uncomment #include \"point.h\"\n\n        Polyline bot(std::vector<Point>{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(0,0,0)});\n        Polyline top(std::vector<Point>{Point(0,0,1), Point(1,0,1), Point(1,1,1), Point(0,1,1), Point(0,0,1)});\n        Mesh mesh = Mesh::loft({bot}, {top});\n\n        Mesh mesh_no_cap = Mesh::loft({bot}, {top}, false);\n\n        Polyline ob(std::vector<Point>{Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0), Point(0,0,0)});\n        Polyline ot(std::vector<Point>{Point(0,0,1), Point(4,0,1), Point(4,4,1), Point(0,4,1), Point(0,0,1)});\n        Polyline ib(std::vector<Point>{Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0), Point(1,1,0)});\n        Polyline it(std::vector<Point>{Point(1,1,1), Point(3,1,1), Point(3,3,1), Point(1,3,1), Point(1,1,1)});\n        Mesh mesh_hole = Mesh::loft({ob, ib}, {ot, it});",
+    "checks": [
+      {
+        "line": 116,
+        "code_line": "mesh.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "mesh.number_of_faces() == 8",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "mesh_no_cap.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "mesh_no_cap.number_of_faces() == 4",
+        "passed": true
+      },
+      {
+        "line": 129,
         "code_line": "mesh_hole.number_of_vertices() == 16",
         "passed": true
       },
       {
-        "line": 102,
+        "line": 130,
         "code_line": "mesh_hole.number_of_faces() == 24",
         "passed": true
       },
       {
-        "line": 103,
+        "line": 131,
         "code_line": "mesh_hole.is_valid()",
         "passed": true
       }
@@ -107,37 +152,37 @@
   {
     "test_name": "Add_vertex",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 109,
+    "time_ms": 0.003,
+    "line": 137,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n\n\n        auto pos = mesh.vertex_position(v0);\n\n        size_t v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42);",
     "checks": [
       {
-        "line": 116,
+        "line": 144,
         "code_line": "mesh.number_of_vertices() == 1",
         "passed": true
       },
       {
-        "line": 117,
+        "line": 145,
         "code_line": "!mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 120,
+        "line": 148,
         "code_line": "pos.has_value()",
         "passed": true
       },
       {
-        "line": 121,
+        "line": 149,
         "code_line": "(*pos)[0] == 1.0 && (*pos)[1] == 2.0 && (*pos)[2] == 3.0",
         "passed": true
       },
       {
-        "line": 124,
+        "line": 152,
         "code_line": "v1 == 42",
         "passed": true
       },
       {
-        "line": 125,
+        "line": 153,
         "code_line": "mesh.number_of_vertices() == 2",
         "passed": true
       }
@@ -147,42 +192,42 @@
   {
     "test_name": "Add_face",
     "passed": true,
-    "time_ms": 0.014,
-    "line": 128,
+    "time_ms": 0.006,
+    "line": 156,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        auto invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n\n        auto invalid2 = mesh.add_face({v0, v1, 999}, std::nullopt);\n\n        auto invalid3 = mesh.add_face({v0, v1, v0}, std::nullopt);",
     "checks": [
       {
-        "line": 138,
+        "line": 166,
         "code_line": "f.has_value()",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 167,
         "code_line": "mesh.number_of_faces() == 1",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 168,
         "code_line": "mesh.number_of_edges() == 3",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 169,
         "code_line": "mesh.euler() == 1",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 172,
         "code_line": "!invalid1.has_value()",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 175,
         "code_line": "!invalid2.has_value()",
         "passed": true
       },
       {
-        "line": 150,
+        "line": 178,
         "code_line": "!invalid3.has_value()",
         "passed": true
       }
@@ -192,32 +237,32 @@
   {
     "test_name": "Face_vertices",
     "passed": true,
-    "time_ms": 0.017,
-    "line": 153,
+    "time_ms": 0.006,
+    "line": 181,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto vertices = mesh.face_vertices(*f);\n",
     "checks": [
       {
-        "line": 165,
+        "line": 193,
         "code_line": "vertices.has_value()",
         "passed": true
       },
       {
-        "line": 166,
+        "line": 194,
         "code_line": "vertices->size() == 3",
         "passed": true
       },
       {
-        "line": 167,
+        "line": 195,
         "code_line": "(*vertices)[0] == v0",
         "passed": true
       },
       {
-        "line": 168,
+        "line": 196,
         "code_line": "(*vertices)[1] == v1",
         "passed": true
       },
       {
-        "line": 169,
+        "line": 197,
         "code_line": "(*vertices)[2] == v2",
         "passed": true
       }
@@ -227,22 +272,22 @@
   {
     "test_name": "Vertex_neighbors",
     "passed": true,
-    "time_ms": 0.011,
-    "line": 172,
+    "time_ms": 0.004,
+    "line": 200,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        auto neighbors = mesh.vertex_neighbors(v0);",
     "checks": [
       {
-        "line": 184,
+        "line": 212,
         "code_line": "neighbors.size() == 2",
         "passed": true
       },
       {
-        "line": 185,
+        "line": 213,
         "code_line": "std::find(neighbors.begin(), neighbors.end(), v1) != neighbors.end()",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 214,
         "code_line": "std::find(neighbors.begin(), neighbors.end(), v2) != neighbors.end()",
         "passed": true
       }
@@ -252,22 +297,22 @@
   {
     "test_name": "Vertex_faces",
     "passed": true,
-    "time_ms": 0.018,
-    "line": 189,
+    "time_ms": 0.008,
+    "line": 217,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n\n        auto f1 = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto f2 = mesh.add_face({v1, v3, v2}, std::nullopt);\n\n        auto faces = mesh.vertex_faces(v1);",
     "checks": [
       {
-        "line": 203,
+        "line": 231,
         "code_line": "faces.size() == 2",
         "passed": true
       },
       {
-        "line": 204,
+        "line": 232,
         "code_line": "std::find(faces.begin(), faces.end(), *f1) != faces.end()",
         "passed": true
       },
       {
-        "line": 205,
+        "line": 233,
         "code_line": "std::find(faces.begin(), faces.end(), *f2) != faces.end()",
         "passed": true
       }
@@ -277,23 +322,228 @@
   {
     "test_name": "Is_vertex_on_boundary",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 208,
+    "time_ms": 0.004,
+    "line": 236,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n",
     "checks": [
       {
-        "line": 219,
+        "line": 247,
         "code_line": "mesh.is_vertex_on_boundary(v0)",
         "passed": true
       },
       {
-        "line": 220,
+        "line": 248,
         "code_line": "mesh.is_vertex_on_boundary(v1)",
         "passed": true
       },
       {
-        "line": 221,
+        "line": 249,
         "code_line": "mesh.is_vertex_on_boundary(v2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Vertex_edges",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 252,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        auto f0 = mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        auto f1 = mesh.add_face({v1,v4,v2}, std::nullopt);\n\n        auto edges = mesh.vertex_edges(v1);",
+    "checks": [
+      {
+        "line": 263,
+        "code_line": "edges.size() == 3",
+        "passed": true
+      },
+      {
+        "line": 264,
+        "code_line": "std::find(edges.begin(), edges.end(), std::make_pair(v1,v0)) != edges.end()",
+        "passed": true
+      },
+      {
+        "line": 265,
+        "code_line": "std::find(edges.begin(), edges.end(), std::make_pair(v1,v2)) != edges.end()",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "std::find(edges.begin(), edges.end(), std::make_pair(v1,v4)) != edges.end()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Face_edges",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 269,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        auto f0 = mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        mesh.add_face({v1,v4,v2}, std::nullopt);\n\n        auto edges = mesh.face_edges(*f0);",
+    "checks": [
+      {
+        "line": 280,
+        "code_line": "edges.size() == 4",
+        "passed": true
+      },
+      {
+        "line": 281,
+        "code_line": "edges[0] == std::make_pair(v0,v1)",
+        "passed": true
+      },
+      {
+        "line": 282,
+        "code_line": "edges[1] == std::make_pair(v1,v2)",
+        "passed": true
+      },
+      {
+        "line": 283,
+        "code_line": "edges[2] == std::make_pair(v2,v3)",
+        "passed": true
+      },
+      {
+        "line": 284,
+        "code_line": "edges[3] == std::make_pair(v3,v0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Face_neighbors",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 287,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        auto f0 = mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        auto f1 = mesh.add_face({v1,v4,v2}, std::nullopt);\n\n        auto nb0 = mesh.face_neighbors(*f0);\n\n        auto nb1 = mesh.face_neighbors(*f1);",
+    "checks": [
+      {
+        "line": 298,
+        "code_line": "nb0.size() == 1",
+        "passed": true
+      },
+      {
+        "line": 299,
+        "code_line": "nb0[0] == *f1",
+        "passed": true
+      },
+      {
+        "line": 302,
+        "code_line": "nb1.size() == 1",
+        "passed": true
+      },
+      {
+        "line": 303,
+        "code_line": "nb1[0] == *f0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_vertices",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 306,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        mesh.add_face({v0,v1,v2}, std::nullopt);\n\n        auto ev = mesh.edge_vertices(v0, v1);",
+    "checks": [
+      {
+        "line": 314,
+        "code_line": "ev[0] == v0",
+        "passed": true
+      },
+      {
+        "line": 315,
+        "code_line": "ev[1] == v1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_faces",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 318,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        auto f0 = mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        auto f1 = mesh.add_face({v1,v4,v2}, std::nullopt);\n\n        auto [a, b] = mesh.edge_faces(v1, v2);\n\n        auto [c, d] = mesh.edge_faces(v0, v1);",
+    "checks": [
+      {
+        "line": 329,
+        "code_line": "a.has_value() && b.has_value()",
+        "passed": true
+      },
+      {
+        "line": 330,
+        "code_line": "(a == f0 && b == f1) || (a == f1 && b == f0)",
+        "passed": true
+      },
+      {
+        "line": 333,
+        "code_line": "c.has_value() != d.has_value()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Edge_edges",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 336,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        mesh.add_face({v1,v4,v2}, std::nullopt);\n\n        auto ee = mesh.edge_edges(v1, v2);",
+    "checks": [
+      {
+        "line": 347,
+        "code_line": "ee.size() == 4",
+        "passed": true
+      },
+      {
+        "line": 348,
+        "code_line": "std::find(ee.begin(), ee.end(), std::make_pair(v1,v2)) == ee.end()",
+        "passed": true
+      },
+      {
+        "line": 349,
+        "code_line": "std::find(ee.begin(), ee.end(), std::make_pair(v2,v1)) == ee.end()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is_edge_on_boundary",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 352,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        mesh.add_face({v1,v4,v2}, std::nullopt);\n",
+    "checks": [
+      {
+        "line": 362,
+        "code_line": "mesh.is_edge_on_boundary(v0, v1)",
+        "passed": true
+      },
+      {
+        "line": 363,
+        "code_line": "!mesh.is_edge_on_boundary(v1, v2)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is_face_on_boundary",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 366,
+    "code": "        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0,0,0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1,0,0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1,1,0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0,1,0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2,0,0), std::nullopt);\n        auto f0 = mesh.add_face({v0,v1,v2,v3}, std::nullopt);\n        auto f1 = mesh.add_face({v1,v4,v2}, std::nullopt);\n",
+    "checks": [
+      {
+        "line": 376,
+        "code_line": "mesh.is_face_on_boundary(*f0)",
+        "passed": true
+      },
+      {
+        "line": 377,
+        "code_line": "mesh.is_face_on_boundary(*f1)",
         "passed": true
       }
     ],
@@ -302,27 +552,27 @@
   {
     "test_name": "Face_normal",
     "passed": true,
-    "time_ms": 0.019,
-    "line": 224,
+    "time_ms": 0.005,
+    "line": 380,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto normal = mesh.face_normal(*f);\n",
     "checks": [
       {
-        "line": 237,
+        "line": 393,
         "code_line": "normal.has_value()",
         "passed": true
       },
       {
-        "line": 238,
+        "line": 394,
         "code_line": "TOLERANCE.is_close((*normal)[2], 1.0)",
         "passed": true
       },
       {
-        "line": 239,
+        "line": 395,
         "code_line": "TOLERANCE.is_close((*normal)[0], 0.0)",
         "passed": true
       },
       {
-        "line": 240,
+        "line": 396,
         "code_line": "TOLERANCE.is_close((*normal)[1], 0.0)",
         "passed": true
       }
@@ -332,17 +582,17 @@
   {
     "test_name": "Face_area",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 243,
+    "time_ms": 0.005,
+    "line": 399,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto area = mesh.face_area(*f);\n",
     "checks": [
       {
-        "line": 256,
+        "line": 412,
         "code_line": "area.has_value()",
         "passed": true
       },
       {
-        "line": 257,
+        "line": 413,
         "code_line": "TOLERANCE.is_close(*area, 0.5)",
         "passed": true
       }
@@ -352,28 +602,48 @@
   {
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 260,
+    "time_ms": 0.004,
+    "line": 416,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n\n        mesh.clear();\n",
     "checks": [
       {
-        "line": 270,
+        "line": 426,
         "code_line": "!mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 274,
+        "line": 430,
         "code_line": "mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 275,
+        "line": 431,
         "code_line": "mesh.number_of_vertices() == 0",
         "passed": true
       },
       {
-        "line": 276,
+        "line": 432,
         "code_line": "mesh.number_of_faces() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Unify_winding",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 435,
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        auto f0 = mesh.add_face({v0, v1, v2}, std::nullopt);\n        auto f1 = mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        bool changed = mesh.unify_winding();\n\n        auto n0 = mesh.face_normal(*f0);\n        auto n1 = mesh.face_normal(*f1);\n        double dot = (*n0)[0]*(*n1)[0] + (*n0)[1]*(*n1)[1] + (*n0)[2]*(*n1)[2];\n",
+    "checks": [
+      {
+        "line": 455,
+        "code_line": "changed",
+        "passed": true
+      },
+      {
+        "line": 456,
+        "code_line": "TOLERANCE.is_close(dot, 1.0)",
         "passed": true
       }
     ],
@@ -382,37 +652,37 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.021,
-    "line": 279,
+    "time_ms": 0.009,
+    "line": 459,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        mesh.xform = Xform::translation(10.0, 20.0, 30.0);\n        Mesh mesh_transformed = mesh.transformed();\n        mesh.transform();\n\n        auto pos0 = mesh.vertex_position(v0);",
     "checks": [
       {
-        "line": 295,
+        "line": 475,
         "code_line": "pos0.has_value()",
         "passed": true
       },
       {
-        "line": 296,
+        "line": 476,
         "code_line": "(*pos0)[0] == 10.0",
         "passed": true
       },
       {
-        "line": 297,
+        "line": 477,
         "code_line": "(*pos0)[1] == 20.0",
         "passed": true
       },
       {
-        "line": 298,
+        "line": 478,
         "code_line": "(*pos0)[2] == 30.0",
         "passed": true
       },
       {
-        "line": 299,
+        "line": 479,
         "code_line": "mesh.xform == Xform::identity()",
         "passed": true
       },
       {
-        "line": 300,
+        "line": 480,
         "code_line": "mesh_transformed.xform == Xform::identity()",
         "passed": true
       }
@@ -422,22 +692,22 @@
   {
     "test_name": "Json_roundtrip",
     "passed": true,
-    "time_ms": 12.943,
-    "line": 303,
+    "time_ms": 10.211,
+    "line": 483,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   json_dumps()    │ std::string  │ to JSON string\n        //   json_loads(s)   │ std::string  │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_mesh.json\";\n        encoders::json_dump(mesh, filename);\n        Mesh loaded = encoders::json_load<Mesh>(filename);\n",
     "checks": [
       {
-        "line": 325,
+        "line": 505,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 326,
+        "line": 506,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 327,
+        "line": 507,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       }
@@ -447,27 +717,27 @@
   {
     "test_name": "Protobuf_roundtrip",
     "passed": true,
-    "time_ms": 12.244,
-    "line": 330,
+    "time_ms": 10.82,
+    "line": 510,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        std::string filename = \"serialization/test_mesh.bin\";\n        mesh.pb_dump(filename);\n        Mesh loaded = Mesh::pb_load(filename);\n",
     "checks": [
       {
-        "line": 345,
+        "line": 525,
         "code_line": "loaded.name == mesh.name",
         "passed": true
       },
       {
-        "line": 346,
+        "line": 526,
         "code_line": "loaded.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 347,
+        "line": 527,
         "code_line": "loaded.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 348,
+        "line": 528,
         "code_line": "loaded.guid == mesh.guid",
         "passed": true
       }
@@ -477,32 +747,32 @@
   {
     "test_name": "Vertex_position",
     "passed": true,
-    "time_ms": 0.011,
-    "line": 351,
+    "time_ms": 0.005,
+    "line": 531,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n\n        auto pos = mesh.vertex_position(v0);",
     "checks": [
       {
-        "line": 359,
+        "line": 539,
         "code_line": "pos.has_value()",
         "passed": true
       },
       {
-        "line": 360,
+        "line": 540,
         "code_line": "(*pos)[0] == 1.0",
         "passed": true
       },
       {
-        "line": 361,
+        "line": 541,
         "code_line": "(*pos)[1] == 2.0",
         "passed": true
       },
       {
-        "line": 362,
+        "line": 542,
         "code_line": "(*pos)[2] == 3.0",
         "passed": true
       },
       {
-        "line": 363,
+        "line": 543,
         "code_line": "!mesh.vertex_position(999).has_value()",
         "passed": true
       }
@@ -512,17 +782,17 @@
   {
     "test_name": "Vertex_normal",
     "passed": true,
-    "time_ms": 0.031,
-    "line": 366,
+    "time_ms": 0.016,
+    "line": 546,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v3}, std::nullopt);\n        mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        auto normal = mesh.vertex_normal(v0);",
     "checks": [
       {
-        "line": 380,
+        "line": 560,
         "code_line": "normal.has_value()",
         "passed": true
       },
       {
-        "line": 381,
+        "line": 561,
         "code_line": "std::abs((*normal)[2]) == 1.0",
         "passed": true
       }
@@ -532,22 +802,22 @@
   {
     "test_name": "To_vertices_and_faces",
     "passed": true,
-    "time_ms": 0.018,
-    "line": 384,
+    "time_ms": 0.01,
+    "line": 564,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        auto [vertices, faces] = mesh.to_vertices_and_faces();\n",
     "checks": [
       {
-        "line": 397,
+        "line": 577,
         "code_line": "vertices.size() == 3",
         "passed": true
       },
       {
-        "line": 398,
+        "line": 578,
         "code_line": "faces.size() == 1",
         "passed": true
       },
       {
-        "line": 399,
+        "line": 579,
         "code_line": "faces[0].size() == 3",
         "passed": true
       }
