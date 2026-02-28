@@ -1,1 +1,9 @@
-{"type":"Quaternion","guid":"461b1db5-beee-4e1a-aa9b-fb776aefa82f","name":"my_quaternion","s":0.7071054825112363,"x":0.0,"y":0.0,"z":0.7071080798594735}
+{
+  "type": "Quaternion",
+  "guid": "dd964631-55c2-4023-b8c3-770a0dd0b41d",
+  "name": "my_quaternion",
+  "s": 0.7071054825112363,
+  "x": 0.0,
+  "y": 0.0,
+  "z": 0.7071080798594735
+}

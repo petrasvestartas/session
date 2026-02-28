@@ -684,7 +684,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transform()",
-          "code": "def transform(self):\n\n        \"\"\"Apply the stored xform transformation to the bounding box.\n\n        Transforms the bounding box in-place and resets xform to identity.\n        \"\"\"\n        from .xform import Xform\n\n        self.xform.transform_point(self.center)\n        self.xform.transform_vector(self.x_axis)\n        self.xform.transform_vector(self.y_axis)\n        self.xform.transform_vector(self.z_axis)\n        self.xform = Xform.identity()\n\n    def transformed(self):\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid\n        bbox.name = name\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2",
+          "code": "def transform(self):\n\n        \"\"\"Apply the stored xform transformation to the bounding box.\n\n        Transforms the bounding box in-place and resets xform to identity.\n        \"\"\"\n        from .xform import Xform\n\n        self.xform.transform_point(self.center)\n        self.xform.transform_vector(self.x_axis)\n        self.xform.transform_vector(self.y_axis)\n        self.xform.transform_vector(self.z_axis)\n        self.xform = Xform.identity()\n\n    def transformed(self):\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2",
           "file": "boundingbox.py"
         },
         "cpp": {
@@ -720,7 +720,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transformed()",
-          "code": "def transformed(self):\n\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid\n        bbox.name = name\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()",
+          "code": "def transformed(self):\n\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()",
           "file": "boundingbox.py"
         },
         "cpp": {
@@ -755,7 +755,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsondump__()",
-          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid\n        bbox.name = name\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)",
+          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)",
           "file": "boundingbox.py"
         }
       },
@@ -780,7 +780,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid\n        bbox.name = name\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
           "file": "boundingbox.py"
         }
       },
@@ -6446,6 +6446,7 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -6476,6 +6477,7 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.clone_with_new_guid",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.new",
@@ -6503,6 +6505,7 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.add_vertex",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.number_of_edges",
@@ -6530,6 +6533,7 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
@@ -6559,6 +6563,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.create_box",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
@@ -6588,6 +6593,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.create_box",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
@@ -6617,6 +6623,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.create_box",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.from_polylines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
@@ -7033,6 +7040,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
@@ -7071,6 +7079,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.get_open",
@@ -7093,7 +7102,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_empty() -> bool",
-          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()",
+          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (",
           "file": "mesh.py"
         },
         "rust": {
@@ -7103,7 +7112,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.clear",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_lines",
@@ -7133,7 +7142,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_valid() -> bool",
-          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0",
+          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7149,6 +7158,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7171,7 +7181,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_closed() -> bool",
-          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
+          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7187,6 +7197,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7200,8 +7211,7 @@ window.API_INDEX = {
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
         "Mesh.proj",
-        "Mesh.sarea",
-        "Mesh.unify_winding"
+        "Mesh.sarea"
       ]
     },
     {
@@ -7209,7 +7219,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_vertex_on_boundary(vertex_key: int) -> bool",
-          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))",
+          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7225,7 +7235,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
-        "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7247,7 +7257,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_edge_on_boundary(u: int, v: int) -> bool",
-          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]",
+          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7264,6 +7274,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.clear",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7284,7 +7295,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_face_on_boundary(face_key: int) -> bool",
-          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]",
+          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7301,6 +7312,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.clear",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7321,7 +7333,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_vertices() -> int",
-          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)",
+          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]",
           "file": "mesh.py"
         },
         "rust": {
@@ -7340,6 +7352,7 @@ window.API_INDEX = {
         "Mesh.clear",
         "Mesh.duplicate",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -7361,7 +7374,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_faces() -> int",
-          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:",
+          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):",
           "file": "mesh.py"
         },
         "rust": {
@@ -7380,6 +7393,7 @@ window.API_INDEX = {
         "Mesh.clear",
         "Mesh.duplicate",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -7401,7 +7415,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_edges() -> int",
-          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()",
+          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7425,6 +7439,7 @@ window.API_INDEX = {
         "Mesh.clear",
         "Mesh.duplicate",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -7439,6 +7454,67 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.repr",
         "Mesh.unify_winding"
+      ]
+    },
+    {
+      "name": "Mesh.edges",
+      "implementations": {
+        "python": {
+          "sig": "edges()",
+          "code": "def edges(self):\n\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> edges()",
+          "code": "std::vector<std::pair<size_t, size_t>> Mesh::edges() const {\n    std::vector<std::pair<size_t, size_t>> result;\n    for (const auto& [u, neighbors] : halfedge)\n        for (const auto& [v, face_opt] : neighbors)\n            if (!face_opt.has_value())\n                result.push_back({u, v}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "edges() -> Vec<(usize, usize)>",
+          "code": "pub fn edges(&self) -> Vec<(usize, usize)> {\n        let mut outer: Vec<usize> = self.halfedge.keys().cloned().collect();\n        outer.sort();\n        let mut result = Vec::new();\n        for u in outer {\n            let mut inner: Vec<usize> = self.halfedge[&u].keys().cloned().collect();\n            inner.sort();\n            for v in inner {\n                if self.halfedge[&u][&v].is_none() {\n                    result.push((u, v));\n                }\n            }\n        }\n        result\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.clear",
+        "Mesh.duplicate",
+        "Mesh.edge_edges",
+        "Mesh.edge_faces",
+        "Mesh.edge_vertices",
+        "Mesh.euler",
+        "Mesh.face_edges",
+        "Mesh.face_neighbors",
+        "Mesh.face_vertices",
+        "Mesh.from_polygon_with_holes_many",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_empty",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_valid",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_dump",
+        "Mesh.json_dumps",
+        "Mesh.json_load",
+        "Mesh.json_loads",
+        "Mesh.loft_many",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.pb_dumps",
+        "Mesh.pb_loads",
+        "Mesh.repr",
+        "Mesh.unify_winding",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_neighbors",
+        "Mesh.vertex_position"
       ]
     },
     {
@@ -7463,6 +7539,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.clear",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
@@ -7480,7 +7557,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clear()",
-          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################",
+          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7498,17 +7575,19 @@ window.API_INDEX = {
         "Mesh.build_triangle_bvh",
         "Mesh.clear_triangle_bvh",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
-        "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
-        "Mesh.unify_winding"
+        "Mesh.unify_winding",
+        "Mesh.unweld"
       ]
     },
     {
@@ -7516,7 +7595,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "unify_winding() -> bool",
-          "code": "def unify_winding(self) -> bool:\n\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"",
+          "code": "def unify_winding(self) -> bool:\n\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7531,11 +7610,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.clear",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
-        "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
@@ -7543,7 +7623,35 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.unweld"
+      ]
+    },
+    {
+      "name": "Mesh.unweld",
+      "implementations": {
+        "python": {
+          "sig": "unweld() -> \"Mesh\"",
+          "code": "def unweld(self) -> \"Mesh\":\n\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self.pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self.facecolors.append(Color.white())",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "Mesh unweld()",
+          "code": "Mesh Mesh::unweld() const {\n    Mesh m;\n    for (const auto& [fkey, vkeys] : face) {\n        std::vector<size_t> new_vkeys;\n        new_vkeys.reserve(vkeys.size());\n        for (size_t vk : vkeys) {\n            const auto& vd = vertex.at(vk);\n            new_vkeys.push_back(m.add_vertex(Point(vd.x, vd.y, vd.z)));\n        }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "unweld() -> Mesh",
+          "code": "pub fn unweld(&self) -> Mesh {\n        let mut m = Mesh::new();\n        for (_fkey, vkeys) in &self.face {\n            let mut new_vkeys = Vec::new();\n            for &vk in vkeys {\n                let vd = &self.vertex[&vk];\n                new_vkeys.push(m.add_vertex(Point::new(vd.x, vd.y, vd.z), None));\n            }\n            m.add_face(new_vkeys, None);\n        }\n        m\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.new",
+        "Mesh.unify_winding"
       ]
     },
     {
@@ -7586,7 +7694,8 @@ window.API_INDEX = {
         "Mesh.sarea",
         "Mesh.signed_area",
         "Mesh.strip_close",
-        "Mesh.unify_winding"
+        "Mesh.unify_winding",
+        "Mesh.unweld"
       ]
     },
     {
@@ -7629,6 +7738,8 @@ window.API_INDEX = {
         "Mesh.sarea",
         "Mesh.signed_area",
         "Mesh.strip_close",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_position"
@@ -7658,6 +7769,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
@@ -7696,6 +7808,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
@@ -7738,6 +7851,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
@@ -7771,6 +7885,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
@@ -7805,6 +7920,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
@@ -7839,6 +7955,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
@@ -7881,6 +7998,7 @@ window.API_INDEX = {
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_normal",
@@ -7915,6 +8033,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edge_edges",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
@@ -7953,6 +8072,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.edge_edges",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_area",
         "Mesh.face_edges",
@@ -7961,7 +8081,6 @@ window.API_INDEX = {
         "Mesh.face_vertices",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
@@ -7997,6 +8116,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
@@ -8552,6 +8672,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
+        "Mesh.edges",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
@@ -8584,6 +8705,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
+        "Mesh.edges",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_loads",
@@ -8617,6 +8739,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
+        "Mesh.edges",
         "Mesh.json_dump",
         "Mesh.json_load",
         "Mesh.json_loads",
@@ -8648,6 +8771,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__jsonload__",
+        "Mesh.edges",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
@@ -8678,6 +8802,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.edges",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
@@ -8707,6 +8832,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.edges",
         "Mesh.is_empty",
         "Mesh.new",
         "Mesh.pb_dump",
@@ -26562,6 +26688,7 @@ window.API_INDEX = {
         "Primitives._unit_cone_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.line_to_cylinder_transform",
         "Primitives.parabola",
@@ -26576,7 +26703,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_unit_cone_geometry()",
-          "code": "def _unit_cone_geometry():\n\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )",
+          "code": "def _unit_cone_geometry():\n\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()",
           "file": "primitives.py"
         }
       },
@@ -26586,6 +26713,7 @@ window.API_INDEX = {
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.line_to_cylinder_transform",
         "Primitives.spiral",
@@ -26599,7 +26727,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_line_to_cylinder_transform(line, radius)",
-          "code": "def _line_to_cylinder_transform(line, radius):\n\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)",
+          "code": "def _line_to_cylinder_transform(line, radius):\n\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,",
           "file": "primitives.py"
         }
       },
@@ -26609,6 +26737,7 @@ window.API_INDEX = {
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
         "Primitives.spiral",
         "Primitives.transform_geometry",
@@ -26620,7 +26749,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_transform_geometry(geometry, xform)",
-          "code": "def _transform_geometry(geometry, xform):\n\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:\n            face_vertices = [cone_vertex_map[tri[0]], cone_vertex_map[tri[1]], cone_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)",
+          "code": "def _transform_geometry(geometry, xform):\n\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()",
           "file": "primitives.py"
         }
       },
@@ -26630,6 +26759,7 @@ window.API_INDEX = {
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
         "Primitives.transform_geometry",
         "Primitives.unit_cone_geometry",
@@ -26641,7 +26771,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cylinder_mesh(line, radius)",
-          "code": "def cylinder_mesh(line, radius):\n\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:\n            face_vertices = [cone_vertex_map[tri[0]], cone_vertex_map[tri[1]], cone_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        return mesh\n\n    ###########################################################################\n    # Surface Factory Methods\n    ###########################################################################\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        merged = []\n        i, j = 0, 0\n        while i < len(a) and j < len(b):\n            if abs(a[i] - b[j]) < tol:\n                merged.append(a[i])",
+          "code": "def cylinder_mesh(line, radius):\n\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26657,13 +26787,43 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives._line_to_cylinder_transform",
-        "Primitives._merge_knot_vectors",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
         "Primitives.transform_geometry",
+        "Primitives.unit_cone_geometry",
+        "Primitives.unit_cylinder_geometry"
+      ]
+    },
+    {
+      "name": "Primitives.edge_pipes",
+      "implementations": {
+        "python": {
+          "sig": "edge_pipes(mesh, radius)",
+          "code": "def edge_pipes(mesh, radius):\n\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:\n            face_vertices = [cone_vertex_map[tri[0]], cone_vertex_map[tri[1]], cone_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        return mesh",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Mesh> edge_pipes(const Mesh& mesh, double radius)",
+          "code": "std::vector<Mesh> Primitives::edge_pipes(const Mesh& mesh, double radius) {\n    auto edge_list = mesh.edges();\n    std::vector<Mesh> result;\n    for (size_t i = 0; i < edge_list.size() && i < mesh.linecolors.size(); ++i) {\n        auto [v, u] = edge_list[i];\n        Point start = mesh.vertex.at(v).position();\n        Point end = mesh.vertex.at(u).position();\n        Mesh pipe = Primitives::cylinder_mesh(Line::from_points(start, end), radius);\n        for (auto& c : pipe.facecolors)\n            c = mesh.linecolors[i];\n        result.push_back(std::move(pipe));\n    }",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "edge_pipes(mesh: &Mesh, radius: f64) -> Vec<Mesh>",
+          "code": "pub fn edge_pipes(mesh: &Mesh, radius: f64) -> Vec<Mesh> {\n        let edge_list = mesh.edges();\n        let mut result = Vec::new();\n        for (i, (u, v)) in edge_list.iter().enumerate() {\n            if i >= mesh.linecolors.len() { break; }\n            let start = mesh.vertex[u].position();\n            let end = mesh.vertex[v].position();\n            let line = Line::new(start[0], start[1], start[2], end[0], end[1], end[2]);\n            let mut pipe = Primitives::cylinder_mesh(&line, radius);\n            let color = mesh.linecolors[i].clone();\n            for c in pipe.facecolors.iter_mut() { *c = color.clone(); }\n            result.push(pipe);\n        }\n        result\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives._line_to_cylinder_transform",
+        "Primitives._transform_geometry",
+        "Primitives._unit_cone_geometry",
+        "Primitives._unit_cylinder_geometry",
+        "Primitives.arrow_mesh",
+        "Primitives.cylinder_mesh",
         "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
       ]
@@ -26694,6 +26854,7 @@ window.API_INDEX = {
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
       ]
@@ -26712,7 +26873,6 @@ window.API_INDEX = {
         "Primitives._make_curves_compatible",
         "Primitives.arrow_mesh",
         "Primitives.circle",
-        "Primitives.cylinder_mesh",
         "Primitives.cylinder_surface"
       ]
     },
@@ -37983,7 +38143,26 @@ window.API_INDEX = {
           "code": "size_t number_of_edges() const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.edges"
+      ]
+    },
+    {
+      "name": "NormalWeighting.edges",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> edges()",
+          "code": "std::vector<std::pair<size_t, size_t>> edges() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "NormalWeighting.edge_edges",
+        "NormalWeighting.face_edges",
+        "NormalWeighting.number_of_edges",
+        "NormalWeighting.vertex_edges"
+      ]
     },
     {
       "name": "NormalWeighting.euler",
@@ -38027,6 +38206,16 @@ window.API_INDEX = {
       "related": [
         "NormalWeighting.clear_triangle_bvh"
       ]
+    },
+    {
+      "name": "NormalWeighting.unweld",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh unweld()",
+          "code": "Mesh unweld() const;",
+          "file": "mesh.h"
+        }
+      }
     },
     {
       "name": "NormalWeighting.unify_winding",
@@ -38112,7 +38301,10 @@ window.API_INDEX = {
           "code": "std::vector<std::pair<size_t, size_t>> vertex_edges(size_t vertex_key) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.edges"
+      ]
     },
     {
       "name": "NormalWeighting.face_edges",
@@ -38122,7 +38314,10 @@ window.API_INDEX = {
           "code": "std::vector<std::pair<size_t, size_t>> face_edges(size_t face_key) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.edges"
+      ]
     },
     {
       "name": "NormalWeighting.face_neighbors",
@@ -38162,7 +38357,10 @@ window.API_INDEX = {
           "code": "std::vector<std::pair<size_t, size_t>> edge_edges(size_t u, size_t v) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "NormalWeighting.edges"
+      ]
     },
     {
       "name": "NormalWeighting.face_normal",
@@ -38770,6 +38968,7 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.duplicate",
+        "Mesh.edges",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
@@ -40637,6 +40836,7 @@ window.API_INDEX = {
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.parabola",
         "Primitives.spiral"
@@ -40657,6 +40857,7 @@ window.API_INDEX = {
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
         "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.spiral"
       ]
@@ -43004,10 +43205,12 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.clear",
         "Mesh.clone_with_new_guid",
         "Mesh.create_box",
         "Mesh.duplicate",
         "Mesh.edge_edges",
+        "Mesh.edges",
         "Mesh.face_area",
         "Mesh.face_normal",
         "Mesh.face_normals",
@@ -43027,6 +43230,7 @@ window.API_INDEX = {
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.unify_winding",
+        "Mesh.unweld",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted"
@@ -44735,16 +44939,76 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BoundingBox.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BoundingBox\", \"Constructor\")",
+          "code": "MINI_TEST(\"BoundingBox\", \"Constructor\") {\n    // from_point\n    BoundingBox bb1 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 2.0);\n    MINI_CHECK(TOLERANCE.is_close(bb1.center[0], 5.0));\n    MINI_CHECK(TOLERANCE.is_close(bb1.half_size[0], 2.0));\n\n    // from_points (AABB)\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)};\n    BoundingBox bb2 = BoundingBox::from_points(pts);\n    Point mn = bb2.min_point();\n    Point mx = bb2.max_point();\n    MINI_CHECK(TOLERANCE.is_close(mn[0], 0.0) && TOLERANCE.is_close(mn[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(mx[0], 2.0) && TOLERANCE.is_close(mx[2], 4.0));\n\n    // OBB constructor\n    BoundingBox obb(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 2.0, 3.0)\n    );\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[1], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[2], 3.0));\n\n    // aabb\n    BoundingBox bb_aabb = bb2.aabb();\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0));\n\n    // corners\n    std::array<Point, 8> corners = bb2.corners();\n    MINI_CHECK(corners.size() == 8);\n\n    // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    Point p_center = bb2.point_at(0.0, 0.0, 0.0);\n    double hx = bb2.half_size[0], hy = bb2.half_size[1], hz = bb2.half_size[2];\n    Point p_max_pt = bb2.point_at(hx, hy, hz);\n    MINI_CHECK(TOLERANCE.is_close(p_center[0], 1.0) && TOLERANCE.is_close(p_center[2], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(p_max_pt[0], 2.0) && TOLERANCE.is_close(p_max_pt[2], 4.0));\n\n    // inflate\n    BoundingBox bb3 = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)});\n    bb3.inflate(1.0);\n    MINI_CHECK(TOLERANCE.is_close(bb3.min_point()[0], -1.0));\n    MINI_CHECK(TOLERANCE.is_close(bb3.max_point()[0], 3.0));\n\n    // guid and name\n    MINI_CHECK(!bb1.guid.empty());\n    bb1.name = \"test_bbox\";\n    MINI_CHECK(bb1.name == \"test_bbox\");\n}",
+          "file": "boundingbox_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BoundingBox\", \"Constructor\")",
+          "code": "@MINI_TEST(\"BoundingBox\", \"Constructor\")\ndef test_boundingbox_constructor():\n    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 2.0)\n    MINI_CHECK(TOLERANCE.is_close(bb1.center[0], 5.0))\n    MINI_CHECK(TOLERANCE.is_close(bb1.half_size[0], 2.0))\n\n    # from_points (AABB)\n    pts = [Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)]\n    bb2 = BoundingBox.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n    MINI_CHECK(TOLERANCE.is_close(mn[0], 0.0) and TOLERANCE.is_close(mn[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(mx[0], 2.0) and TOLERANCE.is_close(mx[2], 4.0))\n\n    # OBB constructor\n    obb = BoundingBox(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[1], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[2], 3.0))\n\n    # aabb\n    bb_aabb = bb2.aabb()\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0))\n\n    # corners\n    corners = bb2.corners()\n    MINI_CHECK(len(corners) == 8)\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n    MINI_CHECK(TOLERANCE.is_close(p_center[0], 1.0) and TOLERANCE.is_close(p_center[2], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(p_max_pt[0], 2.0) and TOLERANCE.is_close(p_max_pt[2], 4.0))\n\n    # inflate\n    bb3 = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)])\n    bb3.inflate(1.0)\n    MINI_CHECK(TOLERANCE.is_close(bb3.min_point()[0], -1.0))\n    MINI_CHECK(TOLERANCE.is_close(bb3.max_point()[0], 3.0))\n\n    # guid and name\n    MINI_CHECK(bb1.guid)\n    bb1.name = \"test_bbox\"\n    MINI_CHECK(bb1.name == \"test_bbox\")",
+          "file": "boundingbox_test.py"
+        }
+      }
+    },
+    {
+      "name": "BoundingBox.test_Collision",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BoundingBox\", \"Collision\")",
+          "code": "MINI_TEST(\"BoundingBox\", \"Collision\") {\n    BoundingBox bb1 = BoundingBox::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    BoundingBox bb2 = BoundingBox::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    BoundingBox bb3 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 0.5);\n\n    MINI_CHECK(bb1.collides_with(bb2));\n    MINI_CHECK(!bb1.collides_with(bb3));\n    MINI_CHECK(bb1.collides_with_rtcd(bb2));\n    MINI_CHECK(!bb1.collides_with_rtcd(bb3));\n    MINI_CHECK(bb1.collides_with_naive(bb2));\n    MINI_CHECK(!bb1.collides_with_naive(bb3));\n}",
+          "file": "boundingbox_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BoundingBox\", \"Collision\")",
+          "code": "@MINI_TEST(\"BoundingBox\", \"Collision\")\ndef test_boundingbox_collision():\n    from session_py import BoundingBox\n    from session_py import Point\n\n    bb1 = BoundingBox.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = BoundingBox.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 0.5)\n\n    MINI_CHECK(bb1.collides_with(bb2))\n    MINI_CHECK(not bb1.collides_with(bb3))",
+          "file": "boundingbox_test.py"
+        }
+      }
+    },
+    {
+      "name": "BoundingBox.test_Transformation",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BoundingBox\", \"Transformation\")",
+          "code": "MINI_TEST(\"BoundingBox\", \"Transformation\") {\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)};\n    BoundingBox bb = BoundingBox::from_points(pts);\n    bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n    BoundingBox bbt = bb.transformed();\n    MINI_CHECK(TOLERANCE.is_close(bbt.center[2], 5.0));\n\n    bb.transform();\n    MINI_CHECK(bb.xform == Xform::identity());\n    MINI_CHECK(TOLERANCE.is_close(bb.center[2], 5.0));\n}",
+          "file": "boundingbox_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BoundingBox\", \"Transformation\")",
+          "code": "@MINI_TEST(\"BoundingBox\", \"Transformation\")\ndef test_boundingbox_transformation():\n    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]\n    bb = BoundingBox.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n    MINI_CHECK(TOLERANCE.is_close(bbt.center[2], 5.0))\n\n    bb.transform()\n    MINI_CHECK(bb.xform == Xform.identity())\n    MINI_CHECK(TOLERANCE.is_close(bb.center[2], 5.0))",
+          "file": "boundingbox_test.py"
+        }
+      }
+    },
+    {
       "name": "BoundingBox.test_Json Roundtrip",
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Json Roundtrip\") {\n    BoundingBox original = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    original.name = \"test_bbox\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_boundingbox.json\");\n    BoundingBox loaded = encoders::json_load<BoundingBox>(\"./serialization/test_boundingbox.json\");\n\n    MINI_CHECK(loaded.name == original.name);\n    std::filesystem::remove(\"./serialization/test_boundingbox.json\");\n}",
+          "code": "MINI_TEST(\"BoundingBox\", \"Json Roundtrip\") {\n    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    BoundingBox loaded_j = BoundingBox::jsonload(j);\n    MINI_CHECK(loaded_j.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_j.center[0], 1.0));\n\n    // String\n    std::string s = bb.json_dumps();\n    BoundingBox loaded_s = BoundingBox::json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.half_size[0], 5.0));\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.json\";\n    bb.json_dump(fname);\n    BoundingBox loaded = BoundingBox::json_load(fname);\n    MINI_CHECK(loaded.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0));\n}",
           "file": "boundingbox_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")\ndef test_boundingbox_json_roundtrip():\n    from session_py import BoundingBox\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    original.name = \"test_bbox\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)\n\n    MINI_CHECK(loaded.name == original.name)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")\ndef test_boundingbox_json_roundtrip():\n    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = BoundingBox.__jsonload__(d)\n    MINI_CHECK(loaded_j.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_j.center[0], 1.0))\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = BoundingBox.json_loads(s)\n    MINI_CHECK(loaded_s.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.half_size[0], 5.0))\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.json\"\n    bb.json_dump(fname)\n    loaded = BoundingBox.json_load(fname)\n    MINI_CHECK(loaded.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0))",
+          "file": "boundingbox_test.py"
+        }
+      }
+    },
+    {
+      "name": "BoundingBox.test_Protobuf Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")",
+          "code": "MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\") {\n    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    BoundingBox loaded_s = BoundingBox::pb_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_bbox_proto\");\n    MINI_CHECK(loaded_s.guid == bb.guid);\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.center[0], 1.0));\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.bin\";\n    bb.pb_dump(fname);\n    BoundingBox loaded = BoundingBox::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_bbox_proto\");\n    MINI_CHECK(loaded.guid == bb.guid);\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0));\n}",
+          "file": "boundingbox_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")",
+          "code": "@MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")\ndef test_boundingbox_protobuf_roundtrip():\n    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = BoundingBox.pb_loads(b)\n    MINI_CHECK(loaded_s.name == \"test_bbox_proto\")\n    MINI_CHECK(loaded_s.guid == bb.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.center[0], 1.0))\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.bin\"\n    bb.pb_dump(fname)\n    loaded = BoundingBox.pb_load(fname)\n    MINI_CHECK(loaded.name == \"test_bbox_proto\")\n    MINI_CHECK(loaded.guid == bb.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "boundingbox_test.py"
         }
       }
@@ -45084,12 +45348,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Constructor\")",
-          "code": "MINI_TEST(\"Line\", \"Constructor\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n\n    // Setters\n    l[0] = 10.0;\n    l[1] = 20.0;\n    l[2] = 30.0;\n    l[3] = 40.0;\n    l[4] = 50.0;\n    l[5] = 60.0;\n\n    // Getters\n    double x0 = l[0];\n    double y0 = l[1];\n    double z0 = l[2];\n    double x1 = l[3];\n    double y1 = l[4];\n    double z1 = l[5];\n\n    // Minimal and Full String Representation\n    std::string lstr = l.str();\n    std::string lrepr = l.repr();\n\n    // Copy (duplicate everything but guid)\n    Line lcopy = l;\n    Line lother(10.0, 20.0, 30.0, 40.0, 50.0, 60.0);\n\n    // No-copy operators\n    Line lmult = l;\n    lmult *= 2.0;\n    Line ldiv = l;\n    ldiv /= 2.0;\n    Line ladd = l;\n    ladd += Vector(1.0, 1.0, 1.0);\n    Line lsub = l;\n    lsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Line rmul = l * 2.0;\n    Line rdiv = l / 2.0;\n    Line radd = l + Vector(1.0, 1.0, 1.0);\n    Line rdif = l - Vector(1.0, 1.0, 1.0);\n\n    // Negation (flip start and end)\n    Line lneg(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Line neg = -lneg;\n\n    // From points constructor\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(4.0, 5.0, 6.0);\n    Line l2p = Line::from_points(p0, p1);\n\n    // from_point_and_vector constructor\n    Point pv(1.0, 2.0, 3.0);\n    Vector vv(3.0, 4.0, 5.0);\n    Line l_pv = Line::from_point_and_vector(pv, vv);\n\n    // from_point_direction_length constructor\n    Point pd(0.0, 0.0, 0.0);\n    Vector dd(1.0, 0.0, 0.0);\n    Line l_pdl = Line::from_point_direction_length(pd, dd, 5.0);\n\n    // Line with custom color and width\n    Line lc(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    lc.linecolor = Color(255, 0, 0, 255, \"red\");\n    lc.width = 2.5;\n\n    MINI_CHECK(l.name == \"my_line\");\n    MINI_CHECK(l[0] == 10.0 && l[1] == 20.0 && l[2] == 30.0);\n    MINI_CHECK(!l.guid.empty());\n    MINI_CHECK(x0 == 10.0 && y0 == 20.0 && z0 == 30.0 && x1 == 40.0 && y1 == 50.0 && z1 == 60.0);\n    MINI_CHECK(lstr.find(\"10\") != std::string::npos);\n    MINI_CHECK(lstr.find(\"20\") != std::string::npos);\n    MINI_CHECK(lstr.find(\"60\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"my_line\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"10\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"Color\") != std::string::npos);\n    MINI_CHECK(lcopy.guid != l.guid);\n    MINI_CHECK(lmult[0] == 20.0 && lmult[3] == 80.0);\n    MINI_CHECK(ldiv[0] == 5.0 && ldiv[3] == 20.0);\n    MINI_CHECK(ladd[0] == 11.0 && ladd[3] == 41.0);\n    MINI_CHECK(lsub[0] == 9.0 && lsub[3] == 39.0);\n    MINI_CHECK(rmul[0] == 20.0 && rmul[3] == 80.0);\n    MINI_CHECK(rdiv[0] == 5.0 && rdiv[3] == 20.0);\n    MINI_CHECK(radd[0] == 11.0 && radd[3] == 41.0);\n    MINI_CHECK(rdif[0] == 9.0 && rdif[3] == 39.0);\n    MINI_CHECK(neg[0] == 4.0 && neg[1] == 5.0 && neg[2] == 6.0);\n    MINI_CHECK(neg[3] == 1.0 && neg[4] == 2.0 && neg[5] == 3.0);\n    MINI_CHECK(l2p[0] == 1.0 && l2p[3] == 4.0);\n    MINI_CHECK(l_pv[0] == 1.0 && l_pv[1] == 2.0 && l_pv[2] == 3.0);\n    MINI_CHECK(l_pv[3] == 4.0 && l_pv[4] == 6.0 && l_pv[5] == 8.0);\n    MINI_CHECK(l_pdl[0] == 0.0 && l_pdl[3] == 5.0);\n    MINI_CHECK(lc.linecolor[0] == 255 && lc.linecolor[1] == 0 && lc.width == 2.5);\n}",
+          "code": "MINI_TEST(\"Line\", \"Constructor\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n\n    // Setters\n    l[0] = 10.0;\n    l[1] = 20.0;\n    l[2] = 30.0;\n    l[3] = 40.0;\n    l[4] = 50.0;\n    l[5] = 60.0;\n\n    // Getters\n    double x0 = l[0];\n    double y0 = l[1];\n    double z0 = l[2];\n    double x1 = l[3];\n    double y1 = l[4];\n    double z1 = l[5];\n\n    // Minimal and Full String Representation\n    std::string lstr = l.str();\n    std::string lrepr = l.repr();\n\n    // Copy (duplicate everything but guid)\n    Line lcopy = l;\n    Line lother(10.0, 20.0, 30.0, 40.0, 50.0, 60.0);\n\n    // No-copy operators\n    Line lmult = l;\n    lmult *= 2.0;\n    Line ldiv = l;\n    ldiv /= 2.0;\n    Line ladd = l;\n    ladd += Vector(1.0, 1.0, 1.0);\n    Line lsub = l;\n    lsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Line rmul = l * 2.0;\n    Line rdiv = l / 2.0;\n    Line radd = l + Vector(1.0, 1.0, 1.0);\n    Line rdif = l - Vector(1.0, 1.0, 1.0);\n\n    // Negation (flip start and end)\n    Line lneg(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Line neg = -lneg;\n\n    // From points constructor\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(4.0, 5.0, 6.0);\n    Line l2p = Line::from_points(p0, p1);\n\n    // from_point_and_vector constructor\n    Point pv(1.0, 2.0, 3.0);\n    Vector vv(3.0, 4.0, 5.0);\n    Line l_pv = Line::from_point_and_vector(pv, vv);\n\n    // from_point_direction_length constructor\n    Point pd(0.0, 0.0, 0.0);\n    Vector dd(1.0, 0.0, 0.0);\n    Line l_pdl = Line::from_point_direction_length(pd, dd, 5.0);\n\n    // Line with custom color and width\n    Line lc(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    lc.linecolor = Color(255, 0, 0, 255, \"red\");\n    lc.width = 2.5;\n\n    // with_name constructor\n    Line lwn = Line::with_name(\"custom\", 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n\n    // get_middle_line\n    Point ms, me;\n    Line::get_middle_line(Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n                          Point(0.0, 2.0, 0.0), Point(2.0, 2.0, 0.0), ms, me);\n\n    MINI_CHECK(l.name == \"my_line\");\n    MINI_CHECK(l[0] == 10.0 && l[1] == 20.0 && l[2] == 30.0);\n    MINI_CHECK(!l.guid.empty());\n    MINI_CHECK(x0 == 10.0 && y0 == 20.0 && z0 == 30.0 && x1 == 40.0 && y1 == 50.0 && z1 == 60.0);\n    MINI_CHECK(lstr.find(\"10\") != std::string::npos);\n    MINI_CHECK(lstr.find(\"20\") != std::string::npos);\n    MINI_CHECK(lstr.find(\"60\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"my_line\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"10\") != std::string::npos);\n    MINI_CHECK(lrepr.find(\"Color\") != std::string::npos);\n    MINI_CHECK(lcopy.guid != l.guid);\n    MINI_CHECK(lmult[0] == 20.0 && lmult[3] == 80.0);\n    MINI_CHECK(ldiv[0] == 5.0 && ldiv[3] == 20.0);\n    MINI_CHECK(ladd[0] == 11.0 && ladd[3] == 41.0);\n    MINI_CHECK(lsub[0] == 9.0 && lsub[3] == 39.0);\n    MINI_CHECK(rmul[0] == 20.0 && rmul[3] == 80.0);\n    MINI_CHECK(rdiv[0] == 5.0 && rdiv[3] == 20.0);\n    MINI_CHECK(radd[0] == 11.0 && radd[3] == 41.0);\n    MINI_CHECK(rdif[0] == 9.0 && rdif[3] == 39.0);\n    MINI_CHECK(neg[0] == 4.0 && neg[1] == 5.0 && neg[2] == 6.0);\n    MINI_CHECK(neg[3] == 1.0 && neg[4] == 2.0 && neg[5] == 3.0);\n    MINI_CHECK(l2p[0] == 1.0 && l2p[3] == 4.0);\n    MINI_CHECK(l_pv[0] == 1.0 && l_pv[1] == 2.0 && l_pv[2] == 3.0);\n    MINI_CHECK(l_pv[3] == 4.0 && l_pv[4] == 6.0 && l_pv[5] == 8.0);\n    MINI_CHECK(l_pdl[0] == 0.0 && l_pdl[3] == 5.0);\n    MINI_CHECK(lc.linecolor[0] == 255 && lc.linecolor[1] == 0 && lc.width == 2.5);\n    MINI_CHECK(lwn.name == \"custom\" && lwn[3] == 1.0);\n    MINI_CHECK(TOLERANCE.is_close(ms[1], 1.0) && TOLERANCE.is_close(me[1], 1.0));\n}",
           "file": "line_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Line\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Line\", \"Constructor\")\ndef test_line_constructor():\n    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n\n    # Setters\n    l[0] = 10.0\n    l[1] = 20.0\n    l[2] = 30.0\n    l[3] = 40.0\n    l[4] = 50.0\n    l[5] = 60.0\n\n    # Getters\n    x0 = l[0]\n    y0 = l[1]\n    z0 = l[2]\n    x1 = l[3]\n    y1 = l[4]\n    z1 = l[5]\n\n    # Minimal and Full String Representation\n    lstr = str(l)\n    lrepr = repr(l)\n\n    # Copy (duplicate everything but guid)\n    lcopy = l.duplicate()\n    lother = Line(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)\n\n    # No-copy operators\n    lmult = l.duplicate()\n    lmult *= 2.0\n    ldiv = l.duplicate()\n    ldiv /= 2.0\n    ladd = l.duplicate()\n    ladd += Vector(1.0, 1.0, 1.0)\n    lsub = l.duplicate()\n    lsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = l * 2.0\n    rdiv = l / 2.0\n    radd = l + Vector(1.0, 1.0, 1.0)\n    rdif = l - Vector(1.0, 1.0, 1.0)\n\n    # Negation (flip start and end)\n    lneg = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    neg = -lneg\n\n    # From points constructor\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(4.0, 5.0, 6.0)\n    l2p = Line.from_points(p0, p1)\n\n    # from_point_and_vector constructor\n    pv = Point(1.0, 2.0, 3.0)\n    vv = Vector(3.0, 4.0, 5.0)\n    l_pv = Line.from_point_and_vector(pv, vv)\n\n    # from_point_direction_length constructor\n    pd = Point(0.0, 0.0, 0.0)\n    dd = Vector(1.0, 0.0, 0.0)\n    l_pdl = Line.from_point_direction_length(pd, dd, 5.0)\n\n    # Line with custom color and width\n    lc = Line(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    lc.linecolor = Color(255, 0, 0, 255, \"red\")\n    lc.width = 2.5\n\n    MINI_CHECK(l.name == \"my_line\" and l[0] == 10.0 and l[1] == 20.0 and l[2] == 30.0 and l.guid)\n    MINI_CHECK(x0 == 10.0 and y0 == 20.0 and z0 == 30.0)\n    MINI_CHECK(x1 == 40.0 and y1 == 50.0 and z1 == 60.0)\n    MINI_CHECK(\"10.0\" in lstr and \"20.0\" in lstr and \"60.0\" in lstr)\n    MINI_CHECK(\"my_line\" in lrepr and \"10.0\" in lrepr and \"Color\" in lrepr)\n    MINI_CHECK(lcopy.guid != l.guid)\n    MINI_CHECK(lmult[0] == 20.0 and lmult[3] == 80.0)\n    MINI_CHECK(ldiv[0] == 5.0 and ldiv[3] == 20.0)\n    MINI_CHECK(ladd[0] == 11.0 and ladd[3] == 41.0)\n    MINI_CHECK(lsub[0] == 9.0 and lsub[3] == 39.0)\n    MINI_CHECK(rmul[0] == 20.0 and rmul[3] == 80.0)\n    MINI_CHECK(rdiv[0] == 5.0 and rdiv[3] == 20.0)\n    MINI_CHECK(radd[0] == 11.0 and radd[3] == 41.0)\n    MINI_CHECK(rdif[0] == 9.0 and rdif[3] == 39.0)\n    MINI_CHECK(neg[0] == 4.0 and neg[1] == 5.0 and neg[2] == 6.0)\n    MINI_CHECK(neg[3] == 1.0 and neg[4] == 2.0 and neg[5] == 3.0)\n    MINI_CHECK(l2p[0] == 1.0 and l2p[3] == 4.0)\n    MINI_CHECK(l_pv[0] == 1.0 and l_pv[1] == 2.0 and l_pv[2] == 3.0)\n    MINI_CHECK(l_pv[3] == 4.0 and l_pv[4] == 6.0 and l_pv[5] == 8.0)\n    MINI_CHECK(l_pdl[0] == 0.0 and l_pdl[3] == 5.0)\n    MINI_CHECK(lc.linecolor[0] == 255 and lc.linecolor[1] == 0 and lc.width == 2.5)",
+          "code": "@MINI_TEST(\"Line\", \"Constructor\")\ndef test_line_constructor():\n    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n\n    # Setters\n    l[0] = 10.0\n    l[1] = 20.0\n    l[2] = 30.0\n    l[3] = 40.0\n    l[4] = 50.0\n    l[5] = 60.0\n\n    # Getters\n    x0 = l[0]\n    y0 = l[1]\n    z0 = l[2]\n    x1 = l[3]\n    y1 = l[4]\n    z1 = l[5]\n\n    # Minimal and Full String Representation\n    lstr = str(l)\n    lrepr = repr(l)\n\n    # Copy (duplicate everything but guid)\n    lcopy = l.duplicate()\n    lother = Line(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)\n\n    # No-copy operators\n    lmult = l.duplicate()\n    lmult *= 2.0\n    ldiv = l.duplicate()\n    ldiv /= 2.0\n    ladd = l.duplicate()\n    ladd += Vector(1.0, 1.0, 1.0)\n    lsub = l.duplicate()\n    lsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = l * 2.0\n    rdiv = l / 2.0\n    radd = l + Vector(1.0, 1.0, 1.0)\n    rdif = l - Vector(1.0, 1.0, 1.0)\n\n    # Negation (flip start and end)\n    lneg = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    neg = -lneg\n\n    # From points constructor\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(4.0, 5.0, 6.0)\n    l2p = Line.from_points(p0, p1)\n\n    # from_point_and_vector constructor\n    pv = Point(1.0, 2.0, 3.0)\n    vv = Vector(3.0, 4.0, 5.0)\n    l_pv = Line.from_point_and_vector(pv, vv)\n\n    # from_point_direction_length constructor\n    pd = Point(0.0, 0.0, 0.0)\n    dd = Vector(1.0, 0.0, 0.0)\n    l_pdl = Line.from_point_direction_length(pd, dd, 5.0)\n\n    # Line with custom color and width\n    lc = Line(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    lc.linecolor = Color(255, 0, 0, 255, \"red\")\n    lc.width = 2.5\n\n    # with_name constructor\n    lwn = Line.with_name(\"custom\", 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n\n    # get_middle_line\n    ms, me = Line.get_middle_line(\n        Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0), Point(2.0, 2.0, 0.0))\n\n    MINI_CHECK(l.name == \"my_line\" and l[0] == 10.0 and l[1] == 20.0 and l[2] == 30.0 and l.guid)\n    MINI_CHECK(x0 == 10.0 and y0 == 20.0 and z0 == 30.0)\n    MINI_CHECK(x1 == 40.0 and y1 == 50.0 and z1 == 60.0)\n    MINI_CHECK(\"10.0\" in lstr and \"20.0\" in lstr and \"60.0\" in lstr)\n    MINI_CHECK(\"my_line\" in lrepr and \"10.0\" in lrepr and \"Color\" in lrepr)\n    MINI_CHECK(lcopy.guid != l.guid)\n    MINI_CHECK(lmult[0] == 20.0 and lmult[3] == 80.0)\n    MINI_CHECK(ldiv[0] == 5.0 and ldiv[3] == 20.0)\n    MINI_CHECK(ladd[0] == 11.0 and ladd[3] == 41.0)\n    MINI_CHECK(lsub[0] == 9.0 and lsub[3] == 39.0)\n    MINI_CHECK(rmul[0] == 20.0 and rmul[3] == 80.0)\n    MINI_CHECK(rdiv[0] == 5.0 and rdiv[3] == 20.0)\n    MINI_CHECK(radd[0] == 11.0 and radd[3] == 41.0)\n    MINI_CHECK(rdif[0] == 9.0 and rdif[3] == 39.0)\n    MINI_CHECK(neg[0] == 4.0 and neg[1] == 5.0 and neg[2] == 6.0)\n    MINI_CHECK(neg[3] == 1.0 and neg[4] == 2.0 and neg[5] == 3.0)\n    MINI_CHECK(l2p[0] == 1.0 and l2p[3] == 4.0)\n    MINI_CHECK(l_pv[0] == 1.0 and l_pv[1] == 2.0 and l_pv[2] == 3.0)\n    MINI_CHECK(l_pv[3] == 4.0 and l_pv[4] == 6.0 and l_pv[5] == 8.0)\n    MINI_CHECK(l_pdl[0] == 0.0 and l_pdl[3] == 5.0)\n    MINI_CHECK(lc.linecolor[0] == 255 and lc.linecolor[1] == 0 and lc.width == 2.5)\n    MINI_CHECK(lwn.name == \"custom\" and lwn[3] == 1.0)\n    MINI_CHECK(TOLERANCE.is_close(ms[1], 1.0) and TOLERANCE.is_close(me[1], 1.0))",
           "file": "line_test.py"
         }
       }
@@ -45114,12 +45378,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Line\", \"Json Roundtrip\") {\n    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      \u00e2\u201d\u201a ordered_json \u00e2\u201d\u201a to JSON object (internal use)\n    //   jsonload(j)     \u00e2\u201d\u201a ordered_json \u00e2\u201d\u201a from JSON object (internal use)\n    //   json_dumps()    \u00e2\u201d\u201a std::string  \u00e2\u201d\u201a to JSON string\n    //   json_loads(s)   \u00e2\u201d\u201a std::string  \u00e2\u201d\u201a from JSON string\n    //   json_dump(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a write to file\n    //   json_load(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a read from file\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n}",
+          "code": "MINI_TEST(\"Line\", \"Json Roundtrip\") {\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n    MINI_CHECK(loaded_j.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_j[0], 42.1));\n\n    // String\n    std::string s = l.json_dumps();\n    Line loaded_s = Line::json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n}",
           "file": "line_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Line\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"Line\", \"Json Roundtrip\")\ndef test_line_json_roundtrip():\n    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   __jsondump__()  \u00e2\u201d\u201a dict         \u00e2\u201d\u201a to JSON object (internal use)\n    #   __jsonload__(d) \u00e2\u201d\u201a dict         \u00e2\u201d\u201a from JSON object (internal use)\n    #   json_dumps()    \u00e2\u201d\u201a str          \u00e2\u201d\u201a to JSON string\n    #   json_loads(s)   \u00e2\u201d\u201a str          \u00e2\u201d\u201a from JSON string\n    #   json_dump(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a write to file\n    #   json_load(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.json\"\n    l.json_dump(fname)\n    loaded = Line.json_load(fname)\n\n    MINI_CHECK(loaded.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1))\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2))\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3))\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4))\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5))\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6))",
+          "code": "@MINI_TEST(\"Line\", \"Json Roundtrip\")\ndef test_line_json_roundtrip():\n    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   __jsondump__()  \u00e2\u201d\u201a dict         \u00e2\u201d\u201a to JSON object (internal use)\n    #   __jsonload__(d) \u00e2\u201d\u201a dict         \u00e2\u201d\u201a from JSON object (internal use)\n    #   json_dumps()    \u00e2\u201d\u201a str          \u00e2\u201d\u201a to JSON string\n    #   json_loads(s)   \u00e2\u201d\u201a str          \u00e2\u201d\u201a from JSON string\n    #   json_dump(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a write to file\n    #   json_load(path) \u00e2\u201d\u201a file         \u00e2\u201d\u201a read from file\n\n    # JSON object\n    d = l.__jsondump__()\n    loaded_j = Line.__jsonload__(d)\n    MINI_CHECK(loaded_j.name == \"test_line\")\n\n    # String\n    s = l.json_dumps()\n    loaded_s = Line.json_loads(s)\n    MINI_CHECK(loaded_s.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1))\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.json\"\n    l.json_dump(fname)\n    loaded = Line.json_load(fname)\n\n    MINI_CHECK(loaded.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1))\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2))\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3))\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4))\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5))\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6))",
           "file": "line_test.py"
         }
       }
@@ -45129,12 +45393,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\") {\n    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n}",
+          "code": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\") {\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n    MINI_CHECK(loaded_s.guid == l.guid);\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n    MINI_CHECK(loaded.guid == l.guid);\n}",
           "file": "line_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Line\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"Line\", \"Protobuf Roundtrip\")\ndef test_line_protobuf_roundtrip():\n    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   pb_dumps()      \u00e2\u201d\u201a bytes        \u00e2\u201d\u201a to protobuf bytes\n    #   pb_loads(b)     \u00e2\u201d\u201a bytes        \u00e2\u201d\u201a from protobuf bytes\n    #   pb_dump(path)   \u00e2\u201d\u201a file         \u00e2\u201d\u201a write to file\n    #   pb_load(path)   \u00e2\u201d\u201a file         \u00e2\u201d\u201a read from file\n\n    # pb_dump(fname) / pb_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.bin\"\n    l.pb_dump(fname)\n    loaded = Line.pb_load(fname)\n\n    MINI_CHECK(loaded.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1))\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2))\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3))\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4))\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5))\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6))",
+          "code": "@MINI_TEST(\"Line\", \"Protobuf Roundtrip\")\ndef test_line_protobuf_roundtrip():\n    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   pb_dumps()      \u00e2\u201d\u201a bytes        \u00e2\u201d\u201a to protobuf bytes\n    #   pb_loads(b)     \u00e2\u201d\u201a bytes        \u00e2\u201d\u201a from protobuf bytes\n    #   pb_dump(path)   \u00e2\u201d\u201a file         \u00e2\u201d\u201a write to file\n    #   pb_load(path)   \u00e2\u201d\u201a file         \u00e2\u201d\u201a read from file\n\n    # Bytes\n    b = l.pb_dumps()\n    loaded_s = Line.pb_loads(b)\n    MINI_CHECK(loaded_s.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1))\n    MINI_CHECK(loaded_s.guid == l.guid)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.bin\"\n    l.pb_dump(fname)\n    loaded = Line.pb_load(fname)\n\n    MINI_CHECK(loaded.name == \"test_line\")\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1))\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2))\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3))\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4))\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5))\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6))\n    MINI_CHECK(loaded.guid == l.guid)",
           "file": "line_test.py"
         }
       }
@@ -45405,6 +45669,21 @@ window.API_INDEX = {
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
           "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u00e2\u20ac\u201d None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    MINI_CHECK(v0 == 0)\n    MINI_CHECK(mesh.number_of_vertices() == 1)\n    MINI_CHECK(not mesh.is_empty())\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n    MINI_CHECK(v1 == 42)\n    MINI_CHECK(mesh.number_of_vertices() == 2)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    MINI_CHECK(f is not None)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh.clear()\n    MINI_CHECK(mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 0)\n    MINI_CHECK(mesh.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])\n    f1 = mesh.add_face([p1, p2, p3])\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n    MINI_CHECK(n0_before is not None and n1_before is not None)\n    MINI_CHECK(n0_before[0]*n1_before[0] + n0_before[1]*n1_before[1] + n0_before[2]*n1_before[2] < 0.0)\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)\n    MINI_CHECK(n0_after is not None and n1_after is not None)\n    MINI_CHECK(n0_after[0]*n1_after[0] + n0_after[1]*n1_after[1] + n0_after[2]*n1_after[2] > 0.0)",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Unweld",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Unweld\")",
+          "code": "MINI_TEST(\"Mesh\", \"Unweld\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh box = Mesh::create_box(1.0, 1.0, 1.0);\n        Mesh u = box.unweld();\n\n        MINI_CHECK(u.number_of_faces() == box.number_of_faces());\n        MINI_CHECK(u.number_of_vertices() == 24);\n        for (auto& [vk, vdata] : u.vertex)\n            MINI_CHECK(u.vertex_faces(vk).size() == 1);\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Unweld\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Unweld\")\ndef test_unweld():\n    from session_py.mesh import Mesh\n\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n\n    MINI_CHECK(u.number_of_faces() == box.number_of_faces())\n    MINI_CHECK(u.number_of_vertices() == 24)\n    for vk in u.vertex:\n        MINI_CHECK(len(u.vertex_faces(vk)) == 1)",
           "file": "mesh_test.py"
         }
       }
@@ -47703,17 +47982,37 @@ window.API_INDEX = {
           "file": "xform_test.py"
         }
       }
+    },
+    {
+      "name": "Mesh.test_Edges",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 4)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (0, 3))",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh Edge Pipes",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")\ndef test_mesh_edge_pipes():\n    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)\n    MINI_CHECK(len(pipes) == 4)\n    MINI_CHECK(isinstance(pipes[0], Mesh))\n    MINI_CHECK(pipes[0].facecolors[0][0] == Color.red()[0])",
+          "file": "primitives_test.py"
+        }
+      }
     }
   ],
   "recipes": [
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "subdivide",
         "circle",
-        "n",
         "points",
         "into",
-        "subdivide",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -47727,11 +48026,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "subdivide",
+        "length",
+        "by",
         "arc",
         "ellipse",
-        "by",
-        "length",
-        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -47745,9 +48044,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
         "arc",
         "through",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -47761,11 +48060,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
-        "curve",
-        "from",
         "open",
         "points",
+        "curve",
+        "from",
+        "adaptive",
         "polyline",
         "to_polyline_adaptive",
         "create",
@@ -47782,9 +48081,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "curve",
-        "evaluation",
         "at",
         "parameter",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -47803,10 +48102,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
-        "along",
-        "frames",
         "length",
+        "curve",
+        "frames",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -47828,9 +48127,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "frames",
         "perpendicular",
         "ellipse",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -47852,8 +48151,8 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "cylinder",
-        "surface",
         "point",
+        "surface",
         "evaluate",
         "point_at",
         "cylinder_surface",
@@ -47869,11 +48168,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "vertices",
         "faces",
-        "from",
         "and",
+        "mesh",
+        "from",
         "add_vertex",
         "add_face",
         "vertex"
@@ -48819,6 +49118,10 @@ window.API_INDEX = {
       "Mesh.number_of_faces",
       "NormalWeighting.number_of_faces"
     ],
+    "edges": [
+      "Mesh.edges",
+      "NormalWeighting.edges"
+    ],
     "euler": [
       "Mesh.euler",
       "NormalWeighting.euler"
@@ -48826,6 +49129,10 @@ window.API_INDEX = {
     "unify_winding": [
       "Mesh.unify_winding",
       "NormalWeighting.unify_winding"
+    ],
+    "unweld": [
+      "Mesh.unweld",
+      "NormalWeighting.unweld"
     ],
     "add_vertex": [
       "Mesh.add_vertex",
@@ -49686,6 +49993,9 @@ window.API_INDEX = {
     ],
     "cylinder_mesh": [
       "Primitives.cylinder_mesh"
+    ],
+    "edge_pipes": [
+      "Primitives.edge_pipes"
     ],
     "arrow_mesh": [
       "Primitives.arrow_mesh"

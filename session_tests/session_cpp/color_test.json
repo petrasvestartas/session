@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.008,
     "line": 12,
     "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid)\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.463,
+    "time_ms": 8.222,
     "line": 48,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      //   jsondump()      │ ordered_json │ to JSON object (internal use)\n      //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n      //   json_dumps()    │ std::string  │ to JSON string\n      //   json_loads(s)   │ std::string  │ from JSON string\n      //   json_dump(path) │ file         │ write to file\n      //   json_load(path) │ file         │ read from file\n\n      std::string filename = \"serialization/test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);\n",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.124,
+    "time_ms": 6.856,
     "line": 71,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.pb_dump(filename);\n      Color loaded = Color::pb_load(filename);\n",
     "checks": [

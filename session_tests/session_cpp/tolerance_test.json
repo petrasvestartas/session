@@ -47,7 +47,7 @@
   {
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 23,
     "code": "        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 33,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 38,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [

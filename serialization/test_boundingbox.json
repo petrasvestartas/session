@@ -1,1 +1,78 @@
-{"type":"BoundingBox","center":{"type":"Point","guid":"556114a9-3443-4df3-95bc-6131d5f8e183","name":"my_point","x":1.0,"y":2.0,"z":3.0,"width":1.0,"pointcolor":{"a":255,"b":255,"g":0,"guid":"35237e6d-b138-4f46-a6ee-b8fddc169d8e","name":"blue","r":0,"type":"Color"},"xform":{"guid":"083bab65-4085-4bcd-8fb5-66f85c8880e3","m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],"name":"my_xform","type":"Xform"}},"x_axis":{"type":"Vector","guid":"6a9eda3c-8fee-45a6-a3f4-3cd50421d60f","name":"my_vector","x":1.0,"y":0.0,"z":0.0},"y_axis":{"type":"Vector","guid":"017be406-1a2d-4c3d-be9e-288d76ad7381","name":"my_vector","x":0.0,"y":1.0,"z":0.0},"z_axis":{"type":"Vector","guid":"24951d81-9015-4e78-a1bf-c9c6dd6145c4","name":"my_vector","x":0.0,"y":0.0,"z":1.0},"half_size":{"type":"Vector","guid":"0799611f-e3c0-48a0-b849-ae72491e7e4a","name":"my_vector","x":5.0,"y":5.0,"z":5.0},"guid":"32ec8794-e812-439d-847a-ec971a69bc71","name":"test_bbox","xform":{"guid":"c0372baa-24f4-4876-85d3-6f7dffc3f5f7","m":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],"name":"my_xform","type":"Xform"}}
+{
+    "type": "BoundingBox",
+    "center": {
+        "guid": "0f4dc626-1b5c-4d83-b3b5-0ec36d5317df",
+        "name": "my_point",
+        "pointcolor": {
+            "a": 255,
+            "b": 255,
+            "g": 0,
+            "guid": "1dc35a24-af19-434c-bc85-ba60b8c102c7",
+            "name": "blue",
+            "r": 0,
+            "type": "Color"
+        },
+        "type": "Point",
+        "width": 1.0,
+        "x": 1.0,
+        "xform": {
+            "guid": "32c56b5b-2e09-4068-9c70-997e0acf41da",
+            "m": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "my_xform",
+            "type": "Xform"
+        },
+        "y": 2.0,
+        "z": 3.0
+    },
+    "x_axis": {
+        "guid": "b1fb33ba-4bc7-4cd7-9d47-e152c7f82b2e",
+        "name": "my_vector",
+        "type": "Vector",
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "y_axis": {
+        "guid": "1ef91687-e696-409f-8b5a-584fb45f033a",
+        "name": "my_vector",
+        "type": "Vector",
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+    },
+    "z_axis": {
+        "guid": "b7faf4d8-66e3-4fbb-a110-e8bc9ae1aec9",
+        "name": "my_vector",
+        "type": "Vector",
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0
+    },
+    "half_size": {
+        "guid": "8e5fe921-b278-4527-aedb-65885ca4d5f2",
+        "name": "my_vector",
+        "type": "Vector",
+        "x": 5.0,
+        "y": 5.0,
+        "z": 5.0
+    },
+    "guid": "1ba88499-8638-4948-9885-44a326526d5f",
+    "name": "test_bbox"
+}

@@ -1,4 +1,3 @@
 [rust-minitest] Starting test collection...
 [rust-minitest] Inventory found 32 groups
 [rust-minitest] Total groups: 32
-0
