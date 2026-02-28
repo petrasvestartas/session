@@ -1,4 +1,15 @@
 {
+  "type": "PointCloud",
+  "guid": "3147ec8f-dd7a-4a75-a5eb-edb86e16f665",
+  "name": "test_pointcloud",
+  "coords": [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0
+  ],
   "colors": [
     255,
     0,
@@ -9,16 +20,6 @@
     0,
     255
   ],
-  "coords": [
-    1.0,
-    2.0,
-    3.0,
-    4.0,
-    5.0,
-    6.0
-  ],
-  "guid": "af630664-830a-48e2-a59b-fd37bdf5db02",
-  "name": "test_pointcloud",
   "normals": [
     0.0,
     0.0,
@@ -28,9 +29,8 @@
     1.0
   ],
   "point_size": 1.0,
-  "type": "PointCloud",
   "xform": {
-    "guid": "96cafd55-84b0-4bc6-9ba8-335eb0652074",
+    "guid": "de160eb4-a284-42ab-9f0a-4ea255da2b94",
     "m": [
       1.0,
       0.0,

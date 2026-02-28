@@ -1,8 +1,8 @@
 [
   {
-    "test_name": "Knot_count",
+    "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 8,
     "code": "    from session_py import knot\n\n    # Calculate knot counts for various order/cv_count combinations\n    count1 = knot.knot_count(2, 2)\n    count2 = knot.knot_count(3, 3)\n    count3 = knot.knot_count(4, 4)\n    count4 = knot.knot_count(4, 5)\n    count5 = knot.knot_count(3, 4)",
     "checks": [
@@ -35,7 +35,7 @@
     "failures": []
   },
   {
-    "test_name": "Make_clamped_uniform",
+    "test_name": "Make Clamped Uniform",
     "passed": true,
     "time_ms": 0.041,
     "line": 26,
@@ -85,7 +85,7 @@
     "failures": []
   },
   {
-    "test_name": "Make_periodic_uniform",
+    "test_name": "Make Periodic Uniform",
     "passed": true,
     "time_ms": 0.009,
     "line": 55,
@@ -112,7 +112,7 @@
   {
     "test_name": "Clamp",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.048,
     "line": 70,
     "code": "    from session_py import knot\n    import numpy as np\n\n    # Clamp a periodic knot vector\n    k = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    clamp_result = knot.clamp(4, 4, k, 2)\n    first_clamped = k[0] == k[1] and k[1] == k[2]\n    last_clamped = k[3] == k[4] and k[4] == k[5]",
     "checks": [
@@ -135,9 +135,9 @@
     "failures": []
   },
   {
-    "test_name": "Is_valid",
+    "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.017,
     "line": 86,
     "code": "    from session_py import knot\n    import numpy as np\n\n    # Valid clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    valid = knot.is_valid(4, 4, k)\n\n    # Invalid - decreasing values\n    k_invalid = np.array([0.0, 0.0, 1.0, 0.5, 1.0, 1.0])\n    invalid = knot.is_valid(4, 4, k_invalid)",
     "checks": [
@@ -155,9 +155,9 @@
     "failures": []
   },
   {
-    "test_name": "Is_clamped",
+    "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.02,
     "line": 103,
     "code": "    from session_py import knot\n\n    # Clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    clamped_both = knot.is_clamped(4, 4, k, 2)\n    clamped_start = knot.is_clamped(4, 4, k, 0)\n    clamped_end = knot.is_clamped(4, 4, k, 1)\n\n    # Periodic knot vector (not clamped)\n    k2 = knot.make_periodic_uniform(4, 5, 1.0)\n    not_clamped = knot.is_clamped(4, 5, k2, 2)",
     "checks": [
@@ -185,9 +185,9 @@
     "failures": []
   },
   {
-    "test_name": "Is_periodic",
+    "test_name": "Is Periodic",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.029,
     "line": 123,
     "code": "    from session_py import knot\n\n    # Periodic knot vector\n    k = knot.make_periodic_uniform(3, 4, 1.0)\n    periodic = knot.is_periodic(3, 4, k)\n\n    # Clamped knot vector (not periodic)\n    k2 = knot.make_clamped_uniform(4, 4, 1.0)\n    not_periodic = knot.is_periodic(4, 4, k2)",
     "checks": [
@@ -205,9 +205,9 @@
     "failures": []
   },
   {
-    "test_name": "Get_domain",
+    "test_name": "Get Domain",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.01,
     "line": 139,
     "code": "    from session_py import knot\n\n    # Get domain of clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    t0, t1 = knot.get_domain(4, 4, k)",
     "checks": [
@@ -225,9 +225,9 @@
     "failures": []
   },
   {
-    "test_name": "Set_domain",
+    "test_name": "Set Domain",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.037,
     "line": 151,
     "code": "    from session_py import knot\n\n    # Create knot vector and set domain\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    set_result = knot.set_domain(4, 4, k, 5.0, 10.0)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_close = abs(t0 - 5.0) < 1e-10\n    t1_close = abs(t1 - 10.0) < 1e-10",
     "checks": [
@@ -252,7 +252,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.035,
     "line": 167,
     "code": "    from session_py import knot\n\n    # Reverse knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    t0_orig, t1_orig = knot.get_domain(4, 4, k)\n    reverse_result = knot.reverse(4, 4, k)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_preserved = abs(t0 - t0_orig) < 1e-10\n    t1_preserved = abs(t1 - t1_orig) < 1e-10",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "Multiplicity",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.015,
     "line": 184,
     "code": "    from session_py import knot\n\n    # Check multiplicity at clamped ends\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    mult_first = knot.multiplicity(4, 4, k, 0)\n    mult_last = knot.multiplicity(4, 4, k, 5)",
     "checks": [
@@ -295,9 +295,9 @@
     "failures": []
   },
   {
-    "test_name": "Span_count",
+    "test_name": "Span Count",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.012,
     "line": 197,
     "code": "    from session_py import knot\n\n    # Single Bezier span\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    span1 = knot.span_count(4, 4, k)\n\n    # Multiple spans\n    k2 = knot.make_clamped_uniform(3, 5, 1.0)\n    span2 = knot.span_count(3, 5, k2)",
     "checks": [
@@ -315,9 +315,9 @@
     "failures": []
   },
   {
-    "test_name": "Find_span",
+    "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.018,
     "line": 213,
     "code": "    from session_py import knot\n\n    # Find span in single-span knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    span_0 = knot.find_span(4, 4, k, 0.0)\n    span_mid = knot.find_span(4, 4, k, 0.5)\n    span_1 = knot.find_span(4, 4, k, 1.0)\n\n    # Find span in multi-span knot vector\n    k2 = knot.make_clamped_uniform(3, 5, 1.0)\n    span2_0 = knot.find_span(3, 5, k2, 0.0)\n    span2_mid = knot.find_span(3, 5, k2, 1.5)\n    span2_end = knot.find_span(3, 5, k2, 2.5)",
     "checks": [
@@ -335,7 +335,7 @@
     "failures": []
   },
   {
-    "test_name": "Greville_abcissae",
+    "test_name": "Greville Abcissae",
     "passed": true,
     "time_ms": 0.017,
     "line": 233,
@@ -350,7 +350,7 @@
     "failures": []
   },
   {
-    "test_name": "Domain_tolerance",
+    "test_name": "Domain Tolerance",
     "passed": true,
     "time_ms": 0.004,
     "line": 245,

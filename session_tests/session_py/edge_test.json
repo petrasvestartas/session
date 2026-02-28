@@ -1,0 +1,27 @@
+[
+  {
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 9.45,
+    "line": 7,
+    "code": "    from session_py import Edge\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Edge(\"v0\", \"v1\", \"./serialization/test_edge\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_edge.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "checks": [
+      {
+        "line": 20,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "loaded.v0 == original.v0",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "loaded.v1 == original.v1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

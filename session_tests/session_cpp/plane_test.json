@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.038,
     "line": 15,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Default constructor - XY plane at origin\n    Plane pl;\n\n    // Origin and axes\n    Point origin = pl.origin();\n    Vector x_axis = pl.x_axis();\n    Vector y_axis = pl.y_axis();\n    Vector z_axis = pl.z_axis();\n\n    // Plane equation coefficients (ax + by + cz + d = 0)\n    double a = pl.a();\n    double b = pl.b();\n    double c = pl.c();\n    double d = pl.d();\n\n    // Index access for axes\n    Vector ax0 = pl[0];\n    Vector ax1 = pl[1];\n    Vector ax2 = pl[2];\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid)\n    Plane plcopy = pl;\n\n    // From point and normal\n    Point p(0.0, 0.0, 5.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane pl_pn = Plane::from_point_normal(p, n);\n\n    // From three points\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)};\n    Plane pl_pts = Plane::from_points(pts);\n\n    // From two points\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 0.0, 0.0);\n    Plane pl_2pts = Plane::from_two_points(p1, p2);\n\n    // Standard planes\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n\n    // Translation operators\n    Vector offset(1.0, 2.0, 3.0);\n\n    // In-place add\n    Plane pl_iadd = Plane::xy_plane();\n    pl_iadd += offset;\n\n    // In-place subtract\n    Plane pl_isub = Plane::xy_plane();\n    pl_isub -= offset;\n\n    // Copy add/subtract\n    Plane pl_base = Plane::xy_plane();\n    Plane pl_add = pl_base + offset;\n    Plane pl_sub = pl_base - offset;\n",
     "checks": [
@@ -13,96 +13,206 @@
       },
       {
         "line": 84,
-        "code_line": "TOLERANCE.is_close(origin[0], 0.0) && TOLERANCE.is_close(origin[1], 0.0) && TOLERANCE.is_close(origin[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(origin[0], 0.0)",
         "passed": true
       },
       {
         "line": 85,
-        "code_line": "TOLERANCE.is_close(x_axis[0], 1.0) && TOLERANCE.is_close(x_axis[1], 0.0) && TOLERANCE.is_close(x_axis[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(origin[1], 0.0)",
         "passed": true
       },
       {
         "line": 86,
-        "code_line": "TOLERANCE.is_close(y_axis[0], 0.0) && TOLERANCE.is_close(y_axis[1], 1.0) && TOLERANCE.is_close(y_axis[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(origin[2], 0.0)",
         "passed": true
       },
       {
         "line": 87,
-        "code_line": "TOLERANCE.is_close(z_axis[0], 0.0) && TOLERANCE.is_close(z_axis[1], 0.0) && TOLERANCE.is_close(z_axis[2], 1.0)",
+        "code_line": "TOLERANCE.is_close(x_axis[0], 1.0)",
         "passed": true
       },
       {
         "line": 88,
-        "code_line": "TOLERANCE.is_close(a, 0.0) && TOLERANCE.is_close(b, 0.0) && TOLERANCE.is_close(c, 1.0) && TOLERANCE.is_close(d, 0.0)",
+        "code_line": "TOLERANCE.is_close(x_axis[1], 0.0)",
         "passed": true
       },
       {
         "line": 89,
-        "code_line": "TOLERANCE.is_close(ax0[0], 1.0) && TOLERANCE.is_close(ax1[1], 1.0) && TOLERANCE.is_close(ax2[2], 1.0)",
+        "code_line": "TOLERANCE.is_close(x_axis[2], 0.0)",
         "passed": true
       },
       {
         "line": 90,
-        "code_line": "plstr == \"0.000000, 0.000000, 0.000000\\n1.000000, 0.000000, 0.000000\\n0.000000, 1.000000, 0.000000\\n0.000000, 0.000000, 1.000000\"",
+        "code_line": "TOLERANCE.is_close(y_axis[0], 0.0)",
         "passed": true
       },
       {
         "line": 91,
-        "code_line": "plrepr == \"Plane(my_plane, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000)\"",
+        "code_line": "TOLERANCE.is_close(y_axis[1], 1.0)",
         "passed": true
       },
       {
         "line": 92,
-        "code_line": "plcopy == pl && plcopy.guid != pl.guid",
+        "code_line": "TOLERANCE.is_close(y_axis[2], 0.0)",
         "passed": true
       },
       {
         "line": 93,
-        "code_line": "TOLERANCE.is_close(pl_pn.origin()[2], 5.0) && TOLERANCE.is_close(pl_pn.z_axis()[2], 1.0) && TOLERANCE.is_close(pl_pn.d(), -5.0)",
+        "code_line": "TOLERANCE.is_close(z_axis[0], 0.0)",
         "passed": true
       },
       {
         "line": 94,
-        "code_line": "TOLERANCE.is_close(pl_pts.c(), 1.0) && TOLERANCE.is_close(pl_pts.d(), 0.0)",
+        "code_line": "TOLERANCE.is_close(z_axis[1], 0.0)",
         "passed": true
       },
       {
         "line": 95,
-        "code_line": "TOLERANCE.is_close(pl_2pts.origin()[0], 0.0) && TOLERANCE.is_close(pl_2pts.x_axis()[0], 1.0)",
+        "code_line": "TOLERANCE.is_close(z_axis[2], 1.0)",
         "passed": true
       },
       {
         "line": 96,
-        "code_line": "xy.name == \"xy_plane\" && TOLERANCE.is_close(xy.c(), 1.0)",
+        "code_line": "TOLERANCE.is_close(a, 0.0)",
         "passed": true
       },
       {
         "line": 97,
-        "code_line": "yz.name == \"yz_plane\" && TOLERANCE.is_close(yz.a(), 1.0)",
+        "code_line": "TOLERANCE.is_close(b, 0.0)",
         "passed": true
       },
       {
         "line": 98,
-        "code_line": "xz.name == \"xz_plane\" && TOLERANCE.is_close(xz.b(), 1.0)",
+        "code_line": "TOLERANCE.is_close(c, 1.0)",
         "passed": true
       },
       {
         "line": 99,
-        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[0], 1.0) && TOLERANCE.is_close(pl_iadd.origin()[1], 2.0) && TOLERANCE.is_close(pl_iadd.origin()[2], 3.0)",
+        "code_line": "TOLERANCE.is_close(d, 0.0)",
         "passed": true
       },
       {
         "line": 100,
-        "code_line": "TOLERANCE.is_close(pl_isub.origin()[0], -1.0) && TOLERANCE.is_close(pl_isub.origin()[1], -2.0) && TOLERANCE.is_close(pl_isub.origin()[2], -3.0)",
+        "code_line": "TOLERANCE.is_close(ax0[0], 1.0)",
         "passed": true
       },
       {
         "line": 101,
-        "code_line": "TOLERANCE.is_close(pl_add.origin()[2], 3.0) && TOLERANCE.is_close(pl_base.origin()[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(ax1[1], 1.0)",
         "passed": true
       },
       {
         "line": 102,
+        "code_line": "TOLERANCE.is_close(ax2[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "plstr == \"0.000000, 0.000000, 0.000000\\n1.000000, 0.000000, 0.000000\\n0.000000, 1.000000, 0.000000\\n0.000000, 0.000000, 1.000000\"",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "plrepr == \"Plane(my_plane, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000)\"",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "plcopy == pl && plcopy.guid != pl.guid",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "TOLERANCE.is_close(pl_pn.origin()[2], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "TOLERANCE.is_close(pl_pn.z_axis()[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(pl_pn.d(), -5.0)",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(pl_pts.c(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "TOLERANCE.is_close(pl_pts.d(), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(pl_2pts.origin()[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "TOLERANCE.is_close(pl_2pts.x_axis()[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "xy.name == \"xy_plane\" && TOLERANCE.is_close(xy.c(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "yz.name == \"yz_plane\" && TOLERANCE.is_close(yz.a(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "xz.name == \"xz_plane\" && TOLERANCE.is_close(xz.b(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "TOLERANCE.is_close(pl_isub.origin()[0], -1.0)",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "TOLERANCE.is_close(pl_isub.origin()[1], -2.0)",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "TOLERANCE.is_close(pl_isub.origin()[2], -3.0)",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "TOLERANCE.is_close(pl_add.origin()[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 123,
+        "code_line": "TOLERANCE.is_close(pl_base.origin()[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 124,
         "code_line": "TOLERANCE.is_close(pl_sub.origin()[2], -3.0)",
         "passed": true
       }
@@ -112,22 +222,42 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 105,
+    "time_ms": 0.003,
+    "line": 127,
     "code": "    // uncomment #include \"plane.h\"\n\n    // Reverse flips normal and swaps x/y axes\n    Plane pl = Plane::xy_plane();\n    pl.reverse();\n",
     "checks": [
       {
-        "line": 112,
-        "code_line": "TOLERANCE.is_close(pl.x_axis()[0], 0.0) && TOLERANCE.is_close(pl.x_axis()[1], 1.0) && TOLERANCE.is_close(pl.x_axis()[2], 0.0)",
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(pl.x_axis()[0], 0.0)",
         "passed": true
       },
       {
-        "line": 113,
-        "code_line": "TOLERANCE.is_close(pl.y_axis()[0], 1.0) && TOLERANCE.is_close(pl.y_axis()[1], 0.0) && TOLERANCE.is_close(pl.y_axis()[2], 0.0)",
+        "line": 135,
+        "code_line": "TOLERANCE.is_close(pl.x_axis()[1], 1.0)",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 136,
+        "code_line": "TOLERANCE.is_close(pl.x_axis()[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "TOLERANCE.is_close(pl.y_axis()[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "TOLERANCE.is_close(pl.y_axis()[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "TOLERANCE.is_close(pl.y_axis()[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 140,
         "code_line": "TOLERANCE.is_close(pl.c(), -1.0)",
         "passed": true
       }
@@ -137,12 +267,12 @@
   {
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 117,
+    "time_ms": 0.003,
+    "line": 143,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotate plane 90 degrees around its normal\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);\n",
     "checks": [
       {
-        "line": 125,
+        "line": 151,
         "code_line": "TOLERANCE.is_close(pl.x_axis()[1], 1.0)",
         "passed": true
       }
@@ -150,39 +280,39 @@
     "failures": []
   },
   {
-    "test_name": "Is_right_hand",
+    "test_name": "Is Right Hand",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 128,
+    "time_ms": 0.01,
+    "line": 154,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // All standard planes should be right-handed\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n    Plane default_pl;\n\n    bool xy_rh = xy.is_right_hand();\n    bool yz_rh = yz.is_right_hand();\n    bool xz_rh = xz.is_right_hand();\n    bool default_rh = default_pl.is_right_hand();\n\n    // After reverse, should still be right-handed\n    default_pl.reverse();\n    bool reversed_rh = default_pl.is_right_hand();\n\n    // After rotate, should still be right-handed\n    default_pl.rotate(Tolerance::PI / 4.0);\n    bool rotated_rh = default_pl.is_right_hand();\n",
     "checks": [
       {
-        "line": 151,
+        "line": 177,
         "code_line": "xy_rh == true",
         "passed": true
       },
       {
-        "line": 152,
+        "line": 178,
         "code_line": "yz_rh == true",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 179,
         "code_line": "xz_rh == true",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 180,
         "code_line": "default_rh == true",
         "passed": true
       },
       {
-        "line": 155,
+        "line": 181,
         "code_line": "reversed_rh == true",
         "passed": true
       },
       {
-        "line": 156,
+        "line": 182,
         "code_line": "rotated_rh == true",
         "passed": true
       }
@@ -190,49 +320,49 @@
     "failures": []
   },
   {
-    "test_name": "Is_coplanar",
+    "test_name": "Is Coplanar",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 159,
+    "time_ms": 0.02,
+    "line": 185,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    // Same direction (parallel planes)\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    bool same_dir = Plane::is_same_direction(p1, p2, true);\n\n    // Flipped direction\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();\n    bool same_dir_flipped = Plane::is_same_direction(p1, p3, true);\n    bool same_dir_strict = Plane::is_same_direction(p1, p3, false);\n\n    // Same position\n    Plane p4 = Plane::xy_plane();\n    bool same_pos = Plane::is_same_position(p1, p4);\n    p4 += Vector(0.0, 0.0, 1.0);\n    bool diff_pos = Plane::is_same_position(p1, p4);\n\n    // Coplanar\n    Plane p5 = Plane::xy_plane();\n    Plane p6 = Plane::xy_plane();\n    bool coplanar = Plane::is_coplanar(p5, p6, true);\n    p6.reverse();\n    bool coplanar_reversed = Plane::is_coplanar(p5, p6, true);\n    p6 += Vector(0.0, 0.0, 1.0);\n    bool not_coplanar = Plane::is_coplanar(p5, p6, true);\n",
     "checks": [
       {
-        "line": 189,
+        "line": 215,
         "code_line": "same_dir == true",
         "passed": true
       },
       {
-        "line": 190,
+        "line": 216,
         "code_line": "same_dir_flipped == true",
         "passed": true
       },
       {
-        "line": 191,
+        "line": 217,
         "code_line": "same_dir_strict == false",
         "passed": true
       },
       {
-        "line": 192,
+        "line": 218,
         "code_line": "same_pos == true",
         "passed": true
       },
       {
-        "line": 193,
+        "line": 219,
         "code_line": "diff_pos == false",
         "passed": true
       },
       {
-        "line": 194,
+        "line": 220,
         "code_line": "coplanar == true",
         "passed": true
       },
       {
-        "line": 195,
+        "line": 221,
         "code_line": "coplanar_reversed == true",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 222,
         "code_line": "not_coplanar == false",
         "passed": true
       }
@@ -243,46 +373,76 @@
     "test_name": "Transform",
     "passed": true,
     "time_ms": 0.007,
-    "line": 199,
+    "line": 225,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    pl.transform();\n\n    // Transformed - returns new plane\n    Plane pl2 = Plane::xy_plane();\n    pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n    Plane pl3 = pl2.transformed();\n",
     "checks": [
       {
-        "line": 213,
-        "code_line": "TOLERANCE.is_close(pl.origin()[0], 1.0) && TOLERANCE.is_close(pl.origin()[1], 2.0) && TOLERANCE.is_close(pl.origin()[2], 3.0)",
+        "line": 239,
+        "code_line": "TOLERANCE.is_close(pl.origin()[0], 1.0)",
         "passed": true
       },
       {
-        "line": 214,
-        "code_line": "TOLERANCE.is_close(pl3.origin()[0], 1.0) && TOLERANCE.is_close(pl3.origin()[1], 2.0) && TOLERANCE.is_close(pl3.origin()[2], 3.0)",
+        "line": 240,
+        "code_line": "TOLERANCE.is_close(pl.origin()[1], 2.0)",
         "passed": true
       },
       {
-        "line": 215,
-        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 0.0) && TOLERANCE.is_close(pl2.origin()[1], 0.0) && TOLERANCE.is_close(pl2.origin()[2], 0.0)",
+        "line": 241,
+        "code_line": "TOLERANCE.is_close(pl.origin()[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 242,
+        "code_line": "TOLERANCE.is_close(pl3.origin()[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 243,
+        "code_line": "TOLERANCE.is_close(pl3.origin()[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 244,
+        "code_line": "TOLERANCE.is_close(pl3.origin()[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 245,
+        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 246,
+        "code_line": "TOLERANCE.is_close(pl2.origin()[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 247,
+        "code_line": "TOLERANCE.is_close(pl2.origin()[2], 0.0)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "test_name": "Json_roundtrip",
+    "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.538,
-    "line": 218,
+    "time_ms": 12.764,
+    "line": 250,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
     "checks": [
       {
-        "line": 235,
+        "line": 267,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 236,
+        "line": 268,
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
         "passed": true
       },
       {
-        "line": 237,
+        "line": 269,
         "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
         "passed": true
       }
@@ -290,24 +450,24 @@
     "failures": []
   },
   {
-    "test_name": "Protobuf_roundtrip",
+    "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 13.035,
-    "line": 240,
+    "time_ms": 6.228,
+    "line": 272,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);\n",
     "checks": [
       {
-        "line": 251,
+        "line": 283,
         "code_line": "loaded.name == \"test_plane\"",
         "passed": true
       },
       {
-        "line": 252,
+        "line": 284,
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
         "passed": true
       },
       {
-        "line": 253,
+        "line": 285,
         "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
         "passed": true
       }

@@ -1,0 +1,972 @@
+[
+  {
+    "test_name": "Line Line",
+    "passed": true,
+    "time_ms": 0.023,
+    "line": 7,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n        let output = intersection::line_line(&line0, &line1, Tolerance::APPROXIMATION);\n        let output = output.unwrap();",
+    "checks": [
+      {
+        "line": 15,
+        "code_line": "output.is_some()",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "TOLERANCE.is_close(output[0], 0.5)",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "TOLERANCE.is_close(output[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "TOLERANCE.is_close(output[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Line Parallel",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 24,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(0.0, 1.0, 0.0, 1.0, 1.0, 0.0);\n        let output = intersection::line_line(&line0, &line1, Tolerance::APPROXIMATION);",
+    "checks": [
+      {
+        "line": 32,
+        "code_line": "output.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Line Parameters",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 37,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n        let result = intersection::line_line_parameters(&line0, &line1, Tolerance::APPROXIMATION, true, false);\n        let (t0, t1) = result.unwrap();",
+    "checks": [
+      {
+        "line": 45,
+        "code_line": "result.is_some()",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "TOLERANCE.is_close(t0, 0.5)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_close(t1, 0.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Line Parameters Endpoints",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 53,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);\n        let result = intersection::line_line_parameters(&line0, &line1, Tolerance::APPROXIMATION, true, false);\n        let (t0, t1) = result.unwrap();",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "result.is_some()",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "TOLERANCE.is_close(t0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "TOLERANCE.is_close(t1, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Line Parameters Infinite",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 69,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(2.0, -1.0, 0.0, 2.0, 1.0, 0.0);\n        let result = intersection::line_line_parameters(&line0, &line1, Tolerance::APPROXIMATION, false, false);\n        let (t0, _t1) = result.unwrap();",
+    "checks": [
+      {
+        "line": 77,
+        "code_line": "result.is_some()",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(t0, 2.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Plane Plane",
+    "passed": true,
+    "time_ms": 0.018,
+    "line": 84,
+    "code": "        use crate::intersection;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let plane0 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let plane1 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let output = intersection::plane_plane(&plane0, &plane1);\n        let line_dir = output.unwrap().to_vector();",
+    "checks": [
+      {
+        "line": 93,
+        "code_line": "output.is_some()",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "(line_dir[0].abs() - 1.0).abs() < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "line_dir[1].abs() < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "line_dir[2].abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Plane Plane Complex",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 102,
+    "code": "        use crate::intersection;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pl0 = Plane::new(Point::new(213.787107, 513.797811, -24.743845), Vector::new(0.907673, -0.258819, 0.330366), Vector::new(0.272094, 0.96225, 0.006285));\n        let pl1 = Plane::new(Point::new(247.17924, 499.115486, 59.619568), Vector::new(0.552465, 0.816035, 0.16991), Vector::new(0.172987, 0.087156, -0.98106));\n        let intersection_line = intersection::plane_plane(&pl0, &pl1);\n        let intersection_line = intersection_line.unwrap();\n        let start = intersection_line.start();\n        let end = intersection_line.end();",
+    "checks": [
+      {
+        "line": 111,
+        "code_line": "intersection_line.is_some()",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "(start[0] - 252.4632).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "(start[1] - 495.32248).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "(start[2] - (-10.002656)).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "(end[0] - 253.01033).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "(end[1] - 496.1218).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "(end[2] - (-9.888727)).abs() < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Plane",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 125,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));\n        let line = Line::new(0.0, 0.0, 0.0, 0.0, 0.0, 2.0);\n        let output = intersection::line_plane(&line, &plane, true);\n        let output = output.unwrap();",
+    "checks": [
+      {
+        "line": 135,
+        "code_line": "output.is_some()",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "TOLERANCE.is_close(output[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "TOLERANCE.is_close(output[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "TOLERANCE.is_close(output[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Plane Parallel",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 144,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));\n        let line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let output = intersection::line_plane(&line, &plane, true);",
+    "checks": [
+      {
+        "line": 154,
+        "code_line": "output.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Line Plane Real World",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 159,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let pl0 = Plane::new(Point::new(213.787107, 513.797811, -24.743845), Vector::new(0.907673, -0.258819, 0.330366), Vector::new(0.272094, 0.96225, 0.006285));\n        let lp = intersection::line_plane(&l0, &pl0, false);\n        let lp = lp.unwrap();",
+    "checks": [
+      {
+        "line": 169,
+        "code_line": "lp.is_some()",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "(lp[0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "(lp[1] - 77.7531).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 173,
+        "code_line": "(lp[2] - 111.043).abs() < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Plane Plane Plane",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 178,
+    "code": "        use crate::intersection;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pl0 = Plane::new(Point::new(213.787107, 513.797811, -24.743845), Vector::new(0.907673, -0.258819, 0.330366), Vector::new(0.272094, 0.96225, 0.006285));\n        let pl1 = Plane::new(Point::new(247.17924, 499.115486, 59.619568), Vector::new(0.552465, 0.816035, 0.16991), Vector::new(0.172987, 0.087156, -0.98106));\n        let pl2 = Plane::new(Point::new(221.399816, 605.893667, -54.000116), Vector::new(0.903451, -0.360516, -0.231957), Vector::new(0.172742, -0.189057, 0.966653));\n        let output = intersection::plane_plane_plane(&pl0, &pl1, &pl2);\n        let output = output.unwrap();",
+    "checks": [
+      {
+        "line": 188,
+        "code_line": "output.is_some()",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "(output[0] - 300.5).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 191,
+        "code_line": "(output[1] - 565.5).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 192,
+        "code_line": "(output[2] - 0.0).abs() < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Plane Plane Plane Parallel",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 197,
+    "code": "        use crate::intersection;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let plane0 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let plane1 = Plane::from_point_normal(Point::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0));\n        let plane2 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let output = intersection::plane_plane_plane(&plane0, &plane1, &plane2);",
+    "checks": [
+      {
+        "line": 207,
+        "code_line": "output.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Box",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 212,
+    "code": "        use crate::intersection;\n        use crate::BoundingBox;\n        use crate::Line;\n        use crate::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(-1.0, -1.0, -1.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let line = Line::new(-5.0, 0.0, 0.0, -4.0, 0.0, 0.0);\n        let points = intersection::ray_box(&line, &box_, 0.0, 100.0);\n        let points = points.unwrap();",
+    "checks": [
+      {
+        "line": 221,
+        "code_line": "points.is_some()",
+        "passed": true
+      },
+      {
+        "line": 223,
+        "code_line": "(points[0][0] - (-1.0)).abs() < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 224,
+        "code_line": "(points[1][0] - 1.0).abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Box Miss",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 229,
+    "code": "        use crate::intersection;\n        use crate::BoundingBox;\n        use crate::Line;\n        use crate::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(-1.0, -1.0, -1.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let line = Line::new(-5.0, 5.0, 0.0, -4.0, 5.0, 0.0);\n        let points = intersection::ray_box(&line, &box_, 0.0, 100.0);",
+    "checks": [
+      {
+        "line": 238,
+        "code_line": "points.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Sphere",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 243,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(-5.0, 0.0, 0.0, -4.0, 0.0, 0.0);\n        let center = Point::new(0.0, 0.0, 0.0);\n        let radius = 2.0;\n        let points = intersection::ray_sphere(&line, &center, radius);\n        let points = points.unwrap();",
+    "checks": [
+      {
+        "line": 252,
+        "code_line": "points.is_some()",
+        "passed": true
+      },
+      {
+        "line": 254,
+        "code_line": "points.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 255,
+        "code_line": "(points[0][0] - (-2.0)).abs() < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 256,
+        "code_line": "(points[1][0] - 2.0).abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Sphere Tangent",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 261,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(-5.0, 2.0, 0.0, -4.0, 2.0, 0.0);\n        let center = Point::new(0.0, 0.0, 0.0);\n        let radius = 2.0;\n        let points = intersection::ray_sphere(&line, &center, radius);\n        let points = points.unwrap();",
+    "checks": [
+      {
+        "line": 270,
+        "code_line": "points.is_some()",
+        "passed": true
+      },
+      {
+        "line": 272,
+        "code_line": "points.len() == 1",
+        "passed": true
+      },
+      {
+        "line": 273,
+        "code_line": "(points[0][0] - 0.0).abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Sphere Miss",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 278,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(-5.0, 5.0, 0.0, -4.0, 5.0, 0.0);\n        let center = Point::new(0.0, 0.0, 0.0);\n        let radius = 2.0;\n        let points = intersection::ray_sphere(&line, &center, radius);",
+    "checks": [
+      {
+        "line": 287,
+        "code_line": "points.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Triangle",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 292,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let v0 = Point::new(0.0, 0.0, 0.0);\n        let v1 = Point::new(1.0, 0.0, 0.0);\n        let v2 = Point::new(0.0, 1.0, 0.0);\n        let result = intersection::ray_triangle(&line, &v0, &v1, &v2, 1e-6);\n        let result = result.unwrap();",
+    "checks": [
+      {
+        "line": 302,
+        "code_line": "result.is_some()",
+        "passed": true
+      },
+      {
+        "line": 304,
+        "code_line": "(result[2] - 0.0).abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Triangle Miss",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 309,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(2.0, 2.0, -1.0, 2.0, 2.0, 0.0);\n        let v0 = Point::new(0.0, 0.0, 0.0);\n        let v1 = Point::new(1.0, 0.0, 0.0);\n        let v2 = Point::new(0.0, 1.0, 0.0);\n        let result = intersection::ray_triangle(&line, &v0, &v1, &v2, 1e-6);",
+    "checks": [
+      {
+        "line": 319,
+        "code_line": "result.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Triangle Parallel",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 324,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(0.5, 0.5, -1.0, 1.5, 0.5, -1.0);\n        let v0 = Point::new(0.0, 0.0, 0.0);\n        let v1 = Point::new(1.0, 0.0, 0.0);\n        let v2 = Point::new(0.0, 1.0, 0.0);\n        let result = intersection::ray_triangle(&line, &v0, &v1, &v2, 1e-6);",
+    "checks": [
+      {
+        "line": 334,
+        "code_line": "result.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh",
+    "passed": true,
+    "time_ms": 0.047,
+    "line": 339,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits = hits.unwrap();",
+    "checks": [
+      {
+        "line": 352,
+        "code_line": "hits.is_some()",
+        "passed": true
+      },
+      {
+        "line": 354,
+        "code_line": "hits.len() >= 1",
+        "passed": true
+      },
+      {
+        "line": 355,
+        "code_line": "(hits[0][2] - 0.0).abs() < 1e-3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh First",
+    "passed": true,
+    "time_ms": 0.034,
+    "line": 360,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, false);\n        let hits = hits.unwrap();",
+    "checks": [
+      {
+        "line": 373,
+        "code_line": "hits.is_some()",
+        "passed": true
+      },
+      {
+        "line": 375,
+        "code_line": "hits.len() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh Miss",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 380,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.0, 5.0, -1.0, 5.0, 5.0, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, true);",
+    "checks": [
+      {
+        "line": 392,
+        "code_line": "hits.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh Bvh",
+    "passed": true,
+    "time_ms": 0.047,
+    "line": 397,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let hits = hits.unwrap();",
+    "checks": [
+      {
+        "line": 410,
+        "code_line": "hits.is_some()",
+        "passed": true
+      },
+      {
+        "line": 412,
+        "code_line": "hits.len() >= 1",
+        "passed": true
+      },
+      {
+        "line": 413,
+        "code_line": "(hits[0][2] - 0.0).abs() < 1e-3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh Bvh First",
+    "passed": true,
+    "time_ms": 0.039,
+    "line": 418,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, false);\n        let hits = hits.unwrap();",
+    "checks": [
+      {
+        "line": 431,
+        "code_line": "hits.is_some()",
+        "passed": true
+      },
+      {
+        "line": 433,
+        "code_line": "hits.len() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh Bvh Miss",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 438,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.0, 5.0, -1.0, 5.0, 5.0, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);",
+    "checks": [
+      {
+        "line": 450,
+        "code_line": "hits.is_none()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Mesh Bvh Vs Naive",
+    "passed": true,
+    "time_ms": 1.652,
+    "line": 455,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        for i in 0..10 {\n            for j in 0..10 {\n                let x = i as f64;\n                let y = j as f64;\n                polygons.push(vec![\n                    Point::new(x, y, 0.0),\n                    Point::new(x + 1.0, y, 0.0),\n                    Point::new(x + 1.0, y + 1.0, 0.0),\n                    Point::new(x, y + 1.0, 0.0),\n                ]);\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.5, 5.5, -1.0, 5.5, 5.5, 0.0);\n        let hits_naive = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits_bvh = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let result_naive = hits_naive.is_some();\n        let result_bvh = hits_bvh.is_some();\n        let naive_count = hits_naive.as_ref().map(|h| h.len()).unwrap_or(0);\n        let bvh_count = hits_bvh.as_ref().map(|h| h.len()).unwrap_or(0);\n        if let (Some(hn), Some(hb)) = (&hits_naive, &hits_bvh) {\n            if !hn.is_empty() {",
+    "checks": [
+      {
+        "line": 480,
+        "code_line": "result_naive == result_bvh",
+        "passed": true
+      },
+      {
+        "line": 483,
+        "code_line": "naive_count == bvh_count",
+        "passed": true
+      },
+      {
+        "line": 486,
+        "code_line": "(hn[0][2] - hb[0][2]).abs() < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Box Real World",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 493,
+    "code": "        use crate::intersection;\n        use crate::BoundingBox;\n        use crate::Line;\n        use crate::Point;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let box_ = BoundingBox::from_points(&[Point::new(214.0, 192.0, 484.0), Point::new(694.0, 567.0, 796.0)], 0.0);\n        let points = intersection::ray_box(&l0, &box_, 0.0, 1000.0);\n        let points = points.unwrap();",
+    "checks": [
+      {
+        "line": 502,
+        "code_line": "points.is_some()",
+        "passed": true
+      },
+      {
+        "line": 504,
+        "code_line": "points.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 505,
+        "code_line": "(points[0][0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 506,
+        "code_line": "(points[0][1] - 338.9).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 507,
+        "code_line": "(points[0][2] - 484.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 508,
+        "code_line": "(points[1][0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 509,
+        "code_line": "(points[1][1] - 557.365).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 510,
+        "code_line": "(points[1][2] - 796.0).abs() < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Sphere Real World",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 515,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let sphere_center = Point::new(457.0, 192.0, 207.0);\n        let radius = 265.0;\n        let points = intersection::ray_sphere(&l0, &sphere_center, radius);\n        let points = points.unwrap();",
+    "checks": [
+      {
+        "line": 524,
+        "code_line": "points.is_some()",
+        "passed": true
+      },
+      {
+        "line": 526,
+        "code_line": "points.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 527,
+        "code_line": "(points[0][0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 528,
+        "code_line": "(points[0][1] - 12.08).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 529,
+        "code_line": "(points[0][2] - 17.25).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 530,
+        "code_line": "(points[1][0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 531,
+        "code_line": "(points[1][1] - 308.77).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 532,
+        "code_line": "(points[1][2] - 440.97).abs() < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Ray Triangle Real World",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 537,
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n        use crate::Tolerance;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let p1 = Point::new(214.0, 567.0, 484.0);\n        let p2 = Point::new(214.0, 192.0, 796.0);\n        let p3 = Point::new(694.0, 192.0, 484.0);\n        let result = intersection::ray_triangle(&l0, &p1, &p2, &p3, Tolerance::APPROXIMATION);\n        let result = result.unwrap();",
+    "checks": [
+      {
+        "line": 548,
+        "code_line": "result.is_some()",
+        "passed": true
+      },
+      {
+        "line": 550,
+        "code_line": "(result[0] - 500.0).abs() < 0.1",
+        "passed": true
+      },
+      {
+        "line": 551,
+        "code_line": "(result[1] - 340.616).abs() < 0.01",
+        "passed": true
+      },
+      {
+        "line": 552,
+        "code_line": "(result[2] - 486.451).abs() < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Surface Plane",
+    "passed": true,
+    "time_ms": 0.245,
+    "line": 557,
+    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 10.0), Point::new(10.0, 10.0, 10.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);",
+    "checks": [
+      {
+        "line": 571,
+        "code_line": "curves.len() == 1",
+        "passed": true
+      },
+      {
+        "line": 572,
+        "code_line": "curves[0].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "(p[0] - 5.0).abs() < 0.5",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "(p[2] - 5.0).abs() < 0.5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Surface Plane Curved",
+    "passed": true,
+    "time_ms": 0.627,
+    "line": 584,
+    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let mut pts = Vec::new();\n        for i in 0..4 {\n            for j in 0..4 {\n                let x = i as f64 * 10.0;\n                let y = j as f64 * 10.0;\n                let z = if (i == 1 || i == 2) && (j == 1 || j == 2) { 10.0 } else { 0.0 };\n                pts.push(Point::new(x, y, z));\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);",
+    "checks": [
+      {
+        "line": 603,
+        "code_line": "curves.len() >= 1",
+        "passed": true
+      },
+      {
+        "line": 604,
+        "code_line": "curves[0].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 605,
+        "code_line": "curves[0].degree() == 3",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      },
+      {
+        "line": 610,
+        "code_line": "(p[2] - 3.0).abs() < 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Surface Plane Miss",
+    "passed": true,
+    "time_ms": 0.029,
+    "line": 616,
+    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 0.0), Point::new(10.0, 10.0, 0.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);",
+    "checks": [
+      {
+        "line": 630,
+        "code_line": "curves.len() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

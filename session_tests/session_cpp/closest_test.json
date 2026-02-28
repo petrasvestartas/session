@@ -1,8 +1,8 @@
 [
   {
-    "test_name": "Line_point",
+    "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.011,
     "line": 19,
     "code": "    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    auto [cp1, t1, d1] = Closest::line_point(l, Point(5.0, 5.0, 0.0));\n\n    auto [cp2, t2, d2] = Closest::line_point(l, Point(-5.0, 0.0, 0.0));\n\n    auto [cp3, t3, d3] = Closest::line_point(l, Point(15.0, 0.0, 0.0));",
     "checks": [
@@ -60,9 +60,9 @@
     "failures": []
   },
   {
-    "test_name": "Polyline_point",
+    "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.023,
     "line": 39,
     "code": "    Polyline pl({Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0)});\n\n    auto [cp1, t1, d1] = Closest::polyline_point(pl, Point(5.0, 5.0, 0.0));\n\n    auto [cp2, t2, d2] = Closest::polyline_point(pl, Point(10.0, 5.0, 0.0));",
     "checks": [
@@ -90,24 +90,24 @@
     "failures": []
   },
   {
-    "test_name": "Curve_point",
+    "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.061,
     "line": 51,
-    "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0), Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0), Point(4.0, 0.0, 0.0)\n    };\n    NurbsCurve crv = NurbsCurve::create(false, 3, pts);\n\n    auto [t, dist] = Closest::curve_point(crv, Point(2.0, 3.0, 0.0));\n    Point cp = crv.point_at(t);\n\n    auto [t2, dist2] = Closest::curve_point(crv, Point(0.0, 0.0, 0.0));",
+    "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    NurbsCurve crv = NurbsCurve::create(false, 3, pts);\n\n    auto [t, dist] = Closest::curve_point(crv, Point(2.0, 3.0, 0.0));\n    Point cp = crv.point_at(t);\n\n    auto [t2, dist2] = Closest::curve_point(crv, Point(0.0, 0.0, 0.0));",
     "checks": [
       {
-        "line": 59,
+        "line": 61,
         "code_line": "dist < 1.6",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 63,
         "code_line": "TOLERANCE.is_close(cp.distance(Point(2.0, 3.0, 0.0)), dist)",
         "passed": true
       },
       {
-        "line": 64,
+        "line": 66,
         "code_line": "dist2 < 0.01",
         "passed": true
       }
@@ -115,24 +115,24 @@
     "failures": []
   },
   {
-    "test_name": "Surface_point",
+    "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 0.139,
-    "line": 67,
-    "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(2.0, 0.0, 0.0), Point(3.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 1.0), Point(2.0, 1.0, 1.0), Point(3.0, 1.0, 0.0),\n        Point(0.0, 2.0, 0.0), Point(1.0, 2.0, 1.0), Point(2.0, 2.0, 1.0), Point(3.0, 2.0, 0.0),\n        Point(0.0, 3.0, 0.0), Point(1.0, 3.0, 0.0), Point(2.0, 3.0, 0.0), Point(3.0, 3.0, 0.0),\n    };\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    auto [u, v, dist] = Closest::surface_point(srf, Point(1.5, 1.5, 2.0));\n    Point cp = srf.point_at(u, v);\n\n    auto [u2, v2, dist2] = Closest::surface_point(srf, Point(0.0, 0.0, 0.0));",
+    "time_ms": 0.146,
+    "line": 69,
+    "code": "    std::vector<Point> pts = {\n        // i=0\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        // i=1\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n        Point(2.0, 1.0, 1.0),\n        Point(3.0, 1.0, 0.0),\n        // i=2\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 2.0, 1.0),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 2.0, 0.0),\n        // i=3\n        Point(0.0, 3.0, 0.0),\n        Point(1.0, 3.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    };\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    auto [u, v, dist] = Closest::surface_point(srf, Point(1.5, 1.5, 2.0));\n    Point cp = srf.point_at(u, v);\n\n    auto [u2, v2, dist2] = Closest::surface_point(srf, Point(0.0, 0.0, 0.0));",
     "checks": [
       {
-        "line": 77,
+        "line": 95,
         "code_line": "dist < 1.5",
         "passed": true
       },
       {
-        "line": 79,
+        "line": 97,
         "code_line": "TOLERANCE.is_close(cp.distance(Point(1.5, 1.5, 2.0)), dist)",
         "passed": true
       },
       {
-        "line": 82,
+        "line": 100,
         "code_line": "dist2 < 0.01",
         "passed": true
       }
@@ -140,24 +140,24 @@
     "failures": []
   },
   {
-    "test_name": "Mesh_point",
+    "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 0.772,
-    "line": 85,
+    "time_ms": 0.686,
+    "line": 103,
     "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point(m, Point(1.0, 1.0, 1.0));",
     "checks": [
       {
-        "line": 89,
+        "line": 107,
         "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
         "passed": true
       },
       {
-        "line": 90,
+        "line": 108,
         "code_line": "TOLERANCE.is_close(d1, 1.0)",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 111,
         "code_line": "TOLERANCE.is_close(d2, 0.0)",
         "passed": true
       }
@@ -165,34 +165,34 @@
     "failures": []
   },
   {
-    "test_name": "Pointcloud_point",
+    "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 96,
-    "code": "    PointCloud pc({Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0), Point(10.0, 10.0, 0.0)}, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point(pc, Point(4.0, 0.0, 0.0));\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point(pc, Point(10.0, 10.0, 0.0));",
+    "time_ms": 0.007,
+    "line": 114,
+    "code": "    PointCloud pc({\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    }, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point(pc, Point(4.0, 0.0, 0.0));\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point(pc, Point(10.0, 10.0, 0.0));",
     "checks": [
       {
-        "line": 100,
+        "line": 123,
         "code_line": "TOLERANCE.is_close(cp1[0], 5.0)",
         "passed": true
       },
       {
-        "line": 101,
+        "line": 124,
         "code_line": "i1 == 1",
         "passed": true
       },
       {
-        "line": 102,
+        "line": 125,
         "code_line": "TOLERANCE.is_close(d1, 1.0)",
         "passed": true
       },
       {
-        "line": 105,
+        "line": 128,
         "code_line": "TOLERANCE.is_close(d2, 0.0)",
         "passed": true
       },
       {
-        "line": 106,
+        "line": 129,
         "code_line": "i2 == 3",
         "passed": true
       }

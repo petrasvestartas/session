@@ -2,97 +2,137 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.024,
     "line": 16,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n\n    // Setters\n    l[0] = 10.0;\n    l[1] = 20.0;\n    l[2] = 30.0;\n    l[3] = 40.0;\n    l[4] = 50.0;\n    l[5] = 60.0;\n\n    // Getters\n    double x0 = l[0];\n    double y0 = l[1];\n    double z0 = l[2];\n    double x1 = l[3];\n    double y1 = l[4];\n    double z1 = l[5];\n\n    // Minimal and Full String Representation\n    std::string lstr = l.str();\n    std::string lrepr = l.repr();\n\n    // Copy (duplicate everything but guid)\n    Line lcopy = l;\n    Line lother(10.0, 20.0, 30.0, 40.0, 50.0, 60.0);\n\n    // No-copy operators\n    Line lmult = l;\n    lmult *= 2.0;\n    Line ldiv = l;\n    ldiv /= 2.0;\n    Line ladd = l;\n    ladd += Vector(1.0, 1.0, 1.0);\n    Line lsub = l;\n    lsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Line rmul = l * 2.0;\n    Line rdiv = l / 2.0;\n    Line radd = l + Vector(1.0, 1.0, 1.0);\n    Line rdif = l - Vector(1.0, 1.0, 1.0);\n\n    // Negation (flip start and end)\n    Line lneg(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Line neg = -lneg;\n\n    // From points constructor\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(4.0, 5.0, 6.0);\n    Line l2p = Line::from_points(p0, p1);\n\n    // from_point_and_vector constructor\n    Point pv(1.0, 2.0, 3.0);\n    Vector vv(3.0, 4.0, 5.0);\n    Line l_pv = Line::from_point_and_vector(pv, vv);\n\n    // from_point_direction_length constructor\n    Point pd(0.0, 0.0, 0.0);\n    Vector dd(1.0, 0.0, 0.0);\n    Line l_pdl = Line::from_point_direction_length(pd, dd, 5.0);\n\n    // Line with custom color and width\n    Line lc(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    lc.linecolor = Color(255, 0, 0, 255, \"red\");\n    lc.width = 2.5;\n",
     "checks": [
       {
         "line": 89,
-        "code_line": "l.name == \"my_line\" && l[0] == 10.0 && l[1] == 20.0 && l[2] == 30.0 && !l.guid.empty()",
+        "code_line": "l.name == \"my_line\"",
         "passed": true
       },
       {
         "line": 90,
-        "code_line": "x0 == 10.0 && y0 == 20.0 && z0 == 30.0 && x1 == 40.0 && y1 == 50.0 && z1 == 60.0",
+        "code_line": "l[0] == 10.0 && l[1] == 20.0 && l[2] == 30.0",
         "passed": true
       },
       {
         "line": 91,
-        "code_line": "lstr.find(\"10\") != std::string::npos && lstr.find(\"20\") != std::string::npos && lstr.find(\"60\") != std::string::npos",
+        "code_line": "!l.guid.empty()",
         "passed": true
       },
       {
         "line": 92,
-        "code_line": "lrepr.find(\"my_line\") != std::string::npos && lrepr.find(\"10\") != std::string::npos && lrepr.find(\"Color\") != std::string::npos",
+        "code_line": "x0 == 10.0 && y0 == 20.0 && z0 == 30.0 && x1 == 40.0 && y1 == 50.0 && z1 == 60.0",
         "passed": true
       },
       {
         "line": 93,
-        "code_line": "lcopy.guid != l.guid",
+        "code_line": "lstr.find(\"10\") != std::string::npos",
         "passed": true
       },
       {
         "line": 94,
-        "code_line": "lmult[0] == 20.0 && lmult[3] == 80.0",
+        "code_line": "lstr.find(\"20\") != std::string::npos",
         "passed": true
       },
       {
         "line": 95,
-        "code_line": "ldiv[0] == 5.0 && ldiv[3] == 20.0",
+        "code_line": "lstr.find(\"60\") != std::string::npos",
         "passed": true
       },
       {
         "line": 96,
-        "code_line": "ladd[0] == 11.0 && ladd[3] == 41.0",
+        "code_line": "lrepr.find(\"my_line\") != std::string::npos",
         "passed": true
       },
       {
         "line": 97,
-        "code_line": "lsub[0] == 9.0 && lsub[3] == 39.0",
+        "code_line": "lrepr.find(\"10\") != std::string::npos",
         "passed": true
       },
       {
         "line": 98,
-        "code_line": "rmul[0] == 20.0 && rmul[3] == 80.0",
+        "code_line": "lrepr.find(\"Color\") != std::string::npos",
         "passed": true
       },
       {
         "line": 99,
-        "code_line": "rdiv[0] == 5.0 && rdiv[3] == 20.0",
+        "code_line": "lcopy.guid != l.guid",
         "passed": true
       },
       {
         "line": 100,
-        "code_line": "radd[0] == 11.0 && radd[3] == 41.0",
+        "code_line": "lmult[0] == 20.0 && lmult[3] == 80.0",
         "passed": true
       },
       {
         "line": 101,
-        "code_line": "rdif[0] == 9.0 && rdif[3] == 39.0",
+        "code_line": "ldiv[0] == 5.0 && ldiv[3] == 20.0",
         "passed": true
       },
       {
         "line": 102,
-        "code_line": "neg[0] == 4.0 && neg[1] == 5.0 && neg[2] == 6.0 && neg[3] == 1.0 && neg[4] == 2.0 && neg[5] == 3.0",
+        "code_line": "ladd[0] == 11.0 && ladd[3] == 41.0",
         "passed": true
       },
       {
         "line": 103,
-        "code_line": "l2p[0] == 1.0 && l2p[3] == 4.0",
+        "code_line": "lsub[0] == 9.0 && lsub[3] == 39.0",
         "passed": true
       },
       {
         "line": 104,
-        "code_line": "l_pv[0] == 1.0 && l_pv[1] == 2.0 && l_pv[2] == 3.0 && l_pv[3] == 4.0 && l_pv[4] == 6.0 && l_pv[5] == 8.0",
+        "code_line": "rmul[0] == 20.0 && rmul[3] == 80.0",
         "passed": true
       },
       {
         "line": 105,
-        "code_line": "l_pdl[0] == 0.0 && l_pdl[3] == 5.0",
+        "code_line": "rdiv[0] == 5.0 && rdiv[3] == 20.0",
         "passed": true
       },
       {
         "line": 106,
+        "code_line": "radd[0] == 11.0 && radd[3] == 41.0",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "rdif[0] == 9.0 && rdif[3] == 39.0",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "neg[0] == 4.0 && neg[1] == 5.0 && neg[2] == 6.0",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "neg[3] == 1.0 && neg[4] == 2.0 && neg[5] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "l2p[0] == 1.0 && l2p[3] == 4.0",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "l_pv[0] == 1.0 && l_pv[1] == 2.0 && l_pv[2] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "l_pv[3] == 4.0 && l_pv[4] == 6.0 && l_pv[5] == 8.0",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "l_pdl[0] == 0.0 && l_pdl[3] == 5.0",
+        "passed": true
+      },
+      {
+        "line": 114,
         "code_line": "lc.linecolor[0] == 255 && lc.linecolor[1] == 0 && lc.width == 2.5",
         "passed": true
       }
@@ -102,22 +142,22 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 109,
+    "time_ms": 0.005,
+    "line": 117,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"xform.h\"\n\n    Line l(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    l.xform = Xform::translation(10.0, 0.0, 0.0);\n    Line l_transformed = l.transformed(); // Make a copy\n    l.transform(); // After the call, \"xform\" is reset\n",
     "checks": [
       {
-        "line": 118,
+        "line": 126,
         "code_line": "l_transformed[0] == 10.0 && l_transformed[3] == 11.0",
         "passed": true
       },
       {
-        "line": 119,
+        "line": 127,
         "code_line": "l[0] == 10.0 && l[3] == 11.0",
         "passed": true
       },
       {
-        "line": 120,
+        "line": 128,
         "code_line": "l.xform == Xform::identity()",
         "passed": true
       }
@@ -125,44 +165,44 @@
     "failures": []
   },
   {
-    "test_name": "Json_roundtrip",
+    "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.266,
-    "line": 123,
+    "time_ms": 10.368,
+    "line": 131,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n",
     "checks": [
       {
-        "line": 141,
+        "line": 149,
         "code_line": "loaded.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 150,
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 151,
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 152,
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       },
       {
-        "line": 145,
+        "line": 153,
         "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 154,
         "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 155,
         "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
         "passed": true
       }
@@ -170,44 +210,44 @@
     "failures": []
   },
   {
-    "test_name": "Protobuf_roundtrip",
+    "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.933,
-    "line": 150,
+    "time_ms": 9.842,
+    "line": 158,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n",
     "checks": [
       {
-        "line": 161,
+        "line": 169,
         "code_line": "loaded.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 162,
+        "line": 170,
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 163,
+        "line": 171,
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 164,
+        "line": 172,
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       },
       {
-        "line": 165,
+        "line": 173,
         "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
         "passed": true
       },
       {
-        "line": 166,
+        "line": 174,
         "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
         "passed": true
       },
       {
-        "line": 167,
+        "line": 175,
         "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
         "passed": true
       }
@@ -217,17 +257,17 @@
   {
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 170,
+    "time_ms": 0.001,
+    "line": 178,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    double ln = l.length();\n    double lsq = l.squared_length();\n",
     "checks": [
       {
-        "line": 177,
+        "line": 185,
         "code_line": "TOLERANCE.is_close(ln, 5.0)",
         "passed": true
       },
       {
-        "line": 178,
+        "line": 186,
         "code_line": "TOLERANCE.is_close(lsq, 25.0)",
         "passed": true
       }
@@ -235,14 +275,14 @@
     "failures": []
   },
   {
-    "test_name": "To_vector",
+    "test_name": "To Vector",
     "passed": true,
     "time_ms": 0.001,
-    "line": 181,
+    "line": 189,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(1.0, 2.0, 3.0, 4.0, 6.0, 9.0);\n    Vector v = l.to_vector();\n",
     "checks": [
       {
-        "line": 187,
+        "line": 195,
         "code_line": "v[0] == 3.0 && v[1] == 4.0 && v[2] == 6.0",
         "passed": true
       }
@@ -250,29 +290,29 @@
     "failures": []
   },
   {
-    "test_name": "To_direction",
+    "test_name": "To Direction",
     "passed": true,
     "time_ms": 0.001,
-    "line": 190,
+    "line": 198,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    Vector d = l.to_direction();\n",
     "checks": [
       {
-        "line": 196,
+        "line": 204,
         "code_line": "TOLERANCE.is_close(d[0], 0.6)",
         "passed": true
       },
       {
-        "line": 197,
+        "line": 205,
         "code_line": "TOLERANCE.is_close(d[1], 0.8)",
         "passed": true
       },
       {
-        "line": 198,
+        "line": 206,
         "code_line": "TOLERANCE.is_close(d[2], 0.0)",
         "passed": true
       },
       {
-        "line": 199,
+        "line": 207,
         "code_line": "TOLERANCE.is_close(d.magnitude(), 1.0)",
         "passed": true
       }
@@ -280,24 +320,24 @@
     "failures": []
   },
   {
-    "test_name": "Point_at",
+    "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 202,
+    "time_ms": 0.008,
+    "line": 210,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 10.0, 10.0);\n    Point ps = l.point_at(0.0);\n    Point pm = l.point_at(0.5);\n    Point pe = l.point_at(1.0);\n",
     "checks": [
       {
-        "line": 210,
+        "line": 218,
         "code_line": "ps[0] == 0.0 && ps[1] == 0.0 && ps[2] == 0.0",
         "passed": true
       },
       {
-        "line": 211,
+        "line": 219,
         "code_line": "pm[0] == 5.0 && pm[1] == 5.0 && pm[2] == 5.0",
         "passed": true
       },
       {
-        "line": 212,
+        "line": 220,
         "code_line": "pe[0] == 10.0 && pe[1] == 10.0 && pe[2] == 10.0",
         "passed": true
       }
@@ -305,24 +345,24 @@
     "failures": []
   },
   {
-    "test_name": "Closest_point",
+    "test_name": "Closest Point",
     "passed": true,
     "time_ms": 0.002,
-    "line": 215,
+    "line": 223,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n    Point p1(5.0, 5.0, 0.0);\n    Point p2(-5.0, 0.0, 0.0);\n    Point p3(15.0, 0.0, 0.0);\n    Point cp1 = l.closest_point(p1);\n    Point cp2 = l.closest_point(p2);\n    Point cp3 = l.closest_point(p3);\n",
     "checks": [
       {
-        "line": 227,
+        "line": 235,
         "code_line": "cp1[0] == 5.0 && cp1[1] == 0.0 && cp1[2] == 0.0",
         "passed": true
       },
       {
-        "line": 228,
+        "line": 236,
         "code_line": "cp2[0] == 0.0 && cp2[1] == 0.0 && cp2[2] == 0.0",
         "passed": true
       },
       {
-        "line": 229,
+        "line": 237,
         "code_line": "cp3[0] == 10.0 && cp3[1] == 0.0 && cp3[2] == 0.0",
         "passed": true
       }
@@ -330,24 +370,24 @@
     "failures": []
   },
   {
-    "test_name": "Start_end_center",
+    "test_name": "Start End Center",
     "passed": true,
     "time_ms": 0.001,
-    "line": 232,
+    "line": 240,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Point start = l.start();\n    Point end = l.end();\n    Point center = l.center();\n",
     "checks": [
       {
-        "line": 240,
+        "line": 248,
         "code_line": "start[0] == 1.0 && start[1] == 2.0 && start[2] == 3.0",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 249,
         "code_line": "end[0] == 4.0 && end[1] == 5.0 && end[2] == 6.0",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 250,
         "code_line": "center[0] == 2.5 && center[1] == 3.5 && center[2] == 4.5",
         "passed": true
       }
@@ -355,14 +395,14 @@
     "failures": []
   },
   {
-    "test_name": "Fit_points",
+    "test_name": "Fit Points",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 245,
-    "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include <vector>\n\n    std::vector<Point> fit_pts = {Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.5), Point(2.0, 2.0, 1.0), Point(3.0, 3.0, 1.5)};\n    Line l_fit = Line::fit_points(fit_pts);\n",
+    "time_ms": 0.005,
+    "line": 253,
+    "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include <vector>\n\n    std::vector<Point> fit_pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.5),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 3.0, 1.5),\n    };\n    Line l_fit = Line::fit_points(fit_pts);\n",
     "checks": [
       {
-        "line": 253,
+        "line": 266,
         "code_line": "l_fit.length() > 0.0",
         "passed": true
       }
@@ -372,47 +412,47 @@
   {
     "test_name": "Subdivide",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 256,
+    "time_ms": 0.006,
+    "line": 269,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include <vector>\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    // subdivide by count\n    std::vector<Point> pts = l.subdivide(3);\n\n    // subdivide_by_distance\n    std::vector<Point> pts_dist = l.subdivide_by_distance(2.5);\n\n",
     "checks": [
       {
-        "line": 268,
+        "line": 281,
         "code_line": "pts.size() == 3",
         "passed": true
       },
       {
-        "line": 269,
+        "line": 282,
         "code_line": "pts[0][0] == 0.0",
         "passed": true
       },
       {
-        "line": 270,
+        "line": 283,
         "code_line": "pts[1][0] == 5.0",
         "passed": true
       },
       {
-        "line": 271,
+        "line": 284,
         "code_line": "pts[2][0] == 10.0",
         "passed": true
       },
       {
-        "line": 273,
+        "line": 286,
         "code_line": "pts_dist.size() == 5",
         "passed": true
       },
       {
-        "line": 274,
+        "line": 287,
         "code_line": "TOLERANCE.is_close(pts_dist[0][0], 0.0)",
         "passed": true
       },
       {
-        "line": 275,
+        "line": 288,
         "code_line": "TOLERANCE.is_close(pts_dist[1][0], 2.5)",
         "passed": true
       },
       {
-        "line": 276,
+        "line": 289,
         "code_line": "TOLERANCE.is_close(pts_dist[4][0], 10.0)",
         "passed": true
       }

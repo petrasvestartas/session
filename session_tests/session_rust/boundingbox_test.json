@@ -1,0 +1,17 @@
+[
+  {
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 8.855,
+    "line": 5,
+    "code": "        use crate::BoundingBox;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = BoundingBox::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        original.name = \"test_bbox\".to_string();\n        json_dump(&original, \"serialization/test_boundingbox.json\", false).unwrap();\n        let loaded = json_load::<BoundingBox>(\"serialization/test_boundingbox.json\").unwrap();",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

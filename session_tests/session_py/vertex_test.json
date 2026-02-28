@@ -1,0 +1,22 @@
+[
+  {
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 9.968,
+    "line": 7,
+    "code": "    from session_py import Vertex\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Vertex(\"v0\", \"./serialization/test_attribute\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_vertex.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "checks": [
+      {
+        "line": 20,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "loaded.attribute == original.attribute",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

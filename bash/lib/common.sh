@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("brep" "color" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "plane" "point" "pointcloud" "polyline" "primitives" "tolerance" "trimmedsurface" "vector" "xform")
+CLASS_NAMES=("aabb" "boundingbox" "brep" "bvh" "closest" "color" "edge" "encoders" "graph" "intersection" "knot" "line" "mesh" "nurbscurve" "nurbssurface" "obj" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "session" "tolerance" "tree" "treenode" "triangulation_2d" "trimmedsurface" "vector" "vertex" "xform")
 
 # Resolve repo root from script location
 resolve_repo_root() {

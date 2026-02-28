@@ -33,82 +33,222 @@
       },
       {
         "line": 83,
-        "code_line": "TOLERANCE.is_close(pt0[0], 0.0) && TOLERANCE.is_close(pt0[1], 0.0) && TOLERANCE.is_close(pt0[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(pt0[0], 0.0)",
         "passed": true
       },
       {
         "line": 84,
-        "code_line": "col0.r == 255 && col0.g == 0 && col0.b == 0 && col0.a == 255",
+        "code_line": "TOLERANCE.is_close(pt0[1], 0.0)",
         "passed": true
       },
       {
         "line": 85,
-        "code_line": "TOLERANCE.is_close(norm0[0], 0.0) && TOLERANCE.is_close(norm0[1], 0.0) && TOLERANCE.is_close(norm0[2], 1.0)",
+        "code_line": "TOLERANCE.is_close(pt0[2], 0.0)",
         "passed": true
       },
       {
         "line": 86,
-        "code_line": "pc2.len() == 1 && pc2.color_count() == 1 && pc2.normal_count() == 1",
+        "code_line": "col0.r == 255 && col0.g == 0 && col0.b == 0 && col0.a == 255",
         "passed": true
       },
       {
         "line": 87,
-        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 4.0) && TOLERANCE.is_close(pc2.get_point(0)[1], 5.0) && TOLERANCE.is_close(pc2.get_point(0)[2], 6.0)",
+        "code_line": "TOLERANCE.is_close(norm0[0], 0.0)",
         "passed": true
       },
       {
         "line": 88,
-        "code_line": "pc2.get_color(0).r == 200 && pc2.get_color(0).g == 100 && pc2.get_color(0).b == 50 && pc2.get_color(0).a == 255",
+        "code_line": "TOLERANCE.is_close(norm0[1], 0.0)",
         "passed": true
       },
       {
         "line": 89,
-        "code_line": "TOLERANCE.is_close(pc2.get_normal(0)[0], 0.0) && TOLERANCE.is_close(pc2.get_normal(0)[1], 1.0) && TOLERANCE.is_close(pc2.get_normal(0)[2], 0.0)",
+        "code_line": "TOLERANCE.is_close(norm0[2], 1.0)",
         "passed": true
       },
       {
         "line": 90,
-        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc_iadd.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc_iadd.get_point(0)[2], 33.0)",
+        "code_line": "pc2.len() == 1 && pc2.color_count() == 1 && pc2.normal_count() == 1",
         "passed": true
       },
       {
         "line": 91,
-        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[0], -9.0) && TOLERANCE.is_close(pc_isub.get_point(0)[1], -18.0) && TOLERANCE.is_close(pc_isub.get_point(0)[2], -27.0)",
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 4.0)",
         "passed": true
       },
       {
         "line": 92,
-        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc_add.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc_add.get_point(0)[2], 33.0)",
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[1], 5.0)",
         "passed": true
       },
       {
         "line": 93,
-        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[0], -9.0) && TOLERANCE.is_close(pc_sub.get_point(0)[1], -18.0) && TOLERANCE.is_close(pc_sub.get_point(0)[2], -27.0)",
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[2], 6.0)",
         "passed": true
       },
       {
         "line": 94,
-        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 1.0) && TOLERANCE.is_close(pc3.get_point(0)[1], 2.0) && TOLERANCE.is_close(pc3.get_point(0)[2], 3.0)",
+        "code_line": "pc2.get_color(0).r == 200",
         "passed": true
       },
       {
         "line": 95,
-        "code_line": "pc4.len() == 3 && pc4.color_count() == 3 && pc4.normal_count() == 3",
+        "code_line": "pc2.get_color(0).g == 100",
         "passed": true
       },
       {
         "line": 96,
-        "code_line": "TOLERANCE.is_close(pc4.get_point(1)[0], 1.0) && TOLERANCE.is_close(pc4.get_point(1)[1], 0.0) && TOLERANCE.is_close(pc4.get_point(1)[2], 0.0)",
+        "code_line": "pc2.get_color(0).b == 50",
         "passed": true
       },
       {
         "line": 97,
-        "code_line": "pc4.get_color(1).r == 0 && pc4.get_color(1).g == 255 && pc4.get_color(1).b == 0 && pc4.get_color(1).a == 255",
+        "code_line": "pc2.get_color(0).a == 255",
         "passed": true
       },
       {
         "line": 98,
-        "code_line": "TOLERANCE.is_close(pc4.get_normal(1)[0], 0.0) && TOLERANCE.is_close(pc4.get_normal(1)[1], 0.0) && TOLERANCE.is_close(pc4.get_normal(1)[2], 1.0)",
+        "code_line": "TOLERANCE.is_close(pc2.get_normal(0)[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 99,
+        "code_line": "TOLERANCE.is_close(pc2.get_normal(0)[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 100,
+        "code_line": "TOLERANCE.is_close(pc2.get_normal(0)[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[0], 11.0)",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[1], 22.0)",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[0], -9.0)",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[1], -18.0)",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[2], -27.0)",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[0], 11.0)",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[1], 22.0)",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[0], -9.0)",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[1], -18.0)",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[2], -27.0)",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "pc4.len() == 3 && pc4.color_count() == 3 && pc4.normal_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "TOLERANCE.is_close(pc4.get_point(1)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "TOLERANCE.is_close(pc4.get_point(1)[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "TOLERANCE.is_close(pc4.get_point(1)[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "pc4.get_color(1).r == 0",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "pc4.get_color(1).g == 255",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "pc4.get_color(1).b == 0",
+        "passed": true
+      },
+      {
+        "line": 123,
+        "code_line": "pc4.get_color(1).a == 255",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "TOLERANCE.is_close(pc4.get_normal(1)[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "TOLERANCE.is_close(pc4.get_normal(1)[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "TOLERANCE.is_close(pc4.get_normal(1)[2], 1.0)",
         "passed": true
       }
     ],
@@ -118,56 +258,106 @@
     "test_name": "Transform",
     "passed": true,
     "time_ms": 0.004,
-    "line": 101,
+    "line": 129,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc.xform = Xform::translation(10.0, 20.0, 30.0);\n    pc.transform();\n\n    // Transformed - returns new cloud\n    PointCloud pc2({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n    PointCloud pc3 = pc2.transformed();\n",
     "checks": [
       {
-        "line": 116,
-        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc.get_point(0)[2], 33.0)",
+        "line": 144,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 11.0)",
         "passed": true
       },
       {
-        "line": 117,
-        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc3.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc3.get_point(0)[2], 33.0)",
+        "line": 145,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[1], 22.0)",
         "passed": true
       },
       {
-        "line": 118,
-        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 1.0) && TOLERANCE.is_close(pc2.get_point(0)[1], 2.0) && TOLERANCE.is_close(pc2.get_point(0)[2], 3.0)",
+        "line": 146,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 11.0)",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[1], 22.0)",
+        "passed": true
+      },
+      {
+        "line": 149,
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 151,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 152,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[2], 3.0)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "test_name": "Json_roundtrip",
+    "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.844,
-    "line": 121,
+    "time_ms": 10.268,
+    "line": 155,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);\n",
     "checks": [
       {
-        "line": 145,
+        "line": 179,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 180,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 147,
-        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0) && TOLERANCE.is_close(loaded.get_point(0)[1], 2.0) && TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
+        "line": 181,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 148,
-        "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 && loaded.get_color(0).b == 0",
+        "line": 182,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
         "passed": true
       },
       {
-        "line": 149,
+        "line": 183,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 184,
+        "code_line": "loaded.get_color(0).r == 255",
+        "passed": true
+      },
+      {
+        "line": 185,
+        "code_line": "loaded.get_color(0).g == 0",
+        "passed": true
+      },
+      {
+        "line": 186,
+        "code_line": "loaded.get_color(0).b == 0",
+        "passed": true
+      },
+      {
+        "line": 187,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }
@@ -175,34 +365,54 @@
     "failures": []
   },
   {
-    "test_name": "Protobuf_roundtrip",
+    "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.956,
-    "line": 152,
+    "time_ms": 8.14,
+    "line": 190,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);\n",
     "checks": [
       {
-        "line": 169,
+        "line": 207,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 170,
+        "line": 208,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 171,
-        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0) && TOLERANCE.is_close(loaded.get_point(0)[1], 2.0) && TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
+        "line": 209,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 172,
-        "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 && loaded.get_color(0).b == 0",
+        "line": 210,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
         "passed": true
       },
       {
-        "line": 173,
+        "line": 211,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 212,
+        "code_line": "loaded.get_color(0).r == 255",
+        "passed": true
+      },
+      {
+        "line": 213,
+        "code_line": "loaded.get_color(0).g == 0",
+        "passed": true
+      },
+      {
+        "line": 214,
+        "code_line": "loaded.get_color(0).b == 0",
+        "passed": true
+      },
+      {
+        "line": 215,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }

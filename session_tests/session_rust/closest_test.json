@@ -1,33 +1,8 @@
 [
   {
-    "test_name": "Curve_point",
+    "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.239,
-    "line": 51,
-    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 2.0, 0.0), Point::new(4.0, 0.0, 0.0),\n        ];\n        let crv = NurbsCurve::create(false, 3, &pts);\n\n        let (t, dist) = Closest::curve_point(&crv, &Point::new(2.0, 3.0, 0.0), 0.0, 0.0);\n        let cp = crv.point_at(t);\n\n        let (_t2, dist2) = Closest::curve_point(&crv, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0);",
-    "checks": [
-      {
-        "line": 63,
-        "code_line": "dist < 1.6",
-        "passed": true
-      },
-      {
-        "line": 65,
-        "code_line": "TOLERANCE.is_close(cp.distance(&Point::new(2.0, 3.0, 0.0), None), dist)",
-        "passed": true
-      },
-      {
-        "line": 68,
-        "code_line": "dist2 < 0.01",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Line_point",
-    "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.015,
     "line": 7,
     "code": "        use crate::Closest;\n        use crate::Line;\n        use crate::Point;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n        let (cp1, t1, d1) = Closest::line_point(&l, &Point::new(5.0, 5.0, 0.0));\n\n        let (cp2, t2, d2) = Closest::line_point(&l, &Point::new(-5.0, 0.0, 0.0));\n\n        let (cp3, t3, d3) = Closest::line_point(&l, &Point::new(15.0, 0.0, 0.0));",
     "checks": [
@@ -85,67 +60,7 @@
     "failures": []
   },
   {
-    "test_name": "Mesh_point",
-    "passed": true,
-    "time_ms": 0.168,
-    "line": 97,
-    "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n\n        let (cp1, _fk1, d1) = Closest::mesh_point(&m, &Point::new(0.0, 0.0, 2.0));\n\n        let (_cp2, _fk2, d2) = Closest::mesh_point(&m, &Point::new(1.0, 1.0, 1.0));",
-    "checks": [
-      {
-        "line": 105,
-        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 106,
-        "code_line": "TOLERANCE.is_close(d1, 1.0)",
-        "passed": true
-      },
-      {
-        "line": 109,
-        "code_line": "TOLERANCE.is_close(d2, 0.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Pointcloud_point",
-    "passed": true,
-    "time_ms": 0.017,
-    "line": 114,
-    "code": "        use crate::Closest;\n        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(5.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0), Point::new(10.0, 10.0, 0.0)], vec![], vec![]);\n\n        let (cp1, i1, d1) = Closest::pointcloud_point(&pc, &Point::new(4.0, 0.0, 0.0));\n\n        let (_cp2, i2, d2) = Closest::pointcloud_point(&pc, &Point::new(10.0, 10.0, 0.0));",
-    "checks": [
-      {
-        "line": 122,
-        "code_line": "TOLERANCE.is_close(cp1[0], 5.0)",
-        "passed": true
-      },
-      {
-        "line": 123,
-        "code_line": "i1 == 1",
-        "passed": true
-      },
-      {
-        "line": 124,
-        "code_line": "TOLERANCE.is_close(d1, 1.0)",
-        "passed": true
-      },
-      {
-        "line": 127,
-        "code_line": "TOLERANCE.is_close(d2, 0.0)",
-        "passed": true
-      },
-      {
-        "line": 128,
-        "code_line": "i2 == 3",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Polyline_point",
+    "test_name": "Polyline Point",
     "passed": true,
     "time_ms": 0.03,
     "line": 33,
@@ -175,25 +90,110 @@
     "failures": []
   },
   {
-    "test_name": "Surface_point",
+    "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 0.784,
-    "line": 73,
-    "code": "        use crate::Closest;\n        use crate::NurbsSurface;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0), Point::new(1.0, 1.0, 1.0), Point::new(2.0, 1.0, 1.0), Point::new(3.0, 1.0, 0.0),\n            Point::new(0.0, 2.0, 0.0), Point::new(1.0, 2.0, 1.0), Point::new(2.0, 2.0, 1.0), Point::new(3.0, 2.0, 0.0),\n            Point::new(0.0, 3.0, 0.0), Point::new(1.0, 3.0, 0.0), Point::new(2.0, 3.0, 0.0), Point::new(3.0, 3.0, 0.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n\n        let (u, v, dist) = Closest::surface_point(&srf, &Point::new(1.5, 1.5, 2.0), 0.0, 0.0, 0.0, 0.0);\n        let cp = srf.point_at(u, v).unwrap();\n\n        let (_u2, _v2, dist2) = Closest::surface_point(&srf, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0, 0.0, 0.0);",
+    "time_ms": 0.165,
+    "line": 51,
+    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 2.0, 0.0), Point::new(4.0, 0.0, 0.0),\n        ];\n        let crv = NurbsCurve::create(false, 3, &pts);\n\n        let (t, dist) = Closest::curve_point(&crv, &Point::new(2.0, 3.0, 0.0), 0.0, 0.0);\n        let cp = crv.point_at(t);\n\n        let (_t2, dist2) = Closest::curve_point(&crv, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0);",
     "checks": [
       {
-        "line": 87,
+        "line": 63,
+        "code_line": "dist < 1.6",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "TOLERANCE.is_close(cp.distance(&Point::new(2.0, 3.0, 0.0), None), dist)",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "dist2 < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Surface Point",
+    "passed": true,
+    "time_ms": 0.325,
+    "line": 73,
+    "code": "        use crate::Closest;\n        use crate::NurbsSurface;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 1.0),\n            Point::new(2.0, 1.0, 1.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(1.0, 2.0, 1.0),\n            Point::new(2.0, 2.0, 1.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n            Point::new(1.0, 3.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n\n        let (u, v, dist) = Closest::surface_point(&srf, &Point::new(1.5, 1.5, 2.0), 0.0, 0.0, 0.0, 0.0);\n        let cp = srf.point_at(u, v).unwrap();\n\n        let (_u2, _v2, dist2) = Closest::surface_point(&srf, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0, 0.0, 0.0);",
+    "checks": [
+      {
+        "line": 99,
         "code_line": "dist < 1.5",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 101,
         "code_line": "TOLERANCE.is_close(cp.distance(&Point::new(1.5, 1.5, 2.0), None), dist)",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 104,
         "code_line": "dist2 < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Mesh Point",
+    "passed": true,
+    "time_ms": 0.121,
+    "line": 109,
+    "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n\n        let (cp1, _fk1, d1) = Closest::mesh_point(&m, &Point::new(0.0, 0.0, 2.0));\n\n        let (_cp2, _fk2, d2) = Closest::mesh_point(&m, &Point::new(1.0, 1.0, 1.0));",
+    "checks": [
+      {
+        "line": 117,
+        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Pointcloud Point",
+    "passed": true,
+    "time_ms": 0.016,
+    "line": 126,
+    "code": "        use crate::Closest;\n        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 10.0, 0.0),\n        ], vec![], vec![]);\n\n        let (cp1, i1, d1) = Closest::pointcloud_point(&pc, &Point::new(4.0, 0.0, 0.0));\n\n        let (_cp2, i2, d2) = Closest::pointcloud_point(&pc, &Point::new(10.0, 10.0, 0.0));",
+    "checks": [
+      {
+        "line": 139,
+        "code_line": "TOLERANCE.is_close(cp1[0], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 140,
+        "code_line": "i1 == 1",
+        "passed": true
+      },
+      {
+        "line": 141,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "i2 == 3",
         "passed": true
       }
     ],

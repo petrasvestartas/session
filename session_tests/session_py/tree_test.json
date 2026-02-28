@@ -1,0 +1,24 @@
+[
+  {
+    "test_name": "Json Roundtrip",
+    "passed": false,
+    "time_ms": 7.876,
+    "line": 7,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Tree(\"./serialization/test_tree\")\n    point1 = Point(1.0, 2.0, 3.0)\n    node1 = TreeNode(point1.guid)\n    original.add(node1)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "checks": [
+      {
+        "line": 25,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\tree_test.py",
+        "line": 26,
+        "code_line": "MINI_CHECK(len(loaded.nodes()) == len(original.nodes()))",
+        "error": "TypeError: 'generator' object is not callable"
+      }
+    ]
+  }
+]

@@ -6,9 +6,9 @@
     "y": 0.0,
     "z": 0.0
   },
-  "edgedata": null,
+  "edgedata": {},
   "face": {
-    "0": [
+    "1": [
       0,
       1,
       2
@@ -20,19 +20,19 @@
     255,
     255
   ],
-  "facedata": null,
-  "guid": "04ea545e-efca-45eb-8dc1-e54bd5959b47",
+  "facedata": {},
+  "guid": "b6362e35-e882-4f2d-abf3-a82aa78fdf4f",
   "halfedge": {
     "0": {
-      "1": 0,
+      "1": 1,
       "2": null
     },
     "1": {
       "0": null,
-      "2": 0
+      "2": 1
     },
     "2": {
-      "0": 0,
+      "0": 1,
       "1": null
     }
   },

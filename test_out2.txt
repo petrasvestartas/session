@@ -1,0 +1,6 @@
+    Finished `release` profile [optimized] target(s) in 0.08s
+     Running `target\release\minitest.exe`
+[rust-minitest] Starting test collection...
+[rust-minitest] Inventory found 32 groups
+[rust-minitest] Total groups: 32
+Exit: 0

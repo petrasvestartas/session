@@ -1,0 +1,17 @@
+[
+  {
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 11.915,
+    "line": 7,
+    "code": "    from session_py import BoundingBox\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    original.name = \"test_bbox\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "checks": [
+      {
+        "line": 22,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

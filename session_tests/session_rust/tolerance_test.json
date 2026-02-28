@@ -1,81 +1,6 @@
 [
   {
-    "test_name": "Format_number",
-    "passed": true,
-    "time_ms": 0.004,
-    "line": 42,
-    "code": "        let result = TOLERANCE.format_number(3.14159, 2);",
-    "checks": [
-      {
-        "line": 44,
-        "code_line": "result == \"3.14\"",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Is_between",
-    "passed": true,
-    "time_ms": 0.001,
-    "line": 35,
-    "code": "        let result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
-    "checks": [
-      {
-        "line": 37,
-        "code_line": "result == true",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Is_close",
-    "passed": true,
-    "time_ms": 0.001,
-    "line": 14,
-    "code": "        let result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
-    "checks": [
-      {
-        "line": 16,
-        "code_line": "result == true",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Is_negative",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 28,
-    "code": "        let result = TOLERANCE.is_negative(-1.0);",
-    "checks": [
-      {
-        "line": 30,
-        "code_line": "result == true",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Is_positive",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 21,
-    "code": "        let result = TOLERANCE.is_positive(1.0);",
-    "checks": [
-      {
-        "line": 23,
-        "code_line": "result == true",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Is_zero",
+    "test_name": "Is Zero",
     "passed": true,
     "time_ms": 0.001,
     "line": 7,
@@ -90,9 +15,84 @@
     "failures": []
   },
   {
+    "test_name": "Is Close",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 14,
+    "code": "        let result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
+    "checks": [
+      {
+        "line": 16,
+        "code_line": "result == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is Positive",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 21,
+    "code": "        let result = TOLERANCE.is_positive(1.0);",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "result == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is Negative",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 28,
+    "code": "        let result = TOLERANCE.is_negative(-1.0);",
+    "checks": [
+      {
+        "line": 30,
+        "code_line": "result == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Is Between",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 35,
+    "code": "        let result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
+    "checks": [
+      {
+        "line": 37,
+        "code_line": "result == true",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Format Number",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 42,
+    "code": "        let result = TOLERANCE.format_number(3.14159, 2);",
+    "checks": [
+      {
+        "line": 44,
+        "code_line": "result == \"3.14\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 49,
     "code": "        let result = TOLERANCE.key([1.0, 2.0, 3.0], -999);",
     "checks": [
@@ -105,9 +105,9 @@
     "failures": []
   },
   {
-    "test_name": "Runtime_modification",
+    "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.0,
     "line": 56,
     "code": "        // Get current default values\n        let original_absolute = TOLERANCE.absolute();\n        let original_relative = TOLERANCE.relative();\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        let close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        let close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
