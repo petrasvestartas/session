@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.014,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 85,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Is Parallel To",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.002,
     "line": 224,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    Vector v1(2.0, 2.0, 2.0);\n    Vector v2(4.0, 4.0, 4.0);      // parallel (same direction)\n    Vector v3(-1.0, -1.0, -1.0);   // anti-parallel (opposite direction)\n    Vector v4(1.0, 0.0, 0.0);      // not parallel\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 238,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);\n",
     "checks": [
@@ -367,7 +367,7 @@
   {
     "test_name": "Get Leveled Vector",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 265,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Scale vector along its direction so its Z-component equals vertical_height.\n    Vector v(1.0, 1.0, 1.0);\n    double vertical_height = 1.0;\n    Vector v_leveled = v.get_leveled_vector(vertical_height);\n",
     "checks": [
@@ -382,7 +382,7 @@
   {
     "test_name": "Cos Sin Laws",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 276,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Given a 3-4-5 right triangle\n    double a = 3.0;  // side opposite to angle A\n    double b = 4.0;  // side opposite to angle B\n    double c = 5.0;  // hypotenuse, opposite to angle C (90 deg)\n\n    // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n    double angle_a = Vector::angle_from_cosine_law(b, c, a, true);\n    double angle_b = Vector::angle_from_cosine_law(a, c, b, true);\n    double angle_c = Vector::angle_from_cosine_law(a, b, c, true);\n\n    // given 2 angles + 1 side, find other side\n    double side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n    double side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n    double side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n    // given 2 sides + included angle, find 3rd side\n    double computed_c = Vector::cosine_law(a, b, angle_c, true);\n    double computed_a = Vector::cosine_law(b, c, angle_a, true);\n    double computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n    // given 2 sides + 1 angle, find other angle\n    double computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n    double computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n    // given 1 side + 2 angles, find other side\n    double computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n    double computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
     "checks": [
@@ -462,7 +462,7 @@
   {
     "test_name": "Sum Of Vectors",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 323,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);\n\n    // Empty list returns zero vector\n    std::vector<Vector> empty;\n    Vector zero = Vector::sum_of_vectors(empty);",
     "checks": [
@@ -502,7 +502,7 @@
   {
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 346,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
     "checks": [
@@ -527,7 +527,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 362,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12\n",
     "checks": [
@@ -552,7 +552,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.26,
+    "time_ms": 7.648,
     "line": 374,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
@@ -582,7 +582,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 4.621,
+    "time_ms": 0.678,
     "line": 398,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);\n",
     "checks": [
