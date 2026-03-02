@@ -2,7 +2,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 7,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.011,
     "line": 13,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 25,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 31,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [

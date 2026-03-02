@@ -257,7 +257,7 @@
   {
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 129,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc.xform = Xform::translation(10.0, 20.0, 30.0);\n    pc.transform();\n\n    // Transformed - returns new cloud\n    PointCloud pc2({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n    PointCloud pc3 = pc2.transformed();\n",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.702,
+    "time_ms": 4.912,
     "line": 155,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);\n",
     "checks": [
@@ -367,7 +367,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.903,
+    "time_ms": 4.299,
     "line": 190,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);\n",
     "checks": [

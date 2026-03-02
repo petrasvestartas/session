@@ -5,6 +5,15 @@ cd "${SCRIPT_DIR}/.."
 echo "=== Main repo ==="
 git pull
 
+echo -e "\n=== Clean stale submodule dirs ==="
+git submodule status | while read -r line; do
+  path=$(echo "$line" | awk '{print $2}')
+  if [ -d "$path" ] && [ ! -e "$path/.git" ]; then
+    echo "Cleaning stale dir: $path"
+    rm -rf "$path"
+  fi
+done
+
 echo -e "\n=== Init submodules ==="
 git submodule update --init --recursive
 
