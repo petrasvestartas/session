@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.775,
+    "time_ms": 10.206,
     "line": 5,
     "code": "        use crate::treenode::TreeNode;\n        use crate::encoders::{json_dump, json_load};\n        let original = TreeNode::new(\"test_node\");\n        let child = TreeNode::new(\"child_node\");\n        original.add(&child);\n        json_dump(&original, \"serialization/test_treenode.json\", false).unwrap();\n        let loaded = json_load::<TreeNode>(\"serialization/test_treenode.json\").unwrap();",
     "checks": [

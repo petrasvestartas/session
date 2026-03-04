@@ -1140,6 +1140,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
@@ -1204,6 +1205,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
@@ -1272,6 +1274,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
@@ -1340,6 +1343,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
@@ -1690,6 +1694,7 @@ window.API_INDEX = {
         "Color.b",
         "Color.black",
         "Color.blue",
+        "Color.brown",
         "Color.cyan",
         "Color.from_unified_array",
         "Color.g",
@@ -1699,12 +1704,19 @@ window.API_INDEX = {
         "Color.jsondump",
         "Color.lime",
         "Color.magenta",
+        "Color.maroon",
         "Color.mint",
+        "Color.navy",
         "Color.new",
+        "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
+        "Color.silver",
         "Color.str",
+        "Color.teal",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white",
@@ -1736,6 +1748,7 @@ window.API_INDEX = {
         "Color.b",
         "Color.black",
         "Color.blue",
+        "Color.brown",
         "Color.cyan",
         "Color.from_unified_array",
         "Color.g",
@@ -1745,11 +1758,17 @@ window.API_INDEX = {
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
+        "Color.navy",
         "Color.new",
+        "Color.olive",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
+        "Color.teal",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white",
@@ -1791,12 +1810,18 @@ window.API_INDEX = {
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
+        "Color.navy",
         "Color.new",
+        "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
+        "Color.teal",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white"
@@ -1836,13 +1861,18 @@ window.API_INDEX = {
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
+        "Color.navy",
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
+        "Color.teal",
         "Color.violet",
         "Color.white",
         "Color.yellow"
@@ -1882,12 +1912,16 @@ window.API_INDEX = {
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
+        "Color.navy",
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
         "Color.teal",
         "Color.violet",
@@ -1932,9 +1966,12 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
+        "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
         "Color.teal",
         "Color.violet",
@@ -1979,10 +2016,12 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
         "Color.red",
+        "Color.silver",
         "Color.str",
         "Color.teal",
         "Color.violet",
@@ -2027,6 +2066,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -2044,7 +2084,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "blue(cls) -> \"Color\"",
-          "code": "def blue(cls) -> \"Color\":\n\n        \"\"\"Create a blue color.\"\"\"\n        color = cls(0, 0, 255, 255)\n        color.name = \"blue\"\n        return color\n\n    @classmethod\n    def violet(cls) -> \"Color\":\n        \"\"\"Create a violet color.\"\"\"\n        color = cls(128, 0, 255, 255)\n        color.name = \"violet\"\n        return color\n\n    @classmethod\n    def magenta(cls) -> \"Color\":\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################",
+          "code": "def blue(cls) -> \"Color\":\n\n        \"\"\"Create a blue color.\"\"\"\n        color = cls(0, 0, 255, 255)\n        color.name = \"blue\"\n        return color\n\n    @classmethod\n    def violet(cls) -> \"Color\":\n        \"\"\"Create a violet color.\"\"\"\n        color = cls(128, 0, 255, 255)\n        color.name = \"violet\"\n        return color\n\n    @classmethod\n    def magenta(cls) -> \"Color\":\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]",
           "file": "color.py"
         },
         "cpp": {
@@ -2076,6 +2116,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -2093,7 +2134,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "violet(cls) -> \"Color\"",
-          "code": "def violet(cls) -> \"Color\":\n\n        \"\"\"Create a violet color.\"\"\"\n        color = cls(128, 0, 255, 255)\n        color.name = \"violet\"\n        return color\n\n    @classmethod\n    def magenta(cls) -> \"Color\":\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],",
+          "code": "def violet(cls) -> \"Color\":\n\n        \"\"\"Create a violet color.\"\"\"\n        color = cls(128, 0, 255, 255)\n        color.name = \"violet\"\n        return color\n\n    @classmethod\n    def magenta(cls) -> \"Color\":\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"",
           "file": "color.py"
         },
         "cpp": {
@@ -2129,6 +2170,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -2144,7 +2186,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "magenta(cls) -> \"Color\"",
-          "code": "def magenta(cls) -> \"Color\":\n\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod",
+          "code": "def magenta(cls) -> \"Color\":\n\n        \"\"\"Create a magenta color.\"\"\"\n        color = cls(255, 0, 255, 255)\n        color.name = \"magenta\"\n        return color\n\n    @classmethod\n    def pink(cls) -> \"Color\":\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,",
           "file": "color.py"
         },
         "cpp": {
@@ -2178,6 +2220,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -2194,7 +2237,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pink(cls) -> \"Color\"",
-          "code": "def pink(cls) -> \"Color\":\n\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color",
+          "code": "def pink(cls) -> \"Color\":\n\n        \"\"\"Create a pink color.\"\"\"\n        color = cls(255, 0, 128, 255)\n        color.name = \"pink\"\n        return color\n\n    @classmethod\n    def maroon(cls) -> \"Color\":\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"",
           "file": "color.py"
         },
         "cpp": {
@@ -2230,6 +2273,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.purple",
         "Color.r",
         "Color.red",
@@ -2245,7 +2289,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "maroon(cls) -> \"Color\"",
-          "code": "def maroon(cls) -> \"Color\":\n\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.",
+          "code": "def maroon(cls) -> \"Color\":\n\n        \"\"\"Create a maroon color.\"\"\"\n        color = cls(128, 0, 0, 255)\n        color.name = \"maroon\"\n        return color\n\n    @classmethod\n    def brown(cls) -> \"Color\":\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.",
           "file": "color.py"
         },
         "cpp": {
@@ -2281,9 +2325,11 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
         "Color.teal",
@@ -2296,7 +2342,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "brown(cls) -> \"Color\"",
-          "code": "def brown(cls) -> \"Color\":\n\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod",
+          "code": "def brown(cls) -> \"Color\":\n\n        \"\"\"Create a brown color.\"\"\"\n        color = cls(128, 64, 0, 255)\n        color.name = \"brown\"\n        return color\n\n    @classmethod\n    def olive(cls) -> \"Color\":\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"",
           "file": "color.py"
         },
         "cpp": {
@@ -2331,9 +2377,12 @@ window.API_INDEX = {
         "Color.navy",
         "Color.new",
         "Color.olive",
+        "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
         "Color.teal",
@@ -2346,7 +2395,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "olive(cls) -> \"Color\"",
-          "code": "def olive(cls) -> \"Color\":\n\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.",
+          "code": "def olive(cls) -> \"Color\":\n\n        \"\"\"Create an olive color.\"\"\"\n        color = cls(128, 128, 0, 255)\n        color.name = \"olive\"\n        return color\n\n    @classmethod\n    def teal(cls) -> \"Color\":\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.",
           "file": "color.py"
         },
         "cpp": {
@@ -2382,13 +2431,17 @@ window.API_INDEX = {
         "Color.mint",
         "Color.navy",
         "Color.new",
+        "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
         "Color.teal",
-        "Color.violet"
+        "Color.violet",
+        "Color.yellow"
       ]
     },
     {
@@ -2396,7 +2449,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "teal(cls) -> \"Color\"",
-          "code": "def teal(cls) -> \"Color\":\n\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"",
+          "code": "def teal(cls) -> \"Color\":\n\n        \"\"\"Create a teal color.\"\"\"\n        color = cls(0, 128, 128, 255)\n        color.name = \"teal\"\n        return color\n\n    @classmethod\n    def navy(cls) -> \"Color\":\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns",
           "file": "color.py"
         },
         "cpp": {
@@ -2426,18 +2479,23 @@ window.API_INDEX = {
         "Color.json_load",
         "Color.jsondump",
         "Color.jsonload",
+        "Color.lime",
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
         "Color.navy",
         "Color.new",
         "Color.olive",
+        "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
-        "Color.violet"
+        "Color.violet",
+        "Color.yellow"
       ]
     },
     {
@@ -2445,7 +2503,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "navy(cls) -> \"Color\"",
-          "code": "def navy(cls) -> \"Color\":\n\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"",
+          "code": "def navy(cls) -> \"Color\":\n\n        \"\"\"Create a navy color.\"\"\"\n        color = cls(0, 0, 128, 255)\n        color.name = \"navy\"\n        return color\n\n    @classmethod\n    def purple(cls) -> \"Color\":\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:",
           "file": "color.py"
         },
         "cpp": {
@@ -2470,23 +2528,28 @@ window.API_INDEX = {
         "Color.cyan",
         "Color.format",
         "Color.g",
+        "Color.green",
         "Color.json_dump",
-        "Color.json_dumps",
         "Color.json_load",
         "Color.jsondump",
         "Color.jsonload",
+        "Color.lime",
         "Color.magenta",
         "Color.maroon",
         "Color.mint",
         "Color.new",
         "Color.olive",
+        "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
         "Color.teal",
-        "Color.violet"
+        "Color.violet",
+        "Color.yellow"
       ]
     },
     {
@@ -2494,7 +2557,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "purple(cls) -> \"Color\"",
-          "code": "def purple(cls) -> \"Color\":\n\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json",
+          "code": "def purple(cls) -> \"Color\":\n\n        \"\"\"Create a purple color.\"\"\"\n        color = cls(128, 0, 128, 255)\n        color.name = \"purple\"\n        return color\n\n    @classmethod\n    def silver(cls) -> \"Color\":\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())",
           "file": "color.py"
         },
         "cpp": {
@@ -2519,23 +2582,29 @@ window.API_INDEX = {
         "Color.cyan",
         "Color.format",
         "Color.g",
+        "Color.green",
         "Color.json_dump",
         "Color.json_dumps",
         "Color.json_load",
-        "Color.json_loads",
         "Color.jsondump",
         "Color.jsonload",
+        "Color.lime",
         "Color.magenta",
         "Color.maroon",
+        "Color.mint",
         "Color.navy",
         "Color.new",
         "Color.olive",
+        "Color.orange",
+        "Color.palette",
         "Color.pink",
         "Color.r",
+        "Color.red",
         "Color.silver",
         "Color.str",
         "Color.teal",
-        "Color.violet"
+        "Color.violet",
+        "Color.yellow"
       ]
     },
     {
@@ -2543,7 +2612,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "silver(cls) -> \"Color\"",
-          "code": "def silver(cls) -> \"Color\":\n\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):",
+          "code": "def silver(cls) -> \"Color\":\n\n        \"\"\"Create a silver color.\"\"\"\n        color = cls(192, 192, 192, 255)\n        color.name = \"silver\"\n        return color\n\n    @classmethod\n    def palette(cls):\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))",
           "file": "color.py"
         },
         "cpp": {
@@ -2565,27 +2634,90 @@ window.API_INDEX = {
         "Color.b",
         "Color.blue",
         "Color.brown",
+        "Color.cyan",
         "Color.format",
         "Color.g",
+        "Color.green",
         "Color.json_dump",
         "Color.json_dumps",
         "Color.json_load",
         "Color.json_loads",
         "Color.jsondump",
         "Color.jsonload",
+        "Color.lime",
         "Color.magenta",
         "Color.maroon",
+        "Color.mint",
         "Color.navy",
         "Color.new",
         "Color.olive",
+        "Color.orange",
+        "Color.palette",
+        "Color.pink",
+        "Color.purple",
+        "Color.r",
+        "Color.red",
+        "Color.str",
+        "Color.teal",
+        "Color.violet",
+        "Color.yellow"
+      ]
+    },
+    {
+      "name": "Color.palette",
+      "implementations": {
+        "python": {
+          "sig": "palette(cls)",
+          "code": "def palette(cls):\n\n        \"\"\"Return a palette of 12 spectral colors in order.\"\"\"\n        return [cls.red(), cls.orange(), cls.yellow(), cls.lime(), cls.green(), cls.mint(), cls.cyan(), cls.azure(), cls.blue(), cls.violet(), cls.magenta(), cls.pink()]\n\n    ###########################################################################################\n    # JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"a\": self[3],\n            \"b\": self[2],\n            \"g\": self[1],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"r\": self[0],\n            \"type\": f\"{self.__class__.__name__}\",\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        color = cls(data[\"r\"], data[\"g\"], data[\"b\"], data.get(\"a\", 255))\n        color.guid = guid if guid is not None else data.get(\"guid\", color.guid)\n        color.name = name if name is not None else data.get(\"name\", color.name)\n        return color\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Color`\n            The deserialized Color.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.",
+          "file": "color.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Color> palette()",
+          "code": "std::vector<Color> Color::palette() {\n    return { red(), orange(), yellow(), lime(), green(), mint(), cyan(), azure(), blue(), violet(), magenta(), pink() }",
+          "file": "color.cpp"
+        },
+        "rust": {
+          "sig": "palette() -> Vec<Color>",
+          "code": "pub fn palette() -> Vec<Color> {\n        vec![Self::red(), Self::orange(), Self::yellow(), Self::lime(), Self::green(), Self::mint(), Self::cyan(), Self::azure(), Self::blue(), Self::violet(), Self::magenta(), Self::pink()]\n    }",
+          "file": "color.rs"
+        }
+      },
+      "related": [
+        "Color.__jsondump__",
+        "Color.__jsonload__",
+        "Color.a",
+        "Color.azure",
+        "Color.b",
+        "Color.blue",
+        "Color.brown",
+        "Color.cyan",
+        "Color.format",
+        "Color.g",
+        "Color.green",
+        "Color.json_dump",
+        "Color.json_dumps",
+        "Color.json_load",
+        "Color.json_loads",
+        "Color.jsondump",
+        "Color.jsonload",
+        "Color.lime",
+        "Color.magenta",
+        "Color.maroon",
+        "Color.mint",
+        "Color.navy",
+        "Color.olive",
+        "Color.orange",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pink",
         "Color.purple",
         "Color.r",
+        "Color.red",
+        "Color.silver",
         "Color.str",
         "Color.teal",
-        "Color.violet"
+        "Color.violet",
+        "Color.yellow"
       ]
     },
     {
@@ -2614,6 +2746,7 @@ window.API_INDEX = {
         "Color.maroon",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pink",
@@ -2650,6 +2783,7 @@ window.API_INDEX = {
         "Color.maroon",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pink",
@@ -2695,6 +2829,7 @@ window.API_INDEX = {
         "Color.maroon",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pb_load",
@@ -2739,6 +2874,7 @@ window.API_INDEX = {
         "Color.jsonload",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
@@ -2782,7 +2918,7 @@ window.API_INDEX = {
         "Color.json_loads",
         "Color.jsondump",
         "Color.jsonload",
-        "Color.navy",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pb_load",
@@ -2823,12 +2959,12 @@ window.API_INDEX = {
         "Color.json_dumps",
         "Color.json_load",
         "Color.jsonload",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pb_load",
         "Color.pb_loads",
-        "Color.purple",
         "Color.r",
         "Color.red",
         "Color.silver",
@@ -2865,11 +3001,11 @@ window.API_INDEX = {
         "Color.json_dumps",
         "Color.json_load",
         "Color.json_loads",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_load",
         "Color.pb_loads",
         "Color.r",
-        "Color.silver",
         "Color.str"
       ]
     },
@@ -2946,12 +3082,12 @@ window.API_INDEX = {
         "Color.json_dumps",
         "Color.json_load",
         "Color.json_loads",
+        "Color.palette",
         "Color.pb_dumps",
         "Color.pb_load",
         "Color.pb_loads",
         "Color.r",
         "Color.repr",
-        "Color.silver",
         "Color.str"
       ]
     },
@@ -6333,7 +6469,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "normal() -> Optional[List[float]]",
-          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()",
+          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR",
           "file": "mesh.py"
         },
         "rust": {
@@ -6361,7 +6497,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_normal(nx: float, ny: float, nz: float)",
-          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}",
+          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()",
           "file": "mesh.py"
         },
         "rust": {
@@ -6389,7 +6525,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__eq__(other)",
-          "code": "def __eq__(self, other):\n\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}",
           "file": "mesh.py"
         }
       },
@@ -6412,7 +6548,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)",
           "file": "mesh.py"
         }
       },
@@ -6435,7 +6571,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self.widths = []\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.",
+          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod",
           "file": "mesh.py"
         }
       },
@@ -6447,12 +6583,16 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.duplicate",
         "Mesh.edges",
-        "Mesh.from_polylines",
+        "Mesh.facecolors",
+        "Mesh.linecolors",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -6460,7 +6600,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "duplicate() -> \"Mesh\"",
-          "code": "def duplicate(self) -> \"Mesh\":\n\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)",
+          "code": "def duplicate(self) -> \"Mesh\":\n\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:",
           "file": "mesh.py"
         },
         "rust": {
@@ -6478,14 +6618,19 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.clone_with_new_guid",
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
+        "Mesh.linecolors",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -6493,7 +6638,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__copy__()",
-          "code": "def __copy__(self):\n\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m.pointcolors = list(self.pointcolors)\n        m.facecolors = list(self.facecolors)\n        m.linecolors = list(self.linecolors)\n        m.widths = list(self.widths)\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:\n                    return map_eps[key]\n                vk = mesh.add_vertex(p)",
+          "code": "def __copy__(self):\n\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point\n            List of polygons, each polygon is a list of points.\n        precision : float, optional\n            Precision for vertex merging. If None, exact matching is used.\n\n        Returns\n        -------\n        Mesh\n            The constructed mesh with merged vertices.\n        \"\"\"\n        mesh = Mesh()\n        map_eps = {}\n        map_exact = {}\n\n        def get_vkey(p: Point) -> int:\n            if precision is not None:\n                kx = round(p.x / precision)\n                ky = round(p.y / precision)\n                kz = round(p.z / precision)\n                key = (kx, ky, kz)\n                if key in map_eps:",
           "file": "mesh.py"
         }
       },
@@ -6503,16 +6648,20 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
-        "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
+        "Mesh.linecolors",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -6656,7 +6805,6 @@ window.API_INDEX = {
       "related": [
         "Mesh.__copy__",
         "Mesh.__eq__",
-        "Mesh.__init__",
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
@@ -7173,6 +7321,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.pb_loads",
         "Mesh.ray_cast_bvh",
+        "Mesh.set_linecolors",
         "Mesh.side_faces",
         "Mesh.unify_winding",
         "Mesh.vertex_normal_weighted"
@@ -7221,7 +7370,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_closed() -> bool",
-          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()",
+          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7241,6 +7390,7 @@ window.API_INDEX = {
         "Mesh.edsq",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
@@ -7250,7 +7400,8 @@ window.API_INDEX = {
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.pointcolors"
       ]
     },
     {
@@ -7258,7 +7409,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_vertex_on_boundary(vertex_key: int) -> bool",
-          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
+          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7277,17 +7428,22 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
-        "Mesh.unify_winding"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
       ]
     },
     {
@@ -7295,7 +7451,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_edge_on_boundary(u: int, v: int) -> bool",
-          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:",
+          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7311,21 +7467,28 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
-        "Mesh.unify_winding"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
       ]
     },
     {
@@ -7333,7 +7496,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_face_on_boundary(face_key: int) -> bool",
-          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]",
+          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7349,21 +7512,28 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
-        "Mesh.unify_winding"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
       ]
     },
     {
@@ -7371,7 +7541,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_vertices() -> int",
-          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]",
+          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor",
           "file": "mesh.py"
         },
         "rust": {
@@ -7389,22 +7559,32 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.clear",
         "Mesh.duplicate",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
         "Mesh.str",
-        "Mesh.unify_winding"
+        "Mesh.widths"
       ]
     },
     {
@@ -7412,7 +7592,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_faces() -> int",
-          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):",
+          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:",
           "file": "mesh.py"
         },
         "rust": {
@@ -7429,23 +7609,34 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.clear",
+        "Mesh.clear_pointcolors",
         "Mesh.duplicate",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
         "Mesh.str",
-        "Mesh.unify_winding"
+        "Mesh.widths"
       ]
     },
     {
@@ -7453,7 +7644,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_edges() -> int",
-          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)",
+          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7475,23 +7666,35 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.duplicate",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.new",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.unify_winding"
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
       ]
     },
     {
@@ -7499,7 +7702,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edges()",
-          "code": "def edges(self):\n\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():",
+          "code": "def edges(self):\n\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7521,6 +7724,9 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -7529,7 +7735,11 @@ window.API_INDEX = {
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_vertices",
+        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
@@ -7540,19 +7750,27 @@ window.API_INDEX = {
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
         "Mesh.pb_dumps",
         "Mesh.pb_loads",
+        "Mesh.pointcolors",
         "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
         "Mesh.unify_winding",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.widths"
       ]
     },
     {
@@ -7560,7 +7778,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "euler() -> int",
-          "code": "def euler(self) -> int:\n\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None",
+          "code": "def euler(self) -> int:\n\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7576,18 +7794,33 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
         "Mesh.edges",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
-        "Mesh.unify_winding"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
       ]
     },
     {
@@ -7595,37 +7828,741 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clear()",
-          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self.pointcolors.clear()\n        self.facecolors.clear()\n        self.linecolors.clear()\n        self.widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []",
+          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:",
           "file": "mesh.py"
         },
         "cpp": {
           "sig": "void clear()",
-          "code": "void Mesh::clear() {\n    halfedge.clear();\n    vertex.clear();\n    face.clear();\n    facedata.clear();\n    edgedata.clear();\n    triangulation.clear();\n    max_vertex = 0;\n    max_face = 0;\n    pointcolors.clear();\n    facecolors.clear();\n    linecolors.clear();\n    widths.clear();\n    triangle_bvh_built = false;\n    triangle_bvh.reset();\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n}",
+          "code": "void Mesh::clear() {\n    halfedge.clear();\n    vertex.clear();\n    face.clear();\n    facedata.clear();\n    edgedata.clear();\n    triangulation.clear();\n    max_vertex = 0;\n    max_face = 0;\n    pointcolors.clear();\n    facecolors.clear();\n    linecolors.clear();\n    widths.clear();\n    objectcolor = Color::white();\n    color_mode = ColorMode::OBJECTCOLOR;\n    triangle_bvh_built = false;\n    triangle_bvh.reset();\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n}",
           "file": "mesh.cpp"
         },
         "rust": {
           "sig": "clear()",
-          "code": "pub fn clear(&mut self) {\n        self.halfedge.clear();\n        self.vertex.clear();\n        self.face.clear();\n        self.facedata.clear();\n        self.edgedata.clear();\n        self.triangulation.clear();\n        self.max_vertex = 0;\n        self.max_face = 0;\n        self.pointcolors.clear();\n        self.facecolors.clear();\n        self.linecolors.clear();\n        self.widths.clear();\n        self.invalidate_triangle_bvh();\n    }",
+          "code": "pub fn clear(&mut self) {\n        self.halfedge.clear();\n        self.vertex.clear();\n        self.face.clear();\n        self.facedata.clear();\n        self.edgedata.clear();\n        self.triangulation.clear();\n        self.max_vertex = 0;\n        self.max_face = 0;\n        self.pointcolors.clear();\n        self.facecolors.clear();\n        self.linecolors.clear();\n        self.widths.clear();\n        self.objectcolor = Color::white();\n        self.color_mode = ColorMode::OBJECTCOLOR;\n        self.invalidate_triangle_bvh();\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.build_triangle_bvh",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.clear_triangle_bvh",
         "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.set_pointcolors",
+      "implementations": {
+        "python": {
+          "sig": "set_pointcolors(colors)",
+          "code": "def set_pointcolors(self, colors):\n\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "set_pointcolors(v: Vec<Color>)",
+          "code": "pub fn set_pointcolors(&mut self, v: Vec<Color>) { self.pointcolors = v; self.color_mode = ColorMode::POINTCOLORS; }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.set_facecolors",
+      "implementations": {
+        "python": {
+          "sig": "set_facecolors(colors)",
+          "code": "def set_facecolors(self, colors):\n\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "set_facecolors(v: Vec<Color>)",
+          "code": "pub fn set_facecolors(&mut self, v: Vec<Color>) { self.facecolors = v; self.color_mode = ColorMode::FACECOLORS; }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.set_linecolors",
+      "implementations": {
+        "python": {
+          "sig": "set_linecolors(colors, widths=None)",
+          "code": "def set_linecolors(self, colors, widths=None):\n\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "set_linecolors(v: Vec<Color>, w: Vec<f64>)",
+          "code": "pub fn set_linecolors(&mut self, v: Vec<Color>, w: Vec<f64>) { self.linecolors = v; if !w.is_empty() { self.widths = w; } }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_empty",
+        "Mesh.is_face_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.set_objectcolor",
+      "implementations": {
+        "python": {
+          "sig": "set_objectcolor(color)",
+          "code": "def set_objectcolor(self, color):\n\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "set_objectcolor(c: Color)",
+          "code": "pub fn set_objectcolor(&mut self, c: Color) { self.objectcolor = c; }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.pointcolors",
+      "implementations": {
+        "python": {
+          "sig": "pointcolors()",
+          "code": "def pointcolors(self):\n return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.duplicate",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_dump",
+        "Mesh.json_dumps",
+        "Mesh.json_load",
+        "Mesh.json_loads",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.linecolors",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dump",
+        "Mesh.pb_dumps",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors_mut",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.set_vertex_color",
+        "Mesh.transform",
+        "Mesh.transformed",
         "Mesh.unify_winding",
-        "Mesh.unweld"
+        "Mesh.unweld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.facecolors",
+      "implementations": {
+        "python": {
+          "sig": "facecolors()",
+          "code": "def facecolors(self):\n return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.duplicate",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors_mut",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_dumps",
+        "Mesh.json_loads",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dump",
+        "Mesh.pb_dumps",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.set_face_color",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.set_vertex_color",
+        "Mesh.transform",
+        "Mesh.transformed",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.linecolors",
+      "implementations": {
+        "python": {
+          "sig": "linecolors()",
+          "code": "def linecolors(self):\n return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.add_face",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.duplicate",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_loads",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.linecolors_mut",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dump",
+        "Mesh.pb_dumps",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.set_edge_color",
+        "Mesh.set_face_color",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.set_vertex_color",
+        "Mesh.transform",
+        "Mesh.transformed",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.get_pointcolors",
+      "implementations": {
+        "python": {
+          "sig": "get_pointcolors()",
+          "code": "def get_pointcolors(self):\n return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "get_pointcolors() -> &[Color]",
+          "code": "pub fn get_pointcolors(&self) -> &[Color]      { &self.pointcolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.get_facecolors",
+      "implementations": {
+        "python": {
+          "sig": "get_facecolors()",
+          "code": "def get_facecolors(self):\n return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "get_facecolors() -> &[Color]",
+          "code": "pub fn get_facecolors(&self) -> &[Color]       { &self.facecolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.get_linecolors",
+      "implementations": {
+        "python": {
+          "sig": "get_linecolors()",
+          "code": "def get_linecolors(self):\n return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "get_linecolors() -> &[Color]",
+          "code": "pub fn get_linecolors(&self) -> &[Color]       { &self.linecolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.widths",
+      "implementations": {
+        "python": {
+          "sig": "widths()",
+          "code": "def widths(self):\n return self._widths\n    @property\n    def objectcolor(self): return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "widths() -> &[f64]",
+          "code": "pub fn widths(&self) -> &[f64]                 { &self.widths }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.add_face",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.duplicate",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dump",
+        "Mesh.pb_dumps",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.set_edge_color",
+        "Mesh.set_edge_width",
+        "Mesh.set_face_color",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.set_vertex_color",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths_mut"
+      ]
+    },
+    {
+      "name": "Mesh.objectcolor",
+      "implementations": {
+        "python": {
+          "sig": "objectcolor()",
+          "code": "def objectcolor(self):\n return self._objectcolor\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "objectcolor() -> &Color",
+          "code": "pub fn objectcolor(&self) -> &Color            { &self.objectcolor }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__init__",
+        "Mesh.__jsondump__",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.duplicate",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.jsondump",
+        "Mesh.jsonload",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.pb_dumps",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.transformed",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.clear_pointcolors",
+      "implementations": {
+        "python": {
+          "sig": "clear_pointcolors()",
+          "code": "def clear_pointcolors(self):\n\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "clear_pointcolors()",
+          "code": "pub fn clear_pointcolors(&mut self) { self.pointcolors.clear(); if self.color_mode == ColorMode::POINTCOLORS { self.color_mode = ColorMode::OBJECTCOLOR; } }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.clear_facecolors",
+      "implementations": {
+        "python": {
+          "sig": "clear_facecolors()",
+          "code": "def clear_facecolors(self):\n\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "clear_facecolors()",
+          "code": "pub fn clear_facecolors(&mut self) { self.facecolors.clear(); if self.color_mode == ColorMode::FACECOLORS { self.color_mode = ColorMode::OBJECTCOLOR; } }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.clear_linecolors",
+      "implementations": {
+        "python": {
+          "sig": "clear_linecolors()",
+          "code": "def clear_linecolors(self):\n\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                edge = (min(u, v), max(u, v))\n                if edge not in edge_faces:\n                    edge_faces[edge] = []\n                edge_faces[edge].append((fkey, u, v))\n\n        visited = set()\n        flipped = set()\n        for seed in self.face:\n            if seed in visited:\n                continue\n            visited.add(seed)\n            queue = [seed]\n            while queue:\n                f = queue.pop()\n                is_flipped = f in flipped\n                verts = self.face[f]\n                n = len(verts)\n                for i in range(n):\n                    u_orig = verts[i]\n                    v_orig = verts[(i + 1) % n]\n                    eff_u = v_orig if is_flipped else u_orig\n                    eff_v = u_orig if is_flipped else v_orig\n                    edge = (min(u_orig, v_orig), max(u_orig, v_orig))\n                    for adj_key, adj_u, adj_v in edge_faces.get(edge, []):\n                        if adj_key == f or adj_key in visited:\n                            continue\n                        if not (adj_u == eff_v and adj_v == eff_u):\n                            flipped.add(adj_key)\n                        visited.add(adj_key)\n                        queue.append(adj_key)\n\n        if not flipped:\n            return False\n\n        for fkey in flipped:\n            self.face[fkey].reverse()\n\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "clear_linecolors()",
+          "code": "pub fn clear_linecolors(&mut self) { self.linecolors.clear(); self.widths.clear(); }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.unweld",
+        "Mesh.widths"
       ]
     },
     {
@@ -7651,18 +8588,27 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.euler",
-        "Mesh.is_edge_on_boundary",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.is_empty",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.new",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.unweld"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.unweld",
+        "Mesh.widths"
       ]
     },
     {
@@ -7670,7 +8616,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "unweld() -> \"Mesh\"",
-          "code": "def unweld(self) -> \"Mesh\":\n\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self.pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self.facecolors.append(Color.white())",
+          "code": "def unweld(self) -> \"Mesh\":\n\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7687,9 +8633,15 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
-        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.facecolors",
         "Mesh.new",
-        "Mesh.unify_winding"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.unify_winding",
+        "Mesh.widths"
       ]
     },
     {
@@ -7697,7 +8649,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_vertex(position: Point, vkey: Optional[int] = None) -> int",
-          "code": "def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self.pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self.facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key",
+          "code": "def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7712,12 +8664,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__copy__",
         "Mesh.__eq__",
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.add_face",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.facecolors",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polylines",
@@ -7727,6 +8681,7 @@ window.API_INDEX = {
         "Mesh.get_vkey",
         "Mesh.loft",
         "Mesh.new",
+        "Mesh.pointcolors",
         "Mesh.proj",
         "Mesh.project_2d",
         "Mesh.sarea",
@@ -7741,7 +8696,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_face(\n        vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]",
-          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self.facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self.linecolors.append(Color.white())\n                self.widths.append(1.0)\n\n        return face_key\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_neighbors(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return list(self.halfedge[vertex_key].keys())\n\n    def vertex_faces(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []",
+          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            self._max_face += 1\n            face_key = self._max_face\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_neighbors(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return list(self.halfedge[vertex_key].keys())\n\n    def vertex_faces(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7761,8 +8716,11 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.add_vertex",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
         "Mesh.edsq",
         "Mesh.face_vertices",
+        "Mesh.facecolors",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polylines",
@@ -7770,6 +8728,7 @@ window.API_INDEX = {
         "Mesh.get_open",
         "Mesh.get_vid",
         "Mesh.get_vkey",
+        "Mesh.linecolors",
         "Mesh.loft",
         "Mesh.new",
         "Mesh.proj",
@@ -7782,7 +8741,8 @@ window.API_INDEX = {
         "Mesh.unweld",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.widths"
       ]
     },
     {
@@ -8109,6 +9069,9 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.dihedral_angle",
         "Mesh.edge_edges",
         "Mesh.edge_vertices",
@@ -8119,11 +9082,17 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
         "Mesh.unify_winding",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
@@ -8131,7 +9100,8 @@ window.API_INDEX = {
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.widths"
       ]
     },
     {
@@ -8588,7 +9558,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transform(xf=None)",
-          "code": "def transform(self, xf=None):\n\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            xform.transform_point(pos)\n            vdata[0] = pos.x\n            vdata[1] = pos.y\n            vdata[2] = pos.z\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self.pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self.facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self.linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,",
+          "code": "def transform(self, xf=None):\n\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            xform.transform_point(pos)\n            vdata[0] = pos.x\n            vdata[1] = pos.y\n            vdata[2] = pos.z\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8605,8 +9575,11 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.face_normals",
+        "Mesh.facecolors",
         "Mesh.jsondump",
+        "Mesh.linecolors",
         "Mesh.new",
+        "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transformed",
@@ -8620,7 +9593,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transformed(xf=None)",
-          "code": "def transformed(self, xf=None):\n\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self.pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self.facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self.linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,\n            \"linecolors\": linecolors_flat,\n            \"max_face\": self._max_face,\n            \"max_vertex\": self._max_vertex,\n            \"name\": self.name,\n            \"pointcolors\": pointcolors_flat,",
+          "code": "def transformed(self, xf=None):\n\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,\n            \"linecolors\": linecolors_flat,\n            \"max_face\": self._max_face,\n            \"max_vertex\": self._max_vertex,\n            \"name\": self.name,\n            \"objectcolor\": self._objectcolor.__jsondump__(),",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8637,7 +9610,11 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.face_normals",
+        "Mesh.facecolors",
         "Mesh.jsondump",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
@@ -8651,24 +9628,29 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsondump__()",
-          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self.pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self.facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self.linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,\n            \"linecolors\": linecolors_flat,\n            \"max_face\": self._max_face,\n            \"max_vertex\": self._max_vertex,\n            \"name\": self.name,\n            \"pointcolors\": pointcolors_flat,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"vertex\": vertex_data,\n            \"widths\": self.widths,\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters",
+          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,\n            \"linecolors\": linecolors_flat,\n            \"max_face\": self._max_face,\n            \"max_vertex\": self._max_vertex,\n            \"name\": self.name,\n            \"objectcolor\": self._objectcolor.__jsondump__(),\n            \"color_mode\": self.color_mode.value,\n            \"pointcolors\": pointcolors_flat,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"vertex\": vertex_data,\n            \"widths\": self._widths,\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.",
           "file": "mesh.py"
         }
       },
       "related": [
         "Mesh.__jsonload__",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.jsondump",
         "Mesh.jsonload",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.vertex_normals_weighted",
+        "Mesh.widths"
       ]
     },
     {
@@ -8695,7 +9677,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self.pointcolors:",
+          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self._pointcolors:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8720,6 +9702,7 @@ window.API_INDEX = {
         "Mesh.jsonload",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pointcolors",
         "Mesh.str"
       ]
     },
@@ -8728,7 +9711,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]",
+          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self._pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8754,6 +9737,7 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pointcolors",
         "Mesh.str"
       ]
     },
@@ -8762,7 +9746,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self.facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]",
+          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self._pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self._facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8780,6 +9764,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_load",
         "Mesh.json_loads",
@@ -8787,6 +9772,7 @@ window.API_INDEX = {
         "Mesh.jsonload",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pointcolors",
         "Mesh.str"
       ]
     },
@@ -8795,7 +9781,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, json_string)",
-          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self.facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.facecolors.append(color_proto)\n\n        for c in self.linecolors:",
+          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self._pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self._facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.facecolors.append(color_proto)\n\n        for c in self._linecolors:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8812,13 +9798,16 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.jsonload",
+        "Mesh.linecolors",
         "Mesh.new",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pointcolors",
         "Mesh.str"
       ]
     },
@@ -8827,7 +9816,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self.facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.facecolors.append(color_proto)\n\n        for c in self.linecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.linecolors.append(color_proto)",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import mesh_pb2\n\n        proto = mesh_pb2.Mesh()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Vertices\n        for vkey, vdata in self.vertex.items():\n            vertex_proto = proto.vertices[vkey]\n            vertex_proto.x = vdata.x\n            vertex_proto.y = vdata.y\n            vertex_proto.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vertex_proto.attributes[k] = v\n\n        # Faces\n        for fkey, fverts in self.face.items():\n            face_proto = proto.faces[fkey]\n            face_proto.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    face_proto.attributes[k] = v\n\n        # Halfedges\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n\n        # Edge data\n        for (v1, v2), attrs in self.edgedata.items():\n            edge_proto = mesh_pb2.EdgeData()\n            edge_proto.vertex1 = v1\n            edge_proto.vertex2 = v2\n            for k, v in attrs.items():\n                edge_proto.attributes[k] = v\n            proto.edge_data.append(edge_proto)\n\n        # Default attributes\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n\n        # Colors\n        from .proto import color_pb2\n        for c in self._pointcolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.pointcolors.append(color_proto)\n\n        for c in self._facecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.facecolors.append(color_proto)\n\n        for c in self._linecolors:\n            color_proto = color_pb2.Color()\n            color_proto.guid = c.guid\n            color_proto.name = c.name\n            color_proto.r = c[0]\n            color_proto.g = c[1]\n            color_proto.b = c[2]\n            color_proto.a = c[3]\n            proto.linecolors.append(color_proto)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8837,19 +9826,24 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_dumps() -> Vec<u8>",
-          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        use std::collections::HashMap;\n\n        let mut vertices: HashMap<u64, crate::proto::VertexData> = HashMap::new();\n        for (&vkey, vdata) in &self.vertex {\n            let mut attrs: HashMap<String, f64> = HashMap::new();\n            for (k, v) in &vdata.attributes {\n                attrs.insert(k.clone(), *v);\n            }\n            vertices.insert(vkey as u64, crate::proto::VertexData {\n                x: vdata.x,\n                y: vdata.y,\n                z: vdata.z,\n                attributes: attrs,\n            });\n        }\n\n        let mut faces: HashMap<u64, crate::proto::FaceData> = HashMap::new();\n        for (&fkey, fverts) in &self.face {\n            let mut attrs: HashMap<String, f64> = HashMap::new();\n            if let Some(fdata) = self.facedata.get(&fkey) {\n                for (k, v) in fdata {\n                    attrs.insert(k.clone(), *v);\n                }\n            }\n            faces.insert(fkey as u64, crate::proto::FaceData {\n                vertices: fverts.iter().map(|&v| v as u64).collect(),\n                attributes: attrs,\n            });\n        }\n\n        let mut halfedges: HashMap<u64, crate::proto::HalfedgeMap> = HashMap::new();\n        for (&u, neighbors) in &self.halfedge {\n            let mut neighbor_map: HashMap<u64, u64> = HashMap::new();\n            for (&v, &fkey_opt) in neighbors {\n                neighbor_map.insert(v as u64, fkey_opt.unwrap_or(usize::MAX) as u64);\n            }\n            halfedges.insert(u as u64, crate::proto::HalfedgeMap {\n                neighbors: neighbor_map,\n            });\n        }\n\n        let mut edge_data_vec: Vec<crate::proto::EdgeData> = Vec::new();\n        for ((v1, v2), attrs) in &self.edgedata {\n            let mut attr_map: HashMap<String, f64> = HashMap::new();\n            for (k, v) in attrs {\n                attr_map.insert(k.clone(), *v);\n            }\n            edge_data_vec.push(crate::proto::EdgeData {\n                vertex1: *v1 as u64,\n                vertex2: *v2 as u64,\n                attributes: attr_map,\n            });\n        }\n\n        let pointcolors: Vec<crate::proto::Color> = self.pointcolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let facecolors: Vec<crate::proto::Color> = self.facecolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let linecolors: Vec<crate::proto::Color> = self.linecolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let proto = crate::proto::Mesh {\n            guid: self.guid.clone(),\n            name: self.name.clone(),\n            vertices,\n            faces,\n            halfedges,\n            edge_data: edge_data_vec,\n            default_vertex_attributes: self.default_vertex_attributes.clone(),\n            default_face_attributes: self.default_face_attributes.clone(),\n            default_edge_attributes: self.default_edge_attributes.clone(),\n            pointcolors,\n            facecolors,\n            linecolors,\n            widths: self.widths.clone(),\n            xform: Some(crate::proto::Xform {\n                guid: self.xform.guid.clone(),\n                name: self.xform.name.clone(),\n                matrix: self.xform.m.to_vec(),\n            }),\n        };\n        proto.encode_to_vec()\n    }",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        use std::collections::HashMap;\n\n        let mut vertices: HashMap<u64, crate::proto::VertexData> = HashMap::new();\n        for (&vkey, vdata) in &self.vertex {\n            let mut attrs: HashMap<String, f64> = HashMap::new();\n            for (k, v) in &vdata.attributes {\n                attrs.insert(k.clone(), *v);\n            }\n            vertices.insert(vkey as u64, crate::proto::VertexData {\n                x: vdata.x,\n                y: vdata.y,\n                z: vdata.z,\n                attributes: attrs,\n            });\n        }\n\n        let mut faces: HashMap<u64, crate::proto::FaceData> = HashMap::new();\n        for (&fkey, fverts) in &self.face {\n            let mut attrs: HashMap<String, f64> = HashMap::new();\n            if let Some(fdata) = self.facedata.get(&fkey) {\n                for (k, v) in fdata {\n                    attrs.insert(k.clone(), *v);\n                }\n            }\n            faces.insert(fkey as u64, crate::proto::FaceData {\n                vertices: fverts.iter().map(|&v| v as u64).collect(),\n                attributes: attrs,\n            });\n        }\n\n        let mut halfedges: HashMap<u64, crate::proto::HalfedgeMap> = HashMap::new();\n        for (&u, neighbors) in &self.halfedge {\n            let mut neighbor_map: HashMap<u64, u64> = HashMap::new();\n            for (&v, &fkey_opt) in neighbors {\n                neighbor_map.insert(v as u64, fkey_opt.unwrap_or(usize::MAX) as u64);\n            }\n            halfedges.insert(u as u64, crate::proto::HalfedgeMap {\n                neighbors: neighbor_map,\n            });\n        }\n\n        let mut edge_data_vec: Vec<crate::proto::EdgeData> = Vec::new();\n        for ((v1, v2), attrs) in &self.edgedata {\n            let mut attr_map: HashMap<String, f64> = HashMap::new();\n            for (k, v) in attrs {\n                attr_map.insert(k.clone(), *v);\n            }\n            edge_data_vec.push(crate::proto::EdgeData {\n                vertex1: *v1 as u64,\n                vertex2: *v2 as u64,\n                attributes: attr_map,\n            });\n        }\n\n        let pointcolors: Vec<crate::proto::Color> = self.pointcolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let facecolors: Vec<crate::proto::Color> = self.facecolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let linecolors: Vec<crate::proto::Color> = self.linecolors.iter().map(|c| {\n            crate::proto::Color {\n                guid: c.guid.clone(),\n                name: c.name.clone(),\n                r: c.r as i32,\n                g: c.g as i32,\n                b: c.b as i32,\n                a: c.a as i32,\n            }\n        }).collect();\n\n        let proto = crate::proto::Mesh {\n            guid: self.guid.clone(),\n            name: self.name.clone(),\n            vertices,\n            faces,\n            halfedges,\n            edge_data: edge_data_vec,\n            default_vertex_attributes: self.default_vertex_attributes.clone(),\n            default_face_attributes: self.default_face_attributes.clone(),\n            default_edge_attributes: self.default_edge_attributes.clone(),\n            pointcolors,\n            facecolors,\n            linecolors,\n            widths: self.widths.clone(),\n            objectcolor: Some(crate::proto::Color {\n                guid: self.objectcolor.guid.clone(),\n                name: self.objectcolor.name.clone(),\n                r: self.objectcolor.r as i32,\n                g: self.objectcolor.g as i32,\n                b: self.objectcolor.b as i32,\n                a: self.objectcolor.a as i32,\n            }),\n            color_mode: self.color_mode.to_i32(),\n            xform: Some(crate::proto::Xform {\n                guid: self.xform.guid.clone(),\n                name: self.xform.name.clone(),\n                matrix: self.xform.m.to_vec(),\n            }),\n        };\n        proto.encode_to_vec()\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
+        "Mesh.linecolors",
         "Mesh.new",
+        "Mesh.objectcolor",
         "Mesh.pb_dump",
-        "Mesh.str"
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -8857,7 +9851,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Mesh from protobuf binary data.\"\"\"\n        from .proto import mesh_pb2\n        from .color import Color\n        from .xform import Xform\n\n        proto = mesh_pb2.Mesh()\n        proto.ParseFromString(data)\n\n        mesh = cls()\n        mesh.guid = proto.guid\n        mesh.name = proto.name\n\n        # Vertices\n        for vkey, vdata in proto.vertices.items():\n            attrs = dict(vdata.attributes)\n            mesh.vertex[vkey] = VertexData(Point(vdata.x, vdata.y, vdata.z))\n            mesh.vertex[vkey].attributes = attrs\n            if vkey not in mesh.halfedge:\n                mesh.halfedge[vkey] = {}\n\n        # Faces\n        for fkey, fdata in proto.faces.items():\n            mesh.face[fkey] = list(fdata.vertices)\n            if fdata.attributes:\n                mesh.facedata[fkey] = dict(fdata.attributes)\n\n        # Halfedges\n        for u, hmap in proto.halfedges.items():\n            neighbors = {}\n            for v, fkey in hmap.neighbors.items():\n                neighbors[v] = None if fkey == 0xFFFFFFFFFFFFFFFF else fkey\n            mesh.halfedge[u] = neighbors\n\n        # Edge data\n        for edata in proto.edge_data:\n            key = (edata.vertex1, edata.vertex2)\n            mesh.edgedata[key] = dict(edata.attributes)\n\n        # Default attributes\n        mesh.default_vertex_attributes = dict(proto.default_vertex_attributes)\n        mesh.default_face_attributes = dict(proto.default_face_attributes)\n        mesh.default_edge_attributes = dict(proto.default_edge_attributes)\n\n        # Colors\n        mesh.pointcolors = []\n        for c in proto.pointcolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh.pointcolors.append(color)\n\n        mesh.facecolors = []\n        for c in proto.facecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh.facecolors.append(color)\n\n        mesh.linecolors = []\n        for c in proto.linecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh.linecolors.append(color)\n\n        # Widths\n        mesh.widths = list(proto.widths)\n\n        # Xform\n        mesh.xform = Xform()\n        mesh.xform.guid = proto.xform.guid\n        mesh.xform.name = proto.xform.name\n        mesh.xform.m = list(proto.xform.matrix)\n\n        # Update max counters\n        if mesh.vertex:\n            mesh._max_vertex = max(mesh.vertex.keys()) + 1\n        if mesh.face:\n            mesh._max_face = max(mesh.face.keys()) + 1",
+          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Mesh from protobuf binary data.\"\"\"\n        from .proto import mesh_pb2\n        from .color import Color\n        from .xform import Xform\n\n        proto = mesh_pb2.Mesh()\n        proto.ParseFromString(data)\n\n        mesh = cls()\n        mesh.guid = proto.guid\n        mesh.name = proto.name\n\n        # Vertices\n        for vkey, vdata in proto.vertices.items():\n            attrs = dict(vdata.attributes)\n            mesh.vertex[vkey] = VertexData(Point(vdata.x, vdata.y, vdata.z))\n            mesh.vertex[vkey].attributes = attrs\n            if vkey not in mesh.halfedge:\n                mesh.halfedge[vkey] = {}\n\n        # Faces\n        for fkey, fdata in proto.faces.items():\n            mesh.face[fkey] = list(fdata.vertices)\n            if fdata.attributes:\n                mesh.facedata[fkey] = dict(fdata.attributes)\n\n        # Halfedges\n        for u, hmap in proto.halfedges.items():\n            neighbors = {}\n            for v, fkey in hmap.neighbors.items():\n                neighbors[v] = None if fkey == 0xFFFFFFFFFFFFFFFF else fkey\n            mesh.halfedge[u] = neighbors\n\n        # Edge data\n        for edata in proto.edge_data:\n            key = (edata.vertex1, edata.vertex2)\n            mesh.edgedata[key] = dict(edata.attributes)\n\n        # Default attributes\n        mesh.default_vertex_attributes = dict(proto.default_vertex_attributes)\n        mesh.default_face_attributes = dict(proto.default_face_attributes)\n        mesh.default_edge_attributes = dict(proto.default_edge_attributes)\n\n        # Colors\n        mesh._pointcolors = []\n        for c in proto.pointcolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._pointcolors.append(color)\n\n        mesh._facecolors = []\n        for c in proto.facecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._facecolors.append(color)\n\n        mesh._linecolors = []\n        for c in proto.linecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._linecolors.append(color)\n\n        # Widths\n        mesh._widths = list(proto.widths)\n\n        # Object color\n        oc = proto.objectcolor\n        mesh._objectcolor = Color(oc.r, oc.g, oc.b, oc.a)\n        mesh._objectcolor.guid = oc.guid\n        mesh._objectcolor.name = oc.name\n        _cm_map = {0: \"objectcolor\", 1: \"pointcolors\", 2: \"facecolors\", 3: \"none\"}\n        mesh.color_mode = ColorMode(_cm_map.get(getattr(proto, 'color_mode', 0), \"objectcolor\"))\n\n        # Xform\n        mesh.xform = Xform()\n        mesh.xform.guid = proto.xform.guid",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8867,17 +9861,22 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n\n        let proto = crate::proto::Mesh::decode(data)?;\n        let mut mesh = Self::new();\n        mesh.guid = proto.guid;\n        mesh.name = proto.name;\n\n        for (vkey, vdata) in proto.vertices {\n            let mut attrs: std::collections::HashMap<String, f64> = std::collections::HashMap::new();\n            for (k, v) in vdata.attributes {\n                attrs.insert(k, v);\n            }\n            mesh.vertex.insert(vkey as usize, VertexData {\n                x: vdata.x,\n                y: vdata.y,\n                z: vdata.z,\n                attributes: attrs,\n            });\n            mesh.halfedge.entry(vkey as usize).or_insert_with(std::collections::HashMap::new);\n        }\n\n        for (fkey, fdata) in proto.faces {\n            let verts: Vec<usize> = fdata.vertices.iter().map(|&v| v as usize).collect();\n            mesh.face.insert(fkey as usize, verts);\n            if !fdata.attributes.is_empty() {\n                mesh.facedata.insert(fkey as usize, fdata.attributes);\n            }\n        }\n\n        for (u, hmap) in proto.halfedges {\n            let mut neighbors: std::collections::HashMap<usize, Option<usize>> = std::collections::HashMap::new();\n            for (v, fkey) in hmap.neighbors {\n                let fkey_opt = if fkey == u64::MAX { None } else { Some(fkey as usize) };\n                neighbors.insert(v as usize, fkey_opt);\n            }\n            mesh.halfedge.insert(u as usize, neighbors);\n        }\n\n        for edata in proto.edge_data {\n            let key = (edata.vertex1 as usize, edata.vertex2 as usize);\n            mesh.edgedata.insert(key, edata.attributes);\n        }\n\n        mesh.default_vertex_attributes = proto.default_vertex_attributes;\n        mesh.default_face_attributes = proto.default_face_attributes;\n        mesh.default_edge_attributes = proto.default_edge_attributes;\n\n        mesh.pointcolors = proto.pointcolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.facecolors = proto.facecolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.linecolors = proto.linecolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.widths = proto.widths;\n\n        if let Some(xform) = proto.xform {\n            mesh.xform.guid = xform.guid;\n            mesh.xform.name = xform.name;\n            for (i, val) in xform.matrix.iter().enumerate() {\n                if i < 16 {\n                    mesh.xform.m[i] = *val;\n                }\n            }\n        }\n\n        // Update max_vertex and max_face\n        if let Some(&max_v) = mesh.vertex.keys().max() {\n            mesh.max_vertex = max_v + 1;\n        }\n        if let Some(&max_f) = mesh.face.keys().max() {\n            mesh.max_face = max_f + 1;\n        }\n\n        Ok(mesh)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n\n        let proto = crate::proto::Mesh::decode(data)?;\n        let mut mesh = Self::new();\n        mesh.guid = proto.guid;\n        mesh.name = proto.name;\n\n        for (vkey, vdata) in proto.vertices {\n            let mut attrs: std::collections::HashMap<String, f64> = std::collections::HashMap::new();\n            for (k, v) in vdata.attributes {\n                attrs.insert(k, v);\n            }\n            mesh.vertex.insert(vkey as usize, VertexData {\n                x: vdata.x,\n                y: vdata.y,\n                z: vdata.z,\n                attributes: attrs,\n            });\n            mesh.halfedge.entry(vkey as usize).or_insert_with(std::collections::HashMap::new);\n        }\n\n        for (fkey, fdata) in proto.faces {\n            let verts: Vec<usize> = fdata.vertices.iter().map(|&v| v as usize).collect();\n            mesh.face.insert(fkey as usize, verts);\n            if !fdata.attributes.is_empty() {\n                mesh.facedata.insert(fkey as usize, fdata.attributes);\n            }\n        }\n\n        for (u, hmap) in proto.halfedges {\n            let mut neighbors: std::collections::HashMap<usize, Option<usize>> = std::collections::HashMap::new();\n            for (v, fkey) in hmap.neighbors {\n                let fkey_opt = if fkey == u64::MAX { None } else { Some(fkey as usize) };\n                neighbors.insert(v as usize, fkey_opt);\n            }\n            mesh.halfedge.insert(u as usize, neighbors);\n        }\n\n        for edata in proto.edge_data {\n            let key = (edata.vertex1 as usize, edata.vertex2 as usize);\n            mesh.edgedata.insert(key, edata.attributes);\n        }\n\n        mesh.default_vertex_attributes = proto.default_vertex_attributes;\n        mesh.default_face_attributes = proto.default_face_attributes;\n        mesh.default_edge_attributes = proto.default_edge_attributes;\n\n        mesh.pointcolors = proto.pointcolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.facecolors = proto.facecolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.linecolors = proto.linecolors.iter().map(|c| {\n            let mut color = Color::new(c.r as u8, c.g as u8, c.b as u8, c.a as u8);\n            color.guid = c.guid.clone();\n            color.name = c.name.clone();\n            color\n        }).collect();\n\n        mesh.widths = proto.widths;\n\n        if let Some(oc) = proto.objectcolor {\n            mesh.objectcolor = Color::new(oc.r as u8, oc.g as u8, oc.b as u8, oc.a as u8);\n            mesh.objectcolor.guid = oc.guid;\n            mesh.objectcolor.name = oc.name;\n        }\n        mesh.color_mode = ColorMode::from_i32(proto.color_mode);\n\n        if let Some(xform) = proto.xform {\n            mesh.xform.guid = xform.guid;\n            mesh.xform.name = xform.name;\n            for (i, val) in xform.matrix.iter().enumerate() {\n                if i < 16 {\n                    mesh.xform.m[i] = *val;\n                }\n            }\n        }\n\n        // Update max_vertex and max_face\n        if let Some(&max_v) = mesh.vertex.keys().max() {\n            mesh.max_vertex = max_v + 1;\n        }\n        if let Some(&max_f) = mesh.face.keys().max() {\n            mesh.max_face = max_f + 1;\n        }\n\n        Ok(mesh)\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.edges",
+        "Mesh.facecolors",
         "Mesh.is_empty",
+        "Mesh.linecolors",
         "Mesh.new",
+        "Mesh.objectcolor",
         "Mesh.pb_dump",
         "Mesh.pb_load",
-        "Mesh.str"
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -8885,7 +9884,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dump(filepath)",
-          "code": "def pb_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    ###########################################################################################\n    # Color and Width Management\n    ###########################################################################################\n\n    def set_vertex_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self.pointcolors):\n            self.pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self.facecolors):\n            self.facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self.linecolors):\n            self.linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def pb_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    ###########################################################################################\n    # Color and Width Management\n    ###########################################################################################\n\n    def set_vertex_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self._pointcolors):\n            self._pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self._facecolors):\n            self._facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self._linecolors):\n            self._linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8900,18 +9899,22 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
+        "Mesh.linecolors",
         "Mesh.pb_dumps",
         "Mesh.pb_load",
         "Mesh.pb_loads",
+        "Mesh.pointcolors",
         "Mesh.set_edge_color",
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -8919,7 +9922,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_load(cls, filepath)",
-          "code": "def pb_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    ###########################################################################################\n    # Color and Width Management\n    ###########################################################################################\n\n    def set_vertex_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self.pointcolors):\n            self.pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self.facecolors):\n            self.facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self.linecolors):\n            self.linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def pb_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    ###########################################################################################\n    # Color and Width Management\n    ###########################################################################################\n\n    def set_vertex_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self._pointcolors):\n            self._pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self._facecolors):\n            self._facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self._linecolors):\n            self._linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8934,13 +9937,17 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.facecolors",
+        "Mesh.linecolors",
         "Mesh.pb_dump",
         "Mesh.pb_loads",
+        "Mesh.pointcolors",
         "Mesh.set_edge_color",
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -8948,7 +9955,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_vertex_color(index: int, color: Color)",
-          "code": "def set_vertex_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self.pointcolors):\n            self.pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self.facecolors):\n            self.facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self.linecolors):\n            self.linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def set_vertex_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific vertex.\"\"\"\n        if 0 <= index < len(self._pointcolors):\n            self._pointcolors[index] = color\n\n    def set_face_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self._facecolors):\n            self._facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self._linecolors):\n            self._linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "rust": {
@@ -8958,11 +9965,15 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.facecolors",
+        "Mesh.linecolors",
         "Mesh.pb_dump",
         "Mesh.pb_load",
+        "Mesh.pointcolors",
         "Mesh.set_edge_color",
         "Mesh.set_edge_width",
-        "Mesh.set_face_color"
+        "Mesh.set_face_color",
+        "Mesh.widths"
       ]
     },
     {
@@ -8970,7 +9981,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_face_color(index: int, color: Color)",
-          "code": "def set_face_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self.facecolors):\n            self.facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self.linecolors):\n            self.linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def set_face_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific face.\"\"\"\n        if 0 <= index < len(self._facecolors):\n            self._facecolors[index] = color\n\n    def set_edge_color(self, index: int, color: Color):\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self._linecolors):\n            self._linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "rust": {
@@ -8980,11 +9991,14 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.facecolors",
+        "Mesh.linecolors",
         "Mesh.pb_dump",
         "Mesh.pb_load",
         "Mesh.set_edge_color",
         "Mesh.set_edge_width",
-        "Mesh.set_vertex_color"
+        "Mesh.set_vertex_color",
+        "Mesh.widths"
       ]
     },
     {
@@ -8992,7 +10006,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_edge_color(index: int, color: Color)",
-          "code": "def set_edge_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self.linecolors):\n            self.linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def set_edge_color(self, index: int, color: Color):\n\n        \"\"\"Set color for a specific edge.\"\"\"\n        if 0 <= index < len(self._linecolors):\n            self._linecolors[index] = color\n\n    def set_edge_width(self, index: int, width: float):\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "rust": {
@@ -9002,11 +10016,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.linecolors",
         "Mesh.pb_dump",
         "Mesh.pb_load",
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
-        "Mesh.set_vertex_color"
+        "Mesh.set_vertex_color",
+        "Mesh.widths"
       ]
     },
     {
@@ -9014,7 +10030,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_edge_width(index: int, width: float)",
-          "code": "def set_edge_width(self, index: int, width: float):\n\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self.widths):\n            self.widths[index] = width",
+          "code": "def set_edge_width(self, index: int, width: float):\n\n        \"\"\"Set width for a specific edge.\"\"\"\n        if 0 <= index < len(self._widths):\n            self._widths[index] = width",
           "file": "mesh.py"
         },
         "rust": {
@@ -9028,7 +10044,8 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.set_edge_color",
         "Mesh.set_face_color",
-        "Mesh.set_vertex_color"
+        "Mesh.set_vertex_color",
+        "Mesh.widths"
       ]
     },
     {
@@ -24080,22 +25097,20 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(points: Optional[List[Point]] = None)",
-          "code": "def __init__(self, points: Optional[List[Point]] = None):\n\n        \"\"\"Creates a new Polyline with default guid and name.\n\n        Args:\n            points: The collection of points (converted to flat coords internally).\n        \"\"\"\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_polyline\"\n        self.width = 1.0\n        self.linecolor = Color.black()\n        self.xform = Xform.identity()\n\n        # Store coordinates as flat array [x0, y0, z0, x1, y1, z1, ...]\n        self._coords: List[float] = []\n        if points is not None:\n            for p in points:\n                self._coords.extend([p[0], p[1], p[2]])\n\n        # Delegate plane computation to Plane.from_points\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n        else:\n            self.plane = Plane()\n\n    @classmethod\n    def from_coords(cls, coords: List[float]) -> \"Polyline\":\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl._coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################\n\n    def point_count(self) -> int:\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0",
+          "code": "def __init__(self, points: Optional[List[Point]] = None):\n\n        \"\"\"Creates a new Polyline with default guid and name.\n\n        Args:\n            points: The collection of points (converted to flat coords internally).\n        \"\"\"\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_polyline\"\n        self.width = 1.0\n        self.linecolor = Color.black()\n        self.xform = Xform.identity()\n\n        # Store coordinates as flat array [x0, y0, z0, x1, y1, z1, ...]\n        self._coords: List[float] = []\n        if points is not None:\n            for p in points:\n                self._coords.extend([p[0], p[1], p[2]])\n\n        # Delegate plane computation to Plane.from_points\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n        else:\n            self.plane = Plane()\n\n    @classmethod\n    def from_coords(cls, coords: List[float]) -> \"Polyline\":\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl._coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################\n\n    def point_count(self) -> int:\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    @classmethod\n    def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])",
           "file": "polyline.py"
         }
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__len__",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.is_empty",
         "Polyline.len",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.segment_count",
         "Polyline.str"
       ]
     },
@@ -24104,7 +25119,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_coords(cls, coords: List[float]) -> \"Polyline\"",
-          "code": "def from_coords(cls, coords: List[float]) -> \"Polyline\":\n\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl._coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################\n\n    def point_count(self) -> int:\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]",
+          "code": "def from_coords(cls, coords: List[float]) -> \"Polyline\":\n\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl._coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################\n\n    def point_count(self) -> int:\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    @classmethod\n    def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length",
           "file": "polyline.py"
         },
         "cpp": {
@@ -24136,6 +25151,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -24163,7 +25179,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_count() -> int",
-          "code": "def point_count(self) -> int:\n\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():",
+          "code": "def point_count(self) -> int:\n\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    @classmethod\n    def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:",
           "file": "polyline.py"
         },
         "cpp": {
@@ -24203,6 +25219,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -24234,6 +25251,44 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Polyline.from_sides",
+      "implementations": {
+        "python": {
+          "sig": "from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\"",
+          "code": "def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "Polyline from_sides(int sides, double radius, bool close)",
+          "code": "Polyline Polyline::from_sides(int sides, double radius, bool close) {\n    std::vector<Point> pts;\n    pts.reserve(close ? sides + 1 : sides);\n    for (int i = 0; i < sides; ++i) {\n        double angle = 2.0 * TOLERANCE.PI * i / sides;\n        pts.push_back({radius * std::cos(angle), radius * std::sin(angle), 0.0}",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "from_sides(sides: usize, radius: f64, close: bool) -> Self",
+          "code": "pub fn from_sides(sides: usize, radius: f64, close: bool) -> Self {\n        let cap = if close { sides + 1 } else { sides };\n        let mut coords: Vec<f64> = Vec::with_capacity(cap * 3);\n        for i in 0..sides {\n            let angle = 2.0 * PI * i as f64 / sides as f64;\n            coords.push(radius * angle.cos());\n            coords.push(radius * angle.sin());\n            coords.push(0.0);\n        }\n        if close {\n            coords.push(coords[0]);\n            coords.push(coords[1]);\n            coords.push(coords[2]);\n        }\n        Self::from_coords(coords)\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__init__",
+        "Polyline.__len__",
+        "Polyline._recompute_plane",
+        "Polyline.add_point",
+        "Polyline.from_coords",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.insert_point",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.segment_count",
+        "Polyline.set_point"
+      ]
+    },
+    {
       "name": "Polyline.get_points",
       "implementations": {
         "python": {
@@ -24260,6 +25315,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.closest_distance_and_point",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_point",
@@ -24316,6 +25372,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -24362,10 +25419,10 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__init__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -24403,12 +25460,12 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__init__",
         "Polyline.__len__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.center",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -24450,7 +25507,6 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__imul__",
-        "Polyline.__init__",
         "Polyline.__itruediv__",
         "Polyline.__len__",
         "Polyline.__mul__",
@@ -24464,6 +25520,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
         "Polyline.get_point",
@@ -24513,6 +25570,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -24563,6 +25621,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -24617,6 +25676,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
         "Polyline.get_point",
@@ -24661,6 +25721,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.duplicate",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -24707,6 +25768,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.duplicate",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.is_empty",
@@ -24893,6 +25955,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.duplicate",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -26699,7 +27762,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "hyperbola(center: Point, a: float, b: float, extent: float) -> NurbsCurve",
-          "code": "def hyperbola(center: Point, a: float, b: float, extent: float) -> NurbsCurve:\n\n        \"\"\"Create a hyperbola segment as a NURBS curve.\"\"\"\n        num_segments = 8\n        cv_count = num_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        for i in range(cv_count):\n            t = -extent + 2 * extent * i / num_segments\n            x = center[0] + a * math.cosh(t)\n            y = center[1] + b * math.sinh(t)\n            z = center[2]\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def spiral(start_radius: float, end_radius: float, pitch: float, turns: float) -> NurbsCurve:\n        \"\"\"Create a spiral (helix with varying radius).\"\"\"\n        segments_per_turn = 8\n        total_segments = max(4, int(turns * segments_per_turn))\n        cv_count = total_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        total_angle = turns * 2 * math.pi\n\n        for i in range(cv_count):\n            t = i / total_segments\n            angle = t * total_angle\n            r = start_radius + t * (end_radius - start_radius)\n            x = r * math.cos(angle)\n            y = r * math.sin(angle)\n            z = t * turns * pitch\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def _unit_cylinder_geometry():\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles",
+          "code": "def hyperbola(center: Point, a: float, b: float, extent: float) -> NurbsCurve:\n\n        \"\"\"Create a hyperbola segment as a NURBS curve.\"\"\"\n        num_segments = 8\n        cv_count = num_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        for i in range(cv_count):\n            t = -extent + 2 * extent * i / num_segments\n            x = center[0] + a * math.cosh(t)\n            y = center[1] + b * math.sinh(t)\n            z = center[2]\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def spiral(start_radius: float, end_radius: float, pitch: float, turns: float) -> NurbsCurve:\n        \"\"\"Create a spiral (helix with varying radius).\"\"\"\n        segments_per_turn = 8\n        total_segments = max(4, int(turns * segments_per_turn))\n        cv_count = total_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        total_angle = turns * 2 * math.pi\n\n        for i in range(cv_count):\n            t = i / total_segments\n            angle = t * total_angle\n            r = start_radius + t * (end_radius - start_radius)\n            x = r * math.cos(angle)\n            y = r * math.sin(angle)\n            z = t * turns * pitch\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def _unit_cylinder_geometry():\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _capsule_geometry(start_pt, end_pt, radius):\n        n = 10\n        lat = math.pi / 4\n        r_hemi = radius * math.sin(lat)\n        off = radius * math.cos(lat)\n        ax = end_pt[0] - start_pt[0]\n        ay = end_pt[1] - start_pt[1]\n        az = end_pt[2] - start_pt[2]\n        length = math.sqrt(ax*ax + ay*ay + az*az)\n        if length < 1e-12:\n            ax, ay, az = 0.0, 0.0, 1.0\n        else:\n            ax, ay, az = ax/length, ay/length, az/length\n        if abs(az) < 0.9:",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26714,12 +27777,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives._unit_cone_geometry",
+        "Primitives._capsule_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arc",
+        "Primitives.capsule_geometry",
         "Primitives.parabola",
+        "Primitives.pt",
         "Primitives.spiral",
-        "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
       ]
     },
@@ -26728,7 +27792,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "spiral(start_radius: float, end_radius: float, pitch: float, turns: float) -> NurbsCurve",
-          "code": "def spiral(start_radius: float, end_radius: float, pitch: float, turns: float) -> NurbsCurve:\n\n        \"\"\"Create a spiral (helix with varying radius).\"\"\"\n        segments_per_turn = 8\n        total_segments = max(4, int(turns * segments_per_turn))\n        cv_count = total_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        total_angle = turns * 2 * math.pi\n\n        for i in range(cv_count):\n            t = i / total_segments\n            angle = t * total_angle\n            r = start_radius + t * (end_radius - start_radius)\n            x = r * math.cos(angle)\n            y = r * math.sin(angle)\n            z = t * turns * pitch\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def _unit_cylinder_geometry():\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]",
+          "code": "def spiral(start_radius: float, end_radius: float, pitch: float, turns: float) -> NurbsCurve:\n\n        \"\"\"Create a spiral (helix with varying radius).\"\"\"\n        segments_per_turn = 8\n        total_segments = max(4, int(turns * segments_per_turn))\n        cv_count = total_segments + 1\n\n        curve = NurbsCurve(dimension=3, is_rational=False, order=4, cv_count=cv_count)\n        curve.m_cv = np.zeros(cv_count * 3, dtype=np.float64)\n\n        total_angle = turns * 2 * math.pi\n\n        for i in range(cv_count):\n            t = i / total_segments\n            angle = t * total_angle\n            r = start_radius + t * (end_radius - start_radius)\n            x = r * math.cos(angle)\n            y = r * math.sin(angle)\n            z = t * turns * pitch\n            curve.set_cv(i, Point(x, y, z))\n\n        curve.m_knot = knot.make_clamped_uniform(curve.m_order, curve.m_cv_count, 1.0)\n        return curve\n\n    @staticmethod\n    def _unit_cylinder_geometry():\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _capsule_geometry(start_pt, end_pt, radius):\n        n = 10\n        lat = math.pi / 4\n        r_hemi = radius * math.sin(lat)\n        off = radius * math.cos(lat)\n        ax = end_pt[0] - start_pt[0]\n        ay = end_pt[1] - start_pt[1]\n        az = end_pt[2] - start_pt[2]\n        length = math.sqrt(ax*ax + ay*ay + az*az)\n        if length < 1e-12:\n            ax, ay, az = 0.0, 0.0, 1.0\n        else:\n            ax, ay, az = ax/length, ay/length, az/length\n        if abs(az) < 0.9:\n            tx, ty, tz = 0.0, 0.0, 1.0\n        else:\n            tx, ty, tz = 1.0, 0.0, 0.0\n        xx = ty*az - tz*ay; xy = tz*ax - tx*az; xz = tx*ay - ty*ax\n        xlen = math.sqrt(xx*xx + xy*xy + xz*xz)\n        xx, xy, xz = xx/xlen, xy/xlen, xz/xlen\n        yx = ay*xz - az*xy; yy = az*xx - ax*xz; yz = ax*xy - ay*xx\n\n        def ring(cx, cy, cz, axis_off, ring_r):\n            pts = []\n            for i in range(n):\n                a = 2 * math.pi * i / n\n                ca, sa = math.cos(a), math.sin(a)\n                pts.append(Point(\n                    cx + axis_off*ax + ring_r*(ca*xx + sa*yx),\n                    cy + axis_off*ay + ring_r*(ca*xy + sa*yy),\n                    cz + axis_off*az + ring_r*(ca*xz + sa*yz),\n                ))\n            return pts",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26743,13 +27807,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives._line_to_cylinder_transform",
-        "Primitives._unit_cone_geometry",
+        "Primitives._capsule_geometry",
         "Primitives._unit_cylinder_geometry",
+        "Primitives.capsule_geometry",
         "Primitives.hyperbola",
-        "Primitives.line_to_cylinder_transform",
         "Primitives.parabola",
-        "Primitives.unit_cone_geometry",
+        "Primitives.pt",
+        "Primitives.ring",
         "Primitives.unit_cylinder_geometry"
       ]
     },
@@ -26758,7 +27822,35 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_unit_cylinder_geometry()",
-          "code": "def _unit_cylinder_geometry():\n\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)",
+          "code": "def _unit_cylinder_geometry():\n\n        vertices = [\n            Point(0.5, 0.0, -0.5), Point(0.404508, 0.293893, -0.5),\n            Point(0.154508, 0.475528, -0.5), Point(-0.154508, 0.475528, -0.5),\n            Point(-0.404508, 0.293893, -0.5), Point(-0.5, 0.0, -0.5),\n            Point(-0.404508, -0.293893, -0.5), Point(-0.154508, -0.475528, -0.5),\n            Point(0.154508, -0.475528, -0.5), Point(0.404508, -0.293893, -0.5),\n            Point(0.5, 0.0, 0.5), Point(0.404508, 0.293893, 0.5),\n            Point(0.154508, 0.475528, 0.5), Point(-0.154508, 0.475528, 0.5),\n            Point(-0.404508, 0.293893, 0.5), Point(-0.5, 0.0, 0.5),\n            Point(-0.404508, -0.293893, 0.5), Point(-0.154508, -0.475528, 0.5),\n            Point(0.154508, -0.475528, 0.5), Point(0.404508, -0.293893, 0.5),\n        ]\n        triangles = [\n            [0, 1, 11], [0, 11, 10], [1, 2, 12], [1, 12, 11],\n            [2, 3, 13], [2, 13, 12], [3, 4, 14], [3, 14, 13],\n            [4, 5, 15], [4, 15, 14], [5, 6, 16], [5, 16, 15],\n            [6, 7, 17], [6, 17, 16], [7, 8, 18], [7, 18, 17],\n            [8, 9, 19], [8, 19, 18], [9, 0, 10], [9, 10, 19],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _capsule_geometry(start_pt, end_pt, radius):\n        n = 10\n        lat = math.pi / 4\n        r_hemi = radius * math.sin(lat)\n        off = radius * math.cos(lat)\n        ax = end_pt[0] - start_pt[0]\n        ay = end_pt[1] - start_pt[1]\n        az = end_pt[2] - start_pt[2]\n        length = math.sqrt(ax*ax + ay*ay + az*az)\n        if length < 1e-12:\n            ax, ay, az = 0.0, 0.0, 1.0\n        else:\n            ax, ay, az = ax/length, ay/length, az/length\n        if abs(az) < 0.9:\n            tx, ty, tz = 0.0, 0.0, 1.0\n        else:\n            tx, ty, tz = 1.0, 0.0, 0.0\n        xx = ty*az - tz*ay; xy = tz*ax - tx*az; xz = tx*ay - ty*ax\n        xlen = math.sqrt(xx*xx + xy*xy + xz*xz)\n        xx, xy, xz = xx/xlen, xy/xlen, xz/xlen\n        yx = ay*xz - az*xy; yy = az*xx - ax*xz; yz = ax*xy - ay*xx\n\n        def ring(cx, cy, cz, axis_off, ring_r):\n            pts = []\n            for i in range(n):\n                a = 2 * math.pi * i / n\n                ca, sa = math.cos(a), math.sin(a)\n                pts.append(Point(\n                    cx + axis_off*ax + ring_r*(ca*xx + sa*yx),\n                    cy + axis_off*ay + ring_r*(ca*xy + sa*yy),\n                    cz + axis_off*az + ring_r*(ca*xz + sa*yz),\n                ))\n            return pts\n\n        sx, sy, sz = start_pt[0], start_pt[1], start_pt[2]\n        ex, ey, ez = end_pt[0], end_pt[1], end_pt[2]\n        vertices = []\n        vertices.extend(ring(sx, sy, sz, 0.0, radius))       # 0-9:  base ring\n        vertices.extend(ring(ex, ey, ez, 0.0, radius))       # 10-19: top ring\n        vertices.extend(ring(sx, sy, sz, -off, r_hemi))      # 20-29: bottom hemi ring\n        vertices.append(Point(sx - radius*ax, sy - radius*ay, sz - radius*az))  # 30: bottom pole\n        vertices.extend(ring(ex, ey, ez, off, r_hemi))       # 31-40: top hemi ring\n        vertices.append(Point(ex + radius*ax, ey + radius*ay, ez + radius*az))  # 41: top pole\n        triangles = []\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([i, ni, 10+ni]); triangles.append([i, 10+ni, 10+i])\n            triangles.append([20+i, ni, i]); triangles.append([20+i, 20+ni, ni])\n            triangles.append([10+i, 10+ni, 31+ni]); triangles.append([10+i, 31+ni, 31+i])\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([30, 20+ni, 20+i])\n            triangles.append([41, 31+i, 31+ni])\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "Primitives._capsule_geometry",
+        "Primitives._line_to_cylinder_transform",
+        "Primitives._transform_geometry",
+        "Primitives._unit_cone_geometry",
+        "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
+        "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
+        "Primitives.hyperbola",
+        "Primitives.parabola",
+        "Primitives.pt",
+        "Primitives.ring",
+        "Primitives.spiral",
+        "Primitives.unit_cone_geometry",
+        "Primitives.unit_cylinder_geometry"
+      ]
+    },
+    {
+      "name": "Primitives._capsule_geometry",
+      "implementations": {
+        "python": {
+          "sig": "_capsule_geometry(start_pt, end_pt, radius)",
+          "code": "def _capsule_geometry(start_pt, end_pt, radius):\n\n        n = 10\n        lat = math.pi / 4\n        r_hemi = radius * math.sin(lat)\n        off = radius * math.cos(lat)\n        ax = end_pt[0] - start_pt[0]\n        ay = end_pt[1] - start_pt[1]\n        az = end_pt[2] - start_pt[2]\n        length = math.sqrt(ax*ax + ay*ay + az*az)\n        if length < 1e-12:\n            ax, ay, az = 0.0, 0.0, 1.0\n        else:\n            ax, ay, az = ax/length, ay/length, az/length\n        if abs(az) < 0.9:\n            tx, ty, tz = 0.0, 0.0, 1.0\n        else:\n            tx, ty, tz = 1.0, 0.0, 0.0\n        xx = ty*az - tz*ay; xy = tz*ax - tx*az; xz = tx*ay - ty*ax\n        xlen = math.sqrt(xx*xx + xy*xy + xz*xz)\n        xx, xy, xz = xx/xlen, xy/xlen, xz/xlen\n        yx = ay*xz - az*xy; yy = az*xx - ax*xz; yz = ax*xy - ay*xx\n\n        def ring(cx, cy, cz, axis_off, ring_r):\n            pts = []\n            for i in range(n):\n                a = 2 * math.pi * i / n\n                ca, sa = math.cos(a), math.sin(a)\n                pts.append(Point(\n                    cx + axis_off*ax + ring_r*(ca*xx + sa*yx),\n                    cy + axis_off*ay + ring_r*(ca*xy + sa*yy),\n                    cz + axis_off*az + ring_r*(ca*xz + sa*yz),\n                ))\n            return pts\n\n        sx, sy, sz = start_pt[0], start_pt[1], start_pt[2]\n        ex, ey, ez = end_pt[0], end_pt[1], end_pt[2]\n        vertices = []\n        vertices.extend(ring(sx, sy, sz, 0.0, radius))       # 0-9:  base ring\n        vertices.extend(ring(ex, ey, ez, 0.0, radius))       # 10-19: top ring\n        vertices.extend(ring(sx, sy, sz, -off, r_hemi))      # 20-29: bottom hemi ring\n        vertices.append(Point(sx - radius*ax, sy - radius*ay, sz - radius*az))  # 30: bottom pole\n        vertices.extend(ring(ex, ey, ez, off, r_hemi))       # 31-40: top hemi ring\n        vertices.append(Point(ex + radius*ax, ey + radius*ay, ez + radius*az))  # 41: top pole\n        triangles = []\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([i, ni, 10+ni]); triangles.append([i, 10+ni, 10+i])\n            triangles.append([20+i, ni, i]); triangles.append([20+i, 20+ni, ni])\n            triangles.append([10+i, 10+ni, 31+ni]); triangles.append([10+i, 31+ni, 31+i])\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([30, 20+ni, 20+i])\n            triangles.append([41, 31+i, 31+ni])\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()",
           "file": "primitives.py"
         }
       },
@@ -26766,16 +27858,39 @@ window.API_INDEX = {
         "Primitives._line_to_cylinder_transform",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
-        "Primitives.arrow_mesh",
+        "Primitives._unit_cylinder_geometry",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
-        "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.line_to_cylinder_transform",
-        "Primitives.parabola",
+        "Primitives.pt",
+        "Primitives.ring",
+        "Primitives.spiral",
+        "Primitives.unit_cone_geometry"
+      ]
+    },
+    {
+      "name": "Primitives.ring",
+      "implementations": {
+        "python": {
+          "sig": "ring(cx, cy, cz, axis_off, ring_r)",
+          "code": "def ring(cx, cy, cz, axis_off, ring_r):\n\n            pts = []\n            for i in range(n):\n                a = 2 * math.pi * i / n\n                ca, sa = math.cos(a), math.sin(a)\n                pts.append(Point(\n                    cx + axis_off*ax + ring_r*(ca*xx + sa*yx),\n                    cy + axis_off*ay + ring_r*(ca*xy + sa*yy),\n                    cz + axis_off*az + ring_r*(ca*xz + sa*yz),\n                ))\n            return pts\n\n        sx, sy, sz = start_pt[0], start_pt[1], start_pt[2]\n        ex, ey, ez = end_pt[0], end_pt[1], end_pt[2]\n        vertices = []\n        vertices.extend(ring(sx, sy, sz, 0.0, radius))       # 0-9:  base ring\n        vertices.extend(ring(ex, ey, ez, 0.0, radius))       # 10-19: top ring\n        vertices.extend(ring(sx, sy, sz, -off, r_hemi))      # 20-29: bottom hemi ring\n        vertices.append(Point(sx - radius*ax, sy - radius*ay, sz - radius*az))  # 30: bottom pole\n        vertices.extend(ring(ex, ey, ez, off, r_hemi))       # 31-40: top hemi ring\n        vertices.append(Point(ex + radius*ax, ey + radius*ay, ez + radius*az))  # 41: top pole\n        triangles = []\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([i, ni, 10+ni]); triangles.append([i, 10+ni, 10+i])\n            triangles.append([20+i, ni, i]); triangles.append([20+i, 20+ni, ni])\n            triangles.append([10+i, 10+ni, 31+ni]); triangles.append([10+i, 31+ni, 31+i])\n        for i in range(n):\n            ni = (i + 1) % n\n            triangles.append([30, 20+ni, 20+i])\n            triangles.append([41, 31+i, 31+ni])\n        return vertices, triangles\n\n    @staticmethod\n    def _unit_cone_geometry():\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:",
+          "file": "primitives.py"
+        }
+      },
+      "related": [
+        "Primitives._capsule_geometry",
+        "Primitives._line_to_cylinder_transform",
+        "Primitives._transform_geometry",
+        "Primitives._unit_cone_geometry",
+        "Primitives._unit_cylinder_geometry",
+        "Primitives.annen_surfaces",
+        "Primitives.line_to_cylinder_transform",
+        "Primitives.pt",
         "Primitives.spiral",
         "Primitives.transform_geometry",
-        "Primitives.unit_cone_geometry",
-        "Primitives.unit_cylinder_geometry"
+        "Primitives.unit_cone_geometry"
       ]
     },
     {
@@ -26783,20 +27898,22 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_unit_cone_geometry()",
-          "code": "def _unit_cone_geometry():\n\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()",
+          "code": "def _unit_cone_geometry():\n\n        vertices = [\n            Point(0.0, 0.0, 0.5),\n            Point(0.5, 0.0, -0.5), Point(0.353553, -0.353553, -0.5),\n            Point(0.0, -0.5, -0.5), Point(-0.353553, -0.353553, -0.5),\n            Point(-0.5, 0.0, -0.5), Point(-0.353553, 0.353553, -0.5),\n            Point(0.0, 0.5, -0.5), Point(0.353553, 0.353553, -0.5),\n        ]\n        triangles = [\n            [0, 2, 1], [0, 3, 2], [0, 4, 3], [0, 5, 4],\n            [0, 6, 5], [0, 7, 6], [0, 8, 7], [0, 1, 8],\n        ]\n        return vertices, triangles\n\n    @staticmethod\n    def _line_to_cylinder_transform(line, radius):\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        return Primitives._transform_geometry(Primitives._unit_cylinder_geometry(), Primitives._line_to_cylinder_transform(line, radius))\n\n    @staticmethod\n    def capsule_mesh(line, radius):\n        start, end = line.start(), line.end()\n        return Primitives._transform_geometry(\n            Primitives._capsule_geometry(start, end, radius), Xform.identity())\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod",
           "file": "primitives.py"
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
         "Primitives._line_to_cylinder_transform",
         "Primitives._transform_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
-        "Primitives.hyperbola",
         "Primitives.line_to_cylinder_transform",
-        "Primitives.spiral",
+        "Primitives.ring",
         "Primitives.transform_geometry",
         "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
@@ -26807,19 +27924,22 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_line_to_cylinder_transform(line, radius)",
-          "code": "def _line_to_cylinder_transform(line, radius):\n\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,",
+          "code": "def _line_to_cylinder_transform(line, radius):\n\n        start = line.start()\n        end = line.end()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n\n        center = Point(\n            (start.x + end.x) * 0.5, (start.y + end.y) * 0.5, (start.z + end.z) * 0.5\n        )\n        translation = Xform.translation(center.x, center.y, center.z)\n        return translation * rotation * scale\n\n    @staticmethod\n    def _transform_geometry(geometry, xform):\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        return Primitives._transform_geometry(Primitives._unit_cylinder_geometry(), Primitives._line_to_cylinder_transform(line, radius))\n\n    @staticmethod\n    def capsule_mesh(line, radius):\n        start, end = line.start(), line.end()\n        return Primitives._transform_geometry(\n            Primitives._capsule_geometry(start, end, radius), Xform.identity())\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8",
           "file": "primitives.py"
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
-        "Primitives.spiral",
+        "Primitives.ring",
         "Primitives.transform_geometry",
         "Primitives.unit_cylinder_geometry"
       ]
@@ -26829,20 +27949,23 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_transform_geometry(geometry, xform)",
-          "code": "def _transform_geometry(geometry, xform):\n\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()",
+          "code": "def _transform_geometry(geometry, xform):\n\n        vertices, triangles = geometry\n        mesh = Mesh()\n        vertex_keys = []\n        for v in vertices:\n            transformed = xform.transformed_point(v)\n            vertex_keys.append(mesh.add_vertex(transformed))\n        for tri in triangles:\n            face_vertices = [vertex_keys[tri[0]], vertex_keys[tri[1]], vertex_keys[tri[2]]]\n            mesh.add_face(face_vertices)\n        return mesh\n\n    @staticmethod\n    def cylinder_mesh(line, radius):\n        return Primitives._transform_geometry(Primitives._unit_cylinder_geometry(), Primitives._line_to_cylinder_transform(line, radius))\n\n    @staticmethod\n    def capsule_mesh(line, radius):\n        start, end = line.start(), line.end()\n        return Primitives._transform_geometry(\n            Primitives._capsule_geometry(start, end, radius), Xform.identity())\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()",
           "file": "primitives.py"
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
         "Primitives._line_to_cylinder_transform",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
+        "Primitives.ring",
         "Primitives.transform_geometry",
-        "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
       ]
     },
@@ -26851,7 +27974,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cylinder_mesh(line, radius)",
-          "code": "def cylinder_mesh(line, radius):\n\n        unit_cyl = Primitives._unit_cylinder_geometry()\n        xform = Primitives._line_to_cylinder_transform(line, radius)\n        return Primitives._transform_geometry(unit_cyl, xform)\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))",
+          "code": "def cylinder_mesh(line, radius):\n\n        return Primitives._transform_geometry(Primitives._unit_cylinder_geometry(), Primitives._line_to_cylinder_transform(line, radius))\n\n    @staticmethod\n    def capsule_mesh(line, radius):\n        start, end = line.start(), line.end()\n        return Primitives._transform_geometry(\n            Primitives._capsule_geometry(start, end, radius), Xform.identity())\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []",
           "file": "primitives.py"
         },
         "cpp": {
@@ -26866,13 +27989,50 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
         "Primitives._line_to_cylinder_transform",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.edge_pipes",
         "Primitives.line_to_cylinder_transform",
+        "Primitives.transform_geometry",
+        "Primitives.unit_cone_geometry",
+        "Primitives.unit_cylinder_geometry"
+      ]
+    },
+    {
+      "name": "Primitives.capsule_mesh",
+      "implementations": {
+        "python": {
+          "sig": "capsule_mesh(line, radius)",
+          "code": "def capsule_mesh(line, radius):\n\n        start, end = line.start(), line.end()\n        return Primitives._transform_geometry(\n            Primitives._capsule_geometry(start, end, radius), Xform.identity())\n\n    @staticmethod\n    def edge_pipes(mesh, radius):\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:",
+          "file": "primitives.py"
+        },
+        "cpp": {
+          "sig": "Mesh capsule_mesh(const Line& line, double radius)",
+          "code": "Mesh Primitives::capsule_mesh(const Line& line, double radius) {\n    auto [verts, tris] = capsule_geometry(line.start(), line.end(), radius);\n    Mesh mesh;\n    std::vector<size_t> vkeys;\n    for (const auto& v : verts) vkeys.push_back(mesh.add_vertex(v));\n    for (const auto& t : tris)  mesh.add_face({vkeys[t[0]], vkeys[t[1]], vkeys[t[2]]}",
+          "file": "primitives.cpp"
+        },
+        "rust": {
+          "sig": "capsule_mesh(line: &Line, radius: f64) -> Mesh",
+          "code": "pub fn capsule_mesh(line: &Line, radius: f64) -> Mesh {\n        let start = line.start();\n        let end = line.end();\n        let (verts, tris) = Self::capsule_geometry(&start, &end, radius);\n        let mut mesh = Mesh::new();\n        let vkeys: Vec<usize> = verts.iter().map(|v| mesh.add_vertex(v.clone(), None)).collect();\n        for t in &tris { mesh.add_face(vec![vkeys[t[0]], vkeys[t[1]], vkeys[t[2]]], None); }\n        mesh\n    }",
+          "file": "primitives.rs"
+        }
+      },
+      "related": [
+        "Primitives._capsule_geometry",
+        "Primitives._line_to_cylinder_transform",
+        "Primitives._transform_geometry",
+        "Primitives._unit_cone_geometry",
+        "Primitives._unit_cylinder_geometry",
+        "Primitives.arrow_mesh",
+        "Primitives.capsule_geometry",
+        "Primitives.cylinder_mesh",
+        "Primitives.edge_pipes",
         "Primitives.transform_geometry",
         "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
@@ -26883,17 +28043,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edge_pipes(mesh, radius)",
-          "code": "def edge_pipes(mesh, radius):\n\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.cylinder_mesh(line, radius)\n            for j in range(len(pipe.facecolors)):\n                pipe.facecolors[j] = mesh.linecolors[i]\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:\n            face_vertices = [cone_vertex_map[tri[0]], cone_vertex_map[tri[1]], cone_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        return mesh",
+          "code": "def edge_pipes(mesh, radius):\n\n        from session_py.line import Line\n        edges = mesh.edges()\n        result = []\n        for i, (u, v) in enumerate(edges):\n            if i >= len(mesh.linecolors):\n                break\n            start = mesh.vertex[u].position()\n            end = mesh.vertex[v].position()\n            line = Line(start[0], start[1], start[2], end[0], end[1], end[2])\n            pipe = Primitives.capsule_mesh(line, radius)\n            pipe.set_facecolors([mesh.linecolors[i]] * pipe.number_of_faces())\n            result.append(pipe)\n        return result\n\n    @staticmethod\n    def arrow_mesh(line, radius):\n        start = line.start()\n        line_vec = line.to_vector()\n        length = line.length()\n\n        z_axis = line_vec.normalize()\n        if abs(z_axis[2]) < 0.9:\n            x_axis = Vector(0.0, 0.0, 1.0).cross(z_axis).normalize()\n        else:\n            x_axis = Vector(1.0, 0.0, 0.0).cross(z_axis).normalize()\n        y_axis = z_axis.cross(x_axis).normalize()\n\n        cone_length = length * 0.2\n        body_length = length * 0.8\n\n        body_center = Point(\n            start.x + line_vec[0] * 0.4,\n            start.y + line_vec[1] * 0.4,\n            start.z + line_vec[2] * 0.4,\n        )\n        cone_base_center = Point(\n            start.x + line_vec[0] * 0.9,\n            start.y + line_vec[1] * 0.9,\n            start.z + line_vec[2] * 0.9,\n        )\n\n        body_scale = Xform.scale_xyz(radius * 2.0, radius * 2.0, body_length)\n        rotation = Xform()\n        rotation.m[0] = x_axis[0]; rotation.m[1] = x_axis[1]; rotation.m[2] = x_axis[2]\n        rotation.m[4] = y_axis[0]; rotation.m[5] = y_axis[1]; rotation.m[6] = y_axis[2]\n        rotation.m[8] = z_axis[0]; rotation.m[9] = z_axis[1]; rotation.m[10] = z_axis[2]\n        body_translation = Xform.translation(body_center.x, body_center.y, body_center.z)\n        body_xform = body_translation * rotation * body_scale\n\n        cone_scale = Xform.scale_xyz(radius * 3.0, radius * 3.0, cone_length)\n        cone_translation = Xform.translation(\n            cone_base_center.x, cone_base_center.y, cone_base_center.z\n        )\n        cone_xform = cone_translation * rotation * cone_scale\n\n        body_geometry = Primitives._unit_cylinder_geometry()\n        cone_geometry = Primitives._unit_cone_geometry()\n\n        mesh = Mesh()\n\n        body_vertex_map = []\n        for v in body_geometry[0]:\n            transformed = body_xform.transformed_point(v)\n            body_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in body_geometry[1]:\n            face_vertices = [body_vertex_map[tri[0]], body_vertex_map[tri[1]], body_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        cone_vertex_map = []\n        for v in cone_geometry[0]:\n            transformed = cone_xform.transformed_point(v)\n            cone_vertex_map.append(mesh.add_vertex(transformed))\n        for tri in cone_geometry[1]:\n            face_vertices = [cone_vertex_map[tri[0]], cone_vertex_map[tri[1]], cone_vertex_map[tri[2]]]\n            mesh.add_face(face_vertices)\n\n        return mesh\n\n    ###########################################################################",
           "file": "primitives.py"
         },
         "cpp": {
           "sig": "std::vector<Mesh> edge_pipes(const Mesh& mesh, double radius)",
-          "code": "std::vector<Mesh> Primitives::edge_pipes(const Mesh& mesh, double radius) {\n    auto edge_list = mesh.edges();\n    std::vector<Mesh> result;\n    for (size_t i = 0; i < edge_list.size() && i < mesh.linecolors.size(); ++i) {\n        auto [v, u] = edge_list[i];\n        Point start = mesh.vertex.at(v).position();\n        Point end = mesh.vertex.at(u).position();\n        Mesh pipe = Primitives::cylinder_mesh(Line::from_points(start, end), radius);\n        for (auto& c : pipe.facecolors)\n            c = mesh.linecolors[i];\n        result.push_back(std::move(pipe));\n    }",
+          "code": "std::vector<Mesh> Primitives::edge_pipes(const Mesh& mesh, double radius) {\n    auto edge_list = mesh.edges();\n    std::vector<Mesh> result;\n    for (size_t i = 0; i < edge_list.size() && i < mesh.get_linecolors().size(); ++i) {\n        auto [v, u] = edge_list[i];\n        Point start = mesh.vertex.at(v).position();\n        Point end = mesh.vertex.at(u).position();\n        Mesh pipe = Primitives::capsule_mesh(Line::from_points(start, end), radius);\n        pipe.set_facecolors(std::vector<Color>(pipe.number_of_faces(), mesh.get_linecolors()[i]));\n        result.push_back(std::move(pipe));\n    }",
           "file": "primitives.cpp"
         },
         "rust": {
           "sig": "edge_pipes(mesh: &Mesh, radius: f64) -> Vec<Mesh>",
-          "code": "pub fn edge_pipes(mesh: &Mesh, radius: f64) -> Vec<Mesh> {\n        let edge_list = mesh.edges();\n        let mut result = Vec::new();\n        for (i, (u, v)) in edge_list.iter().enumerate() {\n            if i >= mesh.linecolors.len() { break; }\n            let start = mesh.vertex[u].position();\n            let end = mesh.vertex[v].position();\n            let line = Line::new(start[0], start[1], start[2], end[0], end[1], end[2]);\n            let mut pipe = Primitives::cylinder_mesh(&line, radius);\n            let color = mesh.linecolors[i].clone();\n            for c in pipe.facecolors.iter_mut() { *c = color.clone(); }\n            result.push(pipe);\n        }\n        result\n    }",
+          "code": "pub fn edge_pipes(mesh: &Mesh, radius: f64) -> Vec<Mesh> {\n        let edge_list = mesh.edges();\n        let mut result = Vec::new();\n        for (i, (u, v)) in edge_list.iter().enumerate() {\n            if i >= mesh.get_linecolors().len() { break; }\n            let start = mesh.vertex[u].position();\n            let end = mesh.vertex[v].position();\n            let line = Line::new(start[0], start[1], start[2], end[0], end[1], end[2]);\n            let mut pipe = Primitives::capsule_mesh(&line, radius);\n            let color = mesh.get_linecolors()[i].clone();\n            let nf = pipe.number_of_faces();\n            pipe.set_facecolors(vec![color; nf]);\n            result.push(pipe);\n        }\n        result\n    }",
           "file": "primitives.rs"
         }
       },
@@ -26903,6 +28063,7 @@ window.API_INDEX = {
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.unit_cone_geometry",
         "Primitives.unit_cylinder_geometry"
@@ -26933,6 +28094,7 @@ window.API_INDEX = {
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
         "Primitives.unit_cone_geometry",
@@ -27235,6 +28397,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
+        "Primitives._unit_cylinder_geometry",
         "Primitives.annen_surfaces",
         "Primitives.arc",
         "Primitives.chevron_mesh",
@@ -27246,11 +28410,14 @@ window.API_INDEX = {
         "Primitives.create_sweep2",
         "Primitives.cube",
         "Primitives.dodecahedron",
+        "Primitives.hyperbola",
         "Primitives.icosahedron",
         "Primitives.lerp_vec",
         "Primitives.longest_edge_dir",
         "Primitives.make_bilinear",
         "Primitives.octahedron",
+        "Primitives.ring",
+        "Primitives.spiral",
         "Primitives.wave_surface"
       ]
     },
@@ -27777,7 +28944,8 @@ window.API_INDEX = {
         "Primitives.diamond_subdivision",
         "Primitives.intersect_3_planes",
         "Primitives.line_plane_t",
-        "Primitives.pt"
+        "Primitives.pt",
+        "Primitives.ring"
       ]
     },
     {
@@ -37308,6 +38476,7 @@ window.API_INDEX = {
         "Color.new",
         "Color.olive",
         "Color.orange",
+        "Color.palette",
         "Color.pb_dump",
         "Color.pb_dumps",
         "Color.pb_load",
@@ -37383,6 +38552,7 @@ window.API_INDEX = {
         "Color.navy",
         "Color.new",
         "Color.olive",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -37420,6 +38590,7 @@ window.API_INDEX = {
         "Color.maroon",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.pink",
         "Color.purple",
         "Color.r",
@@ -37471,6 +38642,7 @@ window.API_INDEX = {
         "Color.maroon",
         "Color.navy",
         "Color.olive",
+        "Color.palette",
         "Color.parse",
         "Color.pb_dumps",
         "Color.pink",
@@ -37958,7 +39130,35 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.position",
+      "name": "ColorMode.color_mode_to_string",
+      "implementations": {
+        "cpp": {
+          "sig": "inline std::string color_mode_to_string(ColorMode m)",
+          "code": "inline std::string color_mode_to_string(ColorMode m) {\n    switch (m) {\n        case ColorMode::POINTCOLORS: return \"pointcolors\";\n        case ColorMode::FACECOLORS:  return \"facecolors\";\n        case ColorMode::NONE:        return \"none\";\n        default:                     return \"objectcolor\";\n    }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color",
+        "ColorMode.str"
+      ]
+    },
+    {
+      "name": "ColorMode.color_mode_from_string",
+      "implementations": {
+        "cpp": {
+          "sig": "inline ColorMode color_mode_from_string(const std::string& s)",
+          "code": "inline ColorMode color_mode_from_string(const std::string& s) {\n    if (s == \"pointcolors\") return ColorMode::POINTCOLORS;\n    if (s == \"facecolors\")  return ColorMode::FACECOLORS;\n    if (s == \"none\")        return ColorMode::NONE;\n    return ColorMode::OBJECTCOLOR;\n}",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color",
+        "ColorMode.str"
+      ]
+    },
+    {
+      "name": "ColorMode.position",
       "implementations": {
         "cpp": {
           "sig": "Point position()",
@@ -37967,13 +39167,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.add_vertex",
-        "NormalWeighting.set_position",
-        "NormalWeighting.vertex_position"
+        "ColorMode.add_vertex",
+        "ColorMode.set_position",
+        "ColorMode.vertex_position"
       ]
     },
     {
-      "name": "NormalWeighting.set_position",
+      "name": "ColorMode.set_position",
       "implementations": {
         "cpp": {
           "sig": "void set_position(const Point& p)",
@@ -37982,11 +39182,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.position"
+        "ColorMode.position"
       ]
     },
     {
-      "name": "NormalWeighting.color",
+      "name": "ColorMode.color",
       "implementations": {
         "cpp": {
           "sig": "std::array<double, 3> color()",
@@ -37995,11 +39195,24 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.set_color"
+        "ColorMode.clear_facecolors",
+        "ColorMode.clear_linecolors",
+        "ColorMode.clear_pointcolors",
+        "ColorMode.color_mode_from_string",
+        "ColorMode.color_mode_to_string",
+        "ColorMode.get_facecolors",
+        "ColorMode.get_linecolors",
+        "ColorMode.get_objectcolor",
+        "ColorMode.get_pointcolors",
+        "ColorMode.set_color",
+        "ColorMode.set_facecolors",
+        "ColorMode.set_linecolors",
+        "ColorMode.set_objectcolor",
+        "ColorMode.set_pointcolors"
       ]
     },
     {
-      "name": "NormalWeighting.set_color",
+      "name": "ColorMode.set_color",
       "implementations": {
         "cpp": {
           "sig": "void set_color(double r, double g, double b)",
@@ -38008,11 +39221,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.color"
+        "ColorMode.color"
       ]
     },
     {
-      "name": "NormalWeighting.normal",
+      "name": "ColorMode.normal",
       "implementations": {
         "cpp": {
           "sig": "std::optional<std::array<double, 3>> normal()",
@@ -38021,17 +39234,17 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.face_normal",
-        "NormalWeighting.face_normals",
-        "NormalWeighting.set_normal",
-        "NormalWeighting.vertex_normal",
-        "NormalWeighting.vertex_normal_weighted",
-        "NormalWeighting.vertex_normals",
-        "NormalWeighting.vertex_normals_weighted"
+        "ColorMode.face_normal",
+        "ColorMode.face_normals",
+        "ColorMode.set_normal",
+        "ColorMode.vertex_normal",
+        "ColorMode.vertex_normal_weighted",
+        "ColorMode.vertex_normals",
+        "ColorMode.vertex_normals_weighted"
       ]
     },
     {
-      "name": "NormalWeighting.set_normal",
+      "name": "ColorMode.set_normal",
       "implementations": {
         "cpp": {
           "sig": "void set_normal(double nx, double ny, double nz)",
@@ -38040,11 +39253,167 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.normal"
+        "ColorMode.normal"
       ]
     },
     {
-      "name": "NormalWeighting.from_vertices_and_faces",
+      "name": "ColorMode.set_pointcolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void set_pointcolors(std::vector<Color> v)",
+          "code": "void set_pointcolors(std::vector<Color> v) { pointcolors = std::move(v); color_mode = ColorMode::POINTCOLORS; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.set_facecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void set_facecolors(std::vector<Color> v)",
+          "code": "void set_facecolors(std::vector<Color> v) { facecolors = std::move(v); color_mode = ColorMode::FACECOLORS; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.set_linecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void set_linecolors(std::vector<Color> v, std::vector<double> w = {})",
+          "code": "void set_linecolors(std::vector<Color> v, std::vector<double> w = {}) { linecolors = std::move(v); if (!w.empty()) widths = std::move(w); }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.set_objectcolor",
+      "implementations": {
+        "cpp": {
+          "sig": "void set_objectcolor(Color c)",
+          "code": "void set_objectcolor(Color c) { objectcolor = std::move(c); }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.clear_pointcolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void clear_pointcolors()",
+          "code": "void clear_pointcolors() { pointcolors.clear(); if (color_mode == ColorMode::POINTCOLORS) color_mode = ColorMode::OBJECTCOLOR; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.clear",
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.clear_facecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void clear_facecolors()",
+          "code": "void clear_facecolors() { facecolors.clear(); if (color_mode == ColorMode::FACECOLORS) color_mode = ColorMode::OBJECTCOLOR; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.clear",
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.clear_linecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "void clear_linecolors()",
+          "code": "void clear_linecolors() { linecolors.clear(); widths.clear(); }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.clear",
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.get_pointcolors",
+      "implementations": {
+        "cpp": {
+          "sig": "const std::vector<Color>& get_pointcolors()",
+          "code": "const std::vector<Color>& get_pointcolors() const { return pointcolors; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.get_facecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "const std::vector<Color>& get_facecolors()",
+          "code": "const std::vector<Color>& get_facecolors() const  { return facecolors; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.get_linecolors",
+      "implementations": {
+        "cpp": {
+          "sig": "const std::vector<Color>& get_linecolors()",
+          "code": "const std::vector<Color>& get_linecolors() const  { return linecolors; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.get_widths",
+      "implementations": {
+        "cpp": {
+          "sig": "const std::vector<double>& get_widths()",
+          "code": "const std::vector<double>& get_widths() const     { return widths; }",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.get_objectcolor",
+      "implementations": {
+        "cpp": {
+          "sig": "const Color& get_objectcolor()",
+          "code": "const Color& get_objectcolor() const              { return objectcolor; }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.color"
+      ]
+    },
+    {
+      "name": "ColorMode.from_vertices_and_faces",
       "implementations": {
         "cpp": {
           "sig": "Mesh from_vertices_and_faces(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces)",
@@ -38054,7 +39423,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.from_polylines",
+      "name": "ColorMode.from_polylines",
       "implementations": {
         "cpp": {
           "sig": "Mesh from_polylines(const std::vector<std::vector<Point>>& polygons, std::optional<double> precision = std::nullopt)",
@@ -38064,7 +39433,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.from_lines",
+      "name": "ColorMode.from_lines",
       "implementations": {
         "cpp": {
           "sig": "Mesh from_lines(const std::vector<Line>& lines, bool delete_boundary_face = false, std::optional<double> precision = std::nullopt)",
@@ -38074,7 +39443,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.from_polygon_with_holes",
+      "name": "ColorMode.from_polygon_with_holes",
       "implementations": {
         "cpp": {
           "sig": "Mesh from_polygon_with_holes(const std::vector<std::vector<Point>>& polylines, bool sort_by_bbox = false)",
@@ -38083,11 +39452,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.from_polygon_with_holes_many"
+        "ColorMode.from_polygon_with_holes_many"
       ]
     },
     {
-      "name": "NormalWeighting.loft",
+      "name": "ColorMode.loft",
       "implementations": {
         "cpp": {
           "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap = true)",
@@ -38096,11 +39465,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.loft_many"
+        "ColorMode.loft_many"
       ]
     },
     {
-      "name": "NormalWeighting.from_polygon_with_holes_many",
+      "name": "ColorMode.from_polygon_with_holes_many",
       "implementations": {
         "cpp": {
           "sig": "std::vector<Mesh> from_polygon_with_holes_many(\n        const std::vector<std::vector<std::vector<Point>>>& inputs,\n        bool sort_by_bbox = false, bool parallel = true)",
@@ -38109,11 +39478,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.from_polygon_with_holes"
+        "ColorMode.from_polygon_with_holes"
       ]
     },
     {
-      "name": "NormalWeighting.loft_many",
+      "name": "ColorMode.loft_many",
       "implementations": {
         "cpp": {
           "sig": "std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true)",
@@ -38122,11 +39491,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.loft"
+        "ColorMode.loft"
       ]
     },
     {
-      "name": "NormalWeighting.create_box",
+      "name": "ColorMode.create_box",
       "implementations": {
         "cpp": {
           "sig": "Mesh create_box(double x, double y, double z)",
@@ -38136,7 +39505,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_empty",
+      "name": "ColorMode.is_empty",
       "implementations": {
         "cpp": {
           "sig": "bool is_empty()",
@@ -38146,7 +39515,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_valid",
+      "name": "ColorMode.is_valid",
       "implementations": {
         "cpp": {
           "sig": "bool is_valid()",
@@ -38156,7 +39525,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_closed",
+      "name": "ColorMode.is_closed",
       "implementations": {
         "cpp": {
           "sig": "bool is_closed()",
@@ -38166,7 +39535,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_vertex_on_boundary",
+      "name": "ColorMode.is_vertex_on_boundary",
       "implementations": {
         "cpp": {
           "sig": "bool is_vertex_on_boundary(size_t vertex_key)",
@@ -38176,7 +39545,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_edge_on_boundary",
+      "name": "ColorMode.is_edge_on_boundary",
       "implementations": {
         "cpp": {
           "sig": "bool is_edge_on_boundary(size_t u, size_t v)",
@@ -38186,7 +39555,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.is_face_on_boundary",
+      "name": "ColorMode.is_face_on_boundary",
       "implementations": {
         "cpp": {
           "sig": "bool is_face_on_boundary(size_t face_key)",
@@ -38196,7 +39565,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.number_of_vertices",
+      "name": "ColorMode.number_of_vertices",
       "implementations": {
         "cpp": {
           "sig": "size_t number_of_vertices()",
@@ -38206,7 +39575,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.number_of_faces",
+      "name": "ColorMode.number_of_faces",
       "implementations": {
         "cpp": {
           "sig": "size_t number_of_faces()",
@@ -38216,7 +39585,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.number_of_edges",
+      "name": "ColorMode.number_of_edges",
       "implementations": {
         "cpp": {
           "sig": "size_t number_of_edges()",
@@ -38225,11 +39594,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.edges"
+        "ColorMode.edges"
       ]
     },
     {
-      "name": "NormalWeighting.edges",
+      "name": "ColorMode.edges",
       "implementations": {
         "cpp": {
           "sig": "std::vector<std::pair<size_t, size_t>> edges()",
@@ -38238,14 +39607,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.edge_edges",
-        "NormalWeighting.face_edges",
-        "NormalWeighting.number_of_edges",
-        "NormalWeighting.vertex_edges"
+        "ColorMode.edge_edges",
+        "ColorMode.face_edges",
+        "ColorMode.number_of_edges",
+        "ColorMode.vertex_edges"
       ]
     },
     {
-      "name": "NormalWeighting.euler",
+      "name": "ColorMode.euler",
       "implementations": {
         "cpp": {
           "sig": "int euler()",
@@ -38255,7 +39624,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_index",
+      "name": "ColorMode.vertex_index",
       "implementations": {
         "cpp": {
           "sig": "std::map<size_t, size_t> vertex_index()",
@@ -38265,7 +39634,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.to_vertices_and_faces",
+      "name": "ColorMode.to_vertices_and_faces",
       "implementations": {
         "cpp": {
           "sig": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces()",
@@ -38275,7 +39644,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.clear",
+      "name": "ColorMode.clear",
       "implementations": {
         "cpp": {
           "sig": "void clear()",
@@ -38284,11 +39653,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.clear_triangle_bvh"
+        "ColorMode.clear_facecolors",
+        "ColorMode.clear_linecolors",
+        "ColorMode.clear_pointcolors",
+        "ColorMode.clear_triangle_bvh"
       ]
     },
     {
-      "name": "NormalWeighting.unweld",
+      "name": "ColorMode.unweld",
       "implementations": {
         "cpp": {
           "sig": "Mesh unweld()",
@@ -38298,7 +39670,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.unify_winding",
+      "name": "ColorMode.unify_winding",
       "implementations": {
         "cpp": {
           "sig": "bool unify_winding()",
@@ -38308,7 +39680,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.add_vertex",
+      "name": "ColorMode.add_vertex",
       "implementations": {
         "cpp": {
           "sig": "size_t add_vertex(const Point& position, std::optional<size_t> vkey = std::nullopt)",
@@ -38317,11 +39689,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.position"
+        "ColorMode.position"
       ]
     },
     {
-      "name": "NormalWeighting.add_face",
+      "name": "ColorMode.add_face",
       "implementations": {
         "cpp": {
           "sig": "std::optional<size_t> add_face(const std::vector<size_t>& vertices, std::optional<size_t> fkey = std::nullopt)",
@@ -38331,7 +39703,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_position",
+      "name": "ColorMode.vertex_position",
       "implementations": {
         "cpp": {
           "sig": "std::optional<Point> vertex_position(size_t vertex_key)",
@@ -38340,11 +39712,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.position"
+        "ColorMode.position"
       ]
     },
     {
-      "name": "NormalWeighting.face_vertices",
+      "name": "ColorMode.face_vertices",
       "implementations": {
         "cpp": {
           "sig": "std::optional<std::vector<size_t>> face_vertices(size_t face_key)",
@@ -38354,7 +39726,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_neighbors",
+      "name": "ColorMode.vertex_neighbors",
       "implementations": {
         "cpp": {
           "sig": "std::vector<size_t> vertex_neighbors(size_t vertex_key)",
@@ -38364,7 +39736,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_faces",
+      "name": "ColorMode.vertex_faces",
       "implementations": {
         "cpp": {
           "sig": "std::vector<size_t> vertex_faces(size_t vertex_key)",
@@ -38374,7 +39746,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_edges",
+      "name": "ColorMode.vertex_edges",
       "implementations": {
         "cpp": {
           "sig": "std::vector<std::pair<size_t, size_t>> vertex_edges(size_t vertex_key)",
@@ -38383,11 +39755,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.edges"
+        "ColorMode.edges"
       ]
     },
     {
-      "name": "NormalWeighting.face_edges",
+      "name": "ColorMode.face_edges",
       "implementations": {
         "cpp": {
           "sig": "std::vector<std::pair<size_t, size_t>> face_edges(size_t face_key)",
@@ -38396,11 +39768,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.edges"
+        "ColorMode.edges"
       ]
     },
     {
-      "name": "NormalWeighting.face_neighbors",
+      "name": "ColorMode.face_neighbors",
       "implementations": {
         "cpp": {
           "sig": "std::vector<size_t> face_neighbors(size_t face_key)",
@@ -38410,7 +39782,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.edge_vertices",
+      "name": "ColorMode.edge_vertices",
       "implementations": {
         "cpp": {
           "sig": "std::array<size_t, 2> edge_vertices(size_t u, size_t v)",
@@ -38420,7 +39792,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.edge_faces",
+      "name": "ColorMode.edge_faces",
       "implementations": {
         "cpp": {
           "sig": "std::pair<std::optional<size_t>, std::optional<size_t>> edge_faces(size_t u, size_t v)",
@@ -38430,7 +39802,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.edge_edges",
+      "name": "ColorMode.edge_edges",
       "implementations": {
         "cpp": {
           "sig": "std::vector<std::pair<size_t, size_t>> edge_edges(size_t u, size_t v)",
@@ -38439,11 +39811,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.edges"
+        "ColorMode.edges"
       ]
     },
     {
-      "name": "NormalWeighting.face_normal",
+      "name": "ColorMode.face_normal",
       "implementations": {
         "cpp": {
           "sig": "std::optional<Vector> face_normal(size_t face_key)",
@@ -38452,12 +39824,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.face_normals",
-        "NormalWeighting.normal"
+        "ColorMode.face_normals",
+        "ColorMode.normal"
       ]
     },
     {
-      "name": "NormalWeighting.vertex_normal",
+      "name": "ColorMode.vertex_normal",
       "implementations": {
         "cpp": {
           "sig": "std::optional<Vector> vertex_normal(size_t vertex_key)",
@@ -38466,14 +39838,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.normal",
-        "NormalWeighting.vertex_normal_weighted",
-        "NormalWeighting.vertex_normals",
-        "NormalWeighting.vertex_normals_weighted"
+        "ColorMode.normal",
+        "ColorMode.vertex_normal_weighted",
+        "ColorMode.vertex_normals",
+        "ColorMode.vertex_normals_weighted"
       ]
     },
     {
-      "name": "NormalWeighting.vertex_normal_weighted",
+      "name": "ColorMode.vertex_normal_weighted",
       "implementations": {
         "cpp": {
           "sig": "std::optional<Vector> vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting)",
@@ -38482,12 +39854,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.normal",
-        "NormalWeighting.vertex_normal"
+        "ColorMode.normal",
+        "ColorMode.vertex_normal"
       ]
     },
     {
-      "name": "NormalWeighting.face_area",
+      "name": "ColorMode.face_area",
       "implementations": {
         "cpp": {
           "sig": "std::optional<double> face_area(size_t face_key)",
@@ -38497,7 +39869,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.vertex_angle_in_face",
+      "name": "ColorMode.vertex_angle_in_face",
       "implementations": {
         "cpp": {
           "sig": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key)",
@@ -38507,7 +39879,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.dihedral_angle",
+      "name": "ColorMode.dihedral_angle",
       "implementations": {
         "cpp": {
           "sig": "std::optional<double> dihedral_angle(size_t u, size_t v)",
@@ -38517,7 +39889,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.face_normals",
+      "name": "ColorMode.face_normals",
       "implementations": {
         "cpp": {
           "sig": "std::map<size_t, Vector> face_normals()",
@@ -38526,12 +39898,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.face_normal",
-        "NormalWeighting.normal"
+        "ColorMode.face_normal",
+        "ColorMode.normal"
       ]
     },
     {
-      "name": "NormalWeighting.vertex_normals",
+      "name": "ColorMode.vertex_normals",
       "implementations": {
         "cpp": {
           "sig": "std::map<size_t, Vector> vertex_normals()",
@@ -38540,13 +39912,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.normal",
-        "NormalWeighting.vertex_normal",
-        "NormalWeighting.vertex_normals_weighted"
+        "ColorMode.normal",
+        "ColorMode.vertex_normal",
+        "ColorMode.vertex_normals_weighted"
       ]
     },
     {
-      "name": "NormalWeighting.vertex_normals_weighted",
+      "name": "ColorMode.vertex_normals_weighted",
       "implementations": {
         "cpp": {
           "sig": "std::map<size_t, Vector> vertex_normals_weighted(NormalWeighting weighting)",
@@ -38555,13 +39927,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.normal",
-        "NormalWeighting.vertex_normal",
-        "NormalWeighting.vertex_normals"
+        "ColorMode.normal",
+        "ColorMode.vertex_normal",
+        "ColorMode.vertex_normals"
       ]
     },
     {
-      "name": "NormalWeighting.transform",
+      "name": "ColorMode.transform",
       "implementations": {
         "cpp": {
           "sig": "bool transform(const Xform& xf)",
@@ -38570,11 +39942,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.transformed"
+        "ColorMode.transformed"
       ]
     },
     {
-      "name": "NormalWeighting.transformed",
+      "name": "ColorMode.transformed",
       "implementations": {
         "cpp": {
           "sig": "Mesh transformed()",
@@ -38583,11 +39955,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.transform"
+        "ColorMode.transform"
       ]
     },
     {
-      "name": "NormalWeighting.jsondump",
+      "name": "ColorMode.jsondump",
       "implementations": {
         "cpp": {
           "sig": "nlohmann::ordered_json jsondump()",
@@ -38597,7 +39969,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.jsonload",
+      "name": "ColorMode.jsonload",
       "implementations": {
         "cpp": {
           "sig": "Mesh jsonload(const nlohmann::json& data)",
@@ -38607,7 +39979,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.json_dumps",
+      "name": "ColorMode.json_dumps",
       "implementations": {
         "cpp": {
           "sig": "std::string json_dumps()",
@@ -38616,12 +39988,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.json_dump",
-        "NormalWeighting.str"
+        "ColorMode.json_dump",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.json_loads",
+      "name": "ColorMode.json_loads",
       "implementations": {
         "cpp": {
           "sig": "Mesh json_loads(const std::string& json_string)",
@@ -38630,12 +40002,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.json_load",
-        "NormalWeighting.str"
+        "ColorMode.json_load",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.json_dump",
+      "name": "ColorMode.json_dump",
       "implementations": {
         "cpp": {
           "sig": "void json_dump(const std::string& filename)",
@@ -38644,12 +40016,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.json_dumps",
-        "NormalWeighting.str"
+        "ColorMode.json_dumps",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.json_load",
+      "name": "ColorMode.json_load",
       "implementations": {
         "cpp": {
           "sig": "Mesh json_load(const std::string& filename)",
@@ -38658,12 +40030,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.json_loads",
-        "NormalWeighting.str"
+        "ColorMode.json_loads",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.pb_dumps",
+      "name": "ColorMode.pb_dumps",
       "implementations": {
         "cpp": {
           "sig": "std::string pb_dumps()",
@@ -38672,12 +40044,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_dump",
-        "NormalWeighting.str"
+        "ColorMode.pb_dump",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.pb_loads",
+      "name": "ColorMode.pb_loads",
       "implementations": {
         "cpp": {
           "sig": "Mesh pb_loads(const std::string& data)",
@@ -38686,12 +40058,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_load",
-        "NormalWeighting.str"
+        "ColorMode.pb_load",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.pb_dump",
+      "name": "ColorMode.pb_dump",
       "implementations": {
         "cpp": {
           "sig": "void pb_dump(const std::string& filename)",
@@ -38700,12 +40072,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_dumps",
-        "NormalWeighting.str"
+        "ColorMode.pb_dumps",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.pb_load",
+      "name": "ColorMode.pb_load",
       "implementations": {
         "cpp": {
           "sig": "Mesh pb_load(const std::string& filename)",
@@ -38714,12 +40086,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.pb_loads",
-        "NormalWeighting.str"
+        "ColorMode.pb_loads",
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.str",
+      "name": "ColorMode.str",
       "implementations": {
         "cpp": {
           "sig": "std::string str()",
@@ -38728,19 +40100,21 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.json_dump",
-        "NormalWeighting.json_dumps",
-        "NormalWeighting.json_load",
-        "NormalWeighting.json_loads",
-        "NormalWeighting.pb_dump",
-        "NormalWeighting.pb_dumps",
-        "NormalWeighting.pb_load",
-        "NormalWeighting.pb_loads",
-        "NormalWeighting.repr"
+        "ColorMode.color_mode_from_string",
+        "ColorMode.color_mode_to_string",
+        "ColorMode.json_dump",
+        "ColorMode.json_dumps",
+        "ColorMode.json_load",
+        "ColorMode.json_loads",
+        "ColorMode.pb_dump",
+        "ColorMode.pb_dumps",
+        "ColorMode.pb_load",
+        "ColorMode.pb_loads",
+        "ColorMode.repr"
       ]
     },
     {
-      "name": "NormalWeighting.repr",
+      "name": "ColorMode.repr",
       "implementations": {
         "cpp": {
           "sig": "std::string repr()",
@@ -38749,11 +40123,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.str"
+        "ColorMode.str"
       ]
     },
     {
-      "name": "NormalWeighting.build_triangle_bvh",
+      "name": "ColorMode.build_triangle_bvh",
       "implementations": {
         "cpp": {
           "sig": "void build_triangle_bvh(bool force = false)",
@@ -38763,7 +40137,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.triangle_bvh_ray_cast",
+      "name": "ColorMode.triangle_bvh_ray_cast",
       "implementations": {
         "cpp": {
           "sig": "bool triangle_bvh_ray_cast(const Point& origin, const Vector& direction, std::vector<int>& candidate_ids, bool find_all = false)",
@@ -38773,7 +40147,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.get_triangle_by_id",
+      "name": "ColorMode.get_triangle_by_id",
       "implementations": {
         "cpp": {
           "sig": "bool get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2)",
@@ -38783,7 +40157,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.clear_triangle_bvh",
+      "name": "ColorMode.clear_triangle_bvh",
       "implementations": {
         "cpp": {
           "sig": "void clear_triangle_bvh()",
@@ -38792,11 +40166,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NormalWeighting.clear"
+        "ColorMode.clear"
       ]
     },
     {
-      "name": "NormalWeighting.build_triangle_aabb_tree",
+      "name": "ColorMode.build_triangle_aabb_tree",
       "implementations": {
         "cpp": {
           "sig": "void build_triangle_aabb_tree(bool force = false)",
@@ -38806,7 +40180,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.get_cached_bvh",
+      "name": "ColorMode.get_cached_bvh",
       "implementations": {
         "cpp": {
           "sig": "const BVH* get_cached_bvh()",
@@ -38816,7 +40190,7 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "NormalWeighting.get_cached_aabb_tree",
+      "name": "ColorMode.get_cached_aabb_tree",
       "implementations": {
         "cpp": {
           "sig": "const AABBTree* get_cached_aabb_tree()",
@@ -38855,22 +40229,27 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "jsondump() -> serde_json::Value",
-          "code": "pub fn jsondump(&self) -> serde_json::Value {\n        let pointcolors_flat: Vec<u8> = self\n            .pointcolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        let facecolors_flat: Vec<u8> = self\n            .facecolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        let linecolors_flat: Vec<u8> = self\n            .linecolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        serde_json::json!({\n            \"type\": \"Mesh\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"vertex\": self.vertex,\n            \"face\": self.face,\n            \"halfedge\": self.halfedge,\n            \"facedata\": self.facedata,\n            \"edgedata\": self.edgedata,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"max_vertex\": self.max_vertex,\n            \"max_face\": self.max_face,\n            \"pointcolors\": pointcolors_flat,\n            \"facecolors\": facecolors_flat,\n            \"linecolors\": linecolors_flat,\n            \"widths\": self.widths\n        })\n    }",
+          "code": "pub fn jsondump(&self) -> serde_json::Value {\n        let pointcolors_flat: Vec<u8> = self\n            .pointcolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        let facecolors_flat: Vec<u8> = self\n            .facecolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        let linecolors_flat: Vec<u8> = self\n            .linecolors\n            .iter()\n            .flat_map(|c| vec![c.r, c.g, c.b, c.a])\n            .collect();\n\n        serde_json::json!({\n            \"type\": \"Mesh\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"vertex\": self.vertex,\n            \"face\": self.face,\n            \"halfedge\": self.halfedge,\n            \"facedata\": self.facedata,\n            \"edgedata\": self.edgedata,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"max_vertex\": self.max_vertex,\n            \"max_face\": self.max_face,\n            \"pointcolors\": pointcolors_flat,\n            \"facecolors\": facecolors_flat,\n            \"linecolors\": linecolors_flat,\n            \"objectcolor\": serde_json::to_value(&self.objectcolor).unwrap_or(serde_json::Value::Null),\n            \"color_mode\": self.color_mode.to_str(),\n            \"widths\": self.widths\n        })\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.__jsondump__",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.vertex_normals_weighted",
+        "Mesh.widths"
       ]
     },
     {
@@ -38883,19 +40262,24 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "jsonload(data: &serde_json::Value) -> Option<Self>",
-          "code": "pub fn jsonload(data: &serde_json::Value) -> Option<Self> {\n        let mut mesh = Mesh::new();\n\n        if let Some(guid) = data.get(\"guid\").and_then(|v| v.as_str()) {\n            mesh.guid = guid.to_string();\n        }\n        if let Some(name) = data.get(\"name\").and_then(|v| v.as_str()) {\n            mesh.name = name.to_string();\n        }\n\n        if let Some(vertex_data) = data.get(\"vertex\") {\n            mesh.vertex = serde_json::from_value(vertex_data.clone()).ok()?;\n        }\n        if let Some(face_data) = data.get(\"face\") {\n            mesh.face = serde_json::from_value(face_data.clone()).ok()?;\n        }\n        if let Some(halfedge_data) = data.get(\"halfedge\") {\n            mesh.halfedge = serde_json::from_value(halfedge_data.clone()).ok()?;\n        }\n        if let Some(facedata) = data.get(\"facedata\") {\n            mesh.facedata = serde_json::from_value(facedata.clone()).ok()?;\n        }\n        if let Some(edgedata) = data.get(\"edgedata\") {\n            mesh.edgedata = serde_json::from_value(edgedata.clone()).ok()?;\n        }\n        if let Some(max_vertex) = data.get(\"max_vertex\").and_then(|v| v.as_u64()) {\n            mesh.max_vertex = max_vertex as usize;\n        }\n        if let Some(max_face) = data.get(\"max_face\").and_then(|v| v.as_u64()) {\n            mesh.max_face = max_face as usize;\n        }\n\n        // Deserialize flat color arrays\n        if let Some(pointcolors_flat) = data.get(\"pointcolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = pointcolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.pointcolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(facecolors_flat) = data.get(\"facecolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = facecolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.facecolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(linecolors_flat) = data.get(\"linecolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = linecolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.linecolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(widths) = data.get(\"widths\").and_then(|v| v.as_array()) {\n            mesh.widths = widths.iter().filter_map(|v| v.as_f64()).collect();\n        }\n\n        Some(mesh)\n    }",
+          "code": "pub fn jsonload(data: &serde_json::Value) -> Option<Self> {\n        let mut mesh = Mesh::new();\n\n        if let Some(guid) = data.get(\"guid\").and_then(|v| v.as_str()) {\n            mesh.guid = guid.to_string();\n        }\n        if let Some(name) = data.get(\"name\").and_then(|v| v.as_str()) {\n            mesh.name = name.to_string();\n        }\n\n        if let Some(vertex_data) = data.get(\"vertex\") {\n            mesh.vertex = serde_json::from_value(vertex_data.clone()).ok()?;\n        }\n        if let Some(face_data) = data.get(\"face\") {\n            mesh.face = serde_json::from_value(face_data.clone()).ok()?;\n        }\n        if let Some(halfedge_data) = data.get(\"halfedge\") {\n            mesh.halfedge = serde_json::from_value(halfedge_data.clone()).ok()?;\n        }\n        if let Some(facedata) = data.get(\"facedata\") {\n            mesh.facedata = serde_json::from_value(facedata.clone()).ok()?;\n        }\n        if let Some(edgedata) = data.get(\"edgedata\") {\n            mesh.edgedata = serde_json::from_value(edgedata.clone()).ok()?;\n        }\n        if let Some(max_vertex) = data.get(\"max_vertex\").and_then(|v| v.as_u64()) {\n            mesh.max_vertex = max_vertex as usize;\n        }\n        if let Some(max_face) = data.get(\"max_face\").and_then(|v| v.as_u64()) {\n            mesh.max_face = max_face as usize;\n        }\n\n        // Deserialize flat color arrays\n        if let Some(pointcolors_flat) = data.get(\"pointcolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = pointcolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.pointcolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(facecolors_flat) = data.get(\"facecolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = facecolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.facecolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(linecolors_flat) = data.get(\"linecolors\").and_then(|v| v.as_array()) {\n            let rgba_values: Vec<u8> = linecolors_flat\n                .iter()\n                .filter_map(|v| v.as_u64().map(|n| n as u8))\n                .collect();\n            mesh.linecolors = rgba_values\n                .chunks(4)\n                .filter(|c| c.len() == 4)\n                .map(|c| Color::new(c[0], c[1], c[2], c[3]))\n                .collect();\n        }\n\n        if let Some(widths) = data.get(\"widths\").and_then(|v| v.as_array()) {\n            mesh.widths = widths.iter().filter_map(|v| v.as_f64()).collect();\n        }\n\n        if let Some(oc) = data.get(\"objectcolor\") {\n            if let Ok(color) = serde_json::from_value::<Color>(oc.clone()) {\n                mesh.objectcolor = color;\n            }\n        }\n        if let Some(cm) = data.get(\"color_mode\").and_then(|v| v.as_str()) {\n            mesh.color_mode = ColorMode::from_str(cm);\n        }\n\n        Some(mesh)\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
+        "Mesh.facecolors",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
         "Mesh.json_loads",
+        "Mesh.linecolors",
         "Mesh.new",
-        "Mesh.str"
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.widths"
       ]
     },
     {
@@ -40547,6 +41931,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally_static",
         "Polyline.format",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -40700,6 +42085,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
+        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -40916,10 +42302,32 @@ window.API_INDEX = {
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
         "Primitives.hyperbola",
         "Primitives.parabola",
+        "Primitives.spiral"
+      ]
+    },
+    {
+      "name": "Primitives.capsule_geometry",
+      "implementations": {
+        "cpp": {
+          "sig": "std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>> capsule_geometry(const Point& start, const Point& end, double radius)",
+          "code": "std::pair<std::vector<Point>, std::vector<std::array<size_t, 3>>>\nPrimitives::capsule_geometry(const Point& start, const Point& end, double radius) {\n    const int n = 10;\n    const double lat = Tolerance::PI / 4.0;\n    double r_hemi = radius * std::sin(lat);\n    double off = radius * std::cos(lat);\n    double ax = end[0]-start[0], ay = end[1]-start[1], az = end[2]-start[2];\n    double len = std::sqrt(ax*ax + ay*ay + az*az);\n    if (len < 1e-12) { ax=0; ay=0; az=1; }",
+          "file": "primitives.cpp"
+        }
+      },
+      "related": [
+        "Primitives._capsule_geometry",
+        "Primitives._line_to_cylinder_transform",
+        "Primitives._transform_geometry",
+        "Primitives._unit_cone_geometry",
+        "Primitives._unit_cylinder_geometry",
+        "Primitives.capsule_mesh",
+        "Primitives.cylinder_mesh",
+        "Primitives.hyperbola",
         "Primitives.spiral"
       ]
     },
@@ -40933,14 +42341,14 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives._transform_geometry",
+        "Primitives._capsule_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
         "Primitives.arrow_mesh",
+        "Primitives.capsule_mesh",
         "Primitives.cylinder_mesh",
         "Primitives.edge_pipes",
-        "Primitives.hyperbola",
-        "Primitives.spiral"
+        "Primitives.ring"
       ]
     },
     {
@@ -40953,12 +42361,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Primitives._capsule_geometry",
         "Primitives._line_to_cylinder_transform",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
-        "Primitives._unit_cylinder_geometry",
         "Primitives.cylinder_mesh",
-        "Primitives.spiral"
+        "Primitives.ring"
       ]
     },
     {
@@ -40974,8 +42382,9 @@ window.API_INDEX = {
         "Primitives._line_to_cylinder_transform",
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
-        "Primitives._unit_cylinder_geometry",
-        "Primitives.cylinder_mesh"
+        "Primitives.capsule_mesh",
+        "Primitives.cylinder_mesh",
+        "Primitives.ring"
       ]
     },
     {
@@ -43279,14 +44688,16 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "new() -> Self",
-          "code": "pub fn new() -> Self {\n        let mut default_vertex_attributes = HashMap::new();\n        default_vertex_attributes.insert(\"x\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"y\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"z\".to_string(), 0.0);\n\n        Mesh {\n            halfedge: HashMap::new(),\n            vertex: HashMap::new(),\n            face: HashMap::new(),\n            facedata: HashMap::new(),\n            edgedata: HashMap::new(),\n            default_vertex_attributes,\n            default_face_attributes: HashMap::new(),\n            default_edge_attributes: HashMap::new(),\n            triangulation: HashMap::new(),\n            max_vertex: 0,\n            max_face: 0,\n            guid: uuid::Uuid::new_v4().to_string(),\n            name: \"my_mesh\".to_string(),\n            pointcolors: Vec::new(),\n            facecolors: Vec::new(),\n            linecolors: Vec::new(),\n            widths: Vec::new(),\n            xform: Xform::identity(),\n            tri_bvh: None,\n            tri_tris: Vec::new(),\n            tri_vertices: Vec::new(),\n        }\n    }",
+          "code": "pub fn new() -> Self {\n        let mut default_vertex_attributes = HashMap::new();\n        default_vertex_attributes.insert(\"x\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"y\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"z\".to_string(), 0.0);\n\n        Mesh {\n            halfedge: HashMap::new(),\n            vertex: HashMap::new(),\n            face: HashMap::new(),\n            facedata: HashMap::new(),\n            edgedata: HashMap::new(),\n            default_vertex_attributes,\n            default_face_attributes: HashMap::new(),\n            default_edge_attributes: HashMap::new(),\n            triangulation: HashMap::new(),\n            max_vertex: 0,\n            max_face: 0,\n            guid: uuid::Uuid::new_v4().to_string(),\n            name: \"my_mesh\".to_string(),\n            pointcolors: Vec::new(),\n            facecolors: Vec::new(),\n            linecolors: Vec::new(),\n            widths: Vec::new(),\n            objectcolor: Color::white(),\n            color_mode: ColorMode::OBJECTCOLOR,\n            xform: Xform::identity(),\n            tri_bvh: None,\n            tri_tris: Vec::new(),\n            tri_vertices: Vec::new(),\n        }\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
-        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
         "Mesh.clone_with_new_guid",
         "Mesh.create_box",
         "Mesh.duplicate",
@@ -43295,6 +44706,7 @@ window.API_INDEX = {
         "Mesh.face_area",
         "Mesh.face_normal",
         "Mesh.face_normals",
+        "Mesh.facecolors",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polylines",
@@ -43302,10 +44714,13 @@ window.API_INDEX = {
         "Mesh.json_load",
         "Mesh.json_loads",
         "Mesh.jsonload",
+        "Mesh.linecolors",
         "Mesh.loft",
         "Mesh.number_of_edges",
+        "Mesh.objectcolor",
         "Mesh.pb_dumps",
         "Mesh.pb_loads",
+        "Mesh.pointcolors",
         "Mesh.ray_cast_bvh",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
@@ -43314,7 +44729,60 @@ window.API_INDEX = {
         "Mesh.unweld",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.vertex_normals_weighted",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.pointcolors_mut",
+      "implementations": {
+        "rust": {
+          "sig": "pointcolors_mut() -> &mut [Color]",
+          "code": "pub fn pointcolors_mut(&mut self) -> &mut [Color] { &mut self.pointcolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.pointcolors"
+      ]
+    },
+    {
+      "name": "Mesh.facecolors_mut",
+      "implementations": {
+        "rust": {
+          "sig": "facecolors_mut() -> &mut [Color]",
+          "code": "pub fn facecolors_mut(&mut self) -> &mut [Color]  { &mut self.facecolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.facecolors"
+      ]
+    },
+    {
+      "name": "Mesh.linecolors_mut",
+      "implementations": {
+        "rust": {
+          "sig": "linecolors_mut() -> &mut [Color]",
+          "code": "pub fn linecolors_mut(&mut self) -> &mut [Color]  { &mut self.linecolors }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.linecolors"
+      ]
+    },
+    {
+      "name": "Mesh.widths_mut",
+      "implementations": {
+        "rust": {
+          "sig": "widths_mut() -> &mut [f64]",
+          "code": "pub fn widths_mut(&mut self) -> &mut [f64]        { &mut self.widths }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.widths"
       ]
     },
     {
@@ -45610,12 +47078,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Constructor\")",
-          "code": "MINI_TEST(\"Mesh\", \"Constructor\") {\n        // uncomment #include \"mesh.h\"\n\n        const int sides = 6;\n\n        // Create hexagon vertices in XY plane\n        std::vector<Point> vertices;\n        for (int i = 0; i < sides; ++i) {\n            double angle = 2.0 * TOLERANCE.PI * i / sides;\n            double x = 1.0 * std::cos(angle);\n            double y = 1.0 * std::sin(angle);\n            vertices.push_back({x, y, 0.0});\n        }\n\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 2, 3, 4, 5},\n        };\n\n        Mesh mesh = Mesh::from_vertices_and_faces(vertices, faces);\n\n        std::string sstr = mesh.str();\n        std::string srepr = mesh.repr();\n\n        // Copy (new guid)\n        Mesh mcopy = mesh;\n\n        MINI_CHECK(mesh.is_valid());\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Constructor\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> vertices = Polyline::from_sides(6, 1.0, false).get_points();\n        Mesh mesh = Mesh::from_vertices_and_faces(vertices, {{0, 1, 2, 3, 4, 5}});\n        std::string sstr = mesh.str();\n        std::string srepr = mesh.repr();\n        Mesh mcopy = mesh;\n        MINI_CHECK(mesh.is_valid());\n        mesh.name = \"hexagon\";\n\n        std::vector<Color> palette = Color::palette();\n\n        // set_objectcolor does not change color_mode\n        mesh.set_objectcolor(Color::grey());\n        MINI_CHECK(mesh.color_mode == ColorMode::OBJECTCOLOR);\n\n        // set_pointcolors \u00e2\u2020\u2019 color_mode = PointColors\n        std::vector<Color> pc;\n        pc.reserve(mesh.number_of_vertices());\n        for (size_t i = 0; i < mesh.number_of_vertices(); ++i)\n            pc.emplace_back(palette[i % palette.size()]);\n        mesh.set_pointcolors(std::move(pc));\n        MINI_CHECK(mesh.color_mode == ColorMode::POINTCOLORS);\n        MINI_CHECK(mesh.get_pointcolors().size() == mesh.number_of_vertices());\n\n        // set_facecolors \u00e2\u2020\u2019 color_mode = FaceColors\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i)\n            fc.emplace_back(palette[i % palette.size()]);\n        mesh.set_facecolors(std::move(fc));\n        MINI_CHECK(mesh.color_mode == ColorMode::FACECOLORS);\n        MINI_CHECK(mesh.get_facecolors().size() == mesh.number_of_faces());\n\n        // set_linecolors does not change color_mode\n        std::vector<Color> lc;\n        std::vector<double> lw(mesh.number_of_edges(), 0.1);\n        lc.reserve(mesh.number_of_edges());\n        for (size_t i = 0; i < mesh.number_of_edges(); ++i)\n            lc.emplace_back(palette[i % palette.size()]);\n        mesh.set_linecolors(std::move(lc), std::move(lw));\n        MINI_CHECK(mesh.color_mode == ColorMode::FACECOLORS);\n        MINI_CHECK(mesh.get_linecolors().size() == mesh.number_of_edges());\n\n        // clear_facecolors reverts color_mode only if currently FaceColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        MINI_CHECK(mesh.color_mode == ColorMode::FACECOLORS);\n        mesh.clear_facecolors();\n        MINI_CHECK(mesh.color_mode == ColorMode::OBJECTCOLOR);\n        MINI_CHECK(mesh.get_facecolors().empty());\n\n        // clear_pointcolors does not revert if color_mode != PointColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        MINI_CHECK(mesh.color_mode == ColorMode::FACECOLORS);\n        mesh.clear_pointcolors();\n        MINI_CHECK(mesh.color_mode == ColorMode::FACECOLORS);\n\n        // clear_linecolors does not change color_mode\n        mesh.color_mode = ColorMode::POINTCOLORS;\n        mesh.clear_linecolors();\n        MINI_CHECK(mesh.color_mode == ColorMode::POINTCOLORS);\n        MINI_CHECK(mesh.get_linecolors().empty());\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n    from session_py import Point\n\n    sides = 6\n\n    # Create hexagon vertices in XY plane\n    vertices = []\n    for i in range(sides):\n        angle = 2.0 * TOLERANCE.PI * i / sides\n        x = 1.0 * math.cos(angle)\n        y = 1.0 * math.sin(angle)\n        vertices.append(Point(x, y, 0.0))\n\n    faces = [[0, 1, 2, 3, 4, 5]]\n\n    mesh = Mesh.from_vertices_and_faces(vertices, faces)\n\n    sstr = str(mesh)\n    srepr = repr(mesh)\n\n    # Copy (new guid)\n    mcopy = mesh.duplicate()\n\n    MINI_CHECK(mesh.is_valid())",
+          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n    from session_py import Polyline\n\n    vertices = Polyline.from_sides(6, 1.0, False).get_points()\n    mesh = Mesh.from_vertices_and_faces(vertices, [[0, 1, 2, 3, 4, 5]])\n\n    sstr = str(mesh)\n    srepr = repr(mesh)\n\n    # Copy (new guid)\n    mcopy = mesh.duplicate()\n\n    MINI_CHECK(mesh.is_valid())\n    mesh.name = \"hexagon\"\n\n    from session_py import Color\n    from session_py.mesh import ColorMode\n\n    palette = Color.palette()\n\n    # set_objectcolor does not change color_mode\n    mesh.set_objectcolor(Color.grey())\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n\n    # set_pointcolors \u00e2\u2020\u2019 color_mode = PointColors\n    pc = []\n    for i in range(mesh.number_of_vertices()):\n        pc.append(palette[i % len(palette)])\n    mesh.set_pointcolors(pc)\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_pointcolors()) == mesh.number_of_vertices())\n\n    # set_facecolors \u00e2\u2020\u2019 color_mode = FaceColors\n    fc = []\n    for i in range(mesh.number_of_faces()):\n        fc.append(palette[i % len(palette)])\n    mesh.set_facecolors(fc)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_facecolors()) == mesh.number_of_faces())\n\n    # set_linecolors does not change color_mode\n    lc = []\n    lw = [0.1] * mesh.number_of_edges()\n    for i in range(mesh.number_of_edges()):\n        lc.append(palette[i % len(palette)])\n    mesh.set_linecolors(lc, lw)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == mesh.number_of_edges())\n\n    # clear_facecolors reverts color_mode only if currently FaceColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_facecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n    MINI_CHECK(len(mesh.get_facecolors()) == 0)\n\n    # clear_pointcolors does not revert if color_mode != PointColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_pointcolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n\n    # clear_linecolors does not change color_mode\n    mesh.color_mode = ColorMode.POINTCOLORS\n    mesh.clear_linecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == 0)",
           "file": "mesh_test.py"
         }
       }
@@ -45625,7 +47093,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"From Polylines\")",
-          "code": "MINI_TEST(\"Mesh\", \"From Polylines\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        });\n        MINI_CHECK(mesh.is_valid());\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"From Polylines\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        }, 0.001);\n        MINI_CHECK(mesh.is_valid());\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -45790,7 +47258,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({v0, v1, v3}, std::nullopt);\n        size_t f1 = *mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n        MINI_CHECK(fn.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fn)[2], 1.0));\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n        MINI_CHECK(vn.has_value());\n        MINI_CHECK(std::abs((*vn)[2]) == 1.0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n        MINI_CHECK(vnw.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*vnw)[2], 1.0));\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n        MINI_CHECK(area.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*area, 0.5));\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n        MINI_CHECK(angle.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0));\n        MINI_CHECK(!mesh.vertex_angle_in_face(999, f0).has_value());\n\n        // dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        MINI_CHECK(da.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*da, TOLERANCE.PI));\n        // boundary edge \u00e2\u20ac\u201d only one face\n        MINI_CHECK(!mesh.dihedral_angle(v0, v1).has_value());\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n        MINI_CHECK(fns.size() == 2);\n        MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0));\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n        MINI_CHECK(vns.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0));\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        MINI_CHECK(vnsw.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({v0, v1, v3}, std::nullopt);\n        (void)*mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n        MINI_CHECK(fn.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fn)[2], 1.0));\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n        MINI_CHECK(vn.has_value());\n        MINI_CHECK(std::abs((*vn)[2]) == 1.0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n        MINI_CHECK(vnw.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*vnw)[2], 1.0));\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n        MINI_CHECK(area.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*area, 0.5));\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n        MINI_CHECK(angle.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0));\n        MINI_CHECK(!mesh.vertex_angle_in_face(999, f0).has_value());\n\n        // dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        MINI_CHECK(da.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*da, TOLERANCE.PI));\n        // boundary edge \u00e2\u20ac\u201d only one face\n        MINI_CHECK(!mesh.dihedral_angle(v0, v1).has_value());\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n        MINI_CHECK(fns.size() == 2);\n        MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0));\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n        MINI_CHECK(vns.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0));\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        MINI_CHECK(vnsw.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -45820,7 +47288,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        // JSON object\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n        MINI_CHECK(loaded_json.name == mesh.name);\n        MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces());\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n        std::vector<Color> fc;\n        fc.reserve(mesh.get_facecolors().size());\n        for (size_t i = 0; i < mesh.get_facecolors().size(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // JSON object\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n        MINI_CHECK(loaded_json.name == mesh.name);\n        MINI_CHECK(loaded_json.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_json.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces());\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -45835,7 +47303,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n        \n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_file.guid == mesh.guid);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n        \n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n        std::vector<Color> fc;\n        fc.reserve(mesh.get_facecolors().size());\n        for (size_t i = 0; i < mesh.get_facecolors().size(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_string.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_file.guid == mesh.guid);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -48090,11 +49558,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
         "subdivide",
-        "n",
-        "points",
         "circle",
+        "n",
+        "into",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -48108,11 +49576,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
         "subdivide",
         "by",
         "ellipse",
         "length",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -48126,9 +49594,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
-        "arc",
         "points",
+        "arc",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -48142,12 +49610,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
         "curve",
-        "adaptive",
         "open",
-        "points",
+        "adaptive",
         "polyline",
+        "from",
+        "points",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -48210,8 +49678,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "frames",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -48232,9 +49700,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
         "evaluate",
         "cylinder",
+        "surface",
         "point",
         "point_at",
         "cylinder_surface",
@@ -48250,11 +49718,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "and",
+        "faces",
+        "vertices",
         "from",
         "mesh",
-        "faces",
-        "and",
-        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -48295,7 +49763,7 @@ window.API_INDEX = {
     "Xform": "A 4x4 transformation matrix for translation, rotation, and scaling",
     "fmt": "fmt geometry class",
     "std": "std geometry class",
-    "NormalWeighting": "NormalWeighting geometry class",
+    "ColorMode": "ColorMode geometry class",
     "knot": "knot geometry class",
     "ToleranceGuard": "ToleranceGuard geometry class",
     "Geometry": "Geometry geometry class",
@@ -48402,7 +49870,7 @@ window.API_INDEX = {
       "Point.transform",
       "PointCloud.transform",
       "Polyline.transform",
-      "NormalWeighting.transform"
+      "ColorMode.transform"
     ],
     "transformed": [
       "BoundingBox.transformed",
@@ -48414,7 +49882,7 @@ window.API_INDEX = {
       "Point.transformed",
       "PointCloud.transformed",
       "Polyline.transformed",
-      "NormalWeighting.transformed"
+      "ColorMode.transformed"
     ],
     "__jsondump__": [
       "BoundingBox.__jsondump__",
@@ -48477,7 +49945,7 @@ window.API_INDEX = {
       "Tree.json_dumps",
       "Vector.json_dumps",
       "Xform.json_dumps",
-      "NormalWeighting.json_dumps"
+      "ColorMode.json_dumps"
     ],
     "json_loads": [
       "BoundingBox.json_loads",
@@ -48496,7 +49964,7 @@ window.API_INDEX = {
       "Tree.json_loads",
       "Vector.json_loads",
       "Xform.json_loads",
-      "NormalWeighting.json_loads"
+      "ColorMode.json_loads"
     ],
     "json_dump": [
       "BoundingBox.json_dump",
@@ -48515,7 +49983,7 @@ window.API_INDEX = {
       "Tree.json_dump",
       "Vector.json_dump",
       "Xform.json_dump",
-      "NormalWeighting.json_dump"
+      "ColorMode.json_dump"
     ],
     "json_load": [
       "BoundingBox.json_load",
@@ -48534,7 +50002,7 @@ window.API_INDEX = {
       "Tree.json_load",
       "Vector.json_load",
       "Xform.json_load",
-      "NormalWeighting.json_load"
+      "ColorMode.json_load"
     ],
     "pb_dumps": [
       "BoundingBox.pb_dumps",
@@ -48553,7 +50021,7 @@ window.API_INDEX = {
       "Tree.pb_dumps",
       "Vector.pb_dumps",
       "Xform.pb_dumps",
-      "NormalWeighting.pb_dumps"
+      "ColorMode.pb_dumps"
     ],
     "pb_loads": [
       "BoundingBox.pb_loads",
@@ -48572,7 +50040,7 @@ window.API_INDEX = {
       "Tree.pb_loads",
       "Vector.pb_loads",
       "Xform.pb_loads",
-      "NormalWeighting.pb_loads"
+      "ColorMode.pb_loads"
     ],
     "pb_dump": [
       "BoundingBox.pb_dump",
@@ -48591,7 +50059,7 @@ window.API_INDEX = {
       "Tree.pb_dump",
       "Vector.pb_dump",
       "Xform.pb_dump",
-      "NormalWeighting.pb_dump"
+      "ColorMode.pb_dump"
     ],
     "pb_load": [
       "BoundingBox.pb_load",
@@ -48610,7 +50078,7 @@ window.API_INDEX = {
       "Tree.pb_load",
       "Vector.pb_load",
       "Xform.pb_load",
-      "NormalWeighting.pb_load"
+      "ColorMode.pb_load"
     ],
     "r": [
       "Color.r"
@@ -48733,6 +50201,9 @@ window.API_INDEX = {
     "silver": [
       "Color.silver"
     ],
+    "palette": [
+      "Color.palette"
+    ],
     "__str__": [
       "Color.__str__",
       "Graph.__str__",
@@ -48844,17 +50315,17 @@ window.API_INDEX = {
     "number_of_vertices": [
       "Graph.number_of_vertices",
       "Mesh.number_of_vertices",
-      "NormalWeighting.number_of_vertices"
+      "ColorMode.number_of_vertices"
     ],
     "number_of_edges": [
       "Graph.number_of_edges",
       "Mesh.number_of_edges",
-      "NormalWeighting.number_of_edges"
+      "ColorMode.number_of_edges"
     ],
     "clear": [
       "Graph.clear",
       "Mesh.clear",
-      "NormalWeighting.clear"
+      "ColorMode.clear"
     ],
     "node_attribute": [
       "Graph.node_attribute"
@@ -48885,7 +50356,7 @@ window.API_INDEX = {
       "NurbsCurve.is_valid",
       "NurbsSurface.is_valid",
       "Plane.is_valid",
-      "NormalWeighting.is_valid"
+      "ColorMode.is_valid"
     ],
     "is_clamped": [
       "CurveKnotStyle.is_clamped",
@@ -49088,58 +50559,58 @@ window.API_INDEX = {
     ],
     "position": [
       "VertexData.position",
-      "NormalWeighting.position"
+      "ColorMode.position"
     ],
     "set_position": [
       "VertexData.set_position",
-      "NormalWeighting.set_position"
+      "ColorMode.set_position"
     ],
     "color": [
       "VertexData.color",
-      "NormalWeighting.color"
+      "ColorMode.color"
     ],
     "set_color": [
       "VertexData.set_color",
       "PointCloud.set_color",
-      "NormalWeighting.set_color"
+      "ColorMode.set_color"
     ],
     "normal": [
       "VertexData.normal",
-      "NormalWeighting.normal"
+      "ColorMode.normal"
     ],
     "set_normal": [
       "VertexData.set_normal",
       "PointCloud.set_normal",
-      "NormalWeighting.set_normal"
+      "ColorMode.set_normal"
     ],
     "__copy__": [
       "Mesh.__copy__"
     ],
     "from_polylines": [
       "Mesh.from_polylines",
-      "NormalWeighting.from_polylines"
+      "ColorMode.from_polylines"
     ],
     "get_vkey": [
       "Mesh.get_vkey"
     ],
     "from_vertices_and_faces": [
       "Mesh.from_vertices_and_faces",
-      "NormalWeighting.from_vertices_and_faces"
+      "ColorMode.from_vertices_and_faces"
     ],
     "create_box": [
       "Mesh.create_box",
-      "NormalWeighting.create_box"
+      "ColorMode.create_box"
     ],
     "from_lines": [
       "Mesh.from_lines",
-      "NormalWeighting.from_lines"
+      "ColorMode.from_lines"
     ],
     "get_vid": [
       "Mesh.get_vid"
     ],
     "from_polygon_with_holes": [
       "Mesh.from_polygon_with_holes",
-      "NormalWeighting.from_polygon_with_holes"
+      "ColorMode.from_polygon_with_holes"
     ],
     "strip_close": [
       "Mesh.strip_close"
@@ -49152,7 +50623,7 @@ window.API_INDEX = {
     ],
     "loft": [
       "Mesh.loft",
-      "NormalWeighting.loft"
+      "ColorMode.loft"
     ],
     "get_open": [
       "Mesh.get_open"
@@ -49171,148 +50642,203 @@ window.API_INDEX = {
     ],
     "from_polygon_with_holes_many": [
       "Mesh.from_polygon_with_holes_many",
-      "NormalWeighting.from_polygon_with_holes_many"
+      "ColorMode.from_polygon_with_holes_many"
     ],
     "loft_many": [
       "Mesh.loft_many",
-      "NormalWeighting.loft_many"
+      "ColorMode.loft_many"
     ],
     "is_empty": [
       "Mesh.is_empty",
       "PointCloud.is_empty",
       "Polyline.is_empty",
-      "NormalWeighting.is_empty"
+      "ColorMode.is_empty"
     ],
     "is_closed": [
       "Mesh.is_closed",
       "NurbsCurve.is_closed",
       "NurbsSurface.is_closed",
       "Polyline.is_closed",
-      "NormalWeighting.is_closed"
+      "ColorMode.is_closed"
     ],
     "is_vertex_on_boundary": [
       "Mesh.is_vertex_on_boundary",
-      "NormalWeighting.is_vertex_on_boundary"
+      "ColorMode.is_vertex_on_boundary"
     ],
     "is_edge_on_boundary": [
       "Mesh.is_edge_on_boundary",
-      "NormalWeighting.is_edge_on_boundary"
+      "ColorMode.is_edge_on_boundary"
     ],
     "is_face_on_boundary": [
       "Mesh.is_face_on_boundary",
-      "NormalWeighting.is_face_on_boundary"
+      "ColorMode.is_face_on_boundary"
     ],
     "number_of_faces": [
       "Mesh.number_of_faces",
-      "NormalWeighting.number_of_faces"
+      "ColorMode.number_of_faces"
     ],
     "edges": [
       "Mesh.edges",
-      "NormalWeighting.edges"
+      "ColorMode.edges"
     ],
     "euler": [
       "Mesh.euler",
-      "NormalWeighting.euler"
+      "ColorMode.euler"
+    ],
+    "set_pointcolors": [
+      "Mesh.set_pointcolors",
+      "ColorMode.set_pointcolors"
+    ],
+    "set_facecolors": [
+      "Mesh.set_facecolors",
+      "ColorMode.set_facecolors"
+    ],
+    "set_linecolors": [
+      "Mesh.set_linecolors",
+      "ColorMode.set_linecolors"
+    ],
+    "set_objectcolor": [
+      "Mesh.set_objectcolor",
+      "ColorMode.set_objectcolor"
+    ],
+    "pointcolors": [
+      "Mesh.pointcolors"
+    ],
+    "facecolors": [
+      "Mesh.facecolors"
+    ],
+    "linecolors": [
+      "Mesh.linecolors"
+    ],
+    "get_pointcolors": [
+      "Mesh.get_pointcolors",
+      "ColorMode.get_pointcolors"
+    ],
+    "get_facecolors": [
+      "Mesh.get_facecolors",
+      "ColorMode.get_facecolors"
+    ],
+    "get_linecolors": [
+      "Mesh.get_linecolors",
+      "ColorMode.get_linecolors"
+    ],
+    "widths": [
+      "Mesh.widths"
+    ],
+    "objectcolor": [
+      "Mesh.objectcolor"
+    ],
+    "clear_pointcolors": [
+      "Mesh.clear_pointcolors",
+      "ColorMode.clear_pointcolors"
+    ],
+    "clear_facecolors": [
+      "Mesh.clear_facecolors",
+      "ColorMode.clear_facecolors"
+    ],
+    "clear_linecolors": [
+      "Mesh.clear_linecolors",
+      "ColorMode.clear_linecolors"
     ],
     "unify_winding": [
       "Mesh.unify_winding",
-      "NormalWeighting.unify_winding"
+      "ColorMode.unify_winding"
     ],
     "unweld": [
       "Mesh.unweld",
-      "NormalWeighting.unweld"
+      "ColorMode.unweld"
     ],
     "add_vertex": [
       "Mesh.add_vertex",
-      "NormalWeighting.add_vertex"
+      "ColorMode.add_vertex"
     ],
     "add_face": [
       "Mesh.add_face",
-      "NormalWeighting.add_face"
+      "ColorMode.add_face"
     ],
     "vertex_position": [
       "Mesh.vertex_position",
-      "NormalWeighting.vertex_position"
+      "ColorMode.vertex_position"
     ],
     "face_vertices": [
       "Mesh.face_vertices",
-      "NormalWeighting.face_vertices"
+      "ColorMode.face_vertices"
     ],
     "vertex_neighbors": [
       "Mesh.vertex_neighbors",
-      "NormalWeighting.vertex_neighbors"
+      "ColorMode.vertex_neighbors"
     ],
     "vertex_faces": [
       "Mesh.vertex_faces",
-      "NormalWeighting.vertex_faces"
+      "ColorMode.vertex_faces"
     ],
     "vertex_edges": [
       "Mesh.vertex_edges",
-      "NormalWeighting.vertex_edges"
+      "ColorMode.vertex_edges"
     ],
     "face_edges": [
       "Mesh.face_edges",
-      "NormalWeighting.face_edges"
+      "ColorMode.face_edges"
     ],
     "face_neighbors": [
       "Mesh.face_neighbors",
-      "NormalWeighting.face_neighbors"
+      "ColorMode.face_neighbors"
     ],
     "edge_vertices": [
       "Mesh.edge_vertices",
-      "NormalWeighting.edge_vertices"
+      "ColorMode.edge_vertices"
     ],
     "edge_faces": [
       "Mesh.edge_faces",
-      "NormalWeighting.edge_faces"
+      "ColorMode.edge_faces"
     ],
     "edge_edges": [
       "Mesh.edge_edges",
-      "NormalWeighting.edge_edges"
+      "ColorMode.edge_edges"
     ],
     "face_normal": [
       "Mesh.face_normal",
-      "NormalWeighting.face_normal"
+      "ColorMode.face_normal"
     ],
     "vertex_normal": [
       "Mesh.vertex_normal",
-      "NormalWeighting.vertex_normal"
+      "ColorMode.vertex_normal"
     ],
     "vertex_normal_weighted": [
       "Mesh.vertex_normal_weighted",
-      "NormalWeighting.vertex_normal_weighted"
+      "ColorMode.vertex_normal_weighted"
     ],
     "face_area": [
       "Mesh.face_area",
-      "NormalWeighting.face_area"
+      "ColorMode.face_area"
     ],
     "vertex_angle_in_face": [
       "Mesh.vertex_angle_in_face",
-      "NormalWeighting.vertex_angle_in_face"
+      "ColorMode.vertex_angle_in_face"
     ],
     "dihedral_angle": [
       "Mesh.dihedral_angle",
-      "NormalWeighting.dihedral_angle"
+      "ColorMode.dihedral_angle"
     ],
     "face_normals": [
       "Mesh.face_normals",
-      "NormalWeighting.face_normals"
+      "ColorMode.face_normals"
     ],
     "vertex_normals": [
       "Mesh.vertex_normals",
-      "NormalWeighting.vertex_normals"
+      "ColorMode.vertex_normals"
     ],
     "vertex_normals_weighted": [
       "Mesh.vertex_normals_weighted",
-      "NormalWeighting.vertex_normals_weighted"
+      "ColorMode.vertex_normals_weighted"
     ],
     "vertex_index": [
       "Mesh.vertex_index",
-      "NormalWeighting.vertex_index"
+      "ColorMode.vertex_index"
     ],
     "to_vertices_and_faces": [
       "Mesh.to_vertices_and_faces",
-      "NormalWeighting.to_vertices_and_faces"
+      "ColorMode.to_vertices_and_faces"
     ],
     "set_vertex_color": [
       "Mesh.set_vertex_color"
@@ -49692,7 +51218,7 @@ window.API_INDEX = {
       "Edge.jsondump",
       "Graph.jsondump",
       "Line.jsondump",
-      "NormalWeighting.jsondump",
+      "ColorMode.jsondump",
       "Mesh.jsondump",
       "NurbsCurve.jsondump",
       "Objects.jsondump",
@@ -49715,7 +51241,7 @@ window.API_INDEX = {
       "Edge.jsonload",
       "Graph.jsonload",
       "Line.jsonload",
-      "NormalWeighting.jsonload",
+      "ColorMode.jsonload",
       "Mesh.jsonload",
       "NurbsCurve.jsonload",
       "Objects.jsonload",
@@ -49835,7 +51361,7 @@ window.API_INDEX = {
       "Edge.str",
       "Graph.str",
       "Line.str",
-      "NormalWeighting.str",
+      "ColorMode.str",
       "Mesh.str",
       "NurbsCurve.str",
       "NurbsSurface.str",
@@ -49854,7 +51380,7 @@ window.API_INDEX = {
       "Vector.repr",
       "Color.repr",
       "Line.repr",
-      "NormalWeighting.repr",
+      "ColorMode.repr",
       "Mesh.repr",
       "NurbsCurve.repr",
       "NurbsSurface.repr",
@@ -49982,6 +51508,9 @@ window.API_INDEX = {
     "normals": [
       "PointCloud.normals"
     ],
+    "from_sides": [
+      "Polyline.from_sides"
+    ],
     "segment_count": [
       "Polyline.segment_count"
     ],
@@ -50073,6 +51602,12 @@ window.API_INDEX = {
     "_unit_cylinder_geometry": [
       "Primitives._unit_cylinder_geometry"
     ],
+    "_capsule_geometry": [
+      "Primitives._capsule_geometry"
+    ],
+    "ring": [
+      "Primitives.ring"
+    ],
     "_unit_cone_geometry": [
       "Primitives._unit_cone_geometry"
     ],
@@ -50084,6 +51619,9 @@ window.API_INDEX = {
     ],
     "cylinder_mesh": [
       "Primitives.cylinder_mesh"
+    ],
+    "capsule_mesh": [
+      "Primitives.capsule_mesh"
     ],
     "edge_pipes": [
       "Primitives.edge_pipes"
@@ -50753,31 +52291,43 @@ window.API_INDEX = {
     "sqrt": [
       "std.sqrt"
     ],
+    "color_mode_to_string": [
+      "ColorMode.color_mode_to_string"
+    ],
+    "color_mode_from_string": [
+      "ColorMode.color_mode_from_string"
+    ],
+    "get_widths": [
+      "ColorMode.get_widths"
+    ],
+    "get_objectcolor": [
+      "ColorMode.get_objectcolor"
+    ],
     "build_triangle_bvh": [
-      "NormalWeighting.build_triangle_bvh",
+      "ColorMode.build_triangle_bvh",
       "Mesh.build_triangle_bvh"
     ],
     "triangle_bvh_ray_cast": [
-      "NormalWeighting.triangle_bvh_ray_cast",
+      "ColorMode.triangle_bvh_ray_cast",
       "Mesh.triangle_bvh_ray_cast"
     ],
     "get_triangle_by_id": [
-      "NormalWeighting.get_triangle_by_id",
+      "ColorMode.get_triangle_by_id",
       "Mesh.get_triangle_by_id"
     ],
     "clear_triangle_bvh": [
-      "NormalWeighting.clear_triangle_bvh",
+      "ColorMode.clear_triangle_bvh",
       "Mesh.clear_triangle_bvh"
     ],
     "build_triangle_aabb_tree": [
-      "NormalWeighting.build_triangle_aabb_tree",
+      "ColorMode.build_triangle_aabb_tree",
       "Mesh.build_triangle_aabb_tree"
     ],
     "get_cached_bvh": [
-      "NormalWeighting.get_cached_bvh"
+      "ColorMode.get_cached_bvh"
     ],
     "get_cached_aabb_tree": [
-      "NormalWeighting.get_cached_aabb_tree"
+      "ColorMode.get_cached_aabb_tree"
     ],
     "acos": [
       "std.acos"
@@ -50869,6 +52419,9 @@ window.API_INDEX = {
     ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"
+    ],
+    "capsule_geometry": [
+      "Primitives.capsule_geometry"
     ],
     "unit_cone_geometry": [
       "Primitives.unit_cone_geometry"
@@ -51086,6 +52639,18 @@ window.API_INDEX = {
     ],
     "from_float": [
       "Color.from_float"
+    ],
+    "pointcolors_mut": [
+      "Mesh.pointcolors_mut"
+    ],
+    "facecolors_mut": [
+      "Mesh.facecolors_mut"
+    ],
+    "linecolors_mut": [
+      "Mesh.linecolors_mut"
+    ],
+    "widths_mut": [
+      "Mesh.widths_mut"
     ],
     "clone_with_new_guid": [
       "Mesh.clone_with_new_guid"

@@ -2,7 +2,7 @@
   {
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 8.211,
+    "time_ms": 10.442,
     "line": 5,
     "code": "        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n        use std::fs;\n\n        let mut original = Point::new(1.5, 2.5, 3.5);\n        original.name = \"test_point\".to_string();\n        let filepath = \"serialization/test_encoders_point.json\";\n        json_dump(&original, filepath, false).unwrap();\n        let loaded: Point = json_load(filepath).unwrap();\n\n\n        fs::remove_file(filepath).ok();",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "Json Dumps Loads",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 26,
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let mut original = Vector::new(42.1, 84.2, 126.3);\n        original.name = \"test_vector\".to_string();\n        let json_str = json_dumps(&original, false).unwrap();\n\n\n        let loaded: Vector = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Encode Collection Values",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.02,
     "line": 44,
     "code": "        use crate::Point;\n        use crate::encoders::json_dumps;\n\n        let points = vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0), Point::new(7.0, 8.0, 9.0)];\n        let json_str = json_dumps(&points, false).unwrap();\n        let json_arr: serde_json::Value = serde_json::from_str(&json_str).unwrap();\n",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Encode Collection Shared Ptr",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.012,
     "line": 61,
     "code": "        use crate::Line;\n        use crate::encoders::json_dumps;\n\n        let lines = vec![Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0), Line::new(0.0, 0.0, 0.0, 0.0, 1.0, 0.0)];\n        let json_str = json_dumps(&lines, false).unwrap();\n        let json_arr: serde_json::Value = serde_json::from_str(&json_str).unwrap();\n",
     "checks": [
@@ -122,7 +122,7 @@
   {
     "test_name": "Decode Collection",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.01,
     "line": 77,
     "code": "        use crate::Point;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let original_points = vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)];\n        let json_str = json_dumps(&original_points, false).unwrap();\n        let decoded: Vec<Point> = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Decode Collection Ptr",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 92,
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let original_vectors = vec![Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)];\n        let json_str = json_dumps(&original_vectors, false).unwrap();\n        let decoded: Vec<Vector> = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.011,
     "line": 107,
     "code": "        use crate::Line;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let lines = vec![Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0), Line::new(0.0, 0.0, 0.0, 0.0, 1.0, 0.0)];\n        let json_str = json_dumps(&lines, false).unwrap();\n        let loaded: Vec<Line> = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 7.506,
+    "time_ms": 13.288,
     "line": 122,
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dump, json_load};\n        use std::fs;\n\n        let vectors = vec![Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0), Vector::new(0.0, 0.0, 1.0)];\n        let filepath = \"serialization/test_encoders_collection.json\";\n        json_dump(&vectors, filepath, false).unwrap();\n        let decoded: Vec<Vector> = json_load(filepath).unwrap();\n\n\n        fs::remove_file(filepath).ok();",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.029,
     "line": 139,
     "code": "        use crate::Point;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let point = Point::new(1.0, 2.0, 3.0);\n        let pretty = json_dumps(&point, true).unwrap();\n        let compact = json_dumps(&point, false).unwrap();\n\n\n        let loaded_pretty: Point = json_loads(&pretty).unwrap();\n        let loaded_compact: Point = json_loads(&compact).unwrap();\n",
     "checks": [
@@ -247,7 +247,7 @@
   {
     "test_name": "Decode Primitives",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.001,
     "line": 160,
     "code": "        use crate::encoders::{json_dumps, json_loads};\n\n        let json_str = json_dumps(&42i32, false).unwrap();\n        let loaded: i32 = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&3.14f64, false).unwrap();\n        let loaded: f64 = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&\"hello\", false).unwrap();\n        let loaded: String = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&true, false).unwrap();\n        let loaded: bool = json_loads(&json_str).unwrap();",
     "checks": [
@@ -277,7 +277,7 @@
   {
     "test_name": "Decode List",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.01,
     "line": 182,
     "code": "        use crate::Point;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let data = vec![1i32, 2, 3];\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: Vec<i32> = json_loads(&json_str).unwrap();\n\n\n        let points = vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)];\n        let json_str = json_dumps(&points, false).unwrap();\n        let decoded: Vec<Point> = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Decode Dict",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 203,
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dumps, json_loads};\n        use std::collections::HashMap;\n\n        let mut data = HashMap::new();\n        data.insert(\"a\".to_string(), 1i32);\n        data.insert(\"b\".to_string(), 2i32);\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: HashMap<String, i32> = json_loads(&json_str).unwrap();\n\n\n        let vec = Vector::new(1.0, 2.0, 3.0);\n        let json_str = json_dumps(&vec, false).unwrap();\n        let loaded_vec: Vector = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "List In List In List",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.003,
     "line": 226,
     "code": "        use crate::encoders::{json_dumps, json_loads};\n\n        let data = vec![vec![vec![1i32, 2], vec![3, 4]], vec![vec![5, 6], vec![7, 8]]];\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: Vec<Vec<Vec<i32>>> = json_loads(&json_str).unwrap();\n",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.071,
+    "time_ms": 0.039,
     "line": 240,
     "code": "        use crate::Point;\n        use crate::encoders::json_loads;\n\n        let points = vec![Point::new(1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0)];\n        let data = serde_json::json!({\n            \"numbers\": [1, 2, 3],\n            \"letters\": [\"a\", \"b\", \"c\"],\n            \"points\": points\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_points: Vec<Point> = serde_json::from_value(loaded[\"points\"].clone()).unwrap();",
     "checks": [
@@ -387,7 +387,7 @@
   {
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.013,
     "line": 263,
     "code": "        use crate::Point;\n        use crate::encoders::json_loads;\n\n        let point = Point::new(1.0, 2.0, 3.0);\n        let data = serde_json::json!([\n            {\"name\": \"point1\", \"value\": 10},\n            {\"name\": \"point2\", \"value\": 20},\n            {\"geometry\": point}\n        ]);\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_point: Point = serde_json::from_value(loaded[2][\"geometry\"].clone()).unwrap();",
     "checks": [
@@ -412,7 +412,7 @@
   {
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.141,
+    "time_ms": 0.015,
     "line": 285,
     "code": "        use crate::Point;\n        use crate::Vector;\n        use crate::encoders::json_loads;\n\n        let point = Point::new(1.0, 2.0, 3.0);\n        let vec = Vector::new(0.0, 0.0, 1.0);\n        let data = serde_json::json!({\n            \"config\": {\"tolerance\": 0.001, \"scale\": 1000},\n            \"geometry\": {\"point\": point, \"vector\": vec}\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_point: Point = serde_json::from_value(loaded[\"geometry\"][\"point\"].clone()).unwrap();\n        let loaded_vec: Vector = serde_json::from_value(loaded[\"geometry\"][\"vector\"].clone()).unwrap();",
     "checks": [

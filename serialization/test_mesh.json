@@ -1,4 +1,5 @@
 {
+  "color_mode": "facecolors",
   "default_edge_attributes": {},
   "default_face_attributes": {},
   "default_vertex_attributes": {
@@ -21,7 +22,7 @@
     255
   ],
   "facedata": {},
-  "guid": "091506bc-4990-465b-8fba-d2796d8898df",
+  "guid": "4c20c195-d333-4a8b-9ed5-af45d19cc6b8",
   "halfedge": {
     "0": {
       "1": 1,
@@ -53,6 +54,15 @@
   "max_face": 1,
   "max_vertex": 3,
   "name": "test_mesh",
+  "objectcolor": {
+    "a": 255,
+    "b": 255,
+    "g": 255,
+    "guid": "baa7ab30-e8bc-4e67-b1f1-841b9591fa4b",
+    "name": "white",
+    "r": 255,
+    "type": "Color"
+  },
   "pointcolors": [
     255,
     255,
