@@ -2,7 +2,7 @@
   {
     "test_name": "Line Line",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.013,
     "line": 7,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Tolerance;\n\n        let line0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let line1 = Line::new(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n        let output = intersection::line_line(&line0, &line1, Tolerance::APPROXIMATION);\n        let output = output.unwrap();",
     "checks": [
@@ -352,7 +352,7 @@
   {
     "test_name": "Ray Sphere",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 243,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(-5.0, 0.0, 0.0, -4.0, 0.0, 0.0);\n        let center = Point::new(0.0, 0.0, 0.0);\n        let radius = 2.0;\n        let points = intersection::ray_sphere(&line, &center, radius);\n        let points = points.unwrap();",
     "checks": [
@@ -382,7 +382,7 @@
   {
     "test_name": "Ray Sphere Tangent",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 261,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(-5.0, 2.0, 0.0, -4.0, 2.0, 0.0);\n        let center = Point::new(0.0, 0.0, 0.0);\n        let radius = 2.0;\n        let points = intersection::ray_sphere(&line, &center, radius);\n        let points = points.unwrap();",
     "checks": [
@@ -422,7 +422,7 @@
   {
     "test_name": "Ray Triangle",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 292,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let v0 = Point::new(0.0, 0.0, 0.0);\n        let v1 = Point::new(1.0, 0.0, 0.0);\n        let v2 = Point::new(0.0, 1.0, 0.0);\n        let result = intersection::ray_triangle(&line, &v0, &v1, &v2, 1e-6);\n        let result = result.unwrap();",
     "checks": [
@@ -472,7 +472,7 @@
   {
     "test_name": "Ray Mesh",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.08,
     "line": 339,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits = hits.unwrap();",
     "checks": [
@@ -497,7 +497,7 @@
   {
     "test_name": "Ray Mesh First",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.029,
     "line": 360,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, false);\n        let hits = hits.unwrap();",
     "checks": [
@@ -517,7 +517,7 @@
   {
     "test_name": "Ray Mesh Miss",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 380,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.0, 5.0, -1.0, 5.0, 5.0, 0.0);\n        let hits = intersection::ray_mesh(&line, &mesh, 1e-6, true);",
     "checks": [
@@ -532,7 +532,7 @@
   {
     "test_name": "Ray Mesh Bvh",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.043,
     "line": 397,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let hits = hits.unwrap();",
     "checks": [
@@ -557,7 +557,7 @@
   {
     "test_name": "Ray Mesh Bvh First",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.033,
     "line": 418,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![Point::new(0.0, 0.0, 1.0), Point::new(1.0, 0.0, 1.0), Point::new(1.0, 1.0, 1.0), Point::new(0.0, 1.0, 1.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(0.5, 0.5, -1.0, 0.5, 0.5, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, false);\n        let hits = hits.unwrap();",
     "checks": [
@@ -577,7 +577,7 @@
   {
     "test_name": "Ray Mesh Bvh Miss",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.017,
     "line": 438,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let polygons: Vec<Vec<Point>> = vec![\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n        ];\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.0, 5.0, -1.0, 5.0, 5.0, 0.0);\n        let hits = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);",
     "checks": [
@@ -592,7 +592,7 @@
   {
     "test_name": "Ray Mesh Bvh Vs Naive",
     "passed": true,
-    "time_ms": 1.533,
+    "time_ms": 1.42,
     "line": 455,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        for i in 0..10 {\n            for j in 0..10 {\n                let x = i as f64;\n                let y = j as f64;\n                polygons.push(vec![\n                    Point::new(x, y, 0.0),\n                    Point::new(x + 1.0, y, 0.0),\n                    Point::new(x + 1.0, y + 1.0, 0.0),\n                    Point::new(x, y + 1.0, 0.0),\n                ]);\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.5, 5.5, -1.0, 5.5, 5.5, 0.0);\n        let hits_naive = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits_bvh = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let result_naive = hits_naive.is_some();\n        let result_bvh = hits_bvh.is_some();\n        let naive_count = hits_naive.as_ref().map(|h| h.len()).unwrap_or(0);\n        let bvh_count = hits_bvh.as_ref().map(|h| h.len()).unwrap_or(0);\n        if let (Some(hn), Some(hb)) = (&hits_naive, &hits_bvh) {\n            if !hn.is_empty() {",
     "checks": [
@@ -617,7 +617,7 @@
   {
     "test_name": "Ray Box Real World",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 493,
     "code": "        use crate::intersection;\n        use crate::BoundingBox;\n        use crate::Line;\n        use crate::Point;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let box_ = BoundingBox::from_points(&[Point::new(214.0, 192.0, 484.0), Point::new(694.0, 567.0, 796.0)], 0.0);\n        let points = intersection::ray_box(&l0, &box_, 0.0, 1000.0);\n        let points = points.unwrap();",
     "checks": [
@@ -667,7 +667,7 @@
   {
     "test_name": "Ray Sphere Real World",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.015,
     "line": 515,
     "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Point;\n\n        let l0 = Line::new(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n        let sphere_center = Point::new(457.0, 192.0, 207.0);\n        let radius = 265.0;\n        let points = intersection::ray_sphere(&l0, &sphere_center, radius);\n        let points = points.unwrap();",
     "checks": [
@@ -747,7 +747,7 @@
   {
     "test_name": "Surface Plane",
     "passed": true,
-    "time_ms": 0.248,
+    "time_ms": 0.235,
     "line": 557,
     "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 10.0), Point::new(10.0, 10.0, 10.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);",
     "checks": [
@@ -877,7 +877,7 @@
   {
     "test_name": "Surface Plane Curved",
     "passed": true,
-    "time_ms": 0.585,
+    "time_ms": 0.57,
     "line": 584,
     "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let mut pts = Vec::new();\n        for i in 0..4 {\n            for j in 0..4 {\n                let x = i as f64 * 10.0;\n                let y = j as f64 * 10.0;\n                let z = if (i == 1 || i == 2) && (j == 1 || j == 2) { 10.0 } else { 0.0 };\n                pts.push(Point::new(x, y, z));\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);",
     "checks": [
@@ -957,7 +957,7 @@
   {
     "test_name": "Surface Plane Miss",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.046,
     "line": 616,
     "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 0.0), Point::new(10.0, 10.0, 0.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);",
     "checks": [

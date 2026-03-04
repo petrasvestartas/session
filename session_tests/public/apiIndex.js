@@ -47083,7 +47083,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n    from session_py import Polyline\n\n    vertices = Polyline.from_sides(6, 1.0, False).get_points()\n    mesh = Mesh.from_vertices_and_faces(vertices, [[0, 1, 2, 3, 4, 5]])\n\n    sstr = str(mesh)\n    srepr = repr(mesh)\n\n    # Copy (new guid)\n    mcopy = mesh.duplicate()\n\n    MINI_CHECK(mesh.is_valid())\n    mesh.name = \"hexagon\"\n\n    from session_py import Color\n    from session_py.mesh import ColorMode\n\n    palette = Color.palette()\n\n    # set_objectcolor does not change color_mode\n    mesh.set_objectcolor(Color.grey())\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n\n    # set_pointcolors \u00e2\u2020\u2019 color_mode = PointColors\n    pc = []\n    for i in range(mesh.number_of_vertices()):\n        pc.append(palette[i % len(palette)])\n    mesh.set_pointcolors(pc)\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_pointcolors()) == mesh.number_of_vertices())\n\n    # set_facecolors \u00e2\u2020\u2019 color_mode = FaceColors\n    fc = []\n    for i in range(mesh.number_of_faces()):\n        fc.append(palette[i % len(palette)])\n    mesh.set_facecolors(fc)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_facecolors()) == mesh.number_of_faces())\n\n    # set_linecolors does not change color_mode\n    lc = []\n    lw = [0.1] * mesh.number_of_edges()\n    for i in range(mesh.number_of_edges()):\n        lc.append(palette[i % len(palette)])\n    mesh.set_linecolors(lc, lw)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == mesh.number_of_edges())\n\n    # clear_facecolors reverts color_mode only if currently FaceColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_facecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n    MINI_CHECK(len(mesh.get_facecolors()) == 0)\n\n    # clear_pointcolors does not revert if color_mode != PointColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_pointcolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n\n    # clear_linecolors does not change color_mode\n    mesh.color_mode = ColorMode.POINTCOLORS\n    mesh.clear_linecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == 0)",
+          "code": "@MINI_TEST(\"Mesh\", \"Constructor\")\ndef test_mesh_constructor():\n    from session_py import Mesh\n    from session_py import Polyline\n    from session_py import Color\n    from session_py.mesh import ColorMode\n\n    vertices = Polyline.from_sides(6, 1.0, False).get_points()\n    mesh = Mesh.from_vertices_and_faces(vertices, [[0, 1, 2, 3, 4, 5]])\n    sstr = str(mesh)\n    srepr = repr(mesh)\n    mcopy = mesh.duplicate()\n    MINI_CHECK(mesh.is_valid())\n    mesh.name = \"hexagon\"\n\n    palette = Color.palette()\n\n    # set_objectcolor does not change color_mode\n    mesh.set_objectcolor(Color.grey())\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n\n    # set_pointcolors \u00e2\u2020\u2019 color_mode = PointColors\n    pc = []\n    for i in range(mesh.number_of_vertices()):\n        pc.append(palette[i % len(palette)])\n    mesh.set_pointcolors(pc)\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_pointcolors()) == mesh.number_of_vertices())\n\n    # set_facecolors \u00e2\u2020\u2019 color_mode = FaceColors\n    fc = []\n    for i in range(mesh.number_of_faces()):\n        fc.append(palette[i % len(palette)])\n    mesh.set_facecolors(fc)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_facecolors()) == mesh.number_of_faces())\n\n    # set_linecolors does not change color_mode\n    lc = []\n    lw = [0.1] * mesh.number_of_edges()\n    for i in range(mesh.number_of_edges()):\n        lc.append(palette[i % len(palette)])\n    mesh.set_linecolors(lc, lw)\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == mesh.number_of_edges())\n\n    # clear_facecolors reverts color_mode only if currently FaceColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_facecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.OBJECTCOLOR)\n    MINI_CHECK(len(mesh.get_facecolors()) == 0)\n\n    # clear_pointcolors does not revert if color_mode != PointColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n    mesh.clear_pointcolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.FACECOLORS)\n\n    # clear_linecolors does not change color_mode\n    mesh.color_mode = ColorMode.POINTCOLORS\n    mesh.clear_linecolors()\n    MINI_CHECK(mesh.color_mode == ColorMode.POINTCOLORS)\n    MINI_CHECK(len(mesh.get_linecolors()) == 0)",
           "file": "mesh_test.py"
         }
       }
@@ -49559,10 +49559,10 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "subdivide",
-        "circle",
-        "n",
-        "into",
         "points",
+        "n",
+        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49576,8 +49576,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "by",
+        "subdivide",
         "ellipse",
         "length",
         "arc",
@@ -49594,8 +49594,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
         "arc",
+        "points",
         "through",
         "nurbscurve",
         "primitives",
@@ -49610,12 +49610,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "from",
         "curve",
         "open",
         "adaptive",
-        "polyline",
-        "from",
         "points",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49632,8 +49632,8 @@ window.API_INDEX = {
       "tags": [
         "at",
         "evaluation",
-        "curve",
         "parameter",
+        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49652,10 +49652,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
+        "frames",
         "along",
         "curve",
-        "frames",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49677,9 +49677,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49700,10 +49700,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
         "cylinder",
-        "surface",
+        "evaluate",
         "point",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -49718,11 +49718,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "from",
+        "vertices",
+        "mesh",
         "and",
         "faces",
-        "vertices",
-        "from",
-        "mesh",
         "add_vertex",
         "add_face",
         "vertex"

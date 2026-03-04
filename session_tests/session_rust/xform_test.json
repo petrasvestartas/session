@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.016,
     "line": 7,
     "code": "        use crate::Xform;\n        use crate::Point;\n\n        // Constructor (identity by default)\n        let x = Xform::new();\n\n        // Matrix access\n        let m00 = x.m[0];\n        let m11 = x.m[5];\n        let m22 = x.m[10];\n        let m33 = x.m[15];\n\n        // Check identity\n        let is_id = x.is_identity();\n\n        // From matrix constructor\n        let xfrom = Xform::from_matrix([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 5.0, 10.0, 15.0, 1.0]);\n\n        // Minimal and Full String Representation\n        let xstr = x.str();\n        let xrepr = x.repr();\n\n        // Copy (duplicates everything except guid)\n        let xcopy = x.duplicate();\n        let xother = Xform::new();\n\n        // Equality operators\n        let x_eq = x == xother;\n        let x_ne = x != xfrom;\n\n        // Matrix multiplication (*)\n        let t = Xform::translation(10.0, 0.0, 0.0);\n        let s = Xform::scaling(2.0, 1.0, 1.0);\n        let combined = &t * &s;\n        let p = Point::new(1.0, 0.0, 0.0);\n        let result = combined.transformed_point(&p);\n\n        // In-place multiplication (*=)\n        let mut t2 = Xform::translation(10.0, 0.0, 0.0);\n        t2 *= s;\n        let result2 = t2.transformed_point(&p);\n\n        // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
     "checks": [
@@ -412,7 +412,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.07,
+    "time_ms": 10.68,
     "line": 327,
     "code": "        use crate::Xform;\n\n        // Create a non-identity xform\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_xform.json\";\n        xform.json_dump(filename).unwrap();\n        let loaded = Xform::json_load(filename).unwrap();\n",
     "checks": [
@@ -442,7 +442,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.546,
+    "time_ms": 9.035,
     "line": 351,
     "code": "        use crate::Xform;\n\n        // Create a non-identity xform\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform_proto\".to_string();\n\n        // pb_dump(filename) / pb_load(filename) - file-based serialization\n        let filename = \"serialization/test_xform.bin\";\n        xform.pb_dump(filename);\n        let loaded = Xform::pb_load(filename);\n",
     "checks": [

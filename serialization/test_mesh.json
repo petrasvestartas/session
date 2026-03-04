@@ -22,7 +22,7 @@
     255
   ],
   "facedata": {},
-  "guid": "4c20c195-d333-4a8b-9ed5-af45d19cc6b8",
+  "guid": "105c9413-bc08-4162-8ca7-14dcb4e4b69a",
   "halfedge": {
     "0": {
       "1": 1,
@@ -58,7 +58,7 @@
     "a": 255,
     "b": 255,
     "g": 255,
-    "guid": "baa7ab30-e8bc-4e67-b1f1-841b9591fa4b",
+    "guid": "6876354c-c4d2-4232-b58c-6911e37b4834",
     "name": "white",
     "r": 255,
     "type": "Color"
