@@ -6922,7 +6922,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "from_lines(lines: &[Line], delete_boundary_face: bool, precision: Option<f64>) -> Self",
-          "code": "pub fn from_lines(lines: &[Line], delete_boundary_face: bool, precision: Option<f64>) -> Self {\n        if lines.is_empty() {\n            return Mesh::new();\n        }\n\n        let mut all_pts: Vec<Point> = Vec::with_capacity(lines.len() * 2);\n        for ln in lines {\n            all_pts.push(ln.start());\n            all_pts.push(ln.end());\n        }\n\n        let mut eps = precision.unwrap_or(0.0);\n        if eps <= 0.0 {\n            let (mut minx, mut miny, mut minz) = (all_pts[0][0], all_pts[0][1], all_pts[0][2]);\n            let (mut maxx, mut maxy, mut maxz) = (minx, miny, minz);\n            for p in &all_pts {\n                if p[0] < minx { minx = p[0]; } if p[0] > maxx { maxx = p[0]; }\n                if p[1] < miny { miny = p[1]; } if p[1] > maxy { maxy = p[1]; }\n                if p[2] < minz { minz = p[2]; } if p[2] > maxz { maxz = p[2]; }\n            }\n            let diag = ((maxx-minx).powi(2) + (maxy-miny).powi(2) + (maxz-minz).powi(2)).sqrt();\n            eps = diag * 1e-6;\n            if eps < 1e-12 { eps = 1e-12; }\n        }\n\n        let mut vmap: HashMap<(i64, i64, i64), usize> = HashMap::new();\n        let mut verts: Vec<Point> = Vec::new();\n        let mut get_vid = |p: &Point| -> usize {\n            let kx = (p[0] / eps).round() as i64;\n            let ky = (p[1] / eps).round() as i64;\n            let kz = (p[2] / eps).round() as i64;\n            let key = (kx, ky, kz);\n            if let Some(&id) = vmap.get(&key) {\n                return id;\n            }\n            let id = verts.len();\n            verts.push(p.clone());\n            vmap.insert(key, id);\n            id\n        };\n\n        let mut adj: HashMap<usize, Vec<usize>> = HashMap::new();\n        for ln in lines {\n            let a = get_vid(&ln.start());\n            let b = get_vid(&ln.end());\n            if a == b { continue; }\n            adj.entry(a).or_default().push(b);\n            adj.entry(b).or_default().push(a);\n        }\n\n        let nv = verts.len();\n\n        for (v, nbrs) in adj.iter_mut() {\n            nbrs.sort();\n            nbrs.dedup();\n            let vx = verts[*v][0];\n            let vy = verts[*v][1];\n            nbrs.sort_by(|&a, &b| {\n                let aa = (verts[a][1] - vy).atan2(verts[a][0] - vx);\n                let ba = (verts[b][1] - vy).atan2(verts[b][0] - vx);\n                aa.partial_cmp(&ba).unwrap_or(std::cmp::Ordering::Equal)\n            });\n        }\n\n        let mut visited: HashSet<(usize, usize)> = HashSet::new();\n        let mut face_cycles: Vec<Vec<usize>> = Vec::new();\n\n        let adj_keys: Vec<usize> = {\n            let mut keys: Vec<usize> = adj.keys().copied().collect();\n            keys.sort();\n            keys\n        };\n\n        for &u in &adj_keys {\n            let nbrs: Vec<usize> = adj.get(&u).cloned().unwrap_or_default();\n            for &v in &nbrs {\n                if visited.contains(&(u, v)) { continue; }\n                let mut cycle: Vec<usize> = Vec::new();\n                let (mut cu, mut cv) = (u, v);\n                let mut valid = true;\n                loop {\n                    if visited.contains(&(cu, cv)) { break; }\n                    visited.insert((cu, cv));\n                    cycle.push(cu);\n                    let cv_nbrs = match adj.get(&cv) {\n                        Some(n) => n,\n                        None => { valid = false; break; }\n                    };\n                    let idx = match cv_nbrs.iter().position(|&x| x == cu) {\n                        Some(i) => i,\n                        None => { valid = false; break; }\n                    };\n                    let prev_idx = if idx == 0 { cv_nbrs.len() - 1 } else { idx - 1 };\n                    let nxt = cv_nbrs[prev_idx];\n                    cu = cv;\n                    cv = nxt;\n                    if cycle.len() > nv * 2 { valid = false; break; }\n                }\n                if valid && cycle.len() >= 3 {\n                    face_cycles.push(cycle);\n                }\n            }\n        }\n\n        if delete_boundary_face && !face_cycles.is_empty() {\n            let max_idx = face_cycles.iter().enumerate()\n                .max_by_key(|(_, c)| c.len())\n                .map(|(i, _)| i).unwrap();\n            face_cycles.remove(max_idx);\n        }\n\n        let mut mesh = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::with_capacity(verts.len());\n        for pt in &verts {\n            vkeys.push(mesh.add_vertex(pt.clone(), None));\n        }\n        for cycle in &face_cycles {\n            let mapped: Vec<usize> = cycle.iter().map(|&i| vkeys[i]).collect();\n            mesh.add_face(mapped, None);\n        }\n        mesh\n    }",
+          "code": "pub fn from_lines(lines: &[Line], delete_boundary_face: bool, precision: Option<f64>) -> Self {\n        if lines.is_empty() {\n            return Mesh::new();\n        }\n\n        let mut all_pts: Vec<Point> = Vec::with_capacity(lines.len() * 2);\n        for ln in lines {\n            all_pts.push(ln.start());\n            all_pts.push(ln.end());\n        }\n\n        let mut eps = precision.unwrap_or(0.0);\n        if eps <= 0.0 {\n            let (mut minx, mut miny, mut minz) = (all_pts[0][0], all_pts[0][1], all_pts[0][2]);\n            let (mut maxx, mut maxy, mut maxz) = (minx, miny, minz);\n            for p in &all_pts {\n                if p[0] < minx { minx = p[0]; } if p[0] > maxx { maxx = p[0]; }\n                if p[1] < miny { miny = p[1]; } if p[1] > maxy { maxy = p[1]; }\n                if p[2] < minz { minz = p[2]; } if p[2] > maxz { maxz = p[2]; }\n            }\n            let diag = ((maxx-minx).powi(2) + (maxy-miny).powi(2) + (maxz-minz).powi(2)).sqrt();\n            eps = diag * 1e-6;\n            if eps < 1e-12 { eps = 1e-12; }\n        }\n\n        let mut vmap: HashMap<(i64, i64, i64), usize> = HashMap::new();\n        let mut verts: Vec<Point> = Vec::new();\n        let mut get_vid = |p: &Point| -> usize {\n            let kx = (p[0] / eps).round() as i64;\n            let ky = (p[1] / eps).round() as i64;\n            let kz = (p[2] / eps).round() as i64;\n            let key = (kx, ky, kz);\n            if let Some(&id) = vmap.get(&key) {\n                return id;\n            }\n            let id = verts.len();\n            verts.push(p.clone());\n            vmap.insert(key, id);\n            id\n        };\n\n        let mut adj: HashMap<usize, Vec<usize>> = HashMap::new();\n        for ln in lines {\n            let a = get_vid(&ln.start());\n            let b = get_vid(&ln.end());\n            if a == b { continue; }\n            adj.entry(a).or_default().push(b);\n            adj.entry(b).or_default().push(a);\n        }\n\n        let nv = verts.len();\n\n        for (v, nbrs) in adj.iter_mut() {\n            nbrs.sort();\n            nbrs.dedup();\n            let vx = verts[*v][0];\n            let vy = verts[*v][1];\n            nbrs.sort_by(|&a, &b| {\n                let aa = (verts[a][1] - vy).atan2(verts[a][0] - vx);\n                let ba = (verts[b][1] - vy).atan2(verts[b][0] - vx);\n                aa.partial_cmp(&ba).unwrap_or(std::cmp::Ordering::Equal)\n            });\n        }\n\n        let mut visited: HashSet<(usize, usize)> = HashSet::new();\n        let mut face_cycles: Vec<Vec<usize>> = Vec::new();\n\n        let adj_keys: Vec<usize> = {\n            let mut keys: Vec<usize> = adj.keys().copied().collect();\n            keys.sort();\n            keys\n        };\n\n        for &u in &adj_keys {\n            let nbrs: Vec<usize> = adj.get(&u).cloned().unwrap_or_default();\n            for &v in &nbrs {\n                if visited.contains(&(u, v)) { continue; }\n                let mut cycle: Vec<usize> = Vec::new();\n                let (mut cu, mut cv) = (u, v);\n                let mut valid = true;\n                loop {\n                    if visited.contains(&(cu, cv)) { break; }\n                    visited.insert((cu, cv));\n                    cycle.push(cu);\n                    let cv_nbrs = match adj.get(&cv) {\n                        Some(n) => n,\n                        None => { valid = false; break; }\n                    };\n                    let idx = match cv_nbrs.iter().position(|&x| x == cu) {\n                        Some(i) => i,\n                        None => { valid = false; break; }\n                    };\n                    let prev_idx = if idx == 0 { cv_nbrs.len() - 1 } else { idx - 1 };\n                    let nxt = cv_nbrs[prev_idx];\n                    cu = cv;\n                    cv = nxt;\n                    if cycle.len() > nv * 2 { valid = false; break; }\n                }\n                if valid && cycle.len() >= 3 {\n                    face_cycles.push(cycle);\n                }\n            }\n        }\n\n        if delete_boundary_face && !face_cycles.is_empty() {\n            let max_idx = face_cycles.iter().enumerate()\n                .max_by_key(|(_, c)| c.len())\n                .map(|(i, _)| i).unwrap();\n            face_cycles.remove(max_idx);\n        }\n\n        let mut mesh = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::with_capacity(verts.len());\n        for pt in &verts {\n            vkeys.push(mesh.add_vertex(pt.clone(), None));\n        }\n        for cycle in &face_cycles {\n            let mapped: Vec<usize> = cycle.iter().map(|&i| vkeys[i]).collect();\n            if let Some(fk) = mesh.add_face(mapped.clone(), None) {\n                if cycle.len() > 3 {\n                    let pts: Vec<Point> = cycle.iter().map(|&i| verts[i].clone()).collect();\n                    let tris = crate::triangulation_2d::triangulate(&pts, None);\n                    let tri_vkeys: Vec<[usize; 3]> = tris.iter().map(|&(a, b, c)| {\n                        [mapped[a as usize], mapped[b as usize], mapped[c as usize]]\n                    }).collect();\n                    mesh.triangulation.insert(fk, tri_vkeys);\n                }\n            }\n        }\n        mesh\n    }",
           "file": "mesh.rs"
         }
       },
@@ -6942,7 +6942,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_vid(p)",
-          "code": "def get_vid(p):\n\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v].x, verts[v].y\n            nbrs.sort(key=lambda n: math.atan2(verts[n].y - vy, verts[n].x - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []\n\n        for u in adj:\n            for v in adj[u]:\n                if (u, v) in visited:\n                    continue\n                cycle = []\n                cu, cv = u, v\n                valid = True\n                while True:\n                    if (cu, cv) in visited:\n                        break\n                    visited.add((cu, cv))\n                    cycle.append(cu)\n                    cv_nbrs = adj.get(cv, [])\n                    if cu not in cv_nbrs:\n                        valid = False\n                        break\n                    idx = cv_nbrs.index(cu)\n                    prev_idx = (idx - 1) % len(cv_nbrs)\n                    nxt = cv_nbrs[prev_idx]\n                    cu, cv = cv, nxt\n                    if len(cycle) > nv * 2:\n                        valid = False\n                        break\n                if valid and len(cycle) >= 3:\n                    face_cycles.append(cycle)\n\n        if delete_boundary_face and face_cycles:\n            max_idx = max(range(len(face_cycles)), key=lambda i: len(face_cycles[i]))\n            face_cycles.pop(max_idx)\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in verts:\n            vkeys.append(mesh.add_vertex(pt))\n        for cycle in face_cycles:\n            pts = [verts[i] for i in cycle]\n            tris = _tri2d_triangulate(pts)\n            for t in tris:\n                mesh.add_face([vkeys[cycle[t[0]]], vkeys[cycle[t[1]]], vkeys[cycle[t[2]]]])\n        return mesh\n\n    @staticmethod\n    def from_polygon_with_holes(\n        polylines: List[List[Point]], sort_by_bbox: bool = False\n    ) -> \"Mesh\":\n        if not polylines:\n            return Mesh()\n        border_idx = 0",
+          "code": "def get_vid(p):\n\n            kx = round(p.x / eps)\n            ky = round(p.y / eps)\n            kz = round(p.z / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v].x, verts[v].y\n            nbrs.sort(key=lambda n: math.atan2(verts[n].y - vy, verts[n].x - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []\n\n        for u in adj:\n            for v in adj[u]:\n                if (u, v) in visited:\n                    continue\n                cycle = []\n                cu, cv = u, v\n                valid = True\n                while True:\n                    if (cu, cv) in visited:\n                        break\n                    visited.add((cu, cv))\n                    cycle.append(cu)\n                    cv_nbrs = adj.get(cv, [])\n                    if cu not in cv_nbrs:\n                        valid = False\n                        break\n                    idx = cv_nbrs.index(cu)\n                    prev_idx = (idx - 1) % len(cv_nbrs)\n                    nxt = cv_nbrs[prev_idx]\n                    cu, cv = cv, nxt\n                    if len(cycle) > nv * 2:\n                        valid = False\n                        break\n                if valid and len(cycle) >= 3:\n                    face_cycles.append(cycle)\n\n        if delete_boundary_face and face_cycles:\n            max_idx = max(range(len(face_cycles)), key=lambda i: len(face_cycles[i]))\n            face_cycles.pop(max_idx)\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in verts:\n            vkeys.append(mesh.add_vertex(pt))\n        for cycle in face_cycles:\n            mapped = [vkeys[i] for i in cycle]\n            fk = mesh.add_face(mapped)\n            if len(cycle) > 3:\n                pts = [verts[i] for i in cycle]\n                tris = _tri2d_triangulate(pts)\n                mesh.triangulation[fk] = [[mapped[t[0]], mapped[t[1]], mapped[t[2]]] for t in tris]\n        return mesh\n\n    @staticmethod\n    def from_polygon_with_holes(\n        polylines: List[List[Point]], sort_by_bbox: bool = False\n    ) -> \"Mesh\":\n        if not polylines:",
           "file": "mesh.py"
         }
       },
@@ -40287,7 +40287,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "void build_triangle_bvh(bool force)",
-          "code": "void Mesh::build_triangle_bvh(bool force) const {\n    if (triangle_bvh_built && !force) return;\n\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n\n    auto vf = to_vertices_and_faces();\n    vertices_cache = vf.first;\n    const std::vector<std::vector<size_t>>& faces_vec = vf.second;\n\n    size_t tri_count = 0;\n    for (const auto& f : faces_vec) if (f.size() >= 3) tri_count += (f.size() - 2);\n    triangle_aabbs_cache.resize(tri_count);\n    triangle_indices_cache.resize(tri_count);\n    triangle_face_subidx_cache.resize(tri_count);\n\n    struct TriTask { uint32_t i0, i1, i2; size_t face_idx; size_t sub_idx; size_t out_idx; }",
+          "code": "void Mesh::build_triangle_bvh(bool force) const {\n    if (triangle_bvh_built && !force) return;\n\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n\n    auto vf = to_vertices_and_faces();\n    vertices_cache = vf.first;\n    const std::vector<std::vector<size_t>>& faces_vec = vf.second;\n\n    std::vector<size_t> vertex_keys;\n    vertex_keys.reserve(vertex.size());\n    for (const auto& kv : vertex) vertex_keys.push_back(kv.first);\n    std::sort(vertex_keys.begin(), vertex_keys.end());\n    std::unordered_map<size_t, size_t> vkey_to_idx;\n    vkey_to_idx.reserve(vertex_keys.size());\n    for (size_t i = 0; i < vertex_keys.size(); ++i) vkey_to_idx[vertex_keys[i]] = i;\n\n    std::vector<size_t> face_keys;\n    face_keys.reserve(face.size());\n    for (const auto& kv : face) face_keys.push_back(kv.first);\n    std::sort(face_keys.begin(), face_keys.end());\n\n    size_t tri_count = 0;\n    for (size_t fi = 0; fi < faces_vec.size(); ++fi) {\n        const auto& fv = faces_vec[fi];\n        if (fv.size() < 3) continue;\n        if (fv.size() >= 5 && fi < face_keys.size()) {\n            auto it = triangulation.find(face_keys[fi]);\n            if (it != triangulation.end()) { tri_count += it->second.size(); continue; }",
           "file": "mesh.cpp"
         },
         "rust": {
@@ -40299,7 +40299,6 @@ window.API_INDEX = {
       "related": [
         "Mesh.build_triangle_aabb_tree",
         "Mesh.clear",
-        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.triangle_bvh_ray_cast"
       ]
@@ -40382,7 +40381,6 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
-        "Mesh.build_triangle_bvh",
         "Mesh.clone_with_new_guid",
         "Mesh.duplicate",
         "Mesh.from_polygon_with_holes",
@@ -47098,7 +47096,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"From Polylines\")",
-          "code": "@MINI_TEST(\"Mesh\", \"From Polylines\")\ndef test_mesh_from_polylines():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ])\n    MINI_CHECK(mesh.is_valid())",
+          "code": "@MINI_TEST(\"Mesh\", \"From Polylines\")\ndef test_mesh_from_polylines():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ], 0.001)\n    MINI_CHECK(mesh.is_valid())",
           "file": "mesh_test.py"
         }
       }
@@ -47113,7 +47111,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"From Lines\")",
-          "code": "@MINI_TEST(\"Mesh\", \"From Lines\")\ndef test_mesh_from_lines():\n    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    lines = [\n        Line.from_points(Point(4.948083, -0.149798, 1.00765), Point(4.395544, -0.996413, 1.196018)),\n        Line.from_points(Point(3.866593, 0.371225, 1.376346), Point(4.567265, 0.584361, 1.137476)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741), Point(3.282977, -0.051356, 1.575309)),\n        Line.from_points(Point(4.286215, -0.224964, 1.23329), Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802), Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(4.567265, 0.584361, 1.137476), Point(4.948083, -0.149798, 1.00765)),\n        Line.from_points(Point(4.395544, -0.996413, 1.196018), Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741), Point(4.286215, -0.224964, 1.23329)),\n        Line.from_points(Point(3.282977, -0.051356, 1.575309), Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802), Point(3.866593, 0.371225, 1.376346)),\n    ]\n    mesh = Mesh.from_lines(lines, True)\n    MINI_CHECK(mesh.is_valid())",
+          "code": "@MINI_TEST(\"Mesh\", \"From Lines\")\ndef test_mesh_from_lines():\n    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    lines = [\n        Line.from_points(Point(4.948083, -0.149798, 1.00765),\n                         Point(4.395544, -0.996413, 1.196018)),\n        Line.from_points(Point(3.866593, 0.371225, 1.376346),\n                         Point(4.567265, 0.584361, 1.137476)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(3.282977, -0.051356, 1.575309)),\n        Line.from_points(Point(4.286215, -0.224964, 1.23329),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(4.567265, 0.584361, 1.137476),\n                         Point(4.948083, -0.149798, 1.00765)),\n        Line.from_points(Point(4.395544, -0.996413, 1.196018),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(4.286215, -0.224964, 1.23329)),\n        Line.from_points(Point(3.282977, -0.051356, 1.575309),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.866593, 0.371225, 1.376346)),\n    ]\n    mesh = Mesh.from_lines(lines, True)\n    MINI_CHECK(mesh.is_valid())",
           "file": "mesh_test.py"
         }
       }
@@ -49558,10 +49556,10 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
         "points",
-        "n",
         "circle",
+        "n",
+        "subdivide",
         "into",
         "divide_by_count",
         "nurbscurve",
@@ -49576,11 +49574,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "by",
-        "subdivide",
-        "ellipse",
         "length",
+        "by",
+        "ellipse",
         "arc",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49594,9 +49592,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
-        "points",
         "through",
+        "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -49610,12 +49608,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "curve",
-        "open",
-        "adaptive",
         "points",
+        "curve",
+        "from",
+        "open",
         "polyline",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49631,9 +49629,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "at",
+        "curve",
         "evaluation",
         "parameter",
-        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49652,10 +49650,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "along",
-        "curve",
         "length",
+        "curve",
+        "along",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49677,9 +49675,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
-        "frames",
         "perpendicular",
+        "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49702,8 +49700,8 @@ window.API_INDEX = {
       "tags": [
         "cylinder",
         "evaluate",
-        "point",
         "surface",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -49718,10 +49716,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
-        "vertices",
-        "mesh",
         "and",
+        "from",
+        "mesh",
+        "vertices",
         "faces",
         "add_vertex",
         "add_face",

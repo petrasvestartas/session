@@ -2,7 +2,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 7,
     "code": "        let result = TOLERANCE.is_zero(1e-10);",
     "checks": [
