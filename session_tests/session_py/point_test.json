@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.577,
+    "time_ms": 0.226,
     "line": 9,
     "code": "    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    p = Point(1.0, 2.0, 3.0)\n\n    # Setters\n    p[0] = 10.0\n    p[1] = 20.0\n    p[2] = 30.0\n\n    # Getters\n    x = p[0]\n    y = p[1]\n    z = p[2]\n\n    # Minimal and Full String Representation\n    pstr = str(p)\n    prepr = repr(p) \n\n    # Copy (duplicates everything except guid)\n    pcopy = p.duplicate()\n    pother = Point(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    pmult = p.duplicate()\n    pmult *= 2.0\n    pdiv = p.duplicate()\n    pdiv /= 2.0\n    padd = p.duplicate()\n    padd += Vector(1.0, 1.0, 1.0)\n    psub = p.duplicate()\n    psub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = p * 2.0\n    result_div = p / 2.0\n    result_add = p + Vector(1.0, 1.0, 1.0)\n    diff_point = p - Vector(1.0, 1.0, 1.0)\n\n    # Static sum and sub methods\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    psum = Point.sum(p1, p2)\n    pdif = Point.sub(p2, p1)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.165,
+    "time_ms": 0.061,
     "line": 83,
     "code": "    from session_py import Point\n    from session_py import Xform\n    \n    p = Point(1.0, 2.0, 3.0)\n    p.xform = Xform.translation(1.0, 2.0, 3.0)\n    p_transformed = p.transformed() # Make a copy\n    p.transform() # After the call, \"xform\" is reset",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.875,
+    "time_ms": 12.187,
     "line": 98,
     "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_point.json\"\n    p.json_dump(fname)\n    loaded = Point.json_load(fname)",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.344,
+    "time_ms": 8.764,
     "line": 133,
     "code": "    from session_py import Point\n    from session_py import Color\n    from pathlib import Path\n\n    p = Point(1.5, 2.5, 3.5)\n    p.name = \"test_point\"\n    p.width = 2.0\n    p.pointcolor = Color(255, 128, 64, 255)\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_point.bin\"\n    p.pb_dump(path)\n    loaded = Point.pb_load(path)",
     "checks": [
@@ -237,7 +237,7 @@
   {
     "test_name": "Is Ccw",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.022,
     "line": 165,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.05, 1.0, 0.0)\n\n    # Points must be oriented to xy plane.\n    is_counter_clock_wise = Point.is_ccw(p0, p1, p2)\n    is_clock_wise = Point.is_ccw(p2, p1, p0)\n    ",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "Mid Point",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.018,
     "line": 181,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    mid = Point.mid_point(p0, p1)\n    ",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "Distance",
     "passed": true,
-    "time_ms": 0.054,
+    "time_ms": 0.023,
     "line": 192,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    d = Point.distance(p0, p1)",
     "checks": [
@@ -287,7 +287,7 @@
   {
     "test_name": "Squared Distance",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.015,
     "line": 203,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 2.0, 1.0)\n    p1 = Point(1.0, 5.0, 3.0)\n    d = Point.squared_distance(p0, p1)",
     "checks": [
@@ -302,7 +302,7 @@
   {
     "test_name": "Area",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 0.025,
     "line": 214,
     "code": "    from session_py import Point\n    \n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(2.0, 0.0, 0.0)\n    p2 = Point(2.0, 2.0, 0.0)\n    p3 = Point(0.0, 2.0, 0.0)\n    area = Point.area([p0, p1, p2, p3])\n    ",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "Centroid Quad",
     "passed": true,
-    "time_ms": 0.163,
+    "time_ms": 0.055,
     "line": 227,
     "code": "    from session_py import Point\n\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(2.0, 0.0, 1.0)\n    p2 = Point(2.0, 2.0, 2.0)\n    p3 = Point(0.0, 2.0, 1.0)\n    centroid = Point.centroid_quad([p0, p1, p2, p3])",
     "checks": [
