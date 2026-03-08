@@ -87,7 +87,7 @@
   {
     "test_name": "Polygon With Hole",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.011,
     "line": 92,
     "code": "        use crate::Point;\n        use crate::triangulation_2d;\n        let boundary = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0), Point::new(0.0, 4.0, 0.0), Point::new(0.0, 0.0, 0.0),\n        ];\n        let hole = vec![\n            Point::new(1.0, 1.0, 0.0), Point::new(3.0, 1.0, 0.0),\n            Point::new(3.0, 3.0, 0.0), Point::new(1.0, 3.0, 0.0), Point::new(1.0, 1.0, 0.0),\n        ];\n        let tris = triangulation_2d::triangulate(&boundary, Some(&[hole]));\n        let all_pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0), Point::new(0.0, 4.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(3.0, 1.0, 0.0),\n            Point::new(3.0, 3.0, 0.0), Point::new(1.0, 3.0, 0.0),\n        ];\n        let a = total_area(&all_pts, &tris);\n        let expected = 4.0*4.0 - 2.0*2.0;",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Polygon With Multiple Holes",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.017,
     "line": 118,
     "code": "        use crate::Point;\n        use crate::triangulation_2d;\n        let boundary = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 8.0, 0.0), Point::new(0.0, 8.0, 0.0), Point::new(0.0, 0.0, 0.0),\n        ];\n        let hole0 = vec![\n            Point::new(1.0, 1.0, 0.0), Point::new(3.0, 1.0, 0.0),\n            Point::new(3.0, 3.0, 0.0), Point::new(1.0, 3.0, 0.0), Point::new(1.0, 1.0, 0.0),\n        ];\n        let hole1 = vec![\n            Point::new(5.0, 4.0, 0.0), Point::new(9.0, 4.0, 0.0),\n            Point::new(9.0, 7.0, 0.0), Point::new(5.0, 7.0, 0.0), Point::new(5.0, 4.0, 0.0),\n        ];\n        let tris = triangulation_2d::triangulate(&boundary, Some(&[hole0, hole1]));\n        let all_pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 8.0, 0.0), Point::new(0.0, 8.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(3.0, 1.0, 0.0),\n            Point::new(3.0, 3.0, 0.0), Point::new(1.0, 3.0, 0.0),\n            Point::new(5.0, 4.0, 0.0), Point::new(9.0, 4.0, 0.0),\n            Point::new(9.0, 7.0, 0.0), Point::new(5.0, 7.0, 0.0),\n        ];\n        let a = total_area(&all_pts, &tris);\n        let expected = 10.0*8.0 - 2.0*2.0 - 4.0*3.0;",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Winding Correction",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 150,
     "code": "        use crate::Point;\n        use crate::triangulation_2d;\n        let boundary = vec![\n            Point::new(0.0, 1.0, 0.0), Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ];\n        let tris = triangulation_2d::triangulate(&boundary, None);\n        let pts = vec![\n            Point::new(0.0, 1.0, 0.0), Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0),\n        ];\n        let a = total_area(&pts, &tris);",
     "checks": [
