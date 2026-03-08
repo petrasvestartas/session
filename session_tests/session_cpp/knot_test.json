@@ -127,7 +127,7 @@
   {
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 84,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);\n",
     "checks": [

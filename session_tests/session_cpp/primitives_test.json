@@ -2,7 +2,7 @@
   {
     "test_name": "Mesh Arrow",
     "passed": true,
-    "time_ms": 0.114,
+    "time_ms": 0.164,
     "line": 21,
     "code": "    // uncomment #include \"mesh.h\"\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Mesh m = Primitives::arrow_mesh(line, 1.0);\n",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Mesh Cylinder",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 0.063,
     "line": 30,
     "code": "    // uncomment #include \"mesh.h\"\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0);\n    Mesh m = Primitives::cylinder_mesh(line, 1.0);\n",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "Nurbscurve Polyline",
     "passed": true,
-    "time_ms": 0.113,
+    "time_ms": 0.133,
     "line": 43,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    NurbsCurve c = NurbsCurve::create(false, 1, {\n        Point(0, 0, 0), Point(1, 2, 0), Point(2, 0, 0), Point(3, 2, 0), Point(4, 0, 0)});\n",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Nurbscurve Arc",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.012,
     "line": 74,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    Point start(0.0, 0.0, 0.0);\n    Point mid(1.0, 1.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::arc(start, mid, end);\n",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Nurbscurve Hyperbola",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 98,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    Point center(0.0, 0.0, 0.0);\n    NurbsCurve c = Primitives::hyperbola(center, 1.0, 1.0, 1.0);\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "Nurbssurface Cone",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 149,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsSurface s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n    s.name = \"cone\";\n\n\n    Point pbase = s.point_at(0.0, 0.0);\n\n    Point papex = s.point_at(0.0, 1.0);\n\n    Point pmid = s.point_at(0.0, 0.5);",
     "checks": [
@@ -402,7 +402,7 @@
   {
     "test_name": "Nurbssurface Torus",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 177,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsSurface s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n    s.name = \"torus\";\n\n\n    Point p00 = s.point_at(0.0, 0.0);\n\n    Point p10 = s.point_at(1.0, 0.0);\n\n    Point p_top = s.point_at(0.0, 1.0);",
     "checks": [
@@ -587,7 +587,7 @@
   {
     "test_name": "Nurbssurface Quad Sphere",
     "passed": true,
-    "time_ms": 0.101,
+    "time_ms": 0.104,
     "line": 238,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    double R = 5.0;\n    auto faces = Primitives::quad_sphere(0.0, 0.0, 0.0, R);\n\n    for (int f = 0; f < 6; f++) {\n    }\n\n    // All surface points should be close to sphere radius\n    double max_err = 0.0;\n    for (int f = 0; f < 6; f++) {\n        for (int i = 0; i <= 4; i++) {\n            double u = i / 4.0;\n            for (int j = 0; j <= 4; j++) {\n                double v = j / 4.0;\n                Point p = faces[f].point_at(u, v);\n                double dist = std::sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);\n                double err = std::abs(dist - R);\n                if (err > max_err) max_err = err;\n            }\n        }\n    }\n\n    // Face centers should be exactly at radius (by construction)\n    Point top = faces[0].point_at(0.5, 0.5);\n\n    Point bottom = faces[1].point_at(0.5, 0.5);\n\n    Point right = faces[2].point_at(0.5, 0.5);\n\n    Point left = faces[3].point_at(0.5, 0.5);\n\n    Point front = faces[4].point_at(0.5, 0.5);\n\n    Point back = faces[5].point_at(0.5, 0.5);",
     "checks": [
@@ -827,7 +827,7 @@
   {
     "test_name": "Nurbssurface Ruled",
     "passed": true,
-    "time_ms": 2.253,
+    "time_ms": 2.6,
     "line": 295,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_a = {Point(3, 0, 0), Point(-2, 0, 5)};\n    std::vector<Point> pts_b = {Point(3, 5, 5), Point(-2, 5, 0)};\n    NurbsCurve crvA = NurbsCurve::create(false, 1, pts_a);\n    NurbsCurve crvB = NurbsCurve::create(false, 1, pts_b);\n    NurbsSurface srf = Primitives::create_ruled(crvA, crvB);\n    srf.name = \"ruled\";\n\n    Mesh m = srf.mesh(45);\n\n\n    auto [rd, rv, ruv] = srf.divide_by_count_points(4, 4);\n\n    std::vector<Point> pts;\n    for (int i = 0; i < (int)rd.size(); i++)\n        for (int j = 0; j < (int)rd[i].size(); j++)\n            pts.push_back(rd[i][j]);\n\n    std::vector<Vector> normals;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            normals.push_back(srf.normal_at(ruv[i][j].first, ruv[i][j].second));\n\n    std::vector<std::pair<double,double>> uvs;\n    for (int i = 0; i < (int)ruv.size(); i++)\n        for (int j = 0; j < (int)ruv[i].size(); j++)\n            uvs.push_back(ruv[i][j]);\n\n\n",
     "checks": [
@@ -1182,7 +1182,7 @@
   {
     "test_name": "Nurbssurface Planar",
     "passed": true,
-    "time_ms": 19.689,
+    "time_ms": 21.315,
     "line": 397,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    double c1=std::cos(0.7), s1=std::sin(0.7);\n    double c2=std::cos(0.96), s2=std::sin(0.96);\n    double c3=std::cos(0.52), s3=std::sin(0.52);\n    double c4=std::cos(1.13), s4=std::sin(1.13);\n\n    auto ca = NurbsCurve::create(false, 1, {\n        Point(0, 0, 0),\n        Point(4, 0, 0),\n        Point(4, 3*c1, 3*s1),\n        Point(0, 3*c1, 3*s1),\n        Point(0, 0, 0)});\n    auto s_quad = Primitives::create_planar(ca);\n    s_quad.name = \"quad\";\n    auto m_quad = s_quad.mesh();\n\n    auto cb1 = NurbsCurve::create(false, 1, {\n        Point(8, 0, 0),\n        Point(8+5*c2, 0, 5*s2),\n        Point(8+2*c2, 3, 2*s2),\n        Point(8, 0, 0)});\n    auto s_triangle = Primitives::create_planar(cb1);\n    s_triangle.name = \"triangle\";\n    auto m_triangle = s_triangle.mesh();\n\n    double ox=18;\n    auto cb2 = NurbsCurve::create(false, 1, {\n        Point(ox+0*c3, 0*s3, 0),\n        Point(ox+4*c3, 4*s3, 0),\n        Point(ox+5*c3-2*s3, 5*s3+2*c3, 0),\n        Point(ox+3*c3-4*s3, 3*s3+4*c3, 0),\n        Point(ox-1*c3-3*s3, -1*s3+3*c3, 0),\n        Point(ox+0*c3, 0*s3, 0)});\n    auto s_polygon = Primitives::create_planar(cb2);\n    s_polygon.name = \"polygon\";\n    auto m_polygon = s_polygon.mesh();\n\n    auto cc = NurbsCurve::create(false, 3, {\n        Point(26, 0, 0),\n        Point(29, 1*c4, 1*s4),\n        Point(31, 0.5*c4, 0.5*s4),\n        Point(32, 3*c4, 3*s4),\n        Point(30, 5*c4, 5*s4),\n        Point(27, 4*c4, 4*s4),\n        Point(26, 0, 0)});\n    auto s_nurbs = Primitives::create_planar(cc);\n    s_nurbs.name = \"nurbs\";\n    auto m_nurbs = s_nurbs.mesh();\n\n\n\n",
     "checks": [
@@ -1392,7 +1392,7 @@
   {
     "test_name": "Nurbssurface Extrusion",
     "passed": true,
-    "time_ms": 0.675,
+    "time_ms": 0.684,
     "line": 492,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    Vector dir(0, 1, 5);\n\n    auto c1 = NurbsCurve::create(false, 1, {Point(13, 0, 0), Point(18, 0, 0)});\n    auto s_line = Primitives::create_extrusion(c1, dir);\n    s_line.name = \"line\";\n    auto m_line = s_line.mesh();\n\n    auto c2 = Primitives::circle(24, 0, 0, 3.0);\n    auto s_circle = Primitives::create_extrusion(c2, dir);\n    s_circle.name = \"circle\";\n    auto m_circle = s_circle.mesh();\n\n    auto c3 = NurbsCurve::create(false, 2, {Point(30, 0, 0), Point(33, 5, 0), Point(37, 0, 0)});\n    auto s_arc = Primitives::create_extrusion(c3, dir);\n    s_arc.name = \"arc\";\n    auto m_arc = s_arc.mesh();\n\n    auto c4 = NurbsCurve::create(false, 1, {\n        Point(40, 3, 0), Point(45, 0, 0), Point(50, 3, 0), Point(55, 0, 0)});\n    auto s_wavy = Primitives::create_extrusion(c4, dir);\n    s_wavy.name = \"wavy\";\n    auto m_wavy = s_wavy.mesh();\n\n\n\n",
     "checks": [
@@ -1622,7 +1622,7 @@
   {
     "test_name": "Nurbssurface Loft",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.172,
     "line": 566,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve c1 = Primitives::circle(0, 0, 0.0, 2.0);\n    NurbsCurve c2 = Primitives::circle(0, 0, 2.0, 1.0);\n    NurbsCurve c3 = Primitives::circle(0, 0, 4.0, 1.5);\n    NurbsCurve c4 = Primitives::circle(0, 0, 6.0, 0.8);\n\n    NurbsSurface srf = Primitives::create_loft({c1, c2, c3, c4}, 3);\n    srf.name = \"loft\";\n\n\n    std::vector<std::vector<Point>> open_pts = {\n        {\n            Point(10, -12, 0),\n            Point(10, -10, 3),\n            Point(10, -7, 3),\n            Point(10, -5, 0),\n        },\n        {\n            Point(5.5, -12, 3.5),\n            Point(5.5, -10.0, 1.5),\n            Point(5.5, -7.0, 1.5),\n            Point(5.5, -5, 3.5),\n        },\n        {\n            Point(1, -12, 0),\n            Point(1, -10, 3.0),\n            Point(1, -7, 3.0),\n            Point(1, -5, 0),\n        },\n    };\n    std::vector<NurbsCurve> open_curves = {\n        NurbsCurve::create(false, 3, open_pts[0]),\n        NurbsCurve::create(false, 3, open_pts[1]),\n        NurbsCurve::create(false, 3, open_pts[2]),\n    };\n    NurbsSurface open_srf = Primitives::create_loft(open_curves, 3);\n    open_srf.name = \"open_loft\";\n\n",
     "checks": [
@@ -1902,7 +1902,7 @@
   {
     "test_name": "Nurbssurface Revolve",
     "passed": true,
-    "time_ms": 13.535,
+    "time_ms": 16.118,
     "line": 662,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    auto pa = NurbsCurve::create(false, 3, {\n        Point(1.5, 0, 0),\n        Point(1.5, 0, 0.3),\n        Point(0.3, 0, 0.5),\n        Point(0.3, 0, 2.5),\n        Point(0.2, 0, 3.0),\n        Point(2.0, 0, 4.5),\n        Point(1.8, 0, 5.0),\n    });\n    auto s_vase = Primitives::create_revolve(pa, Point(0, 0, 0), Vector(0, 0, 1));\n    s_vase.name = \"vase\";\n    auto m_vase = s_vase.mesh();\n\n    NurbsCurve pb(3, true, 3, 9);\n    const double w = std::sqrt(2.0) / 2.0;\n    double cw[] = {1, w, 1, w, 1, w, 1, w, 1};\n    double ca[] = {1, 1, 0, -1, -1, -1, 0, 1, 1};\n    double sa[] = {0, 1, 1, 1, 0, -1, -1, -1, 0};\n    double ck[] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4};\n    double R = 5.0, r = 1.5, tcx = 14;\n    for (int i = 0; i < 10; i++) pb.set_knot(i, ck[i]);\n    for (int i = 0; i < 9; i++)\n        pb.set_cv_4d(i, (tcx + R + r * ca[i]) * cw[i], 0, r * sa[i] * cw[i], cw[i]);\n    auto s_torus = Primitives::create_revolve(pb, Point(tcx, 0, 0), Vector(0, 0, 1));\n    s_torus.name = \"torus\";\n    auto m_torus = s_torus.mesh();\n\n    auto pc = NurbsCurve::create(false, 1, {Point(29, 0, -0.5), Point(29, 0, 0.5)});\n    auto s_elbow = Primitives::create_revolve(pc, Point(26, 0, 0), Vector(0, 0, 1), Tolerance::PI / 2.0);\n    s_elbow.name = \"elbow\";\n    auto m_elbow = s_elbow.mesh();\n\n    double sr = 2.0, scx = 36;\n    NurbsCurve pd(3, true, 3, 5);\n    double sk[] = {0, 0, 1, 1, 2, 2};\n    for (int i = 0; i < 6; i++) pd.set_knot(i, sk[i]);\n    double spx[] = {0, sr, sr, sr, 0}, spz[] = {-sr, -sr, 0, sr, sr}, spw[] = {1, w, 1, w, 1};\n    for (int i = 0; i < 5; i++)\n        pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0, spz[i] * spw[i], spw[i]);\n    auto s_sphere = Primitives::create_revolve(pd, Point(scx, 0, 0), Vector(0, 0, 1));\n    s_sphere.name = \"sphere\";\n    auto m_sphere = s_sphere.mesh();\n\n    auto pe = NurbsCurve::create(false, 1, {Point(44, 0, 3), Point(46, 0, 0)});\n    auto s_cone = Primitives::create_revolve(pe, Point(44, 0, 0), Vector(0, 0, 1));\n    s_cone.name = \"cone\";\n    auto m_cone = s_cone.mesh();\n\n\n\n\n",
     "checks": [
@@ -2162,7 +2162,7 @@
   {
     "test_name": "Nurbssurface Sweep",
     "passed": true,
-    "time_ms": 36.133,
+    "time_ms": 30.293,
     "line": 768,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve rail = NurbsCurve::create(false, 2, {\n        Point(0, 0, 0), Point(0, 5, 0), Point(2, 9, 0)});\n    NurbsCurve profile = Primitives::circle(0, 0, 0, 1.0);\n    NurbsSurface s_sweep1 = Primitives::create_sweep1(rail, profile);\n    s_sweep1.name = \"sweep1\";\n    auto m_sweep1 = s_sweep1.mesh();\n\n    NurbsCurve rail1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0), Point(7, 3, 0), Point(8, 4, 0)});\n    NurbsCurve rail2 = NurbsCurve::create(false, 2, {\n        Point(10, -1, 0), Point(10, 3, 0), Point(9, 4, 0)});\n    NurbsCurve shape1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0), Point(8, -1, 2), Point(10, -1, 0)});\n    NurbsCurve shape2 = NurbsCurve::create(false, 2, {\n        Point(8, 4, 0), Point(8.5, 4, 1.5), Point(9, 4, 0)});\n    NurbsSurface s_sweep2 = Primitives::create_sweep2(rail1, rail2, {shape1, shape2});\n    s_sweep2.name = \"sweep2\";\n    auto m_sweep2 = s_sweep2.mesh();\n\n",
     "checks": [
@@ -2587,7 +2587,7 @@
   {
     "test_name": "Nurbssurface Edge",
     "passed": true,
-    "time_ms": 1.024,
+    "time_ms": 0.792,
     "line": 875,
     "code": "    // uncomment #include \"nurbssurface.h\"\n    std::vector<Point> pts_south = {\n        Point(1, 20.569076, 0),\n        Point(1, 22.569076, 3.0),\n        Point(1, 25.569076, 3.0),\n        Point(1, 27.569076, 0),\n    };\n    std::vector<Point> pts_west  = {\n        Point(10, 20.569076, 0),\n        Point(5.5, 20.569076, 3.5),\n        Point(1, 20.569076, 0),\n    };\n    std::vector<Point> pts_north = {\n        Point(10, 20.569076, 0),\n        Point(10, 22.569076, 3),\n        Point(10, 25.569076, 3),\n        Point(10, 27.569076, 0),\n    };\n    std::vector<Point> pts_east  = {\n        Point(10, 27.569076, 0),\n        Point(5.5, 27.569076, 3.5),\n        Point(1, 27.569076, 0),\n    };\n\n    NurbsCurve south = NurbsCurve::create(false, 3, pts_south);\n    NurbsCurve west  = NurbsCurve::create(false, 2, pts_west);\n    NurbsCurve north = NurbsCurve::create(false, 3, pts_north);\n    NurbsCurve east  = NurbsCurve::create(false, 2, pts_east);\n\n    NurbsSurface surf = Primitives::create_edge(south, west, north, east);\n    surf.name = \"edge\";\n    Mesh m = surf.mesh(15);\n\n",
     "checks": [
@@ -2687,7 +2687,7 @@
   {
     "test_name": "Mesh Quad Mesh",
     "passed": true,
-    "time_ms": 0.315,
+    "time_ms": 0.229,
     "line": 934,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::quad_mesh(cyl, 8, 4);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::quad_mesh(sph, 8, 4);",
     "checks": [
@@ -2727,7 +2727,7 @@
   {
     "test_name": "Mesh Diamond Mesh",
     "passed": true,
-    "time_ms": 0.173,
+    "time_ms": 0.156,
     "line": 948,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::diamond_mesh(cyl, 8, 4);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::diamond_mesh(sph, 8, 4);",
     "checks": [
@@ -2767,7 +2767,7 @@
   {
     "test_name": "Mesh Hex Mesh",
     "passed": true,
-    "time_ms": 0.23,
+    "time_ms": 0.28,
     "line": 962,
     "code": "    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh(cyl, 6, 4, 1.0/3.0);\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::hex_mesh(sph, 6, 4, 1.0/3.0);",
     "checks": [
@@ -2807,7 +2807,7 @@
   {
     "test_name": "Mesh Cone Subdivisions",
     "passed": true,
-    "time_ms": 0.295,
+    "time_ms": 0.326,
     "line": 976,
     "code": "    NurbsSurface cone = Primitives::cone_surface(0, 0, 0, 3.0, 5.0);\n\n    Mesh m1 = Primitives::quad_mesh(cone, 8, 4);\n\n    Mesh m2 = Primitives::diamond_mesh(cone, 8, 4);\n\n    Mesh m3 = Primitives::hex_mesh(cone, 6, 4, 1.0/3.0);",
     "checks": [
@@ -2862,7 +2862,7 @@
   {
     "test_name": "Nurbscurve Interpolated",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.019,
     "line": 995,
     "code": "    // uncomment #include \"nurbscurve.h\"\n    std::vector<Point> points = {\n        Point(14, 9, 0), Point(15.342777, 13.734889, 0), Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0), Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0), Point(41, 13, 0)\n    };\n\n    NurbsCurve c = Primitives::create_interpolated(points, CurveKnotStyle::Chord);\n\n\n    // Verify curve passes through all input points\n    auto [d0, d1] = c.domain();\n    std::vector<double> knots = c.get_knots();\n\n    // Verify endpoints are exact\n\n    // Test with 4 points\n    std::vector<Point> pts4 = {Point(0, 0, 0), Point(1, 2, 0), Point(3, 1, 0), Point(5, 3, 0)};\n    NurbsCurve c4 = Primitives::create_interpolated(pts4, CurveKnotStyle::Chord);\n    auto [d4_0, d4_1] = c4.domain();",
     "checks": [
@@ -2992,7 +2992,7 @@
   {
     "test_name": "Mesh Cube",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.054,
     "line": 1044,
     "code": "    Mesh m = Primitives::cube(2.0);",
     "checks": [
@@ -3017,7 +3017,7 @@
   {
     "test_name": "Mesh Octahedron",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.042,
     "line": 1051,
     "code": "    Mesh m = Primitives::octahedron(2.0);",
     "checks": [
@@ -3042,7 +3042,7 @@
   {
     "test_name": "Mesh Icosahedron",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.084,
     "line": 1058,
     "code": "    Mesh m = Primitives::icosahedron(2.0);",
     "checks": [
@@ -3067,7 +3067,7 @@
   {
     "test_name": "Mesh Dodecahedron",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 0.118,
     "line": 1065,
     "code": "    Mesh m = Primitives::dodecahedron(2.0);",
     "checks": [
@@ -3092,7 +3092,7 @@
   {
     "test_name": "Nurbssurface Wave",
     "passed": true,
-    "time_ms": 0.157,
+    "time_ms": 0.204,
     "line": 1072,
     "code": "    NurbsSurface srf = Primitives::wave_surface(10.0, 2.0);\n    Point corner = srf.point_at(0.0, 0.0);",
     "checks": [
@@ -3132,7 +3132,7 @@
   {
     "test_name": "Mesh Chevron",
     "passed": true,
-    "time_ms": 26.578,
+    "time_ms": 31.991,
     "line": 1087,
     "code": "    auto surfaces = Primitives::annen_surfaces();\n    for (size_t i = 0; i < surfaces.size(); i++)\n\n    Mesh m = Primitives::chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799);",
     "checks": [
@@ -3277,7 +3277,7 @@
   {
     "test_name": "FoldedPlates",
     "passed": true,
-    "time_ms": 3.217,
+    "time_ms": 3.577,
     "line": 1099,
     "code": "    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)",
     "checks": [
@@ -4072,7 +4072,7 @@
   {
     "test_name": "CrossConnectors",
     "passed": true,
-    "time_ms": 11.232,
+    "time_ms": 13.989,
     "line": 1125,
     "code": "    std::vector<std::vector<Point>> polys = {\n        {\n            Point(-574.485, -574.300, -182.370),\n            Point(-620.030, -480.441, -136.145),\n            Point(-527.510, -476.289, -53.723),\n            Point(-431.548, -637.846, -118.351),\n            Point(-574.485, -574.300, -182.370),\n        },\n        {\n            Point(-545.761, -545.585, -211.069),\n            Point(-589.029, -456.419, -167.156),\n            Point(-501.135, -452.475, -88.854),\n            Point(-409.971, -605.954, -150.251),\n            Point(-545.761, -545.585, -211.069),\n        },\n        {\n            Point(-224.289, -691.254, -65.097),\n            Point(-125.302, -566.359, 58.481),\n            Point(125.182, -566.359, 58.481),\n            Point(212.579, -691.254, -65.097),\n            Point(-224.289, -691.254, -65.097),\n        },\n        {\n            Point(-213.075, -656.691, -99.659),\n            Point(-119.037, -538.041, 17.739),\n            Point(118.923, -538.041, 17.739),\n            Point(201.950, -656.691, -99.659),\n            Point(-213.075, -656.691, -99.659),\n        },\n        {\n            Point(456.309, -628.504, -127.534),\n            Point(523.010, -466.370, -45.103),\n            Point(622.146, -472.434, -134.186),\n            Point(574.882, -574.852, -181.916),\n            Point(456.309, -628.504, -127.534),\n        },\n        {\n            Point(433.493, -597.079, -158.975),\n            Point(496.859, -443.052, -80.665),\n            Point(591.038, -448.812, -165.294),\n            Point(546.138, -546.110, -210.638),\n            Point(433.493, -597.079, -158.975),\n        },\n        {\n            Point(-431.100, -638.600, -118.653),\n            Point(-527.510, -476.289, -53.723),\n            Point(-481.982, -362.651, 39.785),\n            Point(-234.426, -365.823, 142.950),\n            Point(-125.302, -566.359, 58.481),\n            Point(-223.832, -690.677, -64.527),\n            Point(-431.100, -638.600, -118.653),\n        },\n        {\n            Point(-409.545, -606.670, -150.538),\n            Point(-501.135, -452.475, -88.854),\n            Point(-457.883, -344.518, -0.022),\n            Point(-222.705, -347.532, 97.985),\n            Point(-119.037, -538.041, 17.739),\n            Point(-212.641, -656.144, -99.118),\n            Point(-409.545, -606.670, -150.538),\n        },\n        {\n            Point(212.526, -691.178, -65.022),\n            Point(125.182, -566.359, 58.481),\n            Point(238.785, -380.979, 136.566),\n            Point(478.593, -374.909, 36.915),\n            Point(523.010, -466.370, -45.103),\n            Point(455.692, -630.004, -128.297),\n            Point(212.526, -691.178, -65.022),\n        },\n        {\n            Point(201.900, -656.619, -99.589),\n            Point(118.923, -538.041, 17.739),\n            Point(226.846, -361.930, 91.920),\n            Point(454.664, -356.164, -2.748),\n            Point(496.859, -443.052, -80.665),\n            Point(432.907, -598.504, -159.699),\n            Point(201.900, -656.619, -99.589),\n        },\n        {\n            Point(-481.982, -362.651, 39.785),\n            Point(-527.510, -476.289, -53.723),\n            Point(-620.401, -480.458, -136.475),\n            Point(-698.046, -172.509, -57.884),\n            Point(-595.889, -174.723, 29.899),\n            Point(-481.982, -362.651, 39.785),\n        },\n        {\n            Point(-457.883, -344.518, -0.022),\n            Point(-501.135, -452.475, -88.854),\n            Point(-589.381, -456.435, -167.469),\n            Point(-663.144, -163.884, -92.807),\n            Point(-566.094, -165.987, -9.413),\n            Point(-457.883, -344.518, -0.022),\n        },\n        {\n            Point(-125.302, -566.359, 58.481),\n            Point(-234.426, -365.823, 142.950),\n            Point(-149.707, -204.103, 211.069),\n            Point(150.116, -204.103, 211.069),\n            Point(238.785, -380.979, 136.566),\n            Point(125.182, -566.359, 58.481),\n            Point(-125.302, -566.359, 58.481),\n        },\n        {\n            Point(-119.037, -538.041, 17.739),\n            Point(-222.705, -347.532, 97.985),\n            Point(-142.222, -193.898, 162.698),\n            Point(142.610, -193.898, 162.698),\n            Point(226.846, -361.930, 91.920),\n            Point(118.923, -538.041, 17.739),\n            Point(-119.037, -538.041, 17.739),\n        },\n        {\n            Point(478.593, -374.909, 36.915),\n            Point(596.484, -174.710, 29.388),\n            Point(698.046, -172.509, -57.884),\n            Point(622.420, -472.451, -134.432),\n            Point(523.010, -466.370, -45.103),\n            Point(478.593, -374.909, 36.915),\n        },\n        {\n            Point(454.664, -356.164, -2.748),\n            Point(566.659, -165.975, -9.899),\n            Point(663.144, -163.884, -92.807),\n            Point(591.299, -448.828, -165.528),\n            Point(496.859, -443.052, -80.665),\n            Point(454.664, -356.164, -2.748),\n        },\n        {\n            Point(-481.982, -362.651, 39.785),\n            Point(-595.889, -174.723, 29.899),\n            Point(-515.848, -0.000, 98.678),\n            Point(-247.814, -0.000, 211.069),\n            Point(-149.707, -204.103, 211.069),\n            Point(-234.426, -365.823, 142.950),\n            Point(-481.982, -362.651, 39.785),\n        },\n        {\n            Point(-457.883, -344.518, -0.022),\n            Point(-566.094, -165.987, -9.413),\n            Point(-490.055, -0.000, 55.926),\n            Point(-235.423, -0.000, 162.698),\n            Point(-142.222, -193.898, 162.698),\n            Point(-222.705, -347.532, 97.985),\n            Point(-457.883, -344.518, -0.022),\n        },\n        {\n            Point(238.785, -380.979, 136.566),\n            Point(150.116, -204.103, 211.069),\n            Point(252.071, 0.000, 211.069),\n            Point(512.707, 0.000, 101.376),\n            Point(596.484, -174.710, 29.388),\n            Point(478.593, -374.909, 36.915),\n            Point(238.785, -380.979, 136.566),\n        },\n        {\n            Point(226.846, -361.930, 91.920),\n            Point(142.610, -193.898, 162.698),\n            Point(239.467, -0.000, 162.698),\n            Point(487.072, -0.000, 58.490),\n            Point(566.659, -165.975, -9.899),\n            Point(454.664, -356.164, -2.748),\n            Point(226.846, -361.930, 91.920),\n        },\n        {\n            Point(-515.848, 0.000, 98.678),\n            Point(-595.889, -174.723, 29.899),\n            Point(-698.269, -172.505, -58.075),\n            Point(-698.269, 172.505, -58.075),\n            Point(-595.889, 174.723, 29.899),\n            Point(-515.848, 0.000, 98.678),\n        },\n        {\n            Point(-490.055, -0.000, 55.926),\n            Point(-566.094, -165.987, -9.413),\n            Point(-663.356, -163.879, -92.989),\n            Point(-663.356, 163.879, -92.989),\n            Point(-566.094, 165.987, -9.413),\n            Point(-490.055, -0.000, 55.926),\n        },\n        {\n            Point(-149.707, -204.103, 211.069),\n            Point(-247.814, 0.000, 211.069),\n            Point(-149.707, 204.103, 211.069),\n            Point(150.116, 204.103, 211.069),\n            Point(252.071, 0.000, 211.069),\n            Point(150.116, -204.103, 211.069),\n            Point(-149.707, -204.103, 211.069),\n        },\n        {\n            Point(-142.222, -193.898, 162.698),\n            Point(-235.423, -0.000, 162.698),\n            Point(-142.222, 193.898, 162.698),\n            Point(142.610, 193.898, 162.698),\n            Point(239.467, 0.000, 162.698),\n            Point(142.610, -193.898, 162.698),\n            Point(-142.222, -193.898, 162.698),\n        },\n        {\n            Point(512.707, 0.000, 101.376),\n            Point(596.484, 174.710, 29.388),\n            Point(698.269, 172.505, -58.075),\n            Point(698.269, -172.505, -58.075),\n            Point(596.484, -174.710, 29.388),\n            Point(512.707, 0.000, 101.376),\n        },\n        {\n            Point(487.072, 0.000, 58.490),\n            Point(566.659, 165.975, -9.899),\n            Point(663.356, 163.879, -92.989),\n            Point(663.356, -163.879, -92.989),\n            Point(566.659, -165.975, -9.899),\n            Point(487.072, 0.000, 58.490),\n        },\n        {\n            Point(-515.848, -0.000, 98.678),\n            Point(-595.889, 174.723, 29.899),\n            Point(-481.982, 362.651, 39.785),\n            Point(-234.426, 365.823, 142.950),\n            Point(-149.707, 204.103, 211.069),\n            Point(-247.814, -0.000, 211.069),\n            Point(-515.848, -0.000, 98.678),\n        },\n        {\n            Point(-490.055, -0.000, 55.926),\n            Point(-566.094, 165.987, -9.413),\n            Point(-457.883, 344.518, -0.022),\n            Point(-222.705, 347.532, 97.985),\n            Point(-142.222, 193.898, 162.698),\n            Point(-235.423, -0.000, 162.698),\n            Point(-490.055, -0.000, 55.926),\n        },\n        {\n            Point(252.071, 0.000, 211.069),\n            Point(150.116, 204.103, 211.069),\n            Point(238.785, 380.979, 136.566),\n            Point(478.593, 374.909, 36.915),\n            Point(596.484, 174.710, 29.388),\n            Point(512.707, -0.000, 101.376),\n            Point(252.071, 0.000, 211.069),\n        },\n        {\n            Point(239.467, -0.000, 162.698),\n            Point(142.610, 193.898, 162.698),\n            Point(226.846, 361.930, 91.920),\n            Point(454.664, 356.164, -2.748),\n            Point(566.659, 165.975, -9.899),\n            Point(487.072, -0.000, 58.490),\n            Point(239.467, -0.000, 162.698),\n        },\n        {\n            Point(-481.982, 362.651, 39.785),\n            Point(-595.889, 174.723, 29.899),\n            Point(-698.046, 172.509, -57.884),\n            Point(-622.420, 472.451, -134.432),\n            Point(-523.550, 466.403, -45.588),\n            Point(-481.982, 362.651, 39.785),\n        },\n        {\n            Point(-457.883, 344.518, -0.022),\n            Point(-566.094, 165.987, -9.413),\n            Point(-663.144, 163.884, -92.807),\n            Point(-591.299, 448.828, -165.528),\n            Point(-497.372, 443.083, -81.126),\n            Point(-457.883, 344.518, -0.022),\n        },\n        {\n            Point(-149.707, 204.103, 211.069),\n            Point(-234.426, 365.823, 142.950),\n            Point(-125.302, 566.359, 58.481),\n            Point(125.182, 566.359, 58.481),\n            Point(238.785, 380.979, 136.566),\n            Point(150.116, 204.103, 211.069),\n            Point(-149.707, 204.103, 211.069),\n        },\n        {\n            Point(-142.222, 193.898, 162.698),\n            Point(-222.705, 347.532, 97.985),\n            Point(-119.037, 538.041, 17.739),\n            Point(118.923, 538.041, 17.739),\n            Point(226.846, 361.930, 91.920),\n            Point(142.610, 193.898, 162.698),\n            Point(-142.222, 193.898, 162.698),\n        },\n        {\n            Point(478.593, 374.909, 36.915),\n            Point(527.834, 476.304, -54.011),\n            Point(620.401, 480.458, -136.475),\n            Point(698.046, 172.509, -57.884),\n            Point(596.484, 174.710, 29.388),\n            Point(478.593, 374.909, 36.915),\n        },\n        {\n            Point(454.664, 356.164, -2.748),\n            Point(501.442, 452.489, -89.128),\n            Point(589.381, 456.435, -167.469),\n            Point(663.144, 163.884, -92.807),\n            Point(566.659, 165.975, -9.899),\n            Point(454.664, 356.164, -2.748),\n        },\n        {\n            Point(-481.982, 362.651, 39.785),\n            Point(-523.550, 466.403, -45.588),\n            Point(-441.383, 636.016, -121.338),\n            Point(-223.832, 690.677, -64.527),\n            Point(-125.302, 566.359, 58.481),\n            Point(-234.426, 365.823, 142.950),\n            Point(-481.982, 362.651, 39.785),\n        },\n        {\n            Point(-457.883, 344.518, -0.022),\n            Point(-497.372, 443.083, -81.126),\n            Point(-419.314, 604.215, -153.089),\n            Point(-212.641, 656.144, -99.118),\n            Point(-119.037, 538.041, 17.739),\n            Point(-222.705, 347.532, 97.985),\n            Point(-457.883, 344.518, -0.022),\n        },\n        {\n            Point(238.785, 380.979, 136.566),\n            Point(125.182, 566.359, 58.481),\n            Point(212.526, 691.178, -65.022),\n            Point(446.073, 632.424, -125.794),\n            Point(527.834, 476.304, -54.011),\n            Point(478.593, 374.909, 36.915),\n            Point(238.785, 380.979, 136.566),\n        },\n        {\n            Point(226.846, 361.930, 91.920),\n            Point(118.923, 538.041, 17.739),\n            Point(201.900, 656.619, -99.589),\n            Point(423.769, 600.803, -157.321),\n            Point(501.442, 452.489, -89.128),\n            Point(454.664, 356.164, -2.748),\n            Point(226.846, 361.930, 91.920),\n        },\n        {\n            Point(-622.146, 472.434, -134.186),\n            Point(-574.882, 574.852, -181.916),\n            Point(-441.854, 635.045, -120.904),\n            Point(-523.550, 466.403, -45.588),\n            Point(-622.146, 472.434, -134.186),\n        },\n        {\n            Point(-591.038, 448.812, -165.294),\n            Point(-546.138, 546.110, -210.638),\n            Point(-419.761, 603.293, -152.677),\n            Point(-497.372, 443.083, -81.126),\n            Point(-591.038, 448.812, -165.294),\n        },\n        {\n            Point(-125.302, 566.359, 58.481),\n            Point(-224.289, 691.254, -65.097),\n            Point(212.579, 691.254, -65.097),\n            Point(125.182, 566.359, 58.481),\n            Point(-125.302, 566.359, 58.481),\n        },\n        {\n            Point(-119.037, 538.041, 17.739),\n            Point(-213.075, 656.691, -99.659),\n            Point(201.950, 656.691, -99.659),\n            Point(118.923, 538.041, 17.739),\n            Point(-119.037, 538.041, 17.739),\n        },\n        {\n            Point(527.834, 476.304, -54.011),\n            Point(446.780, 631.075, -125.173),\n            Point(574.485, 574.300, -182.370),\n            Point(620.030, 480.441, -136.145),\n            Point(527.834, 476.304, -54.011),\n        },\n        {\n            Point(501.442, 452.489, -89.128),\n            Point(424.440, 599.521, -156.732),\n            Point(545.761, 545.585, -211.069),\n            Point(589.029, 456.419, -167.156),\n            Point(501.442, 452.489, -89.128),\n        },\n    };\n\n    // Strip closing vertex (first==last) before from_polylines\n    for (auto& poly : polys)\n        if (poly.size() > 3 && poly.front().distance(poly.back()) < 1e-6)\n            poly.pop_back();\n\n    Mesh m = Mesh::from_polylines(polys, 1.0);\n\n    CrossConnectors cc(m, 2.0, {0.0}, 2, 10.0, 10.0, 2.0, 0.0);\n\n\n    for (size_t i = 0; i < cc.face_polylines.size(); i++) {\n        for (auto& pl : cc.face_polylines[i])\n    }\n\n    for (size_t i = 0; i < cc.edge_polylines.size(); i++)\n        for (auto& pl : cc.edge_polylines[i])",
     "checks": [

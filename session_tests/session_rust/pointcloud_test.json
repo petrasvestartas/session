@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.02,
     "line": 6,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor with points, normals, colors\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(0.0, 1.0, 0.0);\n        let n0 = Vector::new(0.0, 0.0, 1.0);\n        let n1 = Vector::new(0.0, 0.0, 1.0);\n        let n2 = Vector::new(0.0, 0.0, 1.0);\n        let c0 = Color::new(255, 0, 0, 255);\n        let c1 = Color::new(0, 255, 0, 255);\n        let c2 = Color::new(0, 0, 255, 255);\n        let pc = PointCloud::new(vec![p0, p1, p2], vec![n0, n1, n2], vec![c0, c1, c2]);\n\n        // Basic properties\n        let point_count = pc.len();\n        let color_count = pc.color_count();\n        let normal_count = pc.normal_count();\n        let is_empty = pc.is_empty();\n\n        // Minimal and Full String Representation\n        let pcstr = pc.str();\n        let pcrepr = pc.repr();\n\n        // Copy (duplicates everything except guid)\n        let pccopy = pc.duplicate();\n\n        // Get point/color/normal at index\n        let pt0 = pc.get_point(0);\n        let col0 = pc.get_color(0);\n        let norm0 = pc.get_normal(0);\n\n        // Add points, colors, normals to empty cloud\n        let mut pc2 = PointCloud::default();\n        pc2.add_point(&Point::new(1.0, 2.0, 3.0));\n        pc2.add_color(&Color::new(128, 64, 32, 255));\n        pc2.add_normal(&Vector::new(1.0, 0.0, 0.0));\n\n        // Set point/color/normal at index\n        pc2.set_point(0, &Point::new(4.0, 5.0, 6.0));\n        pc2.set_color(0, &Color::new(200, 100, 50, 255));\n        pc2.set_normal(0, &Vector::new(0.0, 1.0, 0.0));\n\n        // Translate with Vector offset\n        let pc3 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        let offset = Vector::new(10.0, 20.0, 30.0);\n        let mut pc_iadd = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_iadd += offset.clone();\n        let mut pc_isub = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc_isub -= offset.clone();\n        let pc_add = &pc3 + offset.clone();\n        let pc_sub = &pc3 - offset.clone();\n\n        // Create from flat arrays\n        let coords = vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];\n        let colors_arr = vec![255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255];\n        let normals_arr = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];\n        let pc4 = PointCloud::from_coords(coords, colors_arr, normals_arr);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.004,
     "line": 119,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc.xform = Xform::translation(10.0, 20.0, 30.0);\n        pc.transform();\n\n        // Transformed - returns new cloud\n        let mut pc2 = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0)], vec![], vec![]);\n        pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n        let pc3 = pc2.transformed();\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.418,
+    "time_ms": 5.998,
     "line": 141,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.991,
+    "time_ms": 6.163,
     "line": 174,
     "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.bin\";\n        pc.pb_dump(fname);\n        let loaded = PointCloud::pb_load(fname);\n",
     "checks": [

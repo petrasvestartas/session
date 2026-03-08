@@ -22,7 +22,7 @@
     255
   ],
   "facedata": {},
-  "guid": "b333716a-6d84-48f1-96d6-310c2f84b4d6",
+  "guid": "87dbd7be-91fb-4402-8bdf-a2d45b92831c",
   "halfedge": {
     "0": {
       "1": 1,
@@ -58,7 +58,7 @@
     "a": 255,
     "b": 255,
     "g": 255,
-    "guid": "a1ee2e34-6dc5-4154-91fc-cfddf0f735b3",
+    "guid": "99d8075b-b06a-4a99-bfdb-c990e5474ed4",
     "name": "white",
     "r": 255,
     "type": "Color"
@@ -77,6 +77,7 @@
     255,
     255
   ],
+  "triangulation": {},
   "type": "Mesh",
   "vertex": {
     "0": {
