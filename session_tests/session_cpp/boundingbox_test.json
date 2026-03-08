@@ -92,7 +92,7 @@
   {
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 65,
     "code": "    BoundingBox bb1 = BoundingBox::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    BoundingBox bb2 = BoundingBox::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    BoundingBox bb3 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 0.5);\n",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.218,
+    "time_ms": 13.128,
     "line": 91,
     "code": "    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    BoundingBox loaded_j = BoundingBox::jsonload(j);\n\n    // String\n    std::string s = bb.json_dumps();\n    BoundingBox loaded_s = BoundingBox::json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.json\";\n    bb.json_dump(fname);\n    BoundingBox loaded = BoundingBox::json_load(fname);",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.753,
+    "time_ms": 6.393,
     "line": 116,
     "code": "    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    BoundingBox loaded_s = BoundingBox::pb_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.bin\";\n    bb.pb_dump(fname);\n    BoundingBox loaded = BoundingBox::pb_load(fname);",
     "checks": [
