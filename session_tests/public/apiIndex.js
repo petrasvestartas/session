@@ -7904,6 +7904,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.repr",
@@ -8228,6 +8229,7 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors_mut",
@@ -8283,6 +8285,7 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
@@ -8338,6 +8341,7 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
@@ -8515,6 +8519,7 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
@@ -8572,6 +8577,7 @@ window.API_INDEX = {
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
         "Mesh.pb_dumps",
+        "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -9985,6 +9991,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Mesh.pb_fill",
+      "implementations": {
+        "python": {
+          "sig": "pb_fill(proto)",
+          "code": "def pb_fill(self, proto):\n\n        \"\"\"Fill an existing Mesh proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        from .proto import mesh_pb2, color_pb2\n        proto.guid = self.guid\n        proto.name = self.name\n        for vkey, vdata in self.vertex.items():\n            vp = proto.vertices[vkey]\n            vp.x = vdata.x; vp.y = vdata.y; vp.z = vdata.z\n            for k, v in vdata.attributes.items():\n                vp.attributes[k] = v\n        for fkey, fverts in self.face.items():\n            fp = proto.faces[fkey]\n            fp.vertices.extend(fverts)\n            if fkey in self.facedata:\n                for k, v in self.facedata[fkey].items():\n                    fp.attributes[k] = v\n            if fkey in self.face_holes:\n                for ring in self.face_holes[fkey]:\n                    hp = mesh_pb2.HoleRing()\n                    hp.vertices.extend(ring)\n                    fp.holes.append(hp)\n        for fkey, tris in self.triangulation.items():\n            tl = proto.triangulation[fkey]\n            for t in tris:\n                tl.vertices.append(t[0]); tl.vertices.append(t[1]); tl.vertices.append(t[2])\n        for u, neighbors in self.halfedge.items():\n            hmap = proto.halfedges[u]\n            for v, fkey_opt in neighbors.items():\n                hmap.neighbors[v] = fkey_opt if fkey_opt is not None else 0xFFFFFFFFFFFFFFFF\n        for (v1, v2), attrs in self.edgedata.items():\n            ep = mesh_pb2.EdgeData()\n            ep.vertex1 = v1; ep.vertex2 = v2\n            for k, v in attrs.items():\n                ep.attributes[k] = v\n            proto.edge_data.append(ep)\n        for k, v in self.default_vertex_attributes.items():\n            proto.default_vertex_attributes[k] = v\n        for k, v in self.default_face_attributes.items():\n            proto.default_face_attributes[k] = v\n        for k, v in self.default_edge_attributes.items():\n            proto.default_edge_attributes[k] = v\n        for c in self._pointcolors:\n            cp = color_pb2.Color()\n            cp.guid = c.guid; cp.name = c.name\n            cp.r = c[0]; cp.g = c[1]; cp.b = c[2]; cp.a = c[3]\n            proto.pointcolors.append(cp)\n        for c in self._facecolors:\n            cp = color_pb2.Color()\n            cp.guid = c.guid; cp.name = c.name\n            cp.r = c[0]; cp.g = c[1]; cp.b = c[2]; cp.a = c[3]\n            proto.facecolors.append(cp)\n        for c in self._linecolors:\n            cp = color_pb2.Color()\n            cp.guid = c.guid; cp.name = c.name\n            cp.r = c[0]; cp.g = c[1]; cp.b = c[2]; cp.a = c[3]\n            proto.linecolors.append(cp)\n        proto.widths.extend(self._widths)\n        proto.objectcolor.guid = self._objectcolor.guid\n        proto.objectcolor.name = self._objectcolor.name\n        proto.objectcolor.r = self._objectcolor[0]\n        proto.objectcolor.g = self._objectcolor[1]\n        proto.objectcolor.b = self._objectcolor[2]\n        proto.objectcolor.a = self._objectcolor[3]\n        _cm_map = {\"objectcolor\": 0, \"pointcolors\": 1, \"facecolors\": 2, \"none\": 3}\n        proto.color_mode = _cm_map.get(self.color_mode.value, 0)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Mesh from protobuf binary data.\"\"\"\n        from .proto import mesh_pb2\n        from .color import Color\n        from .xform import Xform\n\n        proto = mesh_pb2.Mesh()\n        proto.ParseFromString(data)\n\n        mesh = cls()",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.edges",
+        "Mesh.facecolors",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pb_load",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.widths"
+      ]
+    },
+    {
       "name": "Mesh.pb_loads",
       "implementations": {
         "python": {
@@ -10011,6 +10037,7 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.objectcolor",
         "Mesh.pb_dump",
+        "Mesh.pb_fill",
         "Mesh.pb_load",
         "Mesh.pointcolors",
         "Mesh.str",
@@ -10078,6 +10105,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.linecolors",
         "Mesh.pb_dump",
+        "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.set_edge_color",
@@ -10842,6 +10870,7 @@ window.API_INDEX = {
         "NurbsCurve.new",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
         "NurbsCurve.point_at",
@@ -11434,6 +11463,7 @@ window.API_INDEX = {
         "NurbsCurve.new",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
         "NurbsCurve.set_cv",
@@ -11549,6 +11579,7 @@ window.API_INDEX = {
         "NurbsCurve.new",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
@@ -11622,7 +11653,6 @@ window.API_INDEX = {
         "NurbsCurve.is_periodic",
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_valid_knot_vector",
-        "NurbsCurve.json_load",
         "NurbsCurve.knot",
         "NurbsCurve.knot_array",
         "NurbsCurve.knot_count",
@@ -11630,7 +11660,7 @@ window.API_INDEX = {
         "NurbsCurve.make_non_rational",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
-        "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
@@ -11752,6 +11782,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
@@ -12267,6 +12298,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
@@ -12645,6 +12677,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
@@ -14415,6 +14448,7 @@ window.API_INDEX = {
         "NurbsCurve.new",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pdist",
         "NurbsCurve.split",
         "NurbsCurve.str",
@@ -14792,7 +14826,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Create NurbsCurve from JSON dictionary (accepts C++ format).\"\"\"\n        curve = cls()\n        curve.guid = guid if guid is not None else data.get(\"guid\", curve.guid)\n        curve.name = name if name is not None else data.get(\"name\", curve.name)\n        curve.width = data.get(\"width\", 1.0)\n        if \"pointcolors\" in data:\n            arr = data[\"pointcolors\"]\n            curve.pointcolors = [Color(arr[i], arr[i+1], arr[i+2], arr[i+3]) for i in range(0, len(arr) - 3, 4)]\n        if \"linecolors\" in data:\n            arr = data[\"linecolors\"]\n            curve.linecolors = [Color(arr[i], arr[i+1], arr[i+2], arr[i+3]) for i in range(0, len(arr) - 3, 4)]\n        if \"xform\" in data:\n            curve.xform = Xform.__jsonload__(data[\"xform\"])\n        curve.m_dim = data.get(\"dimension\", 0)\n        curve.m_is_rat = 1 if data.get(\"is_rational\", False) else 0\n        curve.m_order = data.get(\"order\", 0)\n        curve.m_cv_count = data.get(\"cv_count\", 0)\n        curve.m_cv_stride = data.get(\"cv_stride\", curve.m_dim + (1 if curve.m_is_rat else 0))\n        curve.m_knot = np.array(data.get(\"knots\", []), dtype=np.float64)\n        control_points = data.get(\"control_points\", [])\n        flat_cv = []\n        for cp in control_points:\n            flat_cv.extend(cp[:curve.m_cv_stride])\n        curve.m_cv = np.array(flat_cv, dtype=np.float64)\n        return curve\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Create NurbsCurve from JSON dictionary (accepts C++ format).\"\"\"\n        curve = cls()\n        curve.guid = guid if guid is not None else data.get(\"guid\", curve.guid)\n        curve.name = name if name is not None else data.get(\"name\", curve.name)\n        curve.width = data.get(\"width\", 1.0)\n        if \"pointcolors\" in data:\n            arr = data[\"pointcolors\"]\n            curve.pointcolors = [Color(arr[i], arr[i+1], arr[i+2], arr[i+3]) for i in range(0, len(arr) - 3, 4)]\n        if \"linecolors\" in data:\n            arr = data[\"linecolors\"]\n            curve.linecolors = [Color(arr[i], arr[i+1], arr[i+2], arr[i+3]) for i in range(0, len(arr) - 3, 4)]\n        if \"xform\" in data:\n            curve.xform = Xform.__jsonload__(data[\"xform\"])\n        curve.m_dim = data.get(\"dimension\", 0)\n        curve.m_is_rat = 1 if data.get(\"is_rational\", False) else 0\n        curve.m_order = data.get(\"order\", 0)\n        curve.m_cv_count = data.get(\"cv_count\", 0)\n        curve.m_cv_stride = data.get(\"cv_stride\", curve.m_dim + (1 if curve.m_is_rat else 0))\n        curve.m_knot = np.array(data.get(\"knots\", []), dtype=np.float64)\n        control_points = data.get(\"control_points\", [])\n        flat_cv = []\n        for cp in control_points:\n            flat_cv.extend(cp[:curve.m_cv_stride])\n        curve.m_cv = np.array(flat_cv, dtype=np.float64)\n        return curve\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"",
           "file": "nurbscurve.py"
         }
       },
@@ -14814,8 +14848,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
-        "NurbsCurve.pb_load",
-        "NurbsCurve.pb_loads",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.str",
         "NurbsCurve.transformed"
       ]
@@ -14825,7 +14858,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"",
+          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14857,6 +14890,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.str"
@@ -14867,7 +14901,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, json_string)",
-          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"",
+          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14900,6 +14934,7 @@ window.API_INDEX = {
         "NurbsCurve.parse",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.str"
@@ -14910,7 +14945,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n\n    ###########################################################################################",
+          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14942,6 +14977,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.str"
@@ -14952,7 +14988,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n\n    ###########################################################################################\n    # String Representation\n    ###########################################################################################\n\n    def __str__(self) -> str:\n        \"\"\"String representation.\"\"\"\n        return f\"NurbsCurve(name={self.name}, degree={self.degree()}, cvs={self.m_cv_count})\"",
+          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14969,11 +15005,9 @@ window.API_INDEX = {
       "related": [
         "NurbsCurve.__jsondump__",
         "NurbsCurve.__jsonload__",
-        "NurbsCurve.__str__",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.default",
-        "NurbsCurve.degree",
         "NurbsCurve.dimension",
         "NurbsCurve.extend",
         "NurbsCurve.is_rational",
@@ -14986,9 +15020,9 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
-        "NurbsCurve.repr",
         "NurbsCurve.str"
       ]
     },
@@ -14997,7 +15031,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n\n    ###########################################################################################\n    # String Representation\n    ###########################################################################################\n\n    def __str__(self) -> str:\n        \"\"\"String representation.\"\"\"\n        return f\"NurbsCurve(name={self.name}, degree={self.degree()}, cvs={self.m_cv_count})\"\n\n    def __repr__(self) -> str:\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        from .proto import color_pb2\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m.flatten().tolist() if hasattr(self.xform.m, 'flatten') else list(self.xform.m))\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -15014,6 +15048,37 @@ window.API_INDEX = {
       "related": [
         "NurbsCurve.__jsondump__",
         "NurbsCurve.__jsonload__",
+        "NurbsCurve.cv",
+        "NurbsCurve.cv_count",
+        "NurbsCurve.dimension",
+        "NurbsCurve.extend",
+        "NurbsCurve.is_rational",
+        "NurbsCurve.json_dump",
+        "NurbsCurve.json_dumps",
+        "NurbsCurve.json_load",
+        "NurbsCurve.json_loads",
+        "NurbsCurve.knot",
+        "NurbsCurve.order",
+        "NurbsCurve.pb_dump",
+        "NurbsCurve.pb_fill",
+        "NurbsCurve.pb_load",
+        "NurbsCurve.pb_loads",
+        "NurbsCurve.set_cv",
+        "NurbsCurve.str",
+        "NurbsCurve.to_protobuf"
+      ]
+    },
+    {
+      "name": "NurbsCurve.pb_fill",
+      "implementations": {
+        "python": {
+          "sig": "pb_fill(proto)",
+          "code": "def pb_fill(self, proto):\n\n        \"\"\"Fill an existing NurbsCurve proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = int(self.m_dim)\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order = int(self.m_order)\n        proto.cv_count = int(self.m_cv_count)\n        proto.cv_stride = int(self.m_cv_stride)\n        proto.knots.extend(self.m_knot.tolist() if hasattr(self.m_knot, 'tolist') else list(self.m_knot))\n        proto.cvs.extend(self.m_cv.tolist() if hasattr(self.m_cv, 'tolist') else list(self.m_cv))\n        proto.width = float(self.width)\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.guid = self.xform.guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m if isinstance(self.xform.m, list) else self.xform.m.flatten().tolist())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Load from protobuf binary bytes.\"\"\"\n        from .proto import nurbscurve_pb2\n        proto = nurbscurve_pb2.NurbsCurve()\n        proto.ParseFromString(data)\n        curve = cls()\n        curve.guid = proto.guid\n        curve.name = proto.name\n        curve.m_dim = proto.dimension\n        curve.m_is_rat = 1 if proto.is_rational else 0\n        curve.m_order = proto.order\n        curve.m_cv_count = proto.cv_count\n        curve.m_cv_stride = proto.cv_stride\n        curve.m_knot = np.array(list(proto.knots), dtype=np.float64)\n        curve.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n        curve.width = proto.width if proto.width != 0.0 else 1.0\n        curve.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        curve.linecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.linecolors]\n        if proto.HasField('xform'):\n            curve.xform = Xform()\n            curve.xform.guid = proto.xform.guid\n            curve.xform.name = proto.xform.name\n            if proto.xform.matrix:\n                curve.xform.m = np.array(list(proto.xform.matrix), dtype=np.float64).reshape(4, 4)\n        return curve\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n\n    ###########################################################################################\n    # String Representation\n    ###########################################################################################\n\n    def __str__(self) -> str:\n        \"\"\"String representation.\"\"\"\n        return f\"NurbsCurve(name={self.name}, degree={self.degree()}, cvs={self.m_cv_count})\"\n\n    def __repr__(self) -> str:\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",\n            f\"  cvs={self.m_cv_count},\",\n            f\"  rational={rational_str},\",\n            \"  control_points=[\"\n        ]",
+          "file": "nurbscurve.py"
+        }
+      },
+      "related": [
+        "NurbsCurve.__jsonload__",
         "NurbsCurve.__repr__",
         "NurbsCurve.__str__",
         "NurbsCurve.cv",
@@ -15029,12 +15094,11 @@ window.API_INDEX = {
         "NurbsCurve.knot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
+        "NurbsCurve.pb_dumps",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.repr",
-        "NurbsCurve.set_cv",
-        "NurbsCurve.str",
-        "NurbsCurve.to_protobuf"
+        "NurbsCurve.str"
       ]
     },
     {
@@ -15057,7 +15121,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsCurve.__jsonload__",
         "NurbsCurve.__repr__",
         "NurbsCurve.__str__",
         "NurbsCurve._find_span",
@@ -15079,6 +15142,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.repr",
         "NurbsCurve.str"
@@ -15125,6 +15189,7 @@ window.API_INDEX = {
         "NurbsCurve.knot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.protobuf_dump",
@@ -15152,7 +15217,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsCurve.__jsonload__",
         "NurbsCurve.__repr__",
         "NurbsCurve.__str__",
         "NurbsCurve._basis_functions",
@@ -15173,6 +15237,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_loads",
         "NurbsCurve.protobuf_load",
         "NurbsCurve.repr",
@@ -15200,11 +15265,10 @@ window.API_INDEX = {
         "NurbsCurve.find_span",
         "NurbsCurve.get_cv",
         "NurbsCurve.is_valid",
-        "NurbsCurve.json_load",
         "NurbsCurve.knot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
-        "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.repr",
@@ -15237,7 +15301,7 @@ window.API_INDEX = {
         "NurbsCurve.knot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
-        "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.repr",
@@ -15634,7 +15698,7 @@ window.API_INDEX = {
         "NurbsSurface.knot_count",
         "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
-        "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.set_cv",
         "NurbsSurface.str",
@@ -15681,7 +15745,7 @@ window.API_INDEX = {
         "NurbsSurface.knot",
         "NurbsSurface.knot_count",
         "NurbsSurface.order",
-        "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.set_weight",
         "NurbsSurface.str",
@@ -15843,6 +15907,7 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.zero_cvs"
       ]
@@ -16232,6 +16297,7 @@ window.API_INDEX = {
         "NurbsSurface.knot_count",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.to_string",
         "NurbsSurface.zero_cvs"
@@ -16327,6 +16393,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
@@ -16495,6 +16562,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
@@ -16777,6 +16845,7 @@ window.API_INDEX = {
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
@@ -17121,6 +17190,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
@@ -18154,6 +18224,7 @@ window.API_INDEX = {
         "NurbsSurface.mesh_grid",
         "NurbsSurface.new",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
@@ -19303,7 +19374,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################\n    # PROTOBUF SERIALIZATION\n    ###########################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create NurbsSurface from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded surface data.\n\n        Returns\n        -------\n        NurbsSurface",
+          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################\n    # PROTOBUF SERIALIZATION\n    ###########################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsSurface proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -19334,8 +19405,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.pb_dump",
         "NurbsSurface.pb_dumps",
-        "NurbsSurface.pb_load",
-        "NurbsSurface.pb_loads",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.str"
       ]
     },
@@ -19344,7 +19414,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, json_string)",
-          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################\n    # PROTOBUF SERIALIZATION\n    ###########################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create NurbsSurface from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded surface data.\n\n        Returns\n        -------\n        NurbsSurface\n            The deserialized NurbsSurface.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n        from .color import Color\n        from .xform import Xform\n        import numpy as np",
+          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################\n    # PROTOBUF SERIALIZATION\n    ###########################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsSurface proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n        proto.cvs.extend(self.m_cv.tolist())\n        proto.width = self.width\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -19373,8 +19443,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.pb_dump",
         "NurbsSurface.pb_dumps",
-        "NurbsSurface.pb_load",
-        "NurbsSurface.pb_loads",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.str"
       ]
     },
@@ -19383,7 +19452,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create NurbsSurface from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded surface data.\n\n        Returns\n        -------\n        NurbsSurface\n            The deserialized NurbsSurface.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n        from .color import Color\n        from .xform import Xform\n        import numpy as np\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.ParseFromString(data)\n\n        # Create surface with correct dimensions\n        surface = cls()\n        surface._create_impl(\n            proto.dimension,\n            proto.is_rational,",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n\n        # Knot vectors\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n\n        # Control vertices (flat array)\n        proto.cvs.extend(self.m_cv.tolist())\n\n        # Visual properties\n        proto.width = self.width\n\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n\n        # Transform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Cached mesh\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            mesh_data = self.m_mesh.pb_dumps()\n            proto.cached_mesh.ParseFromString(mesh_data)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing NurbsSurface proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n        proto.cvs.extend(self.m_cv.tolist())\n        proto.width = self.width\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -19398,8 +19467,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsSurface._create_impl",
-        "NurbsSurface.create",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.dimension",
@@ -19413,9 +19480,37 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dump",
-        "NurbsSurface.pb_load",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.set_cv",
+        "NurbsSurface.str"
+      ]
+    },
+    {
+      "name": "NurbsSurface.pb_fill",
+      "implementations": {
+        "python": {
+          "sig": "pb_fill(proto)",
+          "code": "def pb_fill(self, proto):\n\n        \"\"\"Fill an existing NurbsSurface proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.dimension = self.m_dim\n        proto.is_rational = bool(self.m_is_rat)\n        proto.order_u = self.m_order[0]\n        proto.order_v = self.m_order[1]\n        proto.cv_count_u = self.m_cv_count[0]\n        proto.cv_count_v = self.m_cv_count[1]\n        proto.cv_stride_u = self.m_cv_stride[0]\n        proto.cv_stride_v = self.m_cv_stride[1]\n        proto.knots_u.extend(self.m_knot[0].tolist())\n        proto.knots_v.extend(self.m_knot[1].tolist())\n        proto.cvs.extend(self.m_cv.tolist())\n        proto.width = self.width\n        for c in self.pointcolors:\n            cp = proto.pointcolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.facecolors:\n            cp = proto.facecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        for c in self.linecolors:\n            cp = proto.linecolors.add()\n            cp.r = int(c.r); cp.g = int(c.g); cp.b = int(c.b); cp.a = int(c.a)\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        if self.m_mesh is not None and self.m_mesh.number_of_vertices() > 0:\n            proto.cached_mesh.ParseFromString(self.m_mesh.pb_dumps())\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create NurbsSurface from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded surface data.\n\n        Returns\n        -------\n        NurbsSurface\n            The deserialized NurbsSurface.\n        \"\"\"\n        from .proto import nurbssurface_pb2\n        from .color import Color\n        from .xform import Xform\n        import numpy as np\n\n        proto = nurbssurface_pb2.NurbsSurface()\n        proto.ParseFromString(data)\n\n        # Create surface with correct dimensions\n        surface = cls()\n        surface._create_impl(\n            proto.dimension,\n            proto.is_rational,\n            proto.order_u,\n            proto.order_v,\n            proto.cv_count_u,\n            proto.cv_count_v\n        )\n\n        # Load metadata\n        surface.guid = proto.guid\n        surface.name = proto.name\n        surface.width = proto.width\n\n        # Load knot vectors\n        if len(proto.knots_u) == len(surface.m_knot[0]):\n            surface.m_knot[0] = np.array(list(proto.knots_u), dtype=np.float64)\n        if len(proto.knots_v) == len(surface.m_knot[1]):\n            surface.m_knot[1] = np.array(list(proto.knots_v), dtype=np.float64)\n\n        # Load control vertices\n        if len(proto.cvs) == len(surface.m_cv):\n            surface.m_cv = np.array(list(proto.cvs), dtype=np.float64)\n\n        surface.pointcolors = [Color(c.r, c.g, c.b, c.a) for c in proto.pointcolors]\n        surface.facecolors = [Color(c.r, c.g, c.b, c.a) for c in proto.facecolors]",
+          "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface._create_impl",
+        "NurbsSurface.create",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.dimension",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.json_dumps",
+        "NurbsSurface.json_loads",
+        "NurbsSurface.knot",
+        "NurbsSurface.mesh",
+        "NurbsSurface.order",
+        "NurbsSurface.pb_dump",
+        "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_load",
+        "NurbsSurface.pb_loads",
         "NurbsSurface.str"
       ]
     },
@@ -19446,14 +19541,13 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.dimension",
         "NurbsSurface.is_rational",
-        "NurbsSurface.json_dumps",
-        "NurbsSurface.json_loads",
         "NurbsSurface.knot",
         "NurbsSurface.mesh",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dump",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_load",
         "NurbsSurface.str",
         "NurbsSurface.transform"
@@ -19484,6 +19578,7 @@ window.API_INDEX = {
         "NurbsSurface.json_load",
         "NurbsSurface.json_loads",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_load",
         "NurbsSurface.pb_loads",
         "NurbsSurface.str"
@@ -19509,10 +19604,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsSurface.json_dumps",
-        "NurbsSurface.json_loads",
         "NurbsSurface.pb_dump",
-        "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.str"
       ]
@@ -19614,7 +19707,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())",
           "file": "objects.py"
         }
       },
@@ -19640,7 +19733,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
           "file": "objects.py"
         },
         "cpp": {
@@ -19676,7 +19769,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
           "file": "objects.py"
         },
         "cpp": {
@@ -19713,7 +19806,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -19749,7 +19842,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -19785,7 +19878,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            proto.polylines.add().ParseFromString(pl.pb_dumps())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            proto.meshes.add().ParseFromString(m.pb_dumps())\n        for nc in self.nurbscurves:\n            proto.nurbscurves.add().ParseFromString(nc.pb_dumps())\n        for ns in self.nurbssurfaces:\n            proto.nurbssurfaces.add().ParseFromString(ns.pb_dumps())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -25355,6 +25448,7 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.new",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
@@ -27462,7 +27556,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):",
+          "code": "def json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27489,8 +27583,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
-        "Polyline.pb_load",
-        "Polyline.pb_loads",
+        "Polyline.pb_fill",
         "Polyline.str"
       ]
     },
@@ -27499,7 +27592,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2",
+          "code": "def json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27526,6 +27619,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.str"
@@ -27536,7 +27630,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(\n            proto.linecolor.r,\n            proto.linecolor.g,\n            proto.linecolor.b,\n            proto.linecolor.a\n        )\n        polyline.linecolor.name = proto.linecolor.name\n\n        # Load xform",
+          "code": "def json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27563,6 +27657,7 @@ window.API_INDEX = {
         "Polyline.jsonload",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.str"
@@ -27573,7 +27668,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, json_string)",
-          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(\n            proto.linecolor.r,\n            proto.linecolor.g,\n            proto.linecolor.b,\n            proto.linecolor.a\n        )\n        polyline.linecolor.name = proto.linecolor.name\n\n        # Load xform\n        polyline.xform = Xform()\n        polyline.xform.name = proto.xform.name\n        polyline.xform.m = list(proto.xform.matrix)\n\n        return polyline",
+          "code": "def json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27599,6 +27694,7 @@ window.API_INDEX = {
         "Polyline.parse",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.str"
@@ -27609,7 +27705,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(\n            proto.linecolor.r,\n            proto.linecolor.g,\n            proto.linecolor.b,\n            proto.linecolor.a\n        )\n        polyline.linecolor.name = proto.linecolor.name\n\n        # Load xform\n        polyline.xform = Xform()\n        polyline.xform.name = proto.xform.name\n        polyline.xform.m = list(proto.xform.matrix)\n\n        return polyline\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n\n        # Set linecolor\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    def pb_fill(self, proto):\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(\n            proto.linecolor.r,\n            proto.linecolor.g,\n            proto.linecolor.b,\n            proto.linecolor.a\n        )\n        polyline.linecolor.name = proto.linecolor.name\n\n        # Load xform\n        polyline.xform = Xform()",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27632,6 +27728,30 @@ window.API_INDEX = {
         "Polyline.json_load",
         "Polyline.json_loads",
         "Polyline.pb_dump",
+        "Polyline.pb_fill",
+        "Polyline.pb_load",
+        "Polyline.pb_loads",
+        "Polyline.str"
+      ]
+    },
+    {
+      "name": "Polyline.pb_fill",
+      "implementations": {
+        "python": {
+          "sig": "pb_fill(proto)",
+          "code": "def pb_fill(self, proto):\n\n        \"\"\"Fill an existing Polyline proto message directly (avoids serialize/deserialize cycle).\"\"\"\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.coords.extend(self._coords)\n        proto.width = self.width\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor[0]\n        proto.linecolor.g = self.linecolor[1]\n        proto.linecolor.b = self.linecolor[2]\n        proto.linecolor.a = self.linecolor[3]\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Polyline from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded polyline data.\n\n        Returns\n        -------\n        :class:`Polyline`\n            The deserialized Polyline.\n\n        \"\"\"\n        from .proto import polyline_pb2\n\n        proto = polyline_pb2.Polyline()\n        proto.ParseFromString(data)\n\n        polyline = cls.from_coords(list(proto.coords))\n        polyline.guid = proto.guid\n        polyline.name = proto.name\n        polyline.width = proto.width\n\n        # Load linecolor\n        polyline.linecolor = Color(\n            proto.linecolor.r,\n            proto.linecolor.g,\n            proto.linecolor.b,\n            proto.linecolor.a\n        )\n        polyline.linecolor.name = proto.linecolor.name\n\n        # Load xform\n        polyline.xform = Xform()\n        polyline.xform.name = proto.xform.name\n        polyline.xform.m = list(proto.xform.matrix)\n\n        return polyline\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Polyline`",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.from_coords",
+        "Polyline.json_dump",
+        "Polyline.json_dumps",
+        "Polyline.json_load",
+        "Polyline.json_loads",
+        "Polyline.pb_dump",
+        "Polyline.pb_dumps",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.str"
@@ -27660,12 +27780,12 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.__str__",
         "Polyline.from_coords",
-        "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
         "Polyline.json_loads",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.point_count",
         "Polyline.repr",
@@ -27703,6 +27823,7 @@ window.API_INDEX = {
         "Polyline.json_loads",
         "Polyline.len",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.point_count",
@@ -27736,7 +27857,6 @@ window.API_INDEX = {
         "Polyline.__ne__",
         "Polyline.__repr__",
         "Polyline.__str__",
-        "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
         "Polyline.json_loads",
@@ -27744,6 +27864,7 @@ window.API_INDEX = {
         "Polyline.parse",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
@@ -32659,7 +32780,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(name=\"my_tree\")",
-          "code": "def __init__(self, name=\"my_tree\"):\n\n        self.guid = str(uuid.uuid4())\n        self.name = name\n        self._root = None\n\n    def __str__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    def __repr__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name",
+          "code": "def __init__(self, name=\"my_tree\"):\n\n        self.guid = str(uuid.uuid4())\n        self.name = name\n        self._root = None\n\n    def __str__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    def __repr__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()",
           "file": "tree.py"
         }
       },
@@ -32670,13 +32791,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -32689,7 +32810,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__()",
-          "code": "def __str__(self):\n\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    def __repr__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod",
+          "code": "def __str__(self):\n\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    def __repr__(self):\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode",
           "file": "tree.py"
         }
       },
@@ -32700,16 +32821,18 @@ window.API_INDEX = {
         "Tree.__jsonload__",
         "Tree.__repr__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
+        "Tree.pb_load",
+        "Tree.pb_loads",
         "Tree.root",
         "Tree.str"
       ]
@@ -32719,7 +32842,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode",
+          "code": "def __repr__(self):\n\n        return \"<Tree with {} nodes>\".format(len(list(self.nodes)))\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)",
           "file": "tree.py"
         }
       },
@@ -32730,13 +32853,13 @@ window.API_INDEX = {
         "Tree.__jsonload__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -32751,7 +32874,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsondump__() -> dict",
-          "code": "def __jsondump__(self) -> dict:\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)",
+          "code": "def __jsondump__(self) -> dict:\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"root\": self.root.__jsondump__() if self.root else None,\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)",
           "file": "tree.py"
         }
       },
@@ -32762,13 +32885,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.pb_dump",
         "Tree.pb_dumps",
         "Tree.pb_load",
@@ -32783,7 +32906,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\"",
-          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):",
+          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Tree\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        tree = cls(name=data.get(\"name\", \"Tree\"))\n        tree.guid = guid if guid is not None else data.get(\"guid\", tree.guid)\n        if data.get(\"root\"):\n            from .encoders import decode_node\n\n            root = decode_node(data[\"root\"])\n            tree.add(root)\n        return tree\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree",
           "file": "tree.py"
         }
       },
@@ -32794,13 +32917,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.pb_dump",
         "Tree.pb_dumps",
         "Tree.pb_load",
@@ -32815,7 +32938,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):",
           "file": "tree.py"
         },
         "cpp": {
@@ -32837,12 +32960,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
+        "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.pb_dump",
         "Tree.pb_dumps",
         "Tree.pb_load",
@@ -32857,7 +32981,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None",
           "file": "tree.py"
         },
         "cpp": {
@@ -32879,13 +33003,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -32901,7 +33025,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "tree.py"
         },
         "cpp": {
@@ -32923,13 +33047,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.jsondump",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -32945,7 +33069,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):\n        return self._root\n\n    def add(self, node, parent=None):\n        \"\"\"Add a node to the tree.",
           "file": "tree.py"
         },
         "cpp": {
@@ -32967,12 +33091,12 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_loads",
         "Tree.jsonload",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -32988,7 +33112,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import tree_pb2\n        from .proto import treenode_pb2\n\n        def node_to_proto(node):\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):\n        return self._root\n\n    def add(self, node, parent=None):\n        \"\"\"Add a node to the tree.",
+          "code": "def pb_dumps(self):\n\n        from .proto import tree_pb2\n\n        def fill_node(proto_node, node):\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):\n        return self._root\n\n    def add(self, node, parent=None):\n        \"\"\"Add a node to the tree.\n\n        Parameters\n        ----------\n        node : :class:`TreeNode`\n            The node to add.",
           "file": "tree.py"
         },
         "cpp": {
@@ -33010,13 +33134,13 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.new",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_load",
@@ -33027,11 +33151,11 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Tree.node_to_proto",
+      "name": "Tree.fill_node",
       "implementations": {
         "python": {
-          "sig": "node_to_proto(node)",
-          "code": "def node_to_proto(node):\n\n            proto_node = treenode_pb2.TreeNode()\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                child_proto = node_to_proto(child)\n                proto_node.children.append(child_proto)\n            return proto_node\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            proto.root.CopyFrom(node_to_proto(self.root))\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):\n        return self._root\n\n    def add(self, node, parent=None):\n        \"\"\"Add a node to the tree.\n\n        Parameters\n        ----------\n        node : :class:`TreeNode`\n            The node to add.",
+          "sig": "fill_node(proto_node, node)",
+          "code": "def fill_node(proto_node, node):\n\n            proto_node.guid = node.guid\n            proto_node.name = node.name\n            proto_node.parent_guid = \"\"\n            if node.color is not None:\n                proto_node.color.r = node.color[0]\n                proto_node.color.g = node.color[1]\n                proto_node.color.b = node.color[2]\n                proto_node.color.a = node.color[3]\n            for child in node.children:\n                fill_node(proto_node.children.add(), child)\n\n        proto = tree_pb2.Tree()\n        proto.guid = self.guid\n        proto.name = self.name\n        if self.root:\n            fill_node(proto.root, self.root)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import tree_pb2\n        from .treenode import TreeNode\n\n        proto = tree_pb2.Tree()\n        proto.ParseFromString(data)\n\n        def proto_to_node(proto_node):\n            from .color import Color\n            node = TreeNode(name=proto_node.name)\n            node.guid = proto_node.guid\n            if proto_node.HasField(\"color\") and proto_node.color.a > 0:\n                node.color = Color(proto_node.color.r, proto_node.color.g,\n                                   proto_node.color.b, proto_node.color.a)\n            for child_proto in proto_node.children:\n                child = proto_to_node(child_proto)\n                node.add(child)\n            return node\n\n        tree = cls(name=proto.name)\n        tree.guid = proto.guid\n        if proto.HasField('root'):\n            root = proto_to_node(proto.root)\n            tree._root = root\n            root._tree = tree\n        return tree\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    def find_node_by_guid(self, guid):\n        for node in self.nodes:\n            if node.guid == guid:\n                return node\n        return None\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    @property\n    def root(self):\n        return self._root\n\n    def add(self, node, parent=None):\n        \"\"\"Add a node to the tree.\n\n        Parameters\n        ----------\n        node : :class:`TreeNode`\n            The node to add.\n        parent : :class:`TreeNode`, optional\n            The parent node. If None, adds as root.",
           "file": "tree.py"
         }
       },
@@ -33081,14 +33205,15 @@ window.API_INDEX = {
         "Tree.__jsondump__",
         "Tree.__jsonload__",
         "Tree.__repr__",
+        "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.new",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33113,12 +33238,12 @@ window.API_INDEX = {
         "Tree.__jsondump__",
         "Tree.__jsonload__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33155,12 +33280,12 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dumps",
         "Tree.pb_load",
@@ -33196,14 +33321,15 @@ window.API_INDEX = {
         "Tree.__jsondump__",
         "Tree.__jsonload__",
         "Tree.__repr__",
+        "Tree.__str__",
         "Tree.add",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.json_dump",
         "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.leaves",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33238,14 +33364,15 @@ window.API_INDEX = {
         "Tree.Tree",
         "Tree.add",
         "Tree.add_child_by_guid",
+        "Tree.fill_node",
         "Tree.get_children_guids",
         "Tree.get_node_by_name",
         "Tree.get_nodes_by_name",
         "Tree.json_dump",
+        "Tree.json_dumps",
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.leaves",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33287,6 +33414,7 @@ window.API_INDEX = {
         "Tree._print",
         "Tree.add",
         "Tree.add_child_by_guid",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.get_children_guids",
         "Tree.json_dump",
@@ -33297,7 +33425,6 @@ window.API_INDEX = {
         "Tree.jsonload",
         "Tree.leaves",
         "Tree.new",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33337,6 +33464,7 @@ window.API_INDEX = {
         "Tree.__repr__",
         "Tree.__str__",
         "Tree.add_child_by_guid",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.get_node_by_name",
         "Tree.get_nodes_by_name",
@@ -33346,7 +33474,6 @@ window.API_INDEX = {
         "Tree.json_loads",
         "Tree.jsonload",
         "Tree.leaves",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -33385,6 +33512,7 @@ window.API_INDEX = {
         "Tree.__str__",
         "Tree.add",
         "Tree.add_child_by_guid",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.get_node_by_name",
         "Tree.get_nodes_by_name",
@@ -33392,7 +33520,6 @@ window.API_INDEX = {
         "Tree.json_load",
         "Tree.json_loads",
         "Tree.leaves",
-        "Tree.node_to_proto",
         "Tree.pb_dump",
         "Tree.pb_dumps",
         "Tree.pb_load",
@@ -40849,6 +40976,7 @@ window.API_INDEX = {
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.point_at",
@@ -40895,9 +41023,8 @@ window.API_INDEX = {
         "NurbsCurve.get_cv",
         "NurbsCurve.is_natural",
         "NurbsCurve.is_polyline",
-        "NurbsCurve.json_load",
         "NurbsCurve.pb_dump",
-        "NurbsCurve.pb_dumps",
+        "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
         "NurbsCurve.pb_loads",
         "NurbsCurve.str",
@@ -41379,6 +41506,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.pb_dump",
         "NurbsSurface.pb_dumps",
+        "NurbsSurface.pb_fill",
         "NurbsSurface.pb_load",
         "NurbsSurface.pb_loads",
         "NurbsSurface.repr",
@@ -42168,6 +42296,7 @@ window.API_INDEX = {
         "Polyline.merge_collinear",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.point_at",
@@ -42218,6 +42347,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
+        "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.pb_loads",
         "Polyline.point_count",
@@ -43808,6 +43938,7 @@ window.API_INDEX = {
         "Tree.add",
         "Tree.add_child_by_guid",
         "Tree.constructor",
+        "Tree.fill_node",
         "Tree.find_node_by_guid",
         "Tree.get_children_guids",
         "Tree.get_node_by_name",
@@ -43819,7 +43950,6 @@ window.API_INDEX = {
         "Tree.jsondump",
         "Tree.jsonload",
         "Tree.leaves",
-        "Tree.node_to_proto",
         "Tree.nodes",
         "Tree.pb_dump",
         "Tree.pb_dumps",
@@ -49785,11 +49915,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
-        "circle",
-        "n",
         "points",
+        "n",
         "into",
+        "circle",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49803,11 +49933,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "arc",
-        "length",
-        "ellipse",
         "by",
+        "ellipse",
+        "length",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49821,8 +49951,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "points",
+        "arc",
         "through",
         "nurbscurve",
         "primitives",
@@ -49837,11 +49967,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "polyline",
         "from",
-        "curve",
         "points",
         "open",
-        "polyline",
+        "curve",
         "adaptive",
         "to_polyline_adaptive",
         "create",
@@ -49857,10 +49987,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "parameter",
         "at",
         "curve",
         "evaluation",
-        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49879,10 +50009,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
         "along",
         "length",
         "frames",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49905,8 +50035,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "ellipse",
-        "perpendicular",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49927,8 +50057,8 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
         "evaluate",
+        "surface",
         "point",
         "cylinder",
         "point_at",
@@ -49945,11 +50075,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
         "from",
         "faces",
         "and",
         "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -51088,6 +51218,12 @@ window.API_INDEX = {
     "to_vertices_and_faces": [
       "Mesh.to_vertices_and_faces",
       "ColorMode.to_vertices_and_faces"
+    ],
+    "pb_fill": [
+      "Mesh.pb_fill",
+      "NurbsCurve.pb_fill",
+      "NurbsSurface.pb_fill",
+      "Polyline.pb_fill"
     ],
     "set_vertex_color": [
       "Mesh.set_vertex_color"
@@ -52246,8 +52382,8 @@ window.API_INDEX = {
     "is_finite": [
       "Tolerance.is_finite"
     ],
-    "node_to_proto": [
-      "Tree.node_to_proto"
+    "fill_node": [
+      "Tree.fill_node"
     ],
     "proto_to_node": [
       "Tree.proto_to_node"
