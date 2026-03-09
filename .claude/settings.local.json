@@ -28,7 +28,8 @@
       "Bash(./tests.exe:*)",
       "Bash(./minitests.exe:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(echo:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

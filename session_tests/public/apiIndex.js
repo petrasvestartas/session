@@ -6805,6 +6805,7 @@ window.API_INDEX = {
         "Mesh.duplicate",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
+        "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.str"
       ]
@@ -7055,6 +7056,7 @@ window.API_INDEX = {
         "Mesh.get_open",
         "Mesh.is_empty",
         "Mesh.loft_many",
+        "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.proj",
         "Mesh.project_2d",
@@ -39427,7 +39429,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "ColorMode.loft_many"
+        "ColorMode.loft_many",
+        "ColorMode.loft_panels"
       ]
     },
     {
@@ -39449,6 +39452,19 @@ window.API_INDEX = {
         "cpp": {
           "sig": "std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true)",
           "code": "static std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true);",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.loft"
+      ]
+    },
+    {
+      "name": "ColorMode.loft_panels",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<LoftPanel> loft_panels(\n        const std::vector<std::vector<Point>>& top_polygons,\n        const std::vector<std::vector<Point>>& bot_polygons,\n        double merge_precision      = 0.001,\n        double edge_gap             = 0.0,\n        double edge_match_threshold = 2.0,\n        bool   add_caps             = true,\n        bool   skip_triangles       = false)",
+          "code": "static std::vector<LoftPanel> loft_panels(\n        const std::vector<std::vector<Point>>& top_polygons,\n        const std::vector<std::vector<Point>>& bot_polygons,\n        double merge_precision      = 0.001,\n        double edge_gap             = 0.0,\n        double edge_match_threshold = 2.0,\n        bool   add_caps             = true,\n        bool   skip_triangles       = false);",
           "file": "mesh.h"
         }
       },
@@ -40318,6 +40334,20 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.build_triangle_bvh"
+      ]
+    },
+    {
+      "name": "Mesh.loft_panels",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<LoftPanel> loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)",
+          "code": "std::vector<LoftPanel> Mesh::loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)\n{\n    Mesh top_mesh = Mesh::from_polylines(top_polygons, merge_precision);\n    Mesh bot_mesh = Mesh::from_polylines(bot_polygons, merge_precision);\n\n    std::vector<size_t> tfks, bfks;\n    for (auto& [fk, _] : top_mesh.face) tfks.push_back(fk);\n    for (auto& [fk, _] : bot_mesh.face) bfks.push_back(fk);\n\n    std::vector<std::tuple<double, size_t, size_t>> dists;\n    dists.reserve(tfks.size() * bfks.size());\n    for (size_t ti = 0; ti < tfks.size(); ti++)\n        for (size_t bi = 0; bi < bfks.size(); bi++)\n            dists.push_back({lp_face_centroid(top_mesh, tfks[ti]).distance(\n                             lp_face_centroid(bot_mesh, bfks[bi])), ti, bi}",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.from_polylines",
+        "Mesh.loft"
       ]
     },
     {
@@ -47131,7 +47161,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Loft with quads and triangles\")",
-          "code": "MINI_TEST(\"Mesh\", \"Loft with quads and triangles\"){\n        \n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Loft with quads and triangles\") {\n        // uncomment #include \"mesh.h\"\n        std::vector<std::vector<Point>> bot = {{{0,0,0},{4,0,0},{4,4,0},{0,4,0}}};\n        std::vector<std::vector<Point>> top = {{{0.5,0.5,2},{3.5,0.5,2},{2,3,2}}};\n        std::vector<LoftPanel> panels = Mesh::loft_panels(bot, top);\n        MINI_CHECK(panels.size() == 1);\n        MINI_CHECK(panels[0].mesh.is_valid());\n        int nquad = 0, ntri = 0;\n        for (const auto& w : panels[0].wall_faces) {\n            if (w.is_quad) nquad++; else ntri++;\n        }\n        MINI_CHECK(nquad > 0);\n        MINI_CHECK(ntri > 0);\n        std::vector<LoftPanel> panels_no_tri = Mesh::loft_panels(bot, top, 0.001, 0.0, 2.0, true, true);\n        int ntri2 = 0;\n        for (const auto& w : panels_no_tri[0].wall_faces) { if (!w.is_quad) ntri2++; }\n        MINI_CHECK(ntri2 == 0);\n    }",
           "file": "mesh_test.cpp"
         }
       }
@@ -49517,10 +49547,10 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "points",
-        "circle",
         "n",
-        "into",
+        "circle",
         "subdivide",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49534,11 +49564,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "by",
         "arc",
         "ellipse",
-        "length",
-        "by",
         "subdivide",
+        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49552,9 +49582,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "arc",
         "through",
         "points",
-        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -49570,10 +49600,10 @@ window.API_INDEX = {
       "tags": [
         "points",
         "open",
-        "polyline",
         "adaptive",
-        "from",
         "curve",
+        "from",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49588,10 +49618,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
-        "at",
-        "parameter",
         "evaluation",
+        "at",
+        "curve",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49610,8 +49640,8 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
         "frames",
+        "curve",
         "length",
         "along",
         "divide_by_count",
@@ -49635,9 +49665,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49658,10 +49688,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "surface",
         "point",
+        "cylinder",
         "evaluate",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -49677,10 +49707,10 @@ window.API_INDEX = {
       "title": "Mesh from Vertices and Faces",
       "tags": [
         "faces",
-        "vertices",
         "from",
         "and",
         "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -52274,6 +52304,10 @@ window.API_INDEX = {
     ],
     "set_face_holes": [
       "ColorMode.set_face_holes"
+    ],
+    "loft_panels": [
+      "ColorMode.loft_panels",
+      "Mesh.loft_panels"
     ],
     "build_triangle_bvh": [
       "ColorMode.build_triangle_bvh",
