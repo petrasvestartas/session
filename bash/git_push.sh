@@ -37,8 +37,8 @@ for d in session_cpp session_py session_rust session_data session_proto session_
             continue
         fi
 
-        git pull --rebase origin main 2>/dev/null
         git commit -m "$m" 2>/dev/null
+        git pull --rebase origin main 2>/dev/null
         if ! git push origin main; then
             echo "FAILED: $d push"
             FAILED="$FAILED $d"
