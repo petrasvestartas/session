@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.589,
+    "time_ms": 9.429,
     "line": 7,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    axis = Vector(0.0, 0.0, 1.0)\n    original = Quaternion.from_axis_angle(axis, 1.5708)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [

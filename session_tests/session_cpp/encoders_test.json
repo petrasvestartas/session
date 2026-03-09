@@ -2,7 +2,7 @@
   {
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 6.945,
+    "time_ms": 10.876,
     "line": 13,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    Point original(1.5, 2.5, 3.5);\n    original.name = \"test_point\";\n\n    std::string filepath = \"./serialization/test_encoders_point.json\";\n    json_dump(original, filepath);\n\n    Point loaded = json_load<Point>(filepath);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "Json Dumps Loads",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.019,
     "line": 31,
     "code": "    Vector original(42.1, 84.2, 126.3);\n    original.name = \"test_vector\";\n\n    std::string json_str = json_dumps(original);\n\n    Vector loaded = json_loads<Vector>(json_str);\n",
     "checks": [
@@ -72,7 +72,7 @@
   {
     "test_name": "Encode Collection Values",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.027,
     "line": 47,
     "code": "    std::vector<Point> points;\n    points.push_back(Point(1.0, 2.0, 3.0));\n    points.push_back(Point(4.0, 5.0, 6.0));\n    points.push_back(Point(7.0, 8.0, 9.0));\n\n    auto json_arr = encode_collection(points);\n",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.05,
     "line": 101,
     "code": "    std::vector<Line> lines;\n    lines.push_back(Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0));\n    lines.push_back(Line(0.0, 0.0, 0.0, 0.0, 1.0, 0.0));\n\n    auto json_arr = encode_collection(lines);\n    std::string json_str = json_arr.dump();\n\n    auto loaded_json = nlohmann::json::parse(json_str);\n    auto loaded = decode_collection<Line>(loaded_json);\n",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 12.492,
+    "time_ms": 10.989,
     "line": 118,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::vector<Vector> vectors;\n    vectors.push_back(Vector(1.0, 0.0, 0.0));\n    vectors.push_back(Vector(0.0, 1.0, 0.0));\n    vectors.push_back(Vector(0.0, 0.0, 1.0));\n\n    std::string filepath = \"./serialization/test_encoders_collection.json\";\n    auto json_arr = encode_collection(vectors);\n    json_dump(json_arr, filepath);\n\n    auto loaded_json = json_load_data(filepath);\n    auto decoded_vectors = decode_collection<Vector>(loaded_json);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
@@ -247,7 +247,7 @@
   {
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.057,
     "line": 140,
     "code": "    Point point(1.0, 2.0, 3.0);\n\n    std::string pretty = json_dumps(point, true);\n    std::string compact = json_dumps(point, false);\n\n\n    Point loaded_pretty = json_loads<Point>(pretty);\n    Point loaded_compact = json_loads<Point>(compact);\n",
     "checks": [
@@ -282,7 +282,7 @@
   {
     "test_name": "Decode Primitives",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 157,
     "code": "    nlohmann::json num = 42;\n    std::string json_str = num.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json float_val = 3.14;\n    json_str = float_val.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json text = \"hello\";\n    json_str = text.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json flag = true;\n    json_str = flag.dump();\n    loaded = nlohmann::json::parse(json_str);",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "Decode List",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.028,
     "line": 179,
     "code": "    std::vector<int> data = {1, 2, 3};\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n    auto loaded_vec = loaded.get<std::vector<int>>();\n\n    std::vector<Point> points;\n    points.push_back(Point(1.0, 2.0, 3.0));\n    points.push_back(Point(4.0, 5.0, 6.0));\n\n    auto json_arr = encode_collection(points);\n    auto decoded = decode_collection<Point>(json_arr);",
     "checks": [
@@ -402,7 +402,7 @@
   {
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.053,
     "line": 226,
     "code": "    std::vector<Point> points;\n    points.push_back(Point(1.0, 0.0, 0.0));\n    points.push_back(Point(0.0, 1.0, 0.0));\n\n    nlohmann::json data;\n    data[\"numbers\"] = {1, 2, 3};\n    data[\"letters\"] = {\"a\", \"b\", \"c\"};\n    data[\"points\"] = encode_collection(points);\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    auto loaded_points = decode_collection<Point>(loaded[\"points\"]);",
     "checks": [
@@ -432,7 +432,7 @@
   {
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.029,
     "line": 246,
     "code": "    Point point(1.0, 2.0, 3.0);\n\n    nlohmann::json data = nlohmann::json::array();\n    data.push_back({{\"name\", \"point1\"}, {\"value\", 10}});\n    data.push_back({{\"name\", \"point2\"}, {\"value\", 20}});\n    data.push_back({{\"geometry\", point.jsondump()}});\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[2][\"geometry\"]);",
     "checks": [
@@ -462,7 +462,7 @@
   {
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.029,
     "line": 264,
     "code": "    Point point(1.0, 2.0, 3.0);\n    Vector vec(0.0, 0.0, 1.0);\n\n    nlohmann::json data;\n    data[\"config\"][\"tolerance\"] = 0.001;\n    data[\"config\"][\"scale\"] = 1000;\n    data[\"geometry\"][\"point\"] = point.jsondump();\n    data[\"geometry\"][\"vector\"] = vec.jsondump();\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[\"geometry\"][\"point\"]);\n    Vector loaded_vec = Vector::jsonload(loaded[\"geometry\"][\"vector\"]);",
     "checks": [

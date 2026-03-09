@@ -47116,13 +47116,23 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Loft Many\")",
-          "code": "MINI_TEST(\"Mesh\", \"Loft Many\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>> loft_inputs;\n        for (int i = 0; i < 6; ++i) {\n            double x = i * 3.0;\n            Polyline b(std::vector<Point>{\n                {x, 0, 0}, {x+1, 0, 0}, {x+1, 1, 0}, {x, 1, 0}, {x, 0, 0}});\n            Polyline t(std::vector<Point>{\n                {x, 0, 1+i*0.5}, {x+1, 0, 1+i*0.5}, {x+1, 1, 1+i*0.5}, {x, 1, 1+i*0.5}, {x, 0, 1+i*0.5}});\n            loft_inputs.push_back({{b}, {t}});\n        }\n        std::vector<Mesh> meshes = Mesh::loft_many(loft_inputs);\n        for (auto& m : meshes) {\n            MINI_CHECK(m.is_valid());\n            MINI_CHECK(m.is_closed());\n        }\n        std::vector<Mesh> meshes_seq = Mesh::loft_many(loft_inputs, true, false);\n        MINI_CHECK(meshes_seq[0].number_of_faces() == meshes[0].number_of_faces());\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Loft Many\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>> loft_inputs;\n        for (int i = 0; i < 6; ++i) {\n            double x = i * 3.0;\n            Polyline b(std::vector<Point>{\n                {x, 0, 0}, {x+1, 0, 0}, {x+1, 1, 0}, {x, 1, 0}, {x, 0, 0}});\n            Polyline t(std::vector<Point>{\n                {x, 0, 1+i*0.5}, {x+1, 0, 1+i*0.5}, {x+1, 1, 1+i*0.5}, {x, 1, 1+i*0.5}, {x, 0, 1+i*0.5}});\n            loft_inputs.push_back({{b}, {t}});\n        }\n        std::vector<Mesh> meshes = Mesh::loft_many(loft_inputs);\n\n        MINI_CHECK(meshes[0].is_valid());\n        MINI_CHECK(meshes[0].is_closed());\n        MINI_CHECK(meshes[1].is_valid());\n        MINI_CHECK(meshes[1].is_closed());\n        MINI_CHECK(meshes[2].is_valid());\n        MINI_CHECK(meshes[2].is_closed());\n        MINI_CHECK(meshes[3].is_valid());\n        MINI_CHECK(meshes[3].is_closed());\n        MINI_CHECK(meshes[4].is_valid());\n        MINI_CHECK(meshes[4].is_closed());\n        MINI_CHECK(meshes[5].is_valid());\n        MINI_CHECK(meshes[5].is_closed());\n\n        std::vector<Mesh> meshes_seq = Mesh::loft_many(loft_inputs, true, false);\n\n        MINI_CHECK(meshes_seq[0].is_valid());\n        MINI_CHECK(meshes_seq[0].is_closed());\n        MINI_CHECK(meshes_seq[1].is_valid());\n        MINI_CHECK(meshes_seq[1].is_closed());\n        MINI_CHECK(meshes_seq[2].is_valid());\n        MINI_CHECK(meshes_seq[2].is_closed());\n        MINI_CHECK(meshes_seq[3].is_valid());\n        MINI_CHECK(meshes_seq[3].is_closed());\n        MINI_CHECK(meshes_seq[4].is_valid());\n        MINI_CHECK(meshes_seq[4].is_closed());\n        MINI_CHECK(meshes_seq[5].is_valid());\n        MINI_CHECK(meshes_seq[5].is_closed());\n\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Loft Many\")",
           "code": "@MINI_TEST(\"Mesh\", \"Loft Many\")\ndef test_mesh_loft_many():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    loft_inputs = []\n    for i in range(6):\n        x = i * 3.0\n        b = Polyline([\n            Point(x, 0, 0), Point(x+1, 0, 0), Point(x+1, 1, 0),\n            Point(x, 1, 0), Point(x, 0, 0),\n        ])\n        t = Polyline([\n            Point(x, 0, 1+i*0.5), Point(x+1, 0, 1+i*0.5),\n            Point(x+1, 1, 1+i*0.5), Point(x, 1, 1+i*0.5), Point(x, 0, 1+i*0.5),\n        ])\n        loft_inputs.append(([b], [t]))\n    meshes = Mesh.loft_many(loft_inputs)\n    for m in meshes:\n        MINI_CHECK(m.is_valid())\n        MINI_CHECK(m.is_closed())\n    meshes_seq = Mesh.loft_many(loft_inputs, True, False)\n    MINI_CHECK(meshes_seq[0].number_of_faces() == meshes[0].number_of_faces())",
           "file": "mesh_test.py"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Loft with quads and triangles",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Loft with quads and triangles\")",
+          "code": "MINI_TEST(\"Mesh\", \"Loft with quads and triangles\"){\n        \n    }",
+          "file": "mesh_test.cpp"
         }
       }
     },
@@ -49506,11 +49516,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "n",
-        "subdivide",
-        "circle",
         "points",
+        "circle",
+        "n",
+        "into",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49525,10 +49535,10 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "arc",
-        "by",
-        "subdivide",
         "ellipse",
         "length",
+        "by",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49542,9 +49552,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "through",
         "points",
         "arc",
-        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -49558,12 +49568,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
-        "curve",
-        "adaptive",
-        "polyline",
-        "from",
         "points",
+        "open",
+        "polyline",
+        "adaptive",
+        "from",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49578,10 +49588,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
-        "evaluation",
-        "parameter",
         "curve",
+        "at",
+        "parameter",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49600,10 +49610,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "curve",
+        "frames",
         "length",
         "along",
-        "frames",
-        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49626,8 +49636,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "ellipse",
-        "perpendicular",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49648,10 +49658,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
+        "cylinder",
+        "surface",
         "point",
         "evaluate",
-        "surface",
-        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -49666,11 +49676,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "faces",
         "vertices",
-        "mesh",
         "from",
         "and",
-        "faces",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"

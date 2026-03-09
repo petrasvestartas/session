@@ -127,7 +127,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.303,
+    "time_ms": 13.699,
     "line": 720,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n\n        let mut pl = Polyline::new(vec![\n            Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0),\n            Point::new(7.0, 8.0, 9.0), Point::new(10.0, 11.0, 12.0),\n        ]);\n        pl.name = \"test_polyline\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_polyline.json\";\n        json_dump(&pl, fname, true).unwrap();\n        let loaded: Polyline = json_load(fname).unwrap();\n\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.462,
+    "time_ms": 9.988,
     "line": 750,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0),\n            Point::new(7.0, 8.0, 9.0), Point::new(10.0, 11.0, 12.0),\n        ]);\n        pl.name = \"test_polyline\".to_string();\n\n        // pb_dump(fname) / pb_load(fname) - file-based serialization\n        let fname = \"serialization/test_polyline.bin\";\n        pl.pb_dump(fname);\n        let loaded = Polyline::pb_load(fname);\n\n",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "Center",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 794,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Square polyline\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0)\n        ]);\n        let c = pl.center();\n\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Is Closed",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 815,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Open polyline\n        let open_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0)\n        ]);\n        let is_open = open_pl.is_closed();\n\n        // Closed polyline (first and last point same)\n        let closed_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0)\n        ]);\n        let is_closed = closed_pl.is_closed();\n\n",
     "checks": [
@@ -287,7 +287,7 @@
   {
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 870,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ]);\n        let test_pt = Point::new(1.0, 1.0, 0.0);\n        let (distance, edge_id, closest) = pl.closest_distance_and_point(&test_pt);\n\n\n",
     "checks": [
@@ -337,7 +337,7 @@
   {
     "test_name": "Extend Segment Equally",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 910,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        pl.extend_segment_equally(0, 0.5, 0.0);\n        let first = pl.get_points()[0][0];\n        let second = pl.get_points()[1][0];\n",
     "checks": [
@@ -412,7 +412,7 @@
   {
     "test_name": "Shift",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 951,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        pl.shift(1);\n        let first_after_shift = pl.get_points()[0][0];\n        pl.shift(-1);\n        let first_after_unshift = pl.get_points()[0][0];\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "Is Clockwise",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 985,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::Plane;\n\n        // Clockwise square (when viewed from +Z)\n        let cw_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(1.0, 0.0, 0.0),\n        ]);\n        // Counter-clockwise square\n        let ccw_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let plane = Plane::default();\n",
     "checks": [
