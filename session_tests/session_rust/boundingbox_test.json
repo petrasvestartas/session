@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.027,
     "line": 7,
     "code": "        use crate::BoundingBox;\n        use crate::Point;\n        use crate::Vector;\n\n        // from_point\n        let mut bb1 = BoundingBox::from_point(Point::new(5.0, 5.0, 5.0), 2.0);\n\n        // from_points (AABB)\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(2.0, 3.0, 4.0)];\n        let bb2 = BoundingBox::from_points(&pts, 0.0);\n        let mn = bb2.min_point();\n        let mx = bb2.max_point();\n\n        // OBB constructor\n        let obb = BoundingBox::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(1.0, 2.0, 3.0),\n        );\n\n        // aabb\n        let bb_aabb = bb2.aabb();\n\n        // corners\n        let corners = bb2.corners();\n\n        // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n        let p_center = bb2.point_at(0.0, 0.0, 0.0);\n        let hx = bb2.half_size[0];\n        let hy = bb2.half_size[1];\n        let hz = bb2.half_size[2];\n        let p_max_pt = bb2.point_at(hx, hy, hz);\n\n        // inflate\n        let mut bb3 = BoundingBox::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        bb3.inflate(1.0);\n\n        // guid and name\n        bb1.name = \"test_bbox\".to_string();",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 69,
     "code": "        use crate::BoundingBox;\n        use crate::Point;\n\n        let bb1 = BoundingBox::from_point(Point::new(0.0, 0.0, 0.0), 1.0);\n        let bb2 = BoundingBox::from_point(Point::new(1.5, 0.0, 0.0), 1.0);\n        let bb3 = BoundingBox::from_point(Point::new(5.0, 5.0, 5.0), 0.5);\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.878,
+    "time_ms": 13.383,
     "line": 102,
     "code": "        use crate::BoundingBox;\n        use crate::Point;\n\n        let mut bb = BoundingBox::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox\".to_string();\n\n        // JSON object (string)\n        let js = bb.jsondump().unwrap();\n        let loaded_j = BoundingBox::jsonload(&js).unwrap();\n\n        // String\n        let s = bb.json_dumps();\n        let loaded_s = BoundingBox::json_loads(&s);\n\n        // File\n        let fname = \"serialization/test_boundingbox.json\";\n        bb.json_dump(fname);\n        let loaded = BoundingBox::json_load(fname);",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.812,
+    "time_ms": 10.701,
     "line": 132,
     "code": "        use crate::BoundingBox;\n        use crate::Point;\n\n        let mut bb = BoundingBox::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox_proto\".to_string();\n\n        // Bytes\n        let b = bb.pb_dumps();\n        let loaded_s = BoundingBox::pb_loads(&b).unwrap();\n\n        // File\n        let fname = \"serialization/test_boundingbox.bin\";\n        bb.pb_dump(fname);\n        let loaded = BoundingBox::pb_load(fname);",
     "checks": [

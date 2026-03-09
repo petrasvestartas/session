@@ -6290,7 +6290,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(point: Point = None)",
-          "code": "def __init__(self, point: Point = None):\n\n        if point is None:\n            point = Point(0.0, 0.0, 0.0)\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n        self.attributes = {}\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:",
+          "code": "def __init__(self, point: Point = None):\n\n        if point is None:\n            point = Point(0.0, 0.0, 0.0)\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n        self.attributes = {}\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):",
           "file": "mesh.py"
         }
       },
@@ -6299,7 +6299,12 @@ window.API_INDEX = {
         "VertexData.__getitem__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
+        "VertexData.new",
         "VertexData.normal",
         "VertexData.position",
         "VertexData.set_color",
@@ -6312,7 +6317,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__getitem__(index)",
-          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.",
+          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self.x\n        elif index == 1:\n            return self.y\n        elif index == 2:\n            return self.z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz",
           "file": "mesh.py"
         }
       },
@@ -6321,7 +6326,9 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_newell_normal",
         "VertexData.color",
+        "VertexData.new",
         "VertexData.normal",
         "VertexData.position",
         "VertexData.set_color",
@@ -6334,7 +6341,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__setitem__(index, value)",
-          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict",
+          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            self.x = value\n        elif index == 1:\n            self.y = value\n        elif index == 2:\n            self.z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def position(self) -> Point:\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []",
           "file": "mesh.py"
         }
       },
@@ -6343,6 +6350,8 @@ window.API_INDEX = {
         "VertexData.__getitem__",
         "VertexData.__init__",
         "VertexData.__ne__",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6357,7 +6366,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "position() -> Point",
-          "code": "def position(self) -> Point:\n\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).",
+          "code": "def position(self) -> Point:\n\n        \"\"\"Get the vertex position as a Point.\"\"\"\n        return Point(self.x, self.y, self.z)\n\n    def set_position(self, point: Point):\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk",
           "file": "mesh.py"
         },
         "rust": {
@@ -6372,6 +6381,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6385,7 +6398,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_position(point: Point)",
-          "code": "def set_position(self, point: Point):\n\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"",
+          "code": "def set_position(self, point: Point):\n\n        \"\"\"Set the vertex position from a Point.\"\"\"\n        self.x = point[0]\n        self.y = point[1]\n        self.z = point[2]\n\n    def color(self) -> List[float]:\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):",
           "file": "mesh.py"
         },
         "rust": {
@@ -6400,6 +6413,9 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6413,7 +6429,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "color() -> List[float]",
-          "code": "def color(self) -> List[float]:\n\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}",
+          "code": "def color(self) -> List[float]:\n\n        \"\"\"Get the vertex color as [r, g, b].\"\"\"\n        return [\n            self.attributes.get(\"r\", 0.5),\n            self.attributes.get(\"g\", 0.5),\n            self.attributes.get(\"b\", 0.5),\n        ]\n\n    def set_color(self, r: float, g: float, b: float):\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)",
           "file": "mesh.py"
         },
         "rust": {
@@ -6428,6 +6444,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.new",
         "VertexData.normal",
         "VertexData.position",
@@ -6441,7 +6461,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_color(r: float, g: float, b: float)",
-          "code": "def set_color(self, r: float, g: float, b: float):\n\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())",
+          "code": "def set_color(self, r: float, g: float, b: float):\n\n        \"\"\"Set the vertex color.\"\"\"\n        self.attributes[\"r\"] = r\n        self.attributes[\"g\"] = g\n        self.attributes[\"b\"] = b\n\n    def normal(self) -> Optional[List[float]]:\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)",
           "file": "mesh.py"
         },
         "rust": {
@@ -6456,6 +6476,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6469,7 +6493,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "normal() -> Optional[List[float]]",
-          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()",
+          "code": "def normal(self) -> Optional[List[float]]:\n\n        \"\"\"Get the vertex normal as [nx, ny, nz].\"\"\"\n        if (\n            \"nx\" in self.attributes\n            and \"ny\" in self.attributes\n            and \"nz\" in self.attributes\n        ):\n            return [self.attributes[\"nx\"], self.attributes[\"ny\"], self.attributes[\"nz\"]]\n        return None\n\n    def set_normal(self, nx: float, ny: float, nz: float):\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0",
           "file": "mesh.py"
         },
         "rust": {
@@ -6484,6 +6508,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.position",
@@ -6497,7 +6525,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_normal(nx: float, ny: float, nz: float)",
-          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):",
+          "code": "def set_normal(self, nx: float, ny: float, nz: float):\n\n        \"\"\"Set the vertex normal.\"\"\"\n        self.attributes[\"nx\"] = nx\n        self.attributes[\"ny\"] = ny\n        self.attributes[\"nz\"] = nz\n\n    def __eq__(self, other):\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []",
           "file": "mesh.py"
         },
         "rust": {
@@ -6512,6 +6540,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6525,7 +6557,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__eq__(other)",
-          "code": "def __eq__(self, other):\n\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, VertexData):\n            return NotImplemented\n        return self.x == other.x and self.y == other.y and self.z == other.z and self.attributes == other.attributes\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:",
           "file": "mesh.py"
         }
       },
@@ -6534,6 +6566,10 @@ window.API_INDEX = {
         "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6548,7 +6584,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n\ndef _lp_newell_normal(pts):\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict",
           "file": "mesh.py"
         }
       },
@@ -6557,6 +6593,10 @@ window.API_INDEX = {
         "VertexData.__getitem__",
         "VertexData.__init__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.new",
         "VertexData.normal",
@@ -6565,6 +6605,128 @@ window.API_INDEX = {
         "VertexData.set_normal",
         "VertexData.set_position"
       ]
+    },
+    {
+      "name": "VertexData._lp_newell_normal",
+      "implementations": {
+        "python": {
+          "sig": "_lp_newell_normal(pts)",
+          "code": "def _lp_newell_normal(pts):\n\n    nx = ny = nz = 0.0\n    n = len(pts)\n    for i in range(n):\n        a = pts[i]; b = pts[(i+1)%n]\n        nx += (a[1]-b[1]) * (a[2]+b[2])\n        ny += (a[2]-b[2]) * (a[0]+b[0])\n        nz += (a[0]-b[0]) * (a[1]+b[1])\n    return nx, ny, nz\n\n\ndef _lp_merge_collinear(pts, vkeys):\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "VertexData.__eq__",
+        "VertexData.__getitem__",
+        "VertexData.__init__",
+        "VertexData.__ne__",
+        "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_offset_toward",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal",
+        "VertexData.set_position"
+      ]
+    },
+    {
+      "name": "VertexData._lp_merge_collinear",
+      "implementations": {
+        "python": {
+          "sig": "_lp_merge_collinear(pts, vkeys)",
+          "code": "def _lp_merge_collinear(pts, vkeys):\n\n    tol = Tolerance.APPROXIMATION\n    zt2 = Tolerance.ZERO_TOLERANCE * Tolerance.ZERO_TOLERANCE\n    changed = True\n    while changed:\n        changed = False\n        m = len(pts)\n        if m < 3: break\n        np_, nk = [], []\n        for i in range(m):\n            p = (i-1+m)%m; nxt = (i+1)%m\n            ax = pts[i][0]-pts[p][0]; ay = pts[i][1]-pts[p][1]; az = pts[i][2]-pts[p][2]\n            bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n            cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n            a2 = ax*ax+ay*ay+az*az; b2 = bx*bx+by*by+bz*bz\n            if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                changed = True\n            else:\n                np_.append(pts[i]); nk.append(vkeys[i])\n        pts, vkeys = np_, nk\n    return pts, vkeys\n\n\ndef _lp_offset_toward(p, cx, cy, cz, gap):\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "VertexData.__eq__",
+        "VertexData.__init__",
+        "VertexData.__ne__",
+        "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal",
+        "VertexData.set_position"
+      ]
+    },
+    {
+      "name": "VertexData._lp_offset_toward",
+      "implementations": {
+        "python": {
+          "sig": "_lp_offset_toward(p, cx, cy, cz, gap)",
+          "code": "def _lp_offset_toward(p, cx, cy, cz, gap):\n\n    dx = cx-p[0]; dy = cy-p[1]; dz = cz-p[2]\n    length = math.sqrt(dx*dx+dy*dy+dz*dz)\n    if length > 1e-10: dx *= gap/length; dy *= gap/length; dz *= gap/length\n    return Point(p[0]+dx, p[1]+dy, p[2]+dz)\n\n\ndef _lp_face_centroid(m, fk):\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "VertexData.__eq__",
+        "VertexData.__init__",
+        "VertexData.__ne__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal",
+        "VertexData.set_position"
+      ]
+    },
+    {
+      "name": "VertexData._lp_face_centroid",
+      "implementations": {
+        "python": {
+          "sig": "_lp_face_centroid(m, fk)",
+          "code": "def _lp_face_centroid(m, fk):\n\n    vkeys = m.face_vertices(fk)\n    cx = cy = cz = 0.0\n    for vk in vkeys: p = m.vertex_position(vk); cx += p[0]; cy += p[1]; cz += p[2]\n    n = len(vkeys)\n    return Point(cx/n, cy/n, cz/n)\n\n\nclass LoftWallFace:\n    def __init__(self):\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "VertexData.__eq__",
+        "VertexData.__init__",
+        "VertexData.__ne__",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
+        "VertexData.color",
+        "VertexData.new",
+        "VertexData.normal",
+        "VertexData.position",
+        "VertexData.set_color",
+        "VertexData.set_normal"
+      ]
+    },
+    {
+      "name": "LoftWallFace.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__()",
+          "code": "def __init__(self):\n\n        self.face_key = 0\n        self.is_quad = False\n        self.top_v0 = 0\n        self.top_v1 = 0\n        self.bot_v0 = 0\n        self.bot_v1 = 0\n\n\nclass LoftPanel:\n    def __init__(self):\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy",
+          "file": "mesh.py"
+        }
+      }
+    },
+    {
+      "name": "LoftPanel.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__()",
+          "code": "def __init__(self):\n\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.bot_pts = []\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self.guid = str(uuid.uuid4())\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = Color.white()\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self.xform = Xform.identity()\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():",
+          "file": "mesh.py"
+        }
+      }
     },
     {
       "name": "Mesh.__init__",
@@ -6803,10 +6965,12 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.duplicate",
+        "Mesh.edsq",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
         "Mesh.loft_panels",
         "Mesh.new",
+        "Mesh.side_faces",
         "Mesh.str"
       ]
     },
@@ -6957,13 +7121,11 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
-        "Mesh.edsq",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_empty",
         "Mesh.new",
         "Mesh.proj",
         "Mesh.project_2d",
-        "Mesh.side_faces",
         "Mesh.signed_area",
         "Mesh.str",
         "Mesh.strip_close"
@@ -7034,7 +7196,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\"",
-          "code": "def loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\":\n\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p.x for p in pts]; ys = [p.y for p in pts]; zs = [p.z for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f.x-b.x) < 1e-12 and abs(f.y-b.y) < 1e-12 and abs(f.z-b.z) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1.x - c0.x, c1.y - c0.y, c1.z - c0.z)\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis.x, -yaxis.y, -yaxis.z)\n        def proj(p):\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)",
+          "code": "def loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\":\n\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p.x for p in pts]; ys = [p.y for p in pts]; zs = [p.z for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f.x-b.x) < 1e-12 and abs(f.y-b.y) < 1e-12 and abs(f.z-b.z) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1.x - c0.x, c1.y - c0.y, c1.z - c0.z)\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis.x, -yaxis.y, -yaxis.z)\n        def proj(p):\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7070,7 +7232,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_open(pl)",
-          "code": "def get_open(pl):\n\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f.x-b.x) < 1e-12 and abs(f.y-b.y) < 1e-12 and abs(f.z-b.z) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1.x - c0.x, c1.y - c0.y, c1.z - c0.z)\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis.x, -yaxis.y, -yaxis.z)\n        def proj(p):\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n",
+          "code": "def get_open(pl):\n\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f.x-b.x) < 1e-12 and abs(f.y-b.y) < 1e-12 and abs(f.z-b.z) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1.x - c0.x, c1.y - c0.y, c1.z - c0.z)\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis.x, -yaxis.y, -yaxis.z)\n        def proj(p):\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n",
           "file": "mesh.py"
         }
       },
@@ -7090,7 +7252,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "proj(p)",
-          "code": "def proj(p):\n\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:",
+          "code": "def proj(p):\n\n            dx = p.x - origin.x; dy = p.y - origin.y; dz = p.z - origin.z\n            return (dx*xaxis.x + dy*xaxis.y + dz*xaxis.z, dx*yaxis.x + dy*yaxis.y + dz*yaxis.z)\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:",
           "file": "mesh.py"
         }
       },
@@ -7113,7 +7275,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "sarea(pts)",
-          "code": "def sarea(pts):\n\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])",
+          "code": "def sarea(pts):\n\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else None)\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else None)\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])",
           "file": "mesh.py"
         }
       },
@@ -7132,22 +7294,21 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts)",
-          "code": "def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = True) -> List[\"Mesh\"]:\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = True) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True",
+          "code": "def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        dists = []\n        for ti, tfk in enumerate(tfks):\n            for bi, bfk in enumerate(bfks):\n                d = _lp_face_centroid(top_mesh, tfk).distance(_lp_face_centroid(bot_mesh, bfk))\n                dists.append((d, ti, bi))\n        dists.sort()\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []\n        for d, ti, bi in dists:\n            if top_used[ti] or bot_used[bi]: continue\n            face_match.append((tfks[ti], bfks[bi]))\n            top_used[ti] = True; bot_used[bi] = True\n        face_match.sort()\n        panels = []\n        for tfk, bfk in face_match:\n            panel = LoftPanel()\n            top_vkeys = list(top_mesh.face_vertices(tfk))\n            bot_vkeys = list(bot_mesh.face_vertices(bfk))\n            top_pts = [top_mesh.vertex_position(vk) for vk in top_vkeys]\n            bot_pts = [bot_mesh.vertex_position(vk) for vk in bot_vkeys]\n            top_pts, top_vkeys = _lp_merge_collinear(top_pts, top_vkeys)",
           "file": "mesh.py"
         }
       },
       "related": [
         "Mesh.add_face",
         "Mesh.edsq",
-        "Mesh.from_polygon_with_holes",
-        "Mesh.from_polygon_with_holes_many",
+        "Mesh.face_vertices",
+        "Mesh.from_polylines",
         "Mesh.get_open",
-        "Mesh.is_empty",
-        "Mesh.is_valid",
         "Mesh.loft",
-        "Mesh.loft_many",
+        "Mesh.loft_panels",
         "Mesh.proj",
-        "Mesh.sarea"
+        "Mesh.sarea",
+        "Mesh.vertex_position"
       ]
     },
     {
@@ -7155,23 +7316,53 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edsq(pts, i)",
-          "code": "def edsq(pts, i):\n\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = True) -> List[\"Mesh\"]:\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = True) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:",
+          "code": "def edsq(pts, i):\n\n                j = (i + 1) % len(pts)\n                dx = pts[j].x - pts[i].x; dy = pts[j].y - pts[i].y; dz = pts[j].z - pts[i].z\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j].x - bpts[i].x; dy = bpts[j].y - bpts[i].y; dz = bpts[j].z - bpts[i].z\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j].x - tpts[i].x; dy = tpts[j].y - tpts[i].y; dz = tpts[j].z - tpts[i].z\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        dists = []\n        for ti, tfk in enumerate(tfks):\n            for bi, bfk in enumerate(bfks):\n                d = _lp_face_centroid(top_mesh, tfk).distance(_lp_face_centroid(bot_mesh, bfk))\n                dists.append((d, ti, bi))\n        dists.sort()\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []\n        for d, ti, bi in dists:\n            if top_used[ti] or bot_used[bi]: continue\n            face_match.append((tfks[ti], bfks[bi]))\n            top_used[ti] = True; bot_used[bi] = True\n        face_match.sort()\n        panels = []\n        for tfk, bfk in face_match:\n            panel = LoftPanel()\n            top_vkeys = list(top_mesh.face_vertices(tfk))\n            bot_vkeys = list(bot_mesh.face_vertices(bfk))\n            top_pts = [top_mesh.vertex_position(vk) for vk in top_vkeys]\n            bot_pts = [bot_mesh.vertex_position(vk) for vk in bot_vkeys]\n            top_pts, top_vkeys = _lp_merge_collinear(top_pts, top_vkeys)\n            bot_pts, bot_vkeys = _lp_merge_collinear(bot_pts, bot_vkeys)",
           "file": "mesh.py"
         }
       },
       "related": [
         "Mesh.add_face",
-        "Mesh.from_polygon_with_holes",
-        "Mesh.from_polygon_with_holes_many",
+        "Mesh.face_vertices",
+        "Mesh.from_polylines",
         "Mesh.get_open",
-        "Mesh.is_closed",
-        "Mesh.is_empty",
-        "Mesh.is_valid",
         "Mesh.loft",
-        "Mesh.loft_many",
+        "Mesh.loft_panels",
         "Mesh.proj",
         "Mesh.sarea",
-        "Mesh.side_faces"
+        "Mesh.side_faces",
+        "Mesh.vertex_position"
+      ]
+    },
+    {
+      "name": "Mesh.loft_panels",
+      "implementations": {
+        "python": {
+          "sig": "loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]",
+          "code": "def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        dists = []\n        for ti, tfk in enumerate(tfks):\n            for bi, bfk in enumerate(bfks):\n                d = _lp_face_centroid(top_mesh, tfk).distance(_lp_face_centroid(bot_mesh, bfk))\n                dists.append((d, ti, bi))\n        dists.sort()\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []\n        for d, ti, bi in dists:\n            if top_used[ti] or bot_used[bi]: continue\n            face_match.append((tfks[ti], bfks[bi]))\n            top_used[ti] = True; bot_used[bi] = True\n        face_match.sort()\n        panels = []\n        for tfk, bfk in face_match:\n            panel = LoftPanel()\n            top_vkeys = list(top_mesh.face_vertices(tfk))\n            bot_vkeys = list(bot_mesh.face_vertices(bfk))\n            top_pts = [top_mesh.vertex_position(vk) for vk in top_vkeys]\n            bot_pts = [bot_mesh.vertex_position(vk) for vk in bot_vkeys]\n            top_pts, top_vkeys = _lp_merge_collinear(top_pts, top_vkeys)\n            bot_pts, bot_vkeys = _lp_merge_collinear(bot_pts, bot_vkeys)\n            max_te = 0.0\n            sz = len(top_pts)\n            for i in range(sz): max_te = max(max_te, top_pts[i].distance(top_pts[(i+1)%sz]))\n            stol = max_te * 0.001\n            tp, tk = [], []\n            for i in range(len(top_pts)):\n                if not tp or tp[-1].distance(top_pts[i]) > stol:\n                    tp.append(top_pts[i]); tk.append(top_vkeys[i])\n            while len(tp) >= 3 and tp[-1].distance(tp[0]) <= stol: tp.pop(); tk.pop()\n            if len(tp) >= 3: top_pts, top_vkeys = tp, tk\n            n = len(top_pts); m = len(bot_pts)\n            tcx = tcy = tcz = bcx = bcy = bcz = 0.0\n            for p in top_pts: tcx += p[0]; tcy += p[1]; tcz += p[2]\n            for p in bot_pts: bcx += p[0]; bcy += p[1]; bcz += p[2]\n            tcx /= n; tcy /= n; tcz /= n\n            bcx /= m; bcy /= m; bcz /= m\n            ax = tcx-bcx; ay = tcy-bcy; az = tcz-bcz\n            alen = math.sqrt(ax*ax+ay*ay+az*az)\n            if alen > 1e-12: ax /= alen; ay /= alen; az /= alen\n            tnx, tny, tnz = _lp_newell_normal(top_pts)\n            if tnx*ax+tny*ay+tnz*az < 0: top_pts.reverse(); top_vkeys.reverse()\n            bnx, bny, bnz = _lp_newell_normal(bot_pts)\n            if bnx*ax+bny*ay+bnz*az > 0: bot_pts.reverse(); bot_vkeys.reverse()\n            panel.bot_pts = bot_pts\n            for i in range(n):\n                lk = panel.mesh.add_vertex(top_pts[i]); panel.orig_top_to_local[top_vkeys[i]] = lk\n            for j in range(m):\n                lk = panel.mesh.add_vertex(bot_pts[j]); panel.orig_bot_to_local[bot_vkeys[j]] = lk\n            if add_caps:\n                top_cap = [panel.orig_top_to_local[vk] for vk in top_vkeys]\n                fk = panel.mesh.add_face(top_cap)\n                if fk is not None: panel.top_face_key = fk\n                if fk is not None and len(top_cap) >= 3:\n                    nx, ny, nz = _lp_newell_normal(top_pts)\n                    mag = math.sqrt(nx*nx+ny*ny+nz*nz)\n                    if mag > 1e-12:\n                        nx /= mag; ny /= mag; nz /= mag\n                        ux, uy, uz = (0.0, 1.0, 0.0) if abs(nx) > 0.9 else (1.0, 0.0, 0.0)\n                        dot = ux*nx+uy*ny+uz*nz\n                        ux -= dot*nx; uy -= dot*ny; uz -= dot*nz\n                        um = math.sqrt(ux*ux+uy*uy+uz*uz); ux /= um; uy /= um; uz /= um\n                        vx = ny*uz-nz*uy; vy = nz*ux-nx*uz; vz = nx*uy-ny*ux\n                        bpts = [Point(p[0]*ux+p[1]*uy+p[2]*uz, p[0]*vx+p[1]*vy+p[2]*vz, 0.0) for p in top_pts]\n                        tris = _cdt_triangulate(bpts, None)\n                        if tris:\n                            panel.mesh.triangulation[fk] = [[top_cap[t[0]], top_cap[t[1]], top_cap[t[2]]] for t in tris]\n            top_mids = [Point((top_pts[i][0]+top_pts[(i+1)%n][0])*0.5,\n                              (top_pts[i][1]+top_pts[(i+1)%n][1])*0.5,\n                              (top_pts[i][2]+top_pts[(i+1)%n][2])*0.5) for i in range(n)]\n            bot_mids = [Point((bot_pts[j][0]+bot_pts[(j+1)%m][0])*0.5,\n                              (bot_pts[j][1]+bot_pts[(j+1)%m][1])*0.5,\n                              (bot_pts[j][2]+bot_pts[(j+1)%m][2])*0.5) for j in range(m)]",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<LoftPanel> loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)",
+          "code": "std::vector<LoftPanel> Mesh::loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)\n{\n    Mesh top_mesh = Mesh::from_polylines(top_polygons, merge_precision);\n    Mesh bot_mesh = Mesh::from_polylines(bot_polygons, merge_precision);\n\n    std::vector<size_t> tfks, bfks;\n    for (auto& [fk, _] : top_mesh.face) tfks.push_back(fk);\n    for (auto& [fk, _] : bot_mesh.face) bfks.push_back(fk);\n\n    std::vector<std::tuple<double, size_t, size_t>> dists;\n    dists.reserve(tfks.size() * bfks.size());\n    for (size_t ti = 0; ti < tfks.size(); ti++)\n        for (size_t bi = 0; bi < bfks.size(); bi++)\n            dists.push_back({lp_face_centroid(top_mesh, tfks[ti]).distance(\n                             lp_face_centroid(bot_mesh, bfks[bi])), ti, bi}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "loft_panels(\n        top_polygons: Vec<Vec<Point>>,\n        bot_polygons: Vec<Vec<Point>>,\n        merge_precision: f64,\n        edge_gap: f64,\n        edge_match_threshold: f64,\n        add_caps: bool,\n        skip_triangles: bool,\n    ) -> Vec<LoftPanel>",
+          "code": "pub fn loft_panels(\n        top_polygons: Vec<Vec<Point>>,\n        bot_polygons: Vec<Vec<Point>>,\n        merge_precision: f64,\n        edge_gap: f64,\n        edge_match_threshold: f64,\n        add_caps: bool,\n        skip_triangles: bool,\n    ) -> Vec<LoftPanel> {\n        let top_mesh = Mesh::from_polylines(top_polygons, Some(merge_precision));\n        let bot_mesh = Mesh::from_polylines(bot_polygons, Some(merge_precision));\n        let tfks: Vec<usize> = top_mesh.face.keys().cloned().collect();\n        let bfks: Vec<usize> = bot_mesh.face.keys().cloned().collect();\n        let mut dists: Vec<(f64, usize, usize)> = Vec::with_capacity(tfks.len() * bfks.len());\n        for ti in 0..tfks.len() {\n            for bi in 0..bfks.len() {\n                let d = lp_face_centroid(&top_mesh, tfks[ti]).distance(&lp_face_centroid(&bot_mesh, bfks[bi]), None);\n                dists.push((d, ti, bi));\n            }\n        }\n        dists.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());\n        let mut top_used = vec![false; tfks.len()];\n        let mut bot_used = vec![false; bfks.len()];\n        let mut face_match: Vec<(usize, usize)> = Vec::new();\n        for &(_, ti, bi) in &dists {\n            if top_used[ti] || bot_used[bi] { continue; }\n            face_match.push((tfks[ti], bfks[bi]));\n            top_used[ti] = true; bot_used[bi] = true;\n        }\n        face_match.sort();\n        let mut panels: Vec<LoftPanel> = Vec::with_capacity(face_match.len());\n        for (tfk, bfk) in face_match {\n            let mut panel = LoftPanel {\n                mesh: Mesh::new(), top_face_key: 0, bot_face_key: 0,\n                wall_faces: Vec::new(), orig_top_to_local: HashMap::new(),\n                orig_bot_to_local: HashMap::new(), bot_pts: Vec::new(),\n            };\n            let mut top_vkeys: Vec<usize> = top_mesh.face_vertices(tfk).unwrap().clone();\n            let mut bot_vkeys: Vec<usize> = bot_mesh.face_vertices(bfk).unwrap().clone();\n            let mut top_pts: Vec<Point> = top_vkeys.iter().map(|&vk| top_mesh.vertex_position(vk).unwrap()).collect();\n            let mut bot_pts: Vec<Point> = bot_vkeys.iter().map(|&vk| bot_mesh.vertex_position(vk).unwrap()).collect();\n            lp_merge_collinear(&mut top_pts, &mut top_vkeys);\n            lp_merge_collinear(&mut bot_pts, &mut bot_vkeys);\n            {\n                let sz = top_pts.len();\n                let mut max_te = 0.0f64;\n                for i in 0..sz { max_te = max_te.max(top_pts[i].distance(&top_pts[(i+1)%sz], None)); }\n                let stol = max_te * 0.001;\n                let mut tp: Vec<Point> = Vec::new(); let mut tk: Vec<usize> = Vec::new();\n                for i in 0..top_pts.len() {\n                    if tp.is_empty() || tp.last().unwrap().distance(&top_pts[i], None) > stol {\n                        tp.push(top_pts[i].clone()); tk.push(top_vkeys[i]);\n                    }\n                }\n                while tp.len() >= 3 && tp.last().unwrap().distance(&tp[0], None) <= stol { tp.pop(); tk.pop(); }\n                if tp.len() >= 3 { top_pts = tp; top_vkeys = tk; }\n            }\n            let n = top_pts.len(); let m = bot_pts.len();\n            let (mut tcx, mut tcy, mut tcz) = (0.0f64, 0.0, 0.0);\n            let (mut bcx, mut bcy, mut bcz) = (0.0f64, 0.0, 0.0);\n            for p in &top_pts { tcx += p[0]; tcy += p[1]; tcz += p[2]; }\n            for p in &bot_pts { bcx += p[0]; bcy += p[1]; bcz += p[2]; }\n            tcx /= n as f64; tcy /= n as f64; tcz /= n as f64;\n            bcx /= m as f64; bcy /= m as f64; bcz /= m as f64;\n            let (mut ax, mut ay, mut az) = (tcx-bcx, tcy-bcy, tcz-bcz);\n            let alen = (ax*ax+ay*ay+az*az).sqrt();\n            if alen > 1e-12 { ax /= alen; ay /= alen; az /= alen; }\n            let (tnx, tny, tnz) = lp_newell_normal(&top_pts);\n            if tnx*ax+tny*ay+tnz*az < 0.0 { top_pts.reverse(); top_vkeys.reverse(); }\n            let (bnx, bny, bnz) = lp_newell_normal(&bot_pts);\n            if bnx*ax+bny*ay+bnz*az > 0.0 { bot_pts.reverse(); bot_vkeys.reverse(); }\n            panel.bot_pts = bot_pts.clone();\n            for i in 0..n {\n                let lk = panel.mesh.add_vertex(top_pts[i].clone(), None);\n                panel.orig_top_to_local.insert(top_vkeys[i], lk);\n            }\n            for j in 0..m {\n                let lk = panel.mesh.add_vertex(bot_pts[j].clone(), None);\n                panel.orig_bot_to_local.insert(bot_vkeys[j], lk);\n            }\n            if add_caps {\n                let top_cap: Vec<usize> = top_vkeys.iter().map(|&vk| panel.orig_top_to_local[&vk]).collect();\n                let top_cap_fk = panel.mesh.add_face(top_cap.clone(), None);\n                if let Some(fk) = top_cap_fk { panel.top_face_key = fk; }\n                if let Some(fk) = top_cap_fk {\n                    if top_cap.len() >= 3 {\n                        let (mut nx, mut ny, mut nz) = lp_newell_normal(&top_pts);\n                        let mag = (nx*nx+ny*ny+nz*nz).sqrt();\n                        if mag > 1e-12 {\n                            nx /= mag; ny /= mag; nz /= mag;\n                            let (mut ux, mut uy, mut uz) = if nx.abs() > 0.9 { (0.0f64, 1.0, 0.0) } else { (1.0f64, 0.0, 0.0) };\n                            let dot = ux*nx+uy*ny+uz*nz;\n                            ux -= dot*nx; uy -= dot*ny; uz -= dot*nz;\n                            let um = (ux*ux+uy*uy+uz*uz).sqrt(); ux /= um; uy /= um; uz /= um;\n                            let (vx, vy, vz) = (ny*uz-nz*uy, nz*ux-nx*uz, nx*uy-ny*ux);\n                            let bpts: Vec<(f64,f64)> = top_pts.iter().map(|p| (p[0]*ux+p[1]*uy+p[2]*uz, p[0]*vx+p[1]*vy+p[2]*vz)).collect();\n                            let tris = trimesh_cdt::cdt_triangulate(&bpts, &[]);\n                            if !tris.is_empty() {\n                                let tri_list: Vec<[usize;3]> = tris.iter().map(|&(a,b,c)| [top_cap[a], top_cap[b], top_cap[c]]).collect();\n                                panel.mesh.triangulation.insert(fk, tri_list);\n                            }\n                        }\n                    }\n                }\n            }\n            let top_mids: Vec<Point> = (0..n).map(|i| Point::new(\n                (top_pts[i][0]+top_pts[(i+1)%n][0])*0.5,\n                (top_pts[i][1]+top_pts[(i+1)%n][1])*0.5,\n                (top_pts[i][2]+top_pts[(i+1)%n][2])*0.5)).collect();\n            let bot_mids: Vec<Point> = (0..m).map(|j| Point::new(\n                (bot_pts[j][0]+bot_pts[(j+1)%m][0])*0.5,\n                (bot_pts[j][1]+bot_pts[(j+1)%m][1])*0.5,\n                (bot_pts[j][2]+bot_pts[(j+1)%m][2])*0.5)).collect();\n            let mut bot_to_top = vec![-1i64; m]; let mut bot_dist = vec![1e300f64; m];\n            for j in 0..m {\n                for i in 0..n {\n                    let d = bot_mids[j].distance(&top_mids[i], None);\n                    if d < bot_dist[j] { bot_dist[j] = d; bot_to_top[j] = i as i64; }\n                }\n            }\n            let mut top_to_bot = vec![-1i64; n]; let mut top_dist = vec![1e300f64; n];\n            for i in 0..n {\n                for j in 0..m {\n                    let d = top_mids[i].distance(&bot_mids[j], None);\n                    if d < top_dist[i] { top_dist[i] = d; top_to_bot[i] = j as i64; }\n                }\n            }\n            let avg: f64 = bot_dist.iter().sum::<f64>() / m as f64;\n            let threshold = avg * edge_match_threshold;\n            let mut top_used_edge = vec![false; n];\n            for j in 0..m {\n                let b0 = panel.orig_bot_to_local[&bot_vkeys[j]];\n                let b1 = panel.orig_bot_to_local[&bot_vkeys[(j+1)%m]];\n                let ti = bot_to_top[j];\n                if ti >= 0 && bot_dist[j] <= threshold && top_to_bot[ti as usize] == j as i64 {\n                    let ti = ti as usize;\n                    let t0 = panel.orig_top_to_local[&top_vkeys[ti]];\n                    let t1 = panel.orig_top_to_local[&top_vkeys[(ti+1)%n]];\n                    let face_fk = if edg",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.edsq",
+        "Mesh.face_vertices",
+        "Mesh.from_polylines",
+        "Mesh.is_empty",
+        "Mesh.loft",
+        "Mesh.new",
+        "Mesh.side_faces",
+        "Mesh.vertex_position"
       ]
     },
     {
@@ -7195,7 +7386,6 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes",
         "Mesh.is_closed",
@@ -7208,8 +7398,7 @@ window.API_INDEX = {
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.side_faces"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -7233,7 +7422,6 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -7245,8 +7433,7 @@ window.API_INDEX = {
         "Mesh.loft",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.side_faces"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -7259,13 +7446,12 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "is_empty() -> bool",
-          "code": "pub fn is_empty(&self) -> bool {\n        self.vertex.is_empty() && self.face.is_empty()\n    }",
+          "code": "pub fn is_empty(&self) -> bool {\n        self.vertex.is_empty()\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_lines",
@@ -7278,13 +7464,13 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft",
         "Mesh.loft_many",
+        "Mesh.loft_panels",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
         "Mesh.pb_loads",
         "Mesh.ray_cast_bvh",
         "Mesh.set_linecolors",
-        "Mesh.side_faces",
         "Mesh.unify_winding",
         "Mesh.vertex_normal_weighted"
       ]
@@ -7311,7 +7497,6 @@ window.API_INDEX = {
       "related": [
         "Mesh.clear",
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -7323,8 +7508,7 @@ window.API_INDEX = {
         "Mesh.loft_many",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.side_faces"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -7349,7 +7533,6 @@ window.API_INDEX = {
       "related": [
         "Mesh.clear",
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
@@ -8634,6 +8817,7 @@ window.API_INDEX = {
         "Mesh.get_vid",
         "Mesh.get_vkey",
         "Mesh.loft",
+        "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.pointcolors",
         "Mesh.proj",
@@ -8684,6 +8868,7 @@ window.API_INDEX = {
         "Mesh.get_vkey",
         "Mesh.linecolors",
         "Mesh.loft",
+        "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.proj",
         "Mesh.project_2d",
@@ -8724,11 +8909,14 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
         "Mesh.edges",
+        "Mesh.edsq",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.loft_panels",
+        "Mesh.side_faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
@@ -8763,11 +8951,14 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
         "Mesh.edges",
+        "Mesh.edsq",
         "Mesh.face_area",
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_normals",
+        "Mesh.loft_panels",
+        "Mesh.side_faces",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
@@ -15439,6 +15630,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.knot_count",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads",
@@ -15563,6 +15755,7 @@ window.API_INDEX = {
         "NurbsSurface.get_cv",
         "NurbsSurface.get_knots",
         "NurbsSurface.get_span_vector",
+        "NurbsSurface.grid_idx",
         "NurbsSurface.increase_degree",
         "NurbsSurface.insert_knot",
         "NurbsSurface.is_clamped",
@@ -16205,6 +16398,7 @@ window.API_INDEX = {
         "NurbsSurface.knot",
         "NurbsSurface.knot_count",
         "NurbsSurface.mesh",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.repr",
         "NurbsSurface.span_count",
@@ -16295,6 +16489,7 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
@@ -16575,6 +16770,7 @@ window.API_INDEX = {
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_periodic_uniform_knot_vector",
         "NurbsSurface.make_rational",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
@@ -16651,6 +16847,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot_count",
         "NurbsSurface.make_non_rational",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
@@ -16918,6 +17115,7 @@ window.API_INDEX = {
         "NurbsSurface.knot_multiplicity",
         "NurbsSurface.make_clamped_uniform_knot_vector",
         "NurbsSurface.make_periodic_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
@@ -17982,20 +18180,58 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "grid_idx(i, j)",
-          "code": "def grid_idx(i, j):\n\n            return vkeys[i * nv_grid + (j - j_start)]\n        nu_faces = nu if closed_u else nu - 1\n        if sing_v0:\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([south_pole, grid_idx(i1, j_start), grid_idx(i, j_start)])\n        nv_interior = nv_grid - 1\n        if closed_v and not sing_v0 and not sing_v1:\n            nv_interior = nv_grid\n        for i in range(nu_faces):\n            for jj in range(nv_interior):\n                j = jj + j_start\n                i1 = (i + 1) % nu\n                j1 = ((jj + 1) % nv_grid + j_start) if (closed_v and not sing_v0 and not sing_v1) else (j + 1)\n                v00, v10 = grid_idx(i, j), grid_idx(i1, j)\n                v01, v11 = grid_idx(i, j1), grid_idx(i1, j1)\n                if (i + jj) % 2 == 0:\n                    result.add_face([v00, v10, v11])\n                    result.add_face([v00, v11, v01])\n                else:\n                    result.add_face([v00, v10, v01])\n                    result.add_face([v10, v11, v01])\n        if sing_v1:\n            j_last = j_end - 1\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([grid_idx(i, j_last), grid_idx(i1, j_last), north_pole])\n        max_vkey = max(result.vertex.keys()) if result.vertex else 0\n        vnx = [0.0] * (max_vkey + 1)\n        vny = [0.0] * (max_vkey + 1)\n        vnz = [0.0] * (max_vkey + 1)\n        for fi, vids in result.face.items():\n            if len(vids) < 3:\n                continue\n            p0 = result.vertex[vids[0]]\n            p1 = result.vertex[vids[1]]\n            p2 = result.vertex[vids[2]]\n            e1x, e1y, e1z = p1.x-p0.x, p1.y-p0.y, p1.z-p0.z\n            e2x, e2y, e2z = p2.x-p0.x, p2.y-p0.y, p2.z-p0.z\n            fnx = e1y*e2z - e1z*e2y\n            fny = e1z*e2x - e1x*e2z\n            fnz = e1x*e2y - e1y*e2x\n            for vi in vids:\n                vnx[vi] += fnx\n                vny[vi] += fny\n                vnz[vi] += fnz\n        for vk in result.vertex:\n            ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)\n            if ln > 1e-15:\n                vnx[vk] /= ln\n                vny[vk] /= ln\n                vnz[vk] /= ln\n            result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])\n        self.m_mesh = result\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str",
+          "code": "def grid_idx(i, j):\n\n            return vkeys[i * nv_grid + (j - j_start)]\n        nu_faces = nu if closed_u else nu - 1\n        if sing_v0:\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([south_pole, grid_idx(i1, j_start), grid_idx(i, j_start)])\n        nv_interior = nv_grid - 1\n        if closed_v and not sing_v0 and not sing_v1:\n            nv_interior = nv_grid\n        for i in range(nu_faces):\n            for jj in range(nv_interior):\n                j = jj + j_start\n                i1 = (i + 1) % nu\n                j1 = ((jj + 1) % nv_grid + j_start) if (closed_v and not sing_v0 and not sing_v1) else (j + 1)\n                v00, v10 = grid_idx(i, j), grid_idx(i1, j)\n                v01, v11 = grid_idx(i, j1), grid_idx(i1, j1)\n                if (i + jj) % 2 == 0:\n                    result.add_face([v00, v10, v11])\n                    result.add_face([v00, v11, v01])\n                else:\n                    result.add_face([v00, v10, v01])\n                    result.add_face([v10, v11, v01])\n        if sing_v1:\n            j_last = j_end - 1\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([grid_idx(i, j_last), grid_idx(i1, j_last), north_pole])\n        max_vkey = max(result.vertex.keys()) if result.vertex else 0\n        vnx = [0.0] * (max_vkey + 1)\n        vny = [0.0] * (max_vkey + 1)\n        vnz = [0.0] * (max_vkey + 1)\n        for fi, vids in result.face.items():\n            if len(vids) < 3:\n                continue\n            p0 = result.vertex[vids[0]]\n            p1 = result.vertex[vids[1]]\n            p2 = result.vertex[vids[2]]\n            e1x, e1y, e1z = p1.x-p0.x, p1.y-p0.y, p1.z-p0.z\n            e2x, e2y, e2z = p2.x-p0.x, p2.y-p0.y, p2.z-p0.z\n            fnx = e1y*e2z - e1z*e2y\n            fny = e1z*e2x - e1x*e2z\n            fnz = e1x*e2y - e1y*e2x\n            for vi in vids:\n                vnx[vi] += fnx\n                vny[vi] += fny\n                vnz[vi] += fnz\n        for vk in result.vertex:\n            ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)\n            if ln > 1e-15:\n                vnx[vk] /= ln\n                vny[vk] /= ln\n                vnz[vk] /= ln\n            result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])\n        self.m_mesh = result\n        return self.m_mesh\n\n    def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .trimesh_adaptive import TrimeshAdaptive\n        mesher = TrimeshAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()",
           "file": "nurbssurface.py"
         }
       },
       "related": [
         "NurbsSurface.__jsondump__",
-        "NurbsSurface.__jsonload__",
         "NurbsSurface.fix_closed_gap",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.jsondump",
+        "NurbsSurface.mesh",
+        "NurbsSurface.mesh_adaptive",
+        "NurbsSurface.trim"
+      ]
+    },
+    {
+      "name": "NurbsSurface.mesh_adaptive",
+      "implementations": {
+        "python": {
+          "sig": "mesh_adaptive(max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0)",
+          "code": "def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .trimesh_adaptive import TrimeshAdaptive\n        mesher = TrimeshAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "Mesh mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height)",
+          "code": "Mesh NurbsSurface::mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        TrimeshAdaptive mesher(*this);\n        mesher.set_max_angle(max_angle)\n              .set_max_edge_length(max_edge_length)\n              .set_min_edge_length(min_edge_length)\n              .set_max_chord_height(max_chord_height);\n        m_mesh = mesher.mesh();\n    }",
+          "file": "nurbssurface.cpp"
+        }
+      },
+      "related": [
+        "NurbsSurface.__jsondump__",
+        "NurbsSurface.__jsonload__",
+        "NurbsSurface.__repr__",
+        "NurbsSurface.__str__",
+        "NurbsSurface._knot_vectors_equal",
+        "NurbsSurface._merge_knot_vectors",
+        "NurbsSurface.create",
+        "NurbsSurface.create_loft",
+        "NurbsSurface.create_ruled",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.get_cv",
+        "NurbsSurface.grid_idx",
+        "NurbsSurface.is_valid",
         "NurbsSurface.jsondump",
         "NurbsSurface.jsonload",
+        "NurbsSurface.knot",
         "NurbsSurface.mesh",
         "NurbsSurface.repr",
         "NurbsSurface.str",
-        "NurbsSurface.to_string"
+        "NurbsSurface.to_string",
+        "NurbsSurface.trim"
       ]
     },
     {
@@ -18039,6 +18275,7 @@ window.API_INDEX = {
         "NurbsSurface.json_load",
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.repr",
@@ -18085,7 +18322,6 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.dimension",
         "NurbsSurface.get_cv",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.is_rational",
         "NurbsSurface.json_dump",
         "NurbsSurface.json_dumps",
@@ -18093,6 +18329,7 @@ window.API_INDEX = {
         "NurbsSurface.json_loads",
         "NurbsSurface.jsondump",
         "NurbsSurface.knot",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.repr",
         "NurbsSurface.str",
@@ -18130,12 +18367,12 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.dimension",
         "NurbsSurface.get_cv",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.json_dump",
         "NurbsSurface.json_load",
         "NurbsSurface.jsondump",
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.repr",
@@ -18170,6 +18407,7 @@ window.API_INDEX = {
         "NurbsSurface.jsondump",
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.repr",
         "NurbsSurface.str",
@@ -18205,6 +18443,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.repr",
         "NurbsSurface.str",
@@ -18240,6 +18479,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.to_string"
       ]
@@ -18273,6 +18513,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.to_string"
       ]
@@ -18306,6 +18547,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.to_string"
       ]
@@ -18339,6 +18581,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.make_clamped_uniform_knot_vector",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.to_string"
       ]
@@ -18633,10 +18876,12 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
         "NurbsSurface.domain",
+        "NurbsSurface.grid_idx",
         "NurbsSurface.increase_degree",
         "NurbsSurface.insert_knot",
         "NurbsSurface.is_valid",
         "NurbsSurface.knot",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.split"
       ]
@@ -18933,6 +19178,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.mesh",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.str",
         "NurbsSurface.zero_cvs"
@@ -18954,7 +19200,6 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.dimension",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.is_rational",
         "NurbsSurface.json_dump",
         "NurbsSurface.json_dumps",
@@ -18964,6 +19209,7 @@ window.API_INDEX = {
         "NurbsSurface.jsonload",
         "NurbsSurface.knot",
         "NurbsSurface.mesh",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.str",
         "NurbsSurface.zero_cvs"
@@ -40337,20 +40583,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Mesh.loft_panels",
-      "implementations": {
-        "cpp": {
-          "sig": "std::vector<LoftPanel> loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)",
-          "code": "std::vector<LoftPanel> Mesh::loft_panels(\n    const std::vector<std::vector<Point>>& top_polygons,\n    const std::vector<std::vector<Point>>& bot_polygons,\n    double merge_precision,\n    double edge_gap,\n    double edge_match_threshold,\n    bool   add_caps,\n    bool   skip_triangles)\n{\n    Mesh top_mesh = Mesh::from_polylines(top_polygons, merge_precision);\n    Mesh bot_mesh = Mesh::from_polylines(bot_polygons, merge_precision);\n\n    std::vector<size_t> tfks, bfks;\n    for (auto& [fk, _] : top_mesh.face) tfks.push_back(fk);\n    for (auto& [fk, _] : bot_mesh.face) bfks.push_back(fk);\n\n    std::vector<std::tuple<double, size_t, size_t>> dists;\n    dists.reserve(tfks.size() * bfks.size());\n    for (size_t ti = 0; ti < tfks.size(); ti++)\n        for (size_t bi = 0; bi < bfks.size(); bi++)\n            dists.push_back({lp_face_centroid(top_mesh, tfks[ti]).distance(\n                             lp_face_centroid(bot_mesh, bfks[bi])), ti, bi}",
-          "file": "mesh.cpp"
-        }
-      },
-      "related": [
-        "Mesh.from_polylines",
-        "Mesh.loft"
-      ]
-    },
-    {
       "name": "Mesh.str",
       "implementations": {
         "cpp": {
@@ -41096,20 +41328,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "NurbsSurface.mesh_adaptive",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height)",
-          "code": "Mesh NurbsSurface::mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        TrimeshAdaptive mesher(*this);\n        mesher.set_max_angle(max_angle)\n              .set_max_edge_length(max_edge_length)\n              .set_min_edge_length(min_edge_length)\n              .set_max_chord_height(max_chord_height);\n        m_mesh = mesher.mesh();\n    }",
-          "file": "nurbssurface.cpp"
-        }
-      },
-      "related": [
-        "NurbsSurface.is_valid",
-        "NurbsSurface.mesh"
-      ]
-    },
-    {
       "name": "NurbsSurface.str",
       "implementations": {
         "cpp": {
@@ -41139,7 +41357,6 @@ window.API_INDEX = {
         "NurbsSurface.deep_copy_from",
         "NurbsSurface.destroy",
         "NurbsSurface.duplicate",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.initialize",
         "NurbsSurface.is_closed",
         "NurbsSurface.is_duplicate",
@@ -41156,6 +41373,7 @@ window.API_INDEX = {
         "NurbsSurface.knot_count",
         "NurbsSurface.make_non_rational",
         "NurbsSurface.make_rational",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.new",
         "NurbsSurface.pb_dump",
         "NurbsSurface.pb_dumps",
@@ -41192,9 +41410,9 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
         "NurbsSurface.get_cv",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.jsondump",
         "NurbsSurface.jsonload",
+        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.str",
         "NurbsSurface.to_string"
       ]
@@ -44660,8 +44878,14 @@ window.API_INDEX = {
       },
       "related": [
         "VertexData.__eq__",
+        "VertexData.__getitem__",
+        "VertexData.__init__",
         "VertexData.__ne__",
         "VertexData.__setitem__",
+        "VertexData._lp_face_centroid",
+        "VertexData._lp_merge_collinear",
+        "VertexData._lp_newell_normal",
+        "VertexData._lp_offset_toward",
         "VertexData.color",
         "VertexData.normal",
         "VertexData.position",
@@ -44704,6 +44928,7 @@ window.API_INDEX = {
         "Mesh.jsonload",
         "Mesh.linecolors",
         "Mesh.loft",
+        "Mesh.loft_panels",
         "Mesh.number_of_edges",
         "Mesh.objectcolor",
         "Mesh.pb_dumps",
@@ -44802,6 +45027,16 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.triangle_bvh_ray_cast"
       ]
+    },
+    {
+      "name": "Mesh.set_face_triangulation",
+      "implementations": {
+        "rust": {
+          "sig": "set_face_triangulation(fk: usize, tris: Vec<[usize; 3]>)",
+          "code": "pub fn set_face_triangulation(&mut self, fk: usize, tris: Vec<[usize; 3]>) {\n        self.triangulation.insert(fk, tris);\n    }",
+          "file": "mesh.rs"
+        }
+      }
     },
     {
       "name": "NurbsCurve.new",
@@ -48931,7 +49166,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")",
-          "code": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")\ndef test_session_tree_transformation_hierarchy():\n    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    import math\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center.x - h, center.y - h, center.z - h),\n            Point(center.x + h, center.y - h, center.z - h),\n            Point(center.x + h, center.y + h, center.z - h),\n            Point(center.x - h, center.y + h, center.z - h),\n            Point(center.x - h, center.y - h, center.z + h),\n            Point(center.x + h, center.y - h, center.z + h),\n            Point(center.x + h, center.y + h, center.z + h),\n            Point(center.x - h, center.y + h, center.z + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3],\n            [4, 7, 6, 5],\n            [0, 4, 5, 1],\n            [2, 6, 7, 3],\n            [0, 3, 7, 4],\n            [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    box1_top = Point(0, 0, 1.0)\n    normal = Vector(0, 0, 1)\n    x = Vector(1, 0, 0)\n    y = Vector(0, 1, 0)\n    xy_to_top = Xform.plane_to_plane(\n        Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1),\n        box1_top, x, y, normal\n    )\n    box1.xform = Xform.rotation_z(math.pi / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(math.pi / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n    MINI_CHECK(len(transformed.meshes) == 3)\n\n    expected_box1 = [\n        [1.36603, -0.366025, 0], [0.366025, 1.36603, 0],\n        [-1.36603, 0.366025, 0], [-0.366025, -1.36603, 0],\n        [1.36603, -0.366025, 2], [0.366025, 1.36603, 2],\n        [-1.36603, 0.366025, 2], [-0.366025, -1.36603, 2],\n    ]\n    expected_box2 = [\n        [0.366025, 2.09808, 0], [-1.36603, 3.09808, 0],\n        [-2.36603, 1.36603, 0], [-0.633975, 0.366025, 0],\n        [0.366025, 2.09808, 2], [-1.36603, 3.09808, 2],\n        [-2.36603, 1.36603, 2], [-0.633975, 0.366025, 2],\n    ]\n    expected_box3 = [\n        [-1.36603, 3.09808, 0], [-3.09808, 4.09808, 0],\n        [-4.09808, 2.36603, 0], [-2.36603, 1.36603, 0],\n        [-1.36603, 3.09808, 2], [-3.09808, 4.09808, 2],\n        [-4.09808, 2.36603, 2], [-2.36603, 1.36603, 2],\n    ]\n    expected_faces = [\n        [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n        [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n    ]\n\n    m1 = transformed.meshes[0]\n    for i in range(8):\n        v = m1.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box1[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box1[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box1[i][2]) < 1e-4)\n\n    m2 = transformed.meshes[1]\n    for i in range(8):\n        v = m2.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box2[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box2[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box2[i][2]) < 1e-4)\n\n    m3 = transformed.meshes[2]\n    for i in range(8):\n        v = m3.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box3[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box3[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box3[i][2]) < 1e-4)\n\n    for mesh in [m1, m2, m3]:\n        MINI_CHECK(len(mesh.face) == 6)\n        face_idx = 0\n        for key, face in mesh.face.items():\n            MINI_CHECK(len(face) == len(expected_faces[face_idx]))\n            for i in range(len(face)):\n                MINI_CHECK(face[i] == expected_faces[face_idx][i])\n            face_idx += 1\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")\ndef test_session_tree_transformation_hierarchy():\n    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Plane\n    import math\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center.x - h, center.y - h, center.z - h),\n            Point(center.x + h, center.y - h, center.z - h),\n            Point(center.x + h, center.y + h, center.z - h),\n            Point(center.x - h, center.y + h, center.z - h),\n            Point(center.x - h, center.y - h, center.z + h),\n            Point(center.x + h, center.y - h, center.z + h),\n            Point(center.x + h, center.y + h, center.z + h),\n            Point(center.x - h, center.y + h, center.z + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3],\n            [4, 7, 6, 5],\n            [0, 4, 5, 1],\n            [2, 6, 7, 3],\n            [0, 3, 7, 4],\n            [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    box1_top = Point(0, 0, 1.0)\n    normal = Vector(0, 0, 1)\n    x = Vector(1, 0, 0)\n    y = Vector(0, 1, 0)\n    plane_from = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    plane_to = Plane(box1_top, x, y)\n    xy_to_top = Xform.plane_to_plane(plane_from, plane_to)\n    box1.xform = Xform.rotation_z(math.pi / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(math.pi / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n    MINI_CHECK(len(transformed.meshes) == 3)\n\n    expected_box1 = [\n        [1.36603, -0.366025, 0], [0.366025, 1.36603, 0],\n        [-1.36603, 0.366025, 0], [-0.366025, -1.36603, 0],\n        [1.36603, -0.366025, 2], [0.366025, 1.36603, 2],\n        [-1.36603, 0.366025, 2], [-0.366025, -1.36603, 2],\n    ]\n    expected_box2 = [\n        [0.366025, 2.09808, 0], [-1.36603, 3.09808, 0],\n        [-2.36603, 1.36603, 0], [-0.633975, 0.366025, 0],\n        [0.366025, 2.09808, 2], [-1.36603, 3.09808, 2],\n        [-2.36603, 1.36603, 2], [-0.633975, 0.366025, 2],\n    ]\n    expected_box3 = [\n        [-1.36603, 3.09808, 0], [-3.09808, 4.09808, 0],\n        [-4.09808, 2.36603, 0], [-2.36603, 1.36603, 0],\n        [-1.36603, 3.09808, 2], [-3.09808, 4.09808, 2],\n        [-4.09808, 2.36603, 2], [-2.36603, 1.36603, 2],\n    ]\n    expected_faces = [\n        [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n        [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n    ]\n\n    m1 = transformed.meshes[0]\n    for i in range(8):\n        v = m1.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box1[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box1[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box1[i][2]) < 1e-4)\n\n    m2 = transformed.meshes[1]\n    for i in range(8):\n        v = m2.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box2[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box2[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box2[i][2]) < 1e-4)\n\n    m3 = transformed.meshes[2]\n    for i in range(8):\n        v = m3.vertex[i]\n        MINI_CHECK(abs(v[0] - expected_box3[i][0]) < 1e-4)\n        MINI_CHECK(abs(v[1] - expected_box3[i][1]) < 1e-4)\n        MINI_CHECK(abs(v[2] - expected_box3[i][2]) < 1e-4)\n\n    for mesh in [m1, m2, m3]:\n        MINI_CHECK(len(mesh.face) == 6)\n        face_idx = 0\n        for key, face in mesh.face.items():\n            MINI_CHECK(len(face) == len(expected_faces[face_idx]))\n            for i in range(len(face)):\n                MINI_CHECK(face[i] == expected_faces[face_idx][i])\n            face_idx += 1\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "session_test.py"
         }
       }
@@ -49066,7 +49301,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Tree\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"Tree\", \"Json Roundtrip\")\ndef test_tree_json_roundtrip():\n    from session_py import Tree\n    from session_py import TreeNode\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Tree(\"./serialization/test_tree\")\n    point1 = Point(1.0, 2.0, 3.0)\n    node1 = TreeNode(point1.guid)\n    original.add(node1)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)\n\n    MINI_CHECK(loaded.name == original.name)\n    MINI_CHECK(len(loaded.nodes()) == len(original.nodes()))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Tree\", \"Json Roundtrip\")\ndef test_tree_json_roundtrip():\n    from session_py import Tree\n    from session_py import TreeNode\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Tree(\"./serialization/test_tree\")\n    point1 = Point(1.0, 2.0, 3.0)\n    node1 = TreeNode(point1.guid)\n    original.add(node1)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)\n\n    MINI_CHECK(loaded.name == original.name)\n    MINI_CHECK(len(list(loaded.nodes)) == len(list(original.nodes)))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "tree_test.py"
         }
       }
@@ -49546,11 +49781,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "n",
         "circle",
-        "subdivide",
+        "n",
+        "points",
         "into",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49564,11 +49799,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "ellipse",
         "by",
         "arc",
-        "ellipse",
-        "subdivide",
         "length",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49582,9 +49817,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
-        "through",
         "points",
+        "through",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -49598,12 +49833,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
-        "open",
-        "adaptive",
-        "curve",
-        "from",
         "polyline",
+        "curve",
+        "open",
+        "from",
+        "adaptive",
+        "points",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49618,8 +49853,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
         "at",
+        "evaluation",
         "curve",
         "parameter",
         "set_domain",
@@ -49640,10 +49875,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "along",
         "frames",
         "curve",
         "length",
-        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -49665,8 +49900,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
+        "perpendicular",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -49689,8 +49924,8 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "point",
-        "cylinder",
         "evaluate",
+        "cylinder",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -49706,11 +49941,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
         "from",
-        "and",
         "mesh",
         "vertices",
+        "faces",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -49730,6 +49965,8 @@ window.API_INDEX = {
     "CurveKnotStyle": "CurveKnotStyle geometry class",
     "Line": "A line defined by start and end points",
     "VertexData": "VertexData geometry class",
+    "LoftWallFace": "LoftWallFace geometry class",
+    "LoftPanel": "LoftPanel geometry class",
     "Mesh": "A polygon mesh with vertices, faces, and optional vertex colors",
     "NurbsCurve": "A NURBS curve with control points, weights, knots, and degree",
     "NurbsSurface": "A NURBS surface with control points, weights, knots, and degrees",
@@ -49765,6 +50002,8 @@ window.API_INDEX = {
       "Graph.__init__",
       "Line.__init__",
       "VertexData.__init__",
+      "LoftWallFace.__init__",
+      "LoftPanel.__init__",
       "Mesh.__init__",
       "NurbsCurve.__init__",
       "NurbsSurface.__init__",
@@ -50573,6 +50812,18 @@ window.API_INDEX = {
       "PointCloud.set_normal",
       "ColorMode.set_normal"
     ],
+    "_lp_newell_normal": [
+      "VertexData._lp_newell_normal"
+    ],
+    "_lp_merge_collinear": [
+      "VertexData._lp_merge_collinear"
+    ],
+    "_lp_offset_toward": [
+      "VertexData._lp_offset_toward"
+    ],
+    "_lp_face_centroid": [
+      "VertexData._lp_face_centroid"
+    ],
     "__copy__": [
       "Mesh.__copy__"
     ],
@@ -50629,6 +50880,10 @@ window.API_INDEX = {
     ],
     "edsq": [
       "Mesh.edsq"
+    ],
+    "loft_panels": [
+      "Mesh.loft_panels",
+      "ColorMode.loft_panels"
     ],
     "from_polygon_with_holes_many": [
       "Mesh.from_polygon_with_holes_many",
@@ -51200,6 +51455,9 @@ window.API_INDEX = {
     ],
     "grid_idx": [
       "NurbsSurface.grid_idx"
+    ],
+    "mesh_adaptive": [
+      "NurbsSurface.mesh_adaptive"
     ],
     "jsondump": [
       "NurbsSurface.jsondump",
@@ -52297,17 +52555,14 @@ window.API_INDEX = {
       "ColorMode.get_triangulation"
     ],
     "set_face_triangulation": [
-      "ColorMode.set_face_triangulation"
+      "ColorMode.set_face_triangulation",
+      "Mesh.set_face_triangulation"
     ],
     "get_face_holes": [
       "ColorMode.get_face_holes"
     ],
     "set_face_holes": [
       "ColorMode.set_face_holes"
-    ],
-    "loft_panels": [
-      "ColorMode.loft_panels",
-      "Mesh.loft_panels"
     ],
     "build_triangle_bvh": [
       "ColorMode.build_triangle_bvh",
@@ -52394,9 +52649,6 @@ window.API_INDEX = {
     ],
     "slerp": [
       "NurbsCurve.slerp"
-    ],
-    "mesh_adaptive": [
-      "NurbsSurface.mesh_adaptive"
     ],
     "mesh_grid": [
       "NurbsSurface.mesh_grid"

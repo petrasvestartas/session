@@ -2,7 +2,7 @@
   {
     "test_name": "Mesh Arrow",
     "passed": true,
-    "time_ms": 0.763,
+    "time_ms": 1.793,
     "line": 9,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.arrow_mesh(line, 1.0)",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Mesh Cylinder",
     "passed": true,
-    "time_ms": 0.48,
+    "time_ms": 0.558,
     "line": 21,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.cylinder_mesh(line, 1.0)",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "Mesh Edge Pipes",
     "passed": true,
-    "time_ms": 4.305,
+    "time_ms": 4.655,
     "line": 33,
     "code": "    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)",
     "checks": [
@@ -67,7 +67,7 @@
   {
     "test_name": "Nurbscurve Polyline",
     "passed": true,
-    "time_ms": 0.898,
+    "time_ms": 0.992,
     "line": 54,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    c = NurbsCurve.create(False, 1, [\n        Point(0, 0, 0), Point(1, 2, 0), Point(2, 0, 0), Point(3, 2, 0), Point(4, 0, 0),\n    ])",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Nurbscurve Circle",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.037,
     "line": 71,
     "code": "    from session_py import Primitives\n\n    c = Primitives.circle(0.0, 0.0, 0.0, 1.0)",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Nurbscurve Ellipse",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.025,
     "line": 82,
     "code": "    from session_py import Primitives\n\n    c = Primitives.ellipse(0.0, 0.0, 0.0, 2.0, 1.0)",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Nurbscurve Arc",
     "passed": true,
-    "time_ms": 0.058,
+    "time_ms": 0.062,
     "line": 93,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    mid = Point(1.0, 1.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    c = Primitives.arc(start, mid, end)",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Nurbscurve Parabola",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.041,
     "line": 108,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    p0 = Point(-1.0, 1.0, 0.0)\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    c = Primitives.parabola(p0, p1, p2)",
     "checks": [
@@ -207,7 +207,7 @@
   {
     "test_name": "Nurbscurve Hyperbola",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.116,
     "line": 123,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    center = Point(0.0, 0.0, 0.0)\n    c = Primitives.hyperbola(center, 1.0, 1.0, 1.0)",
     "checks": [
@@ -232,7 +232,7 @@
   {
     "test_name": "Nurbscurve Spiral",
     "passed": true,
-    "time_ms": 0.223,
+    "time_ms": 0.259,
     "line": 136,
     "code": "    from session_py import Primitives\n\n    c = Primitives.spiral(1.0, 2.0, 1.0, 5.0)",
     "checks": [
@@ -257,7 +257,7 @@
   {
     "test_name": "Nurbssurface Cylinder",
     "passed": true,
-    "time_ms": 0.223,
+    "time_ms": 0.255,
     "line": 147,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p01 = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(1.0, 0.5)",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "Nurbssurface Cone",
     "passed": true,
-    "time_ms": 0.245,
+    "time_ms": 0.196,
     "line": 177,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cone_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    pbase = s.point_at(0.0, 0.0)\n\n    papex = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(0.0, 0.5)",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "Nurbssurface Sphere",
     "passed": true,
-    "time_ms": 0.275,
+    "time_ms": 0.304,
     "line": 207,
     "code": "    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p_top = s.point_at(0.0, 2.0)\n\n    p_eq = s.point_at(0.0, 1.0)\n\n    p_eq2 = s.point_at(1.0, 1.0)",
     "checks": [
@@ -527,7 +527,7 @@
   {
     "test_name": "Nurbssurface Quad Sphere",
     "passed": true,
-    "time_ms": 4.25,
+    "time_ms": 5.084,
     "line": 241,
     "code": "    from session_py import Primitives\n    import math\n\n    R = 5.0\n    faces = Primitives.quad_sphere(0.0, 0.0, 0.0, R)\n\n    for f in range(6):\n\n    max_err = 0.0\n    for f in range(6):\n        for i in range(5):\n            u = i / 4.0\n            for j in range(5):\n                v = j / 4.0\n                p = faces[f].point_at(u, v)\n                dist = math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2])\n                err = abs(dist - R)\n                if err > max_err:\n                    max_err = err",
     "checks": [
@@ -727,7 +727,7 @@
   {
     "test_name": "Nurbssurface Torus",
     "passed": true,
-    "time_ms": 0.344,
+    "time_ms": 0.342,
     "line": 272,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.torus_surface(0.0, 0.0, 0.0, 3.0, 1.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p10 = s.point_at(1.0, 0.0)\n\n    p_top = s.point_at(0.0, 1.0)",
     "checks": [
@@ -812,7 +812,7 @@
   {
     "test_name": "Nurbssurface Ruled",
     "passed": true,
-    "time_ms": 23.997,
+    "time_ms": 14.565,
     "line": 302,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [Point(3.0, 0.0, 0.0), Point(-2.0, 0.0, 5.0)]\n    pts_b = [Point(3.0, 5.0, 5.0), Point(-2.0, 5.0, 0.0)]\n    crv_a = NurbsCurve.create(False, 1, pts_a)\n    crv_b = NurbsCurve.create(False, 1, pts_b)\n    srf = Primitives.create_ruled(crv_a, crv_b)\n    _m = srf.mesh()\n\n\n    rd, ruv = srf.divide_by_count(4, 4)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(srf.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])",
     "checks": [
@@ -1137,7 +1137,7 @@
   {
     "test_name": "Nurbssurface Planar",
     "passed": true,
-    "time_ms": 297.724,
+    "time_ms": 212.24,
     "line": 401,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = math.cos(0.7); s1 = math.sin(0.7)\n    c2 = math.cos(0.96); s2 = math.sin(0.96)\n    c3 = math.cos(0.52); s3 = math.sin(0.52)\n    c4 = math.cos(1.13); s4 = math.sin(1.13)\n\n    ca = NurbsCurve.create(False, 1, [\n        Point(0.0, 0.0, 0.0), Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0*c1, 3.0*s1), Point(0.0, 3.0*c1, 3.0*s1),\n        Point(0.0, 0.0, 0.0)])\n    s_quad = Primitives.create_planar(ca)\n    m_quad = s_quad.mesh()\n\n    cb1 = NurbsCurve.create(False, 1, [\n        Point(8.0, 0.0, 0.0), Point(8.0+5.0*c2, 0.0, 5.0*s2),\n        Point(8.0+2.0*c2, 3.0, 2.0*s2), Point(8.0, 0.0, 0.0)])\n    s_triangle = Primitives.create_planar(cb1)\n    m_triangle = s_triangle.mesh()\n\n    ox = 18.0\n    cb2 = NurbsCurve.create(False, 1, [\n        Point(ox+0.0*c3, 0.0*s3, 0.0),\n        Point(ox+4.0*c3, 4.0*s3, 0.0),\n        Point(ox+5.0*c3-2.0*s3, 5.0*s3+2.0*c3, 0.0),\n        Point(ox+3.0*c3-4.0*s3, 3.0*s3+4.0*c3, 0.0),\n        Point(ox-1.0*c3-3.0*s3, -1.0*s3+3.0*c3, 0.0),\n        Point(ox+0.0*c3, 0.0*s3, 0.0)])\n    s_polygon = Primitives.create_planar(cb2)\n    m_polygon = s_polygon.mesh()\n\n    cc = NurbsCurve.create(False, 3, [\n        Point(26.0, 0.0, 0.0),\n        Point(29.0, 1.0*c4, 1.0*s4),\n        Point(31.0, 0.5*c4, 0.5*s4),\n        Point(32.0, 3.0*c4, 3.0*s4),\n        Point(30.0, 5.0*c4, 5.0*s4),\n        Point(27.0, 4.0*c4, 4.0*s4),\n        Point(26.0, 0.0, 0.0)])\n    s_nurbs = Primitives.create_planar(cc)\n    m_nurbs = s_nurbs.mesh()",
     "checks": [
@@ -1347,7 +1347,7 @@
   {
     "test_name": "Nurbssurface Extrusion",
     "passed": true,
-    "time_ms": 13.375,
+    "time_ms": 18.114,
     "line": 492,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    direction = Vector(0.0, 1.0, 5.0)\n\n    c1 = NurbsCurve.create(False, 1, [Point(13.0, 0.0, 0.0), Point(18.0, 0.0, 0.0)])\n    s_line = Primitives.create_extrusion(c1, direction)\n    m_line = s_line.mesh()\n\n    c2 = Primitives.circle(24.0, 0.0, 0.0, 3.0)\n    s_circle = Primitives.create_extrusion(c2, direction)\n    m_circle = s_circle.mesh()\n\n    c3 = NurbsCurve.create(False, 2, [\n        Point(30.0, 0.0, 0.0), Point(33.0, 5.0, 0.0), Point(37.0, 0.0, 0.0),\n    ])\n    s_arc = Primitives.create_extrusion(c3, direction)\n    m_arc = s_arc.mesh()\n\n    c4 = NurbsCurve.create(False, 1, [\n        Point(40.0, 3.0, 0.0), Point(45.0, 0.0, 0.0), Point(50.0, 3.0, 0.0), Point(55.0, 0.0, 0.0),\n    ])\n    s_wavy = Primitives.create_extrusion(c4, direction)\n    m_wavy = s_wavy.mesh()",
     "checks": [
@@ -1577,7 +1577,7 @@
   {
     "test_name": "Nurbssurface Loft",
     "passed": true,
-    "time_ms": 4.411,
+    "time_ms": 4.226,
     "line": 570,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n    c2 = Primitives.circle(0.0, 0.0, 2.0, 1.0)\n    c3 = Primitives.circle(0.0, 0.0, 4.0, 1.5)\n    c4 = Primitives.circle(0.0, 0.0, 6.0, 0.8)\n\n    srf = Primitives.create_loft([c1, c2, c3, c4], 3)\n\n\n    open_pts = [\n        [\n            Point(10.0, -12.0, 0.0), Point(10.0, -10.0, 3.0),\n            Point(10.0, -7.0, 3.0), Point(10.0, -5.0, 0.0),\n        ],\n        [\n            Point(5.5, -12.0, 3.5), Point(5.5, -10.0, 1.5),\n            Point(5.5, -7.0, 1.5), Point(5.5, -5.0, 3.5),\n        ],\n        [\n            Point(1.0, -12.0, 0.0), Point(1.0, -10.0, 3.0),\n            Point(1.0, -7.0, 3.0), Point(1.0, -5.0, 0.0),\n        ],\n    ]\n    open_curves = [\n        NurbsCurve.create(False, 3, open_pts[0]),\n        NurbsCurve.create(False, 3, open_pts[1]),\n        NurbsCurve.create(False, 3, open_pts[2]),\n    ]\n    open_srf = Primitives.create_loft(open_curves, 3)",
     "checks": [
@@ -1857,7 +1857,7 @@
   {
     "test_name": "Nurbssurface Revolve",
     "passed": true,
-    "time_ms": 191.181,
+    "time_ms": 169.026,
     "line": 662,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pa = NurbsCurve.create(False, 3, [\n        Point(1.5, 0.0, 0.0),\n        Point(1.5, 0.0, 0.3),\n        Point(0.3, 0.0, 0.5),\n        Point(0.3, 0.0, 2.5),\n        Point(0.2, 0.0, 3.0),\n        Point(2.0, 0.0, 4.5),\n        Point(1.8, 0.0, 5.0),\n    ])\n    s_vase = Primitives.create_revolve(pa, Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_vase = s_vase.mesh()\n\n    w = math.sqrt(2.0) / 2.0\n    cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0]\n    ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0]\n    sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0]\n    ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0]\n    rr = 5.0; r = 1.5; tcx = 14.0\n    pb = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=9)\n    for i in range(10):\n        pb.set_knot(i, ck[i])\n    for i in range(9):\n        pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i])\n    s_torus = Primitives.create_revolve(pb, Point(tcx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_torus = s_torus.mesh()\n\n    pc = NurbsCurve.create(False, 1, [Point(29.0, 0.0, -0.5), Point(29.0, 0.0, 0.5)])\n    s_elbow = Primitives.create_revolve(pc, Point(26.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), PI / 2.0)\n    m_elbow = s_elbow.mesh()\n\n    sr = 2.0; scx = 36.0\n    pd = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=5)\n    sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0]\n    for i in range(6):\n        pd.set_knot(i, sk[i])\n    spx = [0.0, sr, sr, sr, 0.0]; spz = [-sr, -sr, 0.0, sr, sr]; spw = [1.0, w, 1.0, w, 1.0]\n    for i in range(5):\n        pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i])\n    s_sphere = Primitives.create_revolve(pd, Point(scx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_sphere = s_sphere.mesh()\n\n    pe = NurbsCurve.create(False, 1, [Point(44.0, 0.0, 3.0), Point(46.0, 0.0, 0.0)])\n    s_cone = Primitives.create_revolve(pe, Point(44.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_cone = s_cone.mesh()",
     "checks": [
@@ -2117,7 +2117,7 @@
   {
     "test_name": "Nurbssurface Sweep",
     "passed": true,
-    "time_ms": 240.676,
+    "time_ms": 285.192,
     "line": 770,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0), Point(0.0, 5.0, 0.0), Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0), Point(7.0, 3.0, 0.0), Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0), Point(10.0, 3.0, 0.0), Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0), Point(8.0, -1.0, 2.0), Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0), Point(8.5, 4.0, 1.5), Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()",
     "checks": [
@@ -2252,7 +2252,7 @@
   {
     "test_name": "Nurbssurface Edge",
     "passed": true,
-    "time_ms": 7.315,
+    "time_ms": 9.541,
     "line": 826,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts_south = [\n        Point(1.0, 20.569076, 0.0), Point(1.0, 22.569076, 3.0),\n        Point(1.0, 25.569076, 3.0), Point(1.0, 27.569076, 0.0),\n    ]\n    pts_west  = [\n        Point(10.0, 20.569076, 0.0), Point(5.5, 20.569076, 3.5), Point(1.0, 20.569076, 0.0),\n    ]\n    pts_north = [\n        Point(10.0, 20.569076, 0.0), Point(10.0, 22.569076, 3.0),\n        Point(10.0, 25.569076, 3.0), Point(10.0, 27.569076, 0.0),\n    ]\n    pts_east  = [\n        Point(10.0, 27.569076, 0.0), Point(5.5, 27.569076, 3.5), Point(1.0, 27.569076, 0.0),\n    ]\n\n    south = NurbsCurve.create(False, 3, pts_south)\n    west  = NurbsCurve.create(False, 2, pts_west)\n    north = NurbsCurve.create(False, 3, pts_north)\n    east  = NurbsCurve.create(False, 2, pts_east)\n\n    surf = Primitives.create_edge(south, west, north, east)\n    m = surf.mesh()",
     "checks": [
@@ -2352,7 +2352,7 @@
   {
     "test_name": "Mesh Quad Mesh",
     "passed": true,
-    "time_ms": 2.824,
+    "time_ms": 3.253,
     "line": 880,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.quad_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.quad_mesh(sph, 8, 4)",
     "checks": [
@@ -2392,7 +2392,7 @@
   {
     "test_name": "Mesh Diamond Mesh",
     "passed": true,
-    "time_ms": 2.576,
+    "time_ms": 3.042,
     "line": 897,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.diamond_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.diamond_mesh(sph, 8, 4)",
     "checks": [
@@ -2432,7 +2432,7 @@
   {
     "test_name": "Mesh Hex Mesh",
     "passed": true,
-    "time_ms": 4.922,
+    "time_ms": 5.42,
     "line": 914,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.hex_mesh(cyl, 6, 4, 1.0/3.0)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.hex_mesh(sph, 6, 4, 1.0/3.0)",
     "checks": [
@@ -2472,7 +2472,7 @@
   {
     "test_name": "Mesh Cone Subdivisions",
     "passed": true,
-    "time_ms": 4.455,
+    "time_ms": 4.983,
     "line": 932,
     "code": "    from session_py import Primitives\n\n    cone = Primitives.cone_surface(0, 0, 0, 3.0, 5.0)\n\n    m1 = Primitives.quad_mesh(cone, 8, 4)\n\n    m2 = Primitives.diamond_mesh(cone, 8, 4)\n\n    m3 = Primitives.hex_mesh(cone, 6, 4, 1.0/3.0)",
     "checks": [
@@ -2527,7 +2527,7 @@
   {
     "test_name": "Nurbscurve Interpolated",
     "passed": true,
-    "time_ms": 0.591,
+    "time_ms": 0.64,
     "line": 954,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import knot\n\n    points = [\n        Point(14, 9, 0), Point(15.342777, 13.734889, 0), Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0), Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0), Point(41, 13, 0)\n    ]\n\n    c = Primitives.create_interpolated(points, knot.CurveKnotStyle.Chord)\n\n\n    d0, d1 = c.domain()\n    knots = c.get_knots()\n\n\n    pts4 = [Point(0, 0, 0), Point(1, 2, 0), Point(3, 1, 0), Point(5, 3, 0)]\n    c4 = Primitives.create_interpolated(pts4, knot.CurveKnotStyle.Chord)\n    d4_0, d4_1 = c4.domain()",
     "checks": [
@@ -2632,7 +2632,7 @@
   {
     "test_name": "Mesh Tetrahedron",
     "passed": true,
-    "time_ms": 0.132,
+    "time_ms": 0.142,
     "line": 998,
     "code": "    from session_py import Primitives\n\n    m = Primitives.tetrahedron(2.0)",
     "checks": [
@@ -2657,7 +2657,7 @@
   {
     "test_name": "Mesh Cube",
     "passed": true,
-    "time_ms": 0.599,
+    "time_ms": 0.711,
     "line": 1008,
     "code": "    from session_py import Primitives\n\n    m = Primitives.cube(2.0)",
     "checks": [
@@ -2682,7 +2682,7 @@
   {
     "test_name": "Mesh Octahedron",
     "passed": true,
-    "time_ms": 0.122,
+    "time_ms": 0.143,
     "line": 1018,
     "code": "    from session_py import Primitives\n\n    m = Primitives.octahedron(2.0)",
     "checks": [
@@ -2707,7 +2707,7 @@
   {
     "test_name": "Mesh Icosahedron",
     "passed": true,
-    "time_ms": 0.256,
+    "time_ms": 0.283,
     "line": 1028,
     "code": "    from session_py import Primitives\n\n    m = Primitives.icosahedron(2.0)",
     "checks": [
@@ -2732,7 +2732,7 @@
   {
     "test_name": "Mesh Dodecahedron",
     "passed": true,
-    "time_ms": 1.322,
+    "time_ms": 1.507,
     "line": 1038,
     "code": "    from session_py import Primitives\n\n    m = Primitives.dodecahedron(2.0)",
     "checks": [
@@ -2757,7 +2757,7 @@
   {
     "test_name": "Nurbssurface Wave",
     "passed": true,
-    "time_ms": 1.003,
+    "time_ms": 1.125,
     "line": 1048,
     "code": "    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    corner = srf.point_at(0.0, 0.0)",
     "checks": [
@@ -2797,7 +2797,7 @@
   {
     "test_name": "Mesh Chevron",
     "passed": true,
-    "time_ms": 75.567,
+    "time_ms": 84.385,
     "line": 1062,
     "code": "    from session_py import Primitives\n\n    surfaces = Primitives.annen_surfaces()\n    for i in range(len(surfaces)):\n\n    m = Primitives.chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799)",
     "checks": [
@@ -2942,7 +2942,7 @@
   {
     "test_name": "FoldedPlates",
     "passed": true,
-    "time_ms": 48.196,
+    "time_ms": 45.228,
     "line": 1077,
     "code": "    from session_py import Primitives\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import FoldedPlates\n\n    arc = Primitives.arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0))\n    srf = Primitives.create_extrusion(arc, Vector(0, 30, 0))\n    srf.transpose()\n\n    fp = FoldedPlates(srf, 5, 2, 0.5, 0.3)\n\n\n    for i in range(len(fp.polylines)):\n        for j in range(len(fp.polylines[i])):",
     "checks": [
@@ -3737,7 +3737,7 @@
   {
     "test_name": "CrossConnectors",
     "passed": true,
-    "time_ms": 146.186,
+    "time_ms": 146.193,
     "line": 1104,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py.primitives import CrossConnectors\n\n    polys = [\n        [\n            Point(-574.485, -574.300, -182.370), Point(-620.030, -480.441, -136.145),\n            Point(-527.510, -476.289, -53.723), Point(-431.548, -637.846, -118.351),\n            Point(-574.485, -574.300, -182.370),\n        ],\n        [\n            Point(-545.761, -545.585, -211.069), Point(-589.029, -456.419, -167.156),\n            Point(-501.135, -452.475, -88.854), Point(-409.971, -605.954, -150.251),\n            Point(-545.761, -545.585, -211.069),\n        ],\n        [\n            Point(-224.289, -691.254, -65.097), Point(-125.302, -566.359, 58.481),\n            Point(125.182, -566.359, 58.481), Point(212.579, -691.254, -65.097),\n            Point(-224.289, -691.254, -65.097),\n        ],\n        [\n            Point(-213.075, -656.691, -99.659), Point(-119.037, -538.041, 17.739),\n            Point(118.923, -538.041, 17.739), Point(201.950, -656.691, -99.659),\n            Point(-213.075, -656.691, -99.659),\n        ],\n        [\n            Point(456.309, -628.504, -127.534), Point(523.010, -466.370, -45.103),\n            Point(622.146, -472.434, -134.186), Point(574.882, -574.852, -181.916),\n            Point(456.309, -628.504, -127.534),\n        ],\n        [\n            Point(433.493, -597.079, -158.975), Point(496.859, -443.052, -80.665),\n            Point(591.038, -448.812, -165.294), Point(546.138, -546.110, -210.638),\n            Point(433.493, -597.079, -158.975),\n        ],\n        [\n            Point(-431.100, -638.600, -118.653), Point(-527.510, -476.289, -53.723),\n            Point(-481.982, -362.651, 39.785), Point(-234.426, -365.823, 142.950),\n            Point(-125.302, -566.359, 58.481), Point(-223.832, -690.677, -64.527),\n            Point(-431.100, -638.600, -118.653),\n        ],\n        [\n            Point(-409.545, -606.670, -150.538), Point(-501.135, -452.475, -88.854),\n            Point(-457.883, -344.518, -0.022), Point(-222.705, -347.532, 97.985),\n            Point(-119.037, -538.041, 17.739), Point(-212.641, -656.144, -99.118),\n            Point(-409.545, -606.670, -150.538),\n        ],\n        [\n            Point(212.526, -691.178, -65.022), Point(125.182, -566.359, 58.481),\n            Point(238.785, -380.979, 136.566), Point(478.593, -374.909, 36.915),\n            Point(523.010, -466.370, -45.103), Point(455.692, -630.004, -128.297),\n            Point(212.526, -691.178, -65.022),\n        ],\n        [\n            Point(201.900, -656.619, -99.589), Point(118.923, -538.041, 17.739),\n            Point(226.846, -361.930, 91.920), Point(454.664, -356.164, -2.748),\n            Point(496.859, -443.052, -80.665), Point(432.907, -598.504, -159.699),\n            Point(201.900, -656.619, -99.589),\n        ],\n        [\n            Point(-481.982, -362.651, 39.785), Point(-527.510, -476.289, -53.723),\n            Point(-620.401, -480.458, -136.475), Point(-698.046, -172.509, -57.884),\n            Point(-595.889, -174.723, 29.899), Point(-481.982, -362.651, 39.785),\n        ],\n        [\n            Point(-457.883, -344.518, -0.022), Point(-501.135, -452.475, -88.854),\n            Point(-589.381, -456.435, -167.469), Point(-663.144, -163.884, -92.807),\n            Point(-566.094, -165.987, -9.413), Point(-457.883, -344.518, -0.022),\n        ],\n        [\n            Point(-125.302, -566.359, 58.481), Point(-234.426, -365.823, 142.950),\n            Point(-149.707, -204.103, 211.069), Point(150.116, -204.103, 211.069),\n            Point(238.785, -380.979, 136.566), Point(125.182, -566.359, 58.481),\n            Point(-125.302, -566.359, 58.481),\n        ],\n        [\n            Point(-119.037, -538.041, 17.739), Point(-222.705, -347.532, 97.985),\n            Point(-142.222, -193.898, 162.698), Point(142.610, -193.898, 162.698),\n            Point(226.846, -361.930, 91.920), Point(118.923, -538.041, 17.739),\n            Point(-119.037, -538.041, 17.739),\n        ],\n        [\n            Point(478.593, -374.909, 36.915), Point(596.484, -174.710, 29.388),\n            Point(698.046, -172.509, -57.884), Point(622.420, -472.451, -134.432),\n            Point(523.010, -466.370, -45.103), Point(478.593, -374.909, 36.915),\n        ],\n        [\n            Point(454.664, -356.164, -2.748), Point(566.659, -165.975, -9.899),\n            Point(663.144, -163.884, -92.807), Point(591.299, -448.828, -165.528),\n            Point(496.859, -443.052, -80.665), Point(454.664, -356.164, -2.748),\n        ],\n        [\n            Point(-481.982, -362.651, 39.785), Point(-595.889, -174.723, 29.899),\n            Point(-515.848, -0.000, 98.678), Point(-247.814, -0.000, 211.069),\n            Point(-149.707, -204.103, 211.069), Point(-234.426, -365.823, 142.950),\n            Point(-481.982, -362.651, 39.785),\n        ],\n        [\n            Point(-457.883, -344.518, -0.022), Point(-566.094, -165.987, -9.413),\n            Point(-490.055, -0.000, 55.926), Point(-235.423, -0.000, 162.698),\n            Point(-142.222, -193.898, 162.698), Point(-222.705, -347.532, 97.985),\n            Point(-457.883, -344.518, -0.022),\n        ],\n        [\n            Point(238.785, -380.979, 136.566), Point(150.116, -204.103, 211.069),\n            Point(252.071, 0.000, 211.069), Point(512.707, 0.000, 101.376),\n            Point(596.484, -174.710, 29.388), Point(478.593, -374.909, 36.915),\n            Point(238.785, -380.979, 136.566),\n        ],\n        [\n            Point(226.846, -361.930, 91.920), Point(142.610, -193.898, 162.698),\n            Point(239.467, -0.000, 162.698), Point(487.072, -0.000, 58.490),\n            Point(566.659, -165.975, -9.899), Point(454.664, -356.164, -2.748),\n            Point(226.846, -361.930, 91.920),\n        ],\n        [\n            Point(-515.848, 0.000, 98.678), Point(-595.889, -174.723, 29.899),\n            Point(-698.269, -172.505, -58.075), Point(-698.269, 172.505, -58.075),\n            Point(-595.889, 174.723, 29.899), Point(-515.848, 0.000, 98.678),\n        ],\n        [\n            Point(-490.055, -0.000, 55.926), Point(-566.094, -165.987, -9.413),\n            Point(-663.356, -163.879, -92.989), Point(-663.356, 163.879, -92.989),\n            Point(-566.094, 165.987, -9.413), Point(-490.055, -0.000, 55.926),\n        ],\n        [\n            Point(-149.707, -204.103, 211.069), Point(-247.814, 0.000, 211.069),\n            Point(-149.707, 204.103, 211.069), Point(150.116, 204.103, 211.069),\n            Point(252.071, 0.000, 211.069), Point(150.116, -204.103, 211.069),\n            Point(-149.707, -204.103, 211.069),\n        ],\n        [\n            Point(-142.222, -193.898, 162.698), Point(-235.423, -0.000, 162.698),\n            Point(-142.222, 193.898, 162.698), Point(142.610, 193.898, 162.698),\n            Point(239.467, 0.000, 162.698), Point(142.610, -193.898, 162.698),\n            Point(-142.222, -193.898, 162.698),\n        ],\n        [\n            Point(512.707, 0.000, 101.376), Point(596.484, 174.710, 29.388),\n            Point(698.269, 172.505, -58.075), Point(698.269, -172.505, -58.075),\n            Point(596.484, -174.710, 29.388), Point(512.707, 0.000, 101.376),\n        ],\n        [\n            Point(487.072, 0.000, 58.490), Point(566.659, 165.975, -9.899),\n            Point(663.356, 163.879, -92.989), Point(663.356, -163.879, -92.989),\n            Point(566.659, -165.975, -9.899), Point(487.072, 0.000, 58.490),\n        ],\n        [\n            Point(-515.848, -0.000, 98.678), Point(-595.889, 174.723, 29.899),\n            Point(-481.982, 362.651, 39.785), Point(-234.426, 365.823, 142.950),\n            Point(-149.707, 204.103, 211.069), Point(-247.814, -0.000, 211.069),\n            Point(-515.848, -0.000, 98.678),\n        ],\n        [\n            Point(-490.055, -0.000, 55.926), Point(-566.094, 165.987, -9.413),\n            Point(-457.883, 344.518, -0.022), Point(-222.705, 347.532, 97.985),\n            Point(-142.222, 193.898, 162.698), Point(-235.423, -0.000, 162.698),\n            Point(-490.055, -0.000, 55.926),\n        ],\n        [\n            Point(252.071, 0.000, 211.069), Point(150.116, 204.103, 211.069),\n            Point(238.785, 380.979, 136.566), Point(478.593, 374.909, 36.915),\n            Point(596.484, 174.710, 29.388), Point(512.707, -0.000, 101.376),\n            Point(252.071, 0.000, 211.069),\n        ],\n        [\n            Point(239.467, -0.000, 162.698), Point(142.610, 193.898, 162.698),\n            Point(226.846, 361.930, 91.920), Point(454.664, 356.164, -2.748),\n            Point(566.659, 165.975, -9.899), Point(487.072, -0.000, 58.490),\n            Point(239.467, -0.000, 162.698),\n        ],\n        [\n            Point(-481.982, 362.651, 39.785), Point(-595.889, 174.723, 29.899),\n            Point(-698.046, 172.509, -57.884), Point(-622.420, 472.451, -134.432),\n            Point(-523.550, 466.403, -45.588), Point(-481.982, 362.651, 39.785),\n        ],\n        [\n            Point(-457.883, 344.518, -0.022), Point(-566.094, 165.987, -9.413),\n            Point(-663.144, 163.884, -92.807), Point(-591.299, 448.828, -165.528),\n            Point(-497.372, 443.083, -81.126), Point(-457.883, 344.518, -0.022),\n        ],\n        [\n            Point(-149.707, 204.103, 211.069), Point(-234.426, 365.823, 142.950),\n            Point(-125.302, 566.359, 58.481), Point(125.182, 566.359, 58.481),\n            Point(238.785, 380.979, 136.566), Point(150.116, 204.103, 211.069),\n            Point(-149.707, 204.103, 211.069),\n        ],\n        [\n            Point(-142.222, 193.898, 162.698), Point(-222.705, 347.532, 97.985),\n            Point(-119.037, 538.041, 17.739), Point(118.923, 538.041, 17.739),\n            Point(226.846, 361.930, 91.920), Point(142.610, 193.898, 162.698),\n            Point(-142.222, 193.898, 162.698),\n        ],\n        [\n            Point(478.593, 374.909, 36.915), Point(527.834, 476.304, -54.011),\n            Point(620.401, 480.458, -136.475), Point(698.046, 172.509, -57.884),\n            Point(596.484, 174.710, 29.388), Point(478.593, 374.909, 36.915),\n        ],\n        [\n            Point(454.664, 356.164, -2.748), Point(501.442, 452.489, -89.128),\n            Point(589.381, 456.435, -167.469), Point(663.144, 163.884, -92.807),\n            Point(566.659, 165.975, -9.899), Point(454.664, 356.164, -2.748),\n        ],\n        [\n            Point(-481.982, 362.651, 39.785), Point(-523.550, 466.403, -45.588),\n            Point(-441.383, 636.016, -121.338), Point(-223.832, 690.677, -64.527),\n            Point(-125.302, 566.359, 58.481), Point(-234.426, 365.823, 142.950),\n            Point(-481.982, 362.651, 39.785),\n        ],\n        [\n            Point(-457.883, 344.518, -0.022), Point(-497.372, 443.083, -81.126),\n            Point(-419.314, 604.215, -153.089), Point(-212.641, 656.144, -99.118),\n            Point(-119.037, 538.041, 17.739), Point(-222.705, 347.532, 97.985),\n            Point(-457.883, 344.518, -0.022),\n        ],\n        [\n            Point(238.785, 380.979, 136.566), Point(125.182, 566.359, 58.481),\n            Point(212.526, 691.178, -65.022), Point(446.073, 632.424, -125.794),\n            Point(527.834, 476.304, -54.011), Point(478.593, 374.909, 36.915),\n            Point(238.785, 380.979, 136.566),\n        ],\n        [\n            Point(226.846, 361.930, 91.920), Point(118.923, 538.041, 17.739),\n            Point(201.900, 656.619, -99.589), Point(423.769, 600.803, -157.321),\n            Point(501.442, 452.489, -89.128), Point(454.664, 356.164, -2.748),\n            Point(226.846, 361.930, 91.920),\n        ],\n        [\n            Point(-622.146, 472.434, -134.186), Point(-574.882, 574.852, -181.916),\n            Point(-441.854, 635.045, -120.904), Point(-523.550, 466.403, -45.588),\n            Point(-622.146, 472.434, -134.186),\n        ],\n        [\n            Point(-591.038, 448.812, -165.294), Point(-546.138, 546.110, -210.638),\n            Point(-419.761, 603.293, -152.677), Point(-497.372, 443.083, -81.126),\n            Point(-591.038, 448.812, -165.294),\n        ],\n        [\n            Point(-125.302, 566.359, 58.481), Point(-224.289, 691.254, -65.097),\n            Point(212.579, 691.254, -65.097), Point(125.182, 566.359, 58.481),\n            Point(-125.302, 566.359, 58.481),\n        ],\n        [\n            Point(-119.037, 538.041, 17.739), Point(-213.075, 656.691, -99.659),\n            Point(201.950, 656.691, -99.659), Point(118.923, 538.041, 17.739),\n            Point(-119.037, 538.041, 17.739),\n        ],\n        [\n            Point(527.834, 476.304, -54.011), Point(446.780, 631.075, -125.173),\n            Point(574.485, 574.300, -182.370), Point(620.030, 480.441, -136.145),\n            Point(527.834, 476.304, -54.011),\n        ],\n        [\n            Point(501.442, 452.489, -89.128), Point(424.440, 599.521, -156.732),\n            Point(545.761, 545.585, -211.069), Point(589.029, 456.419, -167.156),\n            Point(501.442, 452.489, -89.128),\n        ],\n    ]\n\n    for poly in polys:\n        if len(poly) > 3 and poly[0].distance(poly[-1]) < 1e-6:\n            poly.pop()\n\n    m = Mesh.from_polylines(polys, 1.0)\n\n    cc = CrossConnectors(m, 2.0, [0.0], 2, 10.0, 10.0, 2.0, 0.0)\n\n\n    for i in range(len(cc.face_polylines)):\n        for pl in cc.face_polylines[i]:\n\n    for i in range(len(cc.edge_polylines)):\n        for pl in cc.edge_polylines[i]:",
     "checks": [
