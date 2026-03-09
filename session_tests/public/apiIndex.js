@@ -49785,11 +49785,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "subdivide",
         "circle",
+        "n",
         "points",
         "into",
-        "subdivide",
-        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -49803,11 +49803,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "by",
-        "ellipse",
         "subdivide",
+        "arc",
         "length",
+        "ellipse",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -49822,8 +49822,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "arc",
-        "through",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -49837,12 +49837,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
-        "points",
-        "adaptive",
         "from",
-        "polyline",
         "curve",
+        "points",
+        "open",
+        "polyline",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -49857,10 +49857,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "curve",
-        "parameter",
         "at",
+        "curve",
+        "evaluation",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -49879,9 +49879,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "curve",
         "along",
         "length",
-        "curve",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -49904,8 +49904,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
+        "perpendicular",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -49927,10 +49927,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
         "surface",
-        "point",
         "evaluate",
+        "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -49946,10 +49946,10 @@ window.API_INDEX = {
       "title": "Mesh from Vertices and Faces",
       "tags": [
         "vertices",
-        "mesh",
         "from",
         "faces",
         "and",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"

@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.994,
+    "time_ms": 11.077,
     "line": 5,
     "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Tree::new(\"./serialization/test_tree\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let node1 = TreeNode::new(&point1.guid.to_string());\n        original.add(&node1, None);\n        json_dump(&original, \"serialization/test_tree.json\", false).unwrap();\n        let loaded = json_load::<Tree>(\"serialization/test_tree.json\").unwrap();",
     "checks": [
