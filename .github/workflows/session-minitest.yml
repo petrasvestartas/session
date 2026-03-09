@@ -107,6 +107,9 @@ jobs:
     needs: [minitest]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
 
     steps:
     - name: Download Ubuntu artifact
