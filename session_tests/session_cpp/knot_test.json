@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 14,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate knot counts for various order/cv_count combinations\n    int count1 = knot::knot_count(2, 2);\n    int count2 = knot::knot_count(3, 3);\n    int count3 = knot::knot_count(4, 4);\n    int count4 = knot::knot_count(4, 5);\n    int count5 = knot::knot_count(3, 4);\n",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Is Periodic",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 118,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    bool periodic = knot::is_periodic(3, 4, k);\n\n    // Clamped knot vector (not periodic)\n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n    bool not_periodic = knot::is_periodic(4, 4, k2);\n",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "Get Domain",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 133,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Get domain of clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n",
     "checks": [
@@ -327,7 +327,7 @@
   {
     "test_name": "Greville Abcissae",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 221,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Get Greville abcissae (control point parameter values)\n    auto k = knot::make_clamped_uniform(3, 4, 1.0);\n    auto g = knot::get_greville_abcissae(3, 4, k);\n    size_t g_len = g.size();\n",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "Domain Tolerance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 232,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate domain tolerance\n    double tol_same = knot::domain_tolerance(1.0, 1.0);\n    double tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
     "checks": [

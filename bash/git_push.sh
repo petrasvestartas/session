@@ -5,6 +5,12 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
 cd "${REPO_ROOT}"
 
+echo -e "\n=== Running tests before push ==="
+if ! "${SCRIPT_DIR}/minitest.sh" --no-web; then
+    echo -e "\nABORTED: tests failed — fix before pushing"
+    exit 1
+fi
+
 FAILED=""
 
 check_large_files() {
