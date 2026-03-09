@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.017,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Normalize",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 96,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v0(3.0, 4.0, 0.0);\n    v0.normalize_self();\n\n    Vector v1(3.0, 4.0, 0.0);\n    Vector v2 = v1.normalize();\n",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 110,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(1.0, -2.0, 3.0);\n    v.reverse();\n",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 148,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);\n",
     "checks": [
@@ -527,7 +527,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 362,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12\n",
     "checks": [
@@ -552,7 +552,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.779,
+    "time_ms": 10.078,
     "line": 374,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);\n",
     "checks": [
@@ -582,7 +582,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.411,
+    "time_ms": 1.505,
     "line": 398,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);\n",
     "checks": [
