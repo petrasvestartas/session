@@ -103,6 +103,35 @@ jobs:
         path: session_tests/dist
         if-no-files-found: error
 
+  api-check:
+    needs: [minitest]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout repo with submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Check Python API for breaking changes
+      run: |
+        pip install griffe
+        latest=$(pip index versions session-py 2>/dev/null | grep -oP '[\d.]+' | head -1 || echo "")
+        if [ -n "$latest" ]; then
+          pip install "session-py==$latest" --target /tmp/session_py_baseline
+          griffe check session_py \
+            --against /tmp/session_py_baseline \
+            --search session_py/src || true
+        else
+          echo "No published version found, skipping API diff"
+        fi
+
   deploy:
     needs: [minitest]
     runs-on: ubuntu-latest
@@ -125,3 +154,37 @@ jobs:
         publish_dir: ./dist
         publish_branch: gh-pages
         force_orphan: true
+
+  dispatch:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Trigger downstream CI
+      env:
+        GH_TOKEN: ${{ secrets.DOWNSTREAM_DISPATCH_TOKEN }}
+      run: |
+        version=$(pip index versions session-py 2>/dev/null | grep -oP '[\d.]+' | head -1 || echo "unknown")
+        python - "$version" <<'EOF'
+        import json, subprocess, sys
+        version = sys.argv[1]
+        deps = json.load(open("dependents.json"))["repos"]
+        for d in deps:
+            result = subprocess.run([
+                "gh", "api",
+                f"repos/{d['owner']}/{d['repo']}/dispatches",
+                "-f", "event_type=session-py-updated",
+                "-f", f"client_payload[version]={version}"
+            ], capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"Warning: failed to dispatch to {d['repo']}: {result.stderr}")
+        EOF

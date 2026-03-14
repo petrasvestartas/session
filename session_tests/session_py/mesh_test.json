@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.865,
+    "time_ms": 0.242,
     "line": 8,
     "code": "    from session_py import Mesh\n    from session_py import Polyline\n    from session_py import Color\n    from session_py.mesh import ColorMode\n\n    vertices = Polyline.from_sides(6, 1.0, False).get_points()\n    mesh = Mesh.from_vertices_and_faces(vertices, [[0, 1, 2, 3, 4, 5]])\n    sstr = str(mesh)\n    srepr = repr(mesh)\n    mcopy = mesh.duplicate()\n    mesh.name = \"hexagon\"\n\n    palette = Color.palette()\n\n    # set_objectcolor does not change color_mode\n    mesh.set_objectcolor(Color.grey())\n\n    # set_pointcolors \u2192 color_mode = PointColors\n    pc = []\n    for i in range(mesh.number_of_vertices()):\n        pc.append(palette[i % len(palette)])\n    mesh.set_pointcolors(pc)\n\n    # set_facecolors \u2192 color_mode = FaceColors\n    fc = []\n    for i in range(mesh.number_of_faces()):\n        fc.append(palette[i % len(palette)])\n    mesh.set_facecolors(fc)\n\n    # set_linecolors does not change color_mode\n    lc = []\n    lw = [0.1] * mesh.number_of_edges()\n    for i in range(mesh.number_of_edges()):\n        lc.append(palette[i % len(palette)])\n    mesh.set_linecolors(lc, lw)\n\n    # clear_facecolors reverts color_mode only if currently FaceColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    mesh.clear_facecolors()\n\n    # clear_pointcolors does not revert if color_mode != PointColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    mesh.clear_pointcolors()\n\n    # clear_linecolors does not change color_mode\n    mesh.color_mode = ColorMode.POINTCOLORS\n    mesh.clear_linecolors()",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 0.66,
+    "time_ms": 0.42,
     "line": 74,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ], 0.001)",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "From Lines",
     "passed": true,
-    "time_ms": 0.535,
+    "time_ms": 0.204,
     "line": 108,
     "code": "    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    lines = [\n        Line.from_points(Point(4.948083, -0.149798, 1.00765),\n                         Point(4.395544, -0.996413, 1.196018)),\n        Line.from_points(Point(3.866593, 0.371225, 1.376346),\n                         Point(4.567265, 0.584361, 1.137476)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(3.282977, -0.051356, 1.575309)),\n        Line.from_points(Point(4.286215, -0.224964, 1.23329),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(4.567265, 0.584361, 1.137476),\n                         Point(4.948083, -0.149798, 1.00765)),\n        Line.from_points(Point(4.395544, -0.996413, 1.196018),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(4.286215, -0.224964, 1.23329)),\n        Line.from_points(Point(3.282977, -0.051356, 1.575309),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.866593, 0.371225, 1.376346)),\n    ]\n    mesh = Mesh.from_lines(lines, True)",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "From Polygon With Holes",
     "passed": true,
-    "time_ms": 3.257,
+    "time_ms": 0.802,
     "line": 140,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polygon_with_holes([\n        [\n            Point(8.940934, 0.917382, 0.049546),\n            Point(8.930493, 1.36458, 0.251429),\n            Point(8.954508, 1.595448, 0.346958),\n            Point(9.457671, 1.821395, 0.298639),\n            Point(9.717078, 1.014296, -0.136839),\n            Point(9.363048, 0.91534, -0.07616),\n            Point(9.33327, 0.459713, -0.269899),\n            Point(9.065708, 0.635281, -0.112748),\n        ],\n        [\n            Point(7.494779, -0.556523, -0.178103),\n            Point(6.542877, 0.148384, 0.416685),\n            Point(6.967337, 2.119511, 1.167431),\n            Point(11.204553, 2.961749, 0.289102),\n            Point(9.658416, 0.465135, -0.363618),\n            Point(10.247775, -1.032727, -1.203717),\n        ],\n        [\n            Point(7.922105, 0.548716, 0.186877),\n            Point(7.410178, 0.844297, 0.469625),\n            Point(7.408889, 1.185147, 0.621527),\n            Point(7.885956, 1.424645, 0.586947),\n            Point(8.178727, 1.32996, 0.458299),\n            Point(8.307609, 0.88254, 0.2213),\n            Point(7.950364, 0.924872, 0.345738),\n        ],\n    ], True)\n\n    mesh_sorted = Mesh.from_polygon_with_holes([\n        [Point(1, 1, 0), Point(3, 1, 0), Point(3, 3, 0), Point(1, 3, 0)],\n        [Point(0, 0, 0), Point(4, 0, 0), Point(4, 4, 0), Point(0, 4, 0)],\n    ], True)",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Loft",
     "passed": true,
-    "time_ms": 9.395,
+    "time_ms": 1.483,
     "line": 183,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    bottom = [\n        Polyline([\n            Point(13.20069, -0.556523, -0.178103),\n            Point(12.248787, 0.148384, 0.416685),\n            Point(12.673247, 2.119511, 1.167431),\n            Point(16.910464, 2.961749, 0.289102),\n            Point(15.364327, 0.465135, -0.363618),\n            Point(15.953685, -1.032727, -1.203717),\n            Point(13.20069, -0.556523, -0.178103),\n        ]),\n        Polyline([\n            Point(14.646845, 0.917382, 0.049546),\n            Point(14.636404, 1.36458, 0.251429),\n            Point(14.660418, 1.595448, 0.346958),\n            Point(15.163581, 1.821395, 0.298639),\n            Point(15.422988, 1.014296, -0.136839),\n            Point(15.068958, 0.91534, -0.07616),\n            Point(15.03918, 0.459713, -0.269899),\n            Point(14.771618, 0.635281, -0.112748),\n            Point(14.646845, 0.917382, 0.049546),\n        ]),\n        Polyline([\n            Point(13.628016, 0.548716, 0.186877),\n            Point(13.116088, 0.844297, 0.469625),\n            Point(13.114799, 1.185147, 0.621527),\n            Point(13.591866, 1.424645, 0.586947),\n            Point(13.884637, 1.32996, 0.458299),\n            Point(14.013519, 0.88254, 0.2213),\n            Point(13.656275, 0.924872, 0.345738),\n            Point(13.628016, 0.548716, 0.186877),\n        ]),\n    ]\n    top = [\n        Polyline([\n            Point(13.375135, -0.818817, 0.411936),\n            Point(12.423233, -0.113909, 1.006724),\n            Point(12.847692, 1.857217, 1.75747),\n            Point(17.084909, 2.699455, 0.879141),\n            Point(15.538772, 0.202841, 0.226421),\n            Point(16.12813, -1.295021, -0.613678),\n            Point(13.375135, -0.818817, 0.411936),\n        ]),\n        Polyline([\n            Point(14.82129, 0.655088, 0.639585),\n            Point(14.810849, 1.102286, 0.841468),\n            Point(14.834864, 1.333154, 0.936997),\n            Point(15.338026, 1.559101, 0.888678),\n            Point(15.597433, 0.752002, 0.4532),\n            Point(15.243404, 0.653046, 0.513879),\n            Point(15.213626, 0.197419, 0.32014),\n            Point(14.946063, 0.372987, 0.477291),\n            Point(14.82129, 0.655088, 0.639585),\n        ]),\n        Polyline([\n            Point(13.802461, 0.286422, 0.776916),\n            Point(13.290534, 0.582003, 1.059664),\n            Point(13.289245, 0.922853, 1.211566),\n            Point(13.766312, 1.162351, 1.176986),\n            Point(14.059082, 1.067666, 1.048338),\n            Point(14.187964, 0.620246, 0.811339),\n            Point(13.83072, 0.662578, 0.935777),\n            Point(13.802461, 0.286422, 0.776916),\n        ]),\n    ]\n    mesh = Mesh.loft(bottom, top, True)\n\n    mesh_no_cap = Mesh.loft(bottom, top, False)",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "From Polygon With Holes Many",
     "passed": true,
-    "time_ms": 18.39,
+    "time_ms": 1.586,
     "line": 262,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    inputs = []\n    for i in range(4):\n        x = i * 7.0\n        inputs.append([\n            [Point(x, 0, 0), Point(x+5, 0, 0), Point(x+5, 5, 0), Point(x, 5, 0)],\n            [Point(x+1, 1, 0), Point(x+4, 1, 0), Point(x+4, 4, 0), Point(x+1, 4, 0)],\n        ])\n    meshes = Mesh.from_polygon_with_holes_many(inputs)\n    for m in meshes:\n    meshes_seq = Mesh.from_polygon_with_holes_many(inputs, False, False)",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "Loft Many",
     "passed": true,
-    "time_ms": 29.453,
+    "time_ms": 3.012,
     "line": 281,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    loft_inputs = []\n    for i in range(6):\n        x = i * 3.0\n        b = Polyline([\n            Point(x, 0, 0), Point(x+1, 0, 0), Point(x+1, 1, 0),\n            Point(x, 1, 0), Point(x, 0, 0),\n        ])\n        t = Polyline([\n            Point(x, 0, 1+i*0.5), Point(x+1, 0, 1+i*0.5),\n            Point(x+1, 1, 1+i*0.5), Point(x, 1, 1+i*0.5), Point(x, 0, 1+i*0.5),\n        ])\n        loft_inputs.append(([b], [t]))\n    meshes = Mesh.loft_many(loft_inputs)\n    for m in meshes:\n    meshes_seq = Mesh.loft_many(loft_inputs, True, False)",
     "checks": [
@@ -275,39 +275,144 @@
     "failures": []
   },
   {
-    "test_name": "Boolean Queries",
+    "test_name": "Loft with quads and triangles",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 4.053,
     "line": 307,
-    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0, 0, 0))\n    v1 = mesh.add_vertex(Point(1, 0, 0))\n    v2 = mesh.add_vertex(Point(0, 1, 0))\n    f0 = mesh.add_face([v0, v1, v2])\n\n    not_empty = mesh.is_empty()\n\n    valid = mesh.is_valid()\n\n    closed = mesh.is_closed()\n\n    vertex_on_boundary = mesh.is_vertex_on_boundary(v0)\n\n    edge_on_boundary = mesh.is_edge_on_boundary(v0, v1)\n\n    face_on_boundary = mesh.is_face_on_boundary(f0)",
+    "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    top7 = [\n        [\n            Point(250,-250,500),\n            Point(250,250,500),\n            Point(-250,250,500),\n            Point(-250,-250,500),\n            Point(250,-250,500),\n        ],\n        [\n            Point(-250,500,250),\n            Point(-250,250,500),\n            Point(250,250,500),\n            Point(250,500,250),\n            Point(-250,500,250),\n        ],\n        [\n            Point(250,-250,500),\n            Point(500,-250,250),\n            Point(500,250,250),\n            Point(250,250,500),\n            Point(250,-250,500),\n        ],\n        [\n            Point(250,500,250),\n            Point(250,250,500),\n            Point(500,250,250),\n            Point(250,500,250),\n        ],\n        [\n            Point(-250,500,250),\n            Point(250,500,250),\n            Point(250,500,-250),\n            Point(-250,500,-250),\n            Point(-250,500,250),\n        ],\n        [\n            Point(250,500,250),\n            Point(500,250,250),\n            Point(500,250,-250),\n            Point(250,500,-250),\n            Point(250,500,250),\n        ],\n        [\n            Point(500,-250,250),\n            Point(500,-250,-250),\n            Point(500,250,-250),\n            Point(500,250,250),\n            Point(500,-250,250),\n        ],\n    ]\n    bot7 = [\n        [\n            Point(270.710678,-250,550),\n            Point(270.710678,265.891862,550),\n            Point(265.891862,270.710678,550),\n            Point(-250,270.710678,550),\n            Point(-250,-250,550),\n            Point(270.710678,-250,550),\n        ],\n        [\n            Point(270.710678,-250,550),\n            Point(550,-250,270.710678),\n            Point(550,265.891862,270.710678),\n            Point(270.710678,265.891862,550),\n            Point(270.710678,-250,550),\n        ],\n        [\n            Point(-250,550,270.710678),\n            Point(-250,270.710678,550),\n            Point(265.891862,270.710678,550),\n            Point(265.891862,550,270.710678),\n            Point(-250,550,270.710678),\n        ],\n        [\n            Point(265.891862,550,270.710678),\n            Point(265.891862,270.710678,550),\n            Point(270.710678,265.891862,550),\n            Point(550,265.891862,270.710678),\n            Point(550,270.710678,265.891862),\n            Point(270.710678,550,265.891862),\n            Point(265.891862,550,270.710678),\n        ],\n        [\n            Point(-250,550,270.710678),\n            Point(265.891862,550,270.710678),\n            Point(270.710678,550,265.891862),\n            Point(270.710678,550,-250),\n            Point(-250,550,-250),\n            Point(-250,550,270.710678),\n        ],\n        [\n            Point(270.710678,550,265.891862),\n            Point(550,270.710678,265.891862),\n            Point(550,270.710678,-250),\n            Point(270.710678,550,-250),\n            Point(270.710678,550,265.891862),\n        ],\n        [\n            Point(550,-250,270.710678),\n            Point(550,-250,-250),\n            Point(550,270.710678,-250),\n            Point(550,270.710678,265.891862),\n            Point(550,265.891862,270.710678),\n            Point(550,-250,270.710678),\n        ],\n    ]\n    panels, adj, top_mesh, bot_mesh = Mesh.loft_panels(top7, bot7, 0.001)\n\n    # Color faces: blue=top cap, red=bot cap, gray=quad wall, yellow=tri wall\n    for i, panel in enumerate(panels):\n        face_colors = []\n        for fk, role in panel.face_roles.items():\n            if role == \"TopCap\": face_colors.append(Color.blue())\n            elif role == \"BotCap\": face_colors.append(Color.red())\n            elif role == \"TriWall\": face_colors.append(Color.yellow())\n            else: face_colors.append(Color.grey())\n        panel.mesh.set_facecolors(face_colors)\n\n    # face centroids labelled with panel index\n    for i, panel in enumerate(panels):\n        c = panel.mesh.centroid()\n        c.name = f\"p{i}\"\n\n    # adjacency: for each shared edge \u2014 text dot at midpoint labelled \"p{i}f{idx}<->p{j}f{idx}\"\n    for pair in adj:\n        w = panels[pair.pi].wall_faces[pair.wi]\n        pt = panels[pair.pi].mesh.face_centroid(w.face_key)\n        pt.name = f\"p{pair.pi} f{w.face_index} - p{pair.pj} f{panels[pair.pj].wall_faces[pair.wj].face_index}\"",
     "checks": [
       {
-        "line": 319,
-        "code_line": "not not_empty",
+        "line": 441,
+        "code_line": "len(panels) == 7",
         "passed": true
       },
       {
-        "line": 322,
+        "line": 442,
+        "code_line": "panels[0].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 443,
+        "code_line": "panels[1].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 444,
+        "code_line": "panels[2].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 445,
+        "code_line": "panels[3].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 446,
+        "code_line": "panels[4].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 447,
+        "code_line": "panels[5].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 448,
+        "code_line": "panels[6].mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 449,
+        "code_line": "len(adj) == 9",
+        "passed": true
+      },
+      {
+        "line": 450,
+        "code_line": "adj[0].pi == 0 and adj[0].pj == 2",
+        "passed": true
+      },
+      {
+        "line": 451,
+        "code_line": "adj[1].pi == 0 and adj[1].pj == 1",
+        "passed": true
+      },
+      {
+        "line": 452,
+        "code_line": "adj[2].pi == 1 and adj[2].pj == 3",
+        "passed": true
+      },
+      {
+        "line": 453,
+        "code_line": "adj[3].pi == 1 and adj[3].pj == 4",
+        "passed": true
+      },
+      {
+        "line": 454,
+        "code_line": "adj[4].pi == 2 and adj[4].pj == 6",
+        "passed": true
+      },
+      {
+        "line": 455,
+        "code_line": "adj[5].pi == 2 and adj[5].pj == 3",
+        "passed": true
+      },
+      {
+        "line": 456,
+        "code_line": "adj[6].pi == 3 and adj[6].pj == 5",
+        "passed": true
+      },
+      {
+        "line": 457,
+        "code_line": "adj[7].pi == 4 and adj[7].pj == 5",
+        "passed": true
+      },
+      {
+        "line": 458,
+        "code_line": "adj[8].pi == 5 and adj[8].pj == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Boolean Queries",
+    "passed": true,
+    "time_ms": 0.328,
+    "line": 461,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ], 0.001)\n    v0 = 1\n    v1 = 2\n    v2 = 3\n    f0 = 0\n\n    empty = mesh.is_empty()\n\n    valid = mesh.is_valid()\n\n    closed = mesh.is_closed()\n\n    vertex_on_boundary = mesh.is_vertex_on_boundary(v0)\n\n    edge_not_on_boundary = mesh.is_edge_on_boundary(v0, v1)\n\n    edge_on_boundary = mesh.is_edge_on_boundary(v1, v2)\n\n    face_on_boundary = mesh.is_face_on_boundary(f0)",
+    "checks": [
+      {
+        "line": 498,
+        "code_line": "not empty",
+        "passed": true
+      },
+      {
+        "line": 501,
         "code_line": "valid",
         "passed": true
       },
       {
-        "line": 325,
+        "line": 504,
         "code_line": "not closed",
         "passed": true
       },
       {
-        "line": 328,
-        "code_line": "vertex_on_boundary",
+        "line": 507,
+        "code_line": "not vertex_on_boundary",
         "passed": true
       },
       {
-        "line": 331,
+        "line": 510,
+        "code_line": "not edge_not_on_boundary",
+        "passed": true
+      },
+      {
+        "line": 513,
         "code_line": "edge_on_boundary",
         "passed": true
       },
       {
-        "line": 334,
+        "line": 516,
         "code_line": "face_on_boundary",
         "passed": true
       }
@@ -317,153 +422,183 @@
   {
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.234,
-    "line": 337,
-    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n\n    n_faces = mesh.number_of_faces()\n\n    n_edges = mesh.number_of_edges()\n\n    euler = mesh.euler()\n\n    vertices, faces = mesh.to_vertices_and_faces()\n\n    vindex = mesh.vertex_index()",
+    "time_ms": 0.094,
+    "line": 519,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n\n    n_faces = mesh.number_of_faces()\n\n    n_edges = mesh.number_of_edges()\n\n    euler = mesh.euler()\n\n    vertices, faces = mesh.to_vertices_and_faces()\n\n    vertex_to_index = mesh.vertex_index()\n\n    # sparse keys: key != index\n    mesh2 = Mesh()\n    k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0))\n    k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5)\n    k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10)\n    vertex_to_index = mesh2.vertex_index()\n    v0 = vertex_to_index[0]\n    v5 = vertex_to_index[5]\n    v10 = vertex_to_index[10]",
     "checks": [
       {
-        "line": 345,
+        "line": 527,
         "code_line": "n_vertices == 8",
         "passed": true
       },
       {
-        "line": 348,
+        "line": 530,
         "code_line": "n_faces == 6",
         "passed": true
       },
       {
-        "line": 351,
+        "line": 533,
         "code_line": "n_edges == 12",
         "passed": true
       },
       {
-        "line": 354,
+        "line": 536,
         "code_line": "euler == 2",
         "passed": true
       },
       {
-        "line": 357,
+        "line": 539,
         "code_line": "len(faces) == n_faces",
         "passed": true
       },
       {
-        "line": 358,
+        "line": 540,
         "code_line": "len(vertices) == n_vertices",
         "passed": true
       },
       {
-        "line": 359,
+        "line": 541,
         "code_line": "TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5))",
         "passed": true
       },
       {
-        "line": 360,
+        "line": 542,
         "code_line": "TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5))",
         "passed": true
       },
       {
-        "line": 361,
+        "line": 543,
         "code_line": "TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5))",
         "passed": true
       },
       {
-        "line": 362,
+        "line": 544,
         "code_line": "TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5))",
         "passed": true
       },
       {
-        "line": 363,
+        "line": 545,
         "code_line": "TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5))",
         "passed": true
       },
       {
-        "line": 364,
+        "line": 546,
         "code_line": "TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5))",
         "passed": true
       },
       {
-        "line": 365,
+        "line": 547,
         "code_line": "TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5))",
         "passed": true
       },
       {
-        "line": 366,
+        "line": 548,
         "code_line": "TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5))",
         "passed": true
       },
       {
-        "line": 367,
+        "line": 549,
         "code_line": "faces[0] == [0, 3, 2, 1]",
         "passed": true
       },
       {
-        "line": 368,
+        "line": 550,
         "code_line": "faces[1] == [4, 5, 6, 7]",
         "passed": true
       },
       {
-        "line": 369,
+        "line": 551,
         "code_line": "faces[2] == [0, 1, 5, 4]",
         "passed": true
       },
       {
-        "line": 370,
+        "line": 552,
         "code_line": "faces[3] == [2, 3, 7, 6]",
         "passed": true
       },
       {
-        "line": 371,
+        "line": 553,
         "code_line": "faces[4] == [0, 4, 7, 3]",
         "passed": true
       },
       {
-        "line": 372,
+        "line": 554,
         "code_line": "faces[5] == [1, 2, 6, 5]",
         "passed": true
       },
       {
-        "line": 375,
-        "code_line": "len(vindex) == n_vertices",
+        "line": 557,
+        "code_line": "len(vertex_to_index) == n_vertices",
         "passed": true
       },
       {
-        "line": 376,
-        "code_line": "vindex[0] == 0",
+        "line": 558,
+        "code_line": "vertex_to_index[0] == 0",
         "passed": true
       },
       {
-        "line": 377,
-        "code_line": "vindex[1] == 1",
+        "line": 559,
+        "code_line": "vertex_to_index[1] == 1",
         "passed": true
       },
       {
-        "line": 378,
-        "code_line": "vindex[2] == 2",
+        "line": 560,
+        "code_line": "vertex_to_index[2] == 2",
         "passed": true
       },
       {
-        "line": 379,
-        "code_line": "vindex[3] == 3",
+        "line": 561,
+        "code_line": "vertex_to_index[3] == 3",
         "passed": true
       },
       {
-        "line": 380,
-        "code_line": "vindex[4] == 4",
+        "line": 562,
+        "code_line": "vertex_to_index[4] == 4",
         "passed": true
       },
       {
-        "line": 381,
-        "code_line": "vindex[5] == 5",
+        "line": 563,
+        "code_line": "vertex_to_index[5] == 5",
         "passed": true
       },
       {
-        "line": 382,
-        "code_line": "vindex[6] == 6",
+        "line": 564,
+        "code_line": "vertex_to_index[6] == 6",
         "passed": true
       },
       {
-        "line": 383,
-        "code_line": "vindex[7] == 7",
+        "line": 565,
+        "code_line": "vertex_to_index[7] == 7",
+        "passed": true
+      },
+      {
+        "line": 572,
+        "code_line": "k0 == 0",
+        "passed": true
+      },
+      {
+        "line": 573,
+        "code_line": "k1 == 5",
+        "passed": true
+      },
+      {
+        "line": 574,
+        "code_line": "k2 == 10",
+        "passed": true
+      },
+      {
+        "line": 579,
+        "code_line": "v0  == 0",
+        "passed": true
+      },
+      {
+        "line": 580,
+        "code_line": "v5  == 1",
+        "passed": true
+      },
+      {
+        "line": 581,
+        "code_line": "v10 == 2",
         "passed": true
       }
     ],
@@ -472,22 +607,22 @@
   {
     "test_name": "Edges",
     "passed": true,
-    "time_ms": 0.055,
-    "line": 386,
+    "time_ms": 0.022,
+    "line": 584,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n\n    edges = mesh.edges()",
     "checks": [
       {
-        "line": 399,
+        "line": 597,
         "code_line": "len(edges) == 4",
         "passed": true
       },
       {
-        "line": 400,
+        "line": 598,
         "code_line": "isinstance(edges[0], tuple)",
         "passed": true
       },
       {
-        "line": 401,
+        "line": 599,
         "code_line": "edges[0] == (0, 3)",
         "passed": true
       }
@@ -497,223 +632,138 @@
   {
     "test_name": "Vertex and Face Operations",
     "passed": true,
-    "time_ms": 0.21,
-    "line": 404,
-    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u2014 None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    invalid1 = mesh.add_face([v0, v1])\n    invalid2 = mesh.add_face([v0, v1, v0])\n\n    # clear\n    mesh.clear()\n\n    # unify_winding \u2014 two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])\n    f1 = mesh.add_face([p1, p2, p3])\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)",
+    "time_ms": 0.95,
+    "line": 602,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u2014 None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    invalid1 = mesh.add_face([v0, v1])\n    invalid2 = mesh.add_face([v0, v1, v0])\n\n    # clear\n    mesh.clear()\n\n    # unify_winding \u2014 two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])  # +z normal\n    f1 = mesh.add_face([p1, p2, p3])  # -z normal (wrong: same halfedge dir)\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)\n\n    # Unweld and weld\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n\n    w = u.weld(0.001)\n    for vk in w.vertex:",
     "checks": [
       {
-        "line": 412,
+        "line": 610,
         "code_line": "v0 == 0",
         "passed": true
       },
       {
-        "line": 413,
+        "line": 611,
         "code_line": "mesh.number_of_vertices() == 1",
         "passed": true
       },
       {
-        "line": 414,
+        "line": 612,
         "code_line": "not mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 416,
+        "line": 614,
         "code_line": "v1 == 42",
         "passed": true
       },
       {
-        "line": 417,
+        "line": 615,
         "code_line": "mesh.number_of_vertices() == 2",
         "passed": true
       },
       {
-        "line": 422,
+        "line": 620,
         "code_line": "f is not None",
         "passed": true
       },
       {
-        "line": 424,
+        "line": 622,
         "code_line": "invalid1 is None",
         "passed": true
       },
       {
-        "line": 426,
+        "line": 624,
         "code_line": "invalid2 is None",
         "passed": true
       },
       {
-        "line": 430,
+        "line": 628,
         "code_line": "mesh.is_empty()",
         "passed": true
       },
       {
-        "line": 431,
+        "line": 629,
         "code_line": "mesh.number_of_vertices() == 0",
         "passed": true
       },
       {
-        "line": 432,
+        "line": 630,
         "code_line": "mesh.number_of_faces() == 0",
         "passed": true
       },
       {
-        "line": 444,
+        "line": 642,
         "code_line": "n0_before is not None and n1_before is not None",
         "passed": true
       },
       {
-        "line": 445,
-        "code_line": "n0_before[0]*n1_before[0] + n0_before[1]*n1_before[1] + n0_before[2]*n1_before[2] < 0.0",
+        "line": 643,
+        "code_line": "n0_before.dot(n1_before) < 0.0",
         "passed": true
       },
       {
-        "line": 451,
+        "line": 649,
         "code_line": "n0_after is not None and n1_after is not None",
         "passed": true
       },
       {
-        "line": 452,
-        "code_line": "n0_after[0]*n1_after[0] + n0_after[1]*n1_after[1] + n0_after[2]*n1_after[2] > 0.0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "test_name": "Unweld",
-    "passed": true,
-    "time_ms": 0.341,
-    "line": 455,
-    "code": "    from session_py.mesh import Mesh\n\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n\n    for vk in u.vertex:",
-    "checks": [
-      {
-        "line": 462,
-        "code_line": "u.number_of_faces() == box.number_of_faces()",
+        "line": 650,
+        "code_line": "n0_after.dot(n1_after) > 0.0",
         "passed": true
       },
       {
-        "line": 463,
+        "line": 655,
         "code_line": "u.number_of_vertices() == 24",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 658,
+        "code_line": "w.number_of_vertices() == 8",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 659,
+        "code_line": "w.number_of_faces() == 6",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       },
       {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
-        "passed": true
-      },
-      {
-        "line": 465,
-        "code_line": "len(u.vertex_faces(vk)) == 1",
+        "line": 661,
+        "code_line": "len(w.vertex_faces(vk)) == 3",
         "passed": true
       }
     ],
@@ -722,137 +772,137 @@
   {
     "test_name": "Connectivity Queries",
     "passed": true,
-    "time_ms": 0.098,
-    "line": 468,
+    "time_ms": 0.066,
+    "line": 664,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v4 = mesh.add_vertex(Point(2.0, 0.0, 0.0))\n    f0 = mesh.add_face([v0, v1, v2, v3])\n    f1 = mesh.add_face([v1, v4, v2])\n\n    # vertex_position\n    pos = mesh.vertex_position(v0)\n\n    # face_vertices\n    fv = mesh.face_vertices(f0)\n\n    # vertex_neighbors\n    nb = mesh.vertex_neighbors(v1)\n\n    # vertex_faces\n    vf0 = mesh.vertex_faces(v0)\n    vf1 = mesh.vertex_faces(v1)\n\n    # vertex_edges\n    ve = mesh.vertex_edges(v1)\n\n    # face_edges\n    fe = mesh.face_edges(f0)\n\n    # face_neighbors\n    fn0 = mesh.face_neighbors(f0)\n\n    # edge_vertices\n    ev = mesh.edge_vertices(v0, v1)\n\n    # edge_faces\n    ef_inner = mesh.edge_faces(v1, v2)\n    ef_boundary = mesh.edge_faces(v0, v1)\n\n    # edge_edges\n    ee = mesh.edge_edges(v1, v2)",
     "checks": [
       {
-        "line": 484,
+        "line": 680,
         "code_line": "pos is not None",
         "passed": true
       },
       {
-        "line": 485,
+        "line": 681,
         "code_line": "TOLERANCE.is_point_close(pos, Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 486,
+        "line": 682,
         "code_line": "mesh.vertex_position(999) is None",
         "passed": true
       },
       {
-        "line": 490,
+        "line": 686,
         "code_line": "fv is not None",
         "passed": true
       },
       {
-        "line": 491,
+        "line": 687,
         "code_line": "len(fv) == 4",
         "passed": true
       },
       {
-        "line": 492,
+        "line": 688,
         "code_line": "fv[0] == v0 and fv[1] == v1 and fv[2] == v2 and fv[3] == v3",
         "passed": true
       },
       {
-        "line": 496,
+        "line": 692,
         "code_line": "len(nb) == 3",
         "passed": true
       },
       {
-        "line": 500,
+        "line": 696,
         "code_line": "len(vf0) == 1",
         "passed": true
       },
       {
-        "line": 502,
+        "line": 698,
         "code_line": "len(vf1) == 2",
         "passed": true
       },
       {
-        "line": 506,
+        "line": 702,
         "code_line": "len(ve) == 3",
         "passed": true
       },
       {
-        "line": 507,
+        "line": 703,
         "code_line": "(v1, v0) in ve",
         "passed": true
       },
       {
-        "line": 508,
+        "line": 704,
         "code_line": "(v1, v2) in ve",
         "passed": true
       },
       {
-        "line": 509,
+        "line": 705,
         "code_line": "(v1, v4) in ve",
         "passed": true
       },
       {
-        "line": 513,
+        "line": 709,
         "code_line": "len(fe) == 4",
         "passed": true
       },
       {
-        "line": 514,
+        "line": 710,
         "code_line": "fe[0] == (v0, v1)",
         "passed": true
       },
       {
-        "line": 515,
+        "line": 711,
         "code_line": "fe[1] == (v1, v2)",
         "passed": true
       },
       {
-        "line": 516,
+        "line": 712,
         "code_line": "fe[2] == (v2, v3)",
         "passed": true
       },
       {
-        "line": 517,
+        "line": 713,
         "code_line": "fe[3] == (v3, v0)",
         "passed": true
       },
       {
-        "line": 521,
+        "line": 717,
         "code_line": "len(fn0) == 1",
         "passed": true
       },
       {
-        "line": 522,
+        "line": 718,
         "code_line": "fn0[0] == f1",
         "passed": true
       },
       {
-        "line": 526,
+        "line": 722,
         "code_line": "ev[0] == v0 and ev[1] == v1",
         "passed": true
       },
       {
-        "line": 530,
+        "line": 726,
         "code_line": "ef_inner[0] is not None and ef_inner[1] is not None",
         "passed": true
       },
       {
-        "line": 532,
+        "line": 728,
         "code_line": "(ef_boundary[0] is not None) != (ef_boundary[1] is not None)",
         "passed": true
       },
       {
-        "line": 536,
+        "line": 732,
         "code_line": "len(ee) == 4",
         "passed": true
       },
       {
-        "line": 537,
+        "line": 733,
         "code_line": "(v1, v2) not in ee",
         "passed": true
       },
       {
-        "line": 538,
+        "line": 734,
         "code_line": "(v2, v1) not in ee",
         "passed": true
       }
@@ -862,108 +912,118 @@
   {
     "test_name": "Geometric Properties",
     "passed": true,
-    "time_ms": 1.054,
-    "line": 541,
-    "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import NormalWeighting\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f0 = mesh.add_face([v0, v1, v3])\n    f1 = mesh.add_face([v0, v3, v2])\n\n    # face_normal\n    fn = mesh.face_normal(f0)\n\n    # vertex_normal\n    vn = mesh.vertex_normal(v0)\n\n    # vertex_normal_weighted\n    vnw = mesh.vertex_normal_weighted(v0, NormalWeighting.ANGLE)\n\n    # face_area\n    area = mesh.face_area(f0)\n\n    # vertex_angle_in_face\n    angle = mesh.vertex_angle_in_face(v0, f0)\n\n    # dihedral_angle \u2014 interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n    da = mesh.dihedral_angle(v3, v0)\n    # boundary edge \u2014 only one face\n\n    # face_normals\n    fns = mesh.face_normals()\n\n    # vertex_normals\n    vns = mesh.vertex_normals()\n\n    # vertex_normals_weighted\n    vnsw = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)",
+    "time_ms": 0.267,
+    "line": 737,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import NormalWeighting\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f0 = mesh.add_face([v0, v1, v3])\n    f1 = mesh.add_face([v0, v3, v2])\n\n    # face_normal\n    fn = mesh.face_normal(f0)\n\n    # vertex_normal\n    vn = mesh.vertex_normal(v0)\n\n    # vertex_normal_weighted\n    vnw = mesh.vertex_normal_weighted(v0, NormalWeighting.ANGLE)\n\n    # face_area\n    area = mesh.face_area(f0)\n\n    # vertex_angle_in_face\n    angle = mesh.vertex_angle_in_face(v0, f0)\n\n    # dihedral_angle \u2014 interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n    da = mesh.dihedral_angle(v3, v0)\n    # boundary edge \u2014 only one face\n\n    # face_normals\n    fns = mesh.face_normals()\n\n    # vertex_normals\n    vns = mesh.vertex_normals()\n\n    # vertex_normals_weighted\n    vnsw = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n\n    # area\n    box = Mesh.create_box(2.0, 2.0, 2.0)\n\n    # volume",
     "checks": [
       {
-        "line": 557,
+        "line": 753,
         "code_line": "fn is not None",
         "passed": true
       },
       {
-        "line": 558,
+        "line": 754,
         "code_line": "TOLERANCE.is_close(fn[2], 1.0)",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 758,
         "code_line": "vn is not None",
         "passed": true
       },
       {
-        "line": 563,
+        "line": 759,
         "code_line": "abs(vn[2]) == 1.0",
         "passed": true
       },
       {
-        "line": 567,
+        "line": 763,
         "code_line": "vnw is not None",
         "passed": true
       },
       {
-        "line": 568,
+        "line": 764,
         "code_line": "TOLERANCE.is_close(vnw[2], 1.0)",
         "passed": true
       },
       {
-        "line": 572,
+        "line": 768,
         "code_line": "area is not None",
         "passed": true
       },
       {
-        "line": 573,
+        "line": 769,
         "code_line": "TOLERANCE.is_close(area, 0.5)",
         "passed": true
       },
       {
-        "line": 577,
+        "line": 773,
         "code_line": "angle is not None",
         "passed": true
       },
       {
-        "line": 578,
+        "line": 774,
         "code_line": "TOLERANCE.is_close(angle, TOLERANCE.PI / 2.0)",
         "passed": true
       },
       {
-        "line": 579,
+        "line": 775,
         "code_line": "mesh.vertex_angle_in_face(999, f0) is None",
         "passed": true
       },
       {
-        "line": 583,
+        "line": 779,
         "code_line": "da is not None",
         "passed": true
       },
       {
-        "line": 584,
+        "line": 780,
         "code_line": "TOLERANCE.is_close(da, TOLERANCE.PI)",
         "passed": true
       },
       {
-        "line": 586,
+        "line": 782,
         "code_line": "mesh.dihedral_angle(v0, v1) is None",
         "passed": true
       },
       {
-        "line": 590,
+        "line": 786,
         "code_line": "len(fns) == 2",
         "passed": true
       },
       {
-        "line": 591,
+        "line": 787,
         "code_line": "TOLERANCE.is_close(fns[f0][2], 1.0)",
         "passed": true
       },
       {
-        "line": 595,
+        "line": 791,
         "code_line": "len(vns) == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 596,
+        "line": 792,
         "code_line": "TOLERANCE.is_close(vns[v0][2], 1.0)",
         "passed": true
       },
       {
-        "line": 600,
+        "line": 796,
         "code_line": "len(vnsw) == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 601,
+        "line": 797,
         "code_line": "TOLERANCE.is_close(vnsw[v0][2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 801,
+        "code_line": "TOLERANCE.is_close(box.area(), 24.0)",
+        "passed": true
+      },
+      {
+        "line": 804,
+        "code_line": "TOLERANCE.is_close(box.volume(), 8.0)",
         "passed": true
       }
     ],
@@ -972,47 +1032,47 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.487,
-    "line": 604,
+    "time_ms": 0.334,
+    "line": 807,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # transform() \u2014 apply stored xform in-place; xform field unchanged\n    mesh1 = mesh.duplicate()\n    mesh1.xform = Xform.translation(0.0, 0.0, 1.0)\n    mesh1.transform()\n\n    # transform(xf) \u2014 apply given xform in-place; stored xform unchanged\n    mesh2 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 1.0)\n    mesh2.transform(x)\n\n    # transformed() \u2014 copy with stored xform applied\n    mesh3 = mesh.duplicate()\n    mesh3.xform = Xform.translation(0.0, 0.0, 10.0)\n    mesh3t = mesh3.transformed()\n\n    # transformed(xf) \u2014 copy with given xform applied\n    mesh4 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 10.0)\n    mesh4t = mesh4.transformed(x)",
     "checks": [
       {
-        "line": 620,
+        "line": 823,
         "code_line": "not mesh1.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 621,
+        "line": 824,
         "code_line": "mesh1.vertex_position(v0)[2] == 1.0",
         "passed": true
       },
       {
-        "line": 627,
+        "line": 830,
         "code_line": "mesh2.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 628,
+        "line": 831,
         "code_line": "mesh2.vertex_position(v0)[2] == 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 837,
         "code_line": "not mesh3t.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 635,
+        "line": 838,
         "code_line": "mesh3t.vertex_position(v0)[2] == 10.0",
         "passed": true
       },
       {
-        "line": 641,
+        "line": 844,
         "code_line": "mesh4t.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 642,
+        "line": 845,
         "code_line": "mesh4t.vertex_position(v0)[2] == 10.0",
         "passed": true
       }
@@ -1022,77 +1082,82 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.32,
-    "line": 645,
-    "code": "    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # JSON object\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]",
+    "time_ms": 10.834,
+    "line": 848,
+    "code": "    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # JSON object\n    from session_py import Xform\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]",
     "checks": [
       {
-        "line": 661,
+        "line": 866,
         "code_line": "loaded_json.name == mesh.name",
         "passed": true
       },
       {
-        "line": 662,
+        "line": 867,
         "code_line": "loaded_json.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 663,
+        "line": 868,
         "code_line": "loaded_json.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 668,
+        "line": 869,
+        "code_line": "loaded_json.xform == mesh.xform",
+        "passed": true
+      },
+      {
+        "line": 874,
         "code_line": "loaded_string.name == mesh.name",
         "passed": true
       },
       {
-        "line": 669,
+        "line": 875,
         "code_line": "loaded_string.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 675,
+        "line": 881,
         "code_line": "loaded_file.name == mesh.name",
         "passed": true
       },
       {
-        "line": 676,
+        "line": 882,
         "code_line": "loaded_file.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 677,
+        "line": 883,
         "code_line": "loaded_file.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 681,
+        "line": 887,
         "code_line": "len(pmesh.triangulation) > 0",
         "passed": true
       },
       {
-        "line": 684,
+        "line": 890,
         "code_line": "len(loaded_tri.triangulation) > 0",
         "passed": true
       },
       {
-        "line": 685,
+        "line": 891,
         "code_line": "fk in loaded_tri.triangulation",
         "passed": true
       },
       {
-        "line": 691,
+        "line": 897,
         "code_line": "len(hmesh.face_holes) > 0",
         "passed": true
       },
       {
-        "line": 694,
+        "line": 900,
         "code_line": "len(loaded_holes.face_holes) > 0",
         "passed": true
       },
       {
-        "line": 695,
+        "line": 901,
         "code_line": "loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk]",
         "passed": true
       }
@@ -1102,67 +1167,67 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.279,
-    "line": 698,
+    "time_ms": 9.631,
+    "line": 904,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh_proto\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]",
     "checks": [
       {
-        "line": 714,
+        "line": 920,
         "code_line": "loaded_string.name == mesh.name",
         "passed": true
       },
       {
-        "line": 715,
+        "line": 921,
         "code_line": "loaded_string.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 721,
+        "line": 927,
         "code_line": "loaded_file.name == mesh.name",
         "passed": true
       },
       {
-        "line": 722,
+        "line": 928,
         "code_line": "loaded_file.number_of_vertices() == mesh.number_of_vertices()",
         "passed": true
       },
       {
-        "line": 723,
+        "line": 929,
         "code_line": "loaded_file.number_of_faces() == mesh.number_of_faces()",
         "passed": true
       },
       {
-        "line": 724,
+        "line": 930,
         "code_line": "loaded_file.guid == mesh.guid",
         "passed": true
       },
       {
-        "line": 728,
+        "line": 934,
         "code_line": "len(pmesh.triangulation) > 0",
         "passed": true
       },
       {
-        "line": 731,
+        "line": 937,
         "code_line": "len(loaded_tri.triangulation) > 0",
         "passed": true
       },
       {
-        "line": 732,
+        "line": 938,
         "code_line": "fk in loaded_tri.triangulation",
         "passed": true
       },
       {
-        "line": 738,
+        "line": 944,
         "code_line": "len(hmesh.face_holes) > 0",
         "passed": true
       },
       {
-        "line": 741,
+        "line": 947,
         "code_line": "len(loaded_holes.face_holes) > 0",
         "passed": true
       },
       {
-        "line": 742,
+        "line": 948,
         "code_line": "loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk]",
         "passed": true
       }

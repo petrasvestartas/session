@@ -1,0 +1,42 @@
+Add a new recipe to the Vue viewer CLI (`.claude/skills/web_recipes.md`).
+
+Usage: /recipe <description>  — e.g. "loft through 3 curves", "offset a mesh face"
+
+## Workflow
+1. Look up the relevant API in all 3 languages:
+   - `session_py/src/session_py/` — find method signatures
+   - `session_rust/src/` — find Rust equivalents
+   - `session_cpp/src/` — find C++ equivalents
+2. Write a minimal, working example in all 3 languages (5-10 lines each)
+3. Append a new `## Title` section to `.claude/skills/web_recipes.md` in this exact format:
+
+```
+## <Title>
+
+**C++:**
+```cpp
+...
+```
+
+**Python:**
+```python
+...
+```
+
+**Rust:**
+```rust
+...
+```
+```
+
+## Rules
+- Title: concise noun phrase describing the operation (e.g. "Offset a Polyline")
+- Code: minimal — no boilerplate, no comments, just the key API calls
+- Use correct imports for each language (same pattern as existing recipes)
+- Python: `from session_py import ClassName`
+- C++: `#include "filename.h"`
+- Rust: `use crate::module::ClassName;`
+- Verify the API exists: check source files before writing
+
+## After adding
+Run `./bash/minitest.sh --no-web` to regenerate `apiIndex.js` with the new recipe.

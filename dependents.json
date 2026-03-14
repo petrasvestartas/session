@@ -1,0 +1,9 @@
+{
+  "repos": [
+    {
+      "owner": "petrasvestartas",
+      "repo": "PolygonEngineering",
+      "workflow": "test.yml"
+    }
+  ]
+}

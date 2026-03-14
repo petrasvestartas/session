@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.018,
     "line": 7,
     "code": "        use crate::Vector;\n        use crate::Point;\n\n        // Constructor\n        let mut v = Vector::new(1.0, 2.0, 3.0);\n        let p0 = Point::new(1.0, 2.0, 3.0);\n        let p1 = Point::new(2.0, 4.0, 6.0);    \n        let v_2p = Vector::from_points(&p0, &p1);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        let x = v[0];\n        let y = v[1];\n        let z = v[2];\n\n        // Minimal and full string representation\n        let vsrt = v.str();\n        let vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        let vcopy = v.duplicate();\n        let vother = Vector::new(1.0, 2.0, 3.0);\n\n        // No-copy operators d\n        let mut vmult = v.duplicate();\n        vmult *= 2.0;\n        let mut vdiv = v.duplicate();\n        vdiv /= 2.0;\n        let mut vadd = v.duplicate();\n        vadd += Vector::new(1.0, 1.0, 1.0);\n        let mut vsub = v.duplicate();\n        vsub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &v * 2.0;\n        let result_div = &v / 2.0;\n        let result_add = &v + Vector::new(1.0, 1.0, 1.0);\n        let result_dif = &v - Vector::new(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        let vx = Vector::x_axis();\n        let vy = Vector::y_axis();\n        let vz = Vector::z_axis();\n        let vzero = Vector::zero();\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Dot Product",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 125,
     "code": "        use crate::Vector;\n\n        // Orthogonality and parallelism via dot product\n        // Perpendicular vectors are close to 0.0\n        // Parallel vectors are close to 1.0\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n        let v3 = Vector::new(1.0, 0.0, 0.0);\n        let dot_perp = v1.dot(&v2);\n        let dot_paral = v1.dot(&v3);\n\n        // Projection of a onto b\n        // Scalar projection:\n        // (a . b) / ||b|| (here ||b||=1, so just a_x = 3.0)\n        // Projection coefficient:\n        // (a . b) / ||b||^2 = 6/4 = 1.5 (how many b2's fit in projection)\n        let a = Vector::new(3.0, 4.0, 0.0);\n        let b = Vector::new(1.0, 0.0, 0.0);\n        let b2 = Vector::new(2.0, 0.0, 0.0);\n        let proj_scalar = a.dot(&b) / (b[0].powi(2) + b[1].powi(2) + b[2].powi(2)).sqrt();\n        let proj_coeff = a.dot(&b2) / (b2[0].powi(2) + b2[1].powi(2) + b2[2].powi(2));\n",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 156,
     "code": "        use crate::Vector;\n\n        // Get normal\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n        let vn = v1.cross(&v2);\n\n        // Perpendicular, area = 3*4=12\n        let a = Vector::new(3.0, 0.0, 0.0);\n        let b = Vector::new(0.0, 4.0, 0.0); \n        let cross = a.cross(&b);\n        let area = (cross[0].powi(2) + cross[1].powi(2) + cross[2].powi(2)).sqrt();\n        \n",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "Angle",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 177,
     "code": "        use crate::Vector;\n\n        // angle(): Angle between two vectors (degrees)\n        let v1 = Vector::new(1.0, 0.0, 0.0);  // x-axis\n        let v2 = Vector::new(0.0, 1.0, 0.0);  // y-axis\n        let v3 = Vector::new(1.0, 1.0, 0.0);  // 45° from x-axis\n\n        let angle_90 = v1.angle(&v2, false);  // v1 to v2: 90°\n        let angle_45 = v1.angle(&v3, false);  // v1 to v3: 45°\n\n        // angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n        let v_30 = Vector::new(3.0_f64.sqrt(), 1.0, 0.0);  // 30° from x-axis\n        let v_60 = Vector::new(1.0, 3.0_f64.sqrt(), 0.0);  // 60° from x-axis\n        let v_neg = Vector::new(-1.0, 1.0, 0.0);           // 135° from x-axis\n\n        let xy_angle_30 = Vector::angle_between_vector_xy_components(&v_30);\n        let xy_angle_60 = Vector::angle_between_vector_xy_components(&v_60);\n        let xy_angle_135 = Vector::angle_between_vector_xy_components(&v_neg);\n\n        // coordinate_direction_3angles(): Angles (α, β, γ) to x, y, z axes\n        let v_dir = Vector::new(35.4, 35.4, 86.6);\n        let abg = v_dir.coordinate_direction_3angles(true);\n\n        // coordinate_direction_2angles(): Spherical angles (θ azimuth, φ elevation)\n        let v_sph = Vector::new(1.0, 1.0, 2.0_f64.sqrt());\n        let pt = v_sph.coordinate_direction_2angles(true);\n",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "Projection",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 219,
     "code": "        use crate::Vector;\n\n        // Project vector v=(1,1,1) onto each axis\n        // Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n        let v = Vector::new(1.0, 1.0, 1.0);\n        let x = Vector::x_axis();\n        let y = Vector::y_axis();\n        let z = Vector::z_axis();\n        let (proj_x, _lenx, _perp_x, _perp_lenx) = v.projection(&x);\n        let (proj_y, _leny, _perp_y, _perp_leny) = v.projection(&y);\n        let (proj_z, _lenz, _perp_z, _perp_lenz) = v.projection(&z);\n",
     "checks": [
@@ -297,7 +297,7 @@
   {
     "test_name": "Is Parallel To",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 239,
     "code": "        use crate::Vector;\n\n        // is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n        let v1 = Vector::new(2.0, 2.0, 2.0);\n        let v2 = Vector::new(4.0, 4.0, 4.0);      // parallel (same direction)\n        let v3 = Vector::new(-1.0, -1.0, -1.0);   // anti-parallel (opposite direction)\n        let v4 = Vector::new(1.0, 0.0, 0.0);      // not parallel\n",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "Cos Sin Laws",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 297,
     "code": "        use crate::Vector;\n\n        // Given a 3-4-5 right triangle\n        let a = 3.0; // side opposite to angle A\n        let b = 4.0; // side opposite to angle B\n        let c = 5.0; // hypotenuse, opposite to angle C (90°)\n\n        // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n        let angle_a = Vector::angle_from_cosine_law(b, c, a, true); \n        let angle_b = Vector::angle_from_cosine_law(a, c, b, true); \n        let angle_c = Vector::angle_from_cosine_law(a, b, c, true); \n\n        // given 2 angles + 1 side, find other side\n        let side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n        let side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n        let side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n        //  given 2 sides + included angle, find 3rd side\n        let computed_c = Vector::cosine_law(a, b, angle_c, true); \n        let computed_a = Vector::cosine_law(b, c, angle_a, true);\n        let computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n        // given 2 sides + 1 angle, find other angle\n        let computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n        let computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n        //  given 1 side + 2 angles, find other side\n        let computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n        let computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.051,
+    "time_ms": 8.321,
     "line": 401,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.919,
+    "time_ms": 0.829,
     "line": 424,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test pb_dump / pb_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.pb_dump(filename);\n        let loaded = Vector::pb_load(filename);\n",
     "checks": [
