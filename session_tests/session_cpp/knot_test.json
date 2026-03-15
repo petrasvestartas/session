@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.003,
     "line": 14,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate knot counts for various order/cv_count combinations\n    int count1 = knot::knot_count(2, 2);\n    int count2 = knot::knot_count(3, 3);\n    int count3 = knot::knot_count(4, 4);\n    int count4 = knot::knot_count(4, 5);\n    int count5 = knot::knot_count(3, 4);\n",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 58,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Create periodic uniform knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3], k4 = k[4];\n",
     "checks": [

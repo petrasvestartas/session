@@ -2,7 +2,7 @@
   {
     "test_name": "Eval Gyroid",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.041,
     "line": 8,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "From Tpms Gyroid Solid",
     "passed": true,
-    "time_ms": 7.52,
+    "time_ms": 7.561,
     "line": 33,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SOLID)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "From Tpms Diamond Sheet",
     "passed": true,
-    "time_ms": 30.287,
+    "time_ms": 29.814,
     "line": 48,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHEET, 0.1)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "From Tpms Neovius Shell",
     "passed": true,
-    "time_ms": 26.534,
+    "time_ms": 25.591,
     "line": 61,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Smooth Union",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 83,
     "code": "    from session_py import MeshIso",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "From Function",
     "passed": true,
-    "time_ms": 2.908,
+    "time_ms": 2.824,
     "line": 91,
     "code": "    from session_py import MeshIso\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
