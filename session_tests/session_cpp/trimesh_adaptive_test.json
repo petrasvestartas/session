@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.017,
     "line": 10,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshAdaptive ta(s);\n",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 9.671,
+    "time_ms": 10.784,
     "line": 34,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshAdaptive ta(s);\n    Mesh m = ta.mesh();\n",
     "checks": [

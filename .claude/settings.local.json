@@ -29,7 +29,9 @@
       "Bash(./minitests.exe:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(bash bash/minitest.sh --py --no-web)",
+      "Bash(bash bash/quicktest.sh BVH --py)"
     ]
   },
   "enableAllProjectMcpServers": true,

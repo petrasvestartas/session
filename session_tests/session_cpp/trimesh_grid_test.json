@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.009,
     "line": 10,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshGrid tg(s);\n",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 1.821,
+    "time_ms": 2.183,
     "line": 34,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshGrid tg(s);\n    Mesh m = tg.mesh();\n",
     "checks": [

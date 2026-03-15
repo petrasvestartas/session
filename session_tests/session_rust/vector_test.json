@@ -162,7 +162,7 @@
   {
     "test_name": "Dot Product",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 125,
     "code": "        use crate::Vector;\n\n        // Orthogonality and parallelism via dot product\n        // Perpendicular vectors are close to 0.0\n        // Parallel vectors are close to 1.0\n        let v1 = Vector::new(1.0, 0.0, 0.0);\n        let v2 = Vector::new(0.0, 1.0, 0.0);\n        let v3 = Vector::new(1.0, 0.0, 0.0);\n        let dot_perp = v1.dot(&v2);\n        let dot_paral = v1.dot(&v3);\n\n        // Projection of a onto b\n        // Scalar projection:\n        // (a . b) / ||b|| (here ||b||=1, so just a_x = 3.0)\n        // Projection coefficient:\n        // (a . b) / ||b||^2 = 6/4 = 1.5 (how many b2's fit in projection)\n        let a = Vector::new(3.0, 4.0, 0.0);\n        let b = Vector::new(1.0, 0.0, 0.0);\n        let b2 = Vector::new(2.0, 0.0, 0.0);\n        let proj_scalar = a.dot(&b) / (b[0].powi(2) + b[1].powi(2) + b[2].powi(2)).sqrt();\n        let proj_coeff = a.dot(&b2) / (b2[0].powi(2) + b2[1].powi(2) + b2[2].powi(2));\n",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "Get Leveled Vector",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 284,
     "code": "        use crate::Vector;\n\n        // Scale vector along its direction so its Z-component equals vertical_height.\n        let v = Vector::new(1.0, 1.0, 1.0);\n        let vertical_height = 1.0;\n        let v_leveled = v.get_leveled_vector(vertical_height);\n",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "Cos Sin Laws",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 297,
     "code": "        use crate::Vector;\n\n        // Given a 3-4-5 right triangle\n        let a = 3.0; // side opposite to angle A\n        let b = 4.0; // side opposite to angle B\n        let c = 5.0; // hypotenuse, opposite to angle C (90°)\n\n        // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n        let angle_a = Vector::angle_from_cosine_law(b, c, a, true); \n        let angle_b = Vector::angle_from_cosine_law(a, c, b, true); \n        let angle_c = Vector::angle_from_cosine_law(a, b, c, true); \n\n        // given 2 angles + 1 side, find other side\n        let side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n        let side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n        let side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n        //  given 2 sides + included angle, find 3rd side\n        let computed_c = Vector::cosine_law(a, b, angle_c, true); \n        let computed_a = Vector::cosine_law(b, c, angle_a, true);\n        let computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n        // given 2 sides + 1 angle, find other angle\n        let computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n        let computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n        //  given 1 side + 2 angles, find other side\n        let computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n        let computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);\n",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.321,
+    "time_ms": 10.132,
     "line": 401,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.829,
+    "time_ms": 1.242,
     "line": 424,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test pb_dump / pb_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.pb_dump(filename);\n        let loaded = Vector::pb_load(filename);\n",
     "checks": [
