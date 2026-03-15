@@ -7411,8 +7411,8 @@ window.API_INDEX = {
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "return from_polylines(polygons, 0.01)",
-          "code": "return Mesh::from_polylines(polygons, 0.01);\n}",
+          "sig": "return from_polylines(faces, 1e-10)",
+          "code": "return Mesh::from_polylines(faces, 1e-10);\n}",
           "file": "primitives.cpp"
         },
         "rust": {
@@ -7922,7 +7922,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_empty() -> bool",
-          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (",
+          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result",
           "file": "mesh.py"
         },
         "rust": {
@@ -7934,7 +7934,6 @@ window.API_INDEX = {
       "related": [
         "Mesh.centroid",
         "Mesh.edges",
-        "Mesh.euler",
         "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.from_lines",
@@ -7964,7 +7963,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_valid() -> bool",
-          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):",
+          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7979,9 +7978,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.clear",
         "Mesh.edges",
-        "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
@@ -7991,6 +7988,7 @@ window.API_INDEX = {
         "Mesh.is_face_on_boundary",
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices"
@@ -8001,7 +7999,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_closed() -> bool",
-          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()",
+          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8016,9 +8014,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.clear",
         "Mesh.edges",
-        "Mesh.euler",
         "Mesh.face_edges",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_edge_on_boundary",
@@ -8027,10 +8023,11 @@ window.API_INDEX = {
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.pointcolors"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -8038,7 +8035,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_vertex_on_boundary(vertex_key: int) -> bool",
-          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):",
+          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8053,11 +8050,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.clear",
         "Mesh.edges",
-        "Mesh.euler",
         "Mesh.face_edges",
-        "Mesh.facecolors",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -8065,15 +8059,13 @@ window.API_INDEX = {
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
-        "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.objectcolor",
-        "Mesh.pointcolors",
-        "Mesh.set_pointcolors",
-        "Mesh.widths"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -8081,7 +8073,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_edge_on_boundary(u: int, v: int) -> bool",
-          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color",
+          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8100,7 +8092,6 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
-        "Mesh.facecolors",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -8108,18 +8099,13 @@ window.API_INDEX = {
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
-        "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.objectcolor",
-        "Mesh.pointcolors",
-        "Mesh.set_facecolors",
-        "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
-        "Mesh.set_pointcolors",
-        "Mesh.widths"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -8127,7 +8113,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_face_on_boundary(face_key: int) -> bool",
-          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors",
+          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8146,25 +8132,19 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
-        "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
-        "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
-        "Mesh.objectcolor",
-        "Mesh.pointcolors",
-        "Mesh.set_facecolors",
-        "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
-        "Mesh.set_pointcolors",
-        "Mesh.widths"
+        "Mesh.number_of_vertices"
       ]
     },
     {
@@ -8172,7 +8152,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_vertices() -> int",
-          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property",
+          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None",
           "file": "mesh.py"
         },
         "rust": {
@@ -8193,9 +8173,6 @@ window.API_INDEX = {
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
-        "Mesh.get_facecolors",
-        "Mesh.get_linecolors",
-        "Mesh.get_pointcolors",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8205,15 +8182,14 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.set_facecolors",
-        "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
-        "Mesh.set_pointcolors",
         "Mesh.str",
         "Mesh.widths",
         "Mesh.xform"
@@ -8224,7 +8200,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_faces() -> int",
-          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor",
+          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)",
           "file": "mesh.py"
         },
         "rust": {
@@ -8245,9 +8221,6 @@ window.API_INDEX = {
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
-        "Mesh.get_facecolors",
-        "Mesh.get_linecolors",
-        "Mesh.get_pointcolors",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8257,14 +8230,14 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.repr",
-        "Mesh.set_facecolors",
-        "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.str",
         "Mesh.widths",
@@ -8276,7 +8249,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_edges() -> int",
-          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self):\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value",
+          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8296,15 +8269,13 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh.add_face",
         "Mesh.clear",
         "Mesh.duplicate",
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
-        "Mesh.get_facecolors",
-        "Mesh.get_linecolors",
-        "Mesh.get_pointcolors",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8314,15 +8285,19 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.repr",
         "Mesh.set_facecolors",
-        "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.widths",
         "Mesh.xform"
@@ -8332,18 +8307,18 @@ window.API_INDEX = {
       "name": "Mesh.edges",
       "implementations": {
         "python": {
-          "sig": "edges()",
-          "code": "def edges(self):\n\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                if self.halfedge[u][v] is None:\n                    result.append((u, v))\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):",
+          "sig": "edges() -> List[Tuple[int, int]]",
+          "code": "def edges(self) -> List[Tuple[int, int]]:\n\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors",
           "file": "mesh.py"
         },
         "cpp": {
           "sig": "std::vector<std::pair<size_t, size_t>> edges()",
-          "code": "std::vector<std::pair<size_t, size_t>> Mesh::edges() const {\n    std::vector<std::pair<size_t, size_t>> result;\n    for (const auto& [u, neighbors] : halfedge)\n        for (const auto& [v, face_opt] : neighbors)\n            if (!face_opt.has_value())\n                result.push_back({u, v}",
+          "code": "std::vector<std::pair<size_t, size_t>> Mesh::edges() const {\n    std::set<std::pair<size_t, size_t>> seen;\n    std::vector<std::pair<size_t, size_t>> result;\n    for (const auto& [u, neighbors] : halfedge) {\n        for (const auto& [v, _] : neighbors) {\n            auto edge = std::minmax(u, v);\n            if (seen.insert(edge).second)\n                result.push_back(edge);\n        }",
           "file": "mesh.cpp"
         },
         "rust": {
           "sig": "edges() -> Vec<(usize, usize)>",
-          "code": "pub fn edges(&self) -> Vec<(usize, usize)> {\n        let mut outer: Vec<usize> = self.halfedge.keys().cloned().collect();\n        outer.sort();\n        let mut result = Vec::new();\n        for u in outer {\n            let mut inner: Vec<usize> = self.halfedge[&u].keys().cloned().collect();\n            inner.sort();\n            for v in inner {\n                if self.halfedge[&u][&v].is_none() {\n                    result.push((u, v));\n                }\n            }\n        }\n        result\n    }",
+          "code": "pub fn edges(&self) -> Vec<(usize, usize)> {\n        let mut seen = HashSet::new();\n        let mut outer: Vec<usize> = self.halfedge.keys().cloned().collect();\n        outer.sort();\n        let mut result = Vec::new();\n        for u in outer {\n            let mut inner: Vec<usize> = self.halfedge[&u].keys().cloned().collect();\n            inner.sort();\n            for v in inner {\n                let edge = if u < v { (u, v) } else { (v, u) };\n                if seen.insert(edge) {\n                    result.push(edge);\n                }\n            }\n        }\n        result\n    }",
           "file": "mesh.rs"
         }
       },
@@ -8353,11 +8328,9 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh.add_face",
         "Mesh.centroid",
         "Mesh.clear",
-        "Mesh.clear_facecolors",
-        "Mesh.clear_linecolors",
-        "Mesh.clear_pointcolors",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -8369,9 +8342,6 @@ window.API_INDEX = {
         "Mesh.face_vertices",
         "Mesh.facecolors",
         "Mesh.from_polygon_with_holes_many",
-        "Mesh.get_facecolors",
-        "Mesh.get_linecolors",
-        "Mesh.get_pointcolors",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8385,6 +8355,9 @@ window.API_INDEX = {
         "Mesh.json_loads",
         "Mesh.linecolors",
         "Mesh.loft_many",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -8394,6 +8367,9 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.repr",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
@@ -8405,6 +8381,151 @@ window.API_INDEX = {
         "Mesh.vertex_position",
         "Mesh.widths",
         "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.naked_edges",
+      "implementations": {
+        "python": {
+          "sig": "naked_edges(boundary: bool = True) -> List[Tuple[int, int]]",
+          "code": "def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> naked_edges(bool boundary)",
+          "code": "std::vector<std::pair<size_t, size_t>> Mesh::naked_edges(bool boundary) const {\n    std::set<std::pair<size_t, size_t>> seen;\n    std::vector<std::pair<size_t, size_t>> result;\n    for (const auto& [u, neighbors] : halfedge) {\n        for (const auto& [v, _] : neighbors) {\n            auto edge = std::minmax(u, v);\n            if (!seen.insert(edge).second) continue;\n            if (is_edge_on_boundary(u, v) == boundary)\n                result.push_back(edge);\n        }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "naked_edges(boundary: bool) -> Vec<(usize, usize)>",
+          "code": "pub fn naked_edges(&self, boundary: bool) -> Vec<(usize, usize)> {\n        let mut seen = HashSet::new();\n        let mut outer: Vec<usize> = self.halfedge.keys().cloned().collect();\n        outer.sort();\n        let mut result = Vec::new();\n        for u in outer {\n            let mut inner: Vec<usize> = self.halfedge[&u].keys().cloned().collect();\n            inner.sort();\n            for v in inner {\n                let edge = if u < v { (u, v) } else { (v, u) };\n                if seen.insert(edge) {\n                    if self.is_edge_on_boundary(edge.0, edge.1) == boundary {\n                        result.push(edge);\n                    }\n                }\n            }\n        }\n        result\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_valid",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.naked_vertices",
+      "implementations": {
+        "python": {
+          "sig": "naked_vertices(boundary: bool = True) -> List[int]",
+          "code": "def naked_vertices(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<size_t> naked_vertices(bool boundary)",
+          "code": "std::vector<size_t> Mesh::naked_vertices(bool boundary) const {\n    std::vector<size_t> result;\n    for (const auto& [vk, _] : vertex)\n        if (is_vertex_on_boundary(vk) == boundary)\n            result.push_back(vk);\n    return result;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "naked_vertices(boundary: bool) -> Vec<usize>",
+          "code": "pub fn naked_vertices(&self, boundary: bool) -> Vec<usize> {\n        let mut keys: Vec<usize> = self.vertex.keys().cloned().collect();\n        keys.sort();\n        let mut result = Vec::new();\n        for vk in keys {\n            if self.is_vertex_on_boundary(vk) == boundary {\n                result.push(vk);\n            }\n        }\n        result\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_pointcolors",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.naked_faces",
+      "implementations": {
+        "python": {
+          "sig": "naked_faces(boundary: bool = True) -> List[int]",
+          "code": "def naked_faces(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<size_t> naked_faces(bool boundary)",
+          "code": "std::vector<size_t> Mesh::naked_faces(bool boundary) const {\n    std::vector<size_t> result;\n    for (const auto& [fk, _] : face)\n        if (is_face_on_boundary(fk) == boundary)\n            result.push_back(fk);\n    return result;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "naked_faces(boundary: bool) -> Vec<usize>",
+          "code": "pub fn naked_faces(&self, boundary: bool) -> Vec<usize> {\n        let mut keys: Vec<usize> = self.face.keys().cloned().collect();\n        keys.sort();\n        let mut result = Vec::new();\n        for fk in keys {\n            if self.is_face_on_boundary(fk) == boundary {\n                result.push(fk);\n            }\n        }\n        result\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.edges",
+        "Mesh.euler",
+        "Mesh.facecolors",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_vertices",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.widths"
       ]
     },
     {
@@ -8436,13 +8557,12 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
-        "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
-        "Mesh.is_valid",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
@@ -8488,12 +8608,12 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
-        "Mesh.is_valid",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
@@ -8533,13 +8653,12 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8575,12 +8694,11 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_linecolors",
@@ -8616,13 +8734,11 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
-        "Mesh.is_face_on_boundary",
         "Mesh.linecolors",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8658,12 +8774,10 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
         "Mesh.linecolors",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8701,15 +8815,14 @@ window.API_INDEX = {
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
-        "Mesh.is_closed",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.json_dumps",
         "Mesh.json_loads",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -8721,6 +8834,8 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors_mut",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
@@ -8762,12 +8877,12 @@ window.API_INDEX = {
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -8779,6 +8894,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.remove_face",
         "Mesh.set_face_color",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
@@ -8819,12 +8935,12 @@ window.API_INDEX = {
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors_mut",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -8836,6 +8952,9 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.set_edge_color",
         "Mesh.set_face_color",
         "Mesh.set_facecolors",
@@ -8870,15 +8989,14 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.linecolors",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8909,15 +9027,14 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8948,15 +9065,14 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_facecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
-        "Mesh.number_of_edges",
-        "Mesh.number_of_faces",
-        "Mesh.number_of_vertices",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
@@ -8999,12 +9115,12 @@ window.API_INDEX = {
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -9016,6 +9132,9 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.set_edge_color",
         "Mesh.set_edge_width",
         "Mesh.set_face_color",
@@ -9060,12 +9179,12 @@ window.API_INDEX = {
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
-        "Mesh.is_edge_on_boundary",
-        "Mesh.is_face_on_boundary",
-        "Mesh.is_vertex_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
@@ -9104,13 +9223,14 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.new",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
@@ -9145,13 +9265,13 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
+        "Mesh.naked_faces",
         "Mesh.new",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
@@ -9186,13 +9306,13 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
-        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
+        "Mesh.naked_faces",
         "Mesh.new",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
@@ -9341,6 +9461,9 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.new",
         "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.triangle_bvh_ray_cast",
         "Mesh.unweld",
         "Mesh.vertex_angle_in_face",
@@ -9406,7 +9529,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_face(\n        vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]",
-          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_position(vk)\n            if p is None:\n                return None",
+          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    def remove_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:\n            self._facecolors = self._facecolors[:n_faces]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -9426,12 +9549,10 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.add_vertex",
-        "Mesh.centroid",
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
+        "Mesh.edges",
         "Mesh.edsq",
-        "Mesh.face_centroid",
-        "Mesh.face_vertices",
         "Mesh.facecolors",
         "Mesh.find",
         "Mesh.from_lines",
@@ -9445,16 +9566,126 @@ window.API_INDEX = {
         "Mesh.loft",
         "Mesh.loft_panels",
         "Mesh.new",
+        "Mesh.number_of_edges",
         "Mesh.proj",
         "Mesh.project_2d",
+        "Mesh.remove_face",
         "Mesh.sarea",
         "Mesh.side_faces",
         "Mesh.signed_area",
         "Mesh.strip_close",
         "Mesh.unify_winding",
         "Mesh.unweld",
-        "Mesh.vertex_position",
         "Mesh.weld",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.remove_face",
+      "implementations": {
+        "python": {
+          "sig": "remove_face(fkey: int) -> None",
+          "code": "def remove_face(self, fkey: int) -> None:\n\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:\n            self._facecolors = self._facecolors[:n_faces]\n\n    def remove_vertex(self, vkey: int) -> None:\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "void remove_face(size_t fkey)",
+          "code": "void Mesh::remove_face(size_t fkey) {\n    auto it = face.find(fkey);\n    if (it == face.end()) return;\n    const auto& verts = it->second;\n    size_t n = verts.size();\n    for (size_t i = 0; i < n; ++i) {\n        size_t u = verts[i];\n        size_t v = verts[(i + 1) % n];\n        auto uit = halfedge.find(u);\n        if (uit == halfedge.end()) continue;\n        auto vit = uit->second.find(v);\n        if (vit == uit->second.end()) continue;\n        vit->second = std::nullopt;\n        auto vit2 = halfedge.find(v);\n        if (vit2 != halfedge.end()) {\n            auto uit2 = vit2->second.find(u);\n            if (uit2 != vit2->second.end() && !uit2->second.has_value()) {\n                uit->second.erase(v);\n                vit2->second.erase(u);\n            }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "remove_face(fkey: usize)",
+          "code": "pub fn remove_face(&mut self, fkey: usize) {\n        let verts = match self.face.get(&fkey) {\n            Some(v) => v.clone(),\n            None => return,\n        };\n        let n = verts.len();\n        for i in 0..n {\n            let u = verts[i];\n            let v = verts[(i + 1) % n];\n            if let Some(nbrs) = self.halfedge.get_mut(&u) {\n                if nbrs.contains_key(&v) {\n                    nbrs.insert(v, None);\n                }\n            }\n            let v_to_u_none = self.halfedge.get(&v).and_then(|m| m.get(&u)).map(|f| f.is_none()).unwrap_or(false);\n            if v_to_u_none {\n                if let Some(nbrs) = self.halfedge.get_mut(&u) { nbrs.remove(&v); }\n                if let Some(nbrs) = self.halfedge.get_mut(&v) { nbrs.remove(&u); }\n            }\n        }\n        self.face.remove(&fkey);\n        self.triangulation.remove(&fkey);\n        self.facedata.remove(&fkey);\n        self.face_holes.remove(&fkey);\n        let n_edges = self.number_of_edges();\n        if self.linecolors.len() > n_edges { self.linecolors.truncate(n_edges); }\n        if self.widths.len() > n_edges { self.widths.truncate(n_edges); }\n        let n_faces = self.face.len();\n        if self.facecolors.len() > n_faces { self.facecolors.truncate(n_faces); }\n        self.invalidate_triangle_bvh();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.add_face",
+        "Mesh.centroid",
+        "Mesh.edges",
+        "Mesh.face_centroid",
+        "Mesh.face_vertices",
+        "Mesh.facecolors",
+        "Mesh.find",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_vertex",
+        "Mesh.vertex_position",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.remove_vertex",
+      "implementations": {
+        "python": {
+          "sig": "remove_vertex(vkey: int) -> None",
+          "code": "def remove_vertex(self, vkey: int) -> None:\n\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_position(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_position(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def vertex_neighbors(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return list(self.halfedge[vertex_key].keys())",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "void remove_vertex(size_t vkey)",
+          "code": "void Mesh::remove_vertex(size_t vkey) {\n    if (vertex.find(vkey) == vertex.end()) return;\n    std::vector<size_t> faces_to_remove;\n    for (const auto& [fk, verts] : face)\n        for (size_t vk : verts)\n            if (vk == vkey) { faces_to_remove.push_back(fk); break; }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "remove_vertex(vkey: usize)",
+          "code": "pub fn remove_vertex(&mut self, vkey: usize) {\n        if !self.vertex.contains_key(&vkey) { return; }\n        let faces_to_remove: Vec<usize> = self.face.iter()\n            .filter(|(_, verts)| verts.contains(&vkey))\n            .map(|(&fk, _)| fk)\n            .collect();\n        for fk in faces_to_remove {\n            self.remove_face(fk);\n        }\n        if let Some(nbrs) = self.halfedge.remove(&vkey) {\n            for (v, _) in nbrs {\n                if let Some(m) = self.halfedge.get_mut(&v) { m.remove(&vkey); }\n            }\n        }\n        self.edgedata.retain(|k, _| k.0 != vkey && k.1 != vkey);\n        self.vertex.remove(&vkey);\n        let n_vertices = self.vertex.len();\n        if self.pointcolors.len() > n_vertices { self.pointcolors.truncate(n_vertices); }\n        self.invalidate_triangle_bvh();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.centroid",
+        "Mesh.edges",
+        "Mesh.face_centroid",
+        "Mesh.face_vertices",
+        "Mesh.find",
+        "Mesh.linecolors",
+        "Mesh.number_of_edges",
+        "Mesh.pointcolors",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.vertex_neighbors",
+        "Mesh.vertex_position",
+        "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.remove_edge",
+      "implementations": {
+        "python": {
+          "sig": "remove_edge(u: int, v: int) -> None",
+          "code": "def remove_edge(self, u: int, v: int) -> None:\n\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def vertex_position(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_position(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_position(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def vertex_neighbors(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return list(self.halfedge[vertex_key].keys())\n\n    def vertex_faces(self, vertex_key: int) -> List[int]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_edges(self, vertex_key: int) -> List[Tuple[int, int]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return []\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def face_edges(self, face_key: int) -> List[Tuple[int, int]]:\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"\n        verts = self.face.get(face_key)\n        if verts is None:",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "void remove_edge(size_t u, size_t v)",
+          "code": "void Mesh::remove_edge(size_t u, size_t v) {\n    std::vector<size_t> faces_to_remove;\n    auto uit = halfedge.find(u);\n    if (uit != halfedge.end()) {\n        auto vit = uit->second.find(v);\n        if (vit != uit->second.end() && vit->second.has_value())\n            faces_to_remove.push_back(*vit->second);\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "remove_edge(u: usize, v: usize)",
+          "code": "pub fn remove_edge(&mut self, u: usize, v: usize) {\n        let mut faces_to_remove = Vec::new();\n        if let Some(f) = self.halfedge.get(&u).and_then(|m| m.get(&v)).and_then(|&f| f) {\n            faces_to_remove.push(f);\n        }\n        if let Some(f) = self.halfedge.get(&v).and_then(|m| m.get(&u)).and_then(|&f| f) {\n            if !faces_to_remove.contains(&f) { faces_to_remove.push(f); }\n        }\n        for fk in faces_to_remove {\n            self.remove_face(fk);\n        }\n        if let Some(nbrs) = self.halfedge.get_mut(&u) { nbrs.remove(&v); }\n        if let Some(nbrs) = self.halfedge.get_mut(&v) { nbrs.remove(&u); }\n        self.edgedata.remove(&(u, v));\n        self.edgedata.remove(&(v, u));\n        let n_edges = self.number_of_edges();\n        if self.linecolors.len() > n_edges { self.linecolors.truncate(n_edges); }\n        if self.widths.len() > n_edges { self.widths.truncate(n_edges); }\n        self.invalidate_triangle_bvh();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.centroid",
+        "Mesh.edges",
+        "Mesh.face_centroid",
+        "Mesh.face_edges",
+        "Mesh.face_vertices",
+        "Mesh.find",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_neighbors",
+        "Mesh.vertex_position",
         "Mesh.widths"
       ]
     },
@@ -9478,7 +9709,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.add_face",
         "Mesh.area",
         "Mesh.centroid",
         "Mesh.edge_edges",
@@ -9494,6 +9724,9 @@ window.API_INDEX = {
         "Mesh.face_vertices",
         "Mesh.find",
         "Mesh.loft_panels",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.side_faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
@@ -9522,7 +9755,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.add_face",
         "Mesh.area",
         "Mesh.centroid",
         "Mesh.dihedral_angle",
@@ -9539,6 +9771,9 @@ window.API_INDEX = {
         "Mesh.face_normals",
         "Mesh.find",
         "Mesh.loft_panels",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.side_faces",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
@@ -9572,7 +9807,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.add_face",
         "Mesh.centroid",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -9584,6 +9818,9 @@ window.API_INDEX = {
         "Mesh.is_empty",
         "Mesh.loft_panels",
         "Mesh.new",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
@@ -9610,7 +9847,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.add_face",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_vertices",
@@ -9623,6 +9859,9 @@ window.API_INDEX = {
         "Mesh.is_empty",
         "Mesh.loft_panels",
         "Mesh.new",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
@@ -9660,6 +9899,8 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_vertices",
         "Mesh.find",
+        "Mesh.remove_edge",
+        "Mesh.remove_vertex",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_position"
@@ -9697,6 +9938,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_vertices",
         "Mesh.find",
+        "Mesh.remove_edge",
         "Mesh.vertex_edges",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
@@ -9736,6 +9978,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_vertices",
         "Mesh.find",
+        "Mesh.remove_edge",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
@@ -9782,6 +10025,7 @@ window.API_INDEX = {
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft_many",
+        "Mesh.remove_edge",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
@@ -30011,17 +30255,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives.chevron_mesh",
         "Primitives.circle",
         "Primitives.create_revolve",
-        "Primitives.dodecahedron",
         "Primitives.ellipse",
         "Primitives.hyperbola",
-        "Primitives.icosahedron",
-        "Primitives.octahedron",
         "Primitives.parabola",
-        "Primitives.pt",
-        "Primitives.wave_surface"
+        "Primitives.pt"
       ]
     },
     {
@@ -30180,7 +30419,6 @@ window.API_INDEX = {
         "Primitives._transform_geometry",
         "Primitives._unit_cone_geometry",
         "Primitives._unit_cylinder_geometry",
-        "Primitives.annen_surfaces",
         "Primitives.line_to_cylinder_transform",
         "Primitives.pt",
         "Primitives.spiral",
@@ -30694,10 +30932,7 @@ window.API_INDEX = {
       "related": [
         "Primitives._capsule_geometry",
         "Primitives._unit_cylinder_geometry",
-        "Primitives.annen_surfaces",
         "Primitives.arc",
-        "Primitives.chevron_mesh",
-        "Primitives.closest_on_line",
         "Primitives.create_extrusion",
         "Primitives.create_planar",
         "Primitives.create_ruled",
@@ -31065,7 +31300,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "octahedron(edge=2.0)",
-          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0",
+          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -31080,8 +31315,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives.arc",
-        "Primitives.chevron_mesh",
         "Primitives.cube",
         "Primitives.dedup_face",
         "Primitives.dodecahedron",
@@ -31096,7 +31329,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "icosahedron(edge=2.0)",
-          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr",
+          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -31111,8 +31344,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives.arc",
-        "Primitives.chevron_mesh",
         "Primitives.cube",
         "Primitives.dedup_face",
         "Primitives.dodecahedron",
@@ -31127,7 +31358,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "dodecahedron(edge=2.0)",
-          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0",
+          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -31142,8 +31373,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives.arc",
-        "Primitives.chevron_mesh",
         "Primitives.cube",
         "Primitives.icosahedron",
         "Primitives.octahedron",
@@ -31157,12 +31386,12 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "wave_surface(size, amplitude)",
-          "code": "def wave_surface(size, amplitude):\n\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    @staticmethod\n    def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0\n            StepV1 = baseStepV\n            running = True\n            ListV = []\n            iterations = 0\n\n            p0 = p1 = p2 = p6 = p7 = p8 = None\n            savept6 = savept7 = savept8 = None\n\n            while running and iterations < 1000:\n                iterations += 1\n                ListV.append(StepV1)\n\n                if iterations == 1:\n                    p0 = srf.point_at(ctU, ctV)\n                    p1 = srf.point_at(ctU + StepU * 0.5, ctV)\n                    p2 = srf.point_at(ctU + StepU, ctV)\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n                else:\n                    p0, p1, p2 = savept6, savept7, savept8\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))",
+          "code": "def wave_surface(size, amplitude):\n\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
           "sig": "NurbsSurface wave_surface(double size, double amplitude)",
-          "code": "NurbsSurface Primitives::wave_surface(double size, double amplitude) {\n    // Approximate z = amplitude * sin(2\u00cf\u20ac*x/size) * sin(2\u00cf\u20ac*y/size)\n    // 13x13 CVs, degree 3, one full period per direction\n    // Edges are at sin(0)=sin(2\u00cf\u20ac)=0, so tiles connect seamlessly\n    const int n = 13;\n    const double PI2 = 2.0 * 3.14159265358979323846;\n\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double u = static_cast<double>(i) / (n - 1);\n        double x = size * u;\n        for (int j = 0; j < n; ++j) {\n            double v = static_cast<double>(j) / (n - 1);\n            double y = size * v;\n            double z = amplitude * std::sin(PI2 * u) * std::sin(PI2 * v);\n            pts.push_back(Point(x, y, z));\n        }",
+          "code": "NurbsSurface Primitives::wave_surface(double size, double amplitude) {\n    // Approximate z = amplitude * sin(2\u00c3\u00e2\u201a\u00ac*x/size) * sin(2\u00c3\u00e2\u201a\u00ac*y/size)\n    // 13x13 CVs, degree 3, one full period per direction\n    // Edges are at sin(0)=sin(2\u00c3\u00e2\u201a\u00ac)=0, so tiles connect seamlessly\n    const int n = 13;\n    const double PI2 = 2.0 * 3.14159265358979323846;\n\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double u = static_cast<double>(i) / (n - 1);\n        double x = size * u;\n        for (int j = 0; j < n; ++j) {\n            double v = static_cast<double>(j) / (n - 1);\n            double y = size * v;\n            double z = amplitude * std::sin(PI2 * u) * std::sin(PI2 * v);\n            pts.push_back(Point(x, y, z));\n        }",
           "file": "primitives.cpp"
         },
         "rust": {
@@ -31172,720 +31401,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Primitives.arc",
-        "Primitives.chevron_mesh",
         "Primitives.cube",
         "Primitives.dodecahedron",
         "Primitives.icosahedron",
         "Primitives.octahedron",
         "Primitives.pt"
-      ]
-    },
-    {
-      "name": "Primitives.chevron_mesh",
-      "implementations": {
-        "python": {
-          "sig": "chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799)",
-          "code": "def chevron_mesh(surface, u_divisions=4, v_division_dist=900.0, shift=0.5, scale=0.05799):\n\n        srf = copy.deepcopy(surface)\n\n        du0 = srf.domain(0)\n        dv0 = srf.domain(1)\n        nsamp = 50\n        u_arc = 0.0\n        v_arc = 0.0\n\n        v_mid = (dv0[0] + dv0[1]) / 2.0\n        prev = srf.point_at(du0[0], v_mid)\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(du0[0] + (du0[1] - du0[0]) * i / nsamp, v_mid)\n            u_arc += prev.distance(curr)\n            prev = curr\n\n        u_mid = (du0[0] + du0[1]) / 2.0\n        prev = srf.point_at(u_mid, dv0[0])\n        for i in range(1, nsamp + 1):\n            curr = srf.point_at(u_mid, dv0[0] + (dv0[1] - dv0[0]) * i / nsamp)\n            v_arc += prev.distance(curr)\n            prev = curr\n\n        if u_arc > v_arc:\n            srf.transpose()\n            u_arc, v_arc = v_arc, u_arc\n\n        du = srf.domain(0)\n        dv = srf.domain(1)\n\n        param_v = dv[1] - dv[0]\n        half_v = dv[1] * 0.5\n        StepU = (du[1] - du[0]) / u_divisions\n        totalV = param_v\n        baseStepV = v_division_dist * param_v / v_arc if v_arc > 1e-10 else v_division_dist\n\n        polygons = []\n        ctU = 0.0\n        for j in range(u_divisions):\n            ctV = 0.0\n            thresh = totalV / 2.0\n            StepV1 = baseStepV\n            running = True\n            ListV = []\n            iterations = 0\n\n            p0 = p1 = p2 = p6 = p7 = p8 = None\n            savept6 = savept7 = savept8 = None\n\n            while running and iterations < 1000:\n                iterations += 1\n                ListV.append(StepV1)\n\n                if iterations == 1:\n                    p0 = srf.point_at(ctU, ctV)\n                    p1 = srf.point_at(ctU + StepU * 0.5, ctV)\n                    p2 = srf.point_at(ctU + StepU, ctV)\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n                else:\n                    p0, p1, p2 = savept6, savept7, savept8\n                    p6 = srf.point_at(ctU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    p7 = srf.point_at(ctU + StepU * 0.5, ctV + StepV1 * (1.0 + shift / 2.0))\n                    p8 = srf.point_at(ctU + StepU, ctV + StepV1 * (1.0 - shift / 2.0))\n                    savept6, savept7, savept8 = p6, p7, p8\n\n                polygons.append([p0, p6, p7, p1])\n                polygons.append([p1, p7, p8, p2])\n\n                ctV += StepV1\n                thresh -= StepV1\n                StepV1 += StepV1 * scale\n\n                if ctV + StepV1 > half_v:\n                    ListV.append(thresh)\n                    ListV.reverse()\n                    revCt = totalV / 2.0",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Mesh chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale)",
-          "code": "Mesh Primitives::chevron_mesh(const NurbsSurface& surface,\n                              int u_divisions, double v_division_dist,\n                              double shift, double scale) {\n    NurbsSurface srf = surface;\n\n    // Measure arc lengths to determine long direction\n    auto du0 = srf.domain(0);\n    auto dv0 = srf.domain(1);\n    int nsamp = 50;\n    double u_arc = 0, v_arc = 0;\n    {\n        double v_mid = (dv0.first + dv0.second) / 2.0;\n        Point prev = srf.point_at(du0.first, v_mid);\n        for (int i = 1; i <= nsamp; i++) {\n            Point curr = srf.point_at(du0.first + (du0.second - du0.first) * i / nsamp, v_mid);\n            u_arc += prev.distance(curr);\n            prev = curr;\n        }",
-          "file": "primitives.cpp"
-        },
-        "rust": {
-          "sig": "chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh",
-          "code": "pub fn chevron_mesh(surface: &NurbsSurface, u_divisions: usize, v_division_dist: f64, shift: f64, scale: f64) -> Mesh {\n        let mut srf = surface.clone();\n\n        let du0 = srf.domain(0).unwrap();\n        let dv0 = srf.domain(1).unwrap();\n        let nsamp = 50;\n        let mut u_arc = 0.0_f64;\n        let mut v_arc = 0.0_f64;\n\n        {\n            let v_mid = (dv0.0 + dv0.1) / 2.0;\n            let mut prev = srf.point_at(du0.0, v_mid).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(du0.0 + (du0.1 - du0.0) * i as f64 / nsamp as f64, v_mid).unwrap();\n                u_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n        {\n            let u_mid = (du0.0 + du0.1) / 2.0;\n            let mut prev = srf.point_at(u_mid, dv0.0).unwrap();\n            for i in 1..=nsamp {\n                let curr = srf.point_at(u_mid, dv0.0 + (dv0.1 - dv0.0) * i as f64 / nsamp as f64).unwrap();\n                v_arc += prev.distance(&curr, None);\n                prev = curr;\n            }\n        }\n\n        if u_arc > v_arc {\n            srf.transpose();\n            std::mem::swap(&mut u_arc, &mut v_arc);\n        }\n\n        let du = srf.domain(0).unwrap();\n        let dv = srf.domain(1).unwrap();\n        let param_v = dv.1 - dv.0;\n        let _half_v = dv.1 * 0.5;\n        let step_u = (du.1 - du.0) / u_divisions as f64;\n        let total_v = param_v;\n        let base_step_v = if v_arc > 1e-10 { v_division_dist * param_v / v_arc } else { v_division_dist };\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        let mut ct_u = 0.0_f64;\n\n        for _j in 0..u_divisions {\n            let mut ct_v = 0.0_f64;\n            let mut thresh = total_v / 2.0;\n            let mut step_v1 = base_step_v;\n            let mut running = true;\n            let mut list_v: Vec<f64> = Vec::new();\n            let mut iterations = 0;\n\n            let d = Point::new(0.0, 0.0, 0.0);\n            let (mut p0, mut p1, mut p2) = (d.clone(), d.clone(), d.clone());\n            let (mut p6, mut p7, mut p8) = (d.clone(), d.clone(), d.clone());\n            let (mut savept6, mut savept7, mut savept8) = (d.clone(), d.clone(), d);\n\n            while running && iterations < 1000 {\n                iterations += 1;\n                list_v.push(step_v1);\n\n                if iterations == 1 {\n                    p0 = srf.point_at(ct_u, ct_v).unwrap();\n                    p1 = srf.point_at(ct_u + step_u * 0.5, ct_v).unwrap();\n                    p2 = srf.point_at(ct_u + step_u, ct_v).unwrap();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                } else {\n                    p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                    p6 = srf.point_at(ct_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    p7 = srf.point_at(ct_u + step_u * 0.5, ct_v + step_v1 * (1.0 + shift / 2.0)).unwrap();\n                    p8 = srf.point_at(ct_u + step_u, ct_v + step_v1 * (1.0 - shift / 2.0)).unwrap();\n                    savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                }\n\n                polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n\n                ct_v += step_v1;\n                thresh -= step_v1;\n                step_v1 += step_v1 * scale;\n\n                if ct_v + step_v1 > total_v / 2.0 {\n                    list_v.push(thresh);\n                    list_v.reverse();\n                    let mut rev_ct = total_v / 2.0;\n\n                    for i in 0..list_v.len() - 1 {\n                        rev_ct += list_v[i];\n\n                        if i == 0 {\n                            p0 = srf.point_at(ct_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            p1 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * shift / 2.0).unwrap();\n                            p2 = srf.point_at(ct_u + step_u, rev_ct - list_v[i + 1] * shift / 2.0).unwrap();\n                            polygons.push(vec![p6.clone(), p0.clone(), p1.clone(), p7.clone()]);\n                            polygons.push(vec![p7.clone(), p1.clone(), p2.clone(), p8.clone()]);\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        } else if i == list_v.len() - 2 {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1]).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1]).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1]).unwrap();\n                        } else {\n                            p0 = savept6.clone(); p1 = savept7.clone(); p2 = savept8.clone();\n                            p6 = srf.point_at(ct_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            p7 = srf.point_at(ct_u + step_u * 0.5, rev_ct + list_v[i + 1] * (1.0 + shift / 2.0)).unwrap();\n                            p8 = srf.point_at(ct_u + step_u, rev_ct + list_v[i + 1] * (1.0 - shift / 2.0)).unwrap();\n                            savept6 = p6.clone(); savept7 = p7.clone(); savept8 = p8.clone();\n                        }\n\n                        polygons.push(vec![p1.clone(), p7.clone(), p8.clone(), p2.clone()]);\n                        polygons.push(vec![p0.clone(), p6.clone(), p7.clone(), p1.clone()]);\n                    }\n\n                    running = false;\n                }\n            }\n            ct_u += step_u;\n        }\n\n        Mesh::from_polylines(polygons, Some(0.01))\n    }",
-          "file": "primitives.rs"
-        }
-      },
-      "related": [
-        "Primitives.arc",
-        "Primitives.dodecahedron",
-        "Primitives.icosahedron",
-        "Primitives.octahedron",
-        "Primitives.pt",
-        "Primitives.wave_surface"
-      ]
-    },
-    {
-      "name": "Primitives.annen_surfaces",
-      "implementations": {
-        "python": {
-          "sig": "annen_surfaces()",
-          "code": "def annen_surfaces():\n\n        surfaces = []\n        prefixes = [\"session_data/annen_surfaces/\", \"../session_data/annen_surfaces/\"]\n        for i in range(23):\n            fname = f\"surface_{i}.json\"\n            for prefix in prefixes:\n                path = prefix + fname\n                if not os.path.exists(path):\n                    continue\n                srf = NurbsSurface.json_load(path)\n                if srf.is_valid():\n                    surfaces.append(srf)\n                    break\n        return surfaces\n\n\nclass FoldedPlates:\n    def __init__(self, surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None):\n        self._srf = surface\n        self._udiv = max(1, u_divisions)\n        self._vdiv = max(1, v_divisions)\n        self._thick = thickness\n        self._cham = chamfer\n        self._base_planes = base_planes if base_planes is not None else []\n        self._face_pos = face_positions if face_positions is not None else [0.0]\n        self._f = 0\n        self.mesh = Mesh()\n        self.flags = []\n        self.adjacency = []\n        self.polylines = []\n        self.insertion_lines = []\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self._ef = []\n        self._fplanes = []\n        self._eplanes = []\n        self._fe_planes = []\n\n        self._diamond_subdivision()\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_edge_planes()\n        self._compute_face_edge_planes()\n        self._compute_face_polylines()\n        self._compute_insertion_vectors()\n\n    @staticmethod\n    def closest_on_line(pt, a, b):\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "std::vector<NurbsSurface> annen_surfaces()",
-          "code": "std::vector<NurbsSurface> Primitives::annen_surfaces() {\n    std::vector<NurbsSurface> surfaces;\n    std::vector<std::string> prefixes = {\n        \"session_data/annen_surfaces/\",\n        \"../session_data/annen_surfaces/\"\n    }",
-          "file": "primitives.cpp"
-        },
-        "rust": {
-          "sig": "annen_surfaces() -> Vec<NurbsSurface>",
-          "code": "pub fn annen_surfaces() -> Vec<NurbsSurface> {\n        let mut surfaces = Vec::new();\n        let prefixes = [\"session_data/annen_surfaces/\", \"../session_data/annen_surfaces/\"];\n        for i in 0..23 {\n            let fname = format!(\"surface_{}.json\", i);\n            for prefix in &prefixes {\n                let path = format!(\"{}{}\", prefix, fname);\n                if !std::path::Path::new(&path).exists() { continue; }\n                let srf = NurbsSurface::json_load(&path);\n                if srf.is_valid() { surfaces.push(srf); break; }\n            }\n        }\n        surfaces\n    }",
-          "file": "primitives.rs"
-        }
-      },
-      "related": [
-        "Primitives.build_topology",
-        "Primitives.closest_on_line",
-        "Primitives.compute_edge_planes",
-        "Primitives.compute_face_edge_planes",
-        "Primitives.compute_face_planes",
-        "Primitives.compute_face_polylines",
-        "Primitives.compute_insertion_vectors",
-        "Primitives.diamond_subdivision",
-        "Primitives.intersect_3_planes",
-        "Primitives.line_plane_t",
-        "Primitives.pt",
-        "Primitives.ring"
-      ]
-    },
-    {
-      "name": "FoldedPlates.__init__",
-      "implementations": {
-        "python": {
-          "sig": "__init__(surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None)",
-          "code": "def __init__(self, surface, u_divisions, v_divisions, thickness, chamfer=0.0, base_planes=None, face_positions=None):\n\n        self._srf = surface\n        self._udiv = max(1, u_divisions)\n        self._vdiv = max(1, v_divisions)\n        self._thick = thickness\n        self._cham = chamfer\n        self._base_planes = base_planes if base_planes is not None else []\n        self._face_pos = face_positions if face_positions is not None else [0.0]\n        self._f = 0\n        self.mesh = Mesh()\n        self.flags = []\n        self.adjacency = []\n        self.polylines = []\n        self.insertion_lines = []\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self._ef = []\n        self._fplanes = []\n        self._eplanes = []\n        self._fe_planes = []\n\n        self._diamond_subdivision()\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_edge_planes()\n        self._compute_face_edge_planes()\n        self._compute_face_polylines()\n        self._compute_insertion_vectors()\n\n    @staticmethod\n    def closest_on_line(pt, a, b):\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.build_topology",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t"
-      ]
-    },
-    {
-      "name": "FoldedPlates.closest_on_line",
-      "implementations": {
-        "python": {
-          "sig": "closest_on_line(pt, a, b)",
-          "code": "def closest_on_line(pt, a, b):\n\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        len2 = dx*dx + dy*dy + dz*dz\n        if len2 < 1e-20:\n            return a\n        t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2\n        return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz)\n\n    @staticmethod\n    def line_plane_t(a, b, pl):\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
-          "code": "Point FoldedPlates::closest_on_line(const Point& pt, const Point& a, const Point& b) {\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double len2 = dx*dx + dy*dy + dz*dz;\n    if (len2 < 1e-20) return a;\n    double t = ((pt[0]-a[0])*dx + (pt[1]-a[1])*dy + (pt[2]-a[2])*dz) / len2;\n    return Point(a[0]+t*dx, a[1]+t*dy, a[2]+t*dz);\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.line_plane_t",
-      "implementations": {
-        "python": {
-          "sig": "line_plane_t(a, b, pl)",
-          "code": "def line_plane_t(a, b, pl):\n\n        n = pl.z_axis\n        o = pl.origin\n        dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n        denom = n[0]*dx + n[1]*dy + n[2]*dz\n        if abs(denom) < 1e-12:\n            return None\n        t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom\n        return t\n\n    @staticmethod\n    def intersect_3_planes(p0, p1, p2):\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
-          "code": "bool FoldedPlates::line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t) {\n    Vector n = pl.z_axis();\n    const Point& o = pl.origin();\n    double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n    double denom = n[0]*dx + n[1]*dy + n[2]*dz;\n    if (std::abs(denom) < 1e-12) return false;\n    t = (n[0]*(o[0]-a[0]) + n[1]*(o[1]-a[1]) + n[2]*(o[2]-a[2])) / denom;\n    return true;\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.intersect_3_planes",
-      "implementations": {
-        "python": {
-          "sig": "intersect_3_planes(p0, p1, p2)",
-          "code": "def intersect_3_planes(p0, p1, p2):\n\n        n0 = p0.z_axis; n1 = p1.z_axis; n2 = p2.z_axis\n        d0 = n0[0]*p0.origin[0] + n0[1]*p0.origin[1] + n0[2]*p0.origin[2]\n        d1 = n1[0]*p1.origin[0] + n1[1]*p1.origin[1] + n1[2]*p1.origin[2]\n        d2 = n2[0]*p2.origin[0] + n2[1]*p2.origin[1] + n2[2]*p2.origin[2]\n        c12 = n1.cross(n2); c20 = n2.cross(n0); c01 = n0.cross(n1)\n        det = n0.dot(c12)\n        if abs(det) < 1e-12:\n            return None\n        inv = 1.0 / det\n        return Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                      (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                      (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv)\n\n    @staticmethod\n    def chamfer_polyline(pl, value):\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
-          "code": "bool FoldedPlates::intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result) {\n    Vector n0 = p0.z_axis(), n1 = p1.z_axis(), n2 = p2.z_axis();\n    double d0 = n0[0]*p0.origin()[0] + n0[1]*p0.origin()[1] + n0[2]*p0.origin()[2];\n    double d1 = n1[0]*p1.origin()[0] + n1[1]*p1.origin()[1] + n1[2]*p1.origin()[2];\n    double d2 = n2[0]*p2.origin()[0] + n2[1]*p2.origin()[1] + n2[2]*p2.origin()[2];\n    Vector c12 = n1.cross(n2), c20 = n2.cross(n0), c01 = n0.cross(n1);\n    double det = n0.dot(c12);\n    if (std::abs(det) < 1e-12) return false;\n    double inv = 1.0 / det;\n    result = Point((d0*c12[0] + d1*c20[0] + d2*c01[0]) * inv,\n                   (d0*c12[1] + d1*c20[1] + d2*c01[1]) * inv,\n                   (d0*c12[2] + d1*c20[2] + d2*c01[2]) * inv);\n    return true;\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.line_plane_t",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.chamfer_polyline",
-      "implementations": {
-        "python": {
-          "sig": "chamfer_polyline(pl, value)",
-          "code": "def chamfer_polyline(pl, value):\n\n        if abs(value) < 1e-10:\n            return pl\n        n = pl.point_count()\n        if n < 2:\n            return pl\n        segs = n - 1\n        result = Polyline()\n        for i in range(segs):\n            a = pl.get_point(i); b = pl.get_point(i + 1)\n            dx = b[0]-a[0]; dy = b[1]-a[1]; dz = b[2]-a[2]\n            length = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if length < 1e-10:\n                continue\n            if value < 0:\n                r = abs(value) / length\n                result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz))\n                result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz))\n            else:\n                result.add_point(Point(a[0]+value*dx, a[1]+value*dy, a[2]+value*dz))\n                omt = 1.0 - value\n                result.add_point(Point(a[0]+omt*dx, a[1]+omt*dy, a[2]+omt*dz))\n        if result.point_count() > 0:\n            result.add_point(result.get_point(0))\n        return result\n\n    def _diamond_subdivision(self):\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
-          "code": "Polyline FoldedPlates::chamfer_polyline(const Polyline& pl, double value) {\n    if (std::abs(value) < 1e-10) return pl;\n    size_t n = pl.point_count();\n    if (n < 2) return pl;\n    size_t segs = pl.is_closed() ? n - 1 : n - 1;\n    Polyline result;\n    for (size_t i = 0; i < segs; i++) {\n        Point a = pl.get_point(i), b = pl.get_point(i + 1);\n        double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];\n        double len = std::sqrt(dx*dx + dy*dy + dz*dz);\n        if (len < 1e-10) continue;\n        if (value < 0) {\n            double r = std::abs(value) / len;\n            result.add_point(Point(a[0]+r*dx, a[1]+r*dy, a[2]+r*dz));\n            result.add_point(Point(b[0]-r*dx, b[1]-r*dy, b[2]-r*dz));\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates._diamond_subdivision",
-      "implementations": {
-        "python": {
-          "sig": "_diamond_subdivision()",
-          "code": "def _diamond_subdivision(self):\n\n        du = self._srf.domain(0)\n        dv = self._srf.domain(1)\n        su = (du[1] - du[0]) / self._udiv\n        sv = (dv[1] - dv[0]) / self._vdiv\n        tris = []\n        fc = 0\n\n        def plane_valid(p):\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polylines(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates.build_topology",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.plane_valid",
-      "implementations": {
-        "python": {
-          "sig": "plane_valid(p)",
-          "code": "def plane_valid(p):\n\n            z = p.z_axis\n            return abs(z[0]) + abs(z[1]) + abs(z[2]) > 0.01\n\n        uu = du[0]\n        for i in range(self._udiv):\n            a = 1 if (i % 2 == 0) else 0\n            b = 2 if (i % 2 == 0) else 3\n\n            vv = dv[0]\n            for j in range(self._vdiv):\n                p0 = self._srf.point_at(uu, vv)\n                p1 = self._srf.point_at(uu + su, vv)\n                p2 = self._srf.point_at(uu, vv + sv)\n                p3 = self._srf.point_at(uu + su, vv + sv)\n                p4 = self._srf.point_at(uu + su * 0.5, vv + sv * 1.5)\n                p5 = self._srf.point_at(uu + su * 0.5, vv + sv * 0.5)\n                p6 = self._srf.point_at(uu + su * 0.5, vv - sv * 0.5)\n\n                if j == 0:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[0])\n                    cp = FoldedPlates.closest_on_line(p9, p5, p6)\n                    if self._base_planes and plane_valid(self._base_planes[0]):\n                        t = FoldedPlates.line_plane_t(p5, p6, self._base_planes[0])\n                        if t is not None:\n                            cp = Point(p5[0]+t*(p6[0]-p5[0]), p5[1]+t*(p6[1]-p5[1]), p5[2]+t*(p6[2]-p5[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p1]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p0]); fc += 1\n\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p1, p3, p5]); fc += 1\n                self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p2, p0, p5]); fc += 1\n\n                if j < self._vdiv - 1:\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p4, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, p4, p2]); fc += 1\n                else:\n                    p9 = self._srf.point_at(uu + su * 0.5, dv[1])\n                    cp = FoldedPlates.closest_on_line(p9, p4, p5)\n                    if self._base_planes and plane_valid(self._base_planes[-1]):\n                        t = FoldedPlates.line_plane_t(p4, p5, self._base_planes[-1])\n                        if t is not None:\n                            cp = Point(p4[0]+t*(p5[0]-p4[0]), p4[1]+t*(p5[1]-p4[1]), p4[2]+t*(p5[2]-p4[2]))\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([cp, p5, p3]); fc += 1\n                    self.flags.append(fc % 4 == a or fc % 4 == b); tris.append([p5, cp, p2]); fc += 1\n\n                vv += sv\n            uu += su\n\n        self.mesh = Mesh.from_polylines(tris, 1e-6)\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates._build_topology",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.build_topology",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.diamond_subdivision",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t"
-      ]
-    },
-    {
-      "name": "FoldedPlates._build_topology",
-      "implementations": {
-        "python": {
-          "sig": "_build_topology()",
-          "code": "def _build_topology(self):\n\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        ef_map = {}\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in ef_map:\n                    ef_map[key] = []\n                ef_map[key].append(i)\n\n        ei = 0\n        self._eidx = {}\n        self._ef = []\n        for ep, fl in sorted(ef_map.items()):\n            self._eidx[ep] = ei\n            self._ef.append(fl)\n            ei += 1\n\n        self.adjacency = []\n        for i in range(self._f):\n            if not self.flags[i]:\n                continue\n            v = self._fv[i]\n            n = len(v)\n            neighbors = set()\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                for fi in self._ef[self._eidx[key]]:\n                    if fi != i:\n                        neighbors.add(fi)\n            for ni in neighbors:\n                self.adjacency.append([i, ni, -1, -1])\n\n    def _compute_face_planes(self):\n        self._fplanes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = math.sqrt((pb[0]-pa[0])**2 + (pb[1]-pa[1])**2 + (pb[2]-pa[2])**2)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self._fplanes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_edge_planes(self):\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.build_topology",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates._compute_face_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_planes()",
-          "code": "def _compute_face_planes(self):\n\n        self._fplanes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = math.sqrt((pb[0]-pa[0])**2 + (pb[1]-pa[1])**2 + (pb[2]-pa[2])**2)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self._fplanes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_edge_planes(self):\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)\n\n            self._eplanes[ei] = Plane.from_point_normal(mid, z)\n\n    def _compute_face_edge_planes(self):\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.compute_face_polylines"
-      ]
-    },
-    {
-      "name": "FoldedPlates._compute_edge_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_edge_planes()",
-          "code": "def _compute_edge_planes(self):\n\n        self._eplanes = [None] * len(self._ef)\n        for ep, ei in self._eidx.items():\n            v1 = self.mesh.vertex_position(ep[0])\n            v2 = self.mesh.vertex_position(ep[1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            edir = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            edir.normalize_self()\n\n            cf = self._ef[ei]\n            if len(cf) == 2:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                fn1 = self.mesh.face_normal(self._fkeys[cf[1]])\n                avg = Vector((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5)\n                avg.normalize_self()\n                z = edir.cross(avg)\n            else:\n                fn0 = self.mesh.face_normal(self._fkeys[cf[0]])\n                z = fn0.cross(edir)\n\n            self._eplanes[ei] = Plane.from_point_normal(mid, z)\n\n    def _compute_face_edge_planes(self):\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.intersect_3_planes"
-      ]
-    },
-    {
-      "name": "FoldedPlates._compute_face_edge_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_edge_planes()",
-          "code": "def _compute_face_edge_planes(self):\n\n        self._fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self._fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                key = (min(v1, v2), max(v1, v2))\n                cf = self._ef[self._eidx[key]]\n\n                if len(cf) == 2:\n                    self._fe_planes[i][j] = self._eplanes[self._eidx[key]]\n                else:\n                    p1 = self.mesh.vertex_position(v1)\n                    p2 = self.mesh.vertex_position(v2)\n                    mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n                    sx = sy = sz = 0.0\n                    for fi in cf:\n                        fn = self.mesh.face_normal(self._fkeys[fi])\n                        sx += fn[0]; sy += fn[1]; sz += fn[2]\n                    inv = 1.0 / len(cf)\n                    s = Vector(sx*inv, sy*inv, sz*inv)\n                    xdir = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                    self._fe_planes[i][j] = Plane(mid, xdir, s)\n\n    def _compute_face_polylines(self):\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.intersect_3_planes"
-      ]
-    },
-    {
-      "name": "FoldedPlates._compute_face_polylines",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_polylines()",
-          "code": "def _compute_face_polylines(self):\n\n        self.polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            sides = self._fe_planes[i]\n            n = len(sides)\n\n            for j in range(len(self._face_pos)):\n                base0 = self._fplanes[i].translate_by_normal(-self._face_pos[j])\n                base1 = self._fplanes[i].translate_by_normal(-(self._face_pos[j] + self._thick))\n\n                pl0 = Polyline()\n                pl1 = Polyline()\n                for k in range(n):\n                    pt = FoldedPlates.intersect_3_planes(base0, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl0.add_point(pt)\n                    pt = FoldedPlates.intersect_3_planes(base1, sides[k], sides[(k+1)%n])\n                    if pt is not None:\n                        pl1.add_point(pt)\n                if pl0.point_count() > 0:\n                    pl0.add_point(pl0.get_point(0))\n                if pl1.point_count() > 0:\n                    pl1.add_point(pl1.get_point(0))\n\n                self.polylines[i].append(pl0)\n                self.polylines[i].append(pl1)\n\n    def _compute_insertion_vectors(self):\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:\n    def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.intersect_3_planes"
-      ]
-    },
-    {
-      "name": "FoldedPlates._compute_insertion_vectors",
-      "implementations": {
-        "python": {
-          "sig": "_compute_insertion_vectors()",
-          "code": "def _compute_insertion_vectors(self):\n\n        for i in range(self._f):\n            if self.flags[i]:\n                continue\n            if not self.polylines[i] or self.polylines[i][0].point_count() < 4:\n                continue\n\n            pl = self.polylines[i][0]\n            vec = Vector(pl.get_point(2)[0] - pl.get_point(0)[0],\n                         pl.get_point(2)[1] - pl.get_point(0)[1],\n                         pl.get_point(2)[2] - pl.get_point(0)[2])\n            vec.normalize_self()\n            vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5)\n\n            for j in range(3):\n                a = pl.get_point(j)\n                b = pl.get_point((j + 1) % 3)\n                mid = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n                self.insertion_lines.append(Line.from_point_and_vector(mid, vec))\n\n        if self._cham > 1e-6:\n            for i in range(self._f):\n                for j in range(len(self.polylines[i])):\n                    self.polylines[i][j] = FoldedPlates.chamfer_polyline(self.polylines[i][j], -self._cham)\n\n\nclass CrossConnectors:\n    def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []\n        self._e90_multiple_planes = []\n\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_face_edge_planes()\n        self._compute_bisector_planes()\n        self._compute_face_polylines()\n        self._compute_edges()\n        self._compute_edge_faces()\n        self._compute_edge_planes_method()\n        self._compute_connectors()\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates.build_topology",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors"
-      ]
-    },
-    {
-      "name": "CrossConnectors.__init__",
-      "implementations": {
-        "python": {
-          "sig": "__init__(mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0)",
-          "code": "def __init__(self, mesh, face_thickness, face_positions=None, edge_divisions=2,\n                 rect_width=10.0, rect_height=10.0, rect_thickness=1.0, chamfer=0.0):\n\n        self.mesh = mesh\n        self._f = 0\n        self._thick = face_thickness\n        self._rect_w = rect_width\n        self._rect_h = rect_height\n        self._rect_t = rect_thickness\n        self._cham = chamfer\n        self._edge_div = max(1, edge_divisions)\n        self._face_pos = list(face_positions) if face_positions is not None else [0.0]\n        if not self._face_pos:\n            self._face_pos = [0.0]\n        self._face_pos.sort()\n\n        self._fkeys = []\n        self._fv = []\n        self._eidx = {}\n        self.face_planes = []\n        self.fe_planes = []\n        self.bisector_planes = []\n        self.face_polylines = []\n        self.edges = []\n        self.edge_faces = []\n        self.edge_planes = []\n        self.edge_polylines = []\n        self._e90_multiple_planes = []\n\n        self._build_topology()\n        self._compute_face_planes()\n        self._compute_face_edge_planes()\n        self._compute_bisector_planes()\n        self._compute_face_polylines()\n        self._compute_edges()\n        self._compute_edge_faces()\n        self._compute_edge_planes_method()\n        self._compute_connectors()\n\n    def _build_topology(self):\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1\n\n    def _compute_face_planes(self):\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.build_topology",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.compute_face_planes",
-        "CrossConnectors.compute_face_polylines"
-      ]
-    },
-    {
-      "name": "CrossConnectors._build_topology",
-      "implementations": {
-        "python": {
-          "sig": "_build_topology()",
-          "code": "def _build_topology(self):\n\n        self._fkeys = sorted(self.mesh.face.keys())\n        self._f = len(self._fkeys)\n        self._fv = [list(self.mesh.face[fk]) for fk in self._fkeys]\n\n        self._eidx = {}\n        ei = 0\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in self._eidx:\n                    self._eidx[key] = ei\n                    ei += 1\n\n    def _compute_face_planes(self):\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors.build_topology",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.compute_face_planes",
-        "CrossConnectors.dihedral_plane"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_face_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_planes()",
-          "code": "def _compute_face_planes(self):\n\n        self.face_planes = [None] * self._f\n        for i in range(self._f):\n            verts = self._fv[i]\n            n = len(verts)\n            cx = cy = cz = w = 0.0\n            for j in range(n):\n                pa = self.mesh.vertex_position(verts[j])\n                pb = self.mesh.vertex_position(verts[(j+1)%n])\n                d = pa.distance(pb)\n                cx += d * (pa[0]+pb[0]) * 0.5\n                cy += d * (pa[1]+pb[1]) * 0.5\n                cz += d * (pa[2]+pb[2]) * 0.5\n                w += d\n            if w > 1e-10:\n                cx /= w; cy /= w; cz /= w\n            center = Point(cx, cy, cz)\n            normal = self.mesh.face_normal(self._fkeys[i])\n            if normal is None:\n                normal = Vector(0, 0, 1)\n            self.face_planes[i] = Plane.from_point_normal(center, normal)\n\n    def _compute_face_edge_planes(self):\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.compute_face_planes",
-        "CrossConnectors.dihedral_plane"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_face_edge_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_edge_planes()",
-          "code": "def _compute_face_edge_planes(self):\n\n        self.fe_planes = [None] * self._f\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            self.fe_planes[i] = [None] * n\n            for j in range(n):\n                v1 = v[j]; v2 = v[(j+1)%n]\n                p1 = self.mesh.vertex_position(v1)\n                p2 = self.mesh.vertex_position(v2)\n                mid = Point((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5)\n\n                key = (min(v1, v2), max(v1, v2))\n\n                sx = sy = sz = 0.0\n                count = 0\n                for fi in range(self._f):\n                    fv = self._fv[fi]\n                    fn = len(fv)\n                    for k in range(fn):\n                        ek = (min(fv[k], fv[(k+1)%fn]), max(fv[k], fv[(k+1)%fn]))\n                        if ek == key:\n                            fn_vec = self.mesh.face_normal(self._fkeys[fi])\n                            if fn_vec is None:\n                                fn_vec = Vector(0, 0, 1)\n                            sx += fn_vec[0]; sy += fn_vec[1]; sz += fn_vec[2]\n                            count += 1\n                            break\n                if count > 0:\n                    inv = 1.0 / count\n                    sx *= inv; sy *= inv; sz *= inv\n\n                xaxis = Vector(p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2])\n                xaxis.normalize_self()\n                s = Vector(sx, sy, sz)\n                s.normalize_self()\n                zaxis = xaxis.cross(s)\n                zaxis.normalize_self()\n                self.fe_planes[i][j] = Plane.from_frame(mid, xaxis, s, zaxis)\n\n    @staticmethod\n    def dihedral_plane(p0, p1):\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin\n        ray0 = Line(o0[0], o0[1], o0[2], o0[0]+z0[0], o0[1]+z0[1], o0[2]+z0[2])\n        ray1 = Line(o1[0], o1[1], o1[2], o1[0]+z1[0], o1[1]+z1[1], o1[2]+z1[2])\n\n        parallel = abs(z0.dot(z1)) > 0.9999\n        dist2 = (o0[0]-o1[0])**2 + (o0[1]-o1[1])**2 + (o0[2]-o1[2])**2\n\n        if not parallel and dist2 > 0.001:\n            result = intersection.line_line_parameters(ray0, ray1, 0.01, False, False)\n            if result is not None:\n                t0, t1 = result\n                center = Point(o0[0]+t0*z0[0], o0[1]+t0*z0[1], o0[2]+t0*z0[2])\n                v0 = Vector(o0[0]-center[0], o0[1]-center[1], o0[2]-center[2])\n                v1 = Vector(o1[0]-center[0], o1[1]-center[1], o1[2]-center[2])\n                v0.normalize_self()\n                v1.normalize_self()\n                bisector = Vector(v0[0]+v1[0], v0[1]+v1[1], v0[2]+v1[2])\n                return Plane(centerDihedral, line_dir, bisector)\n\n        bisector = Vector(z0[0]+z1[0], z0[1]+z1[1], z0[2]+z1[2])\n        return Plane(centerDihedral, line_dir, bisector)\n\n    def _compute_bisector_planes(self):",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.dihedral_plane"
-      ]
-    },
-    {
-      "name": "CrossConnectors.dihedral_plane",
-      "implementations": {
-        "python": {
-          "sig": "dihedral_plane(p0, p1)",
-          "code": "def dihedral_plane(p0, p1):\n\n        isect_line = intersection.plane_plane(p0, p1)\n        if isect_line is None:\n            return p0\n\n        centerDihedral = intersection.line_plane(isect_line, p0, False)\n        if centerDihedral is None:\n            a = isect_line.start(); b = isect_line.end()\n            centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5)\n\n        line_dir = Vector(isect_line.end()[0]-isect_line.start()[0],\n                          isect_line.end()[1]-isect_line.start()[1],\n                          isect_line.end()[2]-isect_line.start()[2])\n        line_dir.normalize_self()\n\n        z0 = p0.z_axis; z1 = p1.z_axis\n        o0 = p0.origin; o1 = p1.origin\n        ray0 = Line(o0[0], o0[1], o0[2], o0[0]+z0[0], o0[1]+z0[1], o0[2]+z0[2])\n        ray1 = Line(o1[0], o1[1], o1[2], o1[0]+z1[0], o1[1]+z1[1], o1[2]+z1[2])\n\n        parallel = abs(z0.dot(z1)) > 0.9999\n        dist2 = (o0[0]-o1[0])**2 + (o0[1]-o1[1])**2 + (o0[2]-o1[2])**2\n\n        if not parallel and dist2 > 0.001:\n            result = intersection.line_line_parameters(ray0, ray1, 0.01, False, False)\n            if result is not None:\n                t0, t1 = result\n                center = Point(o0[0]+t0*z0[0], o0[1]+t0*z0[1], o0[2]+t0*z0[2])\n                v0 = Vector(o0[0]-center[0], o0[1]-center[1], o0[2]-center[2])\n                v1 = Vector(o1[0]-center[0], o1[1]-center[1], o1[2]-center[2])\n                v0.normalize_self()\n                v1.normalize_self()\n                bisector = Vector(v0[0]+v1[0], v0[1]+v1[1], v0[2]+v1[2])\n                return Plane(centerDihedral, line_dir, bisector)\n\n        bisector = Vector(z0[0]+z1[0], z0[1]+z1[1], z0[2]+z1[2])\n        return Plane(centerDihedral, line_dir, bisector)\n\n    def _compute_bisector_planes(self):\n        self.bisector_planes = [None] * self._f\n        for i in range(self._f):\n            n = len(self.fe_planes[i])\n            self.bisector_planes[i] = [None] * n\n            for j in range(n):\n                self.bisector_planes[i][j] = CrossConnectors.dihedral_plane(\n                    self.fe_planes[i][(j+1)%n], self.fe_planes[i][j])\n\n    @staticmethod\n    def move_plane_by_axis(pl, dist, axis=2):\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
-          "code": "Plane CrossConnectors::dihedral_plane(const Plane& p0, const Plane& p1) {\n    Line isect_line;\n    if (!Intersection::plane_plane(p0, p1, isect_line))\n        return p0;\n\n    Point centerDihedral;\n    if (!Intersection::line_plane(isect_line, p0, centerDihedral, false)) {\n        Point a = isect_line.start(), b = isect_line.end();\n        centerDihedral = Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_bisector_planes",
-      "implementations": {
-        "python": {
-          "sig": "_compute_bisector_planes()",
-          "code": "def _compute_bisector_planes(self):\n\n        self.bisector_planes = [None] * self._f\n        for i in range(self._f):\n            n = len(self.fe_planes[i])\n            self.bisector_planes[i] = [None] * n\n            for j in range(n):\n                self.bisector_planes[i][j] = CrossConnectors.dihedral_plane(\n                    self.fe_planes[i][(j+1)%n], self.fe_planes[i][j])\n\n    @staticmethod\n    def move_plane_by_axis(pl, dist, axis=2):\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_polylines",
-        "CrossConnectors.dihedral_plane",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.move_plane_by_axis",
-      "implementations": {
-        "python": {
-          "sig": "move_plane_by_axis(pl, dist, axis=2)",
-          "code": "def move_plane_by_axis(pl, dist, axis=2):\n\n        if axis == 0:\n            d = pl.x_axis\n        elif axis == 1:\n            d = pl.y_axis\n        else:\n            d = pl.z_axis\n        o = pl.origin\n        new_o = Point(o[0]+d[0]*dist, o[1]+d[1]*dist, o[2]+d[2]*dist)\n        return Plane.from_frame(new_o, pl.x_axis, pl.y_axis, pl.z_axis)\n\n    @staticmethod\n    def outline_from_planes(face_plane, edge_planes, bise_planes):\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis)",
-          "code": "Plane CrossConnectors::move_plane_by_axis(const Plane& pl, double dist, int axis) {\n    Vector dir;\n    if (axis == 0) dir = pl.x_axis();\n    else if (axis == 1) dir = pl.y_axis();\n    else dir = pl.z_axis();\n    Point o = pl.origin();\n    Point new_o(o[0]+dir[0]*dist, o[1]+dir[1]*dist, o[2]+dir[2]*dist);\n    return Plane(new_o, pl.x_axis(), pl.y_axis(), pl.z_axis());\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_polylines",
-        "CrossConnectors.dihedral_plane",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.outline_from_planes",
-      "implementations": {
-        "python": {
-          "sig": "outline_from_planes(face_plane, edge_planes, bise_planes)",
-          "code": "def outline_from_planes(face_plane, edge_planes, bise_planes):\n\n        pl = Polyline()\n        n = len(edge_planes)\n        for i in range(n):\n            plane = edge_planes[i]\n            plane1 = edge_planes[(i+1)%n]\n\n            angle = math.acos(min(1.0, max(-1.0, plane.z_axis.dot(plane1.z_axis))))\n            if angle < 0.01 and angle > -0.01:\n                continue\n\n            line = intersection.plane_plane(plane, plane1)\n            if line is None:\n                continue\n            pt = intersection.line_plane(line, face_plane, False)\n            if pt is None:\n                continue\n            pl.add_point(pt)\n        if pl.point_count() > 0:\n            pl.add_point(pl.get_point(0))\n        return pl\n\n    def _compute_face_polylines(self):\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Polyline outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& /*bise_planes*/)",
-          "code": "Polyline CrossConnectors::outline_from_planes(const Plane& face_plane,\n                                               const std::vector<Plane>& edge_planes,\n                                               const std::vector<Plane>& /*bise_planes*/) {\n    // Python outline_from_face_edge_corner T=2 mode:\n    // PlanePlane(edge[i], edge[(i+1)%n]) \u00e2\u2020\u2019 line, LinePlane(line, face_plane) \u00e2\u2020\u2019 point\n    Polyline pl;\n    int n = (int)edge_planes.size();\n    for (int i = 0; i < n; i++) {\n        const Plane& plane = edge_planes[i];\n        const Plane& plane1 = edge_planes[(i+1)%n];\n\n        // Skip parallel edges\n        double angle = std::acos(std::min(1.0, std::max(-1.0, plane.z_axis().dot(plane1.z_axis()))));\n        if (angle < 0.01 && angle > -0.01) continue;\n\n        Line line;\n        if (!Intersection::plane_plane(plane, plane1, line)) continue;\n        Point pt;\n        if (!Intersection::line_plane(line, face_plane, pt, false)) continue;\n        pl.add_point(pt);\n    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_polylines",
-        "CrossConnectors.dihedral_plane",
-        "CrossConnectors.move_plane_by_axis"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_face_polylines",
-      "implementations": {
-        "python": {
-          "sig": "_compute_face_polylines()",
-          "code": "def _compute_face_polylines(self):\n\n        self.face_polylines = [[] for _ in range(self._f)]\n        for i in range(self._f):\n            for j in range(len(self._face_pos)):\n                base_bot = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * -0.5)\n                base_top = CrossConnectors.move_plane_by_axis(self.face_planes[i], self._face_pos[j] + self._thick * 0.5)\n                pline0 = CrossConnectors.outline_from_planes(base_bot, self.fe_planes[i], self.bisector_planes[i])\n                pline1 = CrossConnectors.outline_from_planes(base_top, self.fe_planes[i], self.bisector_planes[i])\n                self.face_polylines[i].append(pline0)\n                self.face_polylines[i].append(pline1)\n\n    def _compute_edges(self):\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_polylines",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_edges",
-      "implementations": {
-        "python": {
-          "sig": "_compute_edges()",
-          "code": "def _compute_edges(self):\n\n        self.edges = []\n        seen = set()\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key not in seen:\n                    seen.add(key)\n                    self.edges.append(key)\n\n    def _compute_edge_faces(self):\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_edge_faces",
-      "implementations": {
-        "python": {
-          "sig": "_compute_edge_faces()",
-          "code": "def _compute_edge_faces(self):\n\n        self.edge_faces = [[] for _ in range(len(self.edges))]\n        edge_idx = {}\n        for i, e in enumerate(self.edges):\n            edge_idx[e] = i\n\n        for i in range(self._f):\n            v = self._fv[i]\n            n = len(v)\n            for j in range(n):\n                key = (min(v[j], v[(j+1)%n]), max(v[j], v[(j+1)%n]))\n                if key in edge_idx:\n                    self.edge_faces[edge_idx[key]].append(i)\n\n    def _compute_edge_planes_method(self):\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_edge_planes_method",
-      "implementations": {
-        "python": {
-          "sig": "_compute_edge_planes_method()",
-          "code": "def _compute_edge_planes_method(self):\n\n        self.edge_planes = [None] * len(self.edges)\n        self._e90_multiple_planes = [[] for _ in range(len(self.edges))]\n\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                self.edge_planes[i] = Plane()\n                self._e90_multiple_planes[i] = [Plane()]\n                continue\n\n            v1 = self.mesh.vertex_position(self.edges[i][0])\n            v2 = self.mesh.vertex_position(self.edges[i][1])\n            mid = Point((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5)\n            zaxis = Vector(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2])\n            zaxis.normalize_self()\n\n            z0 = self.face_planes[self.edge_faces[i][0]].z_axis\n            z1 = self.face_planes[self.edge_faces[i][1]].z_axis\n            yaxis = Vector((z0[0]+z1[0])*0.5, (z0[1]+z1[1])*0.5, (z0[2]+z1[2])*0.5)\n            yaxis.normalize_self()\n\n            xaxis = Vector(zaxis[1]*yaxis[2]-zaxis[2]*yaxis[1],\n                           zaxis[2]*yaxis[0]-zaxis[0]*yaxis[2],\n                           zaxis[0]*yaxis[1]-zaxis[1]*yaxis[0])\n            xaxis.normalize_self()\n\n            f0_o = self.face_planes[self.edge_faces[i][0]].origin\n            d_pos = ((mid[0]+xaxis[0]-f0_o[0])**2 + (mid[1]+xaxis[1]-f0_o[1])**2 + (mid[2]+xaxis[2]-f0_o[2])**2)\n            d_neg = ((mid[0]-xaxis[0]-f0_o[0])**2 + (mid[1]-xaxis[1]-f0_o[1])**2 + (mid[2]-xaxis[2]-f0_o[2])**2)\n            if d_pos > d_neg:\n                xaxis = Vector(-xaxis[0], -xaxis[1], -xaxis[2])\n\n            self.edge_planes[i] = Plane.from_frame(mid, xaxis, yaxis, zaxis)\n\n            self._e90_multiple_planes[i] = []\n            for d in range(self._edge_div):\n                t = (d + 1.0) / (self._edge_div + 1.0)\n                pt = Point(v1[0]+t*(v2[0]-v1[0]), v1[1]+t*(v2[1]-v1[1]), v1[2]+t*(v2[2]-v1[2]))\n                self._e90_multiple_planes[i].append(Plane.from_frame(pt, xaxis, yaxis, zaxis))\n\n    @staticmethod\n    def make_rectangle(pl, w, h):\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.make_rectangle",
-      "implementations": {
-        "python": {
-          "sig": "make_rectangle(pl, w, h)",
-          "code": "def make_rectangle(pl, w, h):\n\n        x = pl.x_axis; y = pl.y_axis; o = pl.origin\n        hw = w * 0.5; hh = h * 0.5\n        rect = Polyline()\n        rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]))\n        rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]))\n        rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]))\n        rect.add_point(rect.get_point(0))\n        return rect\n\n    def _compute_connectors(self):\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    bot0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n                    bot1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n\n                    emx = self.edge_planes[i].z_axis\n                    emy = self.edge_planes[i].y_axis\n                    emz = Vector(-self.edge_planes[i].x_axis[0], -self.edge_planes[i].x_axis[1], -self.edge_planes[i].x_axis[2])\n                    e_plane_main = Plane.from_frame(self.edge_planes[i].origin, emx, emy, emz)\n\n                    sides = [\n                        top0, e_plane, top1,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * 0.5),\n                        bot1, e_plane, bot0,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * -0.5)\n                    ]\n\n                    base0 = CrossConnectors.move_plane_by_axis(epl, -self._rect_t * 0.5)\n                    type1_0 = Polyline()\n                    ns = len(sides)\n                    for s in range(ns):\n                        line = intersection.plane_plane(sides[s], sides[(s+1)%ns])\n                        if line is None:\n                            continue\n                        pt = intersection.line_plane(line, base0, False)\n                        if pt is None:\n                            continue\n                        type1_0.add_point(pt)\n                    if type1_0.point_count() > 0:\n                        type1_0.add_point(type1_0.get_point(0))\n\n                    type1_1 = Polyline()\n                    zdir = epl.z_axis\n                    for p in range(type1_0.point_count()):\n                        pp = type1_0.get_point(p)\n                        type1_1.add_point(Point(pp[0]+zdir[0]*self._rect_t, pp[1]+zdir[1]*self._rect_t, pp[2]+zdir[2]*self._rect_t))\n\n                    self.edge_polylines[i].append(type1_0)\n                    self.edge_polylines[i].append(type1_1)",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
-          "code": "Polyline CrossConnectors::make_rectangle(const Plane& pl, double w, double h) {\n    Vector x = pl.x_axis();\n    Vector y = pl.y_axis();\n    Point o = pl.origin();\n    double hw = w * 0.5, hh = h * 0.5;\n    Polyline rect;\n    rect.add_point(Point(o[0]-hw*x[0]-hh*y[0], o[1]-hw*x[1]-hh*y[1], o[2]-hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]-hh*y[0], o[1]+hw*x[1]-hh*y[1], o[2]+hw*x[2]-hh*y[2]));\n    rect.add_point(Point(o[0]+hw*x[0]+hh*y[0], o[1]+hw*x[1]+hh*y[1], o[2]+hw*x[2]+hh*y[2]));\n    rect.add_point(Point(o[0]-hw*x[0]+hh*y[0], o[1]-hw*x[1]+hh*y[1], o[2]-hw*x[2]+hh*y[2]));\n    rect.add_point(rect.get_point(0));\n    return rect;\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors._compute_connectors",
-      "implementations": {
-        "python": {
-          "sig": "_compute_connectors()",
-          "code": "def _compute_connectors(self):\n\n        self.edge_polylines = [[] for _ in range(len(self.edges))]\n        for i in range(len(self.edges)):\n            if len(self.edge_faces[i]) < 2:\n                continue\n\n            for j in range(len(self._e90_multiple_planes[i])):\n                epl = self._e90_multiple_planes[i][j]\n                if self._rect_w > 0 and self._rect_h > 0:\n                    pl0 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * 0.5)\n                    pl1 = CrossConnectors.move_plane_by_axis(epl, self._rect_t * -0.5)\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl0, self._rect_w, self._rect_h))\n                    self.edge_polylines[i].append(CrossConnectors.make_rectangle(pl1, self._rect_w, self._rect_h))\n                else:\n                    w = abs(self._rect_h)\n                    h = abs(self._rect_w)\n\n                    new_x = epl.z_axis\n                    ey = epl.y_axis\n                    new_z = Vector(-epl.x_axis[0], -epl.x_axis[1], -epl.x_axis[2])\n                    e_plane = Plane.from_frame(epl.origin, new_x, ey, new_z)\n\n                    top0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    top1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[-1]),\n                        self._thick * 0.5 + h)\n                    bot0 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][0]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n                    bot1 = CrossConnectors.move_plane_by_axis(\n                        CrossConnectors.move_plane_by_axis(self.face_planes[self.edge_faces[i][1]], self._face_pos[0]),\n                        self._thick * -0.5 - h)\n\n                    emx = self.edge_planes[i].z_axis\n                    emy = self.edge_planes[i].y_axis\n                    emz = Vector(-self.edge_planes[i].x_axis[0], -self.edge_planes[i].x_axis[1], -self.edge_planes[i].x_axis[2])\n                    e_plane_main = Plane.from_frame(self.edge_planes[i].origin, emx, emy, emz)\n\n                    sides = [\n                        top0, e_plane, top1,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * 0.5),\n                        bot1, e_plane, bot0,\n                        CrossConnectors.move_plane_by_axis(e_plane_main, w * -0.5)\n                    ]\n\n                    base0 = CrossConnectors.move_plane_by_axis(epl, -self._rect_t * 0.5)\n                    type1_0 = Polyline()\n                    ns = len(sides)\n                    for s in range(ns):\n                        line = intersection.plane_plane(sides[s], sides[(s+1)%ns])\n                        if line is None:\n                            continue\n                        pt = intersection.line_plane(line, base0, False)\n                        if pt is None:\n                            continue\n                        type1_0.add_point(pt)\n                    if type1_0.point_count() > 0:\n                        type1_0.add_point(type1_0.get_point(0))\n\n                    type1_1 = Polyline()\n                    zdir = epl.z_axis\n                    for p in range(type1_0.point_count()):\n                        pp = type1_0.get_point(p)\n                        type1_1.add_point(Point(pp[0]+zdir[0]*self._rect_t, pp[1]+zdir[1]*self._rect_t, pp[2]+zdir[2]*self._rect_t))\n\n                    self.edge_polylines[i].append(type1_0)\n                    self.edge_polylines[i].append(type1_1)",
-          "file": "primitives.py"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new"
       ]
     },
     {
@@ -42373,6 +41893,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "ColorMode.euler",
+      "implementations": {
+        "cpp": {
+          "sig": "int euler()",
+          "code": "int euler() const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.to_vertices_and_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces()",
+          "code": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces() const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
       "name": "ColorMode.edges",
       "implementations": {
         "cpp": {
@@ -42384,16 +41924,40 @@ window.API_INDEX = {
       "related": [
         "ColorMode.edge_edges",
         "ColorMode.face_edges",
+        "ColorMode.naked_edges",
         "ColorMode.number_of_edges",
         "ColorMode.vertex_edges"
       ]
     },
     {
-      "name": "ColorMode.euler",
+      "name": "ColorMode.naked_edges",
       "implementations": {
         "cpp": {
-          "sig": "int euler()",
-          "code": "int euler() const;",
+          "sig": "std::vector<std::pair<size_t, size_t>> naked_edges(bool boundary = true)",
+          "code": "std::vector<std::pair<size_t, size_t>> naked_edges(bool boundary = true) const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.edges"
+      ]
+    },
+    {
+      "name": "ColorMode.naked_vertices",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<size_t> naked_vertices(bool boundary = true)",
+          "code": "std::vector<size_t> naked_vertices(bool boundary = true) const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.naked_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<size_t> naked_faces(bool boundary = true)",
+          "code": "std::vector<size_t> naked_faces(bool boundary = true) const;",
           "file": "mesh.h"
         }
       }
@@ -42404,16 +41968,6 @@ window.API_INDEX = {
         "cpp": {
           "sig": "std::map<size_t, size_t> vertex_index()",
           "code": "std::map<size_t, size_t> vertex_index() const;",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "ColorMode.to_vertices_and_faces",
-      "implementations": {
-        "cpp": {
-          "sig": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces()",
-          "code": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces() const;",
           "file": "mesh.h"
         }
       }
@@ -42437,6 +41991,36 @@ window.API_INDEX = {
         "cpp": {
           "sig": "std::optional<size_t> add_face(const std::vector<size_t>& vertices, std::optional<size_t> fkey = std::nullopt)",
           "code": "std::optional<size_t> add_face(const std::vector<size_t>& vertices, std::optional<size_t> fkey = std::nullopt);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.remove_face",
+      "implementations": {
+        "cpp": {
+          "sig": "void remove_face(size_t fkey)",
+          "code": "void remove_face(size_t fkey);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.remove_vertex",
+      "implementations": {
+        "cpp": {
+          "sig": "void remove_vertex(size_t vkey)",
+          "code": "void remove_vertex(size_t vkey);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.remove_edge",
+      "implementations": {
+        "cpp": {
+          "sig": "void remove_edge(size_t u, size_t v)",
+          "code": "void remove_edge(size_t u, size_t v);",
           "file": "mesh.h"
         }
       }
@@ -45266,588 +44850,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Primitives.diamond_subdivision",
-      "implementations": {
-        "cpp": {
-          "sig": "void diamond_subdivision()",
-          "code": "void diamond_subdivision();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.build_topology",
-      "implementations": {
-        "cpp": {
-          "sig": "void build_topology()",
-          "code": "void build_topology();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.compute_face_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_planes()",
-          "code": "void compute_face_planes();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.compute_edge_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_planes()",
-          "code": "void compute_edge_planes();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces",
-        "Primitives.compute_edge_planes_method"
-      ]
-    },
-    {
-      "name": "Primitives.compute_face_edge_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_edge_planes()",
-          "code": "void compute_face_edge_planes();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.compute_face_polylines",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_polylines()",
-          "code": "void compute_face_polylines();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.compute_insertion_vectors",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_insertion_vectors()",
-          "code": "void compute_insertion_vectors();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.closest_on_line",
-      "implementations": {
-        "cpp": {
-          "sig": "Point closest_on_line(const Point& pt, const Point& a, const Point& b)",
-          "code": "static Point closest_on_line(const Point& pt, const Point& a, const Point& b);",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces",
-        "Primitives.pt"
-      ]
-    },
-    {
-      "name": "Primitives.line_plane_t",
-      "implementations": {
-        "cpp": {
-          "sig": "bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t)",
-          "code": "static bool line_plane_t(const Point& a, const Point& b, const Plane& pl, double& t);",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.intersect_3_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result)",
-          "code": "static bool intersect_3_planes(const Plane& p0, const Plane& p1, const Plane& p2, Point& result);",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.annen_surfaces"
-      ]
-    },
-    {
-      "name": "Primitives.chamfer_polyline",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline chamfer_polyline(const Polyline& pl, double value)",
-          "code": "static Polyline chamfer_polyline(const Polyline& pl, double value);",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.compute_bisector_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_bisector_planes()",
-          "code": "void compute_bisector_planes();",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.compute_edges",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edges()",
-          "code": "void compute_edges();",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.compute_edge_faces",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_faces()",
-          "code": "void compute_edge_faces();",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.compute_edge_planes_method",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_planes_method()",
-          "code": "void compute_edge_planes_method();",
-          "file": "primitives.h"
-        }
-      },
-      "related": [
-        "Primitives.compute_edge_planes"
-      ]
-    },
-    {
-      "name": "Primitives.compute_connectors",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_connectors()",
-          "code": "void compute_connectors();",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.dihedral_plane",
-      "implementations": {
-        "cpp": {
-          "sig": "Plane dihedral_plane(const Plane& p0, const Plane& p1)",
-          "code": "static Plane dihedral_plane(const Plane& p0, const Plane& p1);",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.move_plane_by_axis",
-      "implementations": {
-        "cpp": {
-          "sig": "Plane move_plane_by_axis(const Plane& pl, double dist, int axis = 2)",
-          "code": "static Plane move_plane_by_axis(const Plane& pl, double dist, int axis = 2);",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.outline_from_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline outline_from_planes(const Plane& face_plane, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bise_planes)",
-          "code": "static Polyline outline_from_planes(const Plane& face_plane, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bise_planes);",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "Primitives.make_rectangle",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline make_rectangle(const Plane& pl, double w, double h)",
-          "code": "static Polyline make_rectangle(const Plane& pl, double w, double h);",
-          "file": "primitives.h"
-        }
-      }
-    },
-    {
-      "name": "FoldedPlates.constructor",
-      "implementations": {
-        "cpp": {
-          "sig": "FoldedPlates(const NurbsSurface& surface, int u_divisions, int v_divisions,\n                           double thickness, double chamfer,\n                           const std::vector<Plane>& base_planes,\n                           const std::vector<double>& face_positions)",
-          "code": "FoldedPlates::FoldedPlates(const NurbsSurface& surface, int u_divisions, int v_divisions,\n                           double thickness, double chamfer,\n                           const std::vector<Plane>& base_planes,\n                           const std::vector<double>& face_positions)\n    : _srf(surface), _udiv(std::max(1, u_divisions)), _vdiv(std::max(1, v_divisions)),\n      _thick(thickness), _cham(chamfer), _base_planes(base_planes), _face_pos(face_positions), _f(0)\n{\n    diamond_subdivision();\n    build_topology();\n    compute_face_planes();\n    compute_edge_planes();\n    compute_face_edge_planes();\n    compute_face_polylines();\n    compute_insertion_vectors();\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.build_topology",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.diamond_subdivision"
-      ]
-    },
-    {
-      "name": "CrossConnectors.constructor",
-      "implementations": {
-        "cpp": {
-          "sig": "CrossConnectors(const Mesh& m,\n                                 double face_thickness,\n                                 const std::vector<double>& face_positions,\n                                 int edge_divisions,\n                                 double rect_width,\n                                 double rect_height,\n                                 double rect_thickness,\n                                 double chamfer)",
-          "code": "CrossConnectors::CrossConnectors(const Mesh& m,\n                                 double face_thickness,\n                                 const std::vector<double>& face_positions,\n                                 int edge_divisions,\n                                 double rect_width,\n                                 double rect_height,\n                                 double rect_thickness,\n                                 double chamfer)\n    : mesh(m), _f(0), _thick(face_thickness), _rect_w(rect_width), _rect_h(rect_height),\n      _rect_t(rect_thickness), _cham(chamfer), _edge_div(std::max(1, edge_divisions)),\n      _face_pos(face_positions)\n{\n    if (_face_pos.empty()) _face_pos.push_back(0);\n    std::sort(_face_pos.begin(), _face_pos.end());\n\n    build_topology();\n    compute_face_planes();\n    compute_face_edge_planes();\n    compute_bisector_planes();\n    compute_face_polylines();\n    compute_edges();\n    compute_edge_faces();\n    compute_edge_planes_method();\n    compute_connectors();\n}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.build_topology",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.compute_face_planes",
-        "CrossConnectors.compute_face_polylines"
-      ]
-    },
-    {
-      "name": "FoldedPlates.diamond_subdivision",
-      "implementations": {
-        "cpp": {
-          "sig": "void diamond_subdivision()",
-          "code": "void FoldedPlates::diamond_subdivision() {\n    auto du = _srf.domain(0);\n    auto dv = _srf.domain(1);\n    double su = (du.second - du.first) / _udiv;\n    double sv = (dv.second - dv.first) / _vdiv;\n    std::vector<std::vector<Point>> tris;\n    int fc = 0;\n\n    auto plane_valid = [](const Plane& p) {\n        Vector z = p.z_axis();\n        return std::abs(z[0]) + std::abs(z[1]) + std::abs(z[2]) > 0.01;\n    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.chamfer_polyline",
-        "FoldedPlates.closest_on_line",
-        "FoldedPlates.constructor",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.line_plane_t",
-        "FoldedPlates.new",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.build_topology",
-      "implementations": {
-        "cpp": {
-          "sig": "void build_topology()",
-          "code": "void FoldedPlates::build_topology() {\n    _fkeys.clear();\n    for (auto& [fk, _] : mesh.face) _fkeys.push_back(fk);\n    std::sort(_fkeys.begin(), _fkeys.end());\n    _f = (int)_fkeys.size();\n\n    _fv.resize(_f);\n    for (int i = 0; i < _f; i++) _fv[i] = mesh.face[_fkeys[i]];\n\n    std::map<std::pair<size_t,size_t>, std::vector<int>> ef_map;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            ef_map[key].push_back(i);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates._diamond_subdivision",
-        "FoldedPlates.constructor",
-        "FoldedPlates.new",
-        "FoldedPlates.plane_valid"
-      ]
-    },
-    {
-      "name": "FoldedPlates.compute_face_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_planes()",
-          "code": "void FoldedPlates::compute_face_planes() {\n    _fplanes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& verts = _fv[i];\n        int n = (int)verts.size();\n        double cx = 0, cy = 0, cz = 0, w = 0;\n        for (int j = 0; j < n; j++) {\n            Point pa = mesh.vertex_position(verts[j]).value();\n            Point pb = mesh.vertex_position(verts[(j+1)%n]).value();\n            double d = std::sqrt((pb[0]-pa[0])*(pb[0]-pa[0])+(pb[1]-pa[1])*(pb[1]-pa[1])+(pb[2]-pa[2])*(pb[2]-pa[2]));\n            cx += d * (pa[0]+pb[0]) * 0.5;\n            cy += d * (pa[1]+pb[1]) * 0.5;\n            cz += d * (pa[2]+pb[2]) * 0.5;\n            w += d;\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.constructor",
-        "FoldedPlates.new"
-      ]
-    },
-    {
-      "name": "FoldedPlates.compute_edge_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_planes()",
-          "code": "void FoldedPlates::compute_edge_planes() {\n    _eplanes.resize(_ef.size());\n    for (auto& [ep, ei] : _eidx) {\n        Point v1 = mesh.vertex_position(ep.first).value();\n        Point v2 = mesh.vertex_position(ep.second).value();\n        Point mid((v1[0]+v2[0])*0.5, (v1[1]+v2[1])*0.5, (v1[2]+v2[2])*0.5);\n        Vector edir(v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2]);\n        edir.normalize_self();\n\n        auto& cf = _ef[ei];\n        Vector z(0,0,1);\n        if (cf.size() == 2) {\n            Vector fn0 = mesh.face_normal(_fkeys[cf[0]]).value();\n            Vector fn1 = mesh.face_normal(_fkeys[cf[1]]).value();\n            Vector avg((fn0[0]+fn1[0])*0.5, (fn0[1]+fn1[1])*0.5, (fn0[2]+fn1[2])*0.5);\n            avg.normalize_self();\n            z = edir.cross(avg);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._build_topology",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.constructor",
-        "FoldedPlates.new"
-      ]
-    },
-    {
-      "name": "FoldedPlates.compute_face_edge_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_edge_planes()",
-          "code": "void FoldedPlates::compute_face_edge_planes() {\n    _fe_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        _fe_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            size_t v1 = v[j], v2 = v[(j+1)%n];\n            auto key = std::make_pair(std::min(v1,v2), std::max(v1,v2));\n            auto& cf = _ef[_eidx[key]];\n\n            if (cf.size() == 2) {\n                _fe_planes[i][j] = _eplanes[_eidx[key]];\n            }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.constructor",
-        "FoldedPlates.new"
-      ]
-    },
-    {
-      "name": "FoldedPlates.compute_face_polylines",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_polylines()",
-          "code": "void FoldedPlates::compute_face_polylines() {\n    polylines.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& sides = _fe_planes[i];\n        int n = (int)sides.size();\n\n        for (size_t j = 0; j < _face_pos.size(); j++) {\n            Plane base0 = _fplanes[i].translate_by_normal(-_face_pos[j]);\n            Plane base1 = _fplanes[i].translate_by_normal(-(_face_pos[j] + _thick));\n\n            Polyline pl0, pl1;\n            for (int k = 0; k < n; k++) {\n                Point pt;\n                if (intersect_3_planes(base0, sides[k], sides[(k+1)%n], pt))\n                    pl0.add_point(pt);\n                if (intersect_3_planes(base1, sides[k], sides[(k+1)%n], pt))\n                    pl1.add_point(pt);\n            }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.constructor",
-        "FoldedPlates.intersect_3_planes",
-        "FoldedPlates.new"
-      ]
-    },
-    {
-      "name": "FoldedPlates.compute_insertion_vectors",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_insertion_vectors()",
-          "code": "void FoldedPlates::compute_insertion_vectors() {\n    for (int i = 0; i < _f; i++) {\n        if (flags[i]) continue;\n        if (polylines[i].empty() || polylines[i][0].point_count() < 4) continue;\n\n        const Polyline& pl = polylines[i][0];\n        Vector vec(pl.get_point(2)[0] - pl.get_point(0)[0],\n                   pl.get_point(2)[1] - pl.get_point(0)[1],\n                   pl.get_point(2)[2] - pl.get_point(0)[2]);\n        vec.normalize_self();\n        vec = Vector(vec[0]*0.5, vec[1]*0.5, vec[2]*0.5);\n\n        for (int j = 0; j < 3; j++) {\n            Point a = pl.get_point(j);\n            Point b = pl.get_point((j + 1) % 3);\n            Point mid((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);\n            insertion_lines.push_back(Line::from_point_and_vector(mid, vec));\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "FoldedPlates.__init__",
-        "FoldedPlates._compute_edge_planes",
-        "FoldedPlates._compute_face_edge_planes",
-        "FoldedPlates._compute_face_polylines",
-        "FoldedPlates._compute_insertion_vectors",
-        "FoldedPlates.constructor",
-        "FoldedPlates.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors.build_topology",
-      "implementations": {
-        "cpp": {
-          "sig": "void build_topology()",
-          "code": "void CrossConnectors::build_topology() {\n    _fkeys.clear();\n    for (auto& [fk, _] : mesh.face) _fkeys.push_back(fk);\n    std::sort(_fkeys.begin(), _fkeys.end());\n    _f = (int)_fkeys.size();\n\n    _fv.resize(_f);\n    for (int i = 0; i < _f; i++) _fv[i] = mesh.face[_fkeys[i]];\n\n    _eidx.clear();\n    int ei = 0;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            if (_eidx.find(key) == _eidx.end()) {\n                _eidx[key] = ei++;\n            }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._build_topology",
-        "CrossConnectors.constructor",
-        "CrossConnectors.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_face_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_planes()",
-          "code": "void CrossConnectors::compute_face_planes() {\n    face_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& verts = _fv[i];\n        int n = (int)verts.size();\n        // Edge-length-weighted center (matches Python center_point)\n        double cx = 0, cy = 0, cz = 0, w = 0;\n        for (int j = 0; j < n; j++) {\n            Point pa = mesh.vertex_position(verts[j]).value();\n            Point pb = mesh.vertex_position(verts[(j+1)%n]).value();\n            double d = pa.distance(pb);\n            cx += d * (pa[0]+pb[0]) * 0.5;\n            cy += d * (pa[1]+pb[1]) * 0.5;\n            cz += d * (pa[2]+pb[2]) * 0.5;\n            w += d;\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors.constructor",
-        "CrossConnectors.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_face_edge_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_edge_planes()",
-          "code": "void CrossConnectors::compute_face_edge_planes() {\n    // Python: Plane(midpoint, edge_direction_v1_minus_v2, averaged_face_normals)\n    // Rhino Plane(origin, xaxis, yaxis) \u00e2\u2020\u2019 ZAxis = cross(X,Y)\n    fe_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        fe_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            size_t v1 = v[j], v2 = v[(j+1)%n];\n            Point p1 = mesh.vertex_position(v1).value();\n            Point p2 = mesh.vertex_position(v2).value();\n            Point mid((p1[0]+p2[0])*0.5, (p1[1]+p2[1])*0.5, (p1[2]+p2[2])*0.5);\n\n            auto key = std::make_pair(std::min(v1,v2), std::max(v1,v2));\n\n            // Average face normals of all faces sharing this edge\n            Vector sum(0,0,0);\n            int count = 0;\n            for (int fi = 0; fi < _f; fi++) {\n                auto& fv = _fv[fi];\n                int fn = (int)fv.size();\n                for (int k = 0; k < fn; k++) {\n                    auto ek = std::make_pair(std::min(fv[k], fv[(k+1)%fn]), std::max(fv[k], fv[(k+1)%fn]));\n                    if (ek == key) {\n                        Vector fn_vec = mesh.face_normal(_fkeys[fi]).value_or(Vector(0, 0, 1));\n                        sum = Vector(sum[0]+fn_vec[0], sum[1]+fn_vec[1], sum[2]+fn_vec[2]);\n                        count++;\n                        break;\n                    }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._build_topology",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors._compute_face_planes",
-        "CrossConnectors.constructor",
-        "CrossConnectors.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_bisector_planes",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_bisector_planes()",
-          "code": "void CrossConnectors::compute_bisector_planes() {\n    // Python: bi_planes[i][j] = dihedral_plane(fe_planes[i][(j+1)%n], fe_planes[i][j])\n    bisector_planes.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        int n = (int)fe_planes[i].size();\n        bisector_planes[i].resize(n);\n        for (int j = 0; j < n; j++) {\n            bisector_planes[i][j] = dihedral_plane(fe_planes[i][(j+1)%n], fe_planes[i][j]);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_face_edge_planes",
-        "CrossConnectors.constructor",
-        "CrossConnectors.dihedral_plane",
-        "CrossConnectors.new"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_face_polylines",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_face_polylines()",
-          "code": "void CrossConnectors::compute_face_polylines() {\n    // Python: 2 polylines per face_position (bottom at -thick/2, top at +thick/2)\n    face_polylines.resize(_f);\n    for (int i = 0; i < _f; i++) {\n        for (size_t j = 0; j < _face_pos.size(); j++) {\n            Plane base_bot = move_plane_by_axis(face_planes[i], _face_pos[j] + _thick * -0.5);\n            Plane base_top = move_plane_by_axis(face_planes[i], _face_pos[j] + _thick *  0.5);\n            Polyline pline0 = outline_from_planes(base_bot, fe_planes[i], bisector_planes[i]);\n            Polyline pline1 = outline_from_planes(base_top, fe_planes[i], bisector_planes[i]);\n            face_polylines[i].push_back(pline0);\n            face_polylines[i].push_back(pline1);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.constructor",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_edges",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edges()",
-          "code": "void CrossConnectors::compute_edges() {\n    edges.clear();\n    std::set<std::pair<size_t,size_t>> seen;\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            if (seen.insert(key).second)\n                edges.push_back(key);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.constructor",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_edge_faces",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_faces()",
-          "code": "void CrossConnectors::compute_edge_faces() {\n    edge_faces.resize(edges.size());\n    std::map<std::pair<size_t,size_t>, int> edge_idx;\n    for (size_t i = 0; i < edges.size(); i++) edge_idx[edges[i]] = (int)i;\n\n    for (int i = 0; i < _f; i++) {\n        auto& v = _fv[i];\n        int n = (int)v.size();\n        for (int j = 0; j < n; j++) {\n            auto key = std::make_pair(std::min(v[j], v[(j+1)%n]), std::max(v[j], v[(j+1)%n]));\n            auto it = edge_idx.find(key);\n            if (it != edge_idx.end())\n                edge_faces[it->second].push_back(i);\n        }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.constructor",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_edge_planes_method",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_edge_planes_method()",
-          "code": "void CrossConnectors::compute_edge_planes_method() {\n    // Python: Plane(origin, xaxis, yaxis) where:\n    //   origin = edge midpoint\n    //   zaxis = edge direction (unitized)\n    //   yaxis = average of adjacent face plane ZAxes\n    //   xaxis = cross(zaxis, yaxis), oriented toward first face\n    // ZAxis is implicitly cross(X,Y) = edge direction in Rhino\n    // Store as Plane(mid, xaxis, yaxis, zaxis)\n    edge_planes.resize(edges.size());\n    _e90_multiple_planes.resize(edges.size());\n\n    for (size_t i = 0; i < edges.size(); i++) {\n        if (edge_faces[i].size() < 2) {\n            edge_planes[i] = Plane();\n            _e90_multiple_planes[i] = {Plane()}",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors._compute_face_polylines",
-        "CrossConnectors.constructor",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new",
-        "CrossConnectors.outline_from_planes"
-      ]
-    },
-    {
-      "name": "CrossConnectors.compute_connectors",
-      "implementations": {
-        "cpp": {
-          "sig": "void compute_connectors()",
-          "code": "void CrossConnectors::compute_connectors() {\n    // Python: Rectangle3d(plane_offset, Interval(-w/2,w/2), Interval(-h/2,h/2))\n    // Rectangles are in XY plane of edge plane, offset along Z (edge direction) by \u00c2\u00b1rect_thickness/2\n    edge_polylines.resize(edges.size());\n    for (size_t i = 0; i < edges.size(); i++) {\n        if (edge_faces[i].size() < 2) continue;\n\n        for (size_t j = 0; j < _e90_multiple_planes[i].size(); j++) {\n            const Plane& epl = _e90_multiple_planes[i][j];\n            if (_rect_w > 0 && _rect_h > 0) {\n                // Type 0: rectangle connectors\n                Plane pl0 = move_plane_by_axis(epl, _rect_t *  0.5);\n                Plane pl1 = move_plane_by_axis(epl, _rect_t * -0.5);\n                edge_polylines[i].push_back(make_rectangle(pl0, _rect_w, _rect_h));\n                edge_polylines[i].push_back(make_rectangle(pl1, _rect_w, _rect_h));\n            }",
-          "file": "primitives.cpp"
-        }
-      },
-      "related": [
-        "CrossConnectors.__init__",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_faces",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors._compute_edges",
-        "CrossConnectors.constructor",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis",
-        "CrossConnectors.new"
-      ]
-    },
-    {
       "name": "Quaternion.constructor",
       "implementations": {
         "cpp": {
@@ -47637,12 +46639,16 @@ window.API_INDEX = {
         "Mesh.linecolors",
         "Mesh.loft",
         "Mesh.loft_panels",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.objectcolor",
         "Mesh.pb_dumps",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.ray_cast_bvh",
+        "Mesh.remove_edge",
         "Mesh.side_faces",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
@@ -48462,52 +47468,6 @@ window.API_INDEX = {
       "related": [
         "Polyline.line_line_overlap_average",
         "Polyline.reverse"
-      ]
-    },
-    {
-      "name": "FoldedPlates.new",
-      "implementations": {
-        "rust": {
-          "sig": "new(surface: &NurbsSurface, u_divisions: usize, v_divisions: usize,\n               thickness: f64, chamfer: f64, base_planes: &[Plane], face_positions: &[f64]) -> Self",
-          "code": "pub fn new(surface: &NurbsSurface, u_divisions: usize, v_divisions: usize,\n               thickness: f64, chamfer: f64, base_planes: &[Plane], face_positions: &[f64]) -> Self {\n        let mut fp = Self {\n            mesh: Mesh::new(),\n            flags: Vec::new(),\n            adjacency: Vec::new(),\n            polylines: Vec::new(),\n            insertion_lines: Vec::new(),\n            _srf: surface.clone(),\n            _udiv: u_divisions.max(1),\n            _vdiv: v_divisions.max(1),\n            _thick: thickness,\n            _cham: chamfer,\n            _base_planes: base_planes.to_vec(),\n            _face_pos: if face_positions.is_empty() { vec![0.0] } else { face_positions.to_vec() },\n            _f: 0,\n            _fkeys: Vec::new(),\n            _fv: Vec::new(),\n            _fplanes: Vec::new(),\n            _fe_planes: Vec::new(),\n            _eplanes: Vec::new(),\n            _eidx: std::collections::BTreeMap::new(),\n            _ef: Vec::new(),\n        };\n        fp.diamond_subdivision();\n        fp.build_topology();\n        fp.compute_face_planes();\n        fp.compute_edge_planes();\n        fp.compute_face_edge_planes();\n        fp.compute_face_polylines();\n        fp.compute_insertion_vectors();\n        fp\n    }",
-          "file": "primitives.rs"
-        }
-      },
-      "related": [
-        "FoldedPlates.build_topology",
-        "FoldedPlates.compute_edge_planes",
-        "FoldedPlates.compute_face_edge_planes",
-        "FoldedPlates.compute_face_planes",
-        "FoldedPlates.compute_face_polylines",
-        "FoldedPlates.compute_insertion_vectors",
-        "FoldedPlates.diamond_subdivision"
-      ]
-    },
-    {
-      "name": "CrossConnectors.new",
-      "implementations": {
-        "rust": {
-          "sig": "new(m: &Mesh, face_thickness: f64, face_positions: &[f64],\n               edge_divisions: usize, rect_width: f64, rect_height: f64,\n               rect_thickness: f64, chamfer: f64) -> Self",
-          "code": "pub fn new(m: &Mesh, face_thickness: f64, face_positions: &[f64],\n               edge_divisions: usize, rect_width: f64, rect_height: f64,\n               rect_thickness: f64, chamfer: f64) -> Self {\n        let mut face_pos = if face_positions.is_empty() { vec![0.0] } else { face_positions.to_vec() };\n        face_pos.sort_by(|a, b| a.partial_cmp(b).unwrap());\n\n        let mut cc = Self {\n            mesh: m.clone(),\n            face_planes: Vec::new(),\n            fe_planes: Vec::new(),\n            bisector_planes: Vec::new(),\n            face_polylines: Vec::new(),\n            edges: Vec::new(),\n            edge_faces: Vec::new(),\n            edge_planes: Vec::new(),\n            edge_polylines: Vec::new(),\n            _f: 0,\n            _thick: face_thickness,\n            _rect_w: rect_width,\n            _rect_h: rect_height,\n            _rect_t: rect_thickness,\n            _cham: chamfer,\n            _edge_div: edge_divisions.max(1),\n            _face_pos: face_pos,\n            _fkeys: Vec::new(),\n            _fv: Vec::new(),\n            _eidx: std::collections::BTreeMap::new(),\n            _e90_multiple_planes: Vec::new(),\n        };\n        cc.build_topology();\n        cc.compute_face_planes();\n        cc.compute_face_edge_planes();\n        cc.compute_bisector_planes();\n        cc.compute_face_polylines();\n        cc.compute_edges();\n        cc.compute_edge_faces();\n        cc.compute_edge_planes_method();\n        cc.compute_connectors();\n        cc\n    }",
-          "file": "primitives.rs"
-        }
-      },
-      "related": [
-        "CrossConnectors._compute_bisector_planes",
-        "CrossConnectors._compute_connectors",
-        "CrossConnectors._compute_edge_planes_method",
-        "CrossConnectors.build_topology",
-        "CrossConnectors.compute_bisector_planes",
-        "CrossConnectors.compute_connectors",
-        "CrossConnectors.compute_edge_faces",
-        "CrossConnectors.compute_edge_planes_method",
-        "CrossConnectors.compute_edges",
-        "CrossConnectors.compute_face_edge_planes",
-        "CrossConnectors.compute_face_planes",
-        "CrossConnectors.compute_face_polylines",
-        "CrossConnectors.dihedral_plane",
-        "CrossConnectors.make_rectangle",
-        "CrossConnectors.move_plane_by_axis"
       ]
     },
     {
@@ -50174,12 +49134,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [vertices, faces] = mesh.to_vertices_and_faces();\n        MINI_CHECK(faces.size() == n_faces);\n        MINI_CHECK(vertices.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((faces[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((faces[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((faces[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((faces[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((faces[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((faces[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // sparse keys: key != index\n        Mesh mesh2;\n        size_t k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5);\n        size_t k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10);\n        MINI_CHECK(k0 == 0);\n        MINI_CHECK(k1 == 5);\n        MINI_CHECK(k2 == 10);\n        vertex_to_index = mesh2.vertex_index();\n        size_t v0 = vertex_to_index[0];\n        size_t v5 = vertex_to_index[5];\n        size_t v10 = vertex_to_index[10];\n        MINI_CHECK(v0  == 0);\n        MINI_CHECK(v5 == 1);\n        MINI_CHECK(v10 == 2);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [vertices, faces] = mesh.to_vertices_and_faces();\n        MINI_CHECK(faces.size() == n_faces);\n        MINI_CHECK(vertices.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((faces[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((faces[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((faces[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((faces[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((faces[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((faces[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 12);\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // sparse keys: key != index\n        Mesh mesh2;\n        size_t k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5);\n        size_t k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10);\n        MINI_CHECK(k0 == 0);\n        MINI_CHECK(k1 == 5);\n        MINI_CHECK(k2 == 10);\n        vertex_to_index = mesh2.vertex_index();\n        size_t v0 = vertex_to_index[0];\n        size_t v5 = vertex_to_index[5];\n        size_t v10 = vertex_to_index[10];\n        MINI_CHECK(v0  == 0);\n        MINI_CHECK(v5 == 1);\n        MINI_CHECK(v10 == 2);\n\n        // naked (closed box: no naked edges before removal)\n        MINI_CHECK(mesh.naked_edges(true).size() == 0);\n        MINI_CHECK(mesh.naked_faces(false).size() == 6);\n        // remove one face \u00e2\u20ac\u201d box becomes open, check naked\n        size_t fk0 = mesh.face.begin()->first;\n        mesh.remove_face(fk0);\n        auto ne = mesh.naked_edges(true);\n        MINI_CHECK(ne.size() == 4);\n        MINI_CHECK(ne[0] == std::make_pair(0ul, 1ul));\n        auto ni = mesh.naked_edges(false);\n        MINI_CHECK(ni.size() == 8);\n        auto nv = mesh.naked_vertices(true);\n        MINI_CHECK(nv.size() == 4);\n        auto nvi = mesh.naked_vertices(false);\n        MINI_CHECK(nvi.size() == 4);\n        auto nf = mesh.naked_faces(true);\n        MINI_CHECK(nf.size() == 4);\n        auto nfi = mesh.naked_faces(false);\n        MINI_CHECK(nfi.size() == 1);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    vertices, faces = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(faces) == n_faces)\n    MINI_CHECK(len(vertices) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(faces[0] == [0, 3, 2, 1])\n    MINI_CHECK(faces[1] == [4, 5, 6, 7])\n    MINI_CHECK(faces[2] == [0, 1, 5, 4])\n    MINI_CHECK(faces[3] == [2, 3, 7, 6])\n    MINI_CHECK(faces[4] == [0, 4, 7, 3])\n    MINI_CHECK(faces[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # sparse keys: key != index\n    mesh2 = Mesh()\n    k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0))\n    k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5)\n    k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10)\n    MINI_CHECK(k0 == 0)\n    MINI_CHECK(k1 == 5)\n    MINI_CHECK(k2 == 10)\n    vertex_to_index = mesh2.vertex_index()\n    v0 = vertex_to_index[0]\n    v5 = vertex_to_index[5]\n    v10 = vertex_to_index[10]\n    MINI_CHECK(v0  == 0)\n    MINI_CHECK(v5  == 1)\n    MINI_CHECK(v10 == 2)",
+          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    vertices, faces = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(faces) == n_faces)\n    MINI_CHECK(len(vertices) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(faces[0] == [0, 3, 2, 1])\n    MINI_CHECK(faces[1] == [4, 5, 6, 7])\n    MINI_CHECK(faces[2] == [0, 1, 5, 4])\n    MINI_CHECK(faces[3] == [2, 3, 7, 6])\n    MINI_CHECK(faces[4] == [0, 4, 7, 3])\n    MINI_CHECK(faces[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # sparse keys: key != index\n    mesh2 = Mesh()\n    k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0))\n    k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5)\n    k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10)\n    MINI_CHECK(k0 == 0)\n    MINI_CHECK(k1 == 5)\n    MINI_CHECK(k2 == 10)\n    vertex_to_index = mesh2.vertex_index()\n    v0 = vertex_to_index[0]\n    v5 = vertex_to_index[5]\n    v10 = vertex_to_index[10]\n    MINI_CHECK(v0  == 0)\n    MINI_CHECK(v5  == 1)\n    MINI_CHECK(v10 == 2)\n\n    # naked (closed box: no naked edges before removal)\n    MINI_CHECK(len(mesh.naked_edges(True)) == 0)\n    MINI_CHECK(len(mesh.naked_faces(False)) == 6)\n    # remove one face \u00e2\u20ac\u201d box becomes open, check naked\n    fk0 = min(mesh.face.keys())\n    mesh.remove_face(fk0)\n    ne = mesh.naked_edges(True)\n    MINI_CHECK(len(ne) == 4)\n    MINI_CHECK(ne[0] == (0, 1))\n    ni = mesh.naked_edges(False)\n    MINI_CHECK(len(ni) == 8)\n    nv = mesh.naked_vertices(True)\n    MINI_CHECK(len(nv) == 4)\n    nvi = mesh.naked_vertices(False)\n    MINI_CHECK(len(nvi) == 4)\n    nf = mesh.naked_faces(True)\n    MINI_CHECK(len(nf) == 4)\n    nfi = mesh.naked_faces(False)\n    MINI_CHECK(len(nfi) == 1)",
           "file": "mesh_test.py"
         }
       }
@@ -50189,12 +49149,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Edges\")",
-          "code": "MINI_TEST(\"Mesh\", \"Edges\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2, v3}, std::nullopt);\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 4);\n        MINI_CHECK((edges[0] == std::make_pair((size_t)0, (size_t)3)));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Edges\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2, v3}, std::nullopt);\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 4);\n        MINI_CHECK(edges[0] == std::make_pair(v0, v1));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 4)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (0, 3))",
+          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 4)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (0, 1))",
           "file": "mesh_test.py"
         }
       }
@@ -50204,12 +49164,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n        // uncomment #include \"mesh.h\"\n\n        // add_vertex \u00e2\u20ac\u201d nullopt key auto-assigns sequentially from 0\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n        MINI_CHECK(v0 == 0);\n        MINI_CHECK(mesh.number_of_vertices() == 1);\n        MINI_CHECK(!mesh.is_empty());\n        size_t v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42);\n        MINI_CHECK(v1 == 42);\n        MINI_CHECK(mesh.number_of_vertices() == 2);\n\n        // add_face\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        std::optional<size_t> f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        MINI_CHECK(f.has_value());\n        std::optional<size_t> invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n        MINI_CHECK(!invalid1.has_value());\n        std::optional<size_t> invalid2 = mesh.add_face({v0, v1, v0}, std::nullopt);\n        MINI_CHECK(!invalid2.has_value());\n\n        // clear\n        mesh.clear();\n        MINI_CHECK(mesh.is_empty());\n        MINI_CHECK(mesh.number_of_vertices() == 0);\n        MINI_CHECK(mesh.number_of_faces() == 0);\n\n        // unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n        size_t p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({p0, p1, p2}, std::nullopt);  // +z normal\n        size_t f1 = *mesh.add_face({p1, p2, p3}, std::nullopt);  // -z normal (wrong: same halfedge dir)\n\n        std::optional<Vector> n0_before = mesh.face_normal(f0);\n        std::optional<Vector> n1_before = mesh.face_normal(f1);\n        MINI_CHECK(n0_before.has_value() && n1_before.has_value());\n        MINI_CHECK(n0_before->dot(*n1_before) < 0.0);  // wrong: normals point opposite ways\n\n        mesh.unify_winding();\n\n        std::optional<Vector> n0_after = mesh.face_normal(f0);\n        std::optional<Vector> n1_after = mesh.face_normal(f1);\n        MINI_CHECK(n0_after.has_value() && n1_after.has_value());\n        MINI_CHECK(n0_after->dot(*n1_after) > 0.0);  // correct: normals agree\n\n        // unweld and weld\n        mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        Mesh u = mesh.unweld();\n        MINI_CHECK(u.number_of_vertices() == 24);\n\n        Mesh w = u.weld(0.001);\n        MINI_CHECK(w.number_of_vertices() == 8);\n        MINI_CHECK(w.number_of_faces() == 6);\n        for (const auto& [vk, _] : w.vertex)\n            MINI_CHECK(w.vertex_faces(vk).size() == 3);\n\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n        // uncomment #include \"mesh.h\"\n\n        // add_vertex \u00e2\u20ac\u201d nullopt key auto-assigns sequentially from 0\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n        MINI_CHECK(v0 == 0);\n        MINI_CHECK(mesh.number_of_vertices() == 1);\n        MINI_CHECK(!mesh.is_empty());\n        size_t v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42);\n        MINI_CHECK(v1 == 42);\n        MINI_CHECK(mesh.number_of_vertices() == 2);\n\n        // add_face\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        std::optional<size_t> f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        MINI_CHECK(f.has_value());\n        std::optional<size_t> invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n        MINI_CHECK(!invalid1.has_value());\n        std::optional<size_t> invalid2 = mesh.add_face({v0, v1, v0}, std::nullopt);\n        MINI_CHECK(!invalid2.has_value());\n\n        // clear\n        mesh.clear();\n        MINI_CHECK(mesh.is_empty());\n        MINI_CHECK(mesh.number_of_vertices() == 0);\n        MINI_CHECK(mesh.number_of_faces() == 0);\n\n        // unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n        size_t p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({p0, p1, p2}, std::nullopt);  // +z normal\n        size_t f1 = *mesh.add_face({p1, p2, p3}, std::nullopt);  // -z normal (wrong: same halfedge dir)\n\n        std::optional<Vector> n0_before = mesh.face_normal(f0);\n        std::optional<Vector> n1_before = mesh.face_normal(f1);\n        MINI_CHECK(n0_before.has_value() && n1_before.has_value());\n        MINI_CHECK(n0_before->dot(*n1_before) < 0.0);  // wrong: normals point opposite ways\n\n        mesh.unify_winding();\n\n        std::optional<Vector> n0_after = mesh.face_normal(f0);\n        std::optional<Vector> n1_after = mesh.face_normal(f1);\n        MINI_CHECK(n0_after.has_value() && n1_after.has_value());\n        MINI_CHECK(n0_after->dot(*n1_after) > 0.0);  // correct: normals agree\n\n        // unweld and weld\n        mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        Mesh u = mesh.unweld();\n        MINI_CHECK(u.number_of_vertices() == 24);\n\n        Mesh w = u.weld(0.001);\n        MINI_CHECK(w.number_of_vertices() == 8);\n        MINI_CHECK(w.number_of_faces() == 6);\n        for (const auto& [vk, _] : w.vertex)\n            MINI_CHECK(w.vertex_faces(vk).size() == 3);\n\n        // remove_face\n        Mesh mesh3;\n        size_t a0 = mesh3.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t a1 = mesh3.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t a2 = mesh3.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t a3 = mesh3.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t fa = *mesh3.add_face({a0, a1, a2, a3}, std::nullopt);\n        mesh3.remove_face(fa);\n        MINI_CHECK(mesh3.number_of_faces() == 0);\n        MINI_CHECK(mesh3.number_of_edges() == 0);\n        MINI_CHECK(mesh3.number_of_vertices() == 4);\n\n        // remove_vertex\n        Mesh mesh4;\n        size_t b0 = mesh4.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t b1 = mesh4.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t b2 = mesh4.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t b3 = mesh4.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh4.add_face({b0, b1, b2, b3}, std::nullopt);\n        mesh4.remove_vertex(b0);\n        MINI_CHECK(mesh4.vertex.find(b0) == mesh4.vertex.end());\n        MINI_CHECK(mesh4.number_of_faces() == 0);\n        MINI_CHECK(mesh4.number_of_vertices() == 3);\n\n        // remove_edge\n        Mesh mesh5;\n        size_t c0 = mesh5.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t c1 = mesh5.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t c2 = mesh5.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t c3 = mesh5.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t c4 = mesh5.add_vertex(Point(2.0, 0.0, 0.0), std::nullopt);\n        size_t c5 = mesh5.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        mesh5.add_face({c0, c1, c2, c3}, std::nullopt);\n        mesh5.add_face({c1, c4, c5, c2}, std::nullopt);\n        mesh5.remove_edge(c1, c2);\n        MINI_CHECK(mesh5.number_of_faces() == 0);\n        MINI_CHECK(mesh5.number_of_edges() == 0);\n        MINI_CHECK(mesh5.number_of_vertices() == 6);\n\n        // remove_face then check naked: 2-face mesh, remove one face, remaining face is naked\n        Mesh mesh6;\n        size_t d0 = mesh6.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t d1 = mesh6.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t d2 = mesh6.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t d3 = mesh6.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t d4 = mesh6.add_vertex(Point(2.0, 0.0, 0.0), std::nullopt);\n        size_t d5 = mesh6.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        size_t fd0 = *mesh6.add_face({d0, d1, d2, d3}, std::nullopt);\n        mesh6.add_face({d1, d4, d5, d2}, std::nullopt);\n        mesh6.remove_face(fd0);\n        MINI_CHECK(mesh6.number_of_faces() == 1);\n        MINI_CHECK(mesh6.naked_edges(true).size() == 4);\n        MINI_CHECK(mesh6.naked_edges(false).size() == 0);\n        MINI_CHECK(mesh6.naked_faces(true).size() == 1);\n        MINI_CHECK(mesh6.naked_faces(false).size() == 0);\n\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u00e2\u20ac\u201d None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    MINI_CHECK(v0 == 0)\n    MINI_CHECK(mesh.number_of_vertices() == 1)\n    MINI_CHECK(not mesh.is_empty())\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n    MINI_CHECK(v1 == 42)\n    MINI_CHECK(mesh.number_of_vertices() == 2)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    MINI_CHECK(f is not None)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh.clear()\n    MINI_CHECK(mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 0)\n    MINI_CHECK(mesh.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])  # +z normal\n    f1 = mesh.add_face([p1, p2, p3])  # -z normal (wrong: same halfedge dir)\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n    MINI_CHECK(n0_before is not None and n1_before is not None)\n    MINI_CHECK(n0_before.dot(n1_before) < 0.0)  # wrong: normals point opposite ways\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)\n    MINI_CHECK(n0_after is not None and n1_after is not None)\n    MINI_CHECK(n0_after.dot(n1_after) > 0.0)  # correct: normals agree\n\n    # Unweld and weld\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n    MINI_CHECK(u.number_of_vertices() == 24)\n\n    w = u.weld(0.001)\n    MINI_CHECK(w.number_of_vertices() == 8)\n    MINI_CHECK(w.number_of_faces() == 6)\n    for vk in w.vertex:\n        MINI_CHECK(len(w.vertex_faces(vk)) == 3)",
+          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u00e2\u20ac\u201d None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    MINI_CHECK(v0 == 0)\n    MINI_CHECK(mesh.number_of_vertices() == 1)\n    MINI_CHECK(not mesh.is_empty())\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n    MINI_CHECK(v1 == 42)\n    MINI_CHECK(mesh.number_of_vertices() == 2)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    MINI_CHECK(f is not None)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh.clear()\n    MINI_CHECK(mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 0)\n    MINI_CHECK(mesh.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])  # +z normal\n    f1 = mesh.add_face([p1, p2, p3])  # -z normal (wrong: same halfedge dir)\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n    MINI_CHECK(n0_before is not None and n1_before is not None)\n    MINI_CHECK(n0_before.dot(n1_before) < 0.0)  # wrong: normals point opposite ways\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)\n    MINI_CHECK(n0_after is not None and n1_after is not None)\n    MINI_CHECK(n0_after.dot(n1_after) > 0.0)  # correct: normals agree\n\n    # Unweld and weld\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n    MINI_CHECK(u.number_of_vertices() == 24)\n\n    w = u.weld(0.001)\n    MINI_CHECK(w.number_of_vertices() == 8)\n    MINI_CHECK(w.number_of_faces() == 6)\n    for vk in w.vertex:\n        MINI_CHECK(len(w.vertex_faces(vk)) == 3)\n\n    # remove_face\n    mesh3 = Mesh()\n    a0 = mesh3.add_vertex(Point(0.0, 0.0, 0.0))\n    a1 = mesh3.add_vertex(Point(1.0, 0.0, 0.0))\n    a2 = mesh3.add_vertex(Point(1.0, 1.0, 0.0))\n    a3 = mesh3.add_vertex(Point(0.0, 1.0, 0.0))\n    fa = mesh3.add_face([a0, a1, a2, a3])\n    mesh3.remove_face(fa)\n    MINI_CHECK(mesh3.number_of_faces() == 0)\n    MINI_CHECK(mesh3.number_of_edges() == 0)\n    MINI_CHECK(mesh3.number_of_vertices() == 4)\n\n    # remove_vertex\n    mesh4 = Mesh()\n    b0 = mesh4.add_vertex(Point(0.0, 0.0, 0.0))\n    b1 = mesh4.add_vertex(Point(1.0, 0.0, 0.0))\n    b2 = mesh4.add_vertex(Point(1.0, 1.0, 0.0))\n    b3 = mesh4.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh4.add_face([b0, b1, b2, b3])\n    mesh4.remove_vertex(b0)\n    MINI_CHECK(b0 not in mesh4.vertex)\n    MINI_CHECK(mesh4.number_of_faces() == 0)\n    MINI_CHECK(mesh4.number_of_vertices() == 3)\n\n    # remove_edge\n    mesh5 = Mesh()\n    c0 = mesh5.add_vertex(Point(0.0, 0.0, 0.0))\n    c1 = mesh5.add_vertex(Point(1.0, 0.0, 0.0))\n    c2 = mesh5.add_vertex(Point(1.0, 1.0, 0.0))\n    c3 = mesh5.add_vertex(Point(0.0, 1.0, 0.0))\n    c4 = mesh5.add_vertex(Point(2.0, 0.0, 0.0))\n    c5 = mesh5.add_vertex(Point(2.0, 1.0, 0.0))\n    mesh5.add_face([c0, c1, c2, c3])\n    mesh5.add_face([c1, c4, c5, c2])\n    mesh5.remove_edge(c1, c2)\n    MINI_CHECK(mesh5.number_of_faces() == 0)\n    MINI_CHECK(mesh5.number_of_edges() == 0)\n    MINI_CHECK(mesh5.number_of_vertices() == 6)\n\n    # remove_face then check naked: 2-face mesh, remove one face, remaining face is naked\n    mesh6 = Mesh()\n    d0 = mesh6.add_vertex(Point(0.0, 0.0, 0.0))\n    d1 = mesh6.add_vertex(Point(1.0, 0.0, 0.0))\n    d2 = mesh6.add_vertex(Point(1.0, 1.0, 0.0))\n    d3 = mesh6.add_vertex(Point(0.0, 1.0, 0.0))\n    d4 = mesh6.add_vertex(Point(2.0, 0.0, 0.0))\n    d5 = mesh6.add_vertex(Point(2.0, 1.0, 0.0))\n    fd0 = mesh6.add_face([d0, d1, d2, d3])\n    mesh6.add_face([d1, d4, d5, d2])\n    mesh6.remove_face(fd0)\n    MINI_CHECK(mesh6.number_of_faces() == 1)\n    MINI_CHECK(len(mesh6.naked_edges(True)) == 4)\n    MINI_CHECK(len(mesh6.naked_edges(False)) == 0)\n    MINI_CHECK(len(mesh6.naked_faces(True)) == 1)\n    MINI_CHECK(len(mesh6.naked_faces(False)) == 0)",
           "file": "mesh_test.py"
         }
       }
@@ -51724,52 +50684,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface Wave\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Wave\")\ndef test_nurbssurface_wave():\n    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.degree(0) == 3)\n    MINI_CHECK(srf.degree(1) == 3)\n    MINI_CHECK(srf.cv_count(0) == 13)\n    MINI_CHECK(srf.cv_count(1) == 13)\n    corner = srf.point_at(0.0, 0.0)\n    MINI_CHECK(abs(corner[2]) < 0.1)",
-          "file": "primitives_test.py"
-        }
-      }
-    },
-    {
-      "name": "Primitives.test_Mesh Chevron",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Primitives\", \"Mesh Chevron\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Chevron\") {\n    auto surfaces = Primitives::annen_surfaces();\n    MINI_CHECK(surfaces.size() == 23);\n    for (size_t i = 0; i < surfaces.size(); i++)\n        MINI_CHECK(surfaces[i].is_valid());\n\n    Mesh m = Primitives::chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n    MINI_CHECK(m.number_of_faces() > 0);\n}",
-          "file": "primitives_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Primitives\", \"Mesh Chevron\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Mesh Chevron\")\ndef test_mesh_chevron():\n    from session_py import Primitives\n\n    surfaces = Primitives.annen_surfaces()\n    MINI_CHECK(len(surfaces) == 23)\n    for i in range(len(surfaces)):\n        MINI_CHECK(surfaces[i].is_valid())\n\n    m = Primitives.chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)\n    MINI_CHECK(m.number_of_faces() > 0)",
-          "file": "primitives_test.py"
-        }
-      }
-    },
-    {
-      "name": "Primitives.test_FoldedPlates",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Primitives\", \"FoldedPlates\")",
-          "code": "MINI_TEST(\"Primitives\", \"FoldedPlates\") {\n    auto arc = Primitives::arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0));\n    auto srf = Primitives::create_extrusion(arc, Vector(0, 30, 0));\n    srf.transpose();\n\n    FoldedPlates fp(srf, 5, 2, 0.5, 0.3);\n\n    MINI_CHECK(fp.mesh.is_valid());\n    MINI_CHECK(fp.mesh.number_of_faces() > 0);\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0);\n    MINI_CHECK(fp.flags.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.adjacency.size() > 0);\n    MINI_CHECK(fp.polylines.size() == fp.mesh.number_of_faces());\n    MINI_CHECK(fp.insertion_lines.size() > 0);\n\n    for (size_t i = 0; i < fp.polylines.size(); i++) {\n        MINI_CHECK(fp.polylines[i].size() > 0);\n        for (size_t j = 0; j < fp.polylines[i].size(); j++)\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3);\n    }\n}",
-          "file": "primitives_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Primitives\", \"FoldedPlates\")",
-          "code": "@MINI_TEST(\"Primitives\", \"FoldedPlates\")\ndef test_folded_plates():\n    from session_py import Primitives\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import FoldedPlates\n\n    arc = Primitives.arc(Point(-10, 0, 0), Point(0, 0, 10), Point(10, 0, 0))\n    srf = Primitives.create_extrusion(arc, Vector(0, 30, 0))\n    srf.transpose()\n\n    fp = FoldedPlates(srf, 5, 2, 0.5, 0.3)\n\n    MINI_CHECK(fp.mesh.is_valid())\n    MINI_CHECK(fp.mesh.number_of_faces() > 0)\n    MINI_CHECK(fp.mesh.number_of_vertices() > 0)\n    MINI_CHECK(len(fp.flags) == fp.mesh.number_of_faces())\n    MINI_CHECK(len(fp.adjacency) > 0)\n    MINI_CHECK(len(fp.polylines) == fp.mesh.number_of_faces())\n    MINI_CHECK(len(fp.insertion_lines) > 0)\n\n    for i in range(len(fp.polylines)):\n        MINI_CHECK(len(fp.polylines[i]) > 0)\n        for j in range(len(fp.polylines[i])):\n            MINI_CHECK(fp.polylines[i][j].point_count() >= 3)",
-          "file": "primitives_test.py"
-        }
-      }
-    },
-    {
-      "name": "Primitives.test_CrossConnectors",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Primitives\", \"CrossConnectors\")",
-          "code": "MINI_TEST(\"Primitives\", \"CrossConnectors\") {\n    std::vector<std::vector<Point>> polys = {\n        {\n            Point(-574.485, -574.300, -182.370),\n            Point(-620.030, -480.441, -136.145),\n            Point(-527.510, -476.289, -53.723),\n            Point(-431.548, -637.846, -118.351),\n            Point(-574.485, -574.300, -182.370),\n        },\n        {\n            Point(-545.761, -545.585, -211.069),\n            Point(-589.029, -456.419, -167.156),\n            Point(-501.135, -452.475, -88.854),\n            Point(-409.971, -605.954, -150.251),\n            Point(-545.761, -545.585, -211.069),\n        },\n        {\n            Point(-224.289, -691.254, -65.097),\n            Point(-125.302, -566.359, 58.481),\n            Point(125.182, -566.359, 58.481),\n            Point(212.579, -691.254, -65.097),\n            Point(-224.289, -691.254, -65.097),\n        },\n        {\n            Point(-213.075, -656.691, -99.659),\n            Point(-119.037, -538.041, 17.739),\n            Point(118.923, -538.041, 17.739),\n            Point(201.950, -656.691, -99.659),\n            Point(-213.075, -656.691, -99.659),\n        },\n        {\n            Point(456.309, -628.504, -127.534),\n            Point(523.010, -466.370, -45.103),\n            Point(622.146, -472.434, -134.186),\n            Point(574.882, -574.852, -181.916),\n            Point(456.309, -628.504, -127.534),\n        },\n        {\n            Point(433.493, -597.079, -158.975),\n            Point(496.859, -443.052, -80.665),\n            Point(591.038, -448.812, -165.294),\n            Point(546.138, -546.110, -210.638),\n            Point(433.493, -597.079, -158.975),\n        },\n        {\n            Point(-431.100, -638.600, -118.653),\n            Point(-527.510, -476.289, -53.723),\n            Point(-481.982, -362.651, 39.785),\n            Point(-234.426, -365.823, 142.950),\n            Point(-125.302, -566.359, 58.481),\n            Point(-223.832, -690.677, -64.527),\n            Point(-431.100, -638.600, -118.653),\n        },\n        {\n            Point(-409.545, -606.670, -150.538),\n            Point(-501.135, -452.475, -88.854),\n            Point(-457.883, -344.518, -0.022),\n            Point(-222.705, -347.532, 97.985),\n            Point(-119.037, -538.041, 17.739),\n            Point(-212.641, -656.144, -99.118),\n            Point(-409.545, -606.670, -150.538),\n        },\n        {\n            Point(212.526, -691.178, -65.022),\n            Point(125.182, -566.359, 58.481),\n            Point(238.785, -380.979, 136.566),\n            Point(478.593, -374.909, 36.915),\n            Point(523.010, -466.370, -45.103),\n            Point(455.692, -630.004, -128.297),\n            Point(212.526, -691.178, -65.022),\n        },\n        {\n            Point(201.900, -656.619, -99.589),\n            Point(118.923, -538.041, 17.739),\n            Point(226.846, -361.930, 91.920),\n            Point(454.664, -356.164, -2.748),\n            Point(496.859, -443.052, -80.665),\n            Point(432.907, -598.504, -159.699),\n            Point(201.900, -656.619, -99.589),\n        },\n        {\n            Point(-481.982, -362.651, 39.785),\n            Point(-527.510, -476.289, -53.723),\n            Point(-620.401, -480.458, -136.475),\n            Point(-698.046, -172.509, -57.884),\n            Point(-595.889, -174.723, 29.899),\n            Point(-481.982, -362.651, 39.785),\n        },\n        {\n            Point(-457.883, -344.518, -0.022),\n            Point(-501.135, -452.475, -88.854),\n            Point(-589.381, -456.435, -167.469),\n            Point(-663.144, -163.884, -92.807),\n            Point(-566.094, -165.987, -9.413),\n            Point(-457.883, -344.518, -0.022),\n        },\n        {\n            Point(-125.302, -566.359, 58.481),\n            Point(-234.426, -365.823, 142.950),\n            Point(-149.707, -204.103, 211.069),\n            Point(150.116, -204.103, 211.069),\n            Point(238.785, -380.979, 136.566),\n            Point(125.182, -566.359, 58.481),\n            Point(-125.302, -566.359, 58.481),\n        },\n        {\n            Point(-119.037, -538.041, 17.739),\n            Point(-222.705, -347.532, 97.985),\n            Point(-142.222, -193.898, 162.698),\n            Point(142.610, -193.898, 162.698),\n            Point(226.846, -361.930, 91.920),\n            Point(118.923, -538.041, 17.739),\n            Point(-119.037, -538.041, 17.739),\n        },\n        {\n            Point(478.593, -374.909, 36.915),\n            Point(596.484, -174.710, 29.388),\n            Point(698.046, -172.509, -57.884),\n            Point(622.420, -472.451, -134.432),\n            Point(523.010, -466.370, -45.103),\n            Point(478.593, -374.909, 36.915),\n        },\n        {\n            Point(454.664, -356.164, -2.748),\n            Point(566.659, -165.975, -9.899),\n            Point(663.144, -163.884, -92.807),\n            Point(591.299, -448.828, -165.528),\n            Point(496.859, -443.052, -80.665),\n            Point(454.664, -356.164, -2.748),\n        },\n        {\n            Point(-481.982, -362.651, 39.785),\n            Point(-595.889, -174.723, 29.899),\n            Point(-515.848, -0.000, 98.678),\n            Point(-247.814, -0.000, 211.069),\n            Point(-149.707, -204.103, 211.069),\n            Point(-234.426, -365.823, 142.950),\n            Point(-481.982, -362.651, 39.785),\n        },\n        {\n            Point(-457.883, -344.518, -0.022),\n            Point(-566.094, -165.987, -9.413),\n            Point(-490.055, -0.000, 55.926),\n            Point(-235.423, -0.000, 162.698),\n            Point(-142.222, -193.898, 162.698),\n            Point(-222.705, -347.532, 97.985),\n            Point(-457.883, -344.518, -0.022),\n        },\n        {\n            Point(238.785, -380.979, 136.566),\n            Point(150.116, -204.103, 211.069),\n            Point(252.071, 0.000, 211.069),\n            Point(512.707, 0.000, 101.376),\n            Point(596.484, -174.710, 29.388),\n            Point(478.593, -374.909, 36.915),\n            Point(238.785, -380.979, 136.566),\n        },\n        {\n            Point(226.846, -361.930, 91.920),\n            Point(142.610, -193.898, 162.698),\n            Point(239.467, -0.000, 162.698),\n            Point(487.072, -0.000, 58.490),\n            Point(566.659, -165.975, -9.899),\n            Point(454.664, -356.164, -2.748),\n            Point(226.846, -361.930, 91.920),\n        },\n        {\n            Point(-515.848, 0.000, 98.678),\n            Point(-595.889, -174.723, 29.899),\n            Point(-698.269, -172.505, -58.075),\n            Point(-698.269, 172.505, -58.075),\n            Point(-595.889, 174.723, 29.899),\n            Point(-515.848, 0.000, 98.678),\n        },\n        {\n            Point(-490.055, -0.000, 55.926),\n            Point(-566.094, -165.987, -9.413),\n            Point(-663.356, -163.879, -92.989),\n            Point(-663.356, 163.879, -92.989),\n            Point(-566.094, 165.987, -9.413),\n            Point(-490.055, -0.000, 55.926),\n        },\n        {\n            Point(-149.707, -204.103, 211.069),\n            Point(-247.814, 0.000, 211.069),\n            Point(-149.707, 204.103, 211.069),\n            Point(150.116, 204.103, 211.069),\n            Point(252.071, 0.000, 211.069),\n            Point(150.116, -204.103, 211.069),\n            Point(-149.707, -204.103, 211.069),\n        },\n        {\n            Point(-142.222, -193.898, 162.698),\n            Point(-235.423, -0.000, 162.698),\n            Point(-142.222, 193.898, 162.698),\n            Point(142.610, 193.898, 162.698),\n            Point(239.467, 0.000, 162.698),\n            Point(142.610, -193.898, 162.698),\n            Point(-142.222, -193.898, 162.698),\n        },\n        {\n            Point(512.707, 0.000, 101.376),\n            Point(596.484, 174.710, 29.388),\n            Point(698.269, 172.505, -58.075),\n            Point(698.269, -172.505, -58.075),\n            Point(596.484, -174.710, 29.388),\n            Point(512.707, 0.000, 101.376),\n        },\n        {\n            Point(487.072, 0.000, 58.490),",
-          "file": "primitives_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Primitives\", \"CrossConnectors\")",
-          "code": "@MINI_TEST(\"Primitives\", \"CrossConnectors\")\ndef test_cross_connectors():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py.primitives import CrossConnectors\n\n    polys = [\n        [\n            Point(-574.485, -574.300, -182.370), Point(-620.030, -480.441, -136.145),\n            Point(-527.510, -476.289, -53.723), Point(-431.548, -637.846, -118.351),\n            Point(-574.485, -574.300, -182.370),\n        ],\n        [\n            Point(-545.761, -545.585, -211.069), Point(-589.029, -456.419, -167.156),\n            Point(-501.135, -452.475, -88.854), Point(-409.971, -605.954, -150.251),\n            Point(-545.761, -545.585, -211.069),\n        ],\n        [\n            Point(-224.289, -691.254, -65.097), Point(-125.302, -566.359, 58.481),\n            Point(125.182, -566.359, 58.481), Point(212.579, -691.254, -65.097),\n            Point(-224.289, -691.254, -65.097),\n        ],\n        [\n            Point(-213.075, -656.691, -99.659), Point(-119.037, -538.041, 17.739),\n            Point(118.923, -538.041, 17.739), Point(201.950, -656.691, -99.659),\n            Point(-213.075, -656.691, -99.659),\n        ],\n        [\n            Point(456.309, -628.504, -127.534), Point(523.010, -466.370, -45.103),\n            Point(622.146, -472.434, -134.186), Point(574.882, -574.852, -181.916),\n            Point(456.309, -628.504, -127.534),\n        ],\n        [\n            Point(433.493, -597.079, -158.975), Point(496.859, -443.052, -80.665),\n            Point(591.038, -448.812, -165.294), Point(546.138, -546.110, -210.638),\n            Point(433.493, -597.079, -158.975),\n        ],\n        [\n            Point(-431.100, -638.600, -118.653), Point(-527.510, -476.289, -53.723),\n            Point(-481.982, -362.651, 39.785), Point(-234.426, -365.823, 142.950),\n            Point(-125.302, -566.359, 58.481), Point(-223.832, -690.677, -64.527),\n            Point(-431.100, -638.600, -118.653),\n        ],\n        [\n            Point(-409.545, -606.670, -150.538), Point(-501.135, -452.475, -88.854),\n            Point(-457.883, -344.518, -0.022), Point(-222.705, -347.532, 97.985),\n            Point(-119.037, -538.041, 17.739), Point(-212.641, -656.144, -99.118),\n            Point(-409.545, -606.670, -150.538),\n        ],\n        [\n            Point(212.526, -691.178, -65.022), Point(125.182, -566.359, 58.481),\n            Point(238.785, -380.979, 136.566), Point(478.593, -374.909, 36.915),\n            Point(523.010, -466.370, -45.103), Point(455.692, -630.004, -128.297),\n            Point(212.526, -691.178, -65.022),\n        ],\n        [\n            Point(201.900, -656.619, -99.589), Point(118.923, -538.041, 17.739),\n            Point(226.846, -361.930, 91.920), Point(454.664, -356.164, -2.748),\n            Point(496.859, -443.052, -80.665), Point(432.907, -598.504, -159.699),\n            Point(201.900, -656.619, -99.589),\n        ],\n        [\n            Point(-481.982, -362.651, 39.785), Point(-527.510, -476.289, -53.723),\n            Point(-620.401, -480.458, -136.475), Point(-698.046, -172.509, -57.884),\n            Point(-595.889, -174.723, 29.899), Point(-481.982, -362.651, 39.785),\n        ],\n        [\n            Point(-457.883, -344.518, -0.022), Point(-501.135, -452.475, -88.854),\n            Point(-589.381, -456.435, -167.469), Point(-663.144, -163.884, -92.807),\n            Point(-566.094, -165.987, -9.413), Point(-457.883, -344.518, -0.022),\n        ],\n        [\n            Point(-125.302, -566.359, 58.481), Point(-234.426, -365.823, 142.950),\n            Point(-149.707, -204.103, 211.069), Point(150.116, -204.103, 211.069),\n            Point(238.785, -380.979, 136.566), Point(125.182, -566.359, 58.481),\n            Point(-125.302, -566.359, 58.481),\n        ],\n        [\n            Point(-119.037, -538.041, 17.739), Point(-222.705, -347.532, 97.985),\n            Point(-142.222, -193.898, 162.698), Point(142.610, -193.898, 162.698),\n            Point(226.846, -361.930, 91.920), Point(118.923, -538.041, 17.739),\n            Point(-119.037, -538.041, 17.739),\n        ],\n        [\n            Point(478.593, -374.909, 36.915), Point(596.484, -174.710, 29.388),\n            Point(698.046, -172.509, -57.884), Point(622.420, -472.451, -134.432),\n            Point(523.010, -466.370, -45.103), Point(478.593, -374.909, 36.915),\n        ],\n        [\n            Point(454.664, -356.164, -2.748), Point(566.659, -165.975, -9.899),\n            Point(663.144, -163.884, -92.807), Point(591.299, -448.828, -165.528),\n            Point(496.859, -443.052, -80.665), Point(454.664, -356.164, -2.748),\n        ],\n        [\n            Point(-481.982, -362.651, 39.785), Point(-595.889, -174.723, 29.899),\n            Point(-515.848, -0.000, 98.678), Point(-247.814, -0.000, 211.069),\n            Point(-149.707, -204.103, 211.069), Point(-234.426, -365.823, 142.950),\n            Point(-481.982, -362.651, 39.785),\n        ],\n        [\n            Point(-457.883, -344.518, -0.022), Point(-566.094, -165.987, -9.413),\n            Point(-490.055, -0.000, 55.926), Point(-235.423, -0.000, 162.698),\n            Point(-142.222, -193.898, 162.698), Point(-222.705, -347.532, 97.985),\n            Point(-457.883, -344.518, -0.022),\n        ],\n        [\n            Point(238.785, -380.979, 136.566), Point(150.116, -204.103, 211.069),\n            Point(252.071, 0.000, 211.069), Point(512.707, 0.000, 101.376),\n            Point(596.484, -174.710, 29.388), Point(478.593, -374.909, 36.915),\n            Point(238.785, -380.979, 136.566),\n        ],\n        [\n            Point(226.846, -361.930, 91.920), Point(142.610, -193.898, 162.698),\n            Point(239.467, -0.000, 162.698), Point(487.072, -0.000, 58.490),\n            Point(566.659, -165.975, -9.899), Point(454.664, -356.164, -2.748),\n            Point(226.846, -361.930, 91.920),\n        ],\n        [\n            Point(-515.848, 0.000, 98.678), Point(-595.889, -174.723, 29.899),\n            Point(-698.269, -172.505, -58.075), Point(-698.269, 172.505, -58.075),\n            Point(-595.889, 174.723, 29.899), Point(-515.848, 0.000, 98.678),\n        ],\n        [\n            Point(-490.055, -0.000, 55.926), Point(-566.094, -165.987, -9.413),\n            Point(-663.356, -163.879, -92.989), Point(-663.356, 163.879, -92.989),\n            Point(-566.094, 165.987, -9.413), Point(-490.055, -0.000, 55.926),\n        ],\n        [\n            Point(-149.707, -204.103, 211.069), Point(-247.814, 0.000, 211.069),\n            Point(-149.707, 204.103, 211.069), Point(150.116, 204.103, 211.069),\n            Point(252.071, 0.000, 211.069), Point(150.116, -204.103, 211.069),\n            Point(-149.707, -204.103, 211.069),\n        ],\n        [\n            Point(-142.222, -193.898, 162.698), Point(-235.423, -0.000, 162.698),\n            Point(-142.222, 193.898, 162.698), Point(142.610, 193.898, 162.698),\n            Point(239.467, 0.000, 162.698), Point(142.610, -193.898, 162.698),\n            Point(-142.222, -193.898, 162.698),\n        ],\n        [\n            Point(512.707, 0.000, 101.376), Point(596.484, 174.710, 29.388),\n            Point(698.269, 172.505, -58.075), Point(698.269, -172.505, -58.075),\n            Point(596.484, -174.710, 29.388), Point(512.707, 0.000, 101.376),\n        ],\n        [\n            Point(487.072, 0.000, 58.490), Point(566.659, 165.975, -9.899),\n            Point(663.356, 163.879, -92.989), Point(663.356, -163.879, -92.989),\n            Point(566.659, -165.975, -9.899), Point(487.072, 0.000, 58.490),\n        ],\n        [\n            Point(-515.848, -0.000, 98.678), Point(-595.889, 174.723, 29.899),\n            Point(-481.982, 362.651, 39.785), Point(-234.426, 365.823, 142.950),\n            Point(-149.707, 204.103, 211.069), Point(-247.814, -0.000, 211.069),\n            Point(-515.848, -0.000, 98.678),\n        ],\n        [\n            Point(-490.055, -0.000, 55.926), Point(-566.094, 165.987, -9.413),\n            Point(-457.883, 344.518, -0.022), Point(-222.705, 347.532, 97.985),\n            Point(-142.222, 193.898, 1",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Wave\")\ndef test_nurbssurface_wave():\n    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    MINI_CHECK(srf.is_valid())\n    MINI_CHECK(srf.degree(0) == 3)\n    MINI_CHECK(srf.degree(1) == 3)\n    MINI_CHECK(srf.cv_count(0) == 13)\n    MINI_CHECK(srf.cv_count(1) == 13)\n    corner = srf.point_at(0.0, 0.0)\n    MINI_CHECK(abs(corner[2]) < 0.1)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "primitives_test.py"
         }
       }
@@ -52524,11 +51439,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "into",
+        "points",
         "n",
         "circle",
         "subdivide",
-        "into",
-        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -52542,11 +51457,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
-        "by",
         "subdivide",
-        "arc",
+        "length",
         "ellipse",
+        "arc",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -52560,8 +51475,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
         "arc",
+        "points",
         "through",
         "nurbscurve",
         "primitives",
@@ -52577,11 +51492,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "from",
-        "curve",
-        "adaptive",
-        "open",
         "polyline",
         "points",
+        "curve",
+        "open",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -52596,10 +51511,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "at",
         "curve",
+        "evaluation",
         "parameter",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -52618,10 +51533,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
+        "curve",
         "length",
         "along",
-        "curve",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -52643,8 +51558,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "perpendicular",
+        "frames",
         "ellipse",
         "divide_by_count",
         "frame_at",
@@ -52666,10 +51581,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "point",
-        "surface",
         "evaluate",
+        "point",
+        "cylinder",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -52684,11 +51599,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
         "from",
+        "faces",
+        "mesh",
         "vertices",
         "and",
-        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -52720,8 +51635,6 @@ window.API_INDEX = {
     "PointCloud": "A collection of 3D points with optional colors",
     "Polyline": "A polyline defined by a sequence of points",
     "Primitives": "Factory for creating geometric primitives (circle, ellipse, arc, etc.)",
-    "FoldedPlates": "FoldedPlates geometry class",
-    "CrossConnectors": "CrossConnectors geometry class",
     "Quaternion": "A quaternion for representing rotations",
     "Session": "Session management for geometry objects",
     "Tolerance": "Tolerance values for geometric comparisons",
@@ -52757,8 +51670,6 @@ window.API_INDEX = {
       "Point.__init__",
       "PointCloud.__init__",
       "Polyline.__init__",
-      "FoldedPlates.__init__",
-      "CrossConnectors.__init__",
       "Quaternion.__init__",
       "Session.__init__",
       "Tolerance.__init__",
@@ -53287,7 +52198,9 @@ window.API_INDEX = {
       "Graph.remove_node"
     ],
     "remove_edge": [
-      "Graph.remove_edge"
+      "Graph.remove_edge",
+      "Mesh.remove_edge",
+      "ColorMode.remove_edge"
     ],
     "_reassign_indices": [
       "Graph._reassign_indices"
@@ -53708,6 +52621,18 @@ window.API_INDEX = {
       "Mesh.edges",
       "ColorMode.edges"
     ],
+    "naked_edges": [
+      "Mesh.naked_edges",
+      "ColorMode.naked_edges"
+    ],
+    "naked_vertices": [
+      "Mesh.naked_vertices",
+      "ColorMode.naked_vertices"
+    ],
+    "naked_faces": [
+      "Mesh.naked_faces",
+      "ColorMode.naked_faces"
+    ],
     "euler": [
       "Mesh.euler",
       "ColorMode.euler"
@@ -53789,6 +52714,14 @@ window.API_INDEX = {
     "add_face": [
       "Mesh.add_face",
       "ColorMode.add_face"
+    ],
+    "remove_face": [
+      "Mesh.remove_face",
+      "ColorMode.remove_face"
+    ],
+    "remove_vertex": [
+      "Mesh.remove_vertex",
+      "ColorMode.remove_vertex"
     ],
     "vertex_position": [
       "Mesh.vertex_position",
@@ -54764,87 +53697,6 @@ window.API_INDEX = {
     "wave_surface": [
       "Primitives.wave_surface"
     ],
-    "chevron_mesh": [
-      "Primitives.chevron_mesh"
-    ],
-    "annen_surfaces": [
-      "Primitives.annen_surfaces"
-    ],
-    "closest_on_line": [
-      "FoldedPlates.closest_on_line",
-      "Primitives.closest_on_line"
-    ],
-    "line_plane_t": [
-      "FoldedPlates.line_plane_t",
-      "Primitives.line_plane_t"
-    ],
-    "intersect_3_planes": [
-      "FoldedPlates.intersect_3_planes",
-      "Primitives.intersect_3_planes"
-    ],
-    "chamfer_polyline": [
-      "FoldedPlates.chamfer_polyline",
-      "Primitives.chamfer_polyline"
-    ],
-    "_diamond_subdivision": [
-      "FoldedPlates._diamond_subdivision"
-    ],
-    "plane_valid": [
-      "FoldedPlates.plane_valid"
-    ],
-    "_build_topology": [
-      "FoldedPlates._build_topology",
-      "CrossConnectors._build_topology"
-    ],
-    "_compute_face_planes": [
-      "FoldedPlates._compute_face_planes",
-      "CrossConnectors._compute_face_planes"
-    ],
-    "_compute_edge_planes": [
-      "FoldedPlates._compute_edge_planes"
-    ],
-    "_compute_face_edge_planes": [
-      "FoldedPlates._compute_face_edge_planes",
-      "CrossConnectors._compute_face_edge_planes"
-    ],
-    "_compute_face_polylines": [
-      "FoldedPlates._compute_face_polylines",
-      "CrossConnectors._compute_face_polylines"
-    ],
-    "_compute_insertion_vectors": [
-      "FoldedPlates._compute_insertion_vectors"
-    ],
-    "dihedral_plane": [
-      "CrossConnectors.dihedral_plane",
-      "Primitives.dihedral_plane"
-    ],
-    "_compute_bisector_planes": [
-      "CrossConnectors._compute_bisector_planes"
-    ],
-    "move_plane_by_axis": [
-      "CrossConnectors.move_plane_by_axis",
-      "Primitives.move_plane_by_axis"
-    ],
-    "outline_from_planes": [
-      "CrossConnectors.outline_from_planes",
-      "Primitives.outline_from_planes"
-    ],
-    "_compute_edges": [
-      "CrossConnectors._compute_edges"
-    ],
-    "_compute_edge_faces": [
-      "CrossConnectors._compute_edge_faces"
-    ],
-    "_compute_edge_planes_method": [
-      "CrossConnectors._compute_edge_planes_method"
-    ],
-    "make_rectangle": [
-      "CrossConnectors.make_rectangle",
-      "Primitives.make_rectangle"
-    ],
-    "_compute_connectors": [
-      "CrossConnectors._compute_connectors"
-    ],
     "identity": [
       "Quaternion.identity",
       "Xform.identity"
@@ -55285,8 +54137,6 @@ window.API_INDEX = {
       "Point.constructor",
       "PointCloud.constructor",
       "Polyline.constructor",
-      "FoldedPlates.constructor",
-      "CrossConnectors.constructor",
       "Quaternion.constructor",
       "Session.constructor",
       "Tolerance.constructor",
@@ -55505,58 +54355,6 @@ window.API_INDEX = {
     "transform_geometry": [
       "Primitives.transform_geometry"
     ],
-    "diamond_subdivision": [
-      "Primitives.diamond_subdivision",
-      "FoldedPlates.diamond_subdivision"
-    ],
-    "build_topology": [
-      "Primitives.build_topology",
-      "FoldedPlates.build_topology",
-      "CrossConnectors.build_topology"
-    ],
-    "compute_face_planes": [
-      "Primitives.compute_face_planes",
-      "FoldedPlates.compute_face_planes",
-      "CrossConnectors.compute_face_planes"
-    ],
-    "compute_edge_planes": [
-      "Primitives.compute_edge_planes",
-      "FoldedPlates.compute_edge_planes"
-    ],
-    "compute_face_edge_planes": [
-      "Primitives.compute_face_edge_planes",
-      "FoldedPlates.compute_face_edge_planes",
-      "CrossConnectors.compute_face_edge_planes"
-    ],
-    "compute_face_polylines": [
-      "Primitives.compute_face_polylines",
-      "FoldedPlates.compute_face_polylines",
-      "CrossConnectors.compute_face_polylines"
-    ],
-    "compute_insertion_vectors": [
-      "Primitives.compute_insertion_vectors",
-      "FoldedPlates.compute_insertion_vectors"
-    ],
-    "compute_bisector_planes": [
-      "Primitives.compute_bisector_planes",
-      "CrossConnectors.compute_bisector_planes"
-    ],
-    "compute_edges": [
-      "Primitives.compute_edges",
-      "CrossConnectors.compute_edges"
-    ],
-    "compute_edge_faces": [
-      "Primitives.compute_edge_faces",
-      "CrossConnectors.compute_edge_faces"
-    ],
-    "compute_edge_planes_method": [
-      "Primitives.compute_edge_planes_method",
-      "CrossConnectors.compute_edge_planes_method"
-    ],
-    "compute_connectors": [
-      "Primitives.compute_connectors",
-      "CrossConnectors.compute_connectors"
-    ],
     "type": [
       "Quaternion.type"
     ],
@@ -55676,8 +54474,6 @@ window.API_INDEX = {
       "Point.new",
       "PointCloud.new",
       "Polyline.new",
-      "FoldedPlates.new",
-      "CrossConnectors.new",
       "Quaternion.new",
       "Session.new",
       "Tolerance.new",

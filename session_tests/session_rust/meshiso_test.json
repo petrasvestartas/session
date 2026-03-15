@@ -1,0 +1,172 @@
+[
+  {
+    "test_name": "Eval Gyroid",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 7,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n",
+    "checks": [
+      {
+        "line": 10,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::GYROID, PI / 2.0, 0.0, 0.0, 1.0),\n1.0)",
+        "passed": true
+      },
+      {
+        "line": 11,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, 0.0, 0.0, 0.0, 1.0),\n3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval SchwarzP",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 16,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n",
+    "checks": [
+      {
+        "line": 19,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, PI, PI, PI, 1.0), -3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval Diamond",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 24,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n",
+    "checks": [
+      {
+        "line": 27,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::DIAMOND, 0.0, 0.0, 0.0, 1.0), 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Gyroid Solid",
+    "passed": true,
+    "time_ms": 2.519,
+    "line": 32,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::boundingbox::BoundingBox;\n        use crate::point::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::GYROID, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID, 0.2);\n",
+    "checks": [
+      {
+        "line": 40,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 41,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Diamond Sheet",
+    "passed": true,
+    "time_ms": 9.027,
+    "line": 47,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::boundingbox::BoundingBox;\n        use crate::point::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::DIAMOND, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);\n",
+    "checks": [
+      {
+        "line": 55,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Neovius Shell",
+    "passed": true,
+    "time_ms": 7.346,
+    "line": 60,
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::boundingbox::BoundingBox;\n        use crate::point::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::NEOVIUS, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n",
+    "checks": [
+      {
+        "line": 68,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "SDF Sphere",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 73,
+    "code": "        use crate::mesh_iso::MeshIso;\n",
+    "checks": [
+      {
+        "line": 76,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0),\n0.0)",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0),\n-1.0)",
+        "passed": true
+      },
+      {
+        "line": 78,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0),\n1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Smooth Union",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 83,
+    "code": "        use crate::mesh_iso::MeshIso;\n",
+    "checks": [
+      {
+        "line": 86,
+        "code_line": "MeshIso::smooth_union(-1.0, 1.0, 8.0) < 0.0",
+        "passed": true
+      },
+      {
+        "line": 87,
+        "code_line": "MeshIso::smooth_union(1.0, 1.0, 8.0) < 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Function",
+    "passed": true,
+    "time_ms": 0.411,
+    "line": 92,
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::boundingbox::BoundingBox;\n        use crate::point::Point;\n\n        let box_ = BoundingBox::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "checks": [
+      {
+        "line": 101,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

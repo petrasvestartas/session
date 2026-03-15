@@ -1,0 +1,172 @@
+[
+  {
+    "test_name": "Eval Gyroid",
+    "passed": true,
+    "time_ms": 0.033,
+    "line": 8,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "TOLERANCE.is_close(MeshIso.eval(TpmsType.GYROID, PI / 2.0, 0.0, 0.0, 1.0), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "TOLERANCE.is_close(MeshIso.eval(TpmsType.SCHWARZ_P, 0.0, 0.0, 0.0, 1.0), 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval SchwarzP",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 17,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
+    "checks": [
+      {
+        "line": 22,
+        "code_line": "TOLERANCE.is_close(MeshIso.eval(TpmsType.SCHWARZ_P, PI, PI, PI, 1.0), -3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval Diamond",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 25,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
+    "checks": [
+      {
+        "line": 30,
+        "code_line": "TOLERANCE.is_close(MeshIso.eval(TpmsType.DIAMOND, 0.0, 0.0, 0.0, 1.0), 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Gyroid Solid",
+    "passed": true,
+    "time_ms": 7.52,
+    "line": 33,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SOLID)",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 45,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Diamond Sheet",
+    "passed": true,
+    "time_ms": 30.287,
+    "line": 48,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHEET, 0.1)",
+    "checks": [
+      {
+        "line": 58,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Neovius Shell",
+    "passed": true,
+    "time_ms": 26.534,
+    "line": 61,
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
+    "checks": [
+      {
+        "line": 71,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "SDF Sphere",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 74,
+    "code": "    from session_py import MeshIso",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0)",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Smooth Union",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 83,
+    "code": "    from session_py import MeshIso",
+    "checks": [
+      {
+        "line": 87,
+        "code_line": "MeshIso.smooth_union(-1.0, 1.0, 8.0) < 0.0",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "MeshIso.smooth_union(1.0, 1.0, 8.0) < 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Function",
+    "passed": true,
+    "time_ms": 2.908,
+    "line": 91,
+    "code": "    from session_py import MeshIso\n    from session_py import BoundingBox\n    from session_py import Point\n\n    box = BoundingBox.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
+    "checks": [
+      {
+        "line": 101,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

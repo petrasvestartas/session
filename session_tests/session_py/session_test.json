@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.077,
     "line": 7,
     "code": "    from session_py import Session\n    session = Session()",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Jsondump",
     "passed": true,
-    "time_ms": 1.415,
+    "time_ms": 1.196,
     "line": 15,
     "code": "    from session_py import Session\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from pathlib import Path\n\n    session = Session()\n    point1 = Point(1.0, 2.0, 3.0)\n    point2 = Point(4.0, 5.0, 6.0)\n    session.add_point(point1)\n    session.add_point(point2)\n    session.add_edge(point1.guid, point2.guid, \"connection\")\n    data = session.__jsondump__()\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session.json\"\n    json_dump(session, fname)",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Jsonload",
     "passed": true,
-    "time_ms": 0.257,
+    "time_ms": 0.191,
     "line": 38,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point1 = Point(1.0, 2.0, 3.0)\n    point2 = Point(4.0, 5.0, 6.0)\n    session.add_point(point1)\n    session.add_point(point2)\n    session.add_edge(point1.guid, point2.guid, \"connection\")\n    data = session.__jsondump__()\n    session2 = Session.__jsonload__(data)",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "File Io",
     "passed": true,
-    "time_ms": 11.381,
+    "time_ms": 12.096,
     "line": 56,
     "code": "    from session_py import Session\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n    import os\n\n    session = Session()\n    point1 = Point(1.0, 2.0, 3.0)\n    point2 = Point(4.0, 5.0, 6.0)\n    session.add_point(point1)\n    session.add_point(point2)\n    session.add_edge(point1.guid, point2.guid, \"connection\")\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session_roundtrip.json\"\n    json_dump(session, fname)\n    loaded_session = json_load(fname)\n    os.remove(fname)",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.06,
     "line": 80,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.042,
     "line": 93,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point1 = Point(1.0, 2.0, 3.0)\n    point2 = Point(4.0, 5.0, 6.0)\n    session.add_point(point1)\n    session.add_point(point2)\n    session.add_edge(point1.guid, point2.guid, \"connection\")",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Get Object",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.025,
     "line": 107,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)\n    retrieved = session.get_object(point.guid)",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "File Io Comprehensive",
     "passed": true,
-    "time_ms": 12.307,
+    "time_ms": 11.721,
     "line": 120,
     "code": "    from session_py import Session\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n    import os\n\n    session = Session(\"./serialization/test_session\")\n    point1 = Point(1.0, 2.0, 3.0)\n    point2 = Point(4.0, 5.0, 6.0)\n    session.add_point(point1)\n    session.add_point(point2)\n    session.add_edge(point1.guid, point2.guid, \"./serialization/test_connection\")\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session_comprehensive.json\"\n    json_dump(session, fname)\n    loaded_session = json_load(fname)\n    os.remove(fname)",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "Tree Transformation Hierarchy",
     "passed": true,
-    "time_ms": 1.42,
+    "time_ms": 1.552,
     "line": 145,
     "code": "    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Plane\n    import math\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3],\n            [4, 7, 6, 5],\n            [0, 4, 5, 1],\n            [2, 6, 7, 3],\n            [0, 3, 7, 4],\n            [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    box1_top = Point(0, 0, 1.0)\n    normal = Vector(0, 0, 1)\n    x = Vector(1, 0, 0)\n    y = Vector(0, 1, 0)\n    plane_from = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    plane_to = Plane(box1_top, x, y)\n    xy_to_top = Xform.plane_to_plane(plane_from, plane_to)\n    box1.xform = Xform.rotation_z(math.pi / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(math.pi / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n\n    expected_box1 = [\n        [1.36603, -0.366025, 0], [0.366025, 1.36603, 0],\n        [-1.36603, 0.366025, 0], [-0.366025, -1.36603, 0],\n        [1.36603, -0.366025, 2], [0.366025, 1.36603, 2],\n        [-1.36603, 0.366025, 2], [-0.366025, -1.36603, 2],\n    ]\n    expected_box2 = [\n        [0.366025, 2.09808, 0], [-1.36603, 3.09808, 0],\n        [-2.36603, 1.36603, 0], [-0.633975, 0.366025, 0],\n        [0.366025, 2.09808, 2], [-1.36603, 3.09808, 2],\n        [-2.36603, 1.36603, 2], [-0.633975, 0.366025, 2],\n    ]\n    expected_box3 = [\n        [-1.36603, 3.09808, 0], [-3.09808, 4.09808, 0],\n        [-4.09808, 2.36603, 0], [-2.36603, 1.36603, 0],\n        [-1.36603, 3.09808, 2], [-3.09808, 4.09808, 2],\n        [-4.09808, 2.36603, 2], [-2.36603, 1.36603, 2],\n    ]\n    expected_faces = [\n        [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n        [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n    ]\n\n    m1 = transformed.meshes[0]\n    for i in range(8):\n        v = m1.vertex[i]\n\n    m2 = transformed.meshes[1]\n    for i in range(8):\n        v = m2.vertex[i]\n\n    m3 = transformed.meshes[2]\n    for i in range(8):\n        v = m3.vertex[i]\n\n    for mesh in [m1, m2, m3]:\n        face_idx = 0\n        for key, face in mesh.face.items():\n            for i in range(len(face)):\n            face_idx += 1",
     "checks": [

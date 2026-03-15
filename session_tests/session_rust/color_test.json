@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 173,
     "code": "        use crate::Color;\n\n        // Constructor\n        let mut red = Color::new(255, 0, 0, 255);\n        red.name = \"red\".to_string();\n\n        // Setters\n        red.r = 255;\n        red.g = 0;\n        red.b = 0;\n        red.a = 255;\n\n        // Getters\n        let r = red.r;\n        let g = red.g;\n        let b = red.b;\n        let a = red.a;\n\n        // Minimal and Full String Representation\n        let cstr = red.str();\n        let crepr = red.repr();\n\n        // Copy (duplicates everything except guid)\n        let ccopy = red.duplicate();\n        let mut cother = Color::new(255, 0, 0, 255);\n        cother.name = \"red\".to_string();\n",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.875,
+    "time_ms": 7.674,
     "line": 213,
     "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.json_dump(filename).unwrap();\n        let loaded = Color::json_load(filename).unwrap();\n",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.713,
+    "time_ms": 10.193,
     "line": 236,
     "code": "        use crate::Color;\n\n        let mut color = Color::new(255, 128, 64, 255);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"serialization/test_color.bin\";\n        color.pb_dump(filename);\n        let loaded = Color::pb_load(filename);\n",
     "checks": [
@@ -122,7 +122,7 @@
   {
     "test_name": "Conversion",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 255,
     "code": "        use crate::Color;\n\n\n        let color = Color::new(255, 128, 64, 255);\n        let flts = color.to_float_array();\n        let ints = Color::from_float(flts[0], flts[1], flts[2], flts[3]);\n",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.015,
     "line": 272,
     "code": "        use crate::Color;\n\n        let white = Color::white();\n        let black = Color::black();\n        let grey = Color::grey();\n        let red = Color::red();\n        let orange = Color::orange();\n        let yellow = Color::yellow();\n        let lime = Color::lime();\n        let green = Color::green();\n        let mint = Color::mint();\n        let cyan = Color::cyan();\n        let azure = Color::azure();\n        let blue = Color::blue();\n        let violet = Color::violet();\n        let magenta = Color::magenta();\n        let pink = Color::pink();\n        let maroon = Color::maroon();\n        let brown = Color::brown();\n        let olive = Color::olive();\n        let teal = Color::teal();\n        let navy = Color::navy();\n        let purple = Color::purple();\n        let silver = Color::silver();\n",
     "checks": [

@@ -1,0 +1,172 @@
+[
+  {
+    "test_name": "Eval Gyroid",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 13,
+    "code": "",
+    "checks": [
+      {
+        "line": 14,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::GYROID, Tolerance::PI / 2.0, 0.0, 0.0, 1.0), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, 0.0, 0.0, 0.0, 1.0), 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval SchwarzP",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 18,
+    "code": "",
+    "checks": [
+      {
+        "line": 19,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, Tolerance::PI, Tolerance::PI, Tolerance::PI, 1.0), -3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Eval Diamond",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 22,
+    "code": "",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "TOLERANCE.is_close(MeshIso::eval(TpmsType::DIAMOND, 0.0, 0.0, 0.0, 1.0), 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Gyroid Solid",
+    "passed": true,
+    "time_ms": 2.884,
+    "line": 26,
+    "code": "    BoundingBox box = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID);",
+    "checks": [
+      {
+        "line": 29,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Diamond Sheet",
+    "passed": true,
+    "time_ms": 17.399,
+    "line": 34,
+    "code": "    BoundingBox box = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);",
+    "checks": [
+      {
+        "line": 37,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Tpms Neovius Shell",
+    "passed": true,
+    "time_ms": 16.827,
+    "line": 40,
+    "code": "    BoundingBox box = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "m.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "SDF Sphere",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 46,
+    "code": "",
+    "checks": [
+      {
+        "line": 47,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0)",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Smooth Union",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 52,
+    "code": "",
+    "checks": [
+      {
+        "line": 53,
+        "code_line": "MeshIso::smooth_union(-1.0, 1.0, 8.0) < 0.0",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "MeshIso::smooth_union(1.0, 1.0, 8.0) < 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "From Function",
+    "passed": true,
+    "time_ms": 0.739,
+    "line": 57,
+    "code": "    BoundingBox box = BoundingBox::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    auto fn = [](double x, double y, double z) {\n        return MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n    };\n    Mesh m = MeshIso::from_function(fn, box, 10, 10, 10, 0.0);",
+    "checks": [
+      {
+        "line": 63,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]
