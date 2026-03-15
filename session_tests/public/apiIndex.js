@@ -31021,7 +31021,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_revolve_full(profile, axis_origin, axis_direction)",
-          "code": "def create_revolve_full(profile, axis_origin, axis_direction):\n\n        return Primitives.create_revolve(profile, axis_origin, axis_direction, 2.0 * Tolerance.PI)\n\n    @staticmethod\n    def create_sweep1(rail, profile):\n        if not rail.is_valid() or not profile.is_valid():\n            return NurbsSurface()\n\n        working_profile = profile.duplicate()\n\n        n = min(max(rail.span_count() * 2 + 1, 5), 20)\n        frames = rail.get_perpendicular_planes(n)\n        if not frames:\n            return NurbsSurface()\n\n        nc = working_profile.cv_count()\n        cx, cy, cz = 0.0, 0.0, 0.0\n        for k in range(nc):\n            cv = working_profile.get_cv(k)\n            if cv is not None:\n                cx += cv[0]\n                cy += cv[1]\n                cz += cv[2]\n        cx /= nc\n        cy /= nc\n        cz /= nc\n\n        t0, t1 = working_profile.domain()\n        pa = working_profile.point_at(t0)\n        pb = working_profile.point_at(t0 + (t1 - t0) / 3.0)\n        pc = working_profile.point_at(t0 + 2.0 * (t1 - t0) / 3.0)\n        v1 = Vector(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])\n        v2 = Vector(pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2])\n        prof_normal = v1.cross(v2)\n        nlen = prof_normal.magnitude()\n        if nlen < 1e-14:\n            prof_normal = Vector(1.0, 0.0, 0.0)\n        else:\n            prof_normal = prof_normal * (1.0 / nlen)\n\n        prof_x = Vector(pa[0] - cx, pa[1] - cy, pa[2] - cz)\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        dot = prof_x[0] * prof_normal[0] + prof_x[1] * prof_normal[1] + prof_x[2] * prof_normal[2]\n        prof_x = Vector(prof_x[0] - dot * prof_normal[0], prof_x[1] - dot * prof_normal[1], prof_x[2] - dot * prof_normal[2])\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        prof_y = prof_normal.cross(prof_x)\n        pylen = prof_y.magnitude()\n        if pylen > 1e-14:\n            prof_y = prof_y * (1.0 / pylen)\n\n        positioned_profiles = []\n        for i in range(len(frames)):\n            prof_copy = working_profile.duplicate()\n            fo = frames[i].origin\n            fx = frames[i].x_axis\n            fy = frames[i].y_axis\n            fz = frames[i].z_axis\n\n            t1x = Xform.translation(-cx, -cy, -cz)\n\n            rot = Xform.identity()\n            rot.m[0]  = fx[0]*prof_x[0] + fy[0]*prof_y[0] + fz[0]*prof_normal[0]\n            rot.m[1]  = fx[1]*prof_x[0] + fy[1]*prof_y[0] + fz[1]*prof_normal[0]\n            rot.m[2]  = fx[2]*prof_x[0] + fy[2]*prof_y[0] + fz[2]*prof_normal[0]\n            rot.m[4]  = fx[0]*prof_x[1] + fy[0]*prof_y[1] + fz[0]*prof_normal[1]\n            rot.m[5]  = fx[1]*prof_x[1] + fy[1]*prof_y[1] + fz[1]*prof_normal[1]\n            rot.m[6]  = fx[2]*prof_x[1] + fy[2]*prof_y[1] + fz[2]*prof_normal[1]\n            rot.m[8]  = fx[0]*prof_x[2] + fy[0]*prof_y[2] + fz[0]*prof_normal[2]\n            rot.m[9]  = fx[1]*prof_x[2] + fy[1]*prof_y[2] + fz[1]*prof_normal[2]\n            rot.m[10] = fx[2]*prof_x[2] + fy[2]*prof_y[2] + fz[2]*prof_normal[2]\n            rot.m[12] = fo[0]\n            rot.m[13] = fo[1]",
+          "code": "def create_revolve_full(profile, axis_origin, axis_direction):\n\n        return Primitives.create_revolve(profile, axis_origin, axis_direction, 2.0 * Tolerance.PI)\n\n    @staticmethod\n    def create_sweep1(rail, profile):\n        if not rail.is_valid() or not profile.is_valid():\n            return NurbsSurface()\n\n        working_profile = profile.duplicate()\n\n        n = min(max(rail.span_count() * 2 + 1, 5), 20)\n        frames = rail.get_perpendicular_planes(n)\n        if not frames:\n            return NurbsSurface()\n\n        nc = working_profile.cv_count()\n        cx, cy, cz = 0.0, 0.0, 0.0\n        for k in range(nc):\n            cv = working_profile.get_cv(k)\n            if cv is not None:\n                cx += cv[0]\n                cy += cv[1]\n                cz += cv[2]\n        cx /= nc\n        cy /= nc\n        cz /= nc\n\n        t0, t1 = working_profile.domain()\n        pa = working_profile.point_at(t0)\n        pb = working_profile.point_at(t0 + (t1 - t0) / 3.0)\n        pc = working_profile.point_at(t0 + 2.0 * (t1 - t0) / 3.0)\n        v1 = Vector(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])\n        v2 = Vector(pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2])\n        prof_normal = v1.cross(v2)\n        nlen = prof_normal.magnitude()\n        if nlen < 1e-14:\n            prof_normal = Vector(1.0, 0.0, 0.0)\n        else:\n            prof_normal = prof_normal * (1.0 / nlen)\n\n        prof_x = Vector(pa[0] - cx, pa[1] - cy, pa[2] - cz)\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        dot = prof_x[0] * prof_normal[0] + prof_x[1] * prof_normal[1] + prof_x[2] * prof_normal[2]\n        prof_x = Vector(prof_x[0] - dot * prof_normal[0], prof_x[1] - dot * prof_normal[1], prof_x[2] - dot * prof_normal[2])\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        prof_y = prof_normal.cross(prof_x)\n        pylen = prof_y.magnitude()\n        if pylen > 1e-14:\n            prof_y = prof_y * (1.0 / pylen)\n\n        positioned_profiles = []\n        for i in range(len(frames)):\n            prof_copy = working_profile.duplicate()\n            fo = frames[i].origin\n            fx = frames[i].x_axis\n            fy = frames[i].y_axis\n            fz = frames[i].z_axis\n\n            t1x = Xform.translation(-cx, -cy, -cz)\n\n            rot = Xform()\n            rot.m[0]  = fx[0]*prof_x[0] + fy[0]*prof_y[0] + fz[0]*prof_normal[0]\n            rot.m[1]  = fx[1]*prof_x[0] + fy[1]*prof_y[0] + fz[1]*prof_normal[0]\n            rot.m[2]  = fx[2]*prof_x[0] + fy[2]*prof_y[0] + fz[2]*prof_normal[0]\n            rot.m[4]  = fx[0]*prof_x[1] + fy[0]*prof_y[1] + fz[0]*prof_normal[1]\n            rot.m[5]  = fx[1]*prof_x[1] + fy[1]*prof_y[1] + fz[1]*prof_normal[1]\n            rot.m[6]  = fx[2]*prof_x[1] + fy[2]*prof_y[1] + fz[2]*prof_normal[1]\n            rot.m[8]  = fx[0]*prof_x[2] + fy[0]*prof_y[2] + fz[0]*prof_normal[2]\n            rot.m[9]  = fx[1]*prof_x[2] + fy[1]*prof_y[2] + fz[1]*prof_normal[2]\n            rot.m[10] = fx[2]*prof_x[2] + fy[2]*prof_y[2] + fz[2]*prof_normal[2]\n            rot.m[12] = fo[0]\n            rot.m[13] = fo[1]",
           "file": "primitives.py"
         },
         "rust": {
@@ -31040,7 +31040,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_sweep1(rail, profile)",
-          "code": "def create_sweep1(rail, profile):\n\n        if not rail.is_valid() or not profile.is_valid():\n            return NurbsSurface()\n\n        working_profile = profile.duplicate()\n\n        n = min(max(rail.span_count() * 2 + 1, 5), 20)\n        frames = rail.get_perpendicular_planes(n)\n        if not frames:\n            return NurbsSurface()\n\n        nc = working_profile.cv_count()\n        cx, cy, cz = 0.0, 0.0, 0.0\n        for k in range(nc):\n            cv = working_profile.get_cv(k)\n            if cv is not None:\n                cx += cv[0]\n                cy += cv[1]\n                cz += cv[2]\n        cx /= nc\n        cy /= nc\n        cz /= nc\n\n        t0, t1 = working_profile.domain()\n        pa = working_profile.point_at(t0)\n        pb = working_profile.point_at(t0 + (t1 - t0) / 3.0)\n        pc = working_profile.point_at(t0 + 2.0 * (t1 - t0) / 3.0)\n        v1 = Vector(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])\n        v2 = Vector(pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2])\n        prof_normal = v1.cross(v2)\n        nlen = prof_normal.magnitude()\n        if nlen < 1e-14:\n            prof_normal = Vector(1.0, 0.0, 0.0)\n        else:\n            prof_normal = prof_normal * (1.0 / nlen)\n\n        prof_x = Vector(pa[0] - cx, pa[1] - cy, pa[2] - cz)\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        dot = prof_x[0] * prof_normal[0] + prof_x[1] * prof_normal[1] + prof_x[2] * prof_normal[2]\n        prof_x = Vector(prof_x[0] - dot * prof_normal[0], prof_x[1] - dot * prof_normal[1], prof_x[2] - dot * prof_normal[2])\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        prof_y = prof_normal.cross(prof_x)\n        pylen = prof_y.magnitude()\n        if pylen > 1e-14:\n            prof_y = prof_y * (1.0 / pylen)\n\n        positioned_profiles = []\n        for i in range(len(frames)):\n            prof_copy = working_profile.duplicate()\n            fo = frames[i].origin\n            fx = frames[i].x_axis\n            fy = frames[i].y_axis\n            fz = frames[i].z_axis\n\n            t1x = Xform.translation(-cx, -cy, -cz)\n\n            rot = Xform.identity()\n            rot.m[0]  = fx[0]*prof_x[0] + fy[0]*prof_y[0] + fz[0]*prof_normal[0]\n            rot.m[1]  = fx[1]*prof_x[0] + fy[1]*prof_y[0] + fz[1]*prof_normal[0]\n            rot.m[2]  = fx[2]*prof_x[0] + fy[2]*prof_y[0] + fz[2]*prof_normal[0]\n            rot.m[4]  = fx[0]*prof_x[1] + fy[0]*prof_y[1] + fz[0]*prof_normal[1]\n            rot.m[5]  = fx[1]*prof_x[1] + fy[1]*prof_y[1] + fz[1]*prof_normal[1]\n            rot.m[6]  = fx[2]*prof_x[1] + fy[2]*prof_y[1] + fz[2]*prof_normal[1]\n            rot.m[8]  = fx[0]*prof_x[2] + fy[0]*prof_y[2] + fz[0]*prof_normal[2]\n            rot.m[9]  = fx[1]*prof_x[2] + fy[1]*prof_y[2] + fz[1]*prof_normal[2]\n            rot.m[10] = fx[2]*prof_x[2] + fy[2]*prof_y[2] + fz[2]*prof_normal[2]\n            rot.m[12] = fo[0]\n            rot.m[13] = fo[1]\n            rot.m[14] = fo[2]\n\n            prof_copy.transform(t1x)\n            prof_copy.transform(rot)",
+          "code": "def create_sweep1(rail, profile):\n\n        if not rail.is_valid() or not profile.is_valid():\n            return NurbsSurface()\n\n        working_profile = profile.duplicate()\n\n        n = min(max(rail.span_count() * 2 + 1, 5), 20)\n        frames = rail.get_perpendicular_planes(n)\n        if not frames:\n            return NurbsSurface()\n\n        nc = working_profile.cv_count()\n        cx, cy, cz = 0.0, 0.0, 0.0\n        for k in range(nc):\n            cv = working_profile.get_cv(k)\n            if cv is not None:\n                cx += cv[0]\n                cy += cv[1]\n                cz += cv[2]\n        cx /= nc\n        cy /= nc\n        cz /= nc\n\n        t0, t1 = working_profile.domain()\n        pa = working_profile.point_at(t0)\n        pb = working_profile.point_at(t0 + (t1 - t0) / 3.0)\n        pc = working_profile.point_at(t0 + 2.0 * (t1 - t0) / 3.0)\n        v1 = Vector(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])\n        v2 = Vector(pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2])\n        prof_normal = v1.cross(v2)\n        nlen = prof_normal.magnitude()\n        if nlen < 1e-14:\n            prof_normal = Vector(1.0, 0.0, 0.0)\n        else:\n            prof_normal = prof_normal * (1.0 / nlen)\n\n        prof_x = Vector(pa[0] - cx, pa[1] - cy, pa[2] - cz)\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        dot = prof_x[0] * prof_normal[0] + prof_x[1] * prof_normal[1] + prof_x[2] * prof_normal[2]\n        prof_x = Vector(prof_x[0] - dot * prof_normal[0], prof_x[1] - dot * prof_normal[1], prof_x[2] - dot * prof_normal[2])\n        pxlen = prof_x.magnitude()\n        if pxlen < 1e-14:\n            prof_x = Vector(0.0, 1.0, 0.0)\n        else:\n            prof_x = prof_x * (1.0 / pxlen)\n        prof_y = prof_normal.cross(prof_x)\n        pylen = prof_y.magnitude()\n        if pylen > 1e-14:\n            prof_y = prof_y * (1.0 / pylen)\n\n        positioned_profiles = []\n        for i in range(len(frames)):\n            prof_copy = working_profile.duplicate()\n            fo = frames[i].origin\n            fx = frames[i].x_axis\n            fy = frames[i].y_axis\n            fz = frames[i].z_axis\n\n            t1x = Xform.translation(-cx, -cy, -cz)\n\n            rot = Xform()\n            rot.m[0]  = fx[0]*prof_x[0] + fy[0]*prof_y[0] + fz[0]*prof_normal[0]\n            rot.m[1]  = fx[1]*prof_x[0] + fy[1]*prof_y[0] + fz[1]*prof_normal[0]\n            rot.m[2]  = fx[2]*prof_x[0] + fy[2]*prof_y[0] + fz[2]*prof_normal[0]\n            rot.m[4]  = fx[0]*prof_x[1] + fy[0]*prof_y[1] + fz[0]*prof_normal[1]\n            rot.m[5]  = fx[1]*prof_x[1] + fy[1]*prof_y[1] + fz[1]*prof_normal[1]\n            rot.m[6]  = fx[2]*prof_x[1] + fy[2]*prof_y[1] + fz[2]*prof_normal[1]\n            rot.m[8]  = fx[0]*prof_x[2] + fy[0]*prof_y[2] + fz[0]*prof_normal[2]\n            rot.m[9]  = fx[1]*prof_x[2] + fy[1]*prof_y[2] + fz[1]*prof_normal[2]\n            rot.m[10] = fx[2]*prof_x[2] + fy[2]*prof_y[2] + fz[2]*prof_normal[2]\n            rot.m[12] = fo[0]\n            rot.m[13] = fo[1]\n            rot.m[14] = fo[2]\n\n            prof_copy.transform(t1x)\n            prof_copy.transform(rot)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -31091,7 +31091,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "lerp_vec(a, b)",
-          "code": "def lerp_vec(a, b):\n\n                return Vector(a[0]*(1-s)+b[0]*s, a[1]*(1-s)+b[1]*s, a[2]*(1-s)+b[2]*s)\n\n            if n_shapes > 1 and j + 1 < n_shapes:\n                prof_dir = lerp_vec(sinfo[j].dir, sinfo[j+1].dir)\n                prof_side = lerp_vec(sinfo[j].side, sinfo[j+1].side)\n                prof_up = lerp_vec(sinfo[j].up, sinfo[j+1].up)\n            else:\n                prof_dir = Vector(sinfo[j].dir[0], sinfo[j].dir[1], sinfo[j].dir[2])\n                prof_side = Vector(sinfo[j].side[0], sinfo[j].side[1], sinfo[j].side[2])\n                prof_up = Vector(sinfo[j].up[0], sinfo[j].up[1], sinfo[j].up[2])\n\n            pdlen = prof_dir.magnitude()\n            if pdlen > 1e-14:\n                prof_dir = prof_dir * (1.0 / pdlen)\n            pslen = prof_side.magnitude()\n            if pslen > 1e-14:\n                prof_side = prof_side * (1.0 / pslen)\n            pulen = prof_up.magnitude()\n            if pulen > 1e-14:\n                prof_up = prof_up * (1.0 / pulen)\n\n            if n_shapes == 1:\n                interp_start = sinfo[0].start\n            elif j + 1 < n_shapes:\n                interp_start = Point(\n                    sinfo[j].start[0]*(1-s) + sinfo[j+1].start[0]*s,\n                    sinfo[j].start[1]*(1-s) + sinfo[j+1].start[1]*s,\n                    sinfo[j].start[2]*(1-s) + sinfo[j+1].start[2]*s)\n            else:\n                interp_start = sinfo[j].start\n\n            p1 = pts1[i]\n            p2 = pts2[i]\n            dx = p2[0] - p1[0]\n            dy = p2[1] - p1[1]\n            dz = p2[2] - p1[2]\n            rail_dist = math.sqrt(dx*dx + dy*dy + dz*dz)\n            scale_factor = rail_dist / shape_width if rail_dist > 1e-14 and shape_width > 1e-14 else 1.0\n\n            prof_copy = interp_shape.duplicate()\n            t1_xf = Xform.translation(-interp_start[0], -interp_start[1], -interp_start[2])\n            prof_copy.transform(t1_xf)\n\n            sc = Xform.scale_xyz(scale_factor, scale_factor, scale_factor)\n            prof_copy.transform(sc)\n\n            tangent_orig = frames1[i].z_axis\n            x_dir = Vector(dx, dy, dz)\n            x_len = x_dir.magnitude()\n            if x_len > 1e-14:\n                x_dir = x_dir * (1.0 / x_len)\n            else:\n                x_dir = frames1[i].x_axis\n            y_dir = tangent_orig.cross(x_dir)\n            y_len = y_dir.magnitude()\n            if y_len > 1e-14:\n                y_dir = y_dir * (1.0 / y_len)\n            else:\n                y_dir = frames1[i].y_axis\n            dot_up = y_dir[0]*prof_up[0] + y_dir[1]*prof_up[1] + y_dir[2]*prof_up[2]\n            if dot_up < 0:\n                y_dir = Vector(-y_dir[0], -y_dir[1], -y_dir[2])\n            tangent = x_dir.cross(y_dir)\n            tz = tangent.magnitude()\n            if tz > 1e-14:\n                tangent = tangent * (1.0 / tz)\n\n            rot = Xform.identity()\n            rot.m[0]  = tangent[0]*prof_side[0] + x_dir[0]*prof_dir[0] + y_dir[0]*prof_up[0]\n            rot.m[1]  = tangent[1]*prof_side[0] + x_dir[1]*prof_dir[0] + y_dir[1]*prof_up[0]\n            rot.m[2]  = tangent[2]*prof_side[0] + x_dir[2]*prof_dir[0] + y_dir[2]*prof_up[0]\n            rot.m[4]  = tangent[0]*prof_side[1] + x_dir[0]*prof_dir[1] + y_dir[0]*prof_up[1]\n            rot.m[5]  = tangent[1]*prof_side[1] + x_dir[1]*prof_dir[1] + y_dir[1]*prof_up[1]\n            rot.m[6]  = tangent[2]*prof_side[1] + x_dir[2]*prof_dir[1] + y_dir[2]*prof_up[1]\n            rot.m[8]  = tangent[0]*prof_side[2] + x_dir[0]*prof_dir[2] + y_dir[0]*prof_up[2]\n            rot.m[9]  = tangent[1]*prof_side[2] + x_dir[1]*prof_dir[2] + y_dir[1]*prof_up[2]\n            rot.m[10] = tangent[2]*prof_side[2] + x_dir[2]*prof_dir[2] + y_dir[2]*prof_up[2]\n            rot.m[12] = p1[0]\n            rot.m[13] = p1[1]",
+          "code": "def lerp_vec(a, b):\n\n                return Vector(a[0]*(1-s)+b[0]*s, a[1]*(1-s)+b[1]*s, a[2]*(1-s)+b[2]*s)\n\n            if n_shapes > 1 and j + 1 < n_shapes:\n                prof_dir = lerp_vec(sinfo[j].dir, sinfo[j+1].dir)\n                prof_side = lerp_vec(sinfo[j].side, sinfo[j+1].side)\n                prof_up = lerp_vec(sinfo[j].up, sinfo[j+1].up)\n            else:\n                prof_dir = Vector(sinfo[j].dir[0], sinfo[j].dir[1], sinfo[j].dir[2])\n                prof_side = Vector(sinfo[j].side[0], sinfo[j].side[1], sinfo[j].side[2])\n                prof_up = Vector(sinfo[j].up[0], sinfo[j].up[1], sinfo[j].up[2])\n\n            pdlen = prof_dir.magnitude()\n            if pdlen > 1e-14:\n                prof_dir = prof_dir * (1.0 / pdlen)\n            pslen = prof_side.magnitude()\n            if pslen > 1e-14:\n                prof_side = prof_side * (1.0 / pslen)\n            pulen = prof_up.magnitude()\n            if pulen > 1e-14:\n                prof_up = prof_up * (1.0 / pulen)\n\n            if n_shapes == 1:\n                interp_start = sinfo[0].start\n            elif j + 1 < n_shapes:\n                interp_start = Point(\n                    sinfo[j].start[0]*(1-s) + sinfo[j+1].start[0]*s,\n                    sinfo[j].start[1]*(1-s) + sinfo[j+1].start[1]*s,\n                    sinfo[j].start[2]*(1-s) + sinfo[j+1].start[2]*s)\n            else:\n                interp_start = sinfo[j].start\n\n            p1 = pts1[i]\n            p2 = pts2[i]\n            dx = p2[0] - p1[0]\n            dy = p2[1] - p1[1]\n            dz = p2[2] - p1[2]\n            rail_dist = math.sqrt(dx*dx + dy*dy + dz*dz)\n            scale_factor = rail_dist / shape_width if rail_dist > 1e-14 and shape_width > 1e-14 else 1.0\n\n            prof_copy = interp_shape.duplicate()\n            t1_xf = Xform.translation(-interp_start[0], -interp_start[1], -interp_start[2])\n            prof_copy.transform(t1_xf)\n\n            sc = Xform.scale_xyz(scale_factor, scale_factor, scale_factor)\n            prof_copy.transform(sc)\n\n            tangent_orig = frames1[i].z_axis\n            x_dir = Vector(dx, dy, dz)\n            x_len = x_dir.magnitude()\n            if x_len > 1e-14:\n                x_dir = x_dir * (1.0 / x_len)\n            else:\n                x_dir = frames1[i].x_axis\n            y_dir = tangent_orig.cross(x_dir)\n            y_len = y_dir.magnitude()\n            if y_len > 1e-14:\n                y_dir = y_dir * (1.0 / y_len)\n            else:\n                y_dir = frames1[i].y_axis\n            dot_up = y_dir[0]*prof_up[0] + y_dir[1]*prof_up[1] + y_dir[2]*prof_up[2]\n            if dot_up < 0:\n                y_dir = Vector(-y_dir[0], -y_dir[1], -y_dir[2])\n            tangent = x_dir.cross(y_dir)\n            tz = tangent.magnitude()\n            if tz > 1e-14:\n                tangent = tangent * (1.0 / tz)\n\n            rot = Xform()\n            rot.m[0]  = tangent[0]*prof_side[0] + x_dir[0]*prof_dir[0] + y_dir[0]*prof_up[0]\n            rot.m[1]  = tangent[1]*prof_side[0] + x_dir[1]*prof_dir[0] + y_dir[1]*prof_up[0]\n            rot.m[2]  = tangent[2]*prof_side[0] + x_dir[2]*prof_dir[0] + y_dir[2]*prof_up[0]\n            rot.m[4]  = tangent[0]*prof_side[1] + x_dir[0]*prof_dir[1] + y_dir[0]*prof_up[1]\n            rot.m[5]  = tangent[1]*prof_side[1] + x_dir[1]*prof_dir[1] + y_dir[1]*prof_up[1]\n            rot.m[6]  = tangent[2]*prof_side[1] + x_dir[2]*prof_dir[1] + y_dir[2]*prof_up[1]\n            rot.m[8]  = tangent[0]*prof_side[2] + x_dir[0]*prof_dir[2] + y_dir[0]*prof_up[2]\n            rot.m[9]  = tangent[1]*prof_side[2] + x_dir[1]*prof_dir[2] + y_dir[1]*prof_up[2]\n            rot.m[10] = tangent[2]*prof_side[2] + x_dir[2]*prof_dir[2] + y_dir[2]*prof_up[2]\n            rot.m[12] = p1[0]\n            rot.m[13] = p1[1]",
           "file": "primitives.py"
         }
       },
@@ -51439,11 +51439,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "into",
         "subdivide",
+        "into",
         "circle",
         "n",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -51457,11 +51457,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
-        "length",
-        "subdivide",
-        "by",
         "arc",
+        "by",
+        "ellipse",
+        "subdivide",
+        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -51475,9 +51475,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
-        "through",
         "arc",
+        "through",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -51491,12 +51491,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
-        "open",
         "curve",
-        "adaptive",
-        "from",
+        "open",
         "polyline",
+        "from",
+        "adaptive",
+        "points",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -51534,9 +51534,9 @@ window.API_INDEX = {
       "title": "Curve Frames Along Length",
       "tags": [
         "length",
+        "frames",
         "curve",
         "along",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -51558,9 +51558,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "perpendicular",
         "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -51581,10 +51581,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "evaluate",
-        "cylinder",
         "point",
+        "evaluate",
+        "surface",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -51599,11 +51599,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
-        "faces",
-        "from",
         "vertices",
+        "mesh",
         "and",
+        "from",
+        "faces",
         "add_vertex",
         "add_face",
         "vertex"

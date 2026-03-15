@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.723,
+    "time_ms": 8.222,
     "line": 5,
     "code": "        use crate::graph::Graph;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Graph::new(\"./serialization/test_graph\");\n        original.add_node(\"node1\", \"Node 1\");\n        original.add_node(\"node2\", \"Node 2\");\n        original.add_edge(\"node1\", \"node2\", \"edge1\");\n        json_dump(&original, \"serialization/test_graph.json\", false).unwrap();\n        let loaded = json_load::<Graph>(\"serialization/test_graph.json\").unwrap();",
     "checks": [
