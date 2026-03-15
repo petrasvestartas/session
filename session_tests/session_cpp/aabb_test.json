@@ -72,7 +72,7 @@
   {
     "test_name": "Mesh Point Aabb",
     "passed": true,
-    "time_ms": 2.232,
+    "time_ms": 2.094,
     "line": 49,
     "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -97,7 +97,7 @@
   {
     "test_name": "Mesh Point Aabb Matches Bvh",
     "passed": true,
-    "time_ms": 0.779,
+    "time_ms": 1.056,
     "line": 60,
     "code": "    Mesh m = Primitives::cube(2.0);\n    Point tp(0.3, 0.7, 1.5);\n\n    auto [cp_bvh, fk_bvh, d_bvh] = Closest::mesh_point(m, tp);\n    auto [cp_aabb, fk_aabb, d_aabb] = Closest::mesh_point_aabb(m, tp);\n",
     "checks": [

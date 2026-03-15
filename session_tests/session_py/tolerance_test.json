@@ -32,7 +32,7 @@
   {
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 19,
     "code": "    result = TOLERANCE.is_positive(1.0)",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 25,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 31,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.007,
     "line": 37,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.01,
     "line": 43,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.014,
     "line": 49,
     "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
     "checks": [
