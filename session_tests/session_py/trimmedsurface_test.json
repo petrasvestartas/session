@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 1.181,
+    "time_ms": 2.937,
     "line": 8,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n\n    # Create a bilinear surface\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0.0, 0.0, 0.0))\n    srf.set_cv(1, 0, Point(6.0, 0.0, 0.0))\n    srf.set_cv(0, 1, Point(0.0, 6.0, 0.0))\n    srf.set_cv(1, 1, Point(6.0, 6.0, 0.0))\n\n    # Outer trim loop (rectangle in UV space)\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.1, 0.1, 0.0), Point(0.9, 0.1, 0.0),\n        Point(0.9, 0.9, 0.0), Point(0.1, 0.9, 0.0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n\n    # String representations\n    sstr = str(ts)\n    srepr = repr(ts)\n\n    # Copy (new guid)\n    tscopy = ts.duplicate()",
     "checks": [
@@ -57,31 +57,31 @@
   {
     "test_name": "Constructor Planar",
     "passed": true,
-    "time_ms": 618.417,
+    "time_ms": 638.389,
     "line": 48,
-    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n    import math\n\n    # Planar curve boundary\n    pts = [\n        Point(0, 0, 0), Point(3, 1, 0), Point(5, 0.5, 0),\n        Point(6, 3, 0), Point(4, 5, 0), Point(1, 4, 0),\n    ]\n    bnd = NurbsCurve.create(True, 3, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Rotated planar\n    pts = [Point(0, 0, 0), Point(3, 1, -2), Point(5, 2, -3), Point(4, 4, 0), Point(1, 3, 2)]\n    bnd = NurbsCurve.create(True, 3, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Triangle\n    bnd = NurbsCurve.create(True, 1, [Point(0, 0, 0), Point(6, 3, 3), Point(2, 5, 1)])\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Trapezoid\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 6), Point(5, 0, 6), Point(4, 4, 2), Point(1, 4, 2),\n    ])\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Rectangle with a hole\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0),\n    ])\n    ts = TrimmedSurface.create_planar(bnd)\n    ts.add_hole(NurbsCurve.create(True, 1, [\n        Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0),\n    ]))\n\n    # Hexagon with 2 holes\n    R = 4.0\n    pts = []\n    for k in range(6):\n        a = k * PI / 3.0\n        pts.append(Point(R * math.cos(a), R * math.sin(a), R * math.cos(a) * 0.5))\n    bnd = NurbsCurve.create(True, 1, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n    ts.add_holes([\n        NurbsCurve.create(True, 1, [\n            Point(1.5, 0.5, 0.75), Point(2.5, 0.5, 1.25), Point(2.0, 1.5, 1.0),\n        ]),\n        NurbsCurve.create(True, 1, [\n            Point(-2, -0.5, -1), Point(-1, -0.5, -0.5), Point(-1, -1.5, -0.5), Point(-2, -1.5, -1),\n        ]),\n    ])",
+    "code": "    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n    import math\n\n    # Planar curve boundary\n    pts = [\n        Point(0, 0, 0), Point(3, 1, 0), Point(5, 0.5, 0),\n        Point(6, 3, 0), Point(4, 5, 0), Point(1, 4, 0),\n    ]\n    bnd = NurbsCurve.create(True, 3, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Rotated planar\n    pts = [\n        Point(0, 0, 0),\n        Point(3, 1, -2),\n        Point(5, 2, -3),\n        Point(4, 4, 0),\n        Point(1, 3, 2),\n    ]\n    bnd = NurbsCurve.create(True, 3, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Triangle\n    bnd = NurbsCurve.create(True, 1, [Point(0, 0, 0), Point(6, 3, 3), Point(2, 5, 1)])\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Trapezoid\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 6), Point(5, 0, 6), Point(4, 4, 2), Point(1, 4, 2),\n    ])\n    ts = TrimmedSurface.create_planar(bnd)\n\n    # Rectangle with a hole\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0),\n    ])\n    ts = TrimmedSurface.create_planar(bnd)\n    ts.add_hole(NurbsCurve.create(True, 1, [\n        Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0),\n    ]))\n\n    # Hexagon with 2 holes\n    R = 4.0\n    pts = []\n    for k in range(6):\n        a = k * PI / 3.0\n        pts.append(Point(R * math.cos(a), R * math.sin(a), R * math.cos(a) * 0.5))\n    bnd = NurbsCurve.create(True, 1, pts)\n    ts = TrimmedSurface.create_planar(bnd)\n    ts.add_holes([\n        NurbsCurve.create(True, 1, [\n            Point(1.5, 0.5, 0.75), Point(2.5, 0.5, 1.25), Point(2.0, 1.5, 1.0),\n        ]),\n        NurbsCurve.create(True, 1, [\n            Point(-2, -0.5, -1), Point(-1, -0.5, -0.5), Point(-1, -1.5, -0.5), Point(-2, -1.5, -1),\n        ]),\n    ])",
     "checks": [],
     "failures": []
   },
   {
     "test_name": "Constructor Hole",
     "passed": true,
-    "time_ms": 1.467,
-    "line": 105,
+    "time_ms": 1.486,
+    "line": 111,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n    import math\n\n    # Create surface with bump\n    n = 8\n    pts = []\n    for i in range(n):\n        for j in range(n):\n            x = float(i)\n            y = float(j)\n            r2 = (x - 1.5) * (x - 1.5) + (y - 1.5) * (y - 1.5)\n            z = 5.0 * math.exp(-r2 / 1.0) + 0.3 * math.sin(PI * x / 7) * math.sin(PI * y / 7)\n            pts.append(Point(x, y, z))\n\n    srf = NurbsSurface.create(False, False, 3, 3, n, n, pts)\n\n    # Create outer loop (full boundary in UV)\n    outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n\n    # Add hole as UV curve directly\n    hole = NurbsCurve.create(True, 1, [\n        Point(0.4, 0.4, 0.0), Point(0.6, 0.4, 0.0),\n        Point(0.6, 0.6, 0.0), Point(0.4, 0.6, 0.0),\n    ])\n    ts.add_inner_loop(hole)",
     "checks": [
       {
-        "line": 140,
+        "line": 146,
         "code_line": "ts.is_valid()",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 147,
         "code_line": "ts.is_trimmed()",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 148,
         "code_line": "ts.inner_loop_count() == 1",
         "passed": true
       }
@@ -91,42 +91,42 @@
   {
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.679,
-    "line": 145,
+    "time_ms": 0.769,
+    "line": 151,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(5, 0, 0))\n    srf.set_cv(0, 1, Point(0, 5, 0))\n    srf.set_cv(1, 1, Point(5, 5, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n        Point(0.9, 0.9, 0), Point(0.1, 0.9, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n    ts.name = \"test_accessors\"\n    ts.width = 2.5\n\n    got_srf = ts.surface()\n    got_loop = ts.get_outer_loop()",
     "checks": [
       {
-        "line": 170,
+        "line": 176,
         "code_line": "ts.is_valid()",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 177,
         "code_line": "ts.is_trimmed()",
         "passed": true
       },
       {
-        "line": 172,
+        "line": 178,
         "code_line": "ts.name == \"test_accessors\"",
         "passed": true
       },
       {
-        "line": 173,
+        "line": 179,
         "code_line": "ts.width == 2.5",
         "passed": true
       },
       {
-        "line": 174,
+        "line": 180,
         "code_line": "got_srf.is_valid()",
         "passed": true
       },
       {
-        "line": 175,
+        "line": 181,
         "code_line": "got_loop.is_valid()",
         "passed": true
       },
       {
-        "line": 176,
+        "line": 182,
         "code_line": "ts.inner_loop_count() == 0",
         "passed": true
       }
@@ -136,22 +136,22 @@
   {
     "test_name": "Add Inner Loop",
     "passed": true,
-    "time_ms": 2.919,
-    "line": 179,
+    "time_ms": 2.194,
+    "line": 185,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(10, 0, 0))\n    srf.set_cv(0, 1, Point(0, 10, 0))\n    srf.set_cv(1, 1, Point(10, 10, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n\n    # Add inner loops (holes in UV)\n    hole1 = NurbsCurve.create(True, 1, [\n        Point(0.2, 0.2, 0), Point(0.4, 0.2, 0),\n        Point(0.4, 0.4, 0), Point(0.2, 0.4, 0),\n    ])\n    hole2 = NurbsCurve.create(True, 1, [\n        Point(0.6, 0.6, 0), Point(0.8, 0.6, 0),\n        Point(0.8, 0.8, 0), Point(0.6, 0.8, 0),\n    ])\n\n    ts.add_inner_loop(hole1)\n    ts.add_inner_loop(hole2)\n\n    got = ts.get_inner_loop(0)\n\n\n    ts.clear_inner_loops()",
     "checks": [
       {
-        "line": 213,
+        "line": 219,
         "code_line": "ts.inner_loop_count() == 2",
         "passed": true
       },
       {
-        "line": 214,
+        "line": 220,
         "code_line": "got.is_valid()",
         "passed": true
       },
       {
-        "line": 217,
+        "line": 223,
         "code_line": "ts.inner_loop_count() == 0",
         "passed": true
       }
@@ -161,27 +161,27 @@
   {
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.801,
-    "line": 220,
+    "time_ms": 0.903,
+    "line": 226,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(4, 0, 0))\n    srf.set_cv(0, 1, Point(0, 4, 0))\n    srf.set_cv(1, 1, Point(4, 4, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n\n    u0, u1 = ts.surface().domain(0)\n    v0, v1 = ts.surface().domain(1)\n    u_mid = (u0 + u1) / 2.0\n    v_mid = (v0 + v1) / 2.0\n\n    pt = ts.point_at(u_mid, v_mid)\n    nm = ts.normal_at(u_mid, v_mid)",
     "checks": [
       {
-        "line": 247,
+        "line": 253,
         "code_line": "TOLERANCE.is_close(pt[0], 2.0)",
         "passed": true
       },
       {
-        "line": 248,
+        "line": 254,
         "code_line": "TOLERANCE.is_close(pt[1], 2.0)",
         "passed": true
       },
       {
-        "line": 249,
+        "line": 255,
         "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
         "passed": true
       },
       {
-        "line": 250,
+        "line": 256,
         "code_line": "TOLERANCE.is_close(abs(nm[2]), 1.0)",
         "passed": true
       }
@@ -191,22 +191,22 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 27.294,
-    "line": 253,
+    "time_ms": 28.269,
+    "line": 259,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.trimmedsurface import TrimmedSurface\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(6, 0, 0))\n    srf.set_cv(0, 1, Point(0, 6, 0))\n    srf.set_cv(1, 1, Point(6, 6, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.05, 0.05, 0), Point(0.95, 0.05, 0),\n        Point(0.95, 0.95, 0), Point(0.05, 0.95, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n    m = ts.mesh()",
     "checks": [
       {
-        "line": 274,
+        "line": 280,
         "code_line": "not m.is_empty()",
         "passed": true
       },
       {
-        "line": 275,
+        "line": 281,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       },
       {
-        "line": 276,
+        "line": 282,
         "code_line": "m.number_of_faces() > 0",
         "passed": true
       }
@@ -216,22 +216,22 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.832,
-    "line": 279,
+    "time_ms": 1.037,
+    "line": 285,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Xform\n    from session_py.trimmedsurface import TrimmedSurface\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n    ts.xform = Xform.translation(10.0, 20.0, 30.0)\n    ts2 = ts.transformed()\n\n    u0, u1 = ts2.surface().domain(0)\n    v0, v1 = ts2.surface().domain(1)\n    pt = ts2.point_at(u0, v0)",
     "checks": [
       {
-        "line": 305,
+        "line": 311,
         "code_line": "TOLERANCE.is_close(pt[0], 10.0)",
         "passed": true
       },
       {
-        "line": 306,
+        "line": 312,
         "code_line": "TOLERANCE.is_close(pt[1], 20.0)",
         "passed": true
       },
       {
-        "line": 307,
+        "line": 313,
         "code_line": "TOLERANCE.is_close(pt[2], 30.0)",
         "passed": true
       }
@@ -241,22 +241,22 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.497,
-    "line": 310,
+    "time_ms": 13.165,
+    "line": 316,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Color\n    from session_py.trimmedsurface import TrimmedSurface\n    from pathlib import Path\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(5, 0, 0))\n    srf.set_cv(0, 1, Point(0, 5, 0))\n    srf.set_cv(1, 1, Point(5, 5, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n        Point(0.9, 0.9, 0), Point(0.1, 0.9, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n    ts.name = \"test_trimmedsurface\"\n    ts.width = 2.0\n    ts.surfacecolor = Color(255, 128, 64, 255)\n\n    # JSON object\n    json_obj = ts.__jsondump__()\n    loaded_json = TrimmedSurface.__jsonload__(json_obj)\n\n    # String\n    json_string = ts.json_dumps()\n    loaded_json_string = TrimmedSurface.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_trimmedsurface.json\"\n    ts.json_dump(filename)\n    loaded_from_file = TrimmedSurface.json_load(filename)",
     "checks": [
       {
-        "line": 348,
+        "line": 354,
         "code_line": "loaded_json == ts",
         "passed": true
       },
       {
-        "line": 349,
+        "line": 355,
         "code_line": "loaded_json_string == ts",
         "passed": true
       },
       {
-        "line": 350,
+        "line": 356,
         "code_line": "loaded_from_file == ts",
         "passed": true
       }
@@ -266,17 +266,17 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.367,
-    "line": 353,
+    "time_ms": 14.07,
+    "line": 359,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Color\n    from session_py.trimmedsurface import TrimmedSurface\n    from pathlib import Path\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(5, 0, 0))\n    srf.set_cv(0, 1, Point(0, 5, 0))\n    srf.set_cv(1, 1, Point(5, 5, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n        Point(0.9, 0.9, 0), Point(0.1, 0.9, 0),\n    ])\n\n    ts = TrimmedSurface.create(srf, outer)\n    ts.name = \"test_trimmedsurface\"\n    ts.width = 2.0\n    ts.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_string = ts.pb_dumps()\n    loaded_proto_string = TrimmedSurface.pb_loads(proto_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_trimmedsurface.bin\"\n    ts.pb_dump(filename)\n    loaded = TrimmedSurface.pb_load(filename)",
     "checks": [
       {
-        "line": 387,
+        "line": 393,
         "code_line": "loaded_proto_string == ts",
         "passed": true
       },
       {
-        "line": 388,
+        "line": 394,
         "code_line": "loaded == ts",
         "passed": true
       }

@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.014,
     "line": 7,
     "code": "        use crate::Vector;\n        use crate::Point;\n\n        // Constructor\n        let mut v = Vector::new(1.0, 2.0, 3.0);\n        let p0 = Point::new(1.0, 2.0, 3.0);\n        let p1 = Point::new(2.0, 4.0, 6.0);    \n        let v_2p = Vector::from_points(&p0, &p1);\n\n        // Setters\n        v[0] = 10.0;\n        v[1] = 20.0;\n        v[2] = 30.0;\n\n        // Getters\n        let x = v[0];\n        let y = v[1];\n        let z = v[2];\n\n        // Minimal and full string representation\n        let vsrt = v.str();\n        let vrepr = v.repr();\n\n        // Copy (duplicate everything but guid)\n        let vcopy = v.duplicate();\n        let vother = Vector::new(1.0, 2.0, 3.0);\n\n        // No-copy operators d\n        let mut vmult = v.duplicate();\n        vmult *= 2.0;\n        let mut vdiv = v.duplicate();\n        vdiv /= 2.0;\n        let mut vadd = v.duplicate();\n        vadd += Vector::new(1.0, 1.0, 1.0);\n        let mut vsub = v.duplicate();\n        vsub -= Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let result_mul = &v * 2.0;\n        let result_div = &v / 2.0;\n        let result_add = &v + Vector::new(1.0, 1.0, 1.0);\n        let result_dif = &v - Vector::new(1.0, 1.0, 1.0);\n\n        // Static axis constructors\n        let vx = Vector::x_axis();\n        let vy = Vector::y_axis();\n        let vz = Vector::z_axis();\n        let vzero = Vector::zero();\n",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "Get Leveled Vector",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 284,
     "code": "        use crate::Vector;\n\n        // Scale vector along its direction so its Z-component equals vertical_height.\n        let v = Vector::new(1.0, 1.0, 1.0);\n        let vertical_height = 1.0;\n        let v_leveled = v.get_leveled_vector(vertical_height);\n",
     "checks": [
@@ -542,7 +542,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.318,
+    "time_ms": 11.251,
     "line": 401,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "checks": [
@@ -572,7 +572,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 1.005,
+    "time_ms": 0.886,
     "line": 424,
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test pb_dump / pb_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.pb_dump(filename);\n        let loaded = Vector::pb_load(filename);\n",
     "checks": [

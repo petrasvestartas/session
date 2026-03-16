@@ -17,7 +17,7 @@
   {
     "test_name": "Insert",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 12,
     "code": "    RTree3 t;\n    double a_min[3] = {0, 0, 0}, a_max[3] = {1, 1, 1};\n    t.insert(a_min, a_max, 42);",
     "checks": [
@@ -47,7 +47,7 @@
   {
     "test_name": "Search Hit",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 30,
     "code": "    RTree3 t;\n    double a_min[3] = {0, 0, 0}, a_max[3] = {2, 2, 2};\n    t.insert(a_min, a_max, 0);\n    double q_min[3] = {1, 1, 1}, q_max[3] = {3, 3, 3};\n    int found = -1;\n    int hits = t.search(q_min, q_max, [&](int data) -> bool {\n        found = data;\n        return true;\n    });",
     "checks": [

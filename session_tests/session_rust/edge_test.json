@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.445,
+    "time_ms": 8.356,
     "line": 5,
     "code": "        use crate::edge::Edge;\n        use crate::encoders::{json_dump, json_load};\n        let original = Edge::new(\n            Some(\"./serialization/test_edge\".to_string()),\n            Some(\"v0\".to_string()),\n            Some(\"v1\".to_string()),\n            None,\n        );\n        json_dump(&original, \"serialization/test_edge.json\", false).unwrap();\n        let loaded = json_load::<Edge>(\"serialization/test_edge.json\").unwrap();",
     "checks": [
