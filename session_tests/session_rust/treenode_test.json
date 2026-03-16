@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.982,
+    "time_ms": 8.453,
     "line": 5,
     "code": "        use crate::treenode::TreeNode;\n        let original = TreeNode::new(\"test_node\");\n        let child = TreeNode::new(\"child_node\");\n        original.borrow_mut().add(&child);\n        let json = original.borrow().jsondump().unwrap();\n        std::fs::write(\"serialization/test_treenode.json\", &json).unwrap();\n        let loaded = TreeNode::jsonload(\"serialization/test_treenode.json\").unwrap();",
     "checks": [

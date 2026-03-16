@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 10,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshAdaptive ta(s);\n",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "Parameters",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.004,
     "line": 20,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshAdaptive ta(s);\n    ta.set_max_angle(15.0)\n      .set_max_edge_length(2.0)\n      .set_min_edge_length(0.1)\n      .set_max_chord_height(0.05);\n",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 11.603,
+    "time_ms": 12.885,
     "line": 34,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    TrimeshAdaptive ta(s);\n    Mesh m = ta.mesh();\n",
     "checks": [

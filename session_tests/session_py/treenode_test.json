@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.53,
+    "time_ms": 8.492,
     "line": 7,
     "code": "    from session_py import TreeNode\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = TreeNode(\"test_node\")\n    child = TreeNode(\"child_node\")\n    original.add(child)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_treenode.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [
