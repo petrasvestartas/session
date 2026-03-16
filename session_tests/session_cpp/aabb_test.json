@@ -2,7 +2,7 @@
   {
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 13,
     "code": "    AABBTree tree;\n    tree.build(nullptr, 0);",
     "checks": [
@@ -37,7 +37,7 @@
   {
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 27,
     "code": "    std::vector<BvhAABB> aabbs = {\n        {0.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {5.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {10.0, 0.0, 0.0, 1.0, 1.0, 1.0}\n    };\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Node Count",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.016,
     "line": 39,
     "code": "    std::vector<BvhAABB> aabbs;\n    for (int i = 0; i < 100; i++) {\n        aabbs.push_back({static_cast<double>(i), 0.0, 0.0, 0.5, 0.5, 0.5});\n    }\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
     "checks": [
@@ -72,7 +72,7 @@
   {
     "test_name": "Mesh Point Aabb",
     "passed": true,
-    "time_ms": 2.353,
+    "time_ms": 2.72,
     "line": 49,
     "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -97,7 +97,7 @@
   {
     "test_name": "Mesh Point Aabb Matches Bvh",
     "passed": true,
-    "time_ms": 0.65,
+    "time_ms": 0.671,
     "line": 60,
     "code": "    Mesh m = Primitives::cube(2.0);\n    Point tp(0.3, 0.7, 1.5);\n\n    auto [cp_bvh, fk_bvh, d_bvh] = Closest::mesh_point(m, tp);\n    auto [cp_aabb, fk_aabb, d_aabb] = Closest::mesh_point_aabb(m, tp);\n",
     "checks": [

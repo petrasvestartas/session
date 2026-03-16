@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.028,
     "line": 16,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n\n    // Setters\n    l[0] = 10.0;\n    l[1] = 20.0;\n    l[2] = 30.0;\n    l[3] = 40.0;\n    l[4] = 50.0;\n    l[5] = 60.0;\n\n    // Getters\n    double x0 = l[0];\n    double y0 = l[1];\n    double z0 = l[2];\n    double x1 = l[3];\n    double y1 = l[4];\n    double z1 = l[5];\n\n    // Minimal and Full String Representation\n    std::string lstr = l.str();\n    std::string lrepr = l.repr();\n\n    // Copy (duplicate everything but guid)\n    Line lcopy = l;\n    Line lother(10.0, 20.0, 30.0, 40.0, 50.0, 60.0);\n\n    // No-copy operators\n    Line lmult = l;\n    lmult *= 2.0;\n    Line ldiv = l;\n    ldiv /= 2.0;\n    Line ladd = l;\n    ladd += Vector(1.0, 1.0, 1.0);\n    Line lsub = l;\n    lsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Line rmul = l * 2.0;\n    Line rdiv = l / 2.0;\n    Line radd = l + Vector(1.0, 1.0, 1.0);\n    Line rdif = l - Vector(1.0, 1.0, 1.0);\n\n    // Negation (flip start and end)\n    Line lneg(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Line neg = -lneg;\n\n    // From points constructor\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(4.0, 5.0, 6.0);\n    Line l2p = Line::from_points(p0, p1);\n\n    // from_point_and_vector constructor\n    Point pv(1.0, 2.0, 3.0);\n    Vector vv(3.0, 4.0, 5.0);\n    Line l_pv = Line::from_point_and_vector(pv, vv);\n\n    // from_point_direction_length constructor\n    Point pd(0.0, 0.0, 0.0);\n    Vector dd(1.0, 0.0, 0.0);\n    Line l_pdl = Line::from_point_direction_length(pd, dd, 5.0);\n\n    // Line with custom color and width\n    Line lc(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    lc.linecolor = Color(255, 0, 0, 255, \"red\");\n    lc.width = 2.5;\n\n    // with_name constructor\n    Line lwn = Line::with_name(\"custom\", 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n\n    // get_middle_line\n    Point ms, me;\n    Line::get_middle_line(Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n                          Point(0.0, 2.0, 0.0), Point(2.0, 2.0, 0.0), ms, me);\n",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.838,
+    "time_ms": 12.215,
     "line": 141,
     "code": "    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n\n    // String\n    std::string s = l.json_dumps();\n    Line loaded_s = Line::json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.422,
+    "time_ms": 9.973,
     "line": 170,
     "code": "    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 195,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    double ln = l.length();\n    double lsq = l.squared_length();\n",
     "checks": [
@@ -447,7 +447,7 @@
   {
     "test_name": "Fit Points",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.008,
     "line": 270,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include <vector>\n\n    std::vector<Point> fit_pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.5),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 3.0, 1.5),\n    };\n    Line l_fit = Line::fit_points(fit_pts);\n",
     "checks": [
@@ -462,7 +462,7 @@
   {
     "test_name": "Subdivide",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 286,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include <vector>\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    // subdivide by count\n    std::vector<Point> pts = l.subdivide(3);\n\n    // subdivide_by_distance\n    std::vector<Point> pts_dist = l.subdivide_by_distance(2.5);\n\n",
     "checks": [

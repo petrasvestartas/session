@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 14,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate knot counts for various order/cv_count combinations\n    int count1 = knot::knot_count(2, 2);\n    int count2 = knot::knot_count(3, 3);\n    int count3 = knot::knot_count(4, 4);\n    int count4 = knot::knot_count(4, 5);\n    int count5 = knot::knot_count(3, 4);\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 84,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 99,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool clamped_both = knot::is_clamped(4, 4, k, 2);\n    bool clamped_start = knot::is_clamped(4, 4, k, 0);\n    bool clamped_end = knot::is_clamped(4, 4, k, 1);\n\n    // Periodic knot vector (not clamped)\n    auto k2 = knot::make_periodic_uniform(4, 5, 1.0);\n    bool not_clamped = knot::is_clamped(4, 5, k2, 2);\n",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Is Periodic",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 118,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    bool periodic = knot::is_periodic(3, 4, k);\n\n    // Clamped knot vector (not periodic)\n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n    bool not_periodic = knot::is_periodic(4, 4, k2);\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 202,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Find span in single-span knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span_0 = knot::find_span(4, 4, k, 0.0);\n    int span_mid = knot::find_span(4, 4, k, 0.5);\n    int span_1 = knot::find_span(4, 4, k, 1.0);\n\n    // Find span in multi-span knot vector\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2_0 = knot::find_span(3, 5, k2, 0.0);\n    int span2_mid = knot::find_span(3, 5, k2, 1.5);\n    int span2_end = knot::find_span(3, 5, k2, 2.5);\n",
     "checks": [
