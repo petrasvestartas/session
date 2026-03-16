@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.425,
+    "time_ms": 9.366,
     "line": 5,
     "code": "        use crate::vertex::Vertex;\n        use crate::encoders::{json_dump, json_load};\n        let original = Vertex::new(Some(\"v0\".to_string()), Some(\"./serialization/test_attribute\".to_string()));\n        json_dump(&original, \"serialization/test_vertex.json\", false).unwrap();\n        let loaded = json_load::<Vertex>(\"serialization/test_vertex.json\").unwrap();",
     "checks": [

@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 7,
     "code": "        use crate::knot;\n\n        // Calculate knot counts for various order/cv_count combinations\n        let count1 = knot::knot_count(2, 2);\n        let count2 = knot::knot_count(3, 3);\n        let count3 = knot::knot_count(4, 4);\n        let count4 = knot::knot_count(4, 5);\n        let count5 = knot::knot_count(3, 4);\n",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "Clamp",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 79,
     "code": "        use crate::knot;\n\n        // Clamp a periodic knot vector\n        let mut k = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];\n        let clamp_result = knot::clamp(4, 4, &mut k, 2);\n        let first_clamped = k[0] == k[1] && k[1] == k[2];\n        let last_clamped = k[3] == k[4] && k[4] == k[5];\n",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 112,
     "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "Multiplicity",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.0,
     "line": 198,
     "code": "        use crate::knot;\n\n        // Check multiplicity at clamped ends\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let mult_first = knot::multiplicity(4, 4, &k, 0);\n        let mult_last = knot::multiplicity(4, 4, &k, 5);\n",
     "checks": [

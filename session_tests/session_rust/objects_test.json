@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.667,
+    "time_ms": 11.282,
     "line": 5,
     "code": "        use crate::{Objects, Point};\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        json_dump(&original, \"serialization/test_objects.json\", false).unwrap();\n        let loaded = json_load::<Objects>(\"serialization/test_objects.json\").unwrap();",
     "checks": [
