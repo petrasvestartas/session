@@ -77,7 +77,7 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 33,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [

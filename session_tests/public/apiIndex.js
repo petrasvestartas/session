@@ -7146,6 +7146,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.faces",
         "Mesh.from_polylines",
+        "Mesh.from_proto",
         "Mesh.json_dump",
         "Mesh.json_dumps",
         "Mesh.json_load",
@@ -7192,6 +7193,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.faces",
         "Mesh.from_polylines",
+        "Mesh.from_proto",
         "Mesh.guid",
         "Mesh.jsondump",
         "Mesh.jsonload",
@@ -7239,6 +7241,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.facecolors",
         "Mesh.faces",
+        "Mesh.from_polyline_pairs",
         "Mesh.from_polylines",
         "Mesh.guid",
         "Mesh.linecolors",
@@ -7974,6 +7977,7 @@ window.API_INDEX = {
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
@@ -8058,6 +8062,7 @@ window.API_INDEX = {
         "Mesh.face_edges",
         "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polyline_pairs",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
@@ -8364,7 +8369,9 @@ window.API_INDEX = {
         "Mesh.flip",
         "Mesh.flip_face",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.from_polylines",
+        "Mesh.from_proto",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_triangle_by_id",
         "Mesh.get_vkey",
@@ -8473,7 +8480,9 @@ window.API_INDEX = {
         "Mesh.flip",
         "Mesh.flip_face",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.from_polylines",
+        "Mesh.from_proto",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
@@ -8643,6 +8652,7 @@ window.API_INDEX = {
         "Mesh.flip",
         "Mesh.flip_face",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8954,6 +8964,7 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
+        "Mesh.strip_render_data",
         "Mesh.unify_winding",
         "Mesh.vertices",
         "Mesh.widths"
@@ -9163,6 +9174,7 @@ window.API_INDEX = {
         "Mesh.faces",
         "Mesh.find",
         "Mesh.flip",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9195,6 +9207,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
+        "Mesh.strip_render_data",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
@@ -9230,6 +9243,7 @@ window.API_INDEX = {
         "Mesh.facecolors_mut",
         "Mesh.faces",
         "Mesh.flip",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9259,6 +9273,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
+        "Mesh.strip_render_data",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
@@ -9292,6 +9307,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.faces",
         "Mesh.flip",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9324,6 +9340,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
+        "Mesh.strip_render_data",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
@@ -9485,6 +9502,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.faces",
         "Mesh.flip",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9518,6 +9536,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
+        "Mesh.strip_render_data",
         "Mesh.unify_winding",
         "Mesh.vertices",
         "Mesh.widths_mut",
@@ -9553,6 +9572,7 @@ window.API_INDEX = {
         "Mesh.facecolors",
         "Mesh.faces",
         "Mesh.flip",
+        "Mesh.from_proto",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9810,7 +9830,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "unweld() -> Mesh",
-          "code": "pub fn unweld(&self) -> Mesh {\n        let mut m = Mesh::new();\n        for (_fkey, vkeys) in &self.face {\n            let mut new_vkeys = Vec::new();\n            for &vk in vkeys {\n                let vd = &self.vertex[&vk];\n                new_vkeys.push(m.add_vertex(Point::new(vd.x, vd.y, vd.z), None));\n            }\n            m.add_face(new_vkeys, None);\n        }\n        m\n    }",
+          "code": "pub fn unweld(&self) -> Mesh {\n        let mut m = Mesh::new();\n        let mut fkeys: Vec<usize> = self.face.keys().copied().collect();\n        fkeys.sort();\n        for fkey in &fkeys {\n            let vkeys = &self.face[fkey];\n            let mut new_vkeys = Vec::new();\n            for &vk in vkeys {\n                let vd = &self.vertex[&vk];\n                new_vkeys.push(m.add_vertex(Point::new(vd.x, vd.y, vd.z), None));\n            }\n            m.add_face(new_vkeys, None);\n        }\n        m\n    }",
           "file": "mesh.rs"
         }
       },
@@ -10253,6 +10273,7 @@ window.API_INDEX = {
         "Mesh.find",
         "Mesh.flip",
         "Mesh.flip_face",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.loft_panels",
         "Mesh.orient_outward",
         "Mesh.remove_edge",
@@ -10304,6 +10325,7 @@ window.API_INDEX = {
         "Mesh.find",
         "Mesh.flip",
         "Mesh.flip_face",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.loft_panels",
         "Mesh.remove_edge",
         "Mesh.remove_vertex",
@@ -10807,6 +10829,7 @@ window.API_INDEX = {
         "Mesh.face_normals",
         "Mesh.face_vertices",
         "Mesh.faces",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
@@ -11125,6 +11148,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.face_normal",
         "Mesh.faces",
+        "Mesh.from_polyline_pairs_vnf",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_index",
@@ -11635,6 +11659,28 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pointcolors",
         "Mesh.str",
+        "Mesh.vertices",
+        "Mesh.widths",
+        "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.from_proto",
+      "implementations": {
+        "python": {
+          "sig": "from_proto(cls, proto)",
+          "code": "def from_proto(cls, proto):\n\n        \"\"\"Create Mesh from proto message directly (no SerializeToString).\"\"\"\n        from .color import Color\n        from .xform import Xform\n\n        mesh = cls()\n        mesh.guid = proto.guid\n        mesh.name = proto.name\n\n        for vkey, vdata in proto.vertices.items():\n            attrs = dict(vdata.attributes)\n            mesh.vertex[vkey] = VertexData(Point(vdata.x, vdata.y, vdata.z))\n            mesh.vertex[vkey].attributes = attrs\n            if vkey not in mesh.halfedge:\n                mesh.halfedge[vkey] = {}\n\n        for fkey, fdata in proto.faces.items():\n            mesh.face[fkey] = list(fdata.vertices)\n            if fdata.attributes:\n                mesh.facedata[fkey] = dict(fdata.attributes)\n            if fdata.holes:\n                mesh.face_holes[fkey] = [list(h.vertices) for h in fdata.holes]\n\n        if hasattr(proto, 'triangulation'):\n            for fkey, tri_list in proto.triangulation.items():\n                vlist = list(tri_list.vertices)\n                tris = [[vlist[i], vlist[i+1], vlist[i+2]] for i in range(0, len(vlist) - 2, 3)]\n                mesh.triangulation[fkey] = tris\n\n        for u, hmap in proto.halfedges.items():\n            neighbors = {}\n            for v, fkey in hmap.neighbors.items():\n                neighbors[v] = None if fkey == 0xFFFFFFFFFFFFFFFF else fkey\n            mesh.halfedge[u] = neighbors\n\n        for edata in proto.edge_data:\n            key = (edata.vertex1, edata.vertex2)\n            mesh.edgedata[key] = dict(edata.attributes)\n\n        mesh.default_vertex_attributes = dict(proto.default_vertex_attributes)\n        mesh.default_face_attributes = dict(proto.default_face_attributes)\n        mesh.default_edge_attributes = dict(proto.default_edge_attributes)\n\n        mesh._pointcolors = []\n        for c in proto.pointcolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._pointcolors.append(color)\n\n        mesh._facecolors = []\n        for c in proto.facecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._facecolors.append(color)\n\n        mesh._linecolors = []\n        for c in proto.linecolors:\n            color = Color(c.r, c.g, c.b, c.a)\n            color.guid = c.guid\n            color.name = c.name\n            mesh._linecolors.append(color)\n\n        mesh._widths = list(proto.widths)\n\n        oc = proto.objectcolor\n        mesh._objectcolor = Color(oc.r, oc.g, oc.b, oc.a)\n        mesh._objectcolor.guid = oc.guid\n        mesh._objectcolor.name = oc.name\n        _cm_map = {0: \"objectcolor\", 1: \"pointcolors\", 2: \"facecolors\", 3: \"none\"}\n        mesh.color_mode = ColorMode(_cm_map.get(getattr(proto, 'color_mode', 0), \"objectcolor\"))\n\n        mesh.xform = Xform()\n        mesh.xform.guid = proto.xform.guid\n        mesh.xform.name = proto.xform.name\n        mesh.xform.m = list(proto.xform.matrix)\n\n        if mesh.vertex:\n            mesh._max_vertex = max(mesh.vertex.keys()) + 1",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh.edges",
+        "Mesh.facecolors",
+        "Mesh.faces",
+        "Mesh.guid",
+        "Mesh.linecolors",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
         "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
@@ -21536,6 +21582,7 @@ window.API_INDEX = {
         "Objects.__repr__",
         "Objects.__str__",
         "Objects.format",
+        "Objects.from_proto",
         "Objects.json_dump",
         "Objects.json_dumps",
         "Objects.json_load",
@@ -21654,7 +21701,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)",
           "file": "objects.py"
         },
         "cpp": {
@@ -21673,6 +21720,7 @@ window.API_INDEX = {
         "Objects.__jsonload__",
         "Objects.__repr__",
         "Objects.__str__",
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dump",
         "Objects.json_load",
@@ -21691,7 +21739,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
           "file": "objects.py"
         },
         "cpp": {
@@ -21710,6 +21758,7 @@ window.API_INDEX = {
         "Objects.__jsonload__",
         "Objects.__repr__",
         "Objects.__str__",
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dump",
         "Objects.json_dumps",
@@ -21729,7 +21778,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
           "file": "objects.py"
         },
         "cpp": {
@@ -21748,6 +21797,7 @@ window.API_INDEX = {
         "Objects.__jsonload__",
         "Objects.__repr__",
         "Objects.__str__",
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dumps",
         "Objects.json_load",
@@ -21766,7 +21816,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -21785,6 +21835,7 @@ window.API_INDEX = {
         "Objects.__jsonload__",
         "Objects.__repr__",
         "Objects.__str__",
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dump",
         "Objects.json_dumps",
@@ -21803,7 +21854,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -21819,6 +21870,7 @@ window.API_INDEX = {
       },
       "related": [
         "Objects.__jsonload__",
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dump",
         "Objects.json_dumps",
@@ -21831,11 +21883,32 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Objects.from_proto",
+      "implementations": {
+        "python": {
+          "sig": "from_proto(cls, proto)",
+          "code": "def from_proto(cls, proto):\n\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "file": "objects.py"
+        }
+      },
+      "related": [
+        "Objects.guid",
+        "Objects.json_dump",
+        "Objects.json_dumps",
+        "Objects.json_load",
+        "Objects.json_loads",
+        "Objects.pb_dump",
+        "Objects.pb_dumps",
+        "Objects.pb_load",
+        "Objects.pb_loads"
+      ]
+    },
+    {
       "name": "Objects.pb_loads",
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.pb_loads(m.SerializeToString()))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_loads(cls, data):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -21850,6 +21923,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Objects.from_proto",
         "Objects.guid",
         "Objects.json_dump",
         "Objects.json_dumps",
@@ -21883,6 +21957,7 @@ window.API_INDEX = {
       },
       "related": [
         "Objects.__jsonload__",
+        "Objects.from_proto",
         "Objects.json_dump",
         "Objects.json_dumps",
         "Objects.json_load",
@@ -21913,6 +21988,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Objects.from_proto",
         "Objects.json_dump",
         "Objects.json_dumps",
         "Objects.json_load",
@@ -24721,6 +24797,11 @@ window.API_INDEX = {
           "sig": "x(value)",
           "code": "def x(self, value):\n\n        \"\"\"Set the X coordinate.\"\"\"\n        self._x = value\n\n    @property\n    def y(self):\n        \"\"\"Get the Y coordinate.\"\"\"\n        return self._y\n\n    @y.setter\n    def y(self, value):\n        \"\"\"Set the Y coordinate.\"\"\"\n        self._y = value\n\n    @property\n    def z(self):\n        \"\"\"Get the Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators",
           "file": "point.py"
+        },
+        "cpp": {
+          "sig": "double x()",
+          "code": "double x() const { return _x; }",
+          "file": "point.h"
         }
       },
       "related": [
@@ -24782,6 +24863,11 @@ window.API_INDEX = {
           "sig": "y(value)",
           "code": "def y(self, value):\n\n        \"\"\"Set the Y coordinate.\"\"\"\n        self._y = value\n\n    @property\n    def z(self):\n        \"\"\"Get the Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Point(self[0] * other, self[1] * other, self[2] * other)\n\n    def __truediv__(self, other):\n        return Point(self[0] / other, self[1] / other, self[2] / other)\n\n    def __add__(self, other):\n        return Point(self[0] + other[0], self[1] + other[1], self[2] + other[2])",
           "file": "point.py"
+        },
+        "cpp": {
+          "sig": "double y()",
+          "code": "double y() const { return _y; }",
+          "file": "point.h"
         }
       },
       "related": [
@@ -24840,6 +24926,11 @@ window.API_INDEX = {
           "sig": "z(value)",
           "code": "def z(self, value):\n\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Point(self[0] * other, self[1] * other, self[2] * other)\n\n    def __truediv__(self, other):\n        return Point(self[0] / other, self[1] / other, self[2] / other)\n\n    def __add__(self, other):\n        return Point(self[0] + other[0], self[1] + other[1], self[2] + other[2])\n\n    def __sub__(self, other):\n        return Vector(self[0] - other[0], self[1] - other[1], self[2] - other[2])\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self):\n        \"\"\"Apply the stored xform transformation to the point coordinates.",
           "file": "point.py"
+        },
+        "cpp": {
+          "sig": "double z()",
+          "code": "double z() const { return _z; }",
+          "file": "point.h"
         }
       },
       "related": [
@@ -27925,7 +28016,6 @@ window.API_INDEX = {
         "Polyline.format",
         "Polyline.from_coords",
         "Polyline.from_sides",
-        "Polyline.get_convex_corners",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -27945,13 +28035,15 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.str",
-        "Polyline.tween_two_polylines",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -28007,12 +28099,12 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt_in_poly",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
-        "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
     },
@@ -28065,13 +28157,13 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt_in_poly",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
-        "Polyline.transform",
-        "Polyline.tween_two_polylines"
+        "Polyline.transform"
       ]
     },
     {
@@ -28176,6 +28268,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
@@ -28283,14 +28376,18 @@ window.API_INDEX = {
         "Polyline.__len__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.bounding_rectangle",
         "Polyline.closest_distance_and_point",
+        "Polyline.cross2d",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_point",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_closed",
         "Polyline.is_empty",
         "Polyline.len",
@@ -28301,12 +28398,15 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
+        "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
     },
@@ -28338,10 +28438,12 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
+        "Polyline.cross2d",
         "Polyline.duplicate",
-        "Polyline.extend_segment",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
@@ -28351,8 +28453,10 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.is_empty",
@@ -28370,17 +28474,23 @@ window.API_INDEX = {
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.point_count",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.repr",
         "Polyline.reverse",
         "Polyline.reversed",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shift",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.tween_two_polylines",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -28448,6 +28558,7 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.len",
@@ -28458,6 +28569,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.quick_hull",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -28554,6 +28666,12 @@ window.API_INDEX = {
         "Polyline.__len__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_point",
@@ -28568,9 +28686,12 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -28602,8 +28723,10 @@ window.API_INDEX = {
         "Polyline.__len__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
+        "Polyline.cross2d",
         "Polyline.duplicate",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -28614,8 +28737,10 @@ window.API_INDEX = {
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.is_empty",
@@ -28626,6 +28751,8 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -28633,6 +28760,7 @@ window.API_INDEX = {
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.str",
+        "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
     },
@@ -29013,6 +29141,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.from_coords",
         "Polyline.get_point",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.len",
@@ -29802,6 +29931,7 @@ window.API_INDEX = {
         "Polyline.average_normal",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -29810,14 +29940,18 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.is_clockwise",
         "Polyline.len",
         "Polyline.line_from_projected_points",
         "Polyline.merge_collinear",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.scale_line_static",
         "Polyline.shift",
-        "Polyline.tween_two_polylines"
+        "Polyline.unproj"
       ]
     },
     {
@@ -29924,21 +30058,29 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.cross2d",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
+        "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.interpolate_points",
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.merge_collinear",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.segment_count",
-        "Polyline.set_point"
+        "Polyline.set_point",
+        "Polyline.tween_two_polylines"
       ]
     },
     {
@@ -29946,7 +30088,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_fast_plane() -> Tuple[Point, Plane]",
-          "code": "def get_fast_plane(self) -> Tuple[Point, Plane]:\n\n        \"\"\"Get fast plane calculation from polyline.\"\"\"\n        origin = self.points[0] if self.points else Point(0.0, 0.0, 0.0)\n        average_normal = self._average_normal()\n        plane = Plane.from_point_normal(origin, average_normal)\n        return origin, plane\n\n    def extend_segment(\n        self,\n        segment_id: int,\n        dist0: float,\n        dist1: float,\n        proportion0: float = 0.0,\n        proportion1: float = 0.0,\n    ) -> None:\n        \"\"\"Extend polyline segment.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        p0 = self.get_point(segment_id)\n        p1 = self.get_point(segment_id + 1)\n        v = p1 - p0\n\n        if proportion0 != 0.0 or proportion1 != 0.0:\n            p0 -= v * proportion0\n            p1 += v * proportion1\n        else:\n            v_norm = v.normalize()\n            p0 -= v_norm * dist0\n            p1 += v_norm * dist1\n\n        self.set_point(segment_id, p0)\n        self.set_point(segment_id + 1, p1)\n\n        if self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:",
+          "code": "def get_fast_plane(self) -> Tuple[Point, Plane]:\n\n        \"\"\"Get fast plane calculation from polyline.\"\"\"\n        origin = self.points[0] if self.points else Point(0.0, 0.0, 0.0)\n        average_normal = self._average_normal()\n        plane = Plane.from_point_normal(origin, average_normal)\n        return origin, plane\n\n    def extend_segment(\n        self,\n        segment_id: int,\n        dist0: float,\n        dist1: float,\n        proportion0: float = 0.0,\n        proportion1: float = 0.0,\n    ) -> None:\n        \"\"\"Extend polyline segment.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        p0 = self.get_point(segment_id)\n        p1 = self.get_point(segment_id + 1)\n        v = p1 - p0\n\n        if proportion0 != 0.0 or proportion1 != 0.0:\n            p0 -= v * proportion0\n            p1 += v * proportion1\n        else:\n            v_norm = v.normalize()\n            p0 -= v_norm * dist0\n            p1 += v_norm * dist1\n\n        self.set_point(segment_id, p0)\n        self.set_point(segment_id + 1, p1)\n\n        if self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None:\n        \"\"\"Extend a line segment independently at each end by a real (normalized) distance.\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -29965,15 +30107,15 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.extend_line",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.get_average_plane",
         "Polyline.get_point",
-        "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.is_empty",
-        "Polyline.len",
         "Polyline.merge_collinear",
         "Polyline.new",
         "Polyline.point_count",
@@ -29987,7 +30129,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "extend_segment(\n        ,\n        segment_id: int,\n        dist0: float,\n        dist1: float,\n        proportion0: float = 0.0,\n        proportion1: float = 0.0,\n    ) -> None",
-          "code": "def extend_segment(\n        self,\n        segment_id: int,\n        dist0: float,\n        dist1: float,\n        proportion0: float = 0.0,\n        proportion1: float = 0.0,\n    ) -> None:\n\n        \"\"\"Extend polyline segment.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        p0 = self.get_point(segment_id)\n        p1 = self.get_point(segment_id + 1)\n        v = p1 - p0\n\n        if proportion0 != 0.0 or proportion1 != 0.0:\n            p0 -= v * proportion0\n            p1 += v * proportion1\n        else:\n            v_norm = v.normalize()\n            p0 -= v_norm * dist0\n            p1 += v_norm * dist1\n\n        self.set_point(segment_id, p0)\n        self.set_point(segment_id + 1, p1)\n\n        if self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"",
+          "code": "def extend_segment(\n        self,\n        segment_id: int,\n        dist0: float,\n        dist1: float,\n        proportion0: float = 0.0,\n        proportion1: float = 0.0,\n    ) -> None:\n\n        \"\"\"Extend polyline segment.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        p0 = self.get_point(segment_id)\n        p1 = self.get_point(segment_id + 1)\n        v = p1 - p0\n\n        if proportion0 != 0.0 or proportion1 != 0.0:\n            p0 -= v * proportion0\n            p1 += v * proportion1\n        else:\n            v_norm = v.normalize()\n            p0 -= v_norm * dist0\n            p1 += v_norm * dist1\n\n        self.set_point(segment_id, p0)\n        self.set_point(segment_id + 1, p1)\n\n        if self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None:\n        \"\"\"Extend a line segment independently at each end by a real (normalized) distance.\"\"\"\n        v = end - start\n        v_norm = v.normalize()\n        start -= v_norm * d0\n        end += v_norm * d1\n\n    @staticmethod\n    def scale_line_static(start: Point, end: Point, dist: float) -> None:\n        \"\"\"Shrink a line segment equally from both ends by a fraction of its length (not normalized).\"\"\"\n        v = end - start\n        start += v * dist\n        end -= v * dist\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -30004,18 +30146,21 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.center",
+        "Polyline.extend_line",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.get_average_plane",
-        "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.len",
+        "Polyline.length",
         "Polyline.merge_collinear",
         "Polyline.point_count",
-        "Polyline.points",
+        "Polyline.scale_line",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.set_point"
       ]
@@ -30025,7 +30170,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None",
-          "code": "def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])",
+          "code": "def extend_segment_equally_static(\n        segment_start: Point, segment_end: Point, dist: float, proportion: float = 0.0\n    ) -> None:\n\n        \"\"\"Extend segment equally on both ends (static utility).\"\"\"\n        if dist == 0.0 and proportion == 0.0:\n            return\n\n        v = segment_end - segment_start\n\n        if proportion != 0.0:\n            segment_start -= v * proportion\n            segment_end += v * proportion\n        else:\n            v_norm = v.normalize()\n            segment_start -= v_norm * dist\n            segment_end += v_norm * dist\n\n    def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None:\n        \"\"\"Extend a line segment independently at each end by a real (normalized) distance.\"\"\"\n        v = end - start\n        v_norm = v.normalize()\n        start -= v_norm * d0\n        end += v_norm * d1\n\n    @staticmethod\n    def scale_line_static(start: Point, end: Point, dist: float) -> None:\n        \"\"\"Shrink a line segment equally from both ends by a fraction of its length (not normalized).\"\"\"\n        v = end - start\n        start += v * dist\n        end -= v * dist\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()",
           "file": "polyline.py"
         },
         "rust": {
@@ -30035,10 +30180,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.extend_line",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.get_average_plane",
@@ -30048,11 +30194,13 @@ window.API_INDEX = {
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.len",
+        "Polyline.length",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.scale_line",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
-        "Polyline.set_point",
-        "Polyline.tween_two_polylines"
+        "Polyline.set_point"
       ]
     },
     {
@@ -30060,7 +30208,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "extend_segment_equally(\n        segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None",
-          "code": "def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1",
+          "code": "def extend_segment_equally(\n        self, segment_id: int, dist: float, proportion: float = 0.0\n    ) -> None:\n\n        \"\"\"Extend polyline segment equally.\"\"\"\n        if segment_id < 0 or segment_id >= self.segment_count():\n            return\n\n        start = self.get_point(segment_id)\n        end = self.get_point(segment_id + 1)\n        self.extend_segment_equally_static(start, end, dist, proportion)\n        self.set_point(segment_id, start)\n        self.set_point(segment_id + 1, end)\n\n        if self.point_count() > 2 and self.is_closed():\n            if segment_id == 0:\n                self.set_point(self.point_count() - 1, self.get_point(0))\n            elif segment_id + 1 == self.point_count() - 1:\n                self.set_point(0, self.get_point(self.point_count() - 1))\n\n    @staticmethod\n    def extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None:\n        \"\"\"Extend a line segment independently at each end by a real (normalized) distance.\"\"\"\n        v = end - start\n        v_norm = v.normalize()\n        start -= v_norm * d0\n        end += v_norm * d1\n\n    @staticmethod\n    def scale_line_static(start: Point, end: Point, dist: float) -> None:\n        \"\"\"Shrink a line segment equally from both ends by a fraction of its length (not normalized).\"\"\"\n        v = end - start\n        start += v * dist\n        end -= v * dist\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []",
           "file": "polyline.py"
         },
         "cpp": {
@@ -30079,6 +30227,8 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.extend_line",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally_static",
         "Polyline.get_average_plane",
@@ -30088,10 +30238,71 @@ window.API_INDEX = {
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.len",
+        "Polyline.length",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.scale_line",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.set_point",
+        "Polyline.tween_two_polylines"
+      ]
+    },
+    {
+      "name": "Polyline.extend_line_static",
+      "implementations": {
+        "python": {
+          "sig": "extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None",
+          "code": "def extend_line_static(start: Point, end: Point, d0: float, d1: float) -> None:\n\n        \"\"\"Extend a line segment independently at each end by a real (normalized) distance.\"\"\"\n        v = end - start\n        v_norm = v.normalize()\n        start -= v_norm * d0\n        end += v_norm * d1\n\n    @staticmethod\n    def scale_line_static(start: Point, end: Point, dist: float) -> None:\n        \"\"\"Shrink a line segment equally from both ends by a fraction of its length (not normalized).\"\"\"\n        v = end - start\n        start += v * dist\n        end -= v * dist\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    @staticmethod\n    def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.extend_line",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.get_convex_corners",
+        "Polyline.get_fast_plane",
+        "Polyline.interpolate_points",
+        "Polyline.is_clockwise",
+        "Polyline.is_closed",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.points",
+        "Polyline.scale_line",
+        "Polyline.scale_line_static",
+        "Polyline.tween_two_polylines"
+      ]
+    },
+    {
+      "name": "Polyline.scale_line_static",
+      "implementations": {
+        "python": {
+          "sig": "scale_line_static(start: Point, end: Point, dist: float) -> None",
+          "code": "def scale_line_static(start: Point, end: Point, dist: float) -> None:\n\n        \"\"\"Shrink a line segment equally from both ends by a fraction of its length (not normalized).\"\"\"\n        v = end - start\n        start += v * dist\n        end -= v * dist\n\n    def is_clockwise(self, plane: Plane) -> bool:\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    @staticmethod\n    def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.get_convex_corners",
+        "Polyline.interpolate_points",
+        "Polyline.is_clockwise",
+        "Polyline.is_closed",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.points",
+        "Polyline.scale_line",
         "Polyline.tween_two_polylines"
       ]
     },
@@ -30100,7 +30311,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_clockwise(plane: Plane) -> bool",
-          "code": "def is_clockwise(self, plane: Plane) -> bool:\n\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()",
+          "code": "def is_clockwise(self, plane: Plane) -> bool:\n\n        \"\"\"Check if polyline is clockwise oriented.\"\"\"\n        if len(self.points) < 3:\n            return False\n\n        sum_val = 0.0\n        n = len(self.points) - 1 if self.is_closed() else len(self.points)\n\n        for i in range(n):\n            current = self.points[i]\n            next_pt = self.points[(i + 1) % n]\n            sum_val += (next_pt.x - current.x) * (next_pt.y + current.y)\n\n        return sum_val > 0.0\n\n    def get_convex_corners(self) -> List[bool]:\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    @staticmethod\n    def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n        elif kind == 2:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n        return result\n\n    @staticmethod\n    def quick_hull(polygon: \"Polyline\") -> \"Polyline\":",
           "file": "polyline.py"
         },
         "cpp": {
@@ -30119,17 +30330,20 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.add_point",
         "Polyline.average_normal",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.format",
         "Polyline.get_convex_corners",
-        "Polyline.get_fast_plane",
         "Polyline.get_point",
+        "Polyline.interpolate_points",
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.quick_hull",
+        "Polyline.scale_line_static",
         "Polyline.transform",
         "Polyline.tween_two_polylines"
       ]
@@ -30139,7 +30353,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_convex_corners() -> List[bool]",
-          "code": "def get_convex_corners(self) -> List[bool]:\n\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"",
+          "code": "def get_convex_corners(self) -> List[bool]:\n\n        \"\"\"Get convex/concave corners of polyline.\"\"\"\n        if len(self.points) < 3:\n            return []\n\n        closed = self.is_closed()\n        normal = self._average_normal()\n        n = len(self.points) - 1 if closed else len(self.points)\n        convex_corners = []\n\n        for current in range(n):\n            prev = n - 1 if current == 0 else current - 1\n            next_pt = 0 if current == n - 1 else current + 1\n\n            dir0 = (self.points[current] - self.points[prev]).normalize()\n            dir1 = (self.points[next_pt] - self.points[current]).normalize()\n\n            cross = dir0.cross(dir1).normalize()\n            dot = cross.dot(normal)\n            is_convex = not (dot < 0.0)\n            convex_corners.append(is_convex)\n\n        return convex_corners\n\n    @staticmethod\n    def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    @staticmethod\n    def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n        elif kind == 2:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n        return result\n\n    @staticmethod\n    def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):",
           "file": "polyline.py"
         },
         "cpp": {
@@ -30155,24 +30369,27 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__jsondump__",
         "Polyline._average_normal",
         "Polyline.average_normal",
-        "Polyline.extend_segment",
+        "Polyline.cross2d",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
-        "Polyline.format",
+        "Polyline.get_average_plane",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.guid",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
-        "Polyline.jsondump",
         "Polyline.len",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.tween_two_polylines"
+        "Polyline.proj2d",
+        "Polyline.quick_hull",
+        "Polyline.scale_line_static",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
       ]
     },
     {
@@ -30180,7 +30397,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\"",
-          "code": "def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"coords\": self._coords,\n            \"guid\": self.guid,\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Supports both compact coords format and legacy points format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing polyline data.\n        guid : str, optional\n            GUID for the polyline.\n        name : str, optional\n            Name for the polyline.\n\n        Returns",
+          "code": "def tween_two_polylines(\n        polyline0: \"Polyline\", polyline1: \"Polyline\", weight: float\n    ) -> \"Polyline\":\n\n        \"\"\"Interpolate between two polylines.\"\"\"\n        if len(polyline0.points) != len(polyline1.points):\n            return Polyline(polyline0.points[:])\n\n        result_points = []\n        for i in range(len(polyline0.points)):\n            diff = polyline1.points[i] - polyline0.points[i]\n            interpolated = polyline0.points[i] + diff * weight\n            result_points.append(interpolated)\n\n        return Polyline(result_points)\n\n    @staticmethod\n    def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n        elif kind == 2:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n        return result\n\n    @staticmethod\n    def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])",
           "file": "polyline.py"
         },
         "cpp": {
@@ -30196,24 +30413,302 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__jsondump__",
-        "Polyline.__jsonload__",
-        "Polyline._average_normal",
-        "Polyline.average_normal",
+        "Polyline.cross2d",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
-        "Polyline.extend_segment_equally_static",
-        "Polyline.format",
+        "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
-        "Polyline.guid",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
-        "Polyline.is_closed",
-        "Polyline.jsondump",
-        "Polyline.jsonload",
         "Polyline.len",
-        "Polyline.linecolor",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.str",
+        "Polyline.proj2d",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.scale_line_static",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.interpolate_points",
+      "implementations": {
+        "python": {
+          "sig": "interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]",
+          "code": "def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n        elif kind == 2:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n        return result\n\n    @staticmethod\n    def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
+          "file": "polyline.py"
+        },
+        "rust": {
+          "sig": "interpolate_points(from: &Point, to: &Point, steps: usize, kind: u8) -> Vec<Point>",
+          "code": "pub fn interpolate_points(from: &Point, to: &Point, steps: usize, kind: u8) -> Vec<Point> {\n        let lerp = |t: f64| {\n            Point::new(\n                from[0] + t * (to[0] - from[0]),\n                from[1] + t * (to[1] - from[1]),\n                from[2] + t * (to[2] - from[2]),\n            )\n        };\n        let mut pts = Vec::new();\n        match kind {\n            1 => {\n                pts.push(from.clone());\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n                pts.push(to.clone());\n            }\n            2 => {\n                pts.push(from.clone());\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n            }\n            _ => {\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n            }\n        }\n        pts\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.extend_line_static",
+        "Polyline.get_average_plane",
+        "Polyline.get_convex_corners",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.is_clockwise",
+        "Polyline.len",
+        "Polyline.new",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.scale_line_static",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.quick_hull",
+      "implementations": {
+        "python": {
+          "sig": "quick_hull(polygon: \"Polyline\") -> \"Polyline\"",
+          "code": "def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")",
+          "file": "polyline.py"
+        },
+        "rust": {
+          "sig": "quick_hull(polygon: &Polyline) -> Polyline",
+          "code": "pub fn quick_hull(polygon: &Polyline) -> Polyline {\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n        let pts = polygon.get_points();\n\n        // Project to 2D\n        let pts2d: Vec<[f64; 2]> = pts.iter().map(|p| {\n            let dx = p[0] - orig[0];\n            let dy = p[1] - orig[1];\n            let dz = p[2] - orig[2];\n            [dx * xa[0] + dy * xa[1] + dz * xa[2],\n             dx * ya[0] + dy * ya[1] + dz * ya[2]]\n        }).collect();\n\n        fn ccw_2d(ax: f64, ay: f64, bx: f64, by: f64, px: f64, py: f64) -> f64 {\n            (bx - ax) * (py - ay) - (by - ay) * (px - ax)\n        }\n        fn qh_recurse(v: &[[f64; 2]], ax: f64, ay: f64, bx: f64, by: f64, hull: &mut Vec<[f64; 2]>) {\n            if v.is_empty() { return; }\n            let (fi, _) = v.iter().enumerate()\n                .max_by(|(_, a), (_, b)| {\n                    ccw_2d(ax, ay, bx, by, a[0], a[1])\n                        .partial_cmp(&ccw_2d(ax, ay, bx, by, b[0], b[1]))\n                        .unwrap()\n                }).unwrap();\n            let fx = v[fi][0]; let fy = v[fi][1];\n            let left: Vec<_> = v.iter().filter(|p| ccw_2d(ax, ay, fx, fy, p[0], p[1]) > 0.0).cloned().collect();\n            qh_recurse(&left, ax, ay, fx, fy, hull);\n            hull.push([fx, fy]);\n            let right: Vec<_> = v.iter().filter(|p| ccw_2d(fx, fy, bx, by, p[0], p[1]) > 0.0).cloned().collect();\n            qh_recurse(&right, fx, fy, bx, by, hull);\n        }\n\n        let ai = pts2d.iter().enumerate().min_by(|(_, a), (_, b)| a[0].partial_cmp(&b[0]).unwrap()).map(|(i, _)| i).unwrap_or(0);\n        let bi = pts2d.iter().enumerate().max_by(|(_, a), (_, b)| a[0].partial_cmp(&b[0]).unwrap()).map(|(i, _)| i).unwrap_or(0);\n        let (ax, ay) = (pts2d[ai][0], pts2d[ai][1]);\n        let (bx, by) = (pts2d[bi][0], pts2d[bi][1]);\n\n        let left: Vec<_>  = pts2d.iter().filter(|p| ccw_2d(ax, ay, bx, by, p[0], p[1]) > 0.0).cloned().collect();\n        let right: Vec<_> = pts2d.iter().filter(|p| ccw_2d(ax, ay, bx, by, p[0], p[1]) <= 0.0).cloned().collect();\n        let mut hull = vec![[ax, ay]];\n        qh_recurse(&left, ax, ay, bx, by, &mut hull);\n        hull.push([bx, by]);\n        qh_recurse(&right, bx, by, ax, ay, &mut hull);\n\n        let pts3d: Vec<Point> = hull.iter().map(|h| {\n            Point::new(orig[0] + h[0] * xa[0] + h[1] * ya[0],\n                       orig[1] + h[0] * xa[1] + h[1] * ya[1],\n                       orig[2] + h[0] * xa[2] + h[1] * ya[2])\n        }).collect();\n        Polyline::new(pts3d)\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.get_average_plane",
+        "Polyline.get_convex_corners",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.interpolate_points",
+        "Polyline.is_clockwise",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.new",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.qh_upper",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.proj2d",
+      "implementations": {
+        "python": {
+          "sig": "proj2d(p)",
+          "code": "def proj2d(p):\n\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.__jsondump__",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.format",
+        "Polyline.get_convex_corners",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.guid",
+        "Polyline.interpolate_points",
+        "Polyline.is_closed",
+        "Polyline.jsondump",
+        "Polyline.len",
+        "Polyline.points",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.unproj",
+      "implementations": {
+        "python": {
+          "sig": "unproj(u, v)",
+          "code": "def unproj(u, v):\n\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"coords\": self._coords,\n            \"guid\": self.guid,",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.__jsondump__",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.format",
+        "Polyline.get_convex_corners",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.guid",
+        "Polyline.interpolate_points",
+        "Polyline.is_closed",
+        "Polyline.jsondump",
+        "Polyline.len",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.tween_two_polylines"
+      ]
+    },
+    {
+      "name": "Polyline.cross2d",
+      "implementations": {
+        "python": {
+          "sig": "cross2d(o, a, b)",
+          "code": "def cross2d(o, a, b):\n\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.bounding_rectangle",
+        "Polyline.get_average_plane",
+        "Polyline.get_convex_corners",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.interpolate_points",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.qh_upper",
+      "implementations": {
+        "python": {
+          "sig": "qh_upper(a, b, points)",
+          "code": "def qh_upper(a, b, points):\n\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area\n                best_corners = [\n                    (min_u * ex - min_v * ey, min_u * ey + min_v * ex),\n                    (max_u * ex - min_v * ey, max_u * ey + min_v * ex),",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.bounding_rectangle",
+        "Polyline.cross2d",
+        "Polyline.get_average_plane",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.interpolate_points",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.quick_hull",
+        "Polyline.tween_two_polylines",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.bounding_rectangle",
+      "implementations": {
+        "python": {
+          "sig": "bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]",
+          "code": "def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area\n                best_corners = [\n                    (min_u * ex - min_v * ey, min_u * ey + min_v * ex),\n                    (max_u * ex - min_v * ey, max_u * ey + min_v * ex),\n                    (max_u * ex - max_v * ey, max_u * ey + max_v * ex),\n                    (min_u * ex - max_v * ey, min_u * ey + max_v * ex),\n                ]\n\n        if best_corners is None:\n            return None\n\n        pts3d = [unproj(u, v) for u, v in best_corners]\n        pts3d.append(pts3d[0])\n        return Polyline(pts3d)\n\n    @staticmethod\n    def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
+          "file": "polyline.py"
+        },
+        "rust": {
+          "sig": "bounding_rectangle(polygon: &Polyline) -> Option<Polyline>",
+          "code": "pub fn bounding_rectangle(polygon: &Polyline) -> Option<Polyline> {\n        let hull = Self::quick_hull(polygon);\n        if hull.point_count() <= 2 { return None; }\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n\n        // Project hull to 2D\n        let hull_pts = hull.get_points();\n        let hull2d: Vec<[f64; 2]> = hull_pts.iter().map(|p| {\n            let dx = p[0] - orig[0]; let dy = p[1] - orig[1]; let dz = p[2] - orig[2];\n            [dx * xa[0] + dy * xa[1] + dz * xa[2],\n             dx * ya[0] + dy * ya[1] + dz * ya[2]]\n        }).collect();\n\n        let mut best_area = f64::MAX;\n        let mut best = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);\n        let hn = hull2d.len();\n        for i in 0..hn {\n            let j = (i + 1) % hn;\n            let ex = hull2d[j][0] - hull2d[i][0];\n            let ey = hull2d[j][1] - hull2d[i][1];\n            let len = (ex * ex + ey * ey).sqrt();\n            if len < 1e-12 { continue; }\n            let (ca, sa) = (ex / len, ey / len);\n            let (mut min_u, mut max_u) = (f64::MAX, f64::MIN);\n            let (mut min_v, mut max_v) = (f64::MAX, f64::MIN);\n            for h in &hull2d {\n                let u =  h[0] * ca + h[1] * sa;\n                let v = -h[0] * sa + h[1] * ca;\n                min_u = min_u.min(u); max_u = max_u.max(u);\n                min_v = min_v.min(v); max_v = max_v.max(v);\n            }\n            let area = (max_u - min_u) * (max_v - min_v);\n            if area < best_area {\n                best_area = area;\n                best = (min_u, max_u, min_v, max_v, ey.atan2(ex));\n            }\n        }\n        let (min_u, max_u, min_v, max_v, angle) = best;\n        let (ca, sa) = (angle.cos(), angle.sin());\n        let rot_back = |u: f64, v: f64| -> [f64; 2] { [u * ca - v * sa, u * sa + v * ca] };\n        let to3d = |u2: f64, v2: f64| -> Point {\n            Point::new(orig[0] + u2 * xa[0] + v2 * ya[0],\n                       orig[1] + u2 * xa[1] + v2 * ya[1],\n                       orig[2] + u2 * xa[2] + v2 * ya[2])\n        };\n        let c = [rot_back(min_u, min_v), rot_back(min_u, max_v),\n                 rot_back(max_u, max_v), rot_back(max_u, min_v)];\n        let mut pts3d: Vec<Point> = c.iter().map(|h| to3d(h[0], h[1])).collect();\n        pts3d.push(pts3d[0].clone());\n        Some(Polyline::new(pts3d))\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.cross2d",
+        "Polyline.get_average_plane",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.interpolate_points",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.new",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.grid_of_points_in_polygon",
+      "implementations": {
+        "python": {
+          "sig": "grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]",
+          "code": "def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.",
+          "file": "polyline.py"
+        },
+        "rust": {
+          "sig": "grid_of_points_in_polygon(polygon: &Polyline, _offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point>",
+          "code": "pub fn grid_of_points_in_polygon(polygon: &Polyline, _offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point> {\n        if div_dist < 1e-12 { return Vec::new(); }\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n        let pts = polygon.get_points();\n\n        // Build 2D polygon, skip duplicate last point if closed\n        let last = if pts.len() > 1 {\n            let a = &pts[0]; let b = &pts[pts.len()-1];\n            if (a[0]-b[0]).abs()<1e-10 && (a[1]-b[1]).abs()<1e-10 && (a[2]-b[2]).abs()<1e-10\n                { pts.len() - 1 } else { pts.len() }\n        } else { pts.len() };\n\n        let poly2d: Vec<[f64; 2]> = pts[..last].iter().map(|p| {\n            let dx = p[0]-orig[0]; let dy = p[1]-orig[1]; let dz = p[2]-orig[2];\n            [dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]]\n        }).collect();\n\n        if poly2d.is_empty() { return Vec::new(); }\n\n        let (mut x_min, mut x_max) = (f64::MAX, f64::MIN);\n        let (mut y_min, mut y_max) = (f64::MAX, f64::MIN);\n        for p in &poly2d {\n            x_min = x_min.min(p[0]); x_max = x_max.max(p[0]);\n            y_min = y_min.min(p[1]); y_max = y_max.max(p[1]);\n        }\n\n        fn pt_in_poly(px: f64, py: f64, poly: &[[f64; 2]]) -> bool {\n            let n = poly.len();\n            let mut inside = false;\n            let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > py) != (yj > py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi) {\n                    inside = !inside;\n                }\n                j = i;\n            }\n            inside\n        }\n\n        let mut result = Vec::new();\n        let mut u = x_min;\n        while u <= x_max + 1e-10 && result.len() < max_pts {\n            let mut v = y_min;\n            while v <= y_max + 1e-10 && result.len() < max_pts {\n                if pt_in_poly(u, v, &poly2d) {\n                    result.push(Point::new(\n                        orig[0] + u*xa[0] + v*ya[0],\n                        orig[1] + u*xa[1] + v*ya[1],\n                        orig[2] + u*xa[2] + v*ya[2],\n                    ));\n                }\n                v += div_dist;\n            }\n            u += div_dist;\n        }\n        result\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__jsondump__",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
+        "Polyline.duplicate",
+        "Polyline.format",
+        "Polyline.get_average_plane",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.is_closed",
+        "Polyline.is_empty",
+        "Polyline.jsondump",
+        "Polyline.len",
+        "Polyline.new",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.pt_in_poly",
+      "implementations": {
+        "python": {
+          "sig": "pt_in_poly(pu, pv)",
+          "code": "def pt_in_poly(pu, pv):\n\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"coords\": self._coords,\n            \"guid\": self.guid,\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.__jsondump__",
+        "Polyline._average_normal",
+        "Polyline.average_normal",
+        "Polyline.format",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.guid",
+        "Polyline.is_closed",
+        "Polyline.jsondump",
+        "Polyline.len",
+        "Polyline.linecolor",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -30232,6 +30727,7 @@ window.API_INDEX = {
         "Polyline.__jsonload__",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.format",
@@ -30239,6 +30735,7 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
@@ -30249,8 +30746,11 @@ window.API_INDEX = {
         "Polyline.merge_collinear",
         "Polyline.new",
         "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.scale_line_static",
         "Polyline.str",
-        "Polyline.tween_two_polylines",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -30269,7 +30769,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.format",
         "Polyline.from_coords",
-        "Polyline.get_convex_corners",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.json_dump",
         "Polyline.json_dumps",
@@ -30279,8 +30779,10 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.new",
         "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
         "Polyline.str",
-        "Polyline.tween_two_polylines",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -30310,7 +30812,6 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.points",
         "Polyline.str",
-        "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
     },
@@ -32514,7 +33015,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\"",
-          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:",
+          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:",
           "file": "session.py"
         }
       },
@@ -32542,7 +33043,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.",
           "file": "session.py"
         },
         "cpp": {
@@ -32581,7 +33082,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.",
           "file": "session.py"
         },
         "cpp": {
@@ -32620,7 +33121,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.",
           "file": "session.py"
         },
         "cpp": {
@@ -32659,7 +33160,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node",
           "file": "session.py"
         },
         "cpp": {
@@ -32697,7 +33198,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node\n\n    def add_line(self, line) -> TreeNode:\n        \"\"\"Add a line to the Session.\n\n        Returns",
+          "code": "def pb_dumps(self):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node\n\n    def add_line(self, line) -> TreeNode:\n        \"\"\"Add a line to the Session.\n\n        Returns",
           "file": "session.py"
         },
         "cpp": {
@@ -32734,7 +33235,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.pb_loads(proto.objects.SerializeToString())\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node\n\n    def add_line(self, line) -> TreeNode:\n        \"\"\"Add a line to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this line.\n        \"\"\"\n        self.objects.lines.append(line)\n        self.lookup[line.guid] = line\n        self.graph.add_node(line.guid, f\"line_{line.name}\")\n        tree_node = TreeNode(name=line.guid)\n        return tree_node\n\n    def add_plane(self, plane) -> TreeNode:",
+          "code": "def pb_loads(cls, data):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def add_point(self, point: Point) -> TreeNode:\n        \"\"\"Add a point to the Session.\n\n        Automatically creates corresponding nodes in both graph and tree structures.\n\n        Parameters\n        ----------\n        point : :class:`Point`\n            The point to add to the session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point.\n        \"\"\"\n        self.objects.points.append(point)\n        self.lookup[point.guid] = point\n        self.graph.add_node(point.guid, f\"point_{point.name}\")\n        tree_node = TreeNode(name=point.guid)\n        return tree_node\n\n    def add_line(self, line) -> TreeNode:\n        \"\"\"Add a line to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this line.\n        \"\"\"\n        self.objects.lines.append(line)\n        self.lookup[line.guid] = line\n        self.graph.add_node(line.guid, f\"line_{line.name}\")\n        tree_node = TreeNode(name=line.guid)\n        return tree_node\n\n    def add_plane(self, plane) -> TreeNode:",
           "file": "session.py"
         },
         "cpp": {
@@ -34733,6 +35234,7 @@ window.API_INDEX = {
       },
       "related": [
         "Tolerance.Tolerance",
+        "Tolerance.__repr__",
         "Tolerance.absolute",
         "Tolerance.angulardeflection",
         "Tolerance.compare",
@@ -34742,6 +35244,7 @@ window.API_INDEX = {
         "Tolerance.is_angles_close",
         "Tolerance.is_between",
         "Tolerance.is_close",
+        "Tolerance.is_finite",
         "Tolerance.is_negative",
         "Tolerance.is_point_close",
         "Tolerance.is_positive",
@@ -34751,7 +35254,10 @@ window.API_INDEX = {
         "Tolerance.lineardeflection",
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
-        "Tolerance.tolerance"
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.tolerance",
+        "Tolerance.unique_from_two_int"
       ]
     },
     {
@@ -34804,7 +35310,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "format_number(number, precision=None)",
-          "code": "def format_number(self, number, precision=None):\n\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def format_number(self, number, precision=None):\n\n        \"\"\"Format a number as a string.\"\"\"\n        if not precision:\n            precision = self.precision\n\n        if precision == 0:\n            raise ValueError(\"Precision cannot be zero.\")\n\n        if precision == -1:\n            return f\"{int(round(number))}\"\n\n        if precision < -1:\n            precision = -precision - 1\n            factor = 10**precision\n            return f\"{int(round(number / factor) * factor)}\"\n\n        return f\"{number:.{precision}f}\"\n\n    def precision_from_tolerance(self, tol=None):\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -34839,7 +35345,9 @@ window.API_INDEX = {
         "Tolerance.round_to",
         "Tolerance.temporary",
         "Tolerance.tolerance",
-        "Tolerance.unit"
+        "Tolerance.unique_from_two_int",
+        "Tolerance.unit",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -34847,7 +35355,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "precision_from_tolerance(tol=None)",
-          "code": "def precision_from_tolerance(self, tol=None):\n\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def precision_from_tolerance(self, tol=None):\n\n        \"\"\"Compute the precision from a given tolerance.\"\"\"\n        tol = tol or self.absolute\n        if tol < 1:\n            import decimal\n\n            return abs(int(decimal.Decimal(str(tol)).as_tuple().exponent))\n        raise NotImplementedError\n\n    @contextmanager\n    def temporary(self, **kwargs):\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -34874,11 +35382,15 @@ window.API_INDEX = {
         "Tolerance.key_xy",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
+        "Tolerance.rad_to_deg",
         "Tolerance.relative",
         "Tolerance.round_to",
         "Tolerance.temporary",
         "Tolerance.tolerance",
-        "Tolerance.unit"
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.unit",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -34886,7 +35398,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "temporary(**kwargs)",
-          "code": "def temporary(self, **kwargs):\n\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def temporary(self, **kwargs):\n\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -34908,16 +35420,23 @@ window.API_INDEX = {
         "Tolerance.angular",
         "Tolerance.angulardeflection",
         "Tolerance.approximation",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
         "Tolerance.format_number",
         "Tolerance.is_finite",
+        "Tolerance.key",
         "Tolerance.key_xy",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
         "Tolerance.relative",
         "Tolerance.round_to",
         "Tolerance.tolerance",
-        "Tolerance.unit"
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.unit",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -34925,7 +35444,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "round_to(value, ndigits)",
-          "code": "def round_to(value, ndigits):\n\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def round_to(value, ndigits):\n\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -34946,16 +35465,23 @@ window.API_INDEX = {
         "Tolerance.angular",
         "Tolerance.angulardeflection",
         "Tolerance.approximation",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
         "Tolerance.format_number",
         "Tolerance.is_finite",
+        "Tolerance.key",
         "Tolerance.key_xy",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
         "Tolerance.relative",
         "Tolerance.temporary",
         "Tolerance.tolerance",
-        "Tolerance.unit"
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.unit",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -34963,7 +35489,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def __repr__(self):\n\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -34973,16 +35499,23 @@ window.API_INDEX = {
         "Tolerance.angular",
         "Tolerance.angulardeflection",
         "Tolerance.approximation",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
         "Tolerance.format_number",
         "Tolerance.is_finite",
+        "Tolerance.key",
         "Tolerance.lineardeflection",
         "Tolerance.precision",
         "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
         "Tolerance.relative",
         "Tolerance.round_to",
         "Tolerance.temporary",
         "Tolerance.tolerance",
-        "Tolerance.unit"
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.unit",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -34990,7 +35523,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_finite(x)",
-          "code": "def is_finite(x):\n\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()",
+          "code": "def is_finite(x):\n\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -35002,11 +35535,151 @@ window.API_INDEX = {
       "related": [
         "Tolerance.Tolerance",
         "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
         "Tolerance.format_number",
+        "Tolerance.key",
+        "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.tolerance",
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.wrap_index"
+      ]
+    },
+    {
+      "name": "Tolerance.unique_from_two_int",
+      "implementations": {
+        "python": {
+          "sig": "unique_from_two_int(a: int, b: int) -> int",
+          "code": "def unique_from_two_int(a: int, b: int) -> int:\n\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
+        "Tolerance.format_number",
+        "Tolerance.is_finite",
+        "Tolerance.key",
+        "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.wrap_index"
+      ]
+    },
+    {
+      "name": "Tolerance.wrap_index",
+      "implementations": {
+        "python": {
+          "sig": "wrap_index(index: int, n: int) -> int",
+          "code": "def wrap_index(index: int, n: int) -> int:\n\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
+        "Tolerance.format_number",
+        "Tolerance.is_finite",
+        "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int"
+      ]
+    },
+    {
+      "name": "Tolerance.triangle_edge_by_angle",
+      "implementations": {
+        "python": {
+          "sig": "triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float",
+          "code": "def triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
+        "Tolerance.is_finite",
+        "Tolerance.precision_from_tolerance",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.wrap_index"
+      ]
+    },
+    {
+      "name": "Tolerance.rad_to_deg",
+      "implementations": {
+        "python": {
+          "sig": "rad_to_deg(radians: float) -> float",
+          "code": "def rad_to_deg(radians: float) -> float:\n\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.deg_to_rad",
+        "Tolerance.is_finite",
         "Tolerance.precision_from_tolerance",
         "Tolerance.round_to",
         "Tolerance.temporary",
-        "Tolerance.tolerance"
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.wrap_index"
+      ]
+    },
+    {
+      "name": "Tolerance.deg_to_rad",
+      "implementations": {
+        "python": {
+          "sig": "deg_to_rad(degrees: float) -> float",
+          "code": "def deg_to_rad(degrees: float) -> float:\n\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.count_digits",
+        "Tolerance.is_finite",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.wrap_index"
+      ]
+    },
+    {
+      "name": "Tolerance.count_digits",
+      "implementations": {
+        "python": {
+          "sig": "count_digits(n: float) -> int",
+          "code": "def count_digits(n: float) -> int:\n\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "file": "tolerance.py"
+        }
+      },
+      "related": [
+        "Tolerance.__repr__",
+        "Tolerance.deg_to_rad",
+        "Tolerance.is_finite",
+        "Tolerance.rad_to_deg",
+        "Tolerance.round_to",
+        "Tolerance.temporary",
+        "Tolerance.triangle_edge_by_angle",
+        "Tolerance.unique_from_two_int",
+        "Tolerance.wrap_index"
       ]
     },
     {
@@ -36789,6 +37462,11 @@ window.API_INDEX = {
           "sig": "x(value)",
           "code": "def x(self, value):\n\n        \"\"\"Set X coordinate.\"\"\"\n        self._x = value\n        self._has_magnitude = False\n\n    @property\n    def y(self):\n        \"\"\"Get Y coordinate.\"\"\"\n        return self._y\n\n    @y.setter\n    def y(self, value):\n        \"\"\"Set Y coordinate.\"\"\"\n        self._y = value\n        self._has_magnitude = False\n\n    @property\n    def z(self):\n        \"\"\"Get Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)",
           "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "double x()",
+          "code": "double x() const { return _x; }",
+          "file": "vector.h"
         }
       },
       "related": [
@@ -36873,6 +37551,11 @@ window.API_INDEX = {
           "sig": "y(value)",
           "code": "def y(self, value):\n\n        \"\"\"Set Y coordinate.\"\"\"\n        self._y = value\n        self._has_magnitude = False\n\n    @property\n    def z(self):\n        \"\"\"Get Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################",
           "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "double y()",
+          "code": "double y() const { return _y; }",
+          "file": "vector.h"
         }
       },
       "related": [
@@ -36956,6 +37639,11 @@ window.API_INDEX = {
           "sig": "z(value)",
           "code": "def z(self, value):\n\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")",
           "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "double z()",
+          "code": "double z() const { return _z; }",
+          "file": "vector.h"
         }
       },
       "related": [
@@ -42041,6 +42729,7 @@ window.API_INDEX = {
       "related": [
         "ColorMode.face_normal",
         "ColorMode.face_normals",
+        "ColorMode.from_polyline_pairs_vnf",
         "ColorMode.set_normal",
         "ColorMode.vertex_normal",
         "ColorMode.vertex_normal_weighted",
@@ -42368,6 +43057,34 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "ColorMode.from_polyline_pairs",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh from_polyline_pairs(const std::vector<Polyline>& pairs, double scale = 1.0)",
+          "code": "static Mesh from_polyline_pairs(const std::vector<Polyline>& pairs, double scale = 1.0);",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.from_polyline_pairs_vnf"
+      ]
+    },
+    {
+      "name": "ColorMode.from_polyline_pairs_vnf",
+      "implementations": {
+        "cpp": {
+          "sig": "void from_polyline_pairs_vnf(\n        const std::vector<Polyline>& pairs,\n        std::vector<double>& out_vertices,\n        std::vector<double>& out_normals,\n        std::vector<int>& out_triangles,\n        double scale = 1.0)",
+          "code": "static void from_polyline_pairs_vnf(\n        const std::vector<Polyline>& pairs,\n        std::vector<double>& out_vertices,\n        std::vector<double>& out_normals,\n        std::vector<int>& out_triangles,\n        double scale = 1.0);",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.from_polyline_pairs",
+        "ColorMode.normal",
+        "ColorMode.vertices"
+      ]
+    },
+    {
       "name": "ColorMode.is_empty",
       "implementations": {
         "cpp": {
@@ -42489,6 +43206,7 @@ window.API_INDEX = {
         "ColorMode.add_face",
         "ColorMode.edge_vertices",
         "ColorMode.face_vertices",
+        "ColorMode.from_polyline_pairs_vnf",
         "ColorMode.from_vertices_and_faces",
         "ColorMode.naked_vertices",
         "ColorMode.number_of_vertices",
@@ -43529,6 +44247,7 @@ window.API_INDEX = {
         "Mesh.repr",
         "Mesh.signed_area",
         "Mesh.strip_close",
+        "Mesh.strip_render_data",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.transformed",
@@ -43567,6 +44286,41 @@ window.API_INDEX = {
         "Mesh.str",
         "Mesh.vertices",
         "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.from_polyline_pairs",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh from_polyline_pairs(const std::vector<Polyline>& pairs, double scale)",
+          "code": "Mesh Mesh::from_polyline_pairs(const std::vector<Polyline>& pairs, double scale) {\n    if (pairs.empty() || pairs.size() % 2 != 0) return Mesh();\n\n    // Number of open (non-duplicate) points in a polyline\n    auto open_count = [](const Polyline& pl) -> size_t {\n        size_t n = pl.point_count();\n        if (n > 1 && pl.is_closed()) return n - 1;\n        return n;\n    }",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.duplicate",
+        "Mesh.from_polyline_pairs_vnf",
+        "Mesh.is_closed"
+      ]
+    },
+    {
+      "name": "Mesh.from_polyline_pairs_vnf",
+      "implementations": {
+        "cpp": {
+          "sig": "void from_polyline_pairs_vnf(\n    const std::vector<Polyline>& pairs,\n    std::vector<double>& out_vertices,\n    std::vector<double>& out_normals,\n    std::vector<int>& out_triangles,\n    double scale)",
+          "code": "void Mesh::from_polyline_pairs_vnf(\n    const std::vector<Polyline>& pairs,\n    std::vector<double>& out_vertices,\n    std::vector<double>& out_normals,\n    std::vector<int>& out_triangles,\n    double scale)\n{\n    Mesh m = from_polyline_pairs(pairs, scale);\n    if (m.is_empty()) return;\n\n    auto face_nrms = m.face_normals();\n\n    for (size_t fk : m.faces()) {\n        auto maybe_verts = m.face_vertices(fk);\n        if (!maybe_verts || maybe_verts->size() < 3) continue;\n        const auto& fverts = *maybe_verts;\n\n        // Collect all vertex positions up front; skip degenerate faces\n        std::vector<Point> fpts;\n        fpts.reserve(fverts.size());\n        bool valid = true;\n        for (size_t vk : fverts) {\n            auto pos = m.vertex_position(vk);\n            if (!pos) { valid = false; break; }",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.from_polyline_pairs",
+        "Mesh.is_empty",
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -45049,14 +45803,17 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.average_normal",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
         "Polyline.closest_point_to_line",
         "Polyline.constructor",
+        "Polyline.cross2d",
         "Polyline.duplicate",
+        "Polyline.extend_line_segment",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
-        "Polyline.extend_segment_equally_static",
         "Polyline.format",
         "Polyline.from_coords",
         "Polyline.from_sides",
@@ -45065,8 +45822,10 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.is_empty",
@@ -45093,14 +45852,18 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_at",
         "Polyline.point_count",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.repr",
         "Polyline.reverse",
         "Polyline.reversed",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shift",
+        "Polyline.shrink_line_segment",
         "Polyline.str",
         "Polyline.transform",
         "Polyline.transformed",
@@ -45149,8 +45912,7 @@ window.API_INDEX = {
         "Polyline.repr",
         "Polyline.reverse",
         "Polyline.reversed",
-        "Polyline.set_point",
-        "Polyline.tween_two_polylines"
+        "Polyline.set_point"
       ]
     },
     {
@@ -45212,9 +45974,12 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline._average_normal",
         "Polyline._recompute_plane",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
+        "Polyline.cross2d",
         "Polyline.duplicate",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -45222,10 +45987,11 @@ window.API_INDEX = {
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
-        "Polyline.get_fast_plane",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.is_empty",
@@ -45242,13 +46008,19 @@ window.API_INDEX = {
         "Polyline.pb_load",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.reverse",
         "Polyline.reversed",
+        "Polyline.scale_line_static",
         "Polyline.segment_count",
         "Polyline.shift",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.tween_two_polylines",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -45272,14 +46044,16 @@ window.API_INDEX = {
         "Polyline.__jsonload__",
         "Polyline._average_normal",
         "Polyline.format",
-        "Polyline.get_convex_corners",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
         "Polyline.linecolor",
         "Polyline.new",
-        "Polyline.tween_two_polylines",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -45310,8 +46084,7 @@ window.API_INDEX = {
         "Polyline.json_loads",
         "Polyline.new",
         "Polyline.points",
-        "Polyline.str",
-        "Polyline.tween_two_polylines"
+        "Polyline.str"
       ]
     },
     {
@@ -45328,6 +46101,33 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.segment_count"
+      ]
+    },
+    {
+      "name": "Polyline.extend_line_segment",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend_line_segment(Point& start, Point& end, double d0, double d1)",
+          "code": "void Polyline::extend_line_segment(Point& start, Point& end, double d0, double d1) {\n    Vector v = end - start;\n    v.normalize_self();\n    start = start - v * d0;\n    end = end + v * d1;\n}",
+          "file": "polyline.cpp"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.extend_line"
+      ]
+    },
+    {
+      "name": "Polyline.shrink_line_segment",
+      "implementations": {
+        "cpp": {
+          "sig": "void shrink_line_segment(Point& start, Point& end, double dist)",
+          "code": "void Polyline::shrink_line_segment(Point& start, Point& end, double dist) {\n    Vector v = end - start;\n    start = start + v * dist;\n    end = end - v * dist;\n}",
+          "file": "polyline.cpp"
+        }
+      },
+      "related": [
+        "Polyline.Polyline"
       ]
     },
     {
@@ -45364,16 +46164,21 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.center",
+        "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.merge_collinear",
         "Polyline.point_count",
-        "Polyline.tween_two_polylines"
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.scale_line_static",
+        "Polyline.unproj"
       ]
     },
     {
@@ -45413,7 +46218,7 @@ window.API_INDEX = {
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._average_normal",
-        "Polyline.get_convex_corners",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.is_clockwise",
         "Polyline.json_dump",
@@ -45424,9 +46229,11 @@ window.API_INDEX = {
         "Polyline.jsonload",
         "Polyline.parse",
         "Polyline.pb_dumps",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
         "Polyline.repr",
         "Polyline.transform",
-        "Polyline.tween_two_polylines"
+        "Polyline.unproj"
       ]
     },
     {
@@ -47343,6 +48150,24 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Mesh.strip_render_data",
+      "implementations": {
+        "rust": {
+          "sig": "strip_render_data()",
+          "code": "pub fn strip_render_data(&mut self) {\n        self.halfedge.clear();\n        self.pointcolors.clear();\n        self.facecolors.clear();\n        self.linecolors.clear();\n        self.widths.clear();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.facecolors",
+        "Mesh.linecolors",
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.widths"
+      ]
+    },
+    {
       "name": "Mesh.pointcolors_mut",
       "implementations": {
         "rust": {
@@ -48056,6 +48881,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.center_vec",
         "Polyline.duplicate",
@@ -48065,8 +48891,10 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.interpolate_points",
         "Polyline.is_empty",
         "Polyline.jsondump",
         "Polyline.jsonload",
@@ -48078,6 +48906,7 @@ window.API_INDEX = {
         "Polyline.merge_collinear",
         "Polyline.point_at",
         "Polyline.points",
+        "Polyline.quick_hull",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -48111,7 +48940,15 @@ window.API_INDEX = {
           "code": "pub fn extend_line(\n        line_start: &mut Point,\n        line_end: &mut Point,\n        distance0: f64,\n        distance1: f64,\n    ) {\n        let mut v = line_end.clone() - line_start.clone();\n        v.normalize();\n\n        *line_start = line_start.clone() - (v.clone() * distance0);\n        *line_end = line_end.clone() + (v * distance1);\n    }",
           "file": "polyline.rs"
         }
-      }
+      },
+      "related": [
+        "Polyline.extend_line_segment",
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.get_fast_plane"
+      ]
     },
     {
       "name": "Polyline.scale_line",
@@ -48121,7 +48958,14 @@ window.API_INDEX = {
           "code": "pub fn scale_line(line_start: &mut Point, line_end: &mut Point, distance: f64) {\n        let v = line_end.clone() - line_start.clone();\n        *line_start = line_start.clone() + (v.clone() * distance);\n        *line_end = line_end.clone() - (v * distance);\n    }",
           "file": "polyline.rs"
         }
-      }
+      },
+      "related": [
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.scale_line_static"
+      ]
     },
     {
       "name": "Polyline.move_by",
@@ -48657,6 +49501,66 @@ window.API_INDEX = {
         "rust": {
           "sig": "temporary(f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,",
           "code": "pub fn temporary<F, R>(&self, f: F) -> R\n    where\n        F: FnOnce(&mut Tolerance) -> R,\n    {\n        let saved = self.inner.read().clone();\n        let result = f(&mut self.inner.write());\n        *self.inner.write() = saved;\n        result\n    }",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.unique_from_two_int",
+      "implementations": {
+        "rust": {
+          "sig": "unique_from_two_int(a: i32, b: i32) -> u64",
+          "code": "pub fn unique_from_two_int(a: i32, b: i32) -> u64 {\n    let (lo, hi) = if b > a { (a as u32, b as u32) } else { (b as u32, a as u32) };\n    ((hi as u64) << 32) | (lo as u64)\n}",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.wrap_index",
+      "implementations": {
+        "rust": {
+          "sig": "wrap_index(index: i32, n: i32) -> i32",
+          "code": "pub fn wrap_index(index: i32, n: i32) -> i32 {\n    if n == 0 { return 0; }\n    ((index % n) + n) % n\n}",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.triangle_edge_by_angle",
+      "implementations": {
+        "rust": {
+          "sig": "triangle_edge_by_angle(edge_length: f64, angle_deg: f64) -> f64",
+          "code": "pub fn triangle_edge_by_angle(edge_length: f64, angle_deg: f64) -> f64 {\n    edge_length * (angle_deg * Tolerance::TO_RADIANS).tan()\n}",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.rad_to_deg",
+      "implementations": {
+        "rust": {
+          "sig": "rad_to_deg(radians: f64) -> f64",
+          "code": "pub fn rad_to_deg(radians: f64) -> f64 {\n    radians * Tolerance::TO_DEGREES\n}",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.deg_to_rad",
+      "implementations": {
+        "rust": {
+          "sig": "deg_to_rad(degrees: f64) -> f64",
+          "code": "pub fn deg_to_rad(degrees: f64) -> f64 {\n    degrees * Tolerance::TO_RADIANS\n}",
+          "file": "tolerance.rs"
+        }
+      }
+    },
+    {
+      "name": "GlobalTolerance.count_digits",
+      "implementations": {
+        "rust": {
+          "sig": "count_digits(n: f64) -> i32",
+          "code": "pub fn count_digits(n: f64) -> i32 {\n    let mut v = n.abs().ceil() as i64;\n    if v == 0 { return 0; }\n    let mut count = 0;\n    while v != 0 { v /= 10; count += 1; }\n    count\n}",
           "file": "tolerance.rs"
         }
       }
@@ -49814,12 +50718,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [pts, fidx] = mesh.to_vertices_and_faces();\n        MINI_CHECK(fidx.size() == n_faces);\n        MINI_CHECK(pts.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((fidx[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((fidx[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((fidx[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((fidx[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((fidx[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((fidx[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // sparse keys via remove_vertex: key != index after removal\n        Mesh mesh2 = mesh;\n        size_t kr = mesh2.vertices()[3];\n        mesh2.remove_vertex(kr);\n        vertex_to_index = mesh2.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == 7);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index.count(3) == 0);\n        MINI_CHECK(vertex_to_index[4] == 3);\n        MINI_CHECK(vertex_to_index[5] == 4);\n        MINI_CHECK(vertex_to_index[6] == 5);\n        MINI_CHECK(vertex_to_index[7] == 6);\n\n        // vertices / faces / edges\n        auto vertices = mesh.vertices();\n        MINI_CHECK(vertices.size() == 8);\n        MINI_CHECK(vertices[0] == 0);\n        MINI_CHECK(vertices[1] == 1);\n        MINI_CHECK(vertices[2] == 2);\n        MINI_CHECK(vertices[3] == 3);\n        MINI_CHECK(vertices[4] == 4);\n        MINI_CHECK(vertices[5] == 5);\n        MINI_CHECK(vertices[6] == 6);\n        MINI_CHECK(vertices[7] == 7);\n\n        auto faces = mesh.faces();\n        MINI_CHECK(faces.size() == 6);\n        MINI_CHECK(faces[0] == 0);\n        MINI_CHECK(faces[1] == 1);\n        MINI_CHECK(faces[2] == 2);\n        MINI_CHECK(faces[3] == 3);\n        MINI_CHECK(faces[4] == 4);\n        MINI_CHECK(faces[5] == 5);\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 12);\n        MINI_CHECK(edges[0]  == std::make_pair(0ul, 1ul));\n        MINI_CHECK(edges[1]  == std::make_pair(0ul, 3ul));\n        MINI_CHECK(edges[2]  == std::make_pair(0ul, 4ul));\n        MINI_CHECK(edges[3]  == std::make_pair(1ul, 2ul));\n        MINI_CHECK(edges[4]  == std::make_pair(1ul, 5ul));\n        MINI_CHECK(edges[5]  == std::make_pair(2ul, 3ul));\n        MINI_CHECK(edges[6]  == std::make_pair(2ul, 6ul));\n        MINI_CHECK(edges[7]  == std::make_pair(3ul, 7ul));\n        MINI_CHECK(edges[8]  == std::make_pair(4ul, 5ul));\n        MINI_CHECK(edges[9]  == std::make_pair(4ul, 7ul));\n        MINI_CHECK(edges[10] == std::make_pair(5ul, 6ul));\n        MINI_CHECK(edges[11] == std::make_pair(6ul, 7ul));\n\n        // naked (closed box: no naked edges before removal)\n        MINI_CHECK(mesh.naked_edges(true).size() == 0);\n        MINI_CHECK(mesh.naked_faces(false).size() == 6);\n\n        // remove one face \u00e2\u20ac\u201d box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n\n        auto ne = mesh.naked_edges(true);\n        MINI_CHECK(ne.size() == 4);\n        MINI_CHECK(ne[0] == std::make_pair(0ul, 1ul));\n\n        auto ni = mesh.naked_edges(false);\n        MINI_CHECK(ni.size() == 8);\n\n        auto nv = mesh.naked_vertices(true);\n        MINI_CHECK(nv.size() == 4);\n\n        auto nvi = mesh.naked_vertices(false);\n        MINI_CHECK(nvi.size() == 4);\n\n        auto nf = mesh.naked_faces(true);\n        MINI_CHECK(nf.size() == 4);\n\n        auto nfi = mesh.naked_faces(false);\n        MINI_CHECK(nfi.size() == 1);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [pts, fidx] = mesh.to_vertices_and_faces();\n        MINI_CHECK(fidx.size() == n_faces);\n        MINI_CHECK(pts.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((fidx[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((fidx[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((fidx[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((fidx[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((fidx[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((fidx[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // vertices / faces / edges\n        auto vertices = mesh.vertices();\n        MINI_CHECK(vertices.size() == 8);\n        MINI_CHECK(vertices[0] == 0);\n        MINI_CHECK(vertices[1] == 1);\n        MINI_CHECK(vertices[2] == 2);\n        MINI_CHECK(vertices[3] == 3);\n        MINI_CHECK(vertices[4] == 4);\n        MINI_CHECK(vertices[5] == 5);\n        MINI_CHECK(vertices[6] == 6);\n        MINI_CHECK(vertices[7] == 7);\n\n        auto faces = mesh.faces();\n        MINI_CHECK(faces.size() == 6);\n        MINI_CHECK(faces[0] == 0);\n        MINI_CHECK(faces[1] == 1);\n        MINI_CHECK(faces[2] == 2);\n        MINI_CHECK(faces[3] == 3);\n        MINI_CHECK(faces[4] == 4);\n        MINI_CHECK(faces[5] == 5);\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 12);\n        MINI_CHECK(edges[0]  == std::make_pair(0ul, 1ul));\n        MINI_CHECK(edges[1]  == std::make_pair(0ul, 3ul));\n        MINI_CHECK(edges[2]  == std::make_pair(0ul, 4ul));\n        MINI_CHECK(edges[3]  == std::make_pair(1ul, 2ul));\n        MINI_CHECK(edges[4]  == std::make_pair(1ul, 5ul));\n        MINI_CHECK(edges[5]  == std::make_pair(2ul, 3ul));\n        MINI_CHECK(edges[6]  == std::make_pair(2ul, 6ul));\n        MINI_CHECK(edges[7]  == std::make_pair(3ul, 7ul));\n        MINI_CHECK(edges[8]  == std::make_pair(4ul, 5ul));\n        MINI_CHECK(edges[9]  == std::make_pair(4ul, 7ul));\n        MINI_CHECK(edges[10] == std::make_pair(5ul, 6ul));\n        MINI_CHECK(edges[11] == std::make_pair(6ul, 7ul));\n\n        MINI_CHECK(mesh.naked_edges(true).size() == 0);\n        MINI_CHECK(mesh.naked_faces(false).size() == 6);\n\n        // remove one face \u00e2\u20ac\u201d box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n\n        auto ne = mesh.naked_edges(true);\n        MINI_CHECK(ne.size() == 4);\n        MINI_CHECK(ne[0] == std::make_pair(0ul, 1ul));\n        auto ni = mesh.naked_edges(false);\n        MINI_CHECK(ni.size() == 8);\n        auto nv = mesh.naked_vertices(true);\n        MINI_CHECK(nv.size() == 4);\n        auto nvi = mesh.naked_vertices(false);\n        MINI_CHECK(nvi.size() == 4);\n        auto nf = mesh.naked_faces(true);\n        MINI_CHECK(nf.size() == 4);\n        auto nfi = mesh.naked_faces(false);\n        MINI_CHECK(nfi.size() == 1);\n        // sparse keys via remove_vertex: key != index after removal\n        size_t kr = mesh.vertices()[3];\n        mesh.remove_vertex(kr);\n        vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == 7);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index.count(3) == 0);\n        MINI_CHECK(vertex_to_index[4] == 3);\n        MINI_CHECK(vertex_to_index[5] == 4);\n        MINI_CHECK(vertex_to_index[6] == 5);\n        MINI_CHECK(vertex_to_index[7] == 6);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    pts, fidx = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(fidx) == n_faces)\n    MINI_CHECK(len(pts) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(fidx[0] == [0, 3, 2, 1])\n    MINI_CHECK(fidx[1] == [4, 5, 6, 7])\n    MINI_CHECK(fidx[2] == [0, 1, 5, 4])\n    MINI_CHECK(fidx[3] == [2, 3, 7, 6])\n    MINI_CHECK(fidx[4] == [0, 4, 7, 3])\n    MINI_CHECK(fidx[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # sparse keys via remove_vertex: key != index after removal\n    mesh2 = mesh.duplicate()\n    kr = mesh2.vertices()[3]\n    mesh2.remove_vertex(kr)\n    vertex_to_index = mesh2.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == 7)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(3 not in vertex_to_index)\n    MINI_CHECK(vertex_to_index[4] == 3)\n    MINI_CHECK(vertex_to_index[5] == 4)\n    MINI_CHECK(vertex_to_index[6] == 5)\n    MINI_CHECK(vertex_to_index[7] == 6)\n\n    # vertices / faces / edges\n    vertices = mesh.vertices()\n    MINI_CHECK(len(vertices) == 8)\n    MINI_CHECK(vertices[0] == 0)\n    MINI_CHECK(vertices[1] == 1)\n    MINI_CHECK(vertices[2] == 2)\n    MINI_CHECK(vertices[3] == 3)\n    MINI_CHECK(vertices[4] == 4)\n    MINI_CHECK(vertices[5] == 5)\n    MINI_CHECK(vertices[6] == 6)\n    MINI_CHECK(vertices[7] == 7)\n    faces = mesh.faces()\n    MINI_CHECK(len(faces) == 6)\n    MINI_CHECK(faces[0] == 0)\n    MINI_CHECK(faces[1] == 1)\n    MINI_CHECK(faces[2] == 2)\n    MINI_CHECK(faces[3] == 3)\n    MINI_CHECK(faces[4] == 4)\n    MINI_CHECK(faces[5] == 5)\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(edges[0]  == (0, 1))\n    MINI_CHECK(edges[1]  == (0, 3))\n    MINI_CHECK(edges[2]  == (0, 4))\n    MINI_CHECK(edges[3]  == (1, 2))\n    MINI_CHECK(edges[4]  == (1, 5))\n    MINI_CHECK(edges[5]  == (2, 3))\n    MINI_CHECK(edges[6]  == (2, 6))\n    MINI_CHECK(edges[7]  == (3, 7))\n    MINI_CHECK(edges[8]  == (4, 5))\n    MINI_CHECK(edges[9]  == (4, 7))\n    MINI_CHECK(edges[10] == (5, 6))\n    MINI_CHECK(edges[11] == (6, 7))\n\n    # naked (closed box: no naked edges before removal)\n    MINI_CHECK(len(mesh.naked_edges(True)) == 0)\n    MINI_CHECK(len(mesh.naked_faces(False)) == 6)\n    # remove one face \u00e2\u20ac\u201d box becomes open, check naked\n    fk0 = mesh.faces()[0]\n    mesh.remove_face(fk0)\n    ne = mesh.naked_edges(True)\n    MINI_CHECK(len(ne) == 4)\n    MINI_CHECK(ne[0] == (0, 1))\n    ni = mesh.naked_edges(False)\n    MINI_CHECK(len(ni) == 8)\n    nv = mesh.naked_vertices(True)\n    MINI_CHECK(len(nv) == 4)\n    nvi = mesh.naked_vertices(False)\n    MINI_CHECK(len(nvi) == 4)\n    nf = mesh.naked_faces(True)\n    MINI_CHECK(len(nf) == 4)\n    nfi = mesh.naked_faces(False)\n    MINI_CHECK(len(nfi) == 1)",
+          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    pts, fidx = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(fidx) == n_faces)\n    MINI_CHECK(len(pts) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(fidx[0] == [0, 3, 2, 1])\n    MINI_CHECK(fidx[1] == [4, 5, 6, 7])\n    MINI_CHECK(fidx[2] == [0, 1, 5, 4])\n    MINI_CHECK(fidx[3] == [2, 3, 7, 6])\n    MINI_CHECK(fidx[4] == [0, 4, 7, 3])\n    MINI_CHECK(fidx[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # vertices / faces / edges\n    vertices = mesh.vertices()\n    MINI_CHECK(len(vertices) == 8)\n    MINI_CHECK(vertices[0] == 0)\n    MINI_CHECK(vertices[1] == 1)\n    MINI_CHECK(vertices[2] == 2)\n    MINI_CHECK(vertices[3] == 3)\n    MINI_CHECK(vertices[4] == 4)\n    MINI_CHECK(vertices[5] == 5)\n    MINI_CHECK(vertices[6] == 6)\n    MINI_CHECK(vertices[7] == 7)\n    faces = mesh.faces()\n    MINI_CHECK(len(faces) == 6)\n    MINI_CHECK(faces[0] == 0)\n    MINI_CHECK(faces[1] == 1)\n    MINI_CHECK(faces[2] == 2)\n    MINI_CHECK(faces[3] == 3)\n    MINI_CHECK(faces[4] == 4)\n    MINI_CHECK(faces[5] == 5)\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(edges[0]  == (0, 1))\n    MINI_CHECK(edges[1]  == (0, 3))\n    MINI_CHECK(edges[2]  == (0, 4))\n    MINI_CHECK(edges[3]  == (1, 2))\n    MINI_CHECK(edges[4]  == (1, 5))\n    MINI_CHECK(edges[5]  == (2, 3))\n    MINI_CHECK(edges[6]  == (2, 6))\n    MINI_CHECK(edges[7]  == (3, 7))\n    MINI_CHECK(edges[8]  == (4, 5))\n    MINI_CHECK(edges[9]  == (4, 7))\n    MINI_CHECK(edges[10] == (5, 6))\n    MINI_CHECK(edges[11] == (6, 7))\n\n    # naked (closed box: no naked edges before removal)\n    MINI_CHECK(len(mesh.naked_edges(True)) == 0)\n    MINI_CHECK(len(mesh.naked_faces(False)) == 6)\n    # remove one face \u00e2\u20ac\u201d box becomes open, check naked\n    mesh.remove_face(mesh.faces()[0])\n    ne = mesh.naked_edges(True)\n    MINI_CHECK(len(ne) == 4)\n    MINI_CHECK(ne[0] == (0, 1))\n    ni = mesh.naked_edges(False)\n    MINI_CHECK(len(ni) == 8)\n    nv = mesh.naked_vertices(True)\n    MINI_CHECK(len(nv) == 4)\n    nvi = mesh.naked_vertices(False)\n    MINI_CHECK(len(nvi) == 4)\n    nf = mesh.naked_faces(True)\n    MINI_CHECK(len(nf) == 4)\n    nfi = mesh.naked_faces(False)\n    MINI_CHECK(len(nfi) == 1)\n    # sparse keys via remove_vertex: key != index after removal\n    kr = mesh.vertices()[3]\n    mesh.remove_vertex(kr)\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == 7)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(3 not in vertex_to_index)\n    MINI_CHECK(vertex_to_index[4] == 3)\n    MINI_CHECK(vertex_to_index[5] == 4)\n    MINI_CHECK(vertex_to_index[6] == 5)\n    MINI_CHECK(vertex_to_index[7] == 6)",
           "file": "mesh_test.py"
         }
       }
@@ -49829,12 +50733,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n\n        double hx = 0.5, hy = 0.5, hz = 0.5;\n        std::vector<Point> verts = {\n            Point(-hx, -hy, -hz), Point( hx, -hy, -hz), Point( hx,  hy, -hz), Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz), Point( hx, -hy,  hz), Point( hx,  hy,  hz), Point(-hx,  hy,  hz),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {2, 3, 7, 6}, {0, 4, 7, 3}, {1, 2, 6, 5},\n        };\n\n        Mesh mesh = Mesh();\n\n        \n        for (const auto& v : verts) \n            mesh.add_vertex(v);\n    \n        for (const auto& f : faces) \n            mesh.add_face(f);\n\n        // add_face: invalid (too few vertices)\n        MINI_CHECK(!mesh.add_face({0, 1}, std::nullopt).has_value());\n        // add_face: invalid (duplicate vertex)\n        MINI_CHECK(!mesh.add_face({0, 1, 0}, std::nullopt).has_value());\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices \u00e2\u2020\u2019 [1,2,3,4,5,6,7], faces \u00e2\u2020\u2019 [1,3,5]\n        mesh.remove_vertex(0);\n        MINI_CHECK(mesh.number_of_vertices() == 7);\n        MINI_CHECK(mesh.number_of_faces() == 3);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces \u00e2\u2020\u2019 [1,3]\n        mesh.remove_edge(1, 2);\n        MINI_CHECK(mesh.number_of_faces() == 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces \u00e2\u2020\u2019 [3]\n        mesh.remove_face(1);\n        MINI_CHECK(mesh.number_of_faces() == 1);\n\n        // clear\n        mesh.clear();\n        MINI_CHECK(mesh.is_empty());\n\n        // rebuild\n        for (const auto& v : verts) mesh.add_vertex(v);\n        for (const auto& f : faces) mesh.add_face(f);\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        MINI_CHECK(mesh.number_of_vertices() == 24);\n        mesh = mesh.weld(0.001);\n        MINI_CHECK(mesh.number_of_vertices() == 8);\n        MINI_CHECK(mesh.number_of_faces() == 6);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        auto fv0 = *mesh.face_vertices(0); auto fv1 = *mesh.face_vertices(1);\n        auto fv2 = *mesh.face_vertices(2); auto fv3 = *mesh.face_vertices(3);\n        auto fv4 = *mesh.face_vertices(4); auto fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // flip_face(0): face 0 \u00e2\u2020\u2019 [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 3 && fv0[1] == 2 && fv0[2] == 1 && fv0[3] == 0);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // flip: face 0 \u00e2\u2020\u2019 [3,2,1,0], face 1 \u00e2\u2020\u2019 [7,6,5,4], face 2 \u00e2\u2020\u2019 [4,5,3,0]\n        // face 3 \u00e2\u2020\u2019 [6,7,1,2], face 4 \u00e2\u2020\u2019 [1,7,4,0], face 5 \u00e2\u2020\u2019 [5,6,2,3]\n        mesh.flip();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 3 && fv0[1] == 2 && fv0[2] == 1 && fv0[3] == 0);\n        MINI_CHECK(fv1[0] == 7 && fv1[1] == 6 && fv1[2] == 5 && fv1[3] == 4);\n        MINI_CHECK(fv2[0] == 4 && fv2[1] == 5 && fv2[2] == 3 && fv2[3] == 0);\n        MINI_CHECK(fv3[0] == 6 && fv3[1] == 7 && fv3[2] == 1 && fv3[3] == 2);\n        MINI_CHECK(fv4[0] == 1 && fv4[1] == 7 && fv4[2] == 4 && fv4[3] == 0);\n        MINI_CHECK(fv5[0] == 5 && fv5[1] == 6 && fv5[2] == 2 && fv5[3] == 3);\n\n        // orient_outward: face 0 \u00e2\u2020\u2019 [0,1,2,3], face 1 \u00e2\u2020\u2019 [4,5,6,7], face 2 \u00e2\u2020\u2019 [0,3,5,4]\n        // face 3 \u00e2\u2020\u2019 [2,1,7,6], face 4 \u00e2\u2020\u2019 [0,4,7,1], face 5 \u00e2\u2020\u2019 [3,2,6,5]\n        MINI_CHECK(mesh.orient_outward());\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n        // uncomment #include \"mesh.h\"\n\n        double hx = 0.5, hy = 0.5, hz = 0.5;\n        std::vector<Point> verts = {\n            Point(-hx, -hy, -hz), Point( hx, -hy, -hz), Point( hx,  hy, -hz), Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz), Point( hx, -hy,  hz), Point( hx,  hy,  hz), Point(-hx,  hy,  hz),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {2, 3, 7, 6}, {0, 4, 7, 3}, {1, 2, 6, 5},\n        };\n\n        Mesh mesh = Mesh();\n\n        \n        for (const auto& v : verts) \n            mesh.add_vertex(v);\n    \n        for (const auto& f : faces) \n            mesh.add_face(f);\n\n        // add_face: invalid (too few vertices)\n        MINI_CHECK(!mesh.add_face({0, 1}, std::nullopt).has_value());\n        // add_face: invalid (duplicate vertex)\n        MINI_CHECK(!mesh.add_face({0, 1, 0}, std::nullopt).has_value());\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices \u00e2\u2020\u2019 [1,2,3,4,5,6,7], faces \u00e2\u2020\u2019 [1,3,5]\n        mesh.remove_vertex(0);\n        MINI_CHECK(mesh.number_of_vertices() == 7);\n        MINI_CHECK(mesh.number_of_faces() == 3);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces \u00e2\u2020\u2019 [1,3]\n        mesh.remove_edge(1, 2);\n        MINI_CHECK(mesh.number_of_faces() == 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces \u00e2\u2020\u2019 [3]\n        mesh.remove_face(1);\n        MINI_CHECK(mesh.number_of_faces() == 1);\n\n        // clear\n        mesh.clear();\n        MINI_CHECK(mesh.is_empty());\n\n        // rebuild\n        for (const auto& v : verts) mesh.add_vertex(v);\n        for (const auto& f : faces) mesh.add_face(f);\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        MINI_CHECK(mesh.number_of_vertices() == 24);\n        mesh = mesh.weld(0.001);\n        MINI_CHECK(mesh.number_of_vertices() == 8);\n        MINI_CHECK(mesh.number_of_faces() == 6);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        auto fv0 = *mesh.face_vertices(0); auto fv1 = *mesh.face_vertices(1);\n        auto fv2 = *mesh.face_vertices(2); auto fv3 = *mesh.face_vertices(3);\n        auto fv4 = *mesh.face_vertices(4); auto fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // flip_face(0): face 0 \u00e2\u2020\u2019 [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 3 && fv0[1] == 2 && fv0[2] == 1 && fv0[3] == 0);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n\n        // flip: face 0 \u00e2\u2020\u2019 [3,2,1,0], face 1 \u00e2\u2020\u2019 [7,6,5,4], face 2 \u00e2\u2020\u2019 [4,5,3,0]\n        // face 3 \u00e2\u2020\u2019 [6,7,1,2], face 4 \u00e2\u2020\u2019 [1,7,4,0], face 5 \u00e2\u2020\u2019 [5,6,2,3]\n        mesh.flip();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 3 && fv0[1] == 2 && fv0[2] == 1 && fv0[3] == 0);\n        MINI_CHECK(fv1[0] == 7 && fv1[1] == 6 && fv1[2] == 5 && fv1[3] == 4);\n        MINI_CHECK(fv2[0] == 4 && fv2[1] == 5 && fv2[2] == 3 && fv2[3] == 0);\n        MINI_CHECK(fv3[0] == 6 && fv3[1] == 7 && fv3[2] == 1 && fv3[3] == 2);\n        MINI_CHECK(fv4[0] == 1 && fv4[1] == 7 && fv4[2] == 4 && fv4[3] == 0);\n        MINI_CHECK(fv5[0] == 5 && fv5[1] == 6 && fv5[2] == 2 && fv5[3] == 3);\n\n        // orient_outward: face 0 \u00e2\u2020\u2019 [0,1,2,3], face 1 \u00e2\u2020\u2019 [4,5,6,7], face 2 \u00e2\u2020\u2019 [0,3,5,4]\n        // face 3 \u00e2\u2020\u2019 [2,1,7,6], face 4 \u00e2\u2020\u2019 [0,4,7,1], face 5 \u00e2\u2020\u2019 [3,2,6,5]\n        mesh.orient_outward();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n        MINI_CHECK(fv0[0] == 0 && fv0[1] == 1 && fv0[2] == 2 && fv0[3] == 3);\n        MINI_CHECK(fv1[0] == 4 && fv1[1] == 5 && fv1[2] == 6 && fv1[3] == 7);\n        MINI_CHECK(fv2[0] == 0 && fv2[1] == 3 && fv2[2] == 5 && fv2[3] == 4);\n        MINI_CHECK(fv3[0] == 2 && fv3[1] == 1 && fv3[2] == 7 && fv3[3] == 6);\n        MINI_CHECK(fv4[0] == 0 && fv4[1] == 4 && fv4[2] == 7 && fv4[3] == 1);\n        MINI_CHECK(fv5[0] == 3 && fv5[1] == 2 && fv5[2] == 6 && fv5[3] == 5);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    vkeys = mesh.vertices()\n    v0 = vkeys[0]\n    v1 = vkeys[1]\n    MINI_CHECK(not mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 8)\n\n    # add_face: invalid (too few vertices)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    # add_face: invalid (duplicate vertex)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh2 = mesh.duplicate()\n    mesh2.clear()\n    MINI_CHECK(mesh2.is_empty())\n    MINI_CHECK(mesh2.number_of_vertices() == 0)\n    MINI_CHECK(mesh2.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d flip face 2 (adjacent to seed face 0) then fix it\n    mesh3 = Mesh.create_box(1.0, 1.0, 1.0)\n    f2 = mesh3.faces()[2]\n    n2_orig = mesh3.face_normal(f2)\n    mesh3.flip_face(f2)\n    MINI_CHECK(mesh3.face_normal(f2).dot(n2_orig) < 0.0)\n    mesh3.unify_winding()\n    MINI_CHECK(mesh3.face_normal(f2).dot(n2_orig) > 0.0)\n\n    # unweld and weld\n    u = mesh.unweld()\n    MINI_CHECK(u.number_of_vertices() == 24)\n    w = u.weld()\n    MINI_CHECK(w.number_of_vertices() == 8)\n    MINI_CHECK(w.number_of_faces() == 6)\n    for vk in w.vertex:\n        MINI_CHECK(len(w.vertex_faces(vk)) == 3)\n\n    # remove_face\n    mesh5 = mesh.duplicate()\n    fa = mesh5.faces()[0]\n    mesh5.remove_face(fa)\n    MINI_CHECK(mesh5.number_of_faces() == 5)\n    MINI_CHECK(mesh5.number_of_edges() == 12)\n    MINI_CHECK(mesh5.number_of_vertices() == 8)\n\n    # remove_vertex\n    mesh6 = mesh.duplicate()\n    vr = mesh6.vertices()[0]\n    mesh6.remove_vertex(vr)\n    vi6 = mesh6.vertex_index()\n    MINI_CHECK(vr not in vi6)\n    MINI_CHECK(mesh6.number_of_faces() == 3)\n    MINI_CHECK(mesh6.number_of_vertices() == 7)\n\n    # remove_edge\n    mesh7 = mesh.duplicate()\n    ea = mesh7.vertices()[0]\n    eb = mesh7.vertices()[1]\n    mesh7.remove_edge(ea, eb)\n    MINI_CHECK(mesh7.number_of_faces() == 4)\n    MINI_CHECK(mesh7.number_of_edges() == 11)\n    MINI_CHECK(mesh7.number_of_vertices() == 8)\n\n    # remove_face then check naked: box minus one face \u00e2\u2020\u2019 5 faces with 4 naked edges\n    mesh8 = mesh.duplicate()\n    fd0 = mesh8.faces()[0]\n    mesh8.remove_face(fd0)\n    MINI_CHECK(mesh8.number_of_faces() == 5)\n    MINI_CHECK(len(mesh8.naked_edges(True)) == 4)\n    MINI_CHECK(len(mesh8.naked_edges(False)) == 8)\n    MINI_CHECK(len(mesh8.naked_faces(True)) == 4)\n    MINI_CHECK(len(mesh8.naked_faces(False)) == 1)",
+          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 0.5, 0.5, 0.5\n    verts = [\n        Point(-hx, -hy, -hz), Point( hx, -hy, -hz), Point( hx,  hy, -hz), Point(-hx,  hy, -hz),\n        Point(-hx, -hy,  hz), Point( hx, -hy,  hz), Point( hx,  hy,  hz), Point(-hx,  hy,  hz),\n    ]\n    faces = [\n        [0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [0, 4, 7, 3], [1, 2, 6, 5],\n    ]\n\n    mesh = Mesh()\n\n    for v in verts: mesh.add_vertex(v)\n    for f in faces: mesh.add_face(f)\n\n    # add_face: invalid (too few vertices)\n    MINI_CHECK(mesh.add_face([0, 1]) is None)\n    # add_face: invalid (duplicate vertex)\n    MINI_CHECK(mesh.add_face([0, 1, 0]) is None)\n\n    # remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n    # vertices \u00e2\u2020\u2019 [1,2,3,4,5,6,7], faces \u00e2\u2020\u2019 [1,3,5]\n    mesh.remove_vertex(0)\n    MINI_CHECK(mesh.number_of_vertices() == 7)\n    MINI_CHECK(mesh.number_of_faces() == 3)\n\n    # remove_edge(1,2): removes face 5 [1,2,6,5], faces \u00e2\u2020\u2019 [1,3]\n    mesh.remove_edge(1, 2)\n    MINI_CHECK(mesh.number_of_faces() == 2)\n\n    # remove_face(1): removes face 1 [4,5,6,7], faces \u00e2\u2020\u2019 [3]\n    mesh.remove_face(1)\n    MINI_CHECK(mesh.number_of_faces() == 1)\n\n    # clear\n    mesh.clear()\n    MINI_CHECK(mesh.is_empty())\n\n    # rebuild\n    for v in verts: mesh.add_vertex(v)\n    for f in faces: mesh.add_face(f)\n\n    # unweld and weld\n    mesh = mesh.unweld()\n    MINI_CHECK(mesh.number_of_vertices() == 24)\n    mesh = mesh.weld(0.001)\n    MINI_CHECK(mesh.number_of_vertices() == 8)\n    MINI_CHECK(mesh.number_of_faces() == 6)\n    # face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n    # face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n    MINI_CHECK(fv0[0] == 0 and fv0[1] == 1 and fv0[2] == 2 and fv0[3] == 3)\n    MINI_CHECK(fv1[0] == 4 and fv1[1] == 5 and fv1[2] == 6 and fv1[3] == 7)\n    MINI_CHECK(fv2[0] == 0 and fv2[1] == 3 and fv2[2] == 5 and fv2[3] == 4)\n    MINI_CHECK(fv3[0] == 2 and fv3[1] == 1 and fv3[2] == 7 and fv3[3] == 6)\n    MINI_CHECK(fv4[0] == 0 and fv4[1] == 4 and fv4[2] == 7 and fv4[3] == 1)\n    MINI_CHECK(fv5[0] == 3 and fv5[1] == 2 and fv5[2] == 6 and fv5[3] == 5)\n\n    # flip_face(0): face 0 \u00e2\u2020\u2019 [3,2,1,0], faces 1-5 unchanged\n    mesh.flip_face(0)\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n    MINI_CHECK(fv0[0] == 3 and fv0[1] == 2 and fv0[2] == 1 and fv0[3] == 0)\n    MINI_CHECK(fv1[0] == 4 and fv1[1] == 5 and fv1[2] == 6 and fv1[3] == 7)\n    MINI_CHECK(fv2[0] == 0 and fv2[1] == 3 and fv2[2] == 5 and fv2[3] == 4)\n    MINI_CHECK(fv3[0] == 2 and fv3[1] == 1 and fv3[2] == 7 and fv3[3] == 6)\n    MINI_CHECK(fv4[0] == 0 and fv4[1] == 4 and fv4[2] == 7 and fv4[3] == 1)\n    MINI_CHECK(fv5[0] == 3 and fv5[1] == 2 and fv5[2] == 6 and fv5[3] == 5)\n\n    # unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n    mesh.unify_winding()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n    MINI_CHECK(fv0[0] == 0 and fv0[1] == 1 and fv0[2] == 2 and fv0[3] == 3)\n    MINI_CHECK(fv1[0] == 4 and fv1[1] == 5 and fv1[2] == 6 and fv1[3] == 7)\n    MINI_CHECK(fv2[0] == 0 and fv2[1] == 3 and fv2[2] == 5 and fv2[3] == 4)\n    MINI_CHECK(fv3[0] == 2 and fv3[1] == 1 and fv3[2] == 7 and fv3[3] == 6)\n    MINI_CHECK(fv4[0] == 0 and fv4[1] == 4 and fv4[2] == 7 and fv4[3] == 1)\n    MINI_CHECK(fv5[0] == 3 and fv5[1] == 2 and fv5[2] == 6 and fv5[3] == 5)\n\n    # flip: face 0 \u00e2\u2020\u2019 [3,2,1,0], face 1 \u00e2\u2020\u2019 [7,6,5,4], face 2 \u00e2\u2020\u2019 [4,5,3,0]\n    # face 3 \u00e2\u2020\u2019 [6,7,1,2], face 4 \u00e2\u2020\u2019 [1,7,4,0], face 5 \u00e2\u2020\u2019 [5,6,2,3]\n    mesh.flip()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n    MINI_CHECK(fv0[0] == 3 and fv0[1] == 2 and fv0[2] == 1 and fv0[3] == 0)\n    MINI_CHECK(fv1[0] == 7 and fv1[1] == 6 and fv1[2] == 5 and fv1[3] == 4)\n    MINI_CHECK(fv2[0] == 4 and fv2[1] == 5 and fv2[2] == 3 and fv2[3] == 0)\n    MINI_CHECK(fv3[0] == 6 and fv3[1] == 7 and fv3[2] == 1 and fv3[3] == 2)\n    MINI_CHECK(fv4[0] == 1 and fv4[1] == 7 and fv4[2] == 4 and fv4[3] == 0)\n    MINI_CHECK(fv5[0] == 5 and fv5[1] == 6 and fv5[2] == 2 and fv5[3] == 3)\n\n    # orient_outward: face 0 \u00e2\u2020\u2019 [0,1,2,3], face 1 \u00e2\u2020\u2019 [4,5,6,7], face 2 \u00e2\u2020\u2019 [0,3,5,4]\n    # face 3 \u00e2\u2020\u2019 [2,1,7,6], face 4 \u00e2\u2020\u2019 [0,4,7,1], face 5 \u00e2\u2020\u2019 [3,2,6,5]\n    mesh.orient_outward()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n    MINI_CHECK(fv0[0] == 0 and fv0[1] == 1 and fv0[2] == 2 and fv0[3] == 3)\n    MINI_CHECK(fv1[0] == 4 and fv1[1] == 5 and fv1[2] == 6 and fv1[3] == 7)\n    MINI_CHECK(fv2[0] == 0 and fv2[1] == 3 and fv2[2] == 5 and fv2[3] == 4)\n    MINI_CHECK(fv3[0] == 2 and fv3[1] == 1 and fv3[2] == 7 and fv3[3] == 6)\n    MINI_CHECK(fv4[0] == 0 and fv4[1] == 4 and fv4[2] == 7 and fv4[3] == 1)\n    MINI_CHECK(fv5[0] == 3 and fv5[1] == 2 and fv5[2] == 6 and fv5[3] == 5)",
           "file": "mesh_test.py"
         }
       }
@@ -50869,7 +51773,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Polyline\", \"Average Plane\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Average Plane\")\ndef test_polyline_average_plane():\n    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0),\n    ])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()\n\n    MINI_CHECK(TOLERANCE.is_close(origin[0], 1.0) and TOLERANCE.is_close(origin[1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(abs(z_axis[2]), 1.0))\n    MINI_CHECK(fast_plane is not None)\n    MINI_CHECK(TOLERANCE.is_close(abs(avg_normal[2]), 1.0))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Average Plane\")\ndef test_polyline_average_plane():\n    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0),\n    ])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()\n\n    MINI_CHECK(TOLERANCE.is_close(origin[0], 1.0) and TOLERANCE.is_close(origin[1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(abs(z_axis[2]), 1.0))\n    MINI_CHECK(fast_plane is not None)\n    MINI_CHECK(TOLERANCE.is_close(abs(avg_normal[2]), 1.0))",
           "file": "polyline_test.py"
         }
       }
@@ -51619,7 +52523,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Tolerance\", \"Runtime Modification\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Runtime Modification\")\ndef test_tolerance_runtime_modification():\n    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n    MINI_CHECK(original_absolute == 1e-9)\n    MINI_CHECK(original_relative == 1e-6)\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n    MINI_CHECK(TOLERANCE.absolute == 1e-12)\n    MINI_CHECK(TOLERANCE.relative == 1e-12)\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_tight == False)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n    MINI_CHECK(TOLERANCE.absolute == 1e-9)\n    MINI_CHECK(TOLERANCE.relative == 1e-6)\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_default == True)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Runtime Modification\")\ndef test_tolerance_runtime_modification():\n    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n    MINI_CHECK(original_absolute == 1e-9)\n    MINI_CHECK(original_relative == 1e-6)\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n    MINI_CHECK(TOLERANCE.absolute == 1e-12)\n    MINI_CHECK(TOLERANCE.relative == 1e-12)\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_tight == False)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n    MINI_CHECK(TOLERANCE.absolute == 1e-9)\n    MINI_CHECK(TOLERANCE.relative == 1e-6)\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n    MINI_CHECK(close_with_default == True)",
           "file": "tolerance_test.py"
         }
       }
@@ -52100,12 +53004,102 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Polyline.test_Interpolate Points",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")\ndef test_polyline_interpolate_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    a = Point(0.0, 0.0, 0.0)\n    b = Point(4.0, 0.0, 0.0)\n\n    # kind 0: no endpoints \u00e2\u20ac\u201d 3 interior points at t=0.25, 0.5, 0.75\n    pts0 = Polyline.interpolate_points(a, b, 3, 0)\n    # kind 1: both endpoints \u00e2\u20ac\u201d 5 points\n    pts1 = Polyline.interpolate_points(a, b, 3, 1)\n    # kind 2: start only \u00e2\u20ac\u201d 4 points (from + 3 interior)\n    pts2 = Polyline.interpolate_points(a, b, 3, 2)\n\n    MINI_CHECK(len(pts0) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[2][0], 3.0))\n    MINI_CHECK(len(pts1) == 5)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts1[4][0], 4.0))\n    MINI_CHECK(len(pts2) == 4)\n    MINI_CHECK(TOLERANCE.is_close(pts2[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts2[3][0], 3.0))",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Quick Hull",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Quick Hull\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Quick Hull\")\ndef test_polyline_quick_hull():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Square with one interior point \u00e2\u20ac\u201d hull should be the 4 corners\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n    ])\n    hull = Polyline.quick_hull(polygon)\n\n    MINI_CHECK(hull.point_count() == 4)",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Bounding Rectangle",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")\ndef test_polyline_bounding_rectangle():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Axis-aligned 4x3 rectangle\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect = Polyline.bounding_rectangle(polygon)\n\n    MINI_CHECK(rect is not None)\n    MINI_CHECK(rect.point_count() == 5)\n    for p in rect.get_points():\n        MINI_CHECK(abs(p[2]) < 1e-6)",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Grid Of Points In Polygon",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")\ndef test_polyline_grid_of_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    # 4x4 square polygon\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    ])\n    pts = Polyline.grid_of_points_in_polygon(polygon, 0.0, 1.0, 100)\n\n    MINI_CHECK(len(pts) > 0)\n    for p in pts:\n        MINI_CHECK(p[0] > 0.0 and p[0] < 4.0)\n        MINI_CHECK(p[1] > 0.0 and p[1] < 4.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
       "name": "Primitives.test_Mesh Edge Pipes",
       "implementations": {
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")",
           "code": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")\ndef test_mesh_edge_pipes():\n    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)\n    MINI_CHECK(len(pipes) == 4)\n    MINI_CHECK(isinstance(pipes[0], Mesh))\n    MINI_CHECK(pipes[0].facecolors[0][0] == Color.red()[0])",
           "file": "primitives_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Unique From Two Int",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")\ndef test_tolerance_unique_from_two_int():\n    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)\n    MINI_CHECK(r0 == r1)\n    MINI_CHECK(r0 == (7 << 32) | 3)",
+          "file": "tolerance_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Wrap Index",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")\ndef test_tolerance_wrap_index():\n    MINI_CHECK(wrap_index(0, 4)  == 0)\n    MINI_CHECK(wrap_index(3, 4)  == 3)\n    MINI_CHECK(wrap_index(4, 4)  == 0)\n    MINI_CHECK(wrap_index(-1, 4) == 3)\n    MINI_CHECK(wrap_index(0, 0)  == 0)",
+          "file": "tolerance_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Triangle Edge By Angle",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")\ndef test_tolerance_triangle_edge_by_angle():\n    MINI_CHECK(abs(triangle_edge_by_angle(1.0, 45.0) - 1.0) < 1e-9)\n    MINI_CHECK(abs(triangle_edge_by_angle(5.0, 0.0)) < 1e-9)",
+          "file": "tolerance_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Rad Deg Conversion",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")\ndef test_tolerance_rad_deg():\n    MINI_CHECK(abs(rad_to_deg(PI) - 180.0) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(180.0) - PI) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9)",
+          "file": "tolerance_test.py"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Count Digits",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Count Digits\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Count Digits\")\ndef test_tolerance_count_digits():\n    MINI_CHECK(count_digits(0.0)   == 0)\n    MINI_CHECK(count_digits(1.0)   == 1)\n    MINI_CHECK(count_digits(9.9)   == 1)\n    MINI_CHECK(count_digits(10.0)  == 2)\n    MINI_CHECK(count_digits(100.5) == 3)\n    MINI_CHECK(count_digits(-42.0) == 2)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "tolerance_test.py"
         }
       }
     }
@@ -52115,9 +53109,9 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "circle",
+        "points",
         "into",
         "n",
-        "points",
         "subdivide",
         "divide_by_count",
         "nurbscurve",
@@ -52132,11 +53126,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
-        "by",
         "length",
+        "ellipse",
         "arc",
         "subdivide",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -52150,9 +53144,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "arc",
         "points",
         "through",
-        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -52166,9 +53160,9 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "adaptive",
         "points",
+        "adaptive",
+        "from",
         "open",
         "polyline",
         "curve",
@@ -52186,10 +53180,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "evaluation",
+        "curve",
         "parameter",
         "at",
-        "curve",
-        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -52208,10 +53202,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "frames",
-        "length",
         "curve",
+        "length",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -52256,10 +53250,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "cylinder",
-        "surface",
         "evaluate",
+        "surface",
+        "cylinder",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -52274,11 +53268,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
-        "and",
-        "vertices",
-        "faces",
         "mesh",
+        "from",
+        "faces",
+        "vertices",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -53524,6 +54518,10 @@ window.API_INDEX = {
       "NurbsSurface.pb_fill",
       "Polyline.pb_fill"
     ],
+    "from_proto": [
+      "Mesh.from_proto",
+      "Objects.from_proto"
+    ],
     "set_vertex_color": [
       "Mesh.set_vertex_color"
     ],
@@ -54256,6 +55254,12 @@ window.API_INDEX = {
     "extend_segment_equally": [
       "Polyline.extend_segment_equally"
     ],
+    "extend_line_static": [
+      "Polyline.extend_line_static"
+    ],
+    "scale_line_static": [
+      "Polyline.scale_line_static"
+    ],
     "is_clockwise": [
       "Polyline.is_clockwise"
     ],
@@ -54264,6 +55268,33 @@ window.API_INDEX = {
     ],
     "tween_two_polylines": [
       "Polyline.tween_two_polylines"
+    ],
+    "interpolate_points": [
+      "Polyline.interpolate_points"
+    ],
+    "quick_hull": [
+      "Polyline.quick_hull"
+    ],
+    "proj2d": [
+      "Polyline.proj2d"
+    ],
+    "unproj": [
+      "Polyline.unproj"
+    ],
+    "cross2d": [
+      "Polyline.cross2d"
+    ],
+    "qh_upper": [
+      "Polyline.qh_upper"
+    ],
+    "bounding_rectangle": [
+      "Polyline.bounding_rectangle"
+    ],
+    "grid_of_points_in_polygon": [
+      "Polyline.grid_of_points_in_polygon"
+    ],
+    "pt_in_poly": [
+      "Polyline.pt_in_poly"
     ],
     "_average_normal": [
       "Polyline._average_normal"
@@ -54603,6 +55634,30 @@ window.API_INDEX = {
     "is_finite": [
       "Tolerance.is_finite"
     ],
+    "unique_from_two_int": [
+      "Tolerance.unique_from_two_int",
+      "GlobalTolerance.unique_from_two_int"
+    ],
+    "wrap_index": [
+      "Tolerance.wrap_index",
+      "GlobalTolerance.wrap_index"
+    ],
+    "triangle_edge_by_angle": [
+      "Tolerance.triangle_edge_by_angle",
+      "GlobalTolerance.triangle_edge_by_angle"
+    ],
+    "rad_to_deg": [
+      "Tolerance.rad_to_deg",
+      "GlobalTolerance.rad_to_deg"
+    ],
+    "deg_to_rad": [
+      "Tolerance.deg_to_rad",
+      "GlobalTolerance.deg_to_rad"
+    ],
+    "count_digits": [
+      "Tolerance.count_digits",
+      "GlobalTolerance.count_digits"
+    ],
     "fill_node": [
       "Tree.fill_node"
     ],
@@ -54923,6 +55978,14 @@ window.API_INDEX = {
     "set_face_holes": [
       "ColorMode.set_face_holes"
     ],
+    "from_polyline_pairs": [
+      "ColorMode.from_polyline_pairs",
+      "Mesh.from_polyline_pairs"
+    ],
+    "from_polyline_pairs_vnf": [
+      "ColorMode.from_polyline_pairs_vnf",
+      "Mesh.from_polyline_pairs_vnf"
+    ],
     "build_triangle_bvh": [
       "ColorMode.build_triangle_bvh",
       "Mesh.build_triangle_bvh"
@@ -55027,6 +56090,12 @@ window.API_INDEX = {
     ],
     "length_squared": [
       "Polyline.length_squared"
+    ],
+    "extend_line_segment": [
+      "Polyline.extend_line_segment"
+    ],
+    "shrink_line_segment": [
+      "Polyline.shrink_line_segment"
     ],
     "recompute_plane_if_needed": [
       "Polyline.recompute_plane_if_needed"
@@ -55202,6 +56271,9 @@ window.API_INDEX = {
     ],
     "from_float": [
       "Color.from_float"
+    ],
+    "strip_render_data": [
+      "Mesh.strip_render_data"
     ],
     "pointcolors_mut": [
       "Mesh.pointcolors_mut"

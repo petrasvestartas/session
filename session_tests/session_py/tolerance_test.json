@@ -2,12 +2,12 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 7,
+    "time_ms": 0.006,
+    "line": 11,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
       {
-        "line": 10,
+        "line": 14,
         "code_line": "result == True",
         "passed": true
       }
@@ -17,12 +17,12 @@
   {
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 13,
+    "time_ms": 0.007,
+    "line": 17,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
       {
-        "line": 16,
+        "line": 20,
         "code_line": "result == True",
         "passed": true
       }
@@ -33,11 +33,11 @@
     "test_name": "Is Positive",
     "passed": true,
     "time_ms": 0.002,
-    "line": 19,
+    "line": 23,
     "code": "    result = TOLERANCE.is_positive(1.0)",
     "checks": [
       {
-        "line": 22,
+        "line": 26,
         "code_line": "result == True",
         "passed": true
       }
@@ -48,11 +48,11 @@
     "test_name": "Is Negative",
     "passed": true,
     "time_ms": 0.002,
-    "line": 25,
+    "line": 29,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
       {
-        "line": 28,
+        "line": 32,
         "code_line": "result == True",
         "passed": true
       }
@@ -63,11 +63,11 @@
     "test_name": "Is Between",
     "passed": true,
     "time_ms": 0.002,
-    "line": 31,
+    "line": 35,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
       {
-        "line": 34,
+        "line": 38,
         "code_line": "result == True",
         "passed": true
       }
@@ -77,12 +77,12 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 37,
+    "time_ms": 0.004,
+    "line": 41,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
       {
-        "line": 40,
+        "line": 44,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -93,11 +93,11 @@
     "test_name": "Key",
     "passed": true,
     "time_ms": 0.007,
-    "line": 43,
+    "line": 47,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [
       {
-        "line": 46,
+        "line": 50,
         "code_line": "result == \"1.000,2.000,3.000\"",
         "passed": true
       }
@@ -107,51 +107,182 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.011,
-    "line": 49,
+    "time_ms": 0.01,
+    "line": 53,
     "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
     "checks": [
       {
-        "line": 54,
+        "line": 58,
         "code_line": "original_absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 55,
+        "line": 59,
         "code_line": "original_relative == 1e-6",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 64,
         "code_line": "TOLERANCE.absolute == 1e-12",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 65,
         "code_line": "TOLERANCE.relative == 1e-12",
         "passed": true
       },
       {
-        "line": 65,
+        "line": 69,
         "code_line": "close_with_tight == False",
         "passed": true
       },
       {
-        "line": 69,
+        "line": 73,
         "code_line": "TOLERANCE.absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 70,
+        "line": 74,
         "code_line": "TOLERANCE.relative == 1e-6",
         "passed": true
       },
       {
-        "line": 74,
+        "line": 78,
         "code_line": "close_with_default == True",
         "passed": true
       }
     ],
     "failures": []
+  },
+  {
+    "test_name": "Unique From Two Int",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 81,
+    "code": "    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)",
+    "checks": [
+      {
+        "line": 85,
+        "code_line": "r0 == r1",
+        "passed": true
+      },
+      {
+        "line": 86,
+        "code_line": "r0 == (7 << 32) | 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Wrap Index",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 89,
+    "code": "",
+    "checks": [
+      {
+        "line": 91,
+        "code_line": "wrap_index(0, 4)  == 0",
+        "passed": true
+      },
+      {
+        "line": 92,
+        "code_line": "wrap_index(3, 4)  == 3",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "wrap_index(4, 4)  == 0",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "wrap_index(-1, 4) == 3",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "wrap_index(0, 0)  == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Triangle Edge By Angle",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 98,
+    "code": "",
+    "checks": [
+      {
+        "line": 100,
+        "code_line": "abs(triangle_edge_by_angle(1.0, 45.0) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "abs(triangle_edge_by_angle(5.0, 0.0)) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Rad Deg Conversion",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 104,
+    "code": "",
+    "checks": [
+      {
+        "line": 106,
+        "code_line": "abs(rad_to_deg(PI) - 180.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "abs(deg_to_rad(180.0) - PI) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Count Digits",
+    "passed": false,
+    "time_ms": 0.271,
+    "line": 111,
+    "code": "",
+    "checks": [
+      {
+        "line": 113,
+        "code_line": "count_digits(0.0)   == 0",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "count_digits(1.0)   == 1",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "count_digits(9.9)   == 1",
+        "passed": false
+      }
+    ],
+    "failures": [
+      {
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\mini_test.py",
+        "line": 418,
+        "code_line": "raise MiniTestAssertionError(msg)"
+      }
+    ]
   }
 ]

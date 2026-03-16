@@ -1,0 +1,42 @@
+[
+  {
+    "test_name": "Default Values",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 7,
+    "code": "",
+    "checks": [
+      {
+        "line": 8,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Runtime Modification",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 13,
+    "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();",
+    "checks": [
+      {
+        "line": 14,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "passed": true
+      },
+      {
+        "line": 16,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == true",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

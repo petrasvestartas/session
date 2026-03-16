@@ -262,7 +262,7 @@ onUnmounted(() => {
 }
 
 .sidebar {
-  width: 180px;
+  width: 220px;
   background: #000000;
   display: flex;
   flex-direction: column;
@@ -270,6 +270,7 @@ onUnmounted(() => {
   transition: width 0.2s;
   position: relative;
   z-index: 100;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -314,6 +315,14 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding-top: 1.8rem;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+
+.nav-section::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-button {

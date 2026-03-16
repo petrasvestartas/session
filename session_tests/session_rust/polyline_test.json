@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.054,
+    "time_ms": 0.085,
     "line": 613,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        // Constructor with points\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(1.0, 1.0, 0.0);\n        let p3 = Point::new(0.0, 1.0, 0.0);\n        let pl = Polyline::new(vec![p0, p1, p2, p3]);\n\n        // Basic properties\n        let point_count = pl.len();\n        let segment_count = pl.segment_count();\n        let is_empty = pl.is_empty();\n\n        // Get point\n        let pt = pl.get_point(1).unwrap().clone();\n\n        // Minimal and Full String Representation\n        let plstr = pl.to_string();\n        let plrepr = pl.repr();\n\n        // Copy (duplicates everything except guid)\n        let plcopy = pl.duplicate();\n        let plother = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        // No-copy operators\n        let mut plmult = pl.duplicate();\n        plmult *= 2.0;\n        let mut pldiv = pl.duplicate();\n        pldiv /= 2.0;\n        let mut pladd = pl.duplicate();\n        pladd += &Vector::new(1.0, 1.0, 1.0);\n        let mut plsub = pl.duplicate();\n        plsub -= &Vector::new(1.0, 1.0, 1.0);\n\n        // Copy operators\n        let rmul = pl.clone() * 2.0;\n        let rdiv = pl.clone() / 2.0;\n        let radd = pl.clone() + &Vector::new(1.0, 1.0, 1.0);\n        let rdif = pl.clone() - &Vector::new(1.0, 1.0, 1.0);\n\n        // Negation (reverse point order)\n        let plneg = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        let neg = -plneg;\n\n        // Polyline with custom color and width\n        let mut plc = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        plc.linecolor = Color::with_name(255, 0, 0, 255, \"red\");\n        plc.width = 2.5;\n\n",
     "checks": [
@@ -97,7 +97,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.015,
     "line": 698,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::Xform;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        pl.xform = Xform::translation(10.0, 0.0, 0.0);\n        let pl_transformed = pl.transformed();\n        pl.transform();\n\n",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.951,
+    "time_ms": 8.619,
     "line": 720,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n\n        let mut pl = Polyline::new(vec![\n            Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0),\n            Point::new(7.0, 8.0, 9.0), Point::new(10.0, 11.0, 12.0),\n        ]);\n        pl.name = \"test_polyline\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_polyline.json\";\n        json_dump(&pl, fname, true).unwrap();\n        let loaded: Polyline = json_load(fname).unwrap();\n\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.839,
+    "time_ms": 9.568,
     "line": 750,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0),\n            Point::new(7.0, 8.0, 9.0), Point::new(10.0, 11.0, 12.0),\n        ]);\n        pl.name = \"test_polyline\".to_string();\n\n        // pb_dump(fname) / pb_load(fname) - file-based serialization\n        let fname = \"serialization/test_polyline.bin\";\n        pl.pb_dump(fname);\n        let loaded = Polyline::pb_load(fname);\n\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Is Closed",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 815,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Open polyline\n        let open_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0)\n        ]);\n        let is_open = open_pl.is_closed();\n\n        // Closed polyline (first and last point same)\n        let closed_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0)\n        ]);\n        let is_closed = closed_pl.is_closed();\n\n",
     "checks": [
@@ -287,7 +287,7 @@
   {
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.017,
     "line": 870,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ]);\n        let test_pt = Point::new(1.0, 1.0, 0.0);\n        let (distance, edge_id, closest) = pl.closest_distance_and_point(&test_pt);\n\n\n",
     "checks": [
@@ -317,7 +317,7 @@
   {
     "test_name": "Extend Segment",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.012,
     "line": 892,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        pl.extend_segment(0, 0.5, 0.5, 0.0, 0.0);\n        let first = pl.get_points()[0][0];\n        let second = pl.get_points()[1][0];\n",
     "checks": [
@@ -337,7 +337,7 @@
   {
     "test_name": "Extend Segment Equally",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.014,
     "line": 910,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        pl.extend_segment_equally(0, 0.5, 0.0);\n        let first = pl.get_points()[0][0];\n        let second = pl.get_points()[1][0];\n",
     "checks": [
@@ -357,7 +357,7 @@
   {
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 928,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let points = pl.get_points();\n",
     "checks": [
@@ -412,7 +412,7 @@
   {
     "test_name": "Shift",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.005,
     "line": 951,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let mut pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n        ]);\n        pl.shift(1);\n        let first_after_shift = pl.get_points()[0][0];\n        pl.shift(-1);\n        let first_after_unshift = pl.get_points()[0][0];\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "Is Clockwise",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 985,
     "code": "        use crate::Polyline;\n        use crate::Point;\n        use crate::Plane;\n\n        // Clockwise square (when viewed from +Z)\n        let cw_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(1.0, 0.0, 0.0),\n        ]);\n        // Counter-clockwise square\n        let ccw_pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let plane = Plane::default();\n",
     "checks": [
@@ -472,7 +472,7 @@
   {
     "test_name": "Convex Corners",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.021,
     "line": 1008,
     "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let corners = pl.get_convex_corners();\n",
     "checks": [
@@ -524,6 +524,266 @@
       {
         "line": 1056,
         "code_line": "fast_origin[0] >= 0.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Grid Of Points",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 1125,
+    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Square 0..4 x 0..4 with div_dist=1\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pts = Polyline::grid_of_points_in_polygon(&poly, 0.0, 1.0, 200);\n        for p in &pts {",
+    "checks": [
+      {
+        "line": 1138,
+        "code_line": "pts.len() > 0",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "p[0] >= -1e-9 && p[0] <= 4.0 + 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "p[1] >= -1e-9 && p[1] <= 4.0 + 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Quick Hull",
+    "passed": true,
+    "time_ms": 0.026,
+    "line": 1084,
+    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Square with interior point\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), // interior, should be excluded\n        ]);\n        let hull = Polyline::quick_hull(&poly);",
+    "checks": [
+      {
+        "line": 1097,
+        "code_line": "hull.point_count() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Interpolate Points",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 1061,
+    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        let from = Point::new(0.0, 0.0, 0.0);\n        let to   = Point::new(4.0, 0.0, 0.0);\n\n        // type 0: no endpoints → 3 interior points\n        let pts0 = Polyline::interpolate_points(&from, &to, 3, 0);\n\n        // type 1: both endpoints → 5 points\n        let pts1 = Polyline::interpolate_points(&from, &to, 3, 1);",
+    "checks": [
+      {
+        "line": 1070,
+        "code_line": "pts0.len() == 3",
+        "passed": true
+      },
+      {
+        "line": 1071,
+        "code_line": "(pts0[0][0] - 1.0).abs() < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1072,
+        "code_line": "(pts0[1][0] - 2.0).abs() < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1073,
+        "code_line": "(pts0[2][0] - 3.0).abs() < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1077,
+        "code_line": "pts1.len() == 5",
+        "passed": true
+      },
+      {
+        "line": 1078,
+        "code_line": "(pts1[0][0] - 0.0).abs() < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1079,
+        "code_line": "(pts1[4][0] - 4.0).abs() < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Bounding Rectangle",
+    "passed": true,
+    "time_ms": 0.038,
+    "line": 1102,
+    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Axis-aligned rectangle\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let rect = Polyline::bounding_rectangle(&poly);\n        let r = rect.unwrap();\n        // First == last (closed)\n        let pts = r.get_points();",
+    "checks": [
+      {
+        "line": 1115,
+        "code_line": "rect.is_some()",
+        "passed": true
+      },
+      {
+        "line": 1117,
+        "code_line": "r.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 1120,
+        "code_line": "(pts[0][0] - pts[4][0]).abs() < 1e-6",
         "passed": true
       }
     ],

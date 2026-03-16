@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.008,
     "line": 8,
     "code": "    from session_py import knot\n\n    # Calculate knot counts for various order/cv_count combinations\n    count1 = knot.knot_count(2, 2)\n    count2 = knot.knot_count(3, 3)\n    count3 = knot.knot_count(4, 4)\n    count4 = knot.knot_count(4, 5)\n    count5 = knot.knot_count(3, 4)",
     "checks": [
@@ -37,7 +37,7 @@
   {
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.04,
     "line": 26,
     "code": "    from session_py import knot\n\n    # Basic clamped uniform knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    k_len = len(k)\n    k0, k1, k2 = k[0], k[1], k[2]\n    k3, k4, k5 = k[3], k[4], k[5]\n\n    # With custom delta\n    k2_vec = knot.make_clamped_uniform(3, 4, 2.5)\n    k2_len = len(k2_vec)\n    t0, t1 = knot.get_domain(3, 4, k2_vec)\n\n    # Invalid params\n    k_invalid1 = knot.make_clamped_uniform(1, 2, 1.0)\n    k_invalid2 = knot.make_clamped_uniform(4, 3, 1.0)",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.012,
     "line": 55,
     "code": "    from session_py import knot\n    import numpy as np\n\n    # Create periodic uniform knot vector\n    k = knot.make_periodic_uniform(3, 4, 1.0)\n    k_len = len(k)\n    k0, k1, k2, k3, k4 = k[0], k[1], k[2], k[3], k[4]",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.013,
     "line": 86,
     "code": "    from session_py import knot\n    import numpy as np\n\n    # Valid clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    valid = knot.is_valid(4, 4, k)\n\n    # Invalid - decreasing values\n    k_invalid = np.array([0.0, 0.0, 1.0, 0.5, 1.0, 1.0])\n    invalid = knot.is_valid(4, 4, k_invalid)",
     "checks": [
@@ -227,7 +227,7 @@
   {
     "test_name": "Set Domain",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.02,
     "line": 151,
     "code": "    from session_py import knot\n\n    # Create knot vector and set domain\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    set_result = knot.set_domain(4, 4, k, 5.0, 10.0)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_close = abs(t0 - 5.0) < 1e-10\n    t1_close = abs(t1 - 10.0) < 1e-10",
     "checks": [
@@ -252,7 +252,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.022,
     "line": 167,
     "code": "    from session_py import knot\n\n    # Reverse knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    t0_orig, t1_orig = knot.get_domain(4, 4, k)\n    reverse_result = knot.reverse(4, 4, k)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_preserved = abs(t0 - t0_orig) < 1e-10\n    t1_preserved = abs(t1 - t1_orig) < 1e-10",
     "checks": [
@@ -337,7 +337,7 @@
   {
     "test_name": "Greville Abcissae",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.021,
     "line": 233,
     "code": "    from session_py import knot\n\n    # Get Greville abcissae (control point parameter values)\n    k = knot.make_clamped_uniform(3, 4, 1.0)\n    g = knot.get_greville_abcissae(3, 4, k)\n    g_len = len(g)",
     "checks": [
@@ -352,7 +352,7 @@
   {
     "test_name": "Domain Tolerance",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 245,
     "code": "    from session_py import knot\n\n    # Calculate domain tolerance\n    tol_same = knot.domain_tolerance(1.0, 1.0)\n    tol_diff = knot.domain_tolerance(0.0, 1.0)",
     "checks": [
