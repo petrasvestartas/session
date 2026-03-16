@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.744,
+    "time_ms": 11.36,
     "line": 11,
     "code": "    Tree original(\"./serialization/test_tree\");\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto node1 = std::make_shared<TreeNode>(point1->guid);\n    original.add(node1, nullptr);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_tree.json\");\n    Tree loaded = encoders::json_load<Tree>(\"./serialization/test_tree.json\");\n",
     "checks": [

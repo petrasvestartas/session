@@ -37,7 +37,7 @@
   {
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 26,
     "code": "        use crate::knot;\n\n        // Basic clamped uniform knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n        let k5 = k[5];\n\n        // With custom delta\n        let k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n        let k2_len = k2_vec.len();\n        let (t0, t1) = knot::get_domain(3, 4, &k2_vec);\n\n        // Invalid params\n        let k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n        let k_invalid1_empty = k_invalid1.is_empty();\n        let k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);\n        let k_invalid2_empty = k_invalid2.is_empty();\n",
     "checks": [

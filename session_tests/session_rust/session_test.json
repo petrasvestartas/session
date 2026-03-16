@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.012,
     "line": 5,
     "code": "        use crate::Session;\n        let session = Session::default();",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Jsondump",
     "passed": true,
-    "time_ms": 0.292,
+    "time_ms": 0.613,
     "line": 14,
     "code": "        use crate::{Session, Point};\n        use crate::encoders::json_dump;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let data: serde_json::Value = serde_json::from_str(&json_str).unwrap();\n        json_dump(&session, \"serialization/test_session.json\", true).unwrap();",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Jsonload",
     "passed": true,
-    "time_ms": 0.116,
+    "time_ms": 0.201,
     "line": 35,
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let session2 = Session::jsonload(&json_str).unwrap();",
     "checks": [
@@ -82,7 +82,7 @@
   {
     "test_name": "File Io",
     "passed": true,
-    "time_ms": 13.01,
+    "time_ms": 14.645,
     "line": 52,
     "code": "        use crate::{Session, Point};\n        use std::fs;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let filename = \"serialization/test_session_roundtrip.json\";\n        let json_str = session.jsondump().unwrap();\n        fs::write(filename, &json_str).unwrap();\n        let loaded_str = fs::read_to_string(filename).unwrap();\n        let loaded_session = Session::jsonload(&loaded_str).unwrap();\n        fs::remove_file(filename).ok();",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.021,
     "line": 74,
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        session.add_point(point.clone());",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.031,
     "line": 86,
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");",
     "checks": [
@@ -147,7 +147,7 @@
   {
     "test_name": "Get Object",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.012,
     "line": 99,
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        session.add_point(point.clone());\n        let retrieved = session.get_object(&point.guid);",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "File Io Comprehensive",
     "passed": true,
-    "time_ms": 12.707,
+    "time_ms": 12.79,
     "line": 111,
     "code": "        use crate::{Session, Point};\n        use crate::encoders::{json_dump, json_load};\n        use std::fs;\n        let mut session = Session::new(\"./serialization/test_session\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"./serialization/test_connection\");\n        let filename = \"serialization/test_session_comprehensive.json\";\n        json_dump(&session, filename, true).unwrap();\n        let loaded_session: Session = json_load(filename).unwrap();\n        fs::remove_file(filename).ok();",
     "checks": [
@@ -197,7 +197,7 @@
   {
     "test_name": "Tree Transformation Hierarchy",
     "passed": true,
-    "time_ms": 0.247,
+    "time_ms": 0.259,
     "line": 133,
     "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        use std::f64::consts::PI;\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone());\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone());\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone());\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n\n        let expected_box1: [[f64; 3]; 8] = [\n            [1.36603, -0.366025, 0.0], [0.366025, 1.36603, 0.0],\n            [-1.36603, 0.366025, 0.0], [-0.366025, -1.36603, 0.0],\n            [1.36603, -0.366025, 2.0], [0.366025, 1.36603, 2.0],\n            [-1.36603, 0.366025, 2.0], [-0.366025, -1.36603, 2.0],\n        ];\n        let expected_box2: [[f64; 3]; 8] = [\n            [0.366025, 2.09808, 0.0], [-1.36603, 3.09808, 0.0],\n            [-2.36603, 1.36603, 0.0], [-0.633975, 0.366025, 0.0],\n            [0.366025, 2.09808, 2.0], [-1.36603, 3.09808, 2.0],\n            [-2.36603, 1.36603, 2.0], [-0.633975, 0.366025, 2.0],\n        ];\n        let expected_box3: [[f64; 3]; 8] = [\n            [-1.36603, 3.09808, 0.0], [-3.09808, 4.09808, 0.0],\n            [-4.09808, 2.36603, 0.0], [-2.36603, 1.36603, 0.0],\n            [-1.36603, 3.09808, 2.0], [-3.09808, 4.09808, 2.0],\n            [-4.09808, 2.36603, 2.0], [-2.36603, 1.36603, 2.0],\n        ];\n\n        let m1 = &transformed.meshes[0];\n        let mut vkeys1: Vec<usize> = m1.vertex.keys().copied().collect();\n        vkeys1.sort();\n        for i in 0..8 {\n            let v = &m1.vertex[&vkeys1[i]];\n\n        let m2 = &transformed.meshes[1];\n        let mut vkeys2: Vec<usize> = m2.vertex.keys().copied().collect();\n        vkeys2.sort();\n        for i in 0..8 {\n            let v = &m2.vertex[&vkeys2[i]];\n\n        let m3 = &transformed.meshes[2];\n        let mut vkeys3: Vec<usize> = m3.vertex.keys().copied().collect();\n        vkeys3.sort();\n        for i in 0..8 {\n            let v = &m3.vertex[&vkeys3[i]];\n\n        for mesh in &[m1, m2, m3] {",
     "checks": [

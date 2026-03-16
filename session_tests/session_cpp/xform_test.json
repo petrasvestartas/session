@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.024,
     "line": 14,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    });\n\n    // Minimal and Full String Representation\n    std::string xstr = x.str();\n    std::string xrepr = x.repr();\n\n    // Copy (duplicates everything except guid)\n    Xform xcopy = x;\n    Xform xother;\n\n    // Equality operators\n    bool x_eq = (x == xother);\n    bool x_ne = (x != xfrom);\n\n    // Matrix multiplication (*)\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scaling(2.0, 1.0, 1.0);\n    Xform combined = t * s;\n    Point p(1.0, 0.0, 0.0);\n    Point result = combined.transformed_point(p);\n\n    // In-place multiplication (*=)\n    Xform t2 = Xform::translation(10.0, 0.0, 0.0);\n    t2 *= s;\n    Point result2 = t2.transformed_point(p);\n\n    // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
     "checks": [
@@ -207,7 +207,7 @@
   {
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 158,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create composite transformation\n    Xform t = Xform::translation(1.0, 2.0, 3.0);\n    Xform s = Xform::scaling(2.0, 2.0, 2.0);\n    Xform composite = t * s;\n\n    // Compute inverse\n    auto inv_opt = composite.inverse();\n    Xform inv = inv_opt.value();\n\n    // Multiply should give identity\n    Xform result = composite * inv;\n",
     "checks": [
@@ -377,7 +377,7 @@
   {
     "test_name": "Plane To Plane",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 270,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"plane.h\"\n\n    // Source plane at origin, XY plane\n    Point origin_from(0.0, 0.0, 0.0);\n    Vector x_from(1.0, 0.0, 0.0);\n    Vector y_from(0.0, 1.0, 0.0);\n    Plane plane_from(origin_from, x_from, y_from);\n\n    // Target plane translated and rotated\n    Point origin_to(10.0, 0.0, 0.0);\n    Vector x_to(0.0, 1.0, 0.0);\n    Vector y_to(-1.0, 0.0, 0.0);\n    Plane plane_to(origin_to, x_to, y_to);\n\n    Xform xform = Xform::plane_to_plane(plane_from, plane_to);\n\n    // Origin of source should map to origin of target\n    Point p(0.0, 0.0, 0.0);\n    Point tp = xform.transformed_point(p);\n",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.111,
+    "time_ms": 10.079,
     "line": 319,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.json\";\n    xform.json_dump(filename);\n    Xform loaded = Xform::json_load(filename);\n",
     "checks": [
@@ -457,7 +457,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.186,
+    "time_ms": 7.728,
     "line": 344,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform_proto\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.bin\";\n    xform.pb_dump(filename);\n    Xform loaded = Xform::pb_load(filename);\n",
     "checks": [
