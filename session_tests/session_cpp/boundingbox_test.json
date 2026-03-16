@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.021,
     "line": 11,
     "code": "    // from_point\n    BoundingBox bb1 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 2.0);\n\n    // from_points (AABB)\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)};\n    BoundingBox bb2 = BoundingBox::from_points(pts);\n    Point mn = bb2.min_point();\n    Point mx = bb2.max_point();\n\n    // OBB constructor\n    BoundingBox obb(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 2.0, 3.0)\n    );\n\n    // aabb\n    BoundingBox bb_aabb = bb2.aabb();\n\n    // corners\n    std::array<Point, 8> corners = bb2.corners();\n\n    // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    Point p_center = bb2.point_at(0.0, 0.0, 0.0);\n    double hx = bb2.half_size[0], hy = bb2.half_size[1], hz = bb2.half_size[2];\n    Point p_max_pt = bb2.point_at(hx, hy, hz);\n\n    // inflate\n    BoundingBox bb3 = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)});\n    bb3.inflate(1.0);\n\n    // guid and name\n    bb1.name = \"test_bbox\";",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.134,
+    "time_ms": 10.487,
     "line": 91,
     "code": "    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    BoundingBox loaded_j = BoundingBox::jsonload(j);\n\n    // String\n    std::string s = bb.json_dumps();\n    BoundingBox loaded_s = BoundingBox::json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.json\";\n    bb.json_dump(fname);\n    BoundingBox loaded = BoundingBox::json_load(fname);",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.235,
+    "time_ms": 10.019,
     "line": 116,
     "code": "    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    BoundingBox loaded_s = BoundingBox::pb_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.bin\";\n    bb.pb_dump(fname);\n    BoundingBox loaded = BoundingBox::pb_load(fname);",
     "checks": [

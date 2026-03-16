@@ -127,7 +127,7 @@
   {
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 84,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);\n",
     "checks": [
@@ -287,7 +287,7 @@
   {
     "test_name": "Span Count",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 187,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Single Bezier span\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span1 = knot::span_count(4, 4, k);\n\n    // Multiple spans\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2 = knot::span_count(3, 5, k2);\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 202,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Find span in single-span knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span_0 = knot::find_span(4, 4, k, 0.0);\n    int span_mid = knot::find_span(4, 4, k, 0.5);\n    int span_1 = knot::find_span(4, 4, k, 1.0);\n\n    // Find span in multi-span knot vector\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2_0 = knot::find_span(3, 5, k2, 0.0);\n    int span2_mid = knot::find_span(3, 5, k2, 1.5);\n    int span2_end = knot::find_span(3, 5, k2, 2.5);\n",
     "checks": [
@@ -327,7 +327,7 @@
   {
     "test_name": "Greville Abcissae",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 221,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Get Greville abcissae (control point parameter values)\n    auto k = knot::make_clamped_uniform(3, 4, 1.0);\n    auto g = knot::get_greville_abcissae(3, 4, k);\n    size_t g_len = g.size();\n",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "Domain Tolerance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 232,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate domain tolerance\n    double tol_same = knot::domain_tolerance(1.0, 1.0);\n    double tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
     "checks": [

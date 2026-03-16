@@ -327,7 +327,7 @@
   {
     "test_name": "Greville Abcissae",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 250,
     "code": "        use crate::knot;\n\n        // Get Greville abcissae (control point parameter values)\n        let k = knot::make_clamped_uniform(3, 4, 1.0);\n        let g = knot::get_greville_abcissae(3, 4, &k, false);\n        let g_len = g.len();\n",
     "checks": [
