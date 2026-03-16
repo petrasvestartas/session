@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.421,
+    "time_ms": 11.826,
     "line": 7,
     "code": "    from session_py import Graph\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Graph(\"./serialization/test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [
