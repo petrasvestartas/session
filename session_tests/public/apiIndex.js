@@ -7144,6 +7144,7 @@ window.API_INDEX = {
         "Mesh.duplicate",
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.json_dump",
         "Mesh.json_dumps",
@@ -7164,6 +7165,7 @@ window.API_INDEX = {
         "Mesh.repr",
         "Mesh.str",
         "Mesh.transformed",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -7189,6 +7191,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.face_normals",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.guid",
         "Mesh.jsondump",
@@ -7210,6 +7213,7 @@ window.API_INDEX = {
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -7237,6 +7241,7 @@ window.API_INDEX = {
         "Mesh.clone_with_new_guid",
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.guid",
         "Mesh.linecolors",
@@ -7248,6 +7253,7 @@ window.API_INDEX = {
         "Mesh.pointcolors",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -7270,6 +7276,7 @@ window.API_INDEX = {
         "Mesh.duplicate",
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7281,6 +7288,7 @@ window.API_INDEX = {
         "Mesh.pointcolors",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -7304,6 +7312,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7312,6 +7321,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -7333,6 +7343,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7341,6 +7352,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -7362,6 +7374,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7370,6 +7383,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -7391,6 +7405,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7399,6 +7414,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.repr",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -7431,6 +7447,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.duplicate",
         "Mesh.edsq",
+        "Mesh.faces",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -7438,6 +7455,7 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.side_faces",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -7459,8 +7477,10 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.create_box",
+        "Mesh.faces",
         "Mesh.from_polylines",
-        "Mesh.from_vertices_and_faces"
+        "Mesh.from_vertices_and_faces",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7486,11 +7506,13 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.create_box",
+        "Mesh.faces",
         "Mesh.from_lines",
         "Mesh.from_polylines",
         "Mesh.get_vid",
         "Mesh.get_vkey",
-        "Mesh.new"
+        "Mesh.new",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7513,11 +7535,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.faces",
         "Mesh.from_lines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vid",
         "Mesh.get_vkey",
-        "Mesh.new"
+        "Mesh.new",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7688,6 +7712,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.edsq",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.get_open",
         "Mesh.is_empty",
@@ -7715,6 +7740,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.edsq",
+        "Mesh.faces",
         "Mesh.loft",
         "Mesh.proj",
         "Mesh.sarea",
@@ -7736,6 +7762,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.edsq",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
         "Mesh.loft",
@@ -7760,6 +7787,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.edsq",
+        "Mesh.faces",
         "Mesh.get_open",
         "Mesh.loft",
         "Mesh.proj",
@@ -7779,6 +7807,7 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.edsq",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_open",
         "Mesh.loft",
@@ -7786,7 +7815,8 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.proj",
         "Mesh.sarea",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7801,6 +7831,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.get_open",
         "Mesh.loft",
@@ -7809,7 +7840,8 @@ window.API_INDEX = {
         "Mesh.proj",
         "Mesh.sarea",
         "Mesh.side_faces",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7838,12 +7870,14 @@ window.API_INDEX = {
         "Mesh.edsq",
         "Mesh.face_centroid",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.from_polylines",
         "Mesh.is_empty",
         "Mesh.loft",
         "Mesh.new",
         "Mesh.side_faces",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7851,7 +7885,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]",
-          "code": "def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0",
+          "code": "def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7868,6 +7902,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -7877,9 +7912,9 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft",
         "Mesh.loft_many",
-        "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7887,7 +7922,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]",
-          "code": "def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count",
+          "code": "def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7904,6 +7939,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -7914,7 +7950,8 @@ window.API_INDEX = {
         "Mesh.loft",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7922,7 +7959,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_empty() -> bool",
-          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result",
+          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()",
           "file": "mesh.py"
         },
         "rust": {
@@ -7936,6 +7973,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.face_centroid",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polygon_with_holes_many",
@@ -7947,6 +7985,7 @@ window.API_INDEX = {
         "Mesh.loft",
         "Mesh.loft_many",
         "Mesh.loft_panels",
+        "Mesh.naked_edges",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
@@ -7955,6 +7994,7 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.unify_winding",
         "Mesh.vertex_normal_weighted",
+        "Mesh.vertices",
         "Mesh.weld"
       ]
     },
@@ -7963,7 +8003,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_valid() -> bool",
-          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):",
+          "code": "def is_valid(self) -> bool:\n\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7980,6 +8020,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -7991,7 +8032,8 @@ window.API_INDEX = {
         "Mesh.naked_edges",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.vertices"
       ]
     },
     {
@@ -7999,7 +8041,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_closed() -> bool",
-          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []",
+          "code": "def is_closed(self) -> bool:\n\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8016,6 +8058,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
@@ -8024,10 +8067,12 @@ window.API_INDEX = {
         "Mesh.is_vertex_on_boundary",
         "Mesh.loft_many",
         "Mesh.naked_edges",
+        "Mesh.naked_faces",
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.vertices"
       ]
     },
     {
@@ -8035,7 +8080,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_vertex_on_boundary(vertex_key: int) -> bool",
-          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []",
+          "code": "def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8051,7 +8096,9 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.edges",
+        "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -8065,7 +8112,8 @@ window.API_INDEX = {
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.vertices"
       ]
     },
     {
@@ -8073,7 +8121,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_edge_on_boundary(u: int, v: int) -> bool",
-          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()",
+          "code": "def is_edge_on_boundary(self, u: int, v: int) -> bool:\n\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8092,6 +8140,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -8105,7 +8154,9 @@ window.API_INDEX = {
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.pointcolors",
+        "Mesh.vertices"
       ]
     },
     {
@@ -8113,7 +8164,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_face_on_boundary(face_key: int) -> bool",
-          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()",
+          "code": "def is_face_on_boundary(self, face_key: int) -> bool:\n\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        return any(self.is_edge_on_boundary(u, v) for u, v in self.face_edges(face_key))\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8132,19 +8183,26 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.face_edges",
+        "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_empty",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
+        "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
-        "Mesh.number_of_vertices"
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.vertices",
+        "Mesh.widths"
       ]
     },
     {
@@ -8152,7 +8210,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_vertices() -> int",
-          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None",
+          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)",
           "file": "mesh.py"
         },
         "rust": {
@@ -8172,6 +8230,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.guid",
         "Mesh.is_closed",
@@ -8190,7 +8249,10 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_pointcolors",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8200,7 +8262,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_faces() -> int",
-          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)",
+          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)",
           "file": "mesh.py"
         },
         "rust": {
@@ -8220,6 +8282,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.guid",
         "Mesh.is_closed",
@@ -8238,8 +8301,235 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
         "Mesh.set_pointcolors",
         "Mesh.str",
+        "Mesh.vertices",
+        "Mesh.widths",
+        "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.vertices",
+      "implementations": {
+        "python": {
+          "sig": "vertices() -> List[int]",
+          "code": "def vertices(self) -> List[int]:\n\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<size_t> vertices()",
+          "code": "std::vector<size_t> Mesh::vertices() const {\n    std::vector<size_t> result;\n    result.reserve(vertex.size());\n    for (const auto& [k, _] : vertex)\n        result.push_back(k);\n    return result;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "vertices() -> Vec<usize>",
+          "code": "pub fn vertices(&self) -> Vec<usize> {\n        let mut keys: Vec<usize> = self.vertex.keys().cloned().collect();\n        keys.sort();\n        keys\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__jsondump__",
+        "Mesh.__jsonload__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.add_face",
+        "Mesh.add_vertex",
+        "Mesh.area",
+        "Mesh.build_triangle_bvh",
+        "Mesh.centroid",
+        "Mesh.clear",
+        "Mesh.clear_triangle_bvh",
+        "Mesh.create_box",
+        "Mesh.dihedral_angle",
+        "Mesh.duplicate",
+        "Mesh.edge_edges",
+        "Mesh.edge_faces",
+        "Mesh.edge_vertices",
+        "Mesh.edges",
+        "Mesh.edsq",
+        "Mesh.euler",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_edges",
+        "Mesh.face_neighbors",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_vertices",
+        "Mesh.facecolors",
+        "Mesh.faces",
+        "Mesh.find",
+        "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_triangle_by_id",
+        "Mesh.get_vkey",
+        "Mesh.guid",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_empty",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_valid",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_dump",
+        "Mesh.json_dumps",
+        "Mesh.json_load",
+        "Mesh.json_loads",
+        "Mesh.linecolors",
+        "Mesh.loft_many",
+        "Mesh.loft_panels",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dumps",
+        "Mesh.pb_fill",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.ray_cast_bvh",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
+        "Mesh.repr",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.side_faces",
+        "Mesh.str",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.transformed",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_index",
+        "Mesh.vertex_neighbors",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertex_position",
+        "Mesh.volume",
+        "Mesh.widths",
+        "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.faces",
+      "implementations": {
+        "python": {
+          "sig": "faces() -> List[int]",
+          "code": "def faces(self) -> List[int]:\n\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::vector<size_t> faces()",
+          "code": "std::vector<size_t> Mesh::faces() const {\n    std::vector<size_t> result;\n    result.reserve(face.size());\n    for (const auto& [k, _] : face)\n        result.push_back(k);\n    return result;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "faces() -> Vec<usize>",
+          "code": "pub fn faces(&self) -> Vec<usize> {\n        let mut keys: Vec<usize> = self.face.keys().cloned().collect();\n        keys.sort();\n        keys\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.add_face",
+        "Mesh.area",
+        "Mesh.build_triangle_bvh",
+        "Mesh.centroid",
+        "Mesh.clear",
+        "Mesh.clear_facecolors",
+        "Mesh.clear_linecolors",
+        "Mesh.clear_pointcolors",
+        "Mesh.create_box",
+        "Mesh.dihedral_angle",
+        "Mesh.duplicate",
+        "Mesh.edge_edges",
+        "Mesh.edge_faces",
+        "Mesh.edge_vertices",
+        "Mesh.edges",
+        "Mesh.edsq",
+        "Mesh.euler",
+        "Mesh.face_centroid",
+        "Mesh.face_edges",
+        "Mesh.face_neighbors",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_vertices",
+        "Mesh.facecolors",
+        "Mesh.from_polygon_with_holes_many",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_open",
+        "Mesh.get_pointcolors",
+        "Mesh.get_vkey",
+        "Mesh.guid",
+        "Mesh.is_closed",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_empty",
+        "Mesh.is_face_on_boundary",
+        "Mesh.is_valid",
+        "Mesh.is_vertex_on_boundary",
+        "Mesh.json_dump",
+        "Mesh.json_dumps",
+        "Mesh.json_load",
+        "Mesh.json_loads",
+        "Mesh.linecolors",
+        "Mesh.loft",
+        "Mesh.loft_many",
+        "Mesh.loft_panels",
+        "Mesh.naked_edges",
+        "Mesh.naked_faces",
+        "Mesh.naked_vertices",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pb_dumps",
+        "Mesh.pb_fill",
+        "Mesh.pb_loads",
+        "Mesh.pointcolors",
+        "Mesh.proj",
+        "Mesh.remove_edge",
+        "Mesh.remove_face",
+        "Mesh.remove_vertex",
+        "Mesh.repr",
+        "Mesh.sarea",
+        "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
+        "Mesh.set_pointcolors",
+        "Mesh.side_faces",
+        "Mesh.str",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.unify_winding",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_index",
+        "Mesh.vertex_neighbors",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertex_position",
+        "Mesh.vertices",
+        "Mesh.volume",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8249,7 +8539,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_edges() -> int",
-          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        count = 0\n        for u in self.halfedge:\n            for v in self.halfedge[u]:\n                edge = tuple(sorted([u, v]))\n                if edge not in seen:\n                    seen.add(edge)\n                    count += 1\n        return count\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)",
+          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8275,7 +8565,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
-        "Mesh.from_polygon_with_holes_many",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8298,7 +8588,10 @@ window.API_INDEX = {
         "Mesh.remove_vertex",
         "Mesh.repr",
         "Mesh.set_facecolors",
+        "Mesh.set_linecolors",
+        "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8308,7 +8601,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edges() -> List[Tuple[int, int]]",
-          "code": "def edges(self) -> List[Tuple[int, int]]:\n\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge not in seen:\n                    seen.add(edge)\n                    result.append(edge)\n        return result\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors",
+          "code": "def edges(self) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8341,7 +8634,11 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_vertices",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes_many",
+        "Mesh.get_facecolors",
+        "Mesh.get_linecolors",
+        "Mesh.get_pointcolors",
         "Mesh.guid",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
@@ -8379,6 +8676,7 @@ window.API_INDEX = {
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8388,7 +8686,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "naked_edges(boundary: bool = True) -> List[Tuple[int, int]]",
-          "code": "def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n\n        seen = set()\n        result = []\n        for u in sorted(self.halfedge.keys()):\n            for v in sorted(self.halfedge[u].keys()):\n                edge = (min(u, v), max(u, v))\n                if edge in seen:\n                    continue\n                seen.add(edge)\n                if self.is_edge_on_boundary(u, v) == boundary:\n                    result.append(edge)\n        return result\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):",
+          "code": "def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):",
           "file": "mesh.py"
         },
         "cpp": {
@@ -8407,11 +8705,13 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
+        "Mesh.is_empty",
         "Mesh.is_face_on_boundary",
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
@@ -8428,6 +8728,7 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8456,6 +8757,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8476,6 +8778,7 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8506,9 +8809,11 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
+        "Mesh.is_closed",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
         "Mesh.is_vertex_on_boundary",
@@ -8525,6 +8830,7 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8554,11 +8860,13 @@ window.API_INDEX = {
         "Mesh.clear_pointcolors",
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
+        "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
         "Mesh.naked_edges",
         "Mesh.naked_faces",
@@ -8573,6 +8881,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8605,6 +8914,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8624,6 +8934,7 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8650,6 +8961,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8659,12 +8971,14 @@ window.API_INDEX = {
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8691,6 +9005,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8699,12 +9014,15 @@ window.API_INDEX = {
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
         "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8731,6 +9049,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8739,12 +9058,15 @@ window.API_INDEX = {
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8771,6 +9093,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -8778,12 +9101,14 @@ window.API_INDEX = {
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
+        "Mesh.number_of_edges",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -8810,11 +9135,14 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
+        "Mesh.is_edge_on_boundary",
+        "Mesh.is_face_on_boundary",
         "Mesh.json_dumps",
         "Mesh.json_loads",
         "Mesh.jsondump",
@@ -8844,6 +9172,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.weld",
         "Mesh.widths",
         "Mesh.xform"
@@ -8873,10 +9202,12 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors_mut",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
+        "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
@@ -8904,6 +9235,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8931,10 +9263,12 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
+        "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors_mut",
@@ -8965,6 +9299,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -8989,8 +9324,10 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.linecolors",
@@ -9027,8 +9364,10 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
@@ -9065,8 +9404,10 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.edge_faces",
+        "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_pointcolors",
         "Mesh.linecolors",
@@ -9111,10 +9452,12 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
+        "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
@@ -9144,6 +9487,7 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
         "Mesh.unify_winding",
+        "Mesh.vertices",
         "Mesh.widths_mut",
         "Mesh.xform"
       ]
@@ -9175,10 +9519,12 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
         "Mesh.guid",
+        "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
         "Mesh.jsonload",
         "Mesh.linecolors",
@@ -9199,6 +9545,7 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
         "Mesh.unweld",
+        "Mesh.vertices",
         "Mesh.weld",
         "Mesh.widths",
         "Mesh.xform"
@@ -9225,6 +9572,7 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9267,6 +9615,7 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9308,6 +9657,7 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9355,6 +9705,7 @@ window.API_INDEX = {
         "Mesh.edge_faces",
         "Mesh.euler",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
@@ -9471,6 +9822,7 @@ window.API_INDEX = {
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.weld"
       ]
     },
@@ -9521,6 +9873,7 @@ window.API_INDEX = {
         "Mesh.strip_close",
         "Mesh.unify_winding",
         "Mesh.unweld",
+        "Mesh.vertices",
         "Mesh.weld"
       ]
     },
@@ -9554,6 +9907,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.edsq",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
@@ -9576,6 +9930,7 @@ window.API_INDEX = {
         "Mesh.strip_close",
         "Mesh.unify_winding",
         "Mesh.unweld",
+        "Mesh.vertices",
         "Mesh.weld",
         "Mesh.widths"
       ]
@@ -9606,6 +9961,7 @@ window.API_INDEX = {
         "Mesh.face_centroid",
         "Mesh.face_vertices",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.linecolors",
         "Mesh.number_of_edges",
@@ -9613,6 +9969,7 @@ window.API_INDEX = {
         "Mesh.remove_edge",
         "Mesh.remove_vertex",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -9640,6 +9997,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.face_centroid",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.linecolors",
         "Mesh.number_of_edges",
@@ -9648,6 +10006,7 @@ window.API_INDEX = {
         "Mesh.remove_face",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -9676,6 +10035,7 @@ window.API_INDEX = {
         "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.linecolors",
         "Mesh.new",
@@ -9686,6 +10046,7 @@ window.API_INDEX = {
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -9722,6 +10083,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.loft_panels",
         "Mesh.remove_edge",
@@ -9732,6 +10094,7 @@ window.API_INDEX = {
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -9769,6 +10132,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_normals",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.loft_panels",
         "Mesh.remove_edge",
@@ -9784,6 +10148,7 @@ window.API_INDEX = {
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -9815,6 +10180,7 @@ window.API_INDEX = {
         "Mesh.face_edges",
         "Mesh.face_neighbors",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.is_empty",
         "Mesh.loft_panels",
         "Mesh.new",
@@ -9824,7 +10190,8 @@ window.API_INDEX = {
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -9856,6 +10223,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.is_empty",
         "Mesh.loft_panels",
         "Mesh.new",
@@ -9865,7 +10233,8 @@ window.API_INDEX = {
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -9898,12 +10267,14 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.remove_edge",
         "Mesh.remove_vertex",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -9937,13 +10308,15 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.remove_edge",
         "Mesh.vertex_edges",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -9977,13 +10350,15 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.remove_edge",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10016,6 +10391,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.is_closed",
@@ -10031,7 +10407,8 @@ window.API_INDEX = {
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10065,13 +10442,15 @@ window.API_INDEX = {
         "Mesh.face_edges",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10105,13 +10484,15 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10151,6 +10532,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_vertices",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
@@ -10170,6 +10552,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume",
         "Mesh.widths"
       ]
@@ -10205,6 +10588,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
@@ -10213,7 +10597,8 @@ window.API_INDEX = {
         "Mesh.vertex_neighbors",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10247,6 +10632,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
@@ -10255,6 +10641,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -10288,6 +10675,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_normals",
+        "Mesh.faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
@@ -10327,6 +10715,7 @@ window.API_INDEX = {
         "Mesh.face_neighbors",
         "Mesh.face_normal",
         "Mesh.face_normals",
+        "Mesh.faces",
         "Mesh.is_empty",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
@@ -10371,6 +10760,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -10404,6 +10794,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.from_lines",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
@@ -10422,6 +10813,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -10452,13 +10844,15 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
-        "Mesh.vertex_position"
+        "Mesh.vertex_position",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10490,6 +10884,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.new",
         "Mesh.vertex_index",
@@ -10498,6 +10893,7 @@ window.API_INDEX = {
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
         "Mesh.vertex_position",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -10526,6 +10922,7 @@ window.API_INDEX = {
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_index",
@@ -10533,6 +10930,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.volume"
       ]
     },
@@ -10560,6 +10958,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.face_normal",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.new",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
@@ -10570,6 +10969,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.volume",
         "Mesh.xform"
       ]
@@ -10599,6 +10999,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.jsondump",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
@@ -10608,6 +11009,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.volume",
         "Mesh.xform"
       ]
@@ -10636,6 +11038,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.jsondump",
         "Mesh.new",
         "Mesh.to_vertices_and_faces",
@@ -10646,6 +11049,7 @@ window.API_INDEX = {
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
+        "Mesh.vertices",
         "Mesh.volume",
         "Mesh.xform"
       ]
@@ -10676,6 +11080,7 @@ window.API_INDEX = {
         "Mesh.face_area",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.jsondump",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
@@ -10684,6 +11089,7 @@ window.API_INDEX = {
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.volume",
         "Mesh.xform"
       ]
@@ -10713,6 +11119,7 @@ window.API_INDEX = {
         "Mesh.dihedral_angle",
         "Mesh.face_normals",
         "Mesh.face_vertices",
+        "Mesh.faces",
         "Mesh.jsondump",
         "Mesh.new",
         "Mesh.str",
@@ -10721,6 +11128,7 @@ window.API_INDEX = {
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -10757,6 +11165,7 @@ window.API_INDEX = {
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -10792,7 +11201,8 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted"
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10821,6 +11231,7 @@ window.API_INDEX = {
         "Mesh.vertex_index",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -10840,7 +11251,8 @@ window.API_INDEX = {
         "Mesh.json_load",
         "Mesh.json_loads",
         "Mesh.jsonload",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10866,6 +11278,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.json_dumps",
         "Mesh.json_load",
@@ -10874,7 +11287,8 @@ window.API_INDEX = {
         "Mesh.jsonload",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10900,6 +11314,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.json_dump",
         "Mesh.json_dumps",
@@ -10909,7 +11324,8 @@ window.API_INDEX = {
         "Mesh.new",
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10935,6 +11351,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.json_dump",
         "Mesh.json_load",
@@ -10944,7 +11361,8 @@ window.API_INDEX = {
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
         "Mesh.pointcolors",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.vertices"
       ]
     },
     {
@@ -10969,6 +11387,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsonload__",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.json_dump",
         "Mesh.json_dumps",
@@ -10978,7 +11397,8 @@ window.API_INDEX = {
         "Mesh.pb_dump",
         "Mesh.pb_dumps",
         "Mesh.pointcolors",
-        "Mesh.str"
+        "Mesh.str",
+        "Mesh.vertices"
       ]
     },
     {
@@ -11003,6 +11423,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.json_dump",
         "Mesh.json_dumps",
@@ -11014,6 +11435,7 @@ window.API_INDEX = {
         "Mesh.pb_dump",
         "Mesh.pointcolors",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -11030,12 +11452,14 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.linecolors",
         "Mesh.objectcolor",
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -11062,6 +11486,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.edges",
         "Mesh.facecolors",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.is_empty",
         "Mesh.linecolors",
@@ -11072,6 +11497,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pointcolors",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -41701,7 +42127,11 @@ window.API_INDEX = {
           "code": "static Mesh from_vertices_and_faces(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces);",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.faces",
+        "ColorMode.vertices"
+      ]
     },
     {
       "name": "ColorMode.from_polylines",
@@ -41867,7 +42297,10 @@ window.API_INDEX = {
           "code": "size_t number_of_vertices() const { return vertex.size(); }",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.vertices"
+      ]
     },
     {
       "name": "ColorMode.number_of_faces",
@@ -41877,7 +42310,10 @@ window.API_INDEX = {
           "code": "size_t number_of_faces() const { return face.size(); }",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.faces"
+      ]
     },
     {
       "name": "ColorMode.number_of_edges",
@@ -41903,14 +42339,41 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "ColorMode.to_vertices_and_faces",
+      "name": "ColorMode.vertices",
       "implementations": {
         "cpp": {
-          "sig": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces()",
-          "code": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces() const;",
+          "sig": "std::vector<size_t> vertices()",
+          "code": "std::vector<size_t> vertices() const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.add_face",
+        "ColorMode.edge_vertices",
+        "ColorMode.face_vertices",
+        "ColorMode.from_vertices_and_faces",
+        "ColorMode.naked_vertices",
+        "ColorMode.number_of_vertices",
+        "ColorMode.to_vertices_and_faces"
+      ]
+    },
+    {
+      "name": "ColorMode.faces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<size_t> faces()",
+          "code": "std::vector<size_t> faces() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.edge_faces",
+        "ColorMode.from_vertices_and_faces",
+        "ColorMode.naked_faces",
+        "ColorMode.number_of_faces",
+        "ColorMode.to_vertices_and_faces",
+        "ColorMode.vertex_faces"
+      ]
     },
     {
       "name": "ColorMode.edges",
@@ -41928,6 +42391,30 @@ window.API_INDEX = {
         "ColorMode.number_of_edges",
         "ColorMode.vertex_edges"
       ]
+    },
+    {
+      "name": "ColorMode.to_vertices_and_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces()",
+          "code": "std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> to_vertices_and_faces() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.faces",
+        "ColorMode.vertices"
+      ]
+    },
+    {
+      "name": "ColorMode.vertex_index",
+      "implementations": {
+        "cpp": {
+          "sig": "std::map<size_t, size_t> vertex_index()",
+          "code": "std::map<size_t, size_t> vertex_index() const;",
+          "file": "mesh.h"
+        }
+      }
     },
     {
       "name": "ColorMode.naked_edges",
@@ -41950,7 +42437,10 @@ window.API_INDEX = {
           "code": "std::vector<size_t> naked_vertices(bool boundary = true) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.vertices"
+      ]
     },
     {
       "name": "ColorMode.naked_faces",
@@ -41960,17 +42450,10 @@ window.API_INDEX = {
           "code": "std::vector<size_t> naked_faces(bool boundary = true) const;",
           "file": "mesh.h"
         }
-      }
-    },
-    {
-      "name": "ColorMode.vertex_index",
-      "implementations": {
-        "cpp": {
-          "sig": "std::map<size_t, size_t> vertex_index()",
-          "code": "std::map<size_t, size_t> vertex_index() const;",
-          "file": "mesh.h"
-        }
-      }
+      },
+      "related": [
+        "ColorMode.faces"
+      ]
     },
     {
       "name": "ColorMode.add_vertex",
@@ -41993,6 +42476,19 @@ window.API_INDEX = {
           "code": "std::optional<size_t> add_face(const std::vector<size_t>& vertices, std::optional<size_t> fkey = std::nullopt);",
           "file": "mesh.h"
         }
+      },
+      "related": [
+        "ColorMode.vertices"
+      ]
+    },
+    {
+      "name": "ColorMode.remove_vertex",
+      "implementations": {
+        "cpp": {
+          "sig": "void remove_vertex(size_t vkey)",
+          "code": "void remove_vertex(size_t vkey);",
+          "file": "mesh.h"
+        }
       }
     },
     {
@@ -42001,16 +42497,6 @@ window.API_INDEX = {
         "cpp": {
           "sig": "void remove_face(size_t fkey)",
           "code": "void remove_face(size_t fkey);",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "ColorMode.remove_vertex",
-      "implementations": {
-        "cpp": {
-          "sig": "void remove_vertex(size_t vkey)",
-          "code": "void remove_vertex(size_t vkey);",
           "file": "mesh.h"
         }
       }
@@ -42098,7 +42584,10 @@ window.API_INDEX = {
           "code": "std::optional<std::vector<size_t>> face_vertices(size_t face_key) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.vertices"
+      ]
     },
     {
       "name": "ColorMode.vertex_neighbors",
@@ -42118,7 +42607,10 @@ window.API_INDEX = {
           "code": "std::vector<size_t> vertex_faces(size_t vertex_key) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.faces"
+      ]
     },
     {
       "name": "ColorMode.vertex_edges",
@@ -42164,7 +42656,10 @@ window.API_INDEX = {
           "code": "std::array<size_t, 2> edge_vertices(size_t u, size_t v) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.vertices"
+      ]
     },
     {
       "name": "ColorMode.edge_faces",
@@ -42174,7 +42669,10 @@ window.API_INDEX = {
           "code": "std::pair<std::optional<size_t>, std::optional<size_t>> edge_faces(size_t u, size_t v) const;",
           "file": "mesh.h"
         }
-      }
+      },
+      "related": [
+        "ColorMode.faces"
+      ]
     },
     {
       "name": "ColorMode.edge_edges",
@@ -42746,9 +43244,11 @@ window.API_INDEX = {
       "related": [
         "Mesh.build_triangle_aabb_tree",
         "Mesh.clear",
+        "Mesh.faces",
         "Mesh.find",
         "Mesh.to_vertices_and_faces",
-        "Mesh.triangle_bvh_ray_cast"
+        "Mesh.triangle_bvh_ray_cast",
+        "Mesh.vertices"
       ]
     },
     {
@@ -42779,7 +43279,10 @@ window.API_INDEX = {
           "code": "bool Mesh::get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const {\n    if (tri_id < 0) return false;\n    size_t id = static_cast<size_t>(tri_id);\n    if (id >= triangle_indices_cache.size() || id >= triangle_face_subidx_cache.size()) return false;\n    const auto& tri = triangle_indices_cache[id];\n    const auto& fs = triangle_face_subidx_cache[id];\n    face_idx = fs.first;\n    sub_idx = fs.second;\n    if (tri.i0 >= vertices_cache.size() || tri.i1 >= vertices_cache.size() || tri.i2 >= vertices_cache.size()) return false;\n    v0 = vertices_cache[tri.i0];\n    v1 = vertices_cache[tri.i1];\n    v2 = vertices_cache[tri.i2];\n    return true;\n}",
           "file": "mesh.cpp"
         }
-      }
+      },
+      "related": [
+        "Mesh.vertices"
+      ]
     },
     {
       "name": "Mesh.clear_triangle_bvh",
@@ -42791,7 +43294,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.clear"
+        "Mesh.clear",
+        "Mesh.vertices"
       ]
     },
     {
@@ -42832,6 +43336,7 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.clone_with_new_guid",
         "Mesh.duplicate",
+        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polylines",
         "Mesh.guid",
@@ -42856,6 +43361,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -42881,11 +43387,13 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.duplicate",
         "Mesh.edges",
+        "Mesh.faces",
         "Mesh.guid",
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
         "Mesh.str",
+        "Mesh.vertices",
         "Mesh.xform"
       ]
     },
@@ -46658,6 +47166,7 @@ window.API_INDEX = {
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
         "Mesh.weld",
         "Mesh.widths",
         "Mesh.xform"
@@ -46743,7 +47252,8 @@ window.API_INDEX = {
       "related": [
         "Mesh.is_empty",
         "Mesh.new",
-        "Mesh.triangle_bvh_ray_cast"
+        "Mesh.triangle_bvh_ray_cast",
+        "Mesh.vertices"
       ]
     },
     {
@@ -49134,27 +49644,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [vertices, faces] = mesh.to_vertices_and_faces();\n        MINI_CHECK(faces.size() == n_faces);\n        MINI_CHECK(vertices.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((faces[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((faces[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((faces[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((faces[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((faces[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((faces[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 12);\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // sparse keys: key != index\n        Mesh mesh2;\n        size_t k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5);\n        size_t k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10);\n        MINI_CHECK(k0 == 0);\n        MINI_CHECK(k1 == 5);\n        MINI_CHECK(k2 == 10);\n        vertex_to_index = mesh2.vertex_index();\n        size_t v0 = vertex_to_index[0];\n        size_t v5 = vertex_to_index[5];\n        size_t v10 = vertex_to_index[10];\n        MINI_CHECK(v0  == 0);\n        MINI_CHECK(v5 == 1);\n        MINI_CHECK(v10 == 2);\n\n        // naked (closed box: no naked edges before removal)\n        MINI_CHECK(mesh.naked_edges(true).size() == 0);\n        MINI_CHECK(mesh.naked_faces(false).size() == 6);\n        // remove one face \u00e2\u20ac\u201d box becomes open, check naked\n        size_t fk0 = mesh.face.begin()->first;\n        mesh.remove_face(fk0);\n        auto ne = mesh.naked_edges(true);\n        MINI_CHECK(ne.size() == 4);\n        MINI_CHECK(ne[0] == std::make_pair(0ul, 1ul));\n        auto ni = mesh.naked_edges(false);\n        MINI_CHECK(ni.size() == 8);\n        auto nv = mesh.naked_vertices(true);\n        MINI_CHECK(nv.size() == 4);\n        auto nvi = mesh.naked_vertices(false);\n        MINI_CHECK(nvi.size() == 4);\n        auto nf = mesh.naked_faces(true);\n        MINI_CHECK(nf.size() == 4);\n        auto nfi = mesh.naked_faces(false);\n        MINI_CHECK(nfi.size() == 1);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Attributes\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n        MINI_CHECK(n_vertices == 8);\n\n        size_t n_faces = mesh.number_of_faces();\n        MINI_CHECK(n_faces == 6);\n\n        size_t n_edges = mesh.number_of_edges();\n        MINI_CHECK(n_edges == 12);\n\n        size_t euler = mesh.euler();\n        MINI_CHECK(euler == 2);\n\n        auto [pts, fidx] = mesh.to_vertices_and_faces();\n        MINI_CHECK(fidx.size() == n_faces);\n        MINI_CHECK(pts.size() == n_vertices);\n        MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)));\n        MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)));\n        MINI_CHECK((fidx[0] == std::vector<size_t>{0, 3, 2, 1}));\n        MINI_CHECK((fidx[1] == std::vector<size_t>{4, 5, 6, 7}));\n        MINI_CHECK((fidx[2] == std::vector<size_t>{0, 1, 5, 4}));\n        MINI_CHECK((fidx[3] == std::vector<size_t>{2, 3, 7, 6}));\n        MINI_CHECK((fidx[4] == std::vector<size_t>{0, 4, 7, 3}));\n        MINI_CHECK((fidx[5] == std::vector<size_t>{1, 2, 6, 5}));\n\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == n_vertices);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index[3] == 3);\n        MINI_CHECK(vertex_to_index[4] == 4);\n        MINI_CHECK(vertex_to_index[5] == 5);\n        MINI_CHECK(vertex_to_index[6] == 6);\n        MINI_CHECK(vertex_to_index[7] == 7);\n\n        // sparse keys via remove_vertex: key != index after removal\n        Mesh mesh2 = mesh;\n        size_t kr = mesh2.vertices()[3];\n        mesh2.remove_vertex(kr);\n        vertex_to_index = mesh2.vertex_index();\n        MINI_CHECK(vertex_to_index.size() == 7);\n        MINI_CHECK(vertex_to_index[0] == 0);\n        MINI_CHECK(vertex_to_index[1] == 1);\n        MINI_CHECK(vertex_to_index[2] == 2);\n        MINI_CHECK(vertex_to_index.count(3) == 0);\n        MINI_CHECK(vertex_to_index[4] == 3);\n        MINI_CHECK(vertex_to_index[5] == 4);\n        MINI_CHECK(vertex_to_index[6] == 5);\n        MINI_CHECK(vertex_to_index[7] == 6);\n\n        // vertices / faces / edges\n        auto vertices = mesh.vertices();\n        MINI_CHECK(vertices.size() == 8);\n        MINI_CHECK(vertices[0] == 0);\n        MINI_CHECK(vertices[1] == 1);\n        MINI_CHECK(vertices[2] == 2);\n        MINI_CHECK(vertices[3] == 3);\n        MINI_CHECK(vertices[4] == 4);\n        MINI_CHECK(vertices[5] == 5);\n        MINI_CHECK(vertices[6] == 6);\n        MINI_CHECK(vertices[7] == 7);\n        auto faces = mesh.faces();\n        MINI_CHECK(faces.size() == 6);\n        MINI_CHECK(faces[0] == 0);\n        MINI_CHECK(faces[1] == 1);\n        MINI_CHECK(faces[2] == 2);\n        MINI_CHECK(faces[3] == 3);\n        MINI_CHECK(faces[4] == 4);\n        MINI_CHECK(faces[5] == 5);\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 12);\n        MINI_CHECK(edges[0]  == std::make_pair(0ul, 1ul));\n        MINI_CHECK(edges[1]  == std::make_pair(0ul, 3ul));\n        MINI_CHECK(edges[2]  == std::make_pair(0ul, 4ul));\n        MINI_CHECK(edges[3]  == std::make_pair(1ul, 2ul));\n        MINI_CHECK(edges[4]  == std::make_pair(1ul, 5ul));\n        MINI_CHECK(edges[5]  == std::make_pair(2ul, 3ul));\n        MINI_CHECK(edges[6]  == std::make_pair(2ul, 6ul));\n        MINI_CHECK(edges[7]  == std::make_pair(3ul, 7ul));\n        MINI_CHECK(edges[8]  == std::make_pair(4ul, 5ul));\n        MINI_CHECK(edges[9]  == std::make_pair(4ul, 7ul));\n        MINI_CHECK(edges[10] == std::make_pair(5ul, 6ul));\n        MINI_CHECK(edges[11] == std::make_pair(6ul, 7ul));\n\n        // naked (closed box: no naked edges before removal)\n        MINI_CHECK(mesh.naked_edges(true).size() == 0);\n        MINI_CHECK(mesh.naked_faces(false).size() == 6);\n\n        // remove one face \u00e2\u20ac\u201d box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n        auto ne = mesh.naked_edges(true);\n        MINI_CHECK(ne.size() == 4);\n        MINI_CHECK(ne[0] == std::make_pair(0ul, 1ul));\n        auto ni = mesh.naked_edges(false);\n        MINI_CHECK(ni.size() == 8);\n        auto nv = mesh.naked_vertices(true);\n        MINI_CHECK(nv.size() == 4);\n        auto nvi = mesh.naked_vertices(false);\n        MINI_CHECK(nvi.size() == 4);\n        auto nf = mesh.naked_faces(true);\n        MINI_CHECK(nf.size() == 4);\n        auto nfi = mesh.naked_faces(false);\n        MINI_CHECK(nfi.size() == 1);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Attributes\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    vertices, faces = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(faces) == n_faces)\n    MINI_CHECK(len(vertices) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(vertices[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(faces[0] == [0, 3, 2, 1])\n    MINI_CHECK(faces[1] == [4, 5, 6, 7])\n    MINI_CHECK(faces[2] == [0, 1, 5, 4])\n    MINI_CHECK(faces[3] == [2, 3, 7, 6])\n    MINI_CHECK(faces[4] == [0, 4, 7, 3])\n    MINI_CHECK(faces[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # sparse keys: key != index\n    mesh2 = Mesh()\n    k0 = mesh2.add_vertex(Point(0.0, 0.0, 0.0))\n    k1 = mesh2.add_vertex(Point(1.0, 0.0, 0.0), 5)\n    k2 = mesh2.add_vertex(Point(0.0, 1.0, 0.0), 10)\n    MINI_CHECK(k0 == 0)\n    MINI_CHECK(k1 == 5)\n    MINI_CHECK(k2 == 10)\n    vertex_to_index = mesh2.vertex_index()\n    v0 = vertex_to_index[0]\n    v5 = vertex_to_index[5]\n    v10 = vertex_to_index[10]\n    MINI_CHECK(v0  == 0)\n    MINI_CHECK(v5  == 1)\n    MINI_CHECK(v10 == 2)\n\n    # naked (closed box: no naked edges before removal)\n    MINI_CHECK(len(mesh.naked_edges(True)) == 0)\n    MINI_CHECK(len(mesh.naked_faces(False)) == 6)\n    # remove one face \u00e2\u20ac\u201d box becomes open, check naked\n    fk0 = min(mesh.face.keys())\n    mesh.remove_face(fk0)\n    ne = mesh.naked_edges(True)\n    MINI_CHECK(len(ne) == 4)\n    MINI_CHECK(ne[0] == (0, 1))\n    ni = mesh.naked_edges(False)\n    MINI_CHECK(len(ni) == 8)\n    nv = mesh.naked_vertices(True)\n    MINI_CHECK(len(nv) == 4)\n    nvi = mesh.naked_vertices(False)\n    MINI_CHECK(len(nvi) == 4)\n    nf = mesh.naked_faces(True)\n    MINI_CHECK(len(nf) == 4)\n    nfi = mesh.naked_faces(False)\n    MINI_CHECK(len(nfi) == 1)",
-          "file": "mesh_test.py"
-        }
-      }
-    },
-    {
-      "name": "Mesh.test_Edges",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Mesh\", \"Edges\")",
-          "code": "MINI_TEST(\"Mesh\", \"Edges\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2, v3}, std::nullopt);\n\n        auto edges = mesh.edges();\n        MINI_CHECK(edges.size() == 4);\n        MINI_CHECK(edges[0] == std::make_pair(v0, v1));\n    }",
-          "file": "mesh_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 4)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (0, 1))",
+          "code": "@MINI_TEST(\"Mesh\", \"Attributes\")\ndef test_mesh_attributes():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n    MINI_CHECK(n_vertices == 8)\n\n    n_faces = mesh.number_of_faces()\n    MINI_CHECK(n_faces == 6)\n\n    n_edges = mesh.number_of_edges()\n    MINI_CHECK(n_edges == 12)\n\n    euler = mesh.euler()\n    MINI_CHECK(euler == 2)\n\n    pts, fidx = mesh.to_vertices_and_faces()\n    MINI_CHECK(len(fidx) == n_faces)\n    MINI_CHECK(len(pts) == n_vertices)\n    MINI_CHECK(TOLERANCE.is_point_close(pts[0], Point(-0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[1], Point( 0.5, -0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[2], Point( 0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[3], Point(-0.5,  0.5, -0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[4], Point(-0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[5], Point( 0.5, -0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[6], Point( 0.5,  0.5,  0.5)))\n    MINI_CHECK(TOLERANCE.is_point_close(pts[7], Point(-0.5,  0.5,  0.5)))\n    MINI_CHECK(fidx[0] == [0, 3, 2, 1])\n    MINI_CHECK(fidx[1] == [4, 5, 6, 7])\n    MINI_CHECK(fidx[2] == [0, 1, 5, 4])\n    MINI_CHECK(fidx[3] == [2, 3, 7, 6])\n    MINI_CHECK(fidx[4] == [0, 4, 7, 3])\n    MINI_CHECK(fidx[5] == [1, 2, 6, 5])\n\n    vertex_to_index = mesh.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == n_vertices)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(vertex_to_index[3] == 3)\n    MINI_CHECK(vertex_to_index[4] == 4)\n    MINI_CHECK(vertex_to_index[5] == 5)\n    MINI_CHECK(vertex_to_index[6] == 6)\n    MINI_CHECK(vertex_to_index[7] == 7)\n\n    # sparse keys via remove_vertex: key != index after removal\n    mesh2 = mesh.duplicate()\n    kr = mesh2.vertices()[3]\n    mesh2.remove_vertex(kr)\n    vertex_to_index = mesh2.vertex_index()\n    MINI_CHECK(len(vertex_to_index) == 7)\n    MINI_CHECK(vertex_to_index[0] == 0)\n    MINI_CHECK(vertex_to_index[1] == 1)\n    MINI_CHECK(vertex_to_index[2] == 2)\n    MINI_CHECK(3 not in vertex_to_index)\n    MINI_CHECK(vertex_to_index[4] == 3)\n    MINI_CHECK(vertex_to_index[5] == 4)\n    MINI_CHECK(vertex_to_index[6] == 5)\n    MINI_CHECK(vertex_to_index[7] == 6)\n\n    # vertices / faces / edges\n    vertices = mesh.vertices()\n    MINI_CHECK(len(vertices) == 8)\n    MINI_CHECK(vertices[0] == 0)\n    MINI_CHECK(vertices[1] == 1)\n    MINI_CHECK(vertices[2] == 2)\n    MINI_CHECK(vertices[3] == 3)\n    MINI_CHECK(vertices[4] == 4)\n    MINI_CHECK(vertices[5] == 5)\n    MINI_CHECK(vertices[6] == 6)\n    MINI_CHECK(vertices[7] == 7)\n    faces = mesh.faces()\n    MINI_CHECK(len(faces) == 6)\n    MINI_CHECK(faces[0] == 0)\n    MINI_CHECK(faces[1] == 1)\n    MINI_CHECK(faces[2] == 2)\n    MINI_CHECK(faces[3] == 3)\n    MINI_CHECK(faces[4] == 4)\n    MINI_CHECK(faces[5] == 5)\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(edges[0]  == (0, 1))\n    MINI_CHECK(edges[1]  == (0, 3))\n    MINI_CHECK(edges[2]  == (0, 4))\n    MINI_CHECK(edges[3]  == (1, 2))\n    MINI_CHECK(edges[4]  == (1, 5))\n    MINI_CHECK(edges[5]  == (2, 3))\n    MINI_CHECK(edges[6]  == (2, 6))\n    MINI_CHECK(edges[7]  == (3, 7))\n    MINI_CHECK(edges[8]  == (4, 5))\n    MINI_CHECK(edges[9]  == (4, 7))\n    MINI_CHECK(edges[10] == (5, 6))\n    MINI_CHECK(edges[11] == (6, 7))\n\n    # naked (closed box: no naked edges before removal)\n    MINI_CHECK(len(mesh.naked_edges(True)) == 0)\n    MINI_CHECK(len(mesh.naked_faces(False)) == 6)\n    # remove one face \u00e2\u20ac\u201d box becomes open, check naked\n    fk0 = mesh.faces()[0]\n    mesh.remove_face(fk0)\n    ne = mesh.naked_edges(True)\n    MINI_CHECK(len(ne) == 4)\n    MINI_CHECK(ne[0] == (0, 1))\n    ni = mesh.naked_edges(False)\n    MINI_CHECK(len(ni) == 8)\n    nv = mesh.naked_vertices(True)\n    MINI_CHECK(len(nv) == 4)\n    nvi = mesh.naked_vertices(False)\n    MINI_CHECK(len(nvi) == 4)\n    nf = mesh.naked_faces(True)\n    MINI_CHECK(len(nf) == 4)\n    nfi = mesh.naked_faces(False)\n    MINI_CHECK(len(nfi) == 1)",
           "file": "mesh_test.py"
         }
       }
@@ -49164,12 +49659,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n        // uncomment #include \"mesh.h\"\n\n        // add_vertex \u00e2\u20ac\u201d nullopt key auto-assigns sequentially from 0\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0), std::nullopt);\n        MINI_CHECK(v0 == 0);\n        MINI_CHECK(mesh.number_of_vertices() == 1);\n        MINI_CHECK(!mesh.is_empty());\n        size_t v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42);\n        MINI_CHECK(v1 == 42);\n        MINI_CHECK(mesh.number_of_vertices() == 2);\n\n        // add_face\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        std::optional<size_t> f = mesh.add_face({v0, v1, v2}, std::nullopt);\n        MINI_CHECK(f.has_value());\n        std::optional<size_t> invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n        MINI_CHECK(!invalid1.has_value());\n        std::optional<size_t> invalid2 = mesh.add_face({v0, v1, v0}, std::nullopt);\n        MINI_CHECK(!invalid2.has_value());\n\n        // clear\n        mesh.clear();\n        MINI_CHECK(mesh.is_empty());\n        MINI_CHECK(mesh.number_of_vertices() == 0);\n        MINI_CHECK(mesh.number_of_faces() == 0);\n\n        // unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n        size_t p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({p0, p1, p2}, std::nullopt);  // +z normal\n        size_t f1 = *mesh.add_face({p1, p2, p3}, std::nullopt);  // -z normal (wrong: same halfedge dir)\n\n        std::optional<Vector> n0_before = mesh.face_normal(f0);\n        std::optional<Vector> n1_before = mesh.face_normal(f1);\n        MINI_CHECK(n0_before.has_value() && n1_before.has_value());\n        MINI_CHECK(n0_before->dot(*n1_before) < 0.0);  // wrong: normals point opposite ways\n\n        mesh.unify_winding();\n\n        std::optional<Vector> n0_after = mesh.face_normal(f0);\n        std::optional<Vector> n1_after = mesh.face_normal(f1);\n        MINI_CHECK(n0_after.has_value() && n1_after.has_value());\n        MINI_CHECK(n0_after->dot(*n1_after) > 0.0);  // correct: normals agree\n\n        // unweld and weld\n        mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        Mesh u = mesh.unweld();\n        MINI_CHECK(u.number_of_vertices() == 24);\n\n        Mesh w = u.weld(0.001);\n        MINI_CHECK(w.number_of_vertices() == 8);\n        MINI_CHECK(w.number_of_faces() == 6);\n        for (const auto& [vk, _] : w.vertex)\n            MINI_CHECK(w.vertex_faces(vk).size() == 3);\n\n        // remove_face\n        Mesh mesh3;\n        size_t a0 = mesh3.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t a1 = mesh3.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t a2 = mesh3.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t a3 = mesh3.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t fa = *mesh3.add_face({a0, a1, a2, a3}, std::nullopt);\n        mesh3.remove_face(fa);\n        MINI_CHECK(mesh3.number_of_faces() == 0);\n        MINI_CHECK(mesh3.number_of_edges() == 0);\n        MINI_CHECK(mesh3.number_of_vertices() == 4);\n\n        // remove_vertex\n        Mesh mesh4;\n        size_t b0 = mesh4.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t b1 = mesh4.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t b2 = mesh4.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t b3 = mesh4.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh4.add_face({b0, b1, b2, b3}, std::nullopt);\n        mesh4.remove_vertex(b0);\n        MINI_CHECK(mesh4.vertex.find(b0) == mesh4.vertex.end());\n        MINI_CHECK(mesh4.number_of_faces() == 0);\n        MINI_CHECK(mesh4.number_of_vertices() == 3);\n\n        // remove_edge\n        Mesh mesh5;\n        size_t c0 = mesh5.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t c1 = mesh5.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t c2 = mesh5.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t c3 = mesh5.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t c4 = mesh5.add_vertex(Point(2.0, 0.0, 0.0), std::nullopt);\n        size_t c5 = mesh5.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        mesh5.add_face({c0, c1, c2, c3}, std::nullopt);\n        mesh5.add_face({c1, c4, c5, c2}, std::nullopt);\n        mesh5.remove_edge(c1, c2);\n        MINI_CHECK(mesh5.number_of_faces() == 0);\n        MINI_CHECK(mesh5.number_of_edges() == 0);\n        MINI_CHECK(mesh5.number_of_vertices() == 6);\n\n        // remove_face then check naked: 2-face mesh, remove one face, remaining face is naked\n        Mesh mesh6;\n        size_t d0 = mesh6.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t d1 = mesh6.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t d2 = mesh6.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t d3 = mesh6.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t d4 = mesh6.add_vertex(Point(2.0, 0.0, 0.0), std::nullopt);\n        size_t d5 = mesh6.add_vertex(Point(2.0, 1.0, 0.0), std::nullopt);\n        size_t fd0 = *mesh6.add_face({d0, d1, d2, d3}, std::nullopt);\n        mesh6.add_face({d1, d4, d5, d2}, std::nullopt);\n        mesh6.remove_face(fd0);\n        MINI_CHECK(mesh6.number_of_faces() == 1);\n        MINI_CHECK(mesh6.naked_edges(true).size() == 4);\n        MINI_CHECK(mesh6.naked_edges(false).size() == 0);\n        MINI_CHECK(mesh6.naked_faces(true).size() == 1);\n        MINI_CHECK(mesh6.naked_faces(false).size() == 0);\n\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Vertex and Face Operations\") {\n        // uncomment #include \"mesh.h\"\n\n        // Create Mesh\n        double hx = 0.5, hy = 0.5, hz = 0.5;\n        std::vector<Point> vertices = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 3, 2, 1},  // bottom\n            {4, 5, 6, 7},  // top\n            {0, 1, 5, 4},  // front\n            {2, 3, 7, 6},  // back\n            {0, 4, 7, 3},  // left\n            {1, 2, 6, 5},  // right\n        };\n\n        Mesh mesh = Mesh();\n\n        for (const auto& v : vertices)\n            mesh.add_vertex(v);\n\n        for (const auto& f : faces)\n            mesh.add_face(f);\n\n        // Remove\n        mesh.remove_vertex(0);\n\n        // size_t v0 = mesh.vertices()[0], v1 = mesh.vertices()[1];\n        // MINI_CHECK(!mesh.is_empty());\n        // MINI_CHECK(mesh.number_of_vertices() == 8);\n\n        // // add_face: invalid (too few vertices)\n        // std::optional<size_t> invalid1 = mesh.add_face({v0, v1}, std::nullopt);\n        // MINI_CHECK(!invalid1.has_value());\n        // // add_face: invalid (duplicate vertex)\n        // std::optional<size_t> invalid2 = mesh.add_face({v0, v1, v0}, std::nullopt);\n        // MINI_CHECK(!invalid2.has_value());\n\n        // // clear\n        // Mesh mesh2 = mesh;\n        // mesh2.clear();\n        // MINI_CHECK(mesh2.is_empty());\n        // MINI_CHECK(mesh2.number_of_vertices() == 0);\n        // MINI_CHECK(mesh2.number_of_faces() == 0);\n\n        // // unify_winding \u00e2\u20ac\u201d from_vertices_and_faces creates 2 triangles with mismatched normals\n        // std::vector<Point> pts = {{0,0,0}, {1,0,0}, {1,1,0}, {2,1,0}};\n        // Mesh mesh3 = Mesh::from_vertices_and_faces(pts, {{0,1,2}, {1,2,3}});\n        // auto fkeys3 = mesh3.faces();\n        // size_t f0 = fkeys3[0], f1 = fkeys3[1];\n        // std::optional<Vector> n0_before = mesh3.face_normal(f0);\n        // std::optional<Vector> n1_before = mesh3.face_normal(f1);\n        // MINI_CHECK(n0_before.has_value() && n1_before.has_value());\n        // MINI_CHECK(n0_before->dot(*n1_before) < 0.0);  // wrong: normals point opposite ways\n\n        // mesh3.unify_winding();\n\n        // std::optional<Vector> n0_after = mesh3.face_normal(f0);\n        // std::optional<Vector> n1_after = mesh3.face_normal(f1);\n        // MINI_CHECK(n0_after.has_value() && n1_after.has_value());\n        // MINI_CHECK(n0_after->dot(*n1_after) > 0.0);  // correct: normals agree\n\n        // // unweld and weld\n        // Mesh u = mesh.unweld();\n        // MINI_CHECK(u.number_of_vertices() == 24);\n\n        // Mesh w = u.weld(0.001);\n        // MINI_CHECK(w.number_of_vertices() == 8);\n        // MINI_CHECK(w.number_of_faces() == 6);\n        // for (const auto& [vk, _] : w.vertex)\n        //     MINI_CHECK(w.vertex_faces(vk).size() == 3);\n\n        // // remove_face\n        // Mesh mesh5 = mesh;\n        // size_t fa = mesh5.faces()[0];\n        // mesh5.remove_face(fa);\n        // MINI_CHECK(mesh5.number_of_faces() == 5);\n        // MINI_CHECK(mesh5.number_of_edges() == 12);\n        // MINI_CHECK(mesh5.number_of_vertices() == 8);\n\n        // // remove_vertex\n        // Mesh mesh6 = mesh;\n        // size_t vr = mesh6.vertices()[0];\n        // mesh6.remove_vertex(vr);\n        // auto vi6 = mesh6.vertex_index();\n        // MINI_CHECK(vi6.count(vr) == 0);\n        // MINI_CHECK(mesh6.number_of_faces() == 3);\n        // MINI_CHECK(mesh6.number_of_vertices() == 7);\n\n        // // remove_edge\n        // Mesh mesh7 = mesh;\n        // size_t ea = mesh7.vertices()[0], eb = mesh7.vertices()[1];\n        // mesh7.remove_edge(ea, eb);\n        // MINI_CHECK(mesh7.number_of_faces() == 4);\n        // MINI_CHECK(mesh7.number_of_edges() == 11);\n        // MINI_CHECK(mesh7.number_of_vertices() == 8);\n\n        // // remove_face then check naked: box minus one face \u00e2\u2020\u2019 5 faces with 4 naked edges\n        // Mesh mesh8 = mesh;\n        // size_t fd0 = mesh8.faces()[0];\n        // mesh8.remove_face(fd0);\n        // MINI_CHECK(mesh8.number_of_faces() == 5);\n        // MINI_CHECK(mesh8.naked_edges(true).size() == 4);\n        // MINI_CHECK(mesh8.naked_edges(false).size() == 8);\n        // MINI_CHECK(mesh8.naked_faces(true).size() == 4);\n        // MINI_CHECK(mesh8.naked_faces(false).size() == 1);\n\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    # add_vertex \u00e2\u20ac\u201d None key auto-assigns sequentially from 0\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(1.0, 2.0, 3.0))\n    MINI_CHECK(v0 == 0)\n    MINI_CHECK(mesh.number_of_vertices() == 1)\n    MINI_CHECK(not mesh.is_empty())\n    v1 = mesh.add_vertex(Point(4.0, 5.0, 6.0), 42)\n    MINI_CHECK(v1 == 42)\n    MINI_CHECK(mesh.number_of_vertices() == 2)\n\n    # add_face\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f = mesh.add_face([v0, v1, v2])\n    MINI_CHECK(f is not None)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh.clear()\n    MINI_CHECK(mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 0)\n    MINI_CHECK(mesh.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d two triangles sharing edge p1-p2, f1 has same-direction halfedge (wrong winding)\n    p0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    p1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    p2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    p3 = mesh.add_vertex(Point(2.0, 1.0, 0.0))\n    f0 = mesh.add_face([p0, p1, p2])  # +z normal\n    f1 = mesh.add_face([p1, p2, p3])  # -z normal (wrong: same halfedge dir)\n\n    n0_before = mesh.face_normal(f0)\n    n1_before = mesh.face_normal(f1)\n    MINI_CHECK(n0_before is not None and n1_before is not None)\n    MINI_CHECK(n0_before.dot(n1_before) < 0.0)  # wrong: normals point opposite ways\n\n    mesh.unify_winding()\n\n    n0_after = mesh.face_normal(f0)\n    n1_after = mesh.face_normal(f1)\n    MINI_CHECK(n0_after is not None and n1_after is not None)\n    MINI_CHECK(n0_after.dot(n1_after) > 0.0)  # correct: normals agree\n\n    # Unweld and weld\n    box = Mesh.create_box(1.0, 1.0, 1.0)\n    u = box.unweld()\n    MINI_CHECK(u.number_of_vertices() == 24)\n\n    w = u.weld(0.001)\n    MINI_CHECK(w.number_of_vertices() == 8)\n    MINI_CHECK(w.number_of_faces() == 6)\n    for vk in w.vertex:\n        MINI_CHECK(len(w.vertex_faces(vk)) == 3)\n\n    # remove_face\n    mesh3 = Mesh()\n    a0 = mesh3.add_vertex(Point(0.0, 0.0, 0.0))\n    a1 = mesh3.add_vertex(Point(1.0, 0.0, 0.0))\n    a2 = mesh3.add_vertex(Point(1.0, 1.0, 0.0))\n    a3 = mesh3.add_vertex(Point(0.0, 1.0, 0.0))\n    fa = mesh3.add_face([a0, a1, a2, a3])\n    mesh3.remove_face(fa)\n    MINI_CHECK(mesh3.number_of_faces() == 0)\n    MINI_CHECK(mesh3.number_of_edges() == 0)\n    MINI_CHECK(mesh3.number_of_vertices() == 4)\n\n    # remove_vertex\n    mesh4 = Mesh()\n    b0 = mesh4.add_vertex(Point(0.0, 0.0, 0.0))\n    b1 = mesh4.add_vertex(Point(1.0, 0.0, 0.0))\n    b2 = mesh4.add_vertex(Point(1.0, 1.0, 0.0))\n    b3 = mesh4.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh4.add_face([b0, b1, b2, b3])\n    mesh4.remove_vertex(b0)\n    MINI_CHECK(b0 not in mesh4.vertex)\n    MINI_CHECK(mesh4.number_of_faces() == 0)\n    MINI_CHECK(mesh4.number_of_vertices() == 3)\n\n    # remove_edge\n    mesh5 = Mesh()\n    c0 = mesh5.add_vertex(Point(0.0, 0.0, 0.0))\n    c1 = mesh5.add_vertex(Point(1.0, 0.0, 0.0))\n    c2 = mesh5.add_vertex(Point(1.0, 1.0, 0.0))\n    c3 = mesh5.add_vertex(Point(0.0, 1.0, 0.0))\n    c4 = mesh5.add_vertex(Point(2.0, 0.0, 0.0))\n    c5 = mesh5.add_vertex(Point(2.0, 1.0, 0.0))\n    mesh5.add_face([c0, c1, c2, c3])\n    mesh5.add_face([c1, c4, c5, c2])\n    mesh5.remove_edge(c1, c2)\n    MINI_CHECK(mesh5.number_of_faces() == 0)\n    MINI_CHECK(mesh5.number_of_edges() == 0)\n    MINI_CHECK(mesh5.number_of_vertices() == 6)\n\n    # remove_face then check naked: 2-face mesh, remove one face, remaining face is naked\n    mesh6 = Mesh()\n    d0 = mesh6.add_vertex(Point(0.0, 0.0, 0.0))\n    d1 = mesh6.add_vertex(Point(1.0, 0.0, 0.0))\n    d2 = mesh6.add_vertex(Point(1.0, 1.0, 0.0))\n    d3 = mesh6.add_vertex(Point(0.0, 1.0, 0.0))\n    d4 = mesh6.add_vertex(Point(2.0, 0.0, 0.0))\n    d5 = mesh6.add_vertex(Point(2.0, 1.0, 0.0))\n    fd0 = mesh6.add_face([d0, d1, d2, d3])\n    mesh6.add_face([d1, d4, d5, d2])\n    mesh6.remove_face(fd0)\n    MINI_CHECK(mesh6.number_of_faces() == 1)\n    MINI_CHECK(len(mesh6.naked_edges(True)) == 4)\n    MINI_CHECK(len(mesh6.naked_edges(False)) == 0)\n    MINI_CHECK(len(mesh6.naked_faces(True)) == 1)\n    MINI_CHECK(len(mesh6.naked_faces(False)) == 0)",
+          "code": "@MINI_TEST(\"Mesh\", \"Vertex and Face Operations\")\ndef test_mesh_vertex_and_face_operations():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    vkeys = mesh.vertices()\n    v0 = vkeys[0]\n    v1 = vkeys[1]\n    MINI_CHECK(not mesh.is_empty())\n    MINI_CHECK(mesh.number_of_vertices() == 8)\n\n    # add_face: invalid (too few vertices)\n    invalid1 = mesh.add_face([v0, v1])\n    MINI_CHECK(invalid1 is None)\n    # add_face: invalid (duplicate vertex)\n    invalid2 = mesh.add_face([v0, v1, v0])\n    MINI_CHECK(invalid2 is None)\n\n    # clear\n    mesh2 = mesh.duplicate()\n    mesh2.clear()\n    MINI_CHECK(mesh2.is_empty())\n    MINI_CHECK(mesh2.number_of_vertices() == 0)\n    MINI_CHECK(mesh2.number_of_faces() == 0)\n\n    # unify_winding \u00e2\u20ac\u201d from_vertices_and_faces creates 2 triangles with mismatched normals\n    pts = [Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(2,1,0)]\n    mesh3 = Mesh.from_vertices_and_faces(pts, [[0,1,2], [1,2,3]])\n    fkeys3 = mesh3.faces()\n    f0 = fkeys3[0]\n    f1 = fkeys3[1]\n    n0_before = mesh3.face_normal(f0)\n    n1_before = mesh3.face_normal(f1)\n    MINI_CHECK(n0_before is not None and n1_before is not None)\n    MINI_CHECK(n0_before.dot(n1_before) < 0.0)  # wrong: normals point opposite ways\n\n    mesh3.unify_winding()\n\n    n0_after = mesh3.face_normal(f0)\n    n1_after = mesh3.face_normal(f1)\n    MINI_CHECK(n0_after is not None and n1_after is not None)\n    MINI_CHECK(n0_after.dot(n1_after) > 0.0)  # correct: normals agree\n\n    # unweld and weld\n    u = mesh.unweld()\n    MINI_CHECK(u.number_of_vertices() == 24)\n\n    w = u.weld(0.001)\n    MINI_CHECK(w.number_of_vertices() == 8)\n    MINI_CHECK(w.number_of_faces() == 6)\n    for vk in w.vertex:\n        MINI_CHECK(len(w.vertex_faces(vk)) == 3)\n\n    # remove_face\n    mesh5 = mesh.duplicate()\n    fa = mesh5.faces()[0]\n    mesh5.remove_face(fa)\n    MINI_CHECK(mesh5.number_of_faces() == 5)\n    MINI_CHECK(mesh5.number_of_edges() == 12)\n    MINI_CHECK(mesh5.number_of_vertices() == 8)\n\n    # remove_vertex\n    mesh6 = mesh.duplicate()\n    vr = mesh6.vertices()[0]\n    mesh6.remove_vertex(vr)\n    vi6 = mesh6.vertex_index()\n    MINI_CHECK(vr not in vi6)\n    MINI_CHECK(mesh6.number_of_faces() == 3)\n    MINI_CHECK(mesh6.number_of_vertices() == 7)\n\n    # remove_edge\n    mesh7 = mesh.duplicate()\n    ea = mesh7.vertices()[0]\n    eb = mesh7.vertices()[1]\n    mesh7.remove_edge(ea, eb)\n    MINI_CHECK(mesh7.number_of_faces() == 4)\n    MINI_CHECK(mesh7.number_of_edges() == 11)\n    MINI_CHECK(mesh7.number_of_vertices() == 8)\n\n    # remove_face then check naked: box minus one face \u00e2\u2020\u2019 5 faces with 4 naked edges\n    mesh8 = mesh.duplicate()\n    fd0 = mesh8.faces()[0]\n    mesh8.remove_face(fd0)\n    MINI_CHECK(mesh8.number_of_faces() == 5)\n    MINI_CHECK(len(mesh8.naked_edges(True)) == 4)\n    MINI_CHECK(len(mesh8.naked_edges(False)) == 8)\n    MINI_CHECK(len(mesh8.naked_faces(True)) == 4)\n    MINI_CHECK(len(mesh8.naked_faces(False)) == 1)",
           "file": "mesh_test.py"
         }
       }
@@ -49179,12 +49674,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Connectivity Queries\")",
-          "code": "MINI_TEST(\"Mesh\", \"Connectivity Queries\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t v4 = mesh.add_vertex(Point(2.0, 0.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({v0, v1, v2, v3}, std::nullopt);\n        size_t f1 = *mesh.add_face({v1, v4, v2}, std::nullopt);\n\n        // vertex_position\n        std::optional<Point> pos = mesh.vertex_position(v0);\n        MINI_CHECK(pos.has_value());\n        MINI_CHECK(TOLERANCE.is_point_close(*pos, Point(0.0, 0.0, 0.0)));\n        MINI_CHECK(!mesh.vertex_position(999).has_value());\n\n        // face_vertices\n        std::optional<std::vector<size_t>> fv = mesh.face_vertices(f0);\n        MINI_CHECK(fv.has_value());\n        MINI_CHECK(fv->size() == 4);\n        MINI_CHECK((*fv)[0] == v0 && (*fv)[1] == v1 && (*fv)[2] == v2 && (*fv)[3] == v3);\n\n        // vertex_neighbors\n        std::vector<size_t> nb = mesh.vertex_neighbors(v1);\n        MINI_CHECK(nb.size() == 3);\n\n        // vertex_faces\n        std::vector<size_t> vf0 = mesh.vertex_faces(v0);\n        MINI_CHECK(vf0.size() == 1);\n        std::vector<size_t> vf1 = mesh.vertex_faces(v1);\n        MINI_CHECK(vf1.size() == 2);\n\n        // vertex_edges\n        std::vector<std::pair<size_t, size_t>> ve = mesh.vertex_edges(v1);\n        MINI_CHECK(ve.size() == 3);\n        std::set<std::pair<size_t, size_t>> ve_set(ve.begin(), ve.end());\n        MINI_CHECK(ve_set.contains({v1, v0}));\n        MINI_CHECK(ve_set.contains({v1, v2}));\n        MINI_CHECK(ve_set.contains({v1, v4}));\n\n        // face_edges\n        std::vector<std::pair<size_t, size_t>> fe = mesh.face_edges(f0);\n        MINI_CHECK(fe.size() == 4);\n        MINI_CHECK(fe[0] == std::make_pair(v0, v1));\n        MINI_CHECK(fe[1] == std::make_pair(v1, v2));\n        MINI_CHECK(fe[2] == std::make_pair(v2, v3));\n        MINI_CHECK(fe[3] == std::make_pair(v3, v0));\n\n        // face_neighbors\n        std::vector<size_t> fn0 = mesh.face_neighbors(f0);\n        MINI_CHECK(fn0.size() == 1);\n        MINI_CHECK(fn0[0] == f1);\n\n        // edge_vertices\n        std::array<size_t, 2> ev = mesh.edge_vertices(v0, v1);\n        MINI_CHECK(ev[0] == v0 && ev[1] == v1);\n\n        // edge_faces\n        std::pair<std::optional<size_t>, std::optional<size_t>> ef_inner = mesh.edge_faces(v1, v2);\n        MINI_CHECK(ef_inner.first.has_value() && ef_inner.second.has_value());\n        std::pair<std::optional<size_t>, std::optional<size_t>> ef_boundary = mesh.edge_faces(v0, v1);\n        MINI_CHECK(ef_boundary.first.has_value() != ef_boundary.second.has_value());\n\n        // edge_edges\n        std::vector<std::pair<size_t, size_t>> ee = mesh.edge_edges(v1, v2);\n        MINI_CHECK(ee.size() == 4);\n        std::set<std::pair<size_t, size_t>> ee_set(ee.begin(), ee.end());\n        MINI_CHECK(!ee_set.contains({v1, v2}));\n        MINI_CHECK(!ee_set.contains({v2, v1}));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Connectivity Queries\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0}, {2,0,0}};\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2,3}, {1,4,2}});\n        auto vi = mesh.vertex_index();\n        auto vkeys = mesh.vertices();\n        size_t v0 = vkeys[0], v1 = vkeys[1], v2 = vkeys[2], v3 = vkeys[3], v4 = vkeys[4];\n        auto fkeys = mesh.faces();\n        size_t f0 = fkeys[0], f1 = fkeys[1];\n\n        // vertex_position\n        std::optional<Point> pos = mesh.vertex_position(v0);\n        MINI_CHECK(pos.has_value());\n        MINI_CHECK(TOLERANCE.is_point_close(*pos, Point(0.0, 0.0, 0.0)));\n        MINI_CHECK(!mesh.vertex_position(999).has_value());\n\n        // face_vertices\n        std::optional<std::vector<size_t>> fv = mesh.face_vertices(f0);\n        MINI_CHECK(fv.has_value());\n        MINI_CHECK(fv->size() == 4);\n        MINI_CHECK((*fv)[0] == v0 && (*fv)[1] == v1 && (*fv)[2] == v2 && (*fv)[3] == v3);\n\n        // vertex_neighbors\n        std::vector<size_t> nb = mesh.vertex_neighbors(v1);\n        MINI_CHECK(nb.size() == 3);\n\n        // vertex_faces\n        std::vector<size_t> vf0 = mesh.vertex_faces(v0);\n        MINI_CHECK(vf0.size() == 1);\n        std::vector<size_t> vf1 = mesh.vertex_faces(v1);\n        MINI_CHECK(vf1.size() == 2);\n\n        // vertex_edges\n        std::vector<std::pair<size_t, size_t>> ve = mesh.vertex_edges(v1);\n        MINI_CHECK(ve.size() == 3);\n        std::set<std::pair<size_t, size_t>> ve_set(ve.begin(), ve.end());\n        MINI_CHECK(ve_set.contains({v1, v0}));\n        MINI_CHECK(ve_set.contains({v1, v2}));\n        MINI_CHECK(ve_set.contains({v1, v4}));\n\n        // face_edges\n        std::vector<std::pair<size_t, size_t>> fe = mesh.face_edges(f0);\n        MINI_CHECK(fe.size() == 4);\n        MINI_CHECK(fe[0] == std::make_pair(v0, v1));\n        MINI_CHECK(fe[1] == std::make_pair(v1, v2));\n        MINI_CHECK(fe[2] == std::make_pair(v2, v3));\n        MINI_CHECK(fe[3] == std::make_pair(v3, v0));\n\n        // face_neighbors\n        std::vector<size_t> fn0 = mesh.face_neighbors(f0);\n        MINI_CHECK(fn0.size() == 1);\n        MINI_CHECK(fn0[0] == f1);\n\n        // edge_vertices\n        std::array<size_t, 2> ev = mesh.edge_vertices(v0, v1);\n        MINI_CHECK(ev[0] == v0 && ev[1] == v1);\n\n        // edge_faces\n        std::pair<std::optional<size_t>, std::optional<size_t>> ef_inner = mesh.edge_faces(v1, v2);\n        MINI_CHECK(ef_inner.first.has_value() && ef_inner.second.has_value());\n        std::pair<std::optional<size_t>, std::optional<size_t>> ef_boundary = mesh.edge_faces(v0, v1);\n        MINI_CHECK(ef_boundary.first.has_value() != ef_boundary.second.has_value());\n\n        // edge_edges\n        std::vector<std::pair<size_t, size_t>> ee = mesh.edge_edges(v1, v2);\n        MINI_CHECK(ee.size() == 4);\n        std::set<std::pair<size_t, size_t>> ee_set(ee.begin(), ee.end());\n        MINI_CHECK(!ee_set.contains({v1, v2}));\n        MINI_CHECK(!ee_set.contains({v2, v1}));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Connectivity Queries\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Connectivity Queries\")\ndef test_mesh_connectivity_queries():\n    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v4 = mesh.add_vertex(Point(2.0, 0.0, 0.0))\n    f0 = mesh.add_face([v0, v1, v2, v3])\n    f1 = mesh.add_face([v1, v4, v2])\n\n    # vertex_position\n    pos = mesh.vertex_position(v0)\n    MINI_CHECK(pos is not None)\n    MINI_CHECK(TOLERANCE.is_point_close(pos, Point(0.0, 0.0, 0.0)))\n    MINI_CHECK(mesh.vertex_position(999) is None)\n\n    # face_vertices\n    fv = mesh.face_vertices(f0)\n    MINI_CHECK(fv is not None)\n    MINI_CHECK(len(fv) == 4)\n    MINI_CHECK(fv[0] == v0 and fv[1] == v1 and fv[2] == v2 and fv[3] == v3)\n\n    # vertex_neighbors\n    nb = mesh.vertex_neighbors(v1)\n    MINI_CHECK(len(nb) == 3)\n\n    # vertex_faces\n    vf0 = mesh.vertex_faces(v0)\n    MINI_CHECK(len(vf0) == 1)\n    vf1 = mesh.vertex_faces(v1)\n    MINI_CHECK(len(vf1) == 2)\n\n    # vertex_edges\n    ve = mesh.vertex_edges(v1)\n    MINI_CHECK(len(ve) == 3)\n    MINI_CHECK((v1, v0) in ve)\n    MINI_CHECK((v1, v2) in ve)\n    MINI_CHECK((v1, v4) in ve)\n\n    # face_edges\n    fe = mesh.face_edges(f0)\n    MINI_CHECK(len(fe) == 4)\n    MINI_CHECK(fe[0] == (v0, v1))\n    MINI_CHECK(fe[1] == (v1, v2))\n    MINI_CHECK(fe[2] == (v2, v3))\n    MINI_CHECK(fe[3] == (v3, v0))\n\n    # face_neighbors\n    fn0 = mesh.face_neighbors(f0)\n    MINI_CHECK(len(fn0) == 1)\n    MINI_CHECK(fn0[0] == f1)\n\n    # edge_vertices\n    ev = mesh.edge_vertices(v0, v1)\n    MINI_CHECK(ev[0] == v0 and ev[1] == v1)\n\n    # edge_faces\n    ef_inner = mesh.edge_faces(v1, v2)\n    MINI_CHECK(ef_inner[0] is not None and ef_inner[1] is not None)\n    ef_boundary = mesh.edge_faces(v0, v1)\n    MINI_CHECK((ef_boundary[0] is not None) != (ef_boundary[1] is not None))\n\n    # edge_edges\n    ee = mesh.edge_edges(v1, v2)\n    MINI_CHECK(len(ee) == 4)\n    MINI_CHECK((v1, v2) not in ee)\n    MINI_CHECK((v2, v1) not in ee)",
+          "code": "@MINI_TEST(\"Mesh\", \"Connectivity Queries\")\ndef test_mesh_connectivity_queries():\n    from session_py import Mesh\n    from session_py import Point\n\n    pts = [Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(2,0,0)]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,2,3], [1,4,2]])\n    vi = mesh.vertex_index()\n    vkeys = mesh.vertices()\n    v0 = vkeys[0]\n    v1 = vkeys[1]\n    v2 = vkeys[2]\n    v3 = vkeys[3]\n    v4 = vkeys[4]\n    fkeys = mesh.faces()\n    f0 = fkeys[0]\n    f1 = fkeys[1]\n\n    # vertex_position\n    pos = mesh.vertex_position(v0)\n    MINI_CHECK(pos is not None)\n    MINI_CHECK(TOLERANCE.is_point_close(pos, Point(0.0, 0.0, 0.0)))\n    MINI_CHECK(mesh.vertex_position(999) is None)\n\n    # face_vertices\n    fv = mesh.face_vertices(f0)\n    MINI_CHECK(fv is not None)\n    MINI_CHECK(len(fv) == 4)\n    MINI_CHECK(fv[0] == v0 and fv[1] == v1 and fv[2] == v2 and fv[3] == v3)\n\n    # vertex_neighbors\n    nb = mesh.vertex_neighbors(v1)\n    MINI_CHECK(len(nb) == 3)\n\n    # vertex_faces\n    vf0 = mesh.vertex_faces(v0)\n    MINI_CHECK(len(vf0) == 1)\n    vf1 = mesh.vertex_faces(v1)\n    MINI_CHECK(len(vf1) == 2)\n\n    # vertex_edges\n    ve = mesh.vertex_edges(v1)\n    MINI_CHECK(len(ve) == 3)\n    MINI_CHECK((v1, v0) in ve)\n    MINI_CHECK((v1, v2) in ve)\n    MINI_CHECK((v1, v4) in ve)\n\n    # face_edges\n    fe = mesh.face_edges(f0)\n    MINI_CHECK(len(fe) == 4)\n    MINI_CHECK(fe[0] == (v0, v1))\n    MINI_CHECK(fe[1] == (v1, v2))\n    MINI_CHECK(fe[2] == (v2, v3))\n    MINI_CHECK(fe[3] == (v3, v0))\n\n    # face_neighbors\n    fn0 = mesh.face_neighbors(f0)\n    MINI_CHECK(len(fn0) == 1)\n    MINI_CHECK(fn0[0] == f1)\n\n    # edge_vertices\n    ev = mesh.edge_vertices(v0, v1)\n    MINI_CHECK(ev[0] == v0 and ev[1] == v1)\n\n    # edge_faces\n    ef_inner = mesh.edge_faces(v1, v2)\n    MINI_CHECK(ef_inner[0] is not None and ef_inner[1] is not None)\n    ef_boundary = mesh.edge_faces(v0, v1)\n    MINI_CHECK((ef_boundary[0] is not None) != (ef_boundary[1] is not None))\n\n    # edge_edges\n    ee = mesh.edge_edges(v1, v2)\n    MINI_CHECK(len(ee) == 4)\n    MINI_CHECK((v1, v2) not in ee)\n    MINI_CHECK((v2, v1) not in ee)",
           "file": "mesh_test.py"
         }
       }
@@ -49194,12 +49689,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0), std::nullopt);\n        size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        size_t f0 = *mesh.add_face({v0, v1, v3}, std::nullopt);\n        (void)*mesh.add_face({v0, v3, v2}, std::nullopt);\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n        MINI_CHECK(fn.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fn)[2], 1.0));\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n        MINI_CHECK(vn.has_value());\n        MINI_CHECK(std::abs((*vn)[2]) == 1.0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n        MINI_CHECK(vnw.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*vnw)[2], 1.0));\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n        MINI_CHECK(area.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*area, 0.5));\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n        MINI_CHECK(angle.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0));\n        MINI_CHECK(!mesh.vertex_angle_in_face(999, f0).has_value());\n\n        // dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        MINI_CHECK(da.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*da, TOLERANCE.PI));\n        // boundary edge \u00e2\u20ac\u201d only one face\n        MINI_CHECK(!mesh.dihedral_angle(v0, v1).has_value());\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n        MINI_CHECK(fns.size() == 2);\n        MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0));\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n        MINI_CHECK(vns.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0));\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        MINI_CHECK(vnsw.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0));\n\n        // area\n        Mesh box = Mesh::create_box(2.0, 2.0, 2.0);\n        MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0));\n\n        // volume\n        MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}};\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,3}, {0,3,2}});\n        auto vi = mesh.vertex_index();\n        auto vkeys = mesh.vertices();\n        size_t v0 = vkeys[0], v1 = vkeys[1], v3 = vkeys[3];\n        size_t f0 = mesh.faces()[0];\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n        MINI_CHECK(fn.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fn)[2], 1.0));\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n        MINI_CHECK(vn.has_value());\n        MINI_CHECK(std::abs((*vn)[2]) == 1.0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n        MINI_CHECK(vnw.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*vnw)[2], 1.0));\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n        MINI_CHECK(area.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*area, 0.5));\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n        MINI_CHECK(angle.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0));\n        MINI_CHECK(!mesh.vertex_angle_in_face(999, f0).has_value());\n\n        // dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        MINI_CHECK(da.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*da, TOLERANCE.PI));\n        // boundary edge \u00e2\u20ac\u201d only one face\n        MINI_CHECK(!mesh.dihedral_angle(v0, v1).has_value());\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n        MINI_CHECK(fns.size() == 2);\n        MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0));\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n        MINI_CHECK(vns.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0));\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        MINI_CHECK(vnsw.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0));\n\n        // area\n        Mesh box = Mesh::create_box(2.0, 2.0, 2.0);\n        MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0));\n\n        // volume\n        MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")\ndef test_mesh_geometric_properties():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import NormalWeighting\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(-1.0, 0.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    f0 = mesh.add_face([v0, v1, v3])\n    f1 = mesh.add_face([v0, v3, v2])\n\n    # face_normal\n    fn = mesh.face_normal(f0)\n    MINI_CHECK(fn is not None)\n    MINI_CHECK(TOLERANCE.is_close(fn[2], 1.0))\n\n    # vertex_normal\n    vn = mesh.vertex_normal(v0)\n    MINI_CHECK(vn is not None)\n    MINI_CHECK(abs(vn[2]) == 1.0)\n\n    # vertex_normal_weighted\n    vnw = mesh.vertex_normal_weighted(v0, NormalWeighting.ANGLE)\n    MINI_CHECK(vnw is not None)\n    MINI_CHECK(TOLERANCE.is_close(vnw[2], 1.0))\n\n    # face_area\n    area = mesh.face_area(f0)\n    MINI_CHECK(area is not None)\n    MINI_CHECK(TOLERANCE.is_close(area, 0.5))\n\n    # vertex_angle_in_face\n    angle = mesh.vertex_angle_in_face(v0, f0)\n    MINI_CHECK(angle is not None)\n    MINI_CHECK(TOLERANCE.is_close(angle, TOLERANCE.PI / 2.0))\n    MINI_CHECK(mesh.vertex_angle_in_face(999, f0) is None)\n\n    # dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n    da = mesh.dihedral_angle(v3, v0)\n    MINI_CHECK(da is not None)\n    MINI_CHECK(TOLERANCE.is_close(da, TOLERANCE.PI))\n    # boundary edge \u00e2\u20ac\u201d only one face\n    MINI_CHECK(mesh.dihedral_angle(v0, v1) is None)\n\n    # face_normals\n    fns = mesh.face_normals()\n    MINI_CHECK(len(fns) == 2)\n    MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0))\n\n    # vertex_normals\n    vns = mesh.vertex_normals()\n    MINI_CHECK(len(vns) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0))\n\n    # vertex_normals_weighted\n    vnsw = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n    MINI_CHECK(len(vnsw) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0))\n\n    # area\n    box = Mesh.create_box(2.0, 2.0, 2.0)\n    MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0))\n\n    # volume\n    MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0))",
+          "code": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")\ndef test_mesh_geometric_properties():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import NormalWeighting\n\n    pts = [Point(0,0,0), Point(1,0,0), Point(-1,0,0), Point(0,1,0)]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,3], [0,3,2]])\n    vi = mesh.vertex_index()\n    vkeys = mesh.vertices()\n    v0 = vkeys[0]\n    v1 = vkeys[1]\n    v3 = vkeys[3]\n    f0 = mesh.faces()[0]\n\n    # face_normal\n    fn = mesh.face_normal(f0)\n    MINI_CHECK(fn is not None)\n    MINI_CHECK(TOLERANCE.is_close(fn[2], 1.0))\n\n    # vertex_normal\n    vn = mesh.vertex_normal(v0)\n    MINI_CHECK(vn is not None)\n    MINI_CHECK(abs(vn[2]) == 1.0)\n\n    # vertex_normal_weighted\n    vnw = mesh.vertex_normal_weighted(v0, NormalWeighting.ANGLE)\n    MINI_CHECK(vnw is not None)\n    MINI_CHECK(TOLERANCE.is_close(vnw[2], 1.0))\n\n    # face_area\n    area = mesh.face_area(f0)\n    MINI_CHECK(area is not None)\n    MINI_CHECK(TOLERANCE.is_close(area, 0.5))\n\n    # vertex_angle_in_face\n    angle = mesh.vertex_angle_in_face(v0, f0)\n    MINI_CHECK(angle is not None)\n    MINI_CHECK(TOLERANCE.is_close(angle, TOLERANCE.PI / 2.0))\n    MINI_CHECK(mesh.vertex_angle_in_face(999, f0) is None)\n\n    # dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n    da = mesh.dihedral_angle(v3, v0)\n    MINI_CHECK(da is not None)\n    MINI_CHECK(TOLERANCE.is_close(da, TOLERANCE.PI))\n    # boundary edge \u00e2\u20ac\u201d only one face\n    MINI_CHECK(mesh.dihedral_angle(v0, v1) is None)\n\n    # face_normals\n    fns = mesh.face_normals()\n    MINI_CHECK(len(fns) == 2)\n    MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0))\n\n    # vertex_normals\n    vns = mesh.vertex_normals()\n    MINI_CHECK(len(vns) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0))\n\n    # vertex_normals_weighted\n    vnsw = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n    MINI_CHECK(len(vnsw) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0))\n\n    # area\n    box = Mesh.create_box(2.0, 2.0, 2.0)\n    MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0))\n\n    # volume\n    MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0))",
           "file": "mesh_test.py"
         }
       }
@@ -49209,12 +49704,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Transformation\")",
-          "code": "MINI_TEST(\"Mesh\", \"Transformation\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n\n        // transform() \u00e2\u20ac\u201d apply stored xform in-place; xform field unchanged\n        Mesh mesh1 = mesh;\n        mesh1.xform = Xform::translation(0.0, 0.0, 1.0);\n        mesh1.transform();\n        MINI_CHECK(!mesh1.xform.is_identity());\n        MINI_CHECK((*mesh1.vertex_position(v0))[2] == 1.0);\n\n        // transform(const Xform&) \u00e2\u20ac\u201d apply given xform in-place; stored xform unchanged\n        Mesh mesh2 = mesh;\n        Xform x = Xform::translation(0.0, 0.0, 1.0);\n        mesh2.transform(x);\n        MINI_CHECK(mesh2.xform.is_identity());\n        MINI_CHECK((*mesh2.vertex_position(v0))[2] == 1.0);\n\n        // transformed() \u00e2\u20ac\u201d copy with stored xform applied\n        Mesh mesh3 = mesh;\n        mesh3.xform = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh3t = mesh3.transformed();\n        MINI_CHECK(!mesh3t.xform.is_identity());\n        MINI_CHECK((*mesh3t.vertex_position(v0))[2] == 10.0);\n\n        // transformed(const Xform&) \u00e2\u20ac\u201d copy with given xform applied\n        Mesh mesh4 = mesh;\n        x = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh4t = mesh4.transformed(x);\n        MINI_CHECK(mesh4t.xform.is_identity());\n        MINI_CHECK((*mesh4t.vertex_position(v0))[2] == 10.0);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Transformation\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {{0,0,0}, {1,0,0}, {0,1,0}};\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2}});\n        size_t v0 = mesh.vertices()[0];\n\n        // transform() \u00e2\u20ac\u201d apply stored xform in-place; xform field unchanged\n        Mesh mesh1 = mesh;\n        mesh1.xform = Xform::translation(0.0, 0.0, 1.0);\n        mesh1.transform();\n        MINI_CHECK(!mesh1.xform.is_identity());\n        MINI_CHECK((*mesh1.vertex_position(v0))[2] == 1.0);\n\n        // transform(const Xform&) \u00e2\u20ac\u201d apply given xform in-place; stored xform unchanged\n        Mesh mesh2 = mesh;\n        Xform x = Xform::translation(0.0, 0.0, 1.0);\n        mesh2.transform(x);\n        MINI_CHECK(mesh2.xform.is_identity());\n        MINI_CHECK((*mesh2.vertex_position(v0))[2] == 1.0);\n\n        // transformed() \u00e2\u20ac\u201d copy with stored xform applied\n        Mesh mesh3 = mesh;\n        mesh3.xform = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh3t = mesh3.transformed();\n        MINI_CHECK(!mesh3t.xform.is_identity());\n        MINI_CHECK((*mesh3t.vertex_position(v0))[2] == 10.0);\n\n        // transformed(const Xform&) \u00e2\u20ac\u201d copy with given xform applied\n        Mesh mesh4 = mesh;\n        x = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh4t = mesh4.transformed(x);\n        MINI_CHECK(mesh4t.xform.is_identity());\n        MINI_CHECK((*mesh4t.vertex_position(v0))[2] == 10.0);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Transformation\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Transformation\")\ndef test_mesh_transformation():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # transform() \u00e2\u20ac\u201d apply stored xform in-place; xform field unchanged\n    mesh1 = mesh.duplicate()\n    mesh1.xform = Xform.translation(0.0, 0.0, 1.0)\n    mesh1.transform()\n    MINI_CHECK(not mesh1.xform.is_identity())\n    MINI_CHECK(mesh1.vertex_position(v0)[2] == 1.0)\n\n    # transform(xf) \u00e2\u20ac\u201d apply given xform in-place; stored xform unchanged\n    mesh2 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 1.0)\n    mesh2.transform(x)\n    MINI_CHECK(mesh2.xform.is_identity())\n    MINI_CHECK(mesh2.vertex_position(v0)[2] == 1.0)\n\n    # transformed() \u00e2\u20ac\u201d copy with stored xform applied\n    mesh3 = mesh.duplicate()\n    mesh3.xform = Xform.translation(0.0, 0.0, 10.0)\n    mesh3t = mesh3.transformed()\n    MINI_CHECK(not mesh3t.xform.is_identity())\n    MINI_CHECK(mesh3t.vertex_position(v0)[2] == 10.0)\n\n    # transformed(xf) \u00e2\u20ac\u201d copy with given xform applied\n    mesh4 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 10.0)\n    mesh4t = mesh4.transformed(x)\n    MINI_CHECK(mesh4t.xform.is_identity())\n    MINI_CHECK(mesh4t.vertex_position(v0)[2] == 10.0)",
+          "code": "@MINI_TEST(\"Mesh\", \"Transformation\")\ndef test_mesh_transformation():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [Point(0,0,0), Point(1,0,0), Point(0,1,0)]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,2]])\n    v0 = mesh.vertices()[0]\n\n    # transform() \u00e2\u20ac\u201d apply stored xform in-place; xform field unchanged\n    mesh1 = mesh.duplicate()\n    mesh1.xform = Xform.translation(0.0, 0.0, 1.0)\n    mesh1.transform()\n    MINI_CHECK(not mesh1.xform.is_identity())\n    MINI_CHECK(mesh1.vertex_position(v0)[2] == 1.0)\n\n    # transform(xf) \u00e2\u20ac\u201d apply given xform in-place; stored xform unchanged\n    mesh2 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 1.0)\n    mesh2.transform(x)\n    MINI_CHECK(mesh2.xform.is_identity())\n    MINI_CHECK(mesh2.vertex_position(v0)[2] == 1.0)\n\n    # transformed() \u00e2\u20ac\u201d copy with stored xform applied\n    mesh3 = mesh.duplicate()\n    mesh3.xform = Xform.translation(0.0, 0.0, 10.0)\n    mesh3t = mesh3.transformed()\n    MINI_CHECK(not mesh3t.xform.is_identity())\n    MINI_CHECK(mesh3t.vertex_position(v0)[2] == 10.0)\n\n    # transformed(xf) \u00e2\u20ac\u201d copy with given xform applied\n    mesh4 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 10.0)\n    mesh4t = mesh4.transformed(x)\n    MINI_CHECK(mesh4t.xform.is_identity())\n    MINI_CHECK(mesh4t.vertex_position(v0)[2] == 10.0)",
           "file": "mesh_test.py"
         }
       }
@@ -49224,12 +49719,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh;\n        mesh.name = \"test_mesh\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n        std::vector<Color> fc;\n        fc.reserve(mesh.get_facecolors().size());\n        for (size_t i = 0; i < mesh.get_facecolors().size(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // JSON object\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n        MINI_CHECK(loaded_json.name == mesh.name);\n        MINI_CHECK(loaded_json.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_json.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_json.xform == mesh.xform);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)}};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        nlohmann::ordered_json pjson = pmesh.jsondump();\n        Mesh loaded_tri = Mesh::jsonload(pjson);\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // JSON object\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n        MINI_CHECK(loaded_json.name == mesh.name);\n        MINI_CHECK(loaded_json.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_json.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_json.xform == mesh.xform);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)}};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        nlohmann::ordered_json pjson = pmesh.jsondump();\n        Mesh loaded_tri = Mesh::jsonload(pjson);\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")\ndef test_mesh_json_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # JSON object\n    from session_py import Xform\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n    MINI_CHECK(loaded_json.name == mesh.name)\n    MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_json.xform == mesh.xform)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])",
+          "code": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")\ndef test_mesh_json_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh\"\n\n    # JSON object\n    from session_py import Xform\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n    MINI_CHECK(loaded_json.name == mesh.name)\n    MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_json.xform == mesh.xform)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])",
           "file": "mesh_test.py"
         }
       }
@@ -49239,12 +49734,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n        \n        Mesh mesh;\n        mesh.name = \"test_mesh_proto\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0), std::nullopt);\n        size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0), std::nullopt);\n        size_t v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0), std::nullopt);\n        mesh.add_face({v0, v1, v2}, std::nullopt);\n        std::vector<Color> fc;\n        fc.reserve(mesh.get_facecolors().size());\n        for (size_t i = 0; i < mesh.get_facecolors().size(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_string.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_file.guid == mesh.guid);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)}};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_string.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_file.guid == mesh.guid);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)}};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")\ndef test_mesh_protobuf_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh()\n    mesh.name = \"test_mesh_proto\"\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2])\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_file.guid == mesh.guid)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")\ndef test_mesh_protobuf_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh_proto\"\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_file.guid == mesh.guid)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "mesh_test.py"
         }
       }
@@ -51425,6 +51920,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Mesh.test_Edges",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    v0 = mesh.vertices()[0]\n    v1 = mesh.vertices()[1]\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (v0, v1))",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
       "name": "Primitives.test_Mesh Edge Pipes",
       "implementations": {
         "python": {
@@ -51439,10 +51944,10 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
-        "into",
         "circle",
+        "subdivide",
         "n",
+        "into",
         "points",
         "divide_by_count",
         "nurbscurve",
@@ -51457,11 +51962,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "length",
+        "subdivide",
+        "ellipse",
         "arc",
         "by",
-        "ellipse",
-        "subdivide",
-        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -51475,9 +51980,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "through",
         "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -51491,11 +51996,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "from",
         "curve",
+        "adaptive",
         "open",
         "polyline",
-        "from",
-        "adaptive",
         "points",
         "to_polyline_adaptive",
         "create",
@@ -51511,10 +52016,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "parameter",
-        "at",
         "curve",
+        "at",
+        "parameter",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -51533,10 +52038,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
-        "frames",
         "curve",
         "along",
+        "frames",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -51558,9 +52063,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
-        "frames",
         "ellipse",
+        "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -51581,9 +52086,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "evaluate",
         "surface",
+        "evaluate",
+        "point",
         "cylinder",
         "point_at",
         "cylinder_surface",
@@ -51599,11 +52104,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
-        "mesh",
-        "and",
-        "from",
         "faces",
+        "from",
+        "and",
+        "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -52173,7 +52678,9 @@ window.API_INDEX = {
       "Xform.__ne__"
     ],
     "vertices": [
-      "Edge.vertices"
+      "Edge.vertices",
+      "Mesh.vertices",
+      "ColorMode.vertices"
     ],
     "connects": [
       "Edge.connects"
@@ -52616,6 +53123,10 @@ window.API_INDEX = {
     "number_of_faces": [
       "Mesh.number_of_faces",
       "ColorMode.number_of_faces"
+    ],
+    "faces": [
+      "Mesh.faces",
+      "ColorMode.faces"
     ],
     "edges": [
       "Mesh.edges",
