@@ -2,7 +2,7 @@
   {
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 7,
     "code": "        use crate::knot;\n\n        // Calculate knot counts for various order/cv_count combinations\n        let count1 = knot::knot_count(2, 2);\n        let count2 = knot::knot_count(3, 3);\n        let count3 = knot::knot_count(4, 4);\n        let count4 = knot::knot_count(4, 5);\n        let count5 = knot::knot_count(3, 4);\n",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 180,
     "code": "        use crate::knot;\n\n        // Reverse knot vector\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0_orig, t1_orig) = knot::get_domain(4, 4, &k);\n        let reverse_result = knot::reverse(4, 4, &mut k);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_preserved = (t0 - t0_orig).abs() < 1e-10;\n        let t1_preserved = (t1 - t1_orig).abs() < 1e-10;\n",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 229,
     "code": "        use crate::knot;\n\n        // Find span in single-span knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span_0 = knot::find_span(4, 4, &k, 0.0);\n        let span_mid = knot::find_span(4, 4, &k, 0.5);\n        let span_1 = knot::find_span(4, 4, &k, 1.0);\n\n        // Find span in multi-span knot vector\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2_0 = knot::find_span(3, 5, &k2, 0.0);\n        let span2_mid = knot::find_span(3, 5, &k2, 1.5);\n        let span2_end = knot::find_span(3, 5, &k2, 2.5);\n",
     "checks": [

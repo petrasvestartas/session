@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.876,
+    "time_ms": 7.944,
     "line": 10,
     "code": "    Edge original(\"./serialization/test_edge\", \"v0\", \"v1\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_edge.json\");\n    Edge loaded = encoders::json_load<Edge>(\"./serialization/test_edge.json\");\n\n    std::filesystem::remove(\"./serialization/test_edge.json\");",
     "checks": [

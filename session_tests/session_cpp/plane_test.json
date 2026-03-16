@@ -222,7 +222,7 @@
   {
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 127,
     "code": "    // uncomment #include \"plane.h\"\n\n    // Reverse flips normal and swaps x/y axes\n    Plane pl = Plane::xy_plane();\n    pl.reverse();\n",
     "checks": [
@@ -267,7 +267,7 @@
   {
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 143,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotate plane 90 degrees around its normal\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);\n",
     "checks": [
@@ -282,7 +282,7 @@
   {
     "test_name": "Is Right Hand",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 154,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // All standard planes should be right-handed\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n    Plane default_pl;\n\n    bool xy_rh = xy.is_right_hand();\n    bool yz_rh = yz.is_right_hand();\n    bool xz_rh = xz.is_right_hand();\n    bool default_rh = default_pl.is_right_hand();\n\n    // After reverse, should still be right-handed\n    default_pl.reverse();\n    bool reversed_rh = default_pl.is_right_hand();\n\n    // After rotate, should still be right-handed\n    default_pl.rotate(Tolerance::PI / 4.0);\n    bool rotated_rh = default_pl.is_right_hand();\n",
     "checks": [
@@ -322,7 +322,7 @@
   {
     "test_name": "Is Coplanar",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.016,
     "line": 185,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    // Same direction (parallel planes)\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    bool same_dir = Plane::is_same_direction(p1, p2, true);\n\n    // Flipped direction\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();\n    bool same_dir_flipped = Plane::is_same_direction(p1, p3, true);\n    bool same_dir_strict = Plane::is_same_direction(p1, p3, false);\n\n    // Same position\n    Plane p4 = Plane::xy_plane();\n    bool same_pos = Plane::is_same_position(p1, p4);\n    p4 += Vector(0.0, 0.0, 1.0);\n    bool diff_pos = Plane::is_same_position(p1, p4);\n\n    // Coplanar\n    Plane p5 = Plane::xy_plane();\n    Plane p6 = Plane::xy_plane();\n    bool coplanar = Plane::is_coplanar(p5, p6, true);\n    p6.reverse();\n    bool coplanar_reversed = Plane::is_coplanar(p5, p6, true);\n    p6 += Vector(0.0, 0.0, 1.0);\n    bool not_coplanar = Plane::is_coplanar(p5, p6, true);\n",
     "checks": [
@@ -427,7 +427,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.651,
+    "time_ms": 10.23,
     "line": 250,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);\n",
     "checks": [
@@ -452,7 +452,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.463,
+    "time_ms": 8.926,
     "line": 272,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);\n",
     "checks": [
