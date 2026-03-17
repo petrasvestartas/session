@@ -17,7 +17,7 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 12,
     "code": "        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.reset();",
     "checks": [

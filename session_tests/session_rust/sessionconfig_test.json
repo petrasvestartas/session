@@ -2,7 +2,7 @@
   {
     "test_name": "Default Values",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 7,
     "code": "",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 13,
     "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();",
     "checks": [

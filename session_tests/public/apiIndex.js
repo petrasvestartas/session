@@ -35398,7 +35398,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "temporary(**kwargs)",
-          "code": "def temporary(self, **kwargs):\n\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:",
+          "code": "def temporary(self, **kwargs):\n\n        \"\"\"Context manager for temporarily changing tolerance settings.\"\"\"\n        saved = {\n            \"_unit\": self._unit,\n            \"_absolute\": self._absolute,\n            \"_relative\": self._relative,\n            \"_angular\": self._angular,\n            \"_approximation\": self._approximation,\n            \"_precision\": self._precision,\n            \"_lineardeflection\": self._lineardeflection,\n            \"_angulardeflection\": self._angulardeflection,\n        }\n        try:\n            for k, v in kwargs.items():\n                setattr(self, k, v)\n            yield self\n        finally:\n            for k, v in saved.items():\n                setattr(self, k, v)\n\n    @staticmethod\n    def round_to(value, ndigits):\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -35444,7 +35444,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "round_to(value, ndigits)",
-          "code": "def round_to(value, ndigits):\n\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def round_to(value, ndigits):\n\n        factor = 10 ** ndigits\n        return round(value * factor) / factor\n\n    def __repr__(self):\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -35489,7 +35489,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def __repr__(self):\n\n        return f\"Tolerance(unit='{self.unit}', absolute={self.absolute}, relative={self.relative}, angular={self.angular}, approximation={self.approximation}, precision={self.precision}, lineardeflection={self.lineardeflection}, angulardeflection={self.angulardeflection})\"\n\n\ndef is_finite(x):\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35523,7 +35523,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_finite(x)",
-          "code": "def is_finite(x):\n\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def is_finite(x):\n\n    \"\"\"Test if a number is finite (equivalent to C++ IS_FINITE function).\"\"\"\n    return math.isfinite(x)\n\n\n# Global tolerance instance\nTOLERANCE = Tolerance()\n\n\n# \u00e2\u201d\u20ac\u00e2\u201d\u20ac Math utilities (ported from cgal_math_util) \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n\ndef unique_from_two_int(a: int, b: int) -> int:\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         },
         "cpp": {
@@ -35554,7 +35554,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "unique_from_two_int(a: int, b: int) -> int",
-          "code": "def unique_from_two_int(a: int, b: int) -> int:\n\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def unique_from_two_int(a: int, b: int) -> int:\n\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35578,7 +35578,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "wrap_index(index: int, n: int) -> int",
-          "code": "def wrap_index(index: int, n: int) -> int:\n\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def wrap_index(index: int, n: int) -> int:\n\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35601,7 +35601,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float",
-          "code": "def triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35623,7 +35623,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "rad_to_deg(radians: float) -> float",
-          "code": "def rad_to_deg(radians: float) -> float:\n\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def rad_to_deg(radians: float) -> float:\n\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35645,7 +35645,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "deg_to_rad(degrees: float) -> float",
-          "code": "def deg_to_rad(degrees: float) -> float:\n\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def deg_to_rad(degrees: float) -> float:\n\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -35666,7 +35666,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "count_digits(n: float) -> int",
-          "code": "def count_digits(n: float) -> int:\n\n    \"\"\"Number of decimal digits of ceil(|n|).  Returns 0 for n == 0.\"\"\"\n    v = int(math.ceil(abs(n)))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
+          "code": "def count_digits(n: float) -> int:\n\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
         }
       },
@@ -49560,7 +49560,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "count_digits(n: f64) -> i32",
-          "code": "pub fn count_digits(n: f64) -> i32 {\n    let mut v = n.abs().ceil() as i64;\n    if v == 0 { return 0; }\n    let mut count = 0;\n    while v != 0 { v /= 10; count += 1; }\n    count\n}",
+          "code": "pub fn count_digits(n: f64) -> i32 {\n    let mut v = n.abs() as i64;\n    if v == 0 { return 0; }\n    let mut count = 0;\n    while v != 0 { v /= 10; count += 1; }\n    count\n}",
           "file": "tolerance.rs"
         }
       }
@@ -53108,11 +53108,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "points",
-        "circle",
         "n",
         "subdivide",
+        "circle",
+        "into",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -53127,10 +53127,10 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "ellipse",
+        "subdivide",
+        "length",
         "by",
         "arc",
-        "length",
-        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -53160,12 +53160,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "open",
+        "adaptive",
+        "polyline",
+        "from",
         "curve",
         "points",
-        "from",
-        "polyline",
-        "adaptive",
-        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -53180,10 +53180,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "parameter",
         "curve",
         "at",
+        "parameter",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -53202,10 +53202,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
-        "length",
         "curve",
+        "length",
         "frames",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -53227,9 +53227,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
-        "perpendicular",
         "frames",
+        "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -53250,9 +53250,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "cylinder",
         "evaluate",
+        "cylinder",
+        "point",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -53268,11 +53268,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "vertices",
+        "faces",
+        "mesh",
         "from",
         "and",
-        "faces",
-        "vertices",
-        "mesh",
         "add_vertex",
         "add_face",
         "vertex"

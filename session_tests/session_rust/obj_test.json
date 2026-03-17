@@ -2,7 +2,7 @@
   {
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 14.724,
+    "time_ms": 7.429,
     "line": 6,
     "code": "        use std::path::PathBuf;\n        use crate::obj::read_obj;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.obj\");\n        if !bunny_path.exists() {\n            return Ok(());\n        let mesh = read_obj(bunny_path.to_str().unwrap()).unwrap();\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n        let has_non_zero = vertices.iter().any(|v| v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0);",
     "checks": [
@@ -42,7 +42,7 @@
   {
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 1.747,
+    "time_ms": 9.348,
     "line": 27,
     "code": "        use crate::{Mesh, Point};\n        use crate::obj::{read_obj, write_obj};\n        use std::path::PathBuf;\n        let mut original_mesh = Mesh::new();\n        let v0 = original_mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = original_mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = original_mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = original_mesh.add_vertex(Point::new(0.0, 0.0, 1.0), None);\n        let _ = original_mesh.add_face(vec![v0, v1, v2], None);\n        let _ = original_mesh.add_face(vec![v0, v1, v3], None);\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let temp_file = src_dir.join(\"serialization\").join(\"test_temp_roundtrip.obj\");\n        let temp_str = temp_file.to_str().unwrap();\n        write_obj(&original_mesh, temp_str).unwrap();\n        let loaded_mesh = read_obj(temp_str).unwrap();\n        let _ = std::fs::remove_file(&temp_file);",
     "checks": [

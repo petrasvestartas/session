@@ -2,7 +2,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 11,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 41,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 47,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 53,
     "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 81,
     "code": "    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Wrap Index",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 89,
     "code": "",
     "checks": [
@@ -212,7 +212,7 @@
   {
     "test_name": "Triangle Edge By Angle",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 98,
     "code": "",
     "checks": [
@@ -256,8 +256,8 @@
   },
   {
     "test_name": "Count Digits",
-    "passed": false,
-    "time_ms": 0.336,
+    "passed": true,
+    "time_ms": 0.006,
     "line": 111,
     "code": "",
     "checks": [
@@ -274,15 +274,24 @@
       {
         "line": 115,
         "code_line": "count_digits(9.9)   == 1",
-        "passed": false
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "count_digits(10.0)  == 2",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "count_digits(100.5) == 3",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "count_digits(-42.0) == 2",
+        "passed": true
       }
     ],
-    "failures": [
-      {
-        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\mini_test.py",
-        "line": 418,
-        "code_line": "raise MiniTestAssertionError(msg)"
-      }
-    ]
+    "failures": []
   }
 ]
