@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.144,
+    "time_ms": 0.156,
     "line": 7,
     "code": "    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n    # from_points (AABB)\n    pts = [Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)]\n    bb2 = BoundingBox.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n    # OBB constructor\n    obb = BoundingBox(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n    # corners\n    corners = bb2.corners()\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n    # inflate\n    bb3 = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)])\n    bb3.inflate(1.0)\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.061,
+    "time_ms": 0.073,
     "line": 66,
     "code": "    from session_py import BoundingBox\n    from session_py import Point\n\n    bb1 = BoundingBox.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = BoundingBox.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 0.5)",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.119,
+    "time_ms": 0.147,
     "line": 79,
     "code": "    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]\n    bb = BoundingBox.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n    bb.transform()",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.119,
+    "time_ms": 11.826,
     "line": 97,
     "code": "    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = BoundingBox.__jsonload__(d)\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = BoundingBox.json_loads(s)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.json\"\n    bb.json_dump(fname)\n    loaded = BoundingBox.json_load(fname)",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.739,
+    "time_ms": 12.942,
     "line": 127,
     "code": "    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = BoundingBox.pb_loads(b)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.bin\"\n    bb.pb_dump(fname)\n    loaded = BoundingBox.pb_load(fname)",
     "checks": [
