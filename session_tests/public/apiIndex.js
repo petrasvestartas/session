@@ -7441,6 +7441,8 @@ window.API_INDEX = {
         "Mesh.__str__",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.create_box",
+        "Mesh.create_dodecahedron",
         "Mesh.duplicate",
         "Mesh.edsq",
         "Mesh.faces",
@@ -7484,7 +7486,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\"",
-          "code": "def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def create_box(x: float, y: float, z: float) -> \"Mesh\":\n        hx, hy, hz = x * 0.5, y * 0.5, z * 0.5\n        vertices = [\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p[0] for p in all_pts]\n            ys = [p[1] for p in all_pts]\n            zs = [p[2] for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p[0] / eps)\n            ky = round(p[1] / eps)\n            kz = round(p[2] / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)",
+          "code": "def from_vertices_and_faces(\n        vertices: List[Point], faces: List[List[int]]\n    ) -> \"Mesh\":\n\n        mesh = Mesh()\n        vkeys = []\n        for pt in vertices:\n            vkeys.append(mesh.add_vertex(pt))\n        for f in faces:\n            mesh.add_face([vkeys[i] for i in f])\n        return mesh\n\n    @staticmethod\n    def create_box(x: float, y: float, z: float) -> \"Mesh\":\n        hx, hy, hz = x * 0.5, y * 0.5, z * 0.5\n        vertices = [\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    @staticmethod\n    def create_dodecahedron(edge: float = 2.0) -> \"Mesh\":\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p[0] for p in all_pts]\n            ys = [p[1] for p in all_pts]\n            zs = [p[2] for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7502,10 +7504,10 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.create_box",
+        "Mesh.create_dodecahedron",
         "Mesh.faces",
         "Mesh.from_lines",
         "Mesh.from_polylines",
-        "Mesh.get_vid",
         "Mesh.get_vkey",
         "Mesh.new",
         "Mesh.vertices"
@@ -7516,7 +7518,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_box(x: float, y: float, z: float) -> \"Mesh\"",
-          "code": "def create_box(x: float, y: float, z: float) -> \"Mesh\":\n\n        hx, hy, hz = x * 0.5, y * 0.5, z * 0.5\n        vertices = [\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p[0] for p in all_pts]\n            ys = [p[1] for p in all_pts]\n            zs = [p[2] for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p[0] / eps)\n            ky = round(p[1] / eps)\n            kz = round(p[2] / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v][0], verts[v][1]\n            nbrs.sort(key=lambda n: math.atan2(verts[n][1] - vy, verts[n][0] - vx))\n            adj[v] = nbrs\n\n        visited = set()\n        face_cycles = []",
+          "code": "def create_box(x: float, y: float, z: float) -> \"Mesh\":\n\n        hx, hy, hz = x * 0.5, y * 0.5, z * 0.5\n        vertices = [\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    @staticmethod\n    def create_dodecahedron(edge: float = 2.0) -> \"Mesh\":\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p[0] for p in all_pts]\n            ys = [p[1] for p in all_pts]\n            zs = [p[2] for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p[0] / eps)\n            ky = round(p[1] / eps)\n            kz = round(p[2] / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -7531,13 +7533,44 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.create_dodecahedron",
         "Mesh.faces",
         "Mesh.from_lines",
+        "Mesh.from_polylines",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vid",
         "Mesh.get_vkey",
         "Mesh.new",
         "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.create_dodecahedron",
+      "implementations": {
+        "python": {
+          "sig": "create_dodecahedron(edge: float = 2.0) -> \"Mesh\"",
+          "code": "def create_dodecahedron(edge: float = 2.0) -> \"Mesh\":\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def from_lines(\n        lines: List, delete_boundary_face: bool = False, precision: Optional[float] = None\n    ) -> \"Mesh\":\n        if not lines:\n            return Mesh()\n\n        all_pts = []\n        for ln in lines:\n            all_pts.append(ln.start())\n            all_pts.append(ln.end())\n\n        eps = precision if precision is not None else 0.0\n        if eps <= 0.0:\n            xs = [p[0] for p in all_pts]\n            ys = [p[1] for p in all_pts]\n            zs = [p[2] for p in all_pts]\n            dx = max(xs) - min(xs)\n            dy = max(ys) - min(ys)\n            dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            eps = diag * 1e-6\n            if eps < 1e-12:\n                eps = 1e-12\n\n        vmap = {}\n        verts = []\n        def get_vid(p):\n            kx = round(p[0] / eps)\n            ky = round(p[1] / eps)\n            kz = round(p[2] / eps)\n            key = (kx, ky, kz)\n            if key in vmap:\n                return vmap[key]\n            vid = len(verts)\n            verts.append(p)\n            vmap[key] = vid\n            return vid\n\n        adj = {}\n        for ln in lines:\n            a = get_vid(ln.start())\n            b = get_vid(ln.end())\n            if a == b:\n                continue\n            adj.setdefault(a, []).append(b)\n            adj.setdefault(b, []).append(a)\n\n        nv = len(verts)\n\n        for v in adj:\n            nbrs = sorted(set(adj[v]))\n            vx, vy = verts[v][0], verts[v][1]\n            nbrs.sort(key=lambda n: math.atan2(verts[n][1] - vy, verts[n][0] - vx))\n            adj[v] = nbrs\n\n        visited = set()",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "Mesh create_dodecahedron(double edge)",
+          "code": "Mesh Mesh::create_dodecahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double ip = 1.0 / phi;\n    double s = edge / (2.0 * ip);\n    Point verts[20] = {\n        Point(s, s, s),\n        Point(s, s, -s),\n        Point(s, -s, s),\n        Point(s, -s, -s),\n        Point(-s, s, s),\n        Point(-s, s, -s),\n        Point(-s, -s, s),\n        Point(-s, -s, -s),\n        Point(0, s*ip, s*phi),\n        Point(0, s*ip, -s*phi),\n        Point(0, -s*ip, s*phi),\n        Point(0, -s*ip, -s*phi),\n        Point(s*ip, s*phi, 0),\n        Point(s*ip, -s*phi, 0),\n        Point(-s*ip, s*phi, 0),\n        Point(-s*ip, -s*phi, 0),\n        Point(s*phi, 0, s*ip),\n        Point(s*phi, 0, -s*ip),\n        Point(-s*phi, 0, s*ip),\n        Point(-s*phi, 0, -s*ip),\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "create_dodecahedron(edge: f64) -> Self",
+          "code": "pub fn create_dodecahedron(edge: f64) -> Self {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let ip = 1.0 / phi;\n        let s = edge / (2.0 * ip);\n        let verts = vec![\n            Point::new(s, s, s),\n            Point::new(s, s, -s),\n            Point::new(s, -s, s),\n            Point::new(s, -s, -s),\n            Point::new(-s, s, s),\n            Point::new(-s, s, -s),\n            Point::new(-s, -s, s),\n            Point::new(-s, -s, -s),\n            Point::new(0.0, s * ip, s * phi),\n            Point::new(0.0, s * ip, -s * phi),\n            Point::new(0.0, -s * ip, s * phi),\n            Point::new(0.0, -s * ip, -s * phi),\n            Point::new(s * ip, s * phi, 0.0),\n            Point::new(s * ip, -s * phi, 0.0),\n            Point::new(-s * ip, s * phi, 0.0),\n            Point::new(-s * ip, -s * phi, 0.0),\n            Point::new(s * phi, 0.0, s * ip),\n            Point::new(s * phi, 0.0, -s * ip),\n            Point::new(-s * phi, 0.0, s * ip),\n            Point::new(-s * phi, 0.0, -s * ip),\n        ];\n        let idx: [[usize; 5]; 12] = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ];\n        let mut faces: Vec<Vec<Point>> = Vec::new();\n        for f in &idx {\n            faces.push(vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone(), verts[f[3]].clone(), verts[f[4]].clone()]);\n        }\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.create_box",
+        "Mesh.faces",
+        "Mesh.from_lines",
+        "Mesh.from_polylines",
+        "Mesh.from_vertices_and_faces",
+        "Mesh.get_vid",
+        "Mesh.new"
       ]
     },
     {
@@ -7564,6 +7597,7 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.create_box",
+        "Mesh.create_dodecahedron",
         "Mesh.from_vertices_and_faces",
         "Mesh.get_vid",
         "Mesh.is_empty",
@@ -7584,8 +7618,8 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.create_box",
-        "Mesh.from_lines",
-        "Mesh.from_vertices_and_faces"
+        "Mesh.create_dodecahedron",
+        "Mesh.from_lines"
       ]
     },
     {
@@ -8452,6 +8486,7 @@ window.API_INDEX = {
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.create_box",
+        "Mesh.create_dodecahedron",
         "Mesh.dihedral_angle",
         "Mesh.duplicate",
         "Mesh.edge_edges",
@@ -22301,6 +22336,7 @@ window.API_INDEX = {
         "Plane.origin_ref",
         "Plane.pb_dumps",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -22531,6 +22567,7 @@ window.API_INDEX = {
         "Plane.origin",
         "Plane.pb_dumps",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -22613,6 +22650,7 @@ window.API_INDEX = {
         "Plane.pb_dumps",
         "Plane.pb_load",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -22697,6 +22735,7 @@ window.API_INDEX = {
         "Plane.pb_dumps",
         "Plane.pb_load",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -22782,6 +22821,7 @@ window.API_INDEX = {
         "Plane.pb_dumps",
         "Plane.pb_load",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -22865,6 +22905,7 @@ window.API_INDEX = {
         "Plane.pb_dumps",
         "Plane.pb_load",
         "Plane.pb_loads",
+        "Plane.project",
         "Plane.repr",
         "Plane.reverse",
         "Plane.rotate",
@@ -32108,7 +32149,6 @@ window.API_INDEX = {
         "Primitives.create_sweep1",
         "Primitives.create_sweep2",
         "Primitives.cube",
-        "Primitives.dodecahedron",
         "Primitives.hyperbola",
         "Primitives.icosahedron",
         "Primitives.lerp_vec",
@@ -32117,6 +32157,7 @@ window.API_INDEX = {
         "Primitives.octahedron",
         "Primitives.ring",
         "Primitives.spiral",
+        "Primitives.tetrahedron",
         "Primitives.wave_surface"
       ]
     },
@@ -32412,7 +32453,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "tetrahedron(edge=2.0)",
-          "code": "def tetrahedron(edge=2.0):\n\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a, -a, -a), Point(a, -a, -a), Point(a, a, -a), Point(-a, a, -a)\n        v4, v5, v6, v7 = Point(-a, -a, a), Point(a, -a, a), Point(a, a, a), Point(-a, a, a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)",
+          "code": "def tetrahedron(edge=2.0):\n\n        a = edge / 2.0\n        h = edge * math.sqrt(2.0 / 3.0)\n        r = edge / math.sqrt(3.0)\n        z0 = -h / 4.0\n        z1 = 3.0 * h / 4.0\n        faces = [\n            [Point(a, -r/2.0, z0), Point(-a, -r/2.0, z0), Point(0, r, z0)],\n            [Point(0, 0, z1), Point(-a, -r/2.0, z0), Point(a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(0, r, z0), Point(-a, -r/2.0, z0)],\n            [Point(0, 0, z1), Point(a, -r/2.0, z0), Point(0, r, z0)],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def cube(edge=2.0):\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a, -a, -a), Point(a, -a, -a), Point(a, a, -a), Point(-a, a, -a)\n        v4, v5, v6, v7 = Point(-a, -a, a), Point(a, -a, a), Point(a, a, a), Point(-a, a, a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -32429,10 +32470,11 @@ window.API_INDEX = {
       "related": [
         "Primitives.cube",
         "Primitives.dedup_face",
-        "Primitives.dodecahedron",
         "Primitives.hex_mesh",
         "Primitives.icosahedron",
-        "Primitives.octahedron"
+        "Primitives.octahedron",
+        "Primitives.pt",
+        "Primitives.wave_surface"
       ]
     },
     {
@@ -32440,7 +32482,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cube(edge=2.0)",
-          "code": "def cube(edge=2.0):\n\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a, -a, -a), Point(a, -a, -a), Point(a, a, -a), Point(-a, a, -a)\n        v4, v5, v6, v7 = Point(-a, -a, a), Point(a, -a, a), Point(a, a, a), Point(-a, a, a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
+          "code": "def cube(edge=2.0):\n\n        a = edge / 2.0\n        v0, v1, v2, v3 = Point(-a, -a, -a), Point(a, -a, -a), Point(a, a, -a), Point(-a, a, -a)\n        v4, v5, v6, v7 = Point(-a, -a, a), Point(a, -a, a), Point(a, a, a), Point(-a, a, a)\n        faces = [\n            [v3, v2, v1, v0], [v4, v5, v6, v7],\n            [v0, v1, v5, v4], [v2, v3, v7, v6],\n            [v0, v4, v7, v3], [v1, v2, v6, v5],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def octahedron(edge=2.0):\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -32456,7 +32498,6 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.dedup_face",
-        "Primitives.dodecahedron",
         "Primitives.icosahedron",
         "Primitives.octahedron",
         "Primitives.pt",
@@ -32469,7 +32510,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "octahedron(edge=2.0)",
-          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
+          "code": "def octahedron(edge=2.0):\n\n        a = edge / math.sqrt(2.0)\n        px, nx = Point(a, 0, 0), Point(-a, 0, 0)\n        py, ny = Point(0, a, 0), Point(0, -a, 0)\n        pz, nz = Point(0, 0, a), Point(0, 0, -a)\n        faces = [\n            [pz, px, py], [pz, py, nx], [pz, nx, ny], [pz, ny, px],\n            [nz, py, px], [nz, nx, py], [nz, ny, nx], [nz, px, ny],\n        ]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def icosahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -32486,7 +32527,6 @@ window.API_INDEX = {
       "related": [
         "Primitives.cube",
         "Primitives.dedup_face",
-        "Primitives.dodecahedron",
         "Primitives.icosahedron",
         "Primitives.pt",
         "Primitives.tetrahedron",
@@ -32498,7 +32538,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "icosahedron(edge=2.0)",
-          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def dodecahedron(edge=2.0):\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
+          "code": "def icosahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        s = edge / 2.0\n        sp = s * phi\n        verts = [\n            Point(-s, sp, 0), Point(s, sp, 0), Point(-s, -sp, 0), Point(s, -sp, 0),\n            Point(0, -s, sp), Point(0, s, sp), Point(0, -s, -sp), Point(0, s, -sp),\n            Point(sp, 0, -s), Point(sp, 0, s), Point(-sp, 0, -s), Point(-sp, 0, s),\n        ]\n        idx = [\n            [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],\n            [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],\n            [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],\n            [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
           "file": "primitives.py"
         },
         "cpp": {
@@ -32515,35 +32555,6 @@ window.API_INDEX = {
       "related": [
         "Primitives.cube",
         "Primitives.dedup_face",
-        "Primitives.dodecahedron",
-        "Primitives.octahedron",
-        "Primitives.pt",
-        "Primitives.tetrahedron",
-        "Primitives.wave_surface"
-      ]
-    },
-    {
-      "name": "Primitives.dodecahedron",
-      "implementations": {
-        "python": {
-          "sig": "dodecahedron(edge=2.0)",
-          "code": "def dodecahedron(edge=2.0):\n\n        phi = (1.0 + math.sqrt(5.0)) / 2.0\n        ip = 1.0 / phi\n        s = edge / (2.0 * ip)\n        verts = [\n            Point( s,  s,  s), Point( s,  s, -s), Point( s, -s,  s), Point( s, -s, -s),\n            Point(-s,  s,  s), Point(-s,  s, -s), Point(-s, -s,  s), Point(-s, -s, -s),\n            Point(0,  s*ip,  s*phi), Point(0,  s*ip, -s*phi),\n            Point(0, -s*ip,  s*phi), Point(0, -s*ip, -s*phi),\n            Point( s*ip,  s*phi, 0), Point( s*ip, -s*phi, 0),\n            Point(-s*ip,  s*phi, 0), Point(-s*ip, -s*phi, 0),\n            Point( s*phi, 0,  s*ip), Point( s*phi, 0, -s*ip),\n            Point(-s*phi, 0,  s*ip), Point(-s*phi, 0, -s*ip),\n        ]\n        idx = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ]\n        faces = [[verts[f[0]], verts[f[1]], verts[f[2]], verts[f[3]], verts[f[4]]] for f in idx]\n        return Mesh.from_polylines(faces, 1e-10)\n\n    @staticmethod\n    def wave_surface(size, amplitude):\n        n = 13\n        PI2 = 2.0 * math.pi\n        pts = []\n        for i in range(n):\n            u = i / (n - 1)\n            x = size * u\n            for j in range(n):\n                v = j / (n - 1)\n                y = size * v\n                z = amplitude * math.sin(PI2 * u) * math.sin(PI2 * v)\n                pts.append(Point(x, y, z))\n        return NurbsSurface.create(False, False, 3, 3, n, n, pts)",
-          "file": "primitives.py"
-        },
-        "cpp": {
-          "sig": "Mesh dodecahedron(double edge)",
-          "code": "Mesh Primitives::dodecahedron(double edge) {\n    double phi = (1.0 + std::sqrt(5.0)) / 2.0;\n    double ip = 1.0 / phi;\n    double s = edge / (2.0 * ip); // scale so actual edge length = edge\n    Point verts[20] = {\n        Point(s, s, s),\n        Point(s, s, -s),\n        Point(s, -s, s),\n        Point(s, -s, -s),\n        Point(-s, s, s),\n        Point(-s, s, -s),\n        Point(-s, -s, s),\n        Point(-s, -s, -s),\n        Point(0, s*ip, s*phi),\n        Point(0, s*ip, -s*phi),\n        Point(0, -s*ip, s*phi),\n        Point(0, -s*ip, -s*phi),\n        Point(s*ip, s*phi, 0),\n        Point(s*ip, -s*phi, 0),\n        Point(-s*ip, s*phi, 0),\n        Point(-s*ip, -s*phi, 0),\n        Point(s*phi, 0, s*ip),\n        Point(s*phi, 0, -s*ip),\n        Point(-s*phi, 0, s*ip),\n        Point(-s*phi, 0, -s*ip),\n    }",
-          "file": "primitives.cpp"
-        },
-        "rust": {
-          "sig": "dodecahedron(edge: f64) -> Mesh",
-          "code": "pub fn dodecahedron(edge: f64) -> Mesh {\n        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;\n        let ip = 1.0 / phi;\n        let s = edge / (2.0 * ip);\n        let verts = vec![\n            Point::new(s, s, s),\n            Point::new(s, s, -s),\n            Point::new(s, -s, s),\n            Point::new(s, -s, -s),\n            Point::new(-s, s, s),\n            Point::new(-s, s, -s),\n            Point::new(-s, -s, s),\n            Point::new(-s, -s, -s),\n            Point::new(0.0, s * ip, s * phi),\n            Point::new(0.0, s * ip, -s * phi),\n            Point::new(0.0, -s * ip, s * phi),\n            Point::new(0.0, -s * ip, -s * phi),\n            Point::new(s * ip, s * phi, 0.0),\n            Point::new(s * ip, -s * phi, 0.0),\n            Point::new(-s * ip, s * phi, 0.0),\n            Point::new(-s * ip, -s * phi, 0.0),\n            Point::new(s * phi, 0.0, s * ip),\n            Point::new(s * phi, 0.0, -s * ip),\n            Point::new(-s * phi, 0.0, s * ip),\n            Point::new(-s * phi, 0.0, -s * ip),\n        ];\n        let idx: [[usize; 5]; 12] = [\n            [0, 8,10, 2,16], [0,16,17, 1,12], [0,12,14, 4, 8],\n            [1,17, 3,11, 9], [1, 9, 5,14,12], [2,10, 6,15,13],\n            [2,13, 3,17,16], [3,13,15, 7,11], [4,14, 5,19,18],\n            [4,18, 6,10, 8], [5, 9,11, 7,19], [6,18,19, 7,15],\n        ];\n        let faces: Vec<Vec<Point>> = idx.iter().map(|f| vec![verts[f[0]].clone(), verts[f[1]].clone(), verts[f[2]].clone(), verts[f[3]].clone(), verts[f[4]].clone()]).collect();\n        Mesh::from_polylines(faces, Some(1e-10))\n    }",
-          "file": "primitives.rs"
-        }
-      },
-      "related": [
-        "Primitives.cube",
-        "Primitives.icosahedron",
         "Primitives.octahedron",
         "Primitives.pt",
         "Primitives.tetrahedron",
@@ -32571,10 +32582,10 @@ window.API_INDEX = {
       },
       "related": [
         "Primitives.cube",
-        "Primitives.dodecahedron",
         "Primitives.icosahedron",
         "Primitives.octahedron",
-        "Primitives.pt"
+        "Primitives.pt",
+        "Primitives.tetrahedron"
       ]
     },
     {
@@ -43162,6 +43173,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "ColorMode.create_dodecahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh create_dodecahedron(double edge = 2.0)",
+          "code": "static Mesh create_dodecahedron(double edge = 2.0);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
       "name": "ColorMode.from_polyline_pairs",
       "implementations": {
         "cpp": {
@@ -45541,6 +45562,24 @@ window.API_INDEX = {
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.y_axis",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.project",
+      "implementations": {
+        "cpp": {
+          "sig": "Point project(const Point& p)",
+          "code": "Point project(const Point& p) const {\n      const Vector& n = z_axis();\n      const Point&  o = origin();\n      double dist = (p[0]-o[0])*n[0] + (p[1]-o[1])*n[1] + (p[2]-o[2])*n[2];\n      return Point(p[0]-dist*n[0], p[1]-dist*n[1], p[2]-dist*n[2]);\n  }",
+          "file": "plane.h"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.c",
+        "Plane.d",
+        "Plane.origin",
         "Plane.z_axis"
       ]
     },
@@ -48470,6 +48509,7 @@ window.API_INDEX = {
         "Mesh.centroid",
         "Mesh.clone_with_new_guid",
         "Mesh.create_box",
+        "Mesh.create_dodecahedron",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edges",
@@ -51037,6 +51077,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Mesh.test_Create Dodecahedron",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Create Dodecahedron\")",
+          "code": "MINI_TEST(\"Mesh\", \"Create Dodecahedron\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh m = Mesh::create_dodecahedron(2.0);\n        MINI_CHECK(m.is_valid());\n        MINI_CHECK(m.number_of_vertices() == 20);\n        MINI_CHECK(m.number_of_faces() == 12);\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Create Dodecahedron\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Create Dodecahedron\")\ndef test_mesh_create_dodecahedron():\n    from session_py import Mesh\n\n    m = Mesh.create_dodecahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 20)\n    MINI_CHECK(m.number_of_faces() == 12)",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
       "name": "Mesh.test_Vertex and Face Operations",
       "implementations": {
         "cpp": {
@@ -52537,21 +52592,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Primitives.test_Mesh Dodecahedron",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Primitives\", \"Mesh Dodecahedron\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Dodecahedron\") {\n    Mesh m = Primitives::dodecahedron(2.0);\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 20);\n    MINI_CHECK(m.number_of_faces() == 12);\n}",
-          "file": "primitives_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Primitives\", \"Mesh Dodecahedron\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Mesh Dodecahedron\")\ndef test_mesh_dodecahedron():\n    from session_py import Primitives\n\n    m = Primitives.dodecahedron(2.0)\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() == 20)\n    MINI_CHECK(m.number_of_faces() == 12)",
-          "file": "primitives_test.py"
-        }
-      }
-    },
-    {
       "name": "Primitives.test_Nurbssurface Wave",
       "implementations": {
         "cpp": {
@@ -53416,11 +53456,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
+        "circle",
+        "n",
         "subdivide",
         "points",
-        "n",
-        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -53434,10 +53474,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "subdivide",
         "ellipse",
         "arc",
         "by",
-        "subdivide",
         "length",
         "divide_by_length",
         "nurbscurve",
@@ -53452,8 +53492,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "points",
+        "arc",
         "through",
         "nurbscurve",
         "primitives",
@@ -53468,12 +53508,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "open",
+        "polyline",
         "points",
         "curve",
-        "adaptive",
-        "polyline",
-        "open",
         "from",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -53488,9 +53528,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "parameter",
         "at",
         "evaluation",
+        "parameter",
         "curve",
         "set_domain",
         "point_at",
@@ -53510,9 +53550,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "length",
         "frames",
+        "along",
         "curve",
         "divide_by_count",
         "frame_at",
@@ -53535,9 +53575,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -53558,10 +53598,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
         "cylinder",
-        "evaluate",
         "point",
+        "evaluate",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -53576,11 +53616,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
-        "faces",
-        "and",
         "mesh",
+        "and",
+        "vertices",
         "from",
+        "faces",
         "add_vertex",
         "add_face",
         "vertex"
@@ -54516,6 +54556,10 @@ window.API_INDEX = {
     "create_box": [
       "Mesh.create_box",
       "ColorMode.create_box"
+    ],
+    "create_dodecahedron": [
+      "Mesh.create_dodecahedron",
+      "ColorMode.create_dodecahedron"
     ],
     "from_lines": [
       "Mesh.from_lines",
@@ -55735,9 +55779,6 @@ window.API_INDEX = {
     "icosahedron": [
       "Primitives.icosahedron"
     ],
-    "dodecahedron": [
-      "Primitives.dodecahedron"
-    ],
     "wave_surface": [
       "Primitives.wave_surface"
     ],
@@ -56396,6 +56437,9 @@ window.API_INDEX = {
     ],
     "mesh_grid": [
       "NurbsSurface.mesh_grid"
+    ],
+    "project": [
+      "Plane.project"
     ],
     "ccw": [
       "Point.ccw"
