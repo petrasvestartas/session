@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.053,
     "line": 21,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> vertices = Polyline::from_sides(6, 1.0, false).get_points();\n        Mesh mesh = Mesh::from_vertices_and_faces(vertices, {{0, 1, 2, 3, 4, 5}});\n        std::string sstr = mesh.str();\n        std::string srepr = mesh.repr();\n        Mesh mcopy = mesh;\n        mesh.name = \"hexagon\";\n\n        std::vector<Color> palette = Color::palette();\n\n        // set_objectcolor does not change color_mode\n        mesh.set_objectcolor(Color::grey());\n\n        // set_pointcolors → color_mode = PointColors\n        std::vector<Color> pc;\n        pc.reserve(mesh.number_of_vertices());\n        for (size_t i = 0; i < mesh.number_of_vertices(); ++i)\n            pc.emplace_back(palette[i % palette.size()]);\n        mesh.set_pointcolors(std::move(pc));\n\n        // set_facecolors → color_mode = FaceColors\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i)\n            fc.emplace_back(palette[i % palette.size()]);\n        mesh.set_facecolors(std::move(fc));\n\n        // set_linecolors does not change color_mode\n        std::vector<Color> lc;\n        std::vector<double> lw(mesh.number_of_edges(), 0.1);\n        lc.reserve(mesh.number_of_edges());\n        for (size_t i = 0; i < mesh.number_of_edges(); ++i)\n            lc.emplace_back(palette[i % palette.size()]);\n        mesh.set_linecolors(std::move(lc), std::move(lw));\n\n        // clear_facecolors reverts color_mode only if currently FaceColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_facecolors();\n\n        // clear_pointcolors does not revert if color_mode != PointColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_pointcolors();\n\n        // clear_linecolors does not change color_mode\n        mesh.color_mode = ColorMode::POINTCOLORS;\n        mesh.clear_linecolors();",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 0.074,
+    "time_ms": 0.077,
     "line": 86,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        }, 0.001);",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "From Lines",
     "passed": true,
-    "time_ms": 0.097,
+    "time_ms": 0.123,
     "line": 118,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Line> lines = {\n            Line::from_points(Point(4.948083, -0.149798, 1.00765),\n                              Point(4.395544, -0.996413, 1.196018)),\n            Line::from_points(Point(3.866593, 0.371225, 1.376346),\n                              Point(4.567265, 0.584361, 1.137476)),\n            Line::from_points(Point(3.915298, -0.157402, 1.359741),\n                              Point(3.282977, -0.051356, 1.575309)),\n            Line::from_points(Point(4.286215, -0.224964, 1.23329),\n                              Point(3.607284, -0.987075, 1.464748)),\n            Line::from_points(Point(3.744351, 0.971574, 1.41802),\n                              Point(3.266367, 0.841359, 1.580972)),\n            Line::from_points(Point(4.567265, 0.584361, 1.137476),\n                              Point(4.948083, -0.149798, 1.00765)),\n            Line::from_points(Point(4.395544, -0.996413, 1.196018),\n                              Point(3.607284, -0.987075, 1.464748)),\n            Line::from_points(Point(3.915298, -0.157402, 1.359741),\n                              Point(4.286215, -0.224964, 1.23329)),\n            Line::from_points(Point(3.282977, -0.051356, 1.575309),\n                              Point(3.266367, 0.841359, 1.580972)),\n            Line::from_points(Point(3.744351, 0.971574, 1.41802),\n                              Point(3.866593, 0.371225, 1.376346)),\n        };\n        Mesh mesh = Mesh::from_lines(lines, true);",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "From Polygon With Holes",
     "passed": true,
-    "time_ms": 0.254,
+    "time_ms": 0.402,
     "line": 147,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polygon_with_holes({\n            {\n                {8.940934, 0.917382, 0.049546},\n                {8.930493, 1.36458, 0.251429},\n                {8.954508, 1.595448, 0.346958},\n                {9.457671, 1.821395, 0.298639},\n                {9.717078, 1.014296, -0.136839},\n                {9.363048, 0.91534, -0.07616},\n                {9.33327, 0.459713, -0.269899},\n                {9.065708, 0.635281, -0.112748},\n            },\n            {\n                {7.494779, -0.556523, -0.178103},\n                {6.542877, 0.148384, 0.416685},\n                {6.967337, 2.119511, 1.167431},\n                {11.204553, 2.961749, 0.289102},\n                {9.658416, 0.465135, -0.363618},\n                {10.247775, -1.032727, -1.203717},\n            },\n            {\n                {7.922105, 0.548716, 0.186877},\n                {7.410178, 0.844297, 0.469625},\n                {7.408889, 1.185147, 0.621527},\n                {7.885956, 1.424645, 0.586947},\n                {8.178727, 1.32996, 0.458299},\n                {8.307609, 0.88254, 0.2213},\n                {7.950364, 0.924872, 0.345738},\n            },\n        }, true);\n\n        Mesh mesh_sorted = Mesh::from_polygon_with_holes({\n            {{1, 1, 0}, {3, 1, 0}, {3, 3, 0}, {1, 3, 0}},\n            {{0, 0, 0}, {4, 0, 0}, {4, 4, 0}, {0, 4, 0}},\n        }, true);",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Loft",
     "passed": true,
-    "time_ms": 0.515,
+    "time_ms": 0.683,
     "line": 188,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> bottom = {\n            Polyline(std::vector<Point>{\n                {13.20069,-0.556523,-0.178103},\n                {12.248787,0.148384,0.416685},\n                {12.673247,2.119511,1.167431},\n                {16.910464,2.961749,0.289102},\n                {15.364327,0.465135,-0.363618},\n                {15.953685,-1.032727,-1.203717},\n                {13.20069,-0.556523,-0.178103},\n            }),\n            Polyline(std::vector<Point>{\n                {14.646845,0.917382,0.049546},\n                {14.636404,1.36458,0.251429},\n                {14.660418,1.595448,0.346958},\n                {15.163581,1.821395,0.298639},\n                {15.422988,1.014296,-0.136839},\n                {15.068958,0.91534,-0.07616},\n                {15.03918,0.459713,-0.269899},\n                {14.771618,0.635281,-0.112748},\n                {14.646845,0.917382,0.049546},\n            }),\n            Polyline(std::vector<Point>{\n                {13.628016,0.548716,0.186877},\n                {13.116088,0.844297,0.469625},\n                {13.114799,1.185147,0.621527},\n                {13.591866,1.424645,0.586947},\n                {13.884637,1.32996,0.458299},\n                {14.013519,0.88254,0.2213},\n                {13.656275,0.924872,0.345738},\n                {13.628016,0.548716,0.186877},\n            }),\n        };\n        std::vector<Polyline> top = {\n            Polyline(std::vector<Point>{\n                {13.375135,-0.818817,0.411936},\n                {12.423233,-0.113909,1.006724},\n                {12.847692,1.857217,1.75747},\n                {17.084909,2.699455,0.879141},\n                {15.538772,0.202841,0.226421},\n                {16.12813,-1.295021,-0.613678},\n                {13.375135,-0.818817,0.411936},\n            }),\n            Polyline(std::vector<Point>{\n                {14.82129,0.655088,0.639585},\n                {14.810849,1.102286,0.841468},\n                {14.834864,1.333154,0.936997},\n                {15.338026,1.559101,0.888678},\n                {15.597433,0.752002,0.4532},\n                {15.243404,0.653046,0.513879},\n                {15.213626,0.197419,0.32014},\n                {14.946063,0.372987,0.477291},\n                {14.82129,0.655088,0.639585},\n            }),\n            Polyline(std::vector<Point>{\n                {13.802461,0.286422,0.776916},\n                {13.290534,0.582003,1.059664},\n                {13.289245,0.922853,1.211566},\n                {13.766312,1.162351,1.176986},\n                {14.059082,1.067666,1.048338},\n                {14.187964,0.620246,0.811339},\n                {13.83072,0.662578,0.935777},\n                {13.802461,0.286422,0.776916},\n            }),\n        };\n        Mesh mesh = Mesh::loft(bottom, top, true);\n\n        Mesh mesh_no_cap = Mesh::loft(bottom, top, false);",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "From Polygon With Holes Many",
     "passed": true,
-    "time_ms": 0.739,
+    "time_ms": 0.854,
     "line": 264,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::vector<std::vector<Point>>> inputs;\n        for (int i = 0; i < 4; ++i) {\n            double x = i * 7.0;\n            inputs.push_back({\n                {{x, 0, 0}, {x+5, 0, 0}, {x+5, 5, 0}, {x, 5, 0}},\n                {{x+1, 1, 0}, {x+4, 1, 0}, {x+4, 4, 0}, {x+1, 4, 0}},\n            });\n        }\n        std::vector<Mesh> meshes = Mesh::from_polygon_with_holes_many(inputs);\n        std::vector<Mesh> meshes_seq = Mesh::from_polygon_with_holes_many(inputs, false, false);",
     "checks": [
@@ -202,7 +202,7 @@
   {
     "test_name": "Loft Many",
     "passed": true,
-    "time_ms": 0.837,
+    "time_ms": 0.904,
     "line": 284,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>> loft_inputs;\n        for (int i = 0; i < 6; ++i) {\n            double x = i * 3.0;\n            Polyline b(std::vector<Point>{\n                {x, 0, 0}, {x+1, 0, 0}, {x+1, 1, 0}, {x, 1, 0}, {x, 0, 0}});\n            Polyline t(std::vector<Point>{\n                {x, 0, 1+i*0.5}, {x+1, 0, 1+i*0.5}, {x+1, 1, 1+i*0.5}, {x, 1, 1+i*0.5}, {x, 0, 1+i*0.5}});\n            loft_inputs.push_back({{b}, {t}});\n        }\n        std::vector<Mesh> meshes = Mesh::loft_many(loft_inputs);\n\n\n        std::vector<Mesh> meshes_seq = Mesh::loft_many(loft_inputs, true, false);\n",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "Loft with quads and triangles",
     "passed": true,
-    "time_ms": 1.022,
+    "time_ms": 1.063,
     "line": 328,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::vector<Point>> top7 = {\n            {\n                {250,-250,500},\n                {250,250,500},\n                {-250,250,500},\n                {-250,-250,500},\n                {250,-250,500},\n            },\n            {\n                {-250,500,250},\n                {-250,250,500},\n                {250,250,500},\n                {250,500,250},\n                {-250,500,250},\n            },\n            {\n                {250,-250,500},\n                {500,-250,250},\n                {500,250,250},\n                {250,250,500},\n                {250,-250,500},\n            },\n            {\n                {250,500,250},\n                {250,250,500},\n                {500,250,250},\n                {250,500,250},\n            },\n            {\n                {-250,500,250},\n                {250,500,250},\n                {250,500,-250},\n                {-250,500,-250},\n                {-250,500,250},\n            },\n            {\n                {250,500,250},\n                {500,250,250},\n                {500,250,-250},\n                {250,500,-250},\n                {250,500,250},\n            },\n            {\n                {500,-250,250},\n                {500,-250,-250},\n                {500,250,-250},\n                {500,250,250},\n                {500,-250,250},\n            },\n        };\n        std::vector<std::vector<Point>> bot7 = {\n            {\n                {270.710678,-250,550},\n                {270.710678,265.891862,550},\n                {265.891862,270.710678,550},\n                {-250,270.710678,550},\n                {-250,-250,550},\n                {270.710678,-250,550},\n            },\n            {\n                {270.710678,-250,550},\n                {550,-250,270.710678},\n                {550,265.891862,270.710678},\n                {270.710678,265.891862,550},\n                {270.710678,-250,550},\n            },\n            {\n                {-250,550,270.710678},\n                {-250,270.710678,550},\n                {265.891862,270.710678,550},\n                {265.891862,550,270.710678},\n                {-250,550,270.710678},\n            },\n            {\n                {265.891862,550,270.710678},\n                {265.891862,270.710678,550},\n                {270.710678,265.891862,550},\n                {550,265.891862,270.710678},\n                {550,270.710678,265.891862},\n                {270.710678,550,265.891862},\n                {265.891862,550,270.710678},\n            },\n            {\n                {-250,550,270.710678},\n                {265.891862,550,270.710678},\n                {270.710678,550,265.891862},\n                {270.710678,550,-250},\n                {-250,550,-250},\n                {-250,550,270.710678},\n            },\n            {\n                {270.710678,550,265.891862},\n                {550,270.710678,265.891862},\n                {550,270.710678,-250},\n                {270.710678,550,-250},\n                {270.710678,550,265.891862},\n            },\n            {\n                {550,-250,270.710678},\n                {550,-250,-250},\n                {550,270.710678,-250},\n                {550,270.710678,265.891862},\n                {550,265.891862,270.710678},\n                {550,-250,270.710678},\n            },\n        };\n        auto [panels, adj, top_mesh, bot_mesh] = Mesh::loft_panels(top7, bot7);\n\n        // Color faces: blue=top cap, red=bot cap, gray=quad wall, yellow=tri wall\n        for (size_t i = 0; i < panels.size(); i++) {\n            std::vector<Color> face_colors;\n            face_colors.reserve(panels[i].face_roles.size());\n            for (const auto& [face_key, role] : panels[i].face_roles) {\n                switch (role) {\n                    case LoftFaceRole::TopCap:   face_colors.push_back(Color::blue()); break;\n                    case LoftFaceRole::BotCap:   face_colors.push_back(Color::red());  break;\n                    case LoftFaceRole::TriWall:  face_colors.push_back(Color::yellow()); break;\n                    case LoftFaceRole::QuadWall: face_colors.push_back(Color::grey());break;\n                }\n            }\n            panels[i].mesh.set_facecolors(face_colors);\n        }\n\n        // face centroids labelled with panel index\n        for (size_t i = 0; i < panels.size(); i++) {\n            auto c = panels[i].mesh.centroid();\n            c.name = fmt::format(\"p{}\", i);\n        }\n\n        // adjacency: for each shared edge — text dot at midpoint labelled \"p{i}f{idx}<->p{j}f{idx}\"\n        for (const auto& [i, wi, pj, wj] : adj) {\n            const auto& w = panels[i].wall_faces[wi];\n            auto pt = *panels[i].mesh.face_centroid(w.face_key);\n            pt.name = fmt::format(\"p{} f{} - p{} f{}\", i, w.face_index, pj, panels[pj].wall_faces[wj].face_index);\n        }\n",
     "checks": [
@@ -432,7 +432,7 @@
   {
     "test_name": "Boolean Queries",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.054,
     "line": 489,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        }, 0.001);\n\n        size_t v0 = 1;\n        size_t v1 = 2;\n        size_t v2 = 3;\n        size_t f0 = 0;\n\n        bool empty = mesh.is_empty();\n\n        bool valid = mesh.is_valid();\n\n        bool closed = mesh.is_closed();\n\n        bool vertex_on_boundary = mesh.is_vertex_on_boundary(v0);\n\n        bool edge_not_on_boundary = mesh.is_edge_on_boundary(v0, v1);\n\n        bool edge_on_boundary = mesh.is_edge_on_boundary(v1, v2);\n\n        bool face_on_boundary = mesh.is_face_on_boundary(f0);",
     "checks": [
@@ -477,7 +477,7 @@
   {
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.054,
     "line": 546,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n\n        size_t n_faces = mesh.number_of_faces();\n\n        size_t n_edges = mesh.number_of_edges();\n\n        size_t euler = mesh.euler();\n\n        auto [pts, fidx] = mesh.to_vertices_and_faces();\n\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n\n        // vertices / faces / edges\n        auto vertices = mesh.vertices();\n\n        auto faces = mesh.faces();\n\n        auto edges = mesh.edges();\n\n\n        // remove one face — box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n\n        auto ne = mesh.naked_edges(true);\n        auto ni = mesh.naked_edges(false);\n        auto nv = mesh.naked_vertices(true);\n        auto nvi = mesh.naked_vertices(false);\n        auto nf = mesh.naked_faces(true);\n        auto nfi = mesh.naked_faces(false);",
     "checks": [
@@ -822,7 +822,7 @@
   {
     "test_name": "Create Dodecahedron",
     "passed": true,
-    "time_ms": 0.126,
+    "time_ms": 0.145,
     "line": 650,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh m = Mesh::create_dodecahedron(2.0);",
     "checks": [
@@ -847,7 +847,7 @@
   {
     "test_name": "Vertex and Face Operations",
     "passed": true,
-    "time_ms": 0.233,
+    "time_ms": 0.281,
     "line": 659,
     "code": "        // uncomment #include \"mesh.h\"\n\n        double hx = 0.5, hy = 0.5, hz = 0.5;\n        std::vector<Point> verts = {\n            Point(-hx, -hy, -hz), Point( hx, -hy, -hz), Point( hx,  hy, -hz), Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz), Point( hx, -hy,  hz), Point( hx,  hy,  hz), Point(-hx,  hy,  hz),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {2, 3, 7, 6}, {0, 4, 7, 3}, {1, 2, 6, 5},\n        };\n\n        Mesh mesh = Mesh();\n\n        \n        for (const auto& v : verts) \n            mesh.add_vertex(v);\n    \n        for (const auto& f : faces) \n            mesh.add_face(f);\n\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices → [1,2,3,4,5,6,7], faces → [1,3,5]\n        mesh.remove_vertex(0);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces → [1,3]\n        mesh.remove_edge(1, 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces → [3]\n        mesh.remove_face(1);\n\n        // clear\n        mesh.clear();\n\n        // rebuild\n        for (const auto& v : verts) mesh.add_vertex(v);\n        for (const auto& f : faces) mesh.add_face(f);\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        mesh = mesh.weld(0.001);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        auto fv0 = *mesh.face_vertices(0); auto fv1 = *mesh.face_vertices(1);\n        auto fv2 = *mesh.face_vertices(2); auto fv3 = *mesh.face_vertices(3);\n        auto fv4 = *mesh.face_vertices(4); auto fv5 = *mesh.face_vertices(5);\n\n        // flip_face(0): face 0 → [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // flip: face 0 → [3,2,1,0], face 1 → [7,6,5,4], face 2 → [4,5,3,0]\n        // face 3 → [6,7,1,2], face 4 → [1,7,4,0], face 5 → [5,6,2,3]\n        mesh.flip();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // orient_outward: face 0 → [0,1,2,3], face 1 → [4,5,6,7], face 2 → [0,3,5,4]\n        // face 3 → [2,1,7,6], face 4 → [0,4,7,1], face 5 → [3,2,6,5]\n        mesh.orient_outward();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);",
     "checks": [
@@ -1057,7 +1057,7 @@
   {
     "test_name": "Connectivity Queries",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.086,
     "line": 774,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2,3}, {1,4,2}});\n\n        auto v = mesh.vertices();\n        auto f = mesh.faces();\n\n        // edge edges\n        // edge 1 - 2, edges: 1-0, 1-4, 2-3, 2-4\n        std::optional<std::vector<std::pair<size_t, size_t>>> ee = mesh.edge_edges(1, 2);\n        if (ee){\n\n            size_t u0 = (*ee)[0].first;\n            size_t v0 = (*ee)[0].second;\n            Line l0 = mesh.edge_line(u0, v0).value();\n            Point mid0 = l0.center();\n            mid0.name = \"e\" + std::to_string(u0) + \"-\" + std::to_string(v0);\n\n            size_t u1 = (*ee)[1].first;\n            size_t v1 = (*ee)[1].second;\n            Line l1 = mesh.edge_line(u1, v1).value();\n            Point mid1 = l1.center();\n            mid1.name = \"e\" + std::to_string(u1) + \"-\" + std::to_string(v1);\n\n            size_t u2 = (*ee)[2].first;\n            size_t v2 = (*ee)[2].second;\n            Line l2 = mesh.edge_line(u2, v2).value();\n            Point mid2 = l2.center();\n            mid2.name = \"e\" + std::to_string(u2) + \"-\" + std::to_string(v2);\n\n            size_t u3 = (*ee)[3].first;\n            size_t v3 = (*ee)[3].second;\n            Line l3 = mesh.edge_line(u3, v3).value();\n            Point mid3 = l3.center();\n            mid3.name = \"e\" + std::to_string(u3) + \"-\" + std::to_string(v3);\n\n            std::set<std::pair<size_t, size_t>> ee_set(ee->begin(), ee->end());\n        }\n\n        // edge faces\n        // edge 1-2, faces: 0, 1\n        std::optional<std::vector<size_t>> ef = mesh.edge_faces(1, 2);\n        if (ef) {\n            size_t ef0 = (*ef)[0];\n            size_t ef1 = (*ef)[1];\n            Point efp0 = *mesh.face_centroid(ef0);\n            efp0.name = \"f\" + std::to_string(ef0);\n            Point efp1 = *mesh.face_centroid(ef1);\n            efp1.name = \"f\" + std::to_string(ef1);\n        }\n\n        // face_edges\n        // face 0, edges: 0-1, 1-2, 2-3, 3-0\n        std::optional<std::vector<std::pair<size_t, size_t>>> fe = mesh.face_edges(f[0]);\n        if (fe) {\n            Line l0 = mesh.edge_line((*fe)[0].first, (*fe)[0].second).value();\n            Line l1 = mesh.edge_line((*fe)[1].first, (*fe)[1].second).value();\n            Line l2 = mesh.edge_line((*fe)[2].first, (*fe)[2].second).value();\n            Line l3 = mesh.edge_line((*fe)[3].first, (*fe)[3].second).value();\n            Point lmid0 = l0.center();\n            lmid0.name = \"e\" + std::to_string((*fe)[0].first) + \"-\" + std::to_string((*fe)[0].second);\n            Point lmid1 = l1.center();\n            lmid1.name = \"e\" + std::to_string((*fe)[1].first) + \"-\" + std::to_string((*fe)[1].second);\n            Point lmid2 = l2.center();\n            lmid2.name = \"e\" + std::to_string((*fe)[2].first) + \"-\" + std::to_string((*fe)[2].second);\n            Point lmid3 = l3.center();\n            lmid3.name = \"e\" + std::to_string((*fe)[3].first) + \"-\" + std::to_string((*fe)[3].second);\n        }\n\n        // face_faces\n        // face 0, adjacent faces: 1\n        std::optional<std::vector<size_t>> ff = mesh.face_faces(f[0]);\n        if (ff) {\n            size_t ff0 = (*ff)[0];\n            Point ffp = *mesh.face_centroid(ff0);\n            ffp.name = \"f\" + std::to_string(ff0);\n        }\n\n        // face points\n        std::optional<std::vector<Point>> points = mesh.face_points(f[0]);\n        if (points) {\n            size_t pointcount = (*points).size();\n        }\n\n        // face polyline\n        std::optional<Polyline> pl = mesh.face_polyline(f[0]);\n        if (pl) {\n            size_t pointcount = (*pl).point_count();\n        }\n\n        // face_vertices\n        // face 0 vertices: 0, 1, 2, 3\n        std::optional<std::vector<size_t>> fv = mesh.face_vertices(f[0]);\n        if(fv.has_value()) {\n            size_t fv0 = (*fv)[0];\n            size_t fv1 = (*fv)[1];\n            size_t fv2 = (*fv)[2];\n            size_t fv3 = (*fv)[3];\n            Point p0 = *mesh.vertex_point(fv0);\n            p0.name = std::to_string(fv0);\n            Point p1 = *mesh.vertex_point(fv1);\n            p1.name = std::to_string(fv1);\n            Point p2 = *mesh.vertex_point(fv2);\n            p2.name = std::to_string(fv2);\n            Point p3 = *mesh.vertex_point(fv3);\n            p3.name = std::to_string(fv3);\n        }\n    \n        // vertex_edges\n        // vertex 3, edges 1-0, 1-2, 1-4\n        std::optional<std::vector<std::pair<size_t, size_t>>> ve = mesh.vertex_edges(v[1]);\n        if (ve) {\n            Point vp = *mesh.vertex_point(v[1]);\n            vp.name = \"v\" + std::to_string(v[1]);\n\n            Line l0 = mesh.edge_line((*ve)[0].first, (*ve)[0].second).value();\n            Line l1 = mesh.edge_line((*ve)[1].first, (*ve)[1].second).value();\n            Line l2 = mesh.edge_line((*ve)[2].first, (*ve)[2].second).value();\n            Point lmid0 = l0.center();\n            lmid0.name = \"e\" + std::to_string((*ve)[0].first) + \"-\" + std::to_string((*ve)[0].second);\n            Point lmid1 = l1.center();\n            lmid1.name = \"e\" + std::to_string((*ve)[1].first) + \"-\" + std::to_string((*ve)[1].second);\n            Point lmid2 = l2.center();\n            lmid2.name = \"e\" + std::to_string((*ve)[2].first) + \"-\" + std::to_string((*ve)[2].second);\n\n        }\n\n        // vertex_faces\n        std::optional<std::vector<size_t>> vf = mesh.vertex_faces(v[1]);\n        // vertex 3, faces 0, 1\n        if (vf) {\n\n            Point vp = *mesh.vertex_point(v[1]);\n            vp.name = \"v\" + std::to_string(v[1]);\n\n            Point fp0 = *mesh.face_centroid((*vf)[0]);\n            fp0.name = \"f\" + std::to_string((*vf)[0]);\n            Point fp1 = *mesh.face_centroid((*vf)[1]);\n            fp1.name = \"f\" + std::to_string((*vf)[1]);\n        }\n\n        // vertex_vertices\n        // vertex 1, neighbors 0, 2, 4\n        std::optional<std::vector<size_t>> vn = mesh.vertex_vertices(v[1]);\n        if (vn) {\n            Point p0 = *mesh.vertex_point(v[1]);\n            p0.name = \"main\" + std::to_string(v[1]); \n\n            Point np0 = *mesh.vertex_point((*vn)[0]);\n            np0.name = std::to_string((*vn)[0]);\n            Point np1 = *mesh.vertex_point((*vn)[1]);\n            np1.name = std::to_string((*vn)[1]);\n            Point np2 = *mesh.vertex_point((*vn)[2]);\n            np2.name = std::to_string((*vn)[2]);\n\n        }",
     "checks": [
@@ -1227,153 +1227,1113 @@
   {
     "test_name": "Geometric Properties",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 1.982,
     "line": 974,
-    "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(-1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,3}, {0,3,2}});\n        auto vkeys = mesh.vertices();\n        size_t v0 = vkeys[0];\n        size_t v1 = vkeys[1];\n        size_t v3 = vkeys[3];\n        size_t f0 = mesh.faces()[0];\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n\n        // face_centroid\n        std::optional<Point> fc = mesh.face_centroid(f0);\n\n        // centroid\n        Point c = mesh.centroid();\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n\n        // dihedral_angle — interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        // boundary edge — only one face\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n\n        // area\n        Mesh box = Mesh::create_box(2.0, 2.0, 2.0);\n\n        // volume",
+    "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        double area = mesh.area();\n\n        // centroid\n        Point centroid = mesh.centroid();\n\n        // dihedral angle\n        auto [angles, arcs, points] = mesh.dihedral_angles(0.3);\n\n        for (const auto& [edge, angle] : angles) {\n            size_t u = edge.first;\n            size_t v = edge.second;\n            double angle_in_degrees = angle;\n        }\n\n        // face area\n        for (size_t f : mesh.faces()) {\n            double face_area = mesh.face_area(f).value();\n        }\n        \n        // face centroid\n        std::vector<Point> centroids;\n        for (size_t f : mesh.faces()) \n            centroids.emplace_back(*mesh.face_centroid(f));\n\n\n        // face normal / s\n        std::map<size_t, Vector> face_normals = mesh.face_normals();\n        for (size_t f : mesh.faces()) {\n            Vector normal0 = mesh.face_normal(f).value();\n            Vector normal1 = face_normals.at(f);\n        }\n\n\n        // vertex angle in face\n        for (const size_t f : mesh.faces())\n            for (const size_t v : *mesh.face_vertices(f)){\n                double angle = mesh.vertex_angle_in_face(v, f).value();\n            }\n\n        // vertex normal / s\n        std::map<size_t, Vector> vertex_normals = mesh.vertex_normals();\n        for (const size_t v : mesh.vertices()){\n            Vector normal0 = mesh.vertex_normal(v).value();\n            Vector normal1 = vertex_normals.at(v);\n        }\n\n\n        // vertex normal weighted / s\n        std::map<size_t, Vector> vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        for (const size_t v : mesh.vertices()){\n            Vector normal0 = mesh.vertex_normal_weighted(v, NormalWeighting::Angle).value();\n            Vector normal1 = vertex_normals_weighted.at(v);\n        }\n\n\n\n        // volume\n        double volume = mesh.volume();",
     "checks": [
       {
-        "line": 992,
-        "code_line": "fn.has_value()",
+        "line": 981,
+        "code_line": "TOLERANCE.is_close(area, 46.4528898159021)",
         "passed": true
       },
       {
-        "line": 993,
-        "code_line": "TOLERANCE.is_close((*fn)[2], 1.0)",
+        "line": 985,
+        "code_line": "TOLERANCE.is_point_close(centroid, Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 997,
-        "code_line": "fc.has_value()",
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
         "passed": true
       },
       {
-        "line": 998,
-        "code_line": "TOLERANCE.is_close((*fc)[0], 1.0 / 3.0)",
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
         "passed": true
       },
       {
-        "line": 999,
-        "code_line": "TOLERANCE.is_close((*fc)[1], 1.0 / 3.0)",
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
+        "passed": true
+      },
+      {
+        "line": 994,
+        "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
         "passed": true
       },
       {
         "line": 1000,
-        "code_line": "(*fc)[2] == 0.0",
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
         "passed": true
       },
       {
-        "line": 1004,
-        "code_line": "c[0] == 0.0",
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
         "passed": true
       },
       {
-        "line": 1005,
-        "code_line": "TOLERANCE.is_close(c[1], 0.25)",
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
         "passed": true
       },
       {
-        "line": 1006,
-        "code_line": "c[2] == 0.0",
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1000,
+        "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
+        "passed": true
+      },
+      {
+        "line": 1008,
+        "code_line": "TOLERANCE.is_point_close(centroids[0], Point( 0.878115294937453, 0.0, 1.420820393249937))",
+        "passed": true
+      },
+      {
+        "line": 1009,
+        "code_line": "TOLERANCE.is_point_close(centroids[1], Point( 1.420820393249937, 0.878115294937453, 0.0 ))",
         "passed": true
       },
       {
         "line": 1010,
-        "code_line": "vn.has_value()",
+        "code_line": "TOLERANCE.is_point_close(centroids[2], Point( 0.0, 1.420820393249937, 0.878115294937453))",
         "passed": true
       },
       {
         "line": 1011,
-        "code_line": "std::abs((*vn)[2]) == 1.0",
+        "code_line": "TOLERANCE.is_point_close(centroids[3], Point( 0.878115294937453, 0.0, -1.420820393249937))",
+        "passed": true
+      },
+      {
+        "line": 1012,
+        "code_line": "TOLERANCE.is_point_close(centroids[4], Point( 0.0, 1.420820393249937, -0.878115294937453))",
+        "passed": true
+      },
+      {
+        "line": 1013,
+        "code_line": "TOLERANCE.is_point_close(centroids[5], Point( 0.0, -1.420820393249937, 0.878115294937453))",
+        "passed": true
+      },
+      {
+        "line": 1014,
+        "code_line": "TOLERANCE.is_point_close(centroids[6], Point( 1.420820393249937, -0.878115294937453, 0.0 ))",
         "passed": true
       },
       {
         "line": 1015,
-        "code_line": "vnw.has_value()",
+        "code_line": "TOLERANCE.is_point_close(centroids[7], Point( 0.0, -1.420820393249937, -0.878115294937453))",
         "passed": true
       },
       {
         "line": 1016,
-        "code_line": "TOLERANCE.is_close((*vnw)[2], 1.0)",
+        "code_line": "TOLERANCE.is_point_close(centroids[8], Point(-1.420820393249937, 0.878115294937453, 0.0 ))",
         "passed": true
       },
       {
-        "line": 1020,
-        "code_line": "area.has_value()",
+        "line": 1017,
+        "code_line": "TOLERANCE.is_point_close(centroids[9], Point(-0.878115294937453, 0.0, 1.420820393249937))",
         "passed": true
       },
       {
-        "line": 1021,
-        "code_line": "TOLERANCE.is_close(*area, 0.5)",
+        "line": 1018,
+        "code_line": "TOLERANCE.is_point_close(centroids[10], Point(-0.878115294937453, 0.0, -1.420820393249937))",
         "passed": true
       },
       {
-        "line": 1025,
-        "code_line": "angle.has_value()",
+        "line": 1019,
+        "code_line": "TOLERANCE.is_point_close(centroids[11], Point(-1.420820393249937, -0.878115294937453, 0.0 ))",
         "passed": true
       },
       {
         "line": 1026,
-        "code_line": "TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0)",
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
         "passed": true
       },
       {
-        "line": 1027,
-        "code_line": "!mesh.vertex_angle_in_face(999, f0).has_value()",
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1026,
+        "code_line": "TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f))",
+        "passed": true
+      },
+      {
+        "line": 1029,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[0], Vector( 0.5257311121191336, 0.0, 0.8506508083520400))",
+        "passed": true
+      },
+      {
+        "line": 1030,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[1], Vector( 0.8506508083520400, 0.5257311121191336, 0.0 ))",
         "passed": true
       },
       {
         "line": 1031,
-        "code_line": "da.has_value()",
+        "code_line": "TOLERANCE.is_vector_close(face_normals[2], Vector( 0.0, 0.8506508083520400, 0.5257311121191336))",
         "passed": true
       },
       {
         "line": 1032,
-        "code_line": "TOLERANCE.is_close(*da, TOLERANCE.PI)",
+        "code_line": "TOLERANCE.is_vector_close(face_normals[3], Vector( 0.5257311121191336, 0.0, -0.8506508083520400))",
+        "passed": true
+      },
+      {
+        "line": 1033,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[4], Vector( 0.0, 0.8506508083520400, -0.5257311121191336))",
         "passed": true
       },
       {
         "line": 1034,
-        "code_line": "!mesh.dihedral_angle(v0, v1).has_value()",
+        "code_line": "TOLERANCE.is_vector_close(face_normals[5], Vector( 0.0, -0.8506508083520400, 0.5257311121191336))",
+        "passed": true
+      },
+      {
+        "line": 1035,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[6], Vector( 0.8506508083520400, -0.5257311121191336, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1036,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[7], Vector( 0.0, -0.8506508083520400, -0.5257311121191336))",
+        "passed": true
+      },
+      {
+        "line": 1037,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[8], Vector(-0.8506508083520400, 0.5257311121191336, 0.0 ))",
         "passed": true
       },
       {
         "line": 1038,
-        "code_line": "fns.size() == 2",
+        "code_line": "TOLERANCE.is_vector_close(face_normals[9], Vector(-0.5257311121191336, 0.0, 0.8506508083520400))",
         "passed": true
       },
       {
         "line": 1039,
-        "code_line": "TOLERANCE.is_close(fns[f0][2], 1.0)",
+        "code_line": "TOLERANCE.is_vector_close(face_normals[10], Vector(-0.5257311121191336, 0.0, -0.8506508083520400))",
         "passed": true
       },
       {
-        "line": 1043,
-        "code_line": "vns.size() == mesh.number_of_vertices()",
+        "line": 1040,
+        "code_line": "TOLERANCE.is_vector_close(face_normals[11], Vector(-0.8506508083520400, -0.5257311121191336, 0.0 ))",
         "passed": true
       },
       {
-        "line": 1044,
-        "code_line": "TOLERANCE.is_close(vns[v0][2], 1.0)",
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
         "passed": true
       },
       {
-        "line": 1048,
-        "code_line": "vnsw.size() == mesh.number_of_vertices()",
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
         "passed": true
       },
       {
-        "line": 1049,
-        "code_line": "TOLERANCE.is_close(vnsw[v0][2], 1.0)",
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
         "passed": true
       },
       {
-        "line": 1053,
-        "code_line": "TOLERANCE.is_close(box.area(), 24.0)",
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
         "passed": true
       },
       {
-        "line": 1056,
-        "code_line": "TOLERANCE.is_close(box.volume(), 8.0)",
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759)",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1054,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v))",
+        "passed": true
+      },
+      {
+        "line": 1057,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[0], Vector( 0.5773502691896258, 0.5773502691896258, 0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1058,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[1], Vector( 0.0, 0.3568220897730899, 0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1059,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[2], Vector( 0.0, -0.3568220897730899, 0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1060,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[3], Vector( 0.5773502691896257, -0.5773502691896258, 0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1061,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[4], Vector( 0.9341723589627158, 0.0, 0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1062,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[5], Vector( 0.9341723589627158, 0.0, -0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1063,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[6], Vector( 0.5773502691896258, 0.5773502691896257, -0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1064,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[7], Vector( 0.3568220897730899, 0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1065,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[8], Vector(-0.3568220897730899, 0.9341723589627157, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1066,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[9], Vector(-0.5773502691896258, 0.5773502691896258, 0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1067,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[10], Vector( 0.5773502691896258, -0.5773502691896258, -0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1068,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[11], Vector( 0.0, -0.3568220897730899, -0.9341723589627157))",
+        "passed": true
+      },
+      {
+        "line": 1069,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[12], Vector( 0.0, 0.3568220897730899, -0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1070,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[13], Vector(-0.5773502691896257, 0.5773502691896258, -0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1071,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[14], Vector(-0.5773502691896258, -0.5773502691896257, 0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1072,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[15], Vector(-0.3568220897730899, -0.9341723589627157, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1073,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[16], Vector( 0.3568220897730899, -0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1074,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[17], Vector(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1075,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[18], Vector(-0.9341723589627157, 0.0, -0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1076,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals[19], Vector(-0.9341723589627158, 0.0, 0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1083,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted.at(v), *mesh.vertex_normal_weighted(v, NormalWeighting::Angle))",
+        "passed": true
+      },
+      {
+        "line": 1086,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[0], Vector( 0.5773502691896257, 0.5773502691896257, 0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1087,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[1], Vector( 0.0, 0.3568220897730899, 0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1088,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[2], Vector( 0.0, -0.3568220897730899, 0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1089,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[3], Vector( 0.5773502691896257, -0.5773502691896257, 0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1090,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[4], Vector( 0.9341723589627158, 0.0, 0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1091,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[5], Vector( 0.9341723589627158, 0.0, -0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1092,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[6], Vector( 0.5773502691896258, 0.5773502691896257, -0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1093,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[7], Vector( 0.3568220897730899, 0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1094,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[8], Vector(-0.3568220897730899, 0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1095,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[9], Vector(-0.5773502691896257, 0.5773502691896258, 0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1096,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[10], Vector( 0.5773502691896257, -0.5773502691896258, -0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1097,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[11], Vector( 0.0, -0.3568220897730899, -0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1098,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[12], Vector( 0.0, 0.3568220897730899, -0.9341723589627158))",
+        "passed": true
+      },
+      {
+        "line": 1099,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[13], Vector(-0.5773502691896257, 0.5773502691896257, -0.5773502691896258))",
+        "passed": true
+      },
+      {
+        "line": 1100,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[14], Vector(-0.5773502691896258, -0.5773502691896257, 0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1101,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[15], Vector(-0.3568220897730900, -0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1102,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[16], Vector( 0.3568220897730899, -0.9341723589627158, 0.0 ))",
+        "passed": true
+      },
+      {
+        "line": 1103,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[17], Vector(-0.5773502691896257, -0.5773502691896257, -0.5773502691896257))",
+        "passed": true
+      },
+      {
+        "line": 1104,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[18], Vector(-0.9341723589627158, 0.0, -0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1105,
+        "code_line": "TOLERANCE.is_vector_close(vertex_normals_weighted[19], Vector(-0.9341723589627158, 0.0, 0.3568220897730899))",
+        "passed": true
+      },
+      {
+        "line": 1110,
+        "code_line": "TOLERANCE.is_close(volume, 25.8630264921081)",
         "passed": true
       }
     ],
@@ -1382,47 +2342,47 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.025,
-    "line": 1059,
+    "time_ms": 0.035,
+    "line": 1114,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2}});\n        size_t v0 = mesh.vertices()[0];\n\n        // transform() — apply stored xform in-place; xform field unchanged\n        Mesh mesh1 = mesh;\n        mesh1.xform = Xform::translation(0.0, 0.0, 1.0);\n        mesh1.transform();\n\n        // transform(const Xform&) — apply given xform in-place; stored xform unchanged\n        Mesh mesh2 = mesh;\n        Xform x = Xform::translation(0.0, 0.0, 1.0);\n        mesh2.transform(x);\n\n        // transformed() — copy with stored xform applied\n        Mesh mesh3 = mesh;\n        mesh3.xform = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh3t = mesh3.transformed();\n\n        // transformed(const Xform&) — copy with given xform applied\n        Mesh mesh4 = mesh;\n        x = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh4t = mesh4.transformed(x);",
     "checks": [
       {
-        "line": 1074,
+        "line": 1129,
         "code_line": "!mesh1.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 1075,
+        "line": 1130,
         "code_line": "(*mesh1.vertex_point(v0))[2] == 1.0",
         "passed": true
       },
       {
-        "line": 1081,
+        "line": 1136,
         "code_line": "mesh2.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 1082,
+        "line": 1137,
         "code_line": "(*mesh2.vertex_point(v0))[2] == 1.0",
         "passed": true
       },
       {
-        "line": 1088,
+        "line": 1143,
         "code_line": "!mesh3t.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 1089,
+        "line": 1144,
         "code_line": "(*mesh3t.vertex_point(v0))[2] == 10.0",
         "passed": true
       },
       {
-        "line": 1095,
+        "line": 1150,
         "code_line": "mesh4t.xform.is_identity()",
         "passed": true
       },
       {
-        "line": 1096,
+        "line": 1151,
         "code_line": "(*mesh4t.vertex_point(v0))[2] == 10.0",
         "passed": true
       }
@@ -1432,92 +2392,42 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.355,
-    "line": 1099,
-    "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // JSON object\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        nlohmann::ordered_json pjson = pmesh.jsondump();\n        Mesh loaded_tri = Mesh::jsonload(pjson);\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
+    "time_ms": 14.254,
+    "line": 1154,
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // JSON object\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::jsonload(pmesh.jsondump());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
     "checks": [
       {
-        "line": 1114,
-        "code_line": "loaded_json.name == mesh.name",
+        "line": 1176,
+        "code_line": "loaded_json == mesh",
         "passed": true
       },
       {
-        "line": 1115,
-        "code_line": "loaded_json.get_objectcolor() == mesh.get_objectcolor()",
+        "line": 1177,
+        "code_line": "loaded_string == mesh",
         "passed": true
       },
       {
-        "line": 1116,
-        "code_line": "loaded_json.color_mode == mesh.color_mode",
+        "line": 1178,
+        "code_line": "loaded_file == mesh",
         "passed": true
       },
       {
-        "line": 1117,
-        "code_line": "loaded_json.number_of_vertices() == mesh.number_of_vertices()",
-        "passed": true
-      },
-      {
-        "line": 1118,
-        "code_line": "loaded_json.number_of_faces() == mesh.number_of_faces()",
-        "passed": true
-      },
-      {
-        "line": 1119,
-        "code_line": "loaded_json.xform == mesh.xform",
-        "passed": true
-      },
-      {
-        "line": 1124,
-        "code_line": "loaded_string.name == mesh.name",
-        "passed": true
-      },
-      {
-        "line": 1125,
-        "code_line": "loaded_string.number_of_vertices() == mesh.number_of_vertices()",
-        "passed": true
-      },
-      {
-        "line": 1131,
-        "code_line": "loaded_file.name == mesh.name",
-        "passed": true
-      },
-      {
-        "line": 1132,
-        "code_line": "loaded_file.number_of_vertices() == mesh.number_of_vertices()",
-        "passed": true
-      },
-      {
-        "line": 1133,
-        "code_line": "loaded_file.number_of_faces() == mesh.number_of_faces()",
-        "passed": true
-      },
-      {
-        "line": 1143,
-        "code_line": "!pmesh.get_triangulation().empty()",
-        "passed": true
-      },
-      {
-        "line": 1147,
+        "line": 1190,
         "code_line": "!loaded_tri.get_triangulation().empty()",
         "passed": true
       },
       {
-        "line": 1148,
+        "line": 1191,
         "code_line": "loaded_tri.get_triangulation().count(fk) > 0",
         "passed": true
       },
       {
-        "line": 1154,
-        "code_line": "!hmesh.get_face_holes().empty()",
-        "passed": true
-      },
-      {
-        "line": 1157,
+        "line": 1199,
         "code_line": "!loaded_holes.get_face_holes().empty()",
         "passed": true
       },
       {
-        "line": 1158,
+        "line": 1200,
         "code_line": "loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk)",
         "passed": true
       }
@@ -1527,82 +2437,37 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 13.533,
-    "line": 1161,
-    "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
+    "time_ms": 12.786,
+    "line": 1203,
+    "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
     "checks": [
       {
-        "line": 1175,
-        "code_line": "loaded_string.name == mesh.name",
+        "line": 1221,
+        "code_line": "loaded_string == mesh",
         "passed": true
       },
       {
-        "line": 1176,
-        "code_line": "loaded_string.get_objectcolor() == mesh.get_objectcolor()",
+        "line": 1222,
+        "code_line": "loaded_file == mesh",
         "passed": true
       },
       {
-        "line": 1177,
-        "code_line": "loaded_string.color_mode == mesh.color_mode",
-        "passed": true
-      },
-      {
-        "line": 1178,
-        "code_line": "loaded_string.number_of_vertices() == mesh.number_of_vertices()",
-        "passed": true
-      },
-      {
-        "line": 1184,
-        "code_line": "loaded_file.name == mesh.name",
-        "passed": true
-      },
-      {
-        "line": 1185,
-        "code_line": "loaded_file.get_objectcolor() == mesh.get_objectcolor()",
-        "passed": true
-      },
-      {
-        "line": 1186,
-        "code_line": "loaded_file.number_of_vertices() == mesh.number_of_vertices()",
-        "passed": true
-      },
-      {
-        "line": 1187,
-        "code_line": "loaded_file.number_of_faces() == mesh.number_of_faces()",
-        "passed": true
-      },
-      {
-        "line": 1188,
-        "code_line": "loaded_file.guid == mesh.guid",
-        "passed": true
-      },
-      {
-        "line": 1198,
-        "code_line": "!pmesh.get_triangulation().empty()",
-        "passed": true
-      },
-      {
-        "line": 1201,
+        "line": 1234,
         "code_line": "!loaded_tri.get_triangulation().empty()",
         "passed": true
       },
       {
-        "line": 1202,
+        "line": 1235,
         "code_line": "loaded_tri.get_triangulation().count(fk) > 0",
         "passed": true
       },
       {
-        "line": 1208,
-        "code_line": "!hmesh.get_face_holes().empty()",
-        "passed": true
-      },
-      {
-        "line": 1211,
+        "line": 1243,
         "code_line": "!loaded_holes.get_face_holes().empty()",
         "passed": true
       },
       {
-        "line": 1212,
+        "line": 1244,
         "code_line": "loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk)",
         "passed": true
       }

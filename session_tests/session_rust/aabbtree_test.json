@@ -2,7 +2,7 @@
   {
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.036,
     "line": 7,
     "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let m = Mesh::new();\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 0.0));",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "Build Single",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.04,
     "line": 19,
     "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let vk0 = m.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let vk1 = m.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let vk2 = m.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        m.add_face(vec![vk0, vk1, vk2], None);\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 1.0));",
     "checks": [
@@ -37,7 +37,7 @@
   {
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.031,
     "line": 36,
     "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let vk0 = m.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let vk1 = m.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let vk2 = m.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let vk3 = m.add_vertex(Point::new(5.0, 0.0, 0.0), None);\n        let vk4 = m.add_vertex(Point::new(6.0, 0.0, 0.0), None);\n        let vk5 = m.add_vertex(Point::new(5.0, 1.0, 0.0), None);\n        let vk6 = m.add_vertex(Point::new(10.0, 0.0, 0.0), None);\n        let vk7 = m.add_vertex(Point::new(11.0, 0.0, 0.0), None);\n        let vk8 = m.add_vertex(Point::new(10.0, 1.0, 0.0), None);\n        m.add_face(vec![vk0, vk1, vk2], None);\n        m.add_face(vec![vk3, vk4, vk5], None);\n        m.add_face(vec![vk6, vk7, vk8], None);\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.5, 0.0, 0.0));",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "Node Count",
     "passed": true,
-    "time_ms": 0.59,
+    "time_ms": 0.637,
     "line": 60,
     "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));",
     "checks": [
@@ -67,7 +67,7 @@
   {
     "test_name": "Mesh Point Aabb",
     "passed": true,
-    "time_ms": 0.105,
+    "time_ms": 0.111,
     "line": 81,
     "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n        let (cp1, _fk1, d1) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 2.0));\n        let (_cp2, _fk2, d2) = Closest::mesh_point_aabb(&m, &Point::new(1.0, 1.0, 1.0));",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Mesh Point Aabb Matches Bvh",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.069,
     "line": 96,
     "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n        let tp = Point::new(0.3, 0.7, 1.5);\n        let (cp_bvh, _fk_bvh, d_bvh) = Closest::mesh_point(&m, &tp);\n        let (cp_aabb, _fk_aabb, d_aabb) = Closest::mesh_point_aabb(&m, &tp);",
     "checks": [

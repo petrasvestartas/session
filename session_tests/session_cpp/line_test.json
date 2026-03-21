@@ -152,7 +152,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 127,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"xform.h\"\n\n    Line l(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    l.xform = Xform::translation(10.0, 0.0, 0.0);\n    Line l_transformed = l.transformed(); // Make a copy\n    l.transform(); // After the call, \"xform\" is reset",
     "checks": [
@@ -177,7 +177,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.193,
+    "time_ms": 11.54,
     "line": 141,
     "code": "    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n\n    // String\n    std::string s = l.json_dumps();\n    Line loaded_s = Line::json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);",
     "checks": [
@@ -242,7 +242,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.957,
+    "time_ms": 5.81,
     "line": 170,
     "code": "    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.006,
     "line": 195,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    double ln = l.length();\n    double lsq = l.squared_length();",
     "checks": [
@@ -342,7 +342,7 @@
   {
     "test_name": "To Direction",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 215,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    Vector d = l.to_direction();",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 227,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 10.0, 10.0);\n    Point ps = l.point_at(0.0);\n    Point pm = l.point_at(0.5);\n    Point pe = l.point_at(1.0);",
     "checks": [
@@ -397,7 +397,7 @@
   {
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 240,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n    Point p1(5.0, 5.0, 0.0);\n    Point p2(-5.0, 0.0, 0.0);\n    Point p3(15.0, 0.0, 0.0);\n    Point cp1 = l.closest_point(p1);\n    Point cp2 = l.closest_point(p2);\n    Point cp3 = l.closest_point(p3);",
     "checks": [
@@ -447,7 +447,7 @@
   {
     "test_name": "Fit Points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 270,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include <vector>\n\n    std::vector<Point> fit_pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.5),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 3.0, 1.5),\n    };\n    Line l_fit = Line::fit_points(fit_pts);",
     "checks": [

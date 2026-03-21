@@ -2,7 +2,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.132,
+    "time_ms": 13.399,
     "line": 10,
     "code": "    Vertex original(\"v0\", \"./serialization/test_attribute\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"./serialization/test_vertex.json\");\n\n\n    std::filesystem::remove(\"./serialization/test_vertex.json\");",
     "checks": [

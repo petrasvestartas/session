@@ -2,1126 +2,6 @@
 window.API_INDEX = {
   "concepts": [
     {
-      "name": "BoundingBox.__init__",
-      "implementations": {
-        "python": {
-          "sig": "__init__(\n        ,\n        center: Point = None,\n        x_axis: Vector = None,\n        y_axis: Vector = None,\n        z_axis: Vector = None,\n        half_size: Vector = None,\n    )",
-          "code": "def __init__(\n        self,\n        center: Point = None,\n        x_axis: Vector = None,\n        y_axis: Vector = None,\n        z_axis: Vector = None,\n        half_size: Vector = None,\n    ):\n\n        self.center = center if center is not None else Point(0.0, 0.0, 0.0)\n        self.x_axis = x_axis if x_axis is not None else Vector(1.0, 0.0, 0.0)\n        self.y_axis = y_axis if y_axis is not None else Vector(0.0, 1.0, 0.0)\n        self.z_axis = z_axis if z_axis is not None else Vector(0.0, 0.0, 1.0)\n        self.half_size = half_size if half_size is not None else Vector(0.5, 0.5, 0.5)\n        self._guid = None\n        self.name = \"my_boundingbox\"\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @classmethod\n    def from_plane(cls, plane: Plane, dx: float, dy: float, dz: float):\n        return cls(\n            center=plane.origin,\n            x_axis=plane.x_axis,\n            y_axis=plane.y_axis,\n            z_axis=plane.z_axis,\n            half_size=Vector(dx * 0.5, dy * 0.5, dz * 0.5),\n        )\n\n    @classmethod\n    def from_point(cls, point: Point, inflate: float = 0.0):\n        return cls(\n            center=point,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=Vector(inflate, inflate, inflate),\n        )\n\n    @classmethod\n    def from_points(cls, points: List[Point], inflate: float = 0.0):\n        if not points:\n            return cls()\n\n        min_x = min(p[0] for p in points)\n        min_y = min(p[1] for p in points)\n        min_z = min(p[2] for p in points)\n        max_x = max(p[0] for p in points)\n        max_y = max(p[1] for p in points)\n        max_z = max(p[2] for p in points)\n\n        center = Point(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        )\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        )\n\n        return cls(\n            center=center,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=half_size,\n        )\n\n    @classmethod\n    def from_line(cls, line, inflate: float = 0.0):\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters",
-          "file": "boundingbox.py"
-        }
-      },
-      "related": [
-        "BoundingBox.from_line",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.guid",
-      "implementations": {
-        "python": {
-          "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @classmethod\n    def from_plane(cls, plane: Plane, dx: float, dy: float, dz: float):\n        return cls(\n            center=plane.origin,\n            x_axis=plane.x_axis,\n            y_axis=plane.y_axis,\n            z_axis=plane.z_axis,\n            half_size=Vector(dx * 0.5, dy * 0.5, dz * 0.5),\n        )\n\n    @classmethod\n    def from_point(cls, point: Point, inflate: float = 0.0):\n        return cls(\n            center=point,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=Vector(inflate, inflate, inflate),\n        )\n\n    @classmethod\n    def from_points(cls, points: List[Point], inflate: float = 0.0):\n        if not points:\n            return cls()\n\n        min_x = min(p[0] for p in points)\n        min_y = min(p[1] for p in points)\n        min_z = min(p[2] for p in points)\n        max_x = max(p[0] for p in points)\n        max_y = max(p[1] for p in points)\n        max_z = max(p[2] for p in points)\n\n        center = Point(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        )\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        )\n\n        return cls(\n            center=center,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=half_size,\n        )\n\n    @classmethod\n    def from_line(cls, line, inflate: float = 0.0):\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)",
-          "file": "boundingbox.py"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.from_line",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.new",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_plane",
-      "implementations": {
-        "python": {
-          "sig": "from_plane(cls, plane: Plane, dx: float, dy: float, dz: float)",
-          "code": "def from_plane(cls, plane: Plane, dx: float, dy: float, dz: float):\n\n        return cls(\n            center=plane.origin,\n            x_axis=plane.x_axis,\n            y_axis=plane.y_axis,\n            z_axis=plane.z_axis,\n            half_size=Vector(dx * 0.5, dy * 0.5, dz * 0.5),\n        )\n\n    @classmethod\n    def from_point(cls, point: Point, inflate: float = 0.0):\n        return cls(\n            center=point,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=Vector(inflate, inflate, inflate),\n        )\n\n    @classmethod\n    def from_points(cls, points: List[Point], inflate: float = 0.0):\n        if not points:\n            return cls()\n\n        min_x = min(p[0] for p in points)\n        min_y = min(p[1] for p in points)\n        min_z = min(p[2] for p in points)\n        max_x = max(p[0] for p in points)\n        max_y = max(p[1] for p in points)\n        max_z = max(p[2] for p in points)\n\n        center = Point(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        )\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        )\n\n        return cls(\n            center=center,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=half_size,\n        )\n\n    @classmethod\n    def from_line(cls, line, inflate: float = 0.0):\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.",
-          "file": "boundingbox.py"
-        },
-        "rust": {
-          "sig": "from_plane(plane: &Plane, dx: f64, dy: f64, dz: f64) -> Self",
-          "code": "pub fn from_plane(plane: &Plane, dx: f64, dy: f64, dz: f64) -> Self {\n        BoundingBox {\n            center: plane.origin(),\n            x_axis: plane.x_axis(),\n            y_axis: plane.y_axis(),\n            z_axis: plane.z_axis(),\n            half_size: Vector::new(dx * 0.5, dy * 0.5, dz * 0.5),\n            guid: Uuid::new_v4().to_string(),\n            name: String::new(),\n            xform: Xform::identity(),\n        }\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.new"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_point",
-      "implementations": {
-        "python": {
-          "sig": "from_point(cls, point: Point, inflate: float = 0.0)",
-          "code": "def from_point(cls, point: Point, inflate: float = 0.0):\n\n        return cls(\n            center=point,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=Vector(inflate, inflate, inflate),\n        )\n\n    @classmethod\n    def from_points(cls, points: List[Point], inflate: float = 0.0):\n        if not points:\n            return cls()\n\n        min_x = min(p[0] for p in points)\n        min_y = min(p[1] for p in points)\n        min_z = min(p[2] for p in points)\n        max_x = max(p[0] for p in points)\n        max_y = max(p[1] for p in points)\n        max_z = max(p[2] for p in points)\n\n        center = Point(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        )\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        )\n\n        return cls(\n            center=center,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=half_size,\n        )\n\n    @classmethod\n    def from_line(cls, line, inflate: float = 0.0):\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "return from_point(Point(0, 0, 0)",
-          "code": "return BoundingBox::from_point(Point(0, 0, 0), inflate);\n    }",
-          "file": "session.cpp"
-        },
-        "rust": {
-          "sig": "from_point(point: Point, inflate: f64) -> Self",
-          "code": "pub fn from_point(point: Point, inflate: f64) -> Self {\n        BoundingBox {\n            center: point,\n            x_axis: Vector::new(1.0, 0.0, 0.0),\n            y_axis: Vector::new(0.0, 1.0, 0.0),\n            z_axis: Vector::new(0.0, 0.0, 1.0),\n            half_size: Vector::new(inflate, inflate, inflate),\n            guid: Uuid::new_v4().to_string(),\n            xform: Xform::identity(),\n            name: String::new(),\n        }\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.collides_with",
-        "BoundingBox.collides_with_naive",
-        "BoundingBox.corners",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_mesh_with_plane",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_pointcloud_with_plane",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.new",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_points",
-      "implementations": {
-        "python": {
-          "sig": "from_points(cls, points: List[Point], inflate: float = 0.0)",
-          "code": "def from_points(cls, points: List[Point], inflate: float = 0.0):\n\n        if not points:\n            return cls()\n\n        min_x = min(p[0] for p in points)\n        min_y = min(p[1] for p in points)\n        min_z = min(p[2] for p in points)\n        max_x = max(p[0] for p in points)\n        max_y = max(p[1] for p in points)\n        max_z = max(p[2] for p in points)\n\n        center = Point(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        )\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        )\n\n        return cls(\n            center=center,\n            x_axis=Vector(1.0, 0.0, 0.0),\n            y_axis=Vector(0.0, 1.0, 0.0),\n            z_axis=Vector(0.0, 0.0, 1.0),\n            half_size=half_size,\n        )\n\n    @classmethod\n    def from_line(cls, line, inflate: float = 0.0):\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "return from_points(points, inflate)",
-          "code": "return BoundingBox::from_points(points, inflate);\n    }",
-          "file": "session.cpp"
-        },
-        "rust": {
-          "sig": "from_points(points: &[Point], inflate: f64) -> Self",
-          "code": "pub fn from_points(points: &[Point], inflate: f64) -> Self {\n        if points.is_empty() {\n            return BoundingBox::default();\n        }\n\n        let mut min_x = f64::MAX;\n        let mut min_y = f64::MAX;\n        let mut min_z = f64::MAX;\n        let mut max_x = f64::MIN;\n        let mut max_y = f64::MIN;\n        let mut max_z = f64::MIN;\n\n        for pt in points {\n            min_x = min_x.min(pt[0]);\n            min_y = min_y.min(pt[1]);\n            min_z = min_z.min(pt[2]);\n            max_x = max_x.max(pt[0]);\n            max_y = max_y.max(pt[1]);\n            max_z = max_z.max(pt[2]);\n        }\n\n        let center = Point::new(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        );\n        let half_size = Vector::new(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        );\n\n        BoundingBox {\n            center,\n            x_axis: Vector::new(1.0, 0.0, 0.0),\n            y_axis: Vector::new(0.0, 1.0, 0.0),\n            z_axis: Vector::new(0.0, 0.0, 1.0),\n            half_size,\n            guid: Uuid::new_v4().to_string(),\n            name: String::new(),\n            xform: Xform::identity(),\n        }\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.collides_with",
-        "BoundingBox.collides_with_naive",
-        "BoundingBox.corners",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_mesh_with_plane",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_pointcloud_with_plane",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.new",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_line",
-      "implementations": {
-        "python": {
-          "sig": "from_line(cls, line, inflate: float = 0.0)",
-          "code": "def from_line(cls, line, inflate: float = 0.0):\n\n        points = [line.start(), line.end()]\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_line(const Line& line, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_line(const Line& line, const Plane& plane, double inflate_amount) {\n    std::vector<Point> points = {line.start(), line.end()}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_line(line: &crate::line::Line, inflate: f64) -> Self",
-          "code": "pub fn from_line(line: &crate::line::Line, inflate: f64) -> Self {\n        let points = vec![line.start(), line.end()];\n        Self::from_points(&points, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_polyline",
-      "implementations": {
-        "python": {
-          "sig": "from_polyline(cls, polyline, inflate: float = 0.0, plane=None)",
-          "code": "def from_polyline(cls, polyline, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from polyline.\n\n        Parameters\n        ----------\n        polyline : Polyline\n            The polyline to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the polyline.\n        \"\"\"\n        if plane is not None:\n            return cls.from_points(polyline.points, plane, inflate)\n        return cls.from_points(polyline.points, inflate)\n\n    @classmethod\n    def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_polyline(const Polyline& polyline, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_polyline(const Polyline& polyline, const Plane& plane, double inflate_amount) {\n    return from_points(polyline.get_points(), plane, inflate_amount);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_polyline(polyline: &crate::polyline::Polyline, inflate: f64) -> Self",
-          "code": "pub fn from_polyline(polyline: &crate::polyline::Polyline, inflate: f64) -> Self {\n        Self::from_points(&polyline.get_points(), inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_mesh",
-      "implementations": {
-        "python": {
-          "sig": "from_mesh(cls, mesh, inflate: float = 0.0, plane=None)",
-          "code": "def from_mesh(cls, mesh, inflate: float = 0.0, plane=None):\n\n        \"\"\"Create bounding box from mesh.\n\n        Parameters\n        ----------\n        mesh : Mesh\n            The mesh to bound.\n        inflate : float, optional\n            Amount to inflate the bounding box (default 0.0).\n        plane : Plane, optional\n            If provided, creates an OOBB aligned to the plane.\n\n        Returns\n        -------\n        BoundingBox\n            Axis-aligned or oriented bounding box containing the mesh.\n        \"\"\"\n        vertices, faces = mesh.to_vertices_and_faces()\n        if plane is not None:\n            return cls.from_points(vertices, plane, inflate)\n        return cls.from_points(vertices, inflate)\n\n    @classmethod\n    def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_mesh(const Mesh& mesh, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_mesh(const Mesh& mesh, const Plane& plane, double inflate_amount) {\n    auto [vertices, faces] = mesh.to_vertices_and_faces();\n    return from_points(vertices, plane, inflate_amount);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_mesh(mesh: &crate::mesh::Mesh, inflate: f64) -> Self",
-          "code": "pub fn from_mesh(mesh: &crate::mesh::Mesh, inflate: f64) -> Self {\n        let (vertices, _) = mesh.to_vertices_and_faces();\n        Self::from_points(&vertices, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh_with_plane",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_pointcloud",
-      "implementations": {
-        "python": {
-          "sig": "from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None)",
-          "code": "def from_pointcloud(cls, pointcloud, inflate: float = 0.0, plane=None):\n\n        points = pointcloud.get_points()\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]\n                            fp = deriv[2][axis_idx]\n\n                        if abs(f) < 1e-12:\n                            break",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_pointcloud(const PointCloud& pointcloud, const Plane& plane, double inflate_amount) {\n    return from_points(pointcloud.get_points(), plane, inflate_amount);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_pointcloud(pointcloud: &crate::pointcloud::PointCloud, inflate: f64) -> Self",
-          "code": "pub fn from_pointcloud(pointcloud: &crate::pointcloud::PointCloud, inflate: f64) -> Self {\n        Self::from_points(&pointcloud.get_points(), inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud_with_plane",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_nurbssurface",
-      "implementations": {
-        "python": {
-          "sig": "from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None)",
-          "code": "def from_nurbssurface(cls, surface, inflate: float = 0.0, plane=None):\n\n        if not surface.is_valid() or surface.cv_count(0) == 0 or surface.cv_count(1) == 0:\n            return cls()\n        points = []\n        for i in range(surface.cv_count(0)):\n            for j in range(surface.cv_count(1)):\n                points.append(surface.get_cv(i, j))\n        if plane is not None:\n            return cls.from_points_with_plane(points, plane, inflate)\n        return cls.from_points(points, inflate)\n\n    @classmethod\n    def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]\n                            fp = deriv[2][axis_idx]\n\n                        if abs(f) < 1e-12:\n                            break\n\n                        if abs(fp) > 1e-14:\n                            t_new = t_root - f / fp\n                            if t_lo <= t_new <= t_hi:\n                                t_root = t_new\n                            else:\n                                if f * d_start < 0:",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount)",
-          "code": "BoundingBox BoundingBox::from_nurbssurface(const NurbsSurface& surface, const Plane& plane, double inflate_amount) {\n    if (!surface.is_valid() || surface.cv_count(0) == 0 || surface.cv_count(1) == 0) {\n        return BoundingBox();\n    }",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_nurbssurface(surface: &crate::nurbssurface::NurbsSurface, inflate: f64) -> Self",
-          "code": "pub fn from_nurbssurface(surface: &crate::nurbssurface::NurbsSurface, inflate: f64) -> Self {\n        if !surface.is_valid() || surface.cv_count_dir(Some(0)) == 0 || surface.cv_count_dir(Some(1)) == 0 {\n            return BoundingBox::default();\n        }\n        let mut points = Vec::new();\n        for i in 0..surface.cv_count_dir(Some(0)) {\n            for j in 0..surface.cv_count_dir(Some(1)) {\n                if let Some(pt) = surface.get_cv(i, j) {\n                    points.push(pt);\n                }\n            }\n        }\n        Self::from_points(&points, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.new",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_nurbscurve",
-      "implementations": {
-        "python": {
-          "sig": "from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None)",
-          "code": "def from_nurbscurve(cls, curve, inflate: float = 0.0, tight: bool = False, plane=None):\n\n        if not curve.is_valid() or curve.cv_count() == 0:\n            return cls()\n\n        if not tight:\n            points = [curve.get_cv(i) for i in range(curve.cv_count())]\n            if plane is not None:\n                return cls.from_points_with_plane(points, plane, inflate)\n            return cls.from_points(points, inflate)\n\n        t0, t1 = curve.domain()\n        extrema_points = [curve.point_at(t0), curve.point_at(t1)]\n\n        spans = curve.get_span_vector()\n        for t in spans:\n            if t > t0 and t < t1:\n                extrema_points.append(curve.point_at(t))\n\n        if plane is not None:\n            axes = [plane.x_axis, plane.y_axis, plane.z_axis]\n        else:\n            axes = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]\n\n        NUM_SAMPLES = 20\n        dt = (t1 - t0) / NUM_SAMPLES\n\n        for axis_idx, axis in enumerate(axes):\n            for i in range(NUM_SAMPLES):\n                t_start = t0 + i * dt\n                t_end = t_start + dt\n\n                deriv_start = curve.evaluate(t_start, 1)\n                deriv_end = curve.evaluate(t_end, 1)\n                if len(deriv_start) < 2 or len(deriv_end) < 2:\n                    continue\n\n                if plane is not None:\n                    d_start = deriv_start[1].dot(axis)\n                    d_end = deriv_end[1].dot(axis)\n                else:\n                    d_start = deriv_start[1][axis_idx]\n                    d_end = deriv_end[1][axis_idx]\n\n                if d_start * d_end < 0:\n                    t_lo, t_hi = t_start, t_end\n                    t_root = (t_lo + t_hi) * 0.5\n\n                    for _ in range(20):\n                        deriv = curve.evaluate(t_root, 2)\n                        if len(deriv) < 3:\n                            break\n\n                        if plane is not None:\n                            f = deriv[1].dot(axis)\n                            fp = deriv[2].dot(axis)\n                        else:\n                            f = deriv[1][axis_idx]\n                            fp = deriv[2][axis_idx]\n\n                        if abs(f) < 1e-12:\n                            break\n\n                        if abs(fp) > 1e-14:\n                            t_new = t_root - f / fp\n                            if t_lo <= t_new <= t_hi:\n                                t_root = t_new\n                            else:\n                                if f * d_start < 0:\n                                    t_hi = t_root\n                                else:\n                                    t_lo = t_root\n                                t_root = (t_lo + t_hi) * 0.5\n                        else:\n                            t_root = (t_lo + t_hi) * 0.5\n\n                        deriv_check = curve.evaluate(t_root, 1)\n                        if len(deriv_check) >= 2:\n                            if plane is not None:\n                                f_check = deriv_check[1].dot(axis)\n                            else:",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox from_nurbscurve(const NurbsCurve& curve, const Plane& plane, double inflate_amount, bool tight)",
-          "code": "BoundingBox BoundingBox::from_nurbscurve(const NurbsCurve& curve, const Plane& plane, double inflate_amount, bool tight) {\n    if (!curve.is_valid() || curve.cv_count() == 0) {\n        return BoundingBox();\n    }",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "from_nurbscurve(curve: &crate::nurbscurve::NurbsCurve, inflate: f64, tight: bool) -> Self",
-          "code": "pub fn from_nurbscurve(curve: &crate::nurbscurve::NurbsCurve, inflate: f64, tight: bool) -> Self {\n        if !curve.is_valid() || curve.cv_count() == 0 {\n            return BoundingBox::default();\n        }\n\n        if !tight {\n            let points: Vec<Point> = (0..curve.cv_count())\n                .filter_map(|i| curve.get_cv(i))\n                .collect();\n            return Self::from_points(&points, inflate);\n        }\n\n        let (t0, t1) = curve.domain();\n        let mut extrema_points = vec![curve.point_at(t0), curve.point_at(t1)];\n\n        let spans = curve.get_span_vector();\n        for t in spans {\n            if t > t0 && t < t1 {\n                extrema_points.push(curve.point_at(t));\n            }\n        }\n\n        const NUM_SAMPLES: usize = 20;\n        let dt = (t1 - t0) / NUM_SAMPLES as f64;\n\n        for axis in 0..3 {\n            for i in 0..NUM_SAMPLES {\n                let t_start = t0 + i as f64 * dt;\n                let t_end = t_start + dt;\n\n                let deriv_start = curve.evaluate(t_start, 1);\n                let deriv_end = curve.evaluate(t_end, 1);\n                if deriv_start.len() < 2 || deriv_end.len() < 2 {\n                    continue;\n                }\n\n                let mut d_start = deriv_start[1][axis];\n                let d_end = deriv_end[1][axis];\n\n                if d_start * d_end < 0.0 {\n                    let mut t_lo = t_start;\n                    let mut t_hi = t_end;\n                    let mut t_root = (t_lo + t_hi) * 0.5;\n\n                    for _ in 0..20 {\n                        let deriv = curve.evaluate(t_root, 2);\n                        if deriv.len() < 3 {\n                            break;\n                        }\n\n                        let f = deriv[1][axis];\n                        let fp = deriv[2][axis];\n\n                        if f.abs() < 1e-12 {\n                            break;\n                        }\n\n                        if fp.abs() > 1e-14 {\n                            let t_new = t_root - f / fp;\n                            if t_new >= t_lo && t_new <= t_hi {\n                                t_root = t_new;\n                            } else {\n                                if f * d_start < 0.0 {\n                                    t_hi = t_root;\n                                } else {\n                                    t_lo = t_root;\n                                }\n                                t_root = (t_lo + t_hi) * 0.5;\n                            }\n                        } else {\n                            t_root = (t_lo + t_hi) * 0.5;\n                        }\n\n                        let deriv_check = curve.evaluate(t_root, 1);\n                        if deriv_check.len() >= 2 {\n                            let f_check = deriv_check[1][axis];\n                            if f_check * d_start < 0.0 {\n                                t_hi = t_root;\n                            } else {\n                                t_lo = t_root;\n                                d_start = f_check;\n                            }\n                        }\n                    }\n\n                    extrema_points.push(curve.point_at(t_root));\n                }\n            }\n        }\n\n        Self::from_points(&extrema_points, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.new",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_points_with_plane",
-      "implementations": {
-        "python": {
-          "sig": "from_points_with_plane(cls, points: List[Point], plane, inflate: float = 0.0)",
-          "code": "def from_points_with_plane(cls, points: List[Point], plane, inflate: float = 0.0):\n\n        if not points:\n            return cls()\n\n        from .xform import Xform\n        origin = plane.origin\n        x_axis = plane.x_axis\n        y_axis = plane.y_axis\n        z_axis = plane.z_axis\n        plane_to_xy = Xform.plane_to_xy(origin, x_axis, y_axis, z_axis)\n\n        min_x = min_y = min_z = float('inf')\n        max_x = max_y = max_z = float('-inf')\n\n        for pt in points:\n            local_pt = plane_to_xy.transformed_point(pt)\n            min_x = min(min_x, local_pt[0])\n            min_y = min(min_y, local_pt[1])\n            min_z = min(min_z, local_pt[2])\n            max_x = max(max_x, local_pt[0])\n            max_y = max(max_y, local_pt[1])\n            max_z = max(max_z, local_pt[2])\n\n        local_center = Point((min_x + max_x) * 0.5, (min_y + max_y) * 0.5, (min_z + max_z) * 0.5)\n        half_size = Vector(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate\n        )\n\n        xy_to_plane = Xform.xy_to_plane(origin, x_axis, y_axis, z_axis)\n        world_center = xy_to_plane.transformed_point(local_center)\n\n        return cls(world_center, x_axis, y_axis, z_axis, half_size)\n\n    def aabb(self):\n        ex, ey, ez = self.half_size[0], self.half_size[1], self.half_size[2]\n        hx = abs(self.x_axis[0]) * ex + abs(self.y_axis[0]) * ey + abs(self.z_axis[0]) * ez\n        hy = abs(self.x_axis[1]) * ex + abs(self.y_axis[1]) * ey + abs(self.z_axis[1]) * ez\n        hz = abs(self.x_axis[2]) * ex + abs(self.y_axis[2]) * ey + abs(self.z_axis[2]) * ez\n        return BoundingBox(self.center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz))\n\n    def point_at(self, x: float, y: float, z: float) -> Point:\n        return Point(\n            self.center[0] + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center[1] + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center[2] + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] - self.half_size[0],\n            self.center[1] - self.half_size[1],\n            self.center[2] - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.",
-          "file": "boundingbox.py"
-        },
-        "rust": {
-          "sig": "from_points_with_plane(points: &[Point], plane: &Plane, inflate: f64) -> Self",
-          "code": "pub fn from_points_with_plane(points: &[Point], plane: &Plane, inflate: f64) -> Self {\n        if points.is_empty() {\n            return BoundingBox::default();\n        }\n\n        let origin = plane.origin();\n        let x_axis = plane.x_axis();\n        let y_axis = plane.y_axis();\n        let z_axis = plane.z_axis();\n        let plane_to_xy = Xform::plane_to_xy(&origin, &x_axis, &y_axis, &z_axis);\n\n        let mut min_x = f64::MAX;\n        let mut min_y = f64::MAX;\n        let mut min_z = f64::MAX;\n        let mut max_x = f64::MIN;\n        let mut max_y = f64::MIN;\n        let mut max_z = f64::MIN;\n\n        for pt in points {\n            let local_pt = plane_to_xy.transformed_point(pt);\n            min_x = min_x.min(local_pt[0]);\n            min_y = min_y.min(local_pt[1]);\n            min_z = min_z.min(local_pt[2]);\n            max_x = max_x.max(local_pt[0]);\n            max_y = max_y.max(local_pt[1]);\n            max_z = max_z.max(local_pt[2]);\n        }\n\n        let local_center = Point::new(\n            (min_x + max_x) * 0.5,\n            (min_y + max_y) * 0.5,\n            (min_z + max_z) * 0.5,\n        );\n        let half_size = Vector::new(\n            (max_x - min_x) * 0.5 + inflate,\n            (max_y - min_y) * 0.5 + inflate,\n            (max_z - min_z) * 0.5 + inflate,\n        );\n\n        let xy_to_plane = Xform::xy_to_plane(&origin, &x_axis, &y_axis, &z_axis);\n        let world_center = xy_to_plane.transformed_point(&local_center);\n\n        BoundingBox {\n            center: world_center,\n            x_axis,\n            y_axis,\n            z_axis,\n            half_size,\n            guid: Uuid::new_v4().to_string(),\n            name: String::new(),\n            xform: Xform::identity(),\n        }\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.aabb",
-        "BoundingBox.corners",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_mesh_with_plane",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_pointcloud_with_plane",
-        "BoundingBox.from_points",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.new",
-        "BoundingBox.point_at",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.aabb",
-      "implementations": {
-        "python": {
-          "sig": "aabb()",
-          "code": "def aabb(self):\n\n        ex, ey, ez = self.half_size[0], self.half_size[1], self.half_size[2]\n        hx = abs(self.x_axis[0]) * ex + abs(self.y_axis[0]) * ey + abs(self.z_axis[0]) * ez\n        hy = abs(self.x_axis[1]) * ex + abs(self.y_axis[1]) * ey + abs(self.z_axis[1]) * ez\n        hz = abs(self.x_axis[2]) * ex + abs(self.y_axis[2]) * ey + abs(self.z_axis[2]) * ez\n        return BoundingBox(self.center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz))\n\n    def point_at(self, x: float, y: float, z: float) -> Point:\n        return Point(\n            self.center[0] + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center[1] + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center[2] + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] - self.half_size[0],\n            self.center[1] - self.half_size[1],\n            self.center[2] - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox aabb()",
-          "code": "BoundingBox BoundingBox::aabb() const {\n    double ex = half_size[0];\n    double ey = half_size[1];\n    double ez = half_size[2];\n    double hx = std::abs(x_axis[0]) * ex + std::abs(y_axis[0]) * ey + std::abs(z_axis[0]) * ez;\n    double hy = std::abs(x_axis[1]) * ex + std::abs(y_axis[1]) * ey + std::abs(z_axis[1]) * ez;\n    double hz = std::abs(x_axis[2]) * ex + std::abs(y_axis[2]) * ey + std::abs(z_axis[2]) * ez;\n    return BoundingBox(center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz));\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "aabb() -> Self",
-          "code": "pub fn aabb(&self) -> Self {\n        let ex = self.half_size[0];\n        let ey = self.half_size[1];\n        let ez = self.half_size[2];\n        let hx = self.x_axis[0].abs() * ex + self.y_axis[0].abs() * ey + self.z_axis[0].abs() * ez;\n        let hy = self.x_axis[1].abs() * ex + self.y_axis[1].abs() * ey + self.z_axis[1].abs() * ez;\n        let hz = self.x_axis[2].abs() * ex + self.y_axis[2].abs() * ey + self.z_axis[2].abs() * ez;\n        BoundingBox::new(\n            self.center.clone(),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(hx, hy, hz),\n        )\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.corners",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.new",
-        "BoundingBox.point_at",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.point_at",
-      "implementations": {
-        "python": {
-          "sig": "point_at(x: float, y: float, z: float) -> Point",
-          "code": "def point_at(self, x: float, y: float, z: float) -> Point:\n\n        return Point(\n            self.center[0] + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center[1] + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center[2] + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n\n    def min_point(self) -> Point:\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] - self.half_size[0],\n            self.center[1] - self.half_size[1],\n            self.center[2] - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "Point point_at(double x, double y, double z)",
-          "code": "Point BoundingBox::point_at(double x, double y, double z) const {\n    return Point(\n        center[0] + x * x_axis[0] + y * y_axis[0] + z * z_axis[0],\n        center[1] + x * x_axis[1] + y * y_axis[1] + z * z_axis[1],\n        center[2] + x * x_axis[2] + y * y_axis[2] + z * z_axis[2]\n    );\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "point_at(x: f64, y: f64, z: f64) -> Point",
-          "code": "pub fn point_at(&self, x: f64, y: f64, z: f64) -> Point {\n        Point::new(\n            self.center[0] + x * self.x_axis[0] + y * self.y_axis[0] + z * self.z_axis[0],\n            self.center[1] + x * self.x_axis[1] + y * self.y_axis[1] + z * self.z_axis[1],\n            self.center[2] + x * self.x_axis[2] + y * self.y_axis[2] + z * self.z_axis[2],\n        )\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.corners",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.new",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.min_point",
-      "implementations": {
-        "python": {
-          "sig": "min_point() -> Point",
-          "code": "def min_point(self) -> Point:\n\n        \"\"\"Get the minimum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with minimum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] - self.half_size[0],\n            self.center[1] - self.half_size[1],\n            self.center[2] - self.half_size[2],\n        )\n\n    def max_point(self) -> Point:\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "Point min_point()",
-          "code": "Point BoundingBox::min_point() const {\n    return Point(\n        center[0] - half_size[0],\n        center[1] - half_size[1],\n        center[2] - half_size[2]\n    );\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "min_point() -> Point",
-          "code": "pub fn min_point(&self) -> Point {\n        Point::new(\n            self.center[0] - self.half_size[0],\n            self.center[1] - self.half_size[1],\n            self.center[2] - self.half_size[2],\n        )\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.corners",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.new",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.max_point",
-      "implementations": {
-        "python": {
-          "sig": "max_point() -> Point",
-          "code": "def max_point(self) -> Point:\n\n        \"\"\"Get the maximum corner point of the axis-aligned bounding box.\n\n        Returns\n        -------\n        Point\n            The point with maximum x, y, z coordinates.\n        \"\"\"\n        return Point(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n\n    def corners(self) -> List[Point]:\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]\n        proj1 = abs(v1.dot(axis)) + abs(v2.dot(axis)) + abs(v3.dot(axis))\n\n        v4 = box2.x_axis * box2.half_size[0]\n        v5 = box2.y_axis * box2.half_size[1]\n        v6 = box2.z_axis * box2.half_size[2]\n        proj2 = abs(v4.dot(axis)) + abs(v5.dot(axis)) + abs(v6.dot(axis))\n\n        return dot_rp > (proj1 + proj2)\n\n    def collides_with(self, other: \"BoundingBox\") -> bool:\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "Point max_point()",
-          "code": "Point BoundingBox::max_point() const {\n    return Point(\n        center[0] + half_size[0],\n        center[1] + half_size[1],\n        center[2] + half_size[2]\n    );\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "max_point() -> Point",
-          "code": "pub fn max_point(&self) -> Point {\n        Point::new(\n            self.center[0] + self.half_size[0],\n            self.center[1] + self.half_size[1],\n            self.center[2] + self.half_size[2],\n        )\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.collides_with",
-        "BoundingBox.corners",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.min_point",
-        "BoundingBox.new",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.corners",
-      "implementations": {
-        "python": {
-          "sig": "corners() -> List[Point]",
-          "code": "def corners(self) -> List[Point]:\n\n        \"\"\"Get all 8 corner points of the bounding box.\n\n        Returns\n        -------\n        List[Point]\n            List of 8 corner points in a specific order.\n        \"\"\"\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n\n    def two_rectangles(self) -> List[Point]:\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]\n        proj1 = abs(v1.dot(axis)) + abs(v2.dot(axis)) + abs(v3.dot(axis))\n\n        v4 = box2.x_axis * box2.half_size[0]\n        v5 = box2.y_axis * box2.half_size[1]\n        v6 = box2.z_axis * box2.half_size[2]\n        proj2 = abs(v4.dot(axis)) + abs(v5.dot(axis)) + abs(v6.dot(axis))\n\n        return dot_rp > (proj1 + proj2)\n\n    def collides_with(self, other: \"BoundingBox\") -> bool:\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)\n\n        return not (\n            self._separating_plane_exists(relative_position, self.x_axis, self, other)\n            or self._separating_plane_exists(\n                relative_position, self.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.x_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.y_axis, self, other\n            )",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "std::array<Point, 8> corners()",
-          "code": "std::array<Point, 8> BoundingBox::corners() const {\n    std::array<Point, 8> result;\n    \n    result[0] = point_at(half_size[0], half_size[1], -half_size[2]);\n    result[1] = point_at(-half_size[0], half_size[1], -half_size[2]);\n    result[2] = point_at(-half_size[0], -half_size[1], -half_size[2]);\n    result[3] = point_at(half_size[0], -half_size[1], -half_size[2]);\n    \n    result[4] = point_at(half_size[0], half_size[1], half_size[2]);\n    result[5] = point_at(-half_size[0], half_size[1], half_size[2]);\n    result[6] = point_at(-half_size[0], -half_size[1], half_size[2]);\n    result[7] = point_at(half_size[0], -half_size[1], half_size[2]);\n    return result;\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "corners() -> [Point; 8]",
-          "code": "pub fn corners(&self) -> [Point; 8] {\n        [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(\n                -self.half_size[0],\n                -self.half_size[1],\n                -self.half_size[2],\n            ),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n        ]\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.collides_with",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.two_rectangles",
-      "implementations": {
-        "python": {
-          "sig": "two_rectangles() -> List[Point]",
-          "code": "def two_rectangles(self) -> List[Point]:\n\n        return [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n\n    def inflate(self, amount: float):\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]\n        proj1 = abs(v1.dot(axis)) + abs(v2.dot(axis)) + abs(v3.dot(axis))\n\n        v4 = box2.x_axis * box2.half_size[0]\n        v5 = box2.y_axis * box2.half_size[1]\n        v6 = box2.z_axis * box2.half_size[2]\n        proj2 = abs(v4.dot(axis)) + abs(v5.dot(axis)) + abs(v6.dot(axis))\n\n        return dot_rp > (proj1 + proj2)\n\n    def collides_with(self, other: \"BoundingBox\") -> bool:\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)\n\n        return not (\n            self._separating_plane_exists(relative_position, self.x_axis, self, other)\n            or self._separating_plane_exists(\n                relative_position, self.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.x_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "std::array<Point, 10> two_rectangles()",
-          "code": "std::array<Point, 10> BoundingBox::two_rectangles() const {\n    std::array<Point, 10> result;\n    \n    result[0] = point_at(half_size[0], half_size[1], -half_size[2]);\n    result[1] = point_at(-half_size[0], half_size[1], -half_size[2]);\n    result[2] = point_at(-half_size[0], -half_size[1], -half_size[2]);\n    result[3] = point_at(half_size[0], -half_size[1], -half_size[2]);\n    result[4] = point_at(half_size[0], half_size[1], -half_size[2]);\n    \n    result[5] = point_at(half_size[0], half_size[1], half_size[2]);\n    result[6] = point_at(-half_size[0], half_size[1], half_size[2]);\n    result[7] = point_at(-half_size[0], -half_size[1], half_size[2]);\n    result[8] = point_at(half_size[0], -half_size[1], half_size[2]);\n    result[9] = point_at(half_size[0], half_size[1], half_size[2]);\n    return result;\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "two_rectangles() -> [Point; 10]",
-          "code": "pub fn two_rectangles(&self) -> [Point; 10] {\n        [\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(\n                -self.half_size[0],\n                -self.half_size[1],\n                -self.half_size[2],\n            ),\n            self.point_at(self.half_size[0], -self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], -self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], self.half_size[1], self.half_size[2]),\n            self.point_at(-self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], -self.half_size[1], self.half_size[2]),\n            self.point_at(self.half_size[0], self.half_size[1], self.half_size[2]),\n        ]\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.collides_with",
-        "BoundingBox.corners",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists"
-      ]
-    },
-    {
-      "name": "BoundingBox.inflate",
-      "implementations": {
-        "python": {
-          "sig": "inflate(amount: float)",
-          "code": "def inflate(self, amount: float):\n\n        self.half_size = Vector(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        )\n\n    @staticmethod\n    def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]\n        proj1 = abs(v1.dot(axis)) + abs(v2.dot(axis)) + abs(v3.dot(axis))\n\n        v4 = box2.x_axis * box2.half_size[0]\n        v5 = box2.y_axis * box2.half_size[1]\n        v6 = box2.z_axis * box2.half_size[2]\n        proj2 = abs(v4.dot(axis)) + abs(v5.dot(axis)) + abs(v6.dot(axis))\n\n        return dot_rp > (proj1 + proj2)\n\n    def collides_with(self, other: \"BoundingBox\") -> bool:\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)\n\n        return not (\n            self._separating_plane_exists(relative_position, self.x_axis, self, other)\n            or self._separating_plane_exists(\n                relative_position, self.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.x_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.z_axis), self, other\n            )\n        )\n\n    ###########################################################################################",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "void inflate(double amount)",
-          "code": "void BoundingBox::inflate(double amount) {\n    half_size = Vector(\n        half_size[0] + amount,\n        half_size[1] + amount,\n        half_size[2] + amount\n    );\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "inflate(amount: f64)",
-          "code": "pub fn inflate(&mut self, amount: f64) {\n        self.half_size = Vector::new(\n            self.half_size[0] + amount,\n            self.half_size[1] + amount,\n            self.half_size[2] + amount,\n        );\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__init__",
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.aabb",
-        "BoundingBox.collides_with",
-        "BoundingBox.corners",
-        "BoundingBox.from_line",
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_mesh_with_plane",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_pointcloud_with_plane",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.from_polyline",
-        "BoundingBox.guid",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.new",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox._separating_plane_exists",
-      "implementations": {
-        "python": {
-          "sig": "_separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool",
-          "code": "def _separating_plane_exists(\n        relative_position: Vector,\n        axis: Vector,\n        box1: \"BoundingBox\",\n        box2: \"BoundingBox\",\n    ) -> bool:\n\n        dot_rp = abs(relative_position.dot(axis))\n\n        v1 = box1.x_axis * box1.half_size[0]\n        v2 = box1.y_axis * box1.half_size[1]\n        v3 = box1.z_axis * box1.half_size[2]\n        proj1 = abs(v1.dot(axis)) + abs(v2.dot(axis)) + abs(v3.dot(axis))\n\n        v4 = box2.x_axis * box2.half_size[0]\n        v5 = box2.y_axis * box2.half_size[1]\n        v6 = box2.z_axis * box2.half_size[2]\n        proj2 = abs(v4.dot(axis)) + abs(v5.dot(axis)) + abs(v6.dot(axis))\n\n        return dot_rp > (proj1 + proj2)\n\n    def collides_with(self, other: \"BoundingBox\") -> bool:\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)\n\n        return not (\n            self._separating_plane_exists(relative_position, self.x_axis, self, other)\n            or self._separating_plane_exists(\n                relative_position, self.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.x_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.z_axis), self, other\n            )\n        )\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self):\n        \"\"\"Apply the stored xform transformation to the bounding box.\n\n        Transforms the bounding box in-place and resets xform to identity.\n        \"\"\"\n        from .xform import Xform\n\n        self.xform.transform_point(self.center)\n        self.xform.transform_vector(self.x_axis)\n        self.xform.transform_vector(self.y_axis)",
-          "file": "boundingbox.py"
-        }
-      },
-      "related": [
-        "BoundingBox.collides_with",
-        "BoundingBox.corners",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.point_at",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.transform",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.collides_with",
-      "implementations": {
-        "python": {
-          "sig": "collides_with(other: \"BoundingBox\") -> bool",
-          "code": "def collides_with(self, other: \"BoundingBox\") -> bool:\n\n        center_vec = Vector(self.center[0], self.center[1], self.center[2])\n        other_center_vec = Vector(other.center[0], other.center[1], other.center[2])\n        relative_position = Vector.from_points(center_vec, other_center_vec)\n\n        return not (\n            self._separating_plane_exists(relative_position, self.x_axis, self, other)\n            or self._separating_plane_exists(\n                relative_position, self.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.x_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.y_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, other.z_axis, self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.x_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.y_axis.cross(other.z_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.x_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.y_axis), self, other\n            )\n            or self._separating_plane_exists(\n                relative_position, self.z_axis.cross(other.z_axis), self, other\n            )\n        )\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self):\n        \"\"\"Apply the stored xform transformation to the bounding box.\n\n        Transforms the bounding box in-place and resets xform to identity.\n        \"\"\"\n        from .xform import Xform\n\n        self.xform.transform_point(self.center)\n        self.xform.transform_vector(self.x_axis)\n        self.xform.transform_vector(self.y_axis)\n        self.xform.transform_vector(self.z_axis)\n        self.xform = Xform.identity()\n\n    def transformed(self):\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "bool collides_with(const BoundingBox& other)",
-          "code": "bool BoundingBox::collides_with(const BoundingBox& other) const {\n    return collides_with_rtcd(other);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "collides_with(other: &BoundingBox) -> bool",
-          "code": "pub fn collides_with(&self, other: &BoundingBox) -> bool {\n        let center_pt = Point::new(self.center[0], self.center[1], self.center[2]);\n        let other_center_pt = Point::new(other.center[0], other.center[1], other.center[2]);\n        let relative_position = Vector::from_points(&center_pt, &other_center_pt);\n\n        !(Self::separating_plane_exists(&relative_position, &self.x_axis, self, other)\n            || Self::separating_plane_exists(&relative_position, &self.y_axis, self, other)\n            || Self::separating_plane_exists(&relative_position, &self.z_axis, self, other)\n            || Self::separating_plane_exists(&relative_position, &other.x_axis, self, other)\n            || Self::separating_plane_exists(&relative_position, &other.y_axis, self, other)\n            || Self::separating_plane_exists(&relative_position, &other.z_axis, self, other)\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.x_axis.cross(&other.x_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.x_axis.cross(&other.y_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.x_axis.cross(&other.z_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.y_axis.cross(&other.x_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.y_axis.cross(&other.y_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.y_axis.cross(&other.z_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.z_axis.cross(&other.x_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.z_axis.cross(&other.y_axis),\n                self,\n                other,\n            )\n            || Self::separating_plane_exists(\n                &relative_position,\n                &self.z_axis.cross(&other.z_axis),\n                self,\n                other,\n            ))\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.collides_with_naive",
-        "BoundingBox.collides_with_rtcd",
-        "BoundingBox.corners",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.new",
-        "BoundingBox.separating_plane_exists",
-        "BoundingBox.transform",
-        "BoundingBox.transformed",
-        "BoundingBox.two_rectangles"
-      ]
-    },
-    {
-      "name": "BoundingBox.transform",
-      "implementations": {
-        "python": {
-          "sig": "transform()",
-          "code": "def transform(self):\n\n        \"\"\"Apply the stored xform transformation to the bounding box.\n\n        Transforms the bounding box in-place and resets xform to identity.\n        \"\"\"\n        from .xform import Xform\n\n        self.xform.transform_point(self.center)\n        self.xform.transform_vector(self.x_axis)\n        self.xform.transform_vector(self.y_axis)\n        self.xform.transform_vector(self.z_axis)\n        self.xform = Xform.identity()\n\n    def transformed(self):\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "void transform()",
-          "code": "void BoundingBox::transform() {\n  xform.transform_point(center);\n  xform.transform_vector(x_axis);\n  xform.transform_vector(y_axis);\n  xform.transform_vector(z_axis);\n  xform = Xform::identity();\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "transform()",
-          "code": "pub fn transform(&mut self) {\n        let xform = self.xform.clone();\n        xform.transform_point(&mut self.center);\n        xform.transform_vector(&mut self.x_axis);\n        xform.transform_vector(&mut self.y_axis);\n        xform.transform_vector(&mut self.z_axis);\n        self.xform = Xform::identity();\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.collides_with",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.transformed",
-      "implementations": {
-        "python": {
-          "sig": "transformed()",
-          "code": "def transformed(self):\n\n        \"\"\"Return a transformed copy of the bounding box.\"\"\"\n        import copy\n\n        result = copy.deepcopy(self)\n        result.transform()\n        return result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox transformed()",
-          "code": "BoundingBox BoundingBox::transformed() const {\n  BoundingBox result = *this;\n  result.transform();\n  return result;\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "transformed() -> Self",
-          "code": "pub fn transformed(&self) -> Self {\n        let mut result = self.clone();\n        result.transform();\n        result\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.collides_with",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.transform"
-      ]
-    },
-    {
-      "name": "BoundingBox.__jsondump__",
-      "implementations": {
-        "python": {
-          "sig": "__jsondump__()",
-          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"center\": self.center.__jsondump__(),\n            \"x_axis\": self.x_axis.__jsondump__(),\n            \"y_axis\": self.y_axis.__jsondump__(),\n            \"z_axis\": self.z_axis.__jsondump__(),\n            \"half_size\": self.half_size.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)",
-          "file": "boundingbox.py"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.__jsonload__",
-      "implementations": {
-        "python": {
-          "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        center = decode_node(data[\"center\"])\n        x_axis = decode_node(data[\"x_axis\"])\n        y_axis = decode_node(data[\"y_axis\"])\n        z_axis = decode_node(data[\"z_axis\"])\n        half_size = decode_node(data[\"half_size\"])\n\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = guid if guid is not None else data.get(\"guid\", bbox.guid)\n        bbox.name = name if name is not None else data.get(\"name\", bbox.name)\n\n        if \"xform\" in data:\n            bbox.xform = decode_node(data[\"xform\"])\n\n        return bbox\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
-          "file": "boundingbox.py"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.json_dumps",
-      "implementations": {
-        "python": {
-          "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "std::string json_dumps()",
-          "code": "std::string BoundingBox::json_dumps() const {\n    return jsondump().dump();\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "json_dumps() -> String",
-          "code": "pub fn json_dumps(&self) -> String {\n        self.jsondump().unwrap_or_default()\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.json_loads",
-      "implementations": {
-        "python": {
-          "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox json_loads(const std::string& json_string)",
-          "code": "BoundingBox BoundingBox::json_loads(const std::string& json_string) {\n    return jsonload(nlohmann::json::parse(json_string));\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "json_loads(s: &str) -> Self",
-          "code": "pub fn json_loads(s: &str) -> Self {\n        Self::jsonload(s).unwrap_or_default()\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.json_dump",
-      "implementations": {
-        "python": {
-          "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "void json_dump(const std::string& filename)",
-          "code": "void BoundingBox::json_dump(const std::string& filename) const {\n    std::ofstream file(filename);\n    file << jsondump().dump(4);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "json_dump(filepath: &str)",
-          "code": "pub fn json_dump(&self, filepath: &str) {\n        let _ = self.to_json(filepath);\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsondump",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.to_json",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.json_load",
-      "implementations": {
-        "python": {
-          "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox json_load(const std::string& filename)",
-          "code": "BoundingBox BoundingBox::json_load(const std::string& filename) {\n    std::ifstream file(filename);\n    nlohmann::json data;\n    file >> data;\n    return jsonload(data);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "json_load(filepath: &str) -> Self",
-          "code": "pub fn json_load(filepath: &str) -> Self {\n        Self::from_json(filepath).unwrap_or_default()\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.from_json",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_loads",
-        "BoundingBox.jsonload",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.pb_dumps",
-      "implementations": {
-        "python": {
-          "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.center.ParseFromString(self.center.pb_dumps())\n        proto.x_axis.ParseFromString(self.x_axis.pb_dumps())\n        proto.y_axis.ParseFromString(self.y_axis.pb_dumps())\n        proto.z_axis.ParseFromString(self.z_axis.pb_dumps())\n        proto.half_size.ParseFromString(self.half_size.pb_dumps())\n        proto.guid = self.guid\n        proto.name = self.name\n        if hasattr(self, 'xform'):\n            proto.xform.guid = self.xform.guid\n            proto.xform.name = self.xform.name\n            proto.xform.matrix.extend(self.xform.m)\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "std::string pb_dumps()",
-          "code": "std::string BoundingBox::pb_dumps() const {\n    session_proto::BoundingBox proto;\n    proto.mutable_center()->ParseFromString(center.pb_dumps());\n    proto.mutable_x_axis()->ParseFromString(x_axis.pb_dumps());\n    proto.mutable_y_axis()->ParseFromString(y_axis.pb_dumps());\n    proto.mutable_z_axis()->ParseFromString(z_axis.pb_dumps());\n    proto.mutable_half_size()->ParseFromString(half_size.pb_dumps());\n    proto.set_guid(guid);\n    proto.set_name(name);\n    auto* xform_proto = proto.mutable_xform();\n    xform_proto->set_guid(xform.guid);\n    xform_proto->set_name(xform.name);\n    for (int i = 0; i < 16; ++i) {\n        xform_proto->add_matrix(xform.m[i]);\n    }",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "pb_dumps() -> Vec<u8>",
-          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::BoundingBox {\n            center: Some(crate::proto::Point::decode(self.center.pb_dumps().as_slice()).unwrap()),\n            x_axis: Some(crate::proto::Vector::decode(self.x_axis.pb_dumps().as_slice()).unwrap()),\n            y_axis: Some(crate::proto::Vector::decode(self.y_axis.pb_dumps().as_slice()).unwrap()),\n            z_axis: Some(crate::proto::Vector::decode(self.z_axis.pb_dumps().as_slice()).unwrap()),\n            half_size: Some(crate::proto::Vector::decode(self.half_size.pb_dumps().as_slice()).unwrap()),\n            guid: self.guid.clone(),\n            name: self.name.clone(),\n            xform: Some(crate::proto::Xform {\n                guid: self.xform.guid.clone(),\n                name: self.xform.name.clone(),\n                matrix: self.xform.m.to_vec(),\n            }),\n        };\n        proto.encode_to_vec()\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.pb_loads",
-      "implementations": {
-        "python": {
-          "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        from .proto import boundingbox_pb2\n        proto = boundingbox_pb2.BoundingBox()\n        proto.ParseFromString(data)\n        center = Point.pb_loads(proto.center.SerializeToString())\n        x_axis = Vector.pb_loads(proto.x_axis.SerializeToString())\n        y_axis = Vector.pb_loads(proto.y_axis.SerializeToString())\n        z_axis = Vector.pb_loads(proto.z_axis.SerializeToString())\n        half_size = Vector.pb_loads(proto.half_size.SerializeToString())\n        bbox = cls(center, x_axis, y_axis, z_axis, half_size)\n        bbox.guid = proto.guid\n        bbox.name = proto.name\n        if proto.HasField('xform'):\n            from .xform import Xform\n            bbox.xform = Xform.pb_loads(proto.xform.SerializeToString())\n        return bbox\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox pb_loads(const std::string& data)",
-          "code": "BoundingBox BoundingBox::pb_loads(const std::string& data) {\n    session_proto::BoundingBox proto;\n    proto.ParseFromString(data);\n    Point c = Point::pb_loads(proto.center().SerializeAsString());\n    Vector xa = Vector::pb_loads(proto.x_axis().SerializeAsString());\n    Vector ya = Vector::pb_loads(proto.y_axis().SerializeAsString());\n    Vector za = Vector::pb_loads(proto.z_axis().SerializeAsString());\n    Vector hs = Vector::pb_loads(proto.half_size().SerializeAsString());\n    BoundingBox box(c, xa, ya, za, hs);\n    box.guid = proto.guid();\n    box.name = proto.name();\n    if (proto.has_xform()) {\n        box.xform = Xform::pb_loads(proto.xform().SerializeAsString());\n    }",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::BoundingBox::decode(data)?;\n        let center = if let Some(p) = &proto.center {\n            crate::point::Point::pb_loads(&p.encode_to_vec())?\n        } else {\n            crate::point::Point::new(0.0, 0.0, 0.0)\n        };\n        let x_axis = if let Some(v) = &proto.x_axis {\n            crate::vector::Vector::pb_loads(&v.encode_to_vec())?\n        } else {\n            crate::vector::Vector::new(1.0, 0.0, 0.0)\n        };\n        let y_axis = if let Some(v) = &proto.y_axis {\n            crate::vector::Vector::pb_loads(&v.encode_to_vec())?\n        } else {\n            crate::vector::Vector::new(0.0, 1.0, 0.0)\n        };\n        let z_axis = if let Some(v) = &proto.z_axis {\n            crate::vector::Vector::pb_loads(&v.encode_to_vec())?\n        } else {\n            crate::vector::Vector::new(0.0, 0.0, 1.0)\n        };\n        let half_size = if let Some(v) = &proto.half_size {\n            crate::vector::Vector::pb_loads(&v.encode_to_vec())?\n        } else {\n            crate::vector::Vector::new(0.5, 0.5, 0.5)\n        };\n        let mut bbox = BoundingBox::new(center, x_axis, y_axis, z_axis, half_size);\n        bbox.guid = proto.guid;\n        bbox.name = proto.name;\n        if let Some(xform) = proto.xform {\n            bbox.xform.guid = xform.guid;\n            bbox.xform.name = xform.name;\n            for (i, val) in xform.matrix.iter().enumerate() {\n                if i < 16 { bbox.xform.m[i] = *val; }\n            }\n        }\n        Ok(bbox)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.new",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load"
-      ]
-    },
-    {
-      "name": "BoundingBox.pb_dump",
-      "implementations": {
-        "python": {
-          "sig": "pb_dump(filepath)",
-          "code": "def pb_dump(self, filepath):\n\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "void pb_dump(const std::string& filename)",
-          "code": "void BoundingBox::pb_dump(const std::string& filename) const {\n    std::string data = pb_dumps();\n    std::ofstream file(filename, std::ios::binary);\n    file.write(data.data(), data.size());\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "pb_dump(filepath: &str)",
-          "code": "pub fn pb_dump(&self, filepath: &str) {\n        std::fs::write(filepath, self.pb_dumps()).expect(\"Failed to write protobuf file\");\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_load",
-        "BoundingBox.pb_loads",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.pb_load",
-      "implementations": {
-        "python": {
-          "sig": "pb_load(cls, filepath)",
-          "code": "def pb_load(cls, filepath):\n\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())",
-          "file": "boundingbox.py"
-        },
-        "cpp": {
-          "sig": "BoundingBox pb_load(const std::string& filename)",
-          "code": "BoundingBox BoundingBox::pb_load(const std::string& filename) {\n    std::ifstream file(filename, std::ios::binary);\n    std::string data((std::istreambuf_iterator<char>(file)),\n                      std::istreambuf_iterator<char>());\n    return pb_loads(data);\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "pb_load(filepath: &str) -> Self",
-          "code": "pub fn pb_load(filepath: &str) -> Self {\n        let data = std::fs::read(filepath).expect(\"Failed to read protobuf file\");\n        Self::pb_loads(&data).expect(\"Failed to parse protobuf\")\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.pb_dump",
-        "BoundingBox.pb_dumps",
-        "BoundingBox.pb_loads"
-      ]
-    },
-    {
       "name": "Color.__init__",
       "implementations": {
         "python": {
@@ -7209,6 +6089,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.vertex_index",
         "Mesh.vertices",
+        "Mesh.volume",
         "Mesh.widths"
       ]
     },
@@ -8371,7 +7252,6 @@ window.API_INDEX = {
         "Mesh.clear",
         "Mesh.clear_triangle_bvh",
         "Mesh.create_box",
-        "Mesh.dihedral_angle",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -8443,6 +7323,8 @@ window.API_INDEX = {
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_index",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
         "Mesh.vertex_point",
@@ -8488,6 +7370,7 @@ window.API_INDEX = {
         "Mesh.create_box",
         "Mesh.create_dodecahedron",
         "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -8495,6 +7378,7 @@ window.API_INDEX = {
         "Mesh.edges",
         "Mesh.edsq",
         "Mesh.euler",
+        "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
@@ -8562,8 +7446,6 @@ window.API_INDEX = {
         "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
         "Mesh.vertex_point",
         "Mesh.vertex_vertices",
         "Mesh.vertices",
@@ -8660,10 +7542,14 @@ window.API_INDEX = {
         "Mesh.__repr__",
         "Mesh.__str__",
         "Mesh.add_face",
+        "Mesh.area",
+        "Mesh.centroid",
         "Mesh.clear",
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
@@ -8719,6 +7605,9 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
         "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertex_vertices",
         "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
@@ -9799,7 +8688,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "orient_outward() -> bool",
-          "code": "def orient_outward(self) -> bool:\n\n        if not self.face or self.naked_edges(True):\n            return False\n        vol = 0.0\n        for fk, verts in self.face.items():\n            n = len(verts)\n            p0 = self.vertex_point(verts[0])\n            for i in range(1, n - 1):\n                p1 = self.vertex_point(verts[i])\n                p2 = self.vertex_point(verts[i + 1])\n                vol += (p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                      + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                      + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]))\n        if vol >= 0.0:\n            return False\n        for fk in self.face:\n            self.face[fk] = self.face[fk][::-1]\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fk, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fk\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [BoundingBox.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)",
+          "code": "def orient_outward(self) -> bool:\n\n        if not self.face or self.naked_edges(True):\n            return False\n        vol = 0.0\n        for fk, verts in self.face.items():\n            n = len(verts)\n            p0 = self.vertex_point(verts[0])\n            for i in range(1, n - 1):\n                p1 = self.vertex_point(verts[i])\n                p2 = self.vertex_point(verts[i + 1])\n                vol += (p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                      + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                      + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]))\n        if vol >= 0.0:\n            return False\n        for fk in self.face:\n            self.face[fk] = self.face[fk][::-1]\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fk, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fk\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n        return True\n\n    def unweld(self) -> \"Mesh\":\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [Obb.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -9837,7 +8726,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "unweld() -> \"Mesh\"",
-          "code": "def unweld(self) -> \"Mesh\":\n\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [BoundingBox.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1",
+          "code": "def unweld(self) -> \"Mesh\":\n\n        m = Mesh()\n        for fkey in sorted(self.face):\n            new_vkeys = []\n            for vk in self.face[fkey]:\n                pt = self.vertex[vk]\n                new_vkeys.append(m.add_vertex(Point(pt[0], pt[1], pt[2])))\n            m.add_face(new_vkeys)\n        return m\n\n    def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [Obb.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1",
           "file": "mesh.py"
         },
         "cpp": {
@@ -9865,7 +8754,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "weld(tolerance: float = 0.001) -> \"Mesh\"",
-          "code": "def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [BoundingBox.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key",
+          "code": "def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [Obb.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key",
           "file": "mesh.py"
         },
         "cpp": {
@@ -9875,7 +8764,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "weld(tolerance: f64) -> Mesh",
-          "code": "pub fn weld(&self, tolerance: f64) -> Mesh {\n        if self.vertex.is_empty() { return Mesh::new(); }\n\n        let mut vkeys: Vec<usize> = self.vertex.keys().copied().collect();\n        vkeys.sort();\n        let positions: Vec<Point> = vkeys.iter().map(|k| {\n            let v = &self.vertex[k];\n            Point::new(v.x, v.y, v.z)\n        }).collect();\n        let n = vkeys.len();\n\n        let mut parent: Vec<usize> = (0..n).collect();\n        fn find(parent: &mut Vec<usize>, mut x: usize) -> usize {\n            while parent[x] != x { parent[x] = parent[parent[x]]; x = parent[x]; }\n            x\n        }\n\n        if tolerance > 0.0 {\n            let boxes: Vec<BoundingBox> = positions.iter().map(|p| BoundingBox::from_point(p.clone(), tolerance)).collect();\n            let ws = BVH::compute_world_size(&boxes);\n            let bvh = BVH::from_boxes(&boxes, ws);\n            let (pairs, _, _) = bvh.check_all_collisions(&boxes);\n            for (i, j) in pairs {\n                if positions[i].distance(&positions[j], None) <= tolerance {\n                    let ri = find(&mut parent, i);\n                    let rj = find(&mut parent, j);\n                    if ri != rj { parent[ri] = rj; }\n                }\n            }\n        }\n\n        let mut root_to_rep: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();\n        for i in 0..n {\n            let root = find(&mut parent, i);\n            let entry = root_to_rep.entry(root).or_insert(vkeys[i]);\n            if vkeys[i] < *entry { *entry = vkeys[i]; }\n        }\n        let vkey_to_rep: std::collections::HashMap<usize, usize> = (0..n).map(|i| {\n            let root = find(&mut parent, i);\n            (vkeys[i], root_to_rep[&root])\n        }).collect();\n\n        let mut m = Mesh::new();\n        let mut added: std::collections::HashSet<usize> = std::collections::HashSet::new();\n        for i in 0..n {\n            let rep = vkey_to_rep[&vkeys[i]];\n            if added.insert(rep) {\n                let v = &self.vertex[&rep];\n                m.add_vertex(Point::new(v.x, v.y, v.z), Some(rep));\n            }\n        }\n        for (fk, fvkeys) in &self.face {\n            let new_vkeys: Vec<usize> = fvkeys.iter().map(|vk| vkey_to_rep[vk]).collect();\n            m.add_face(new_vkeys, Some(*fk));\n        }\n        m\n    }",
+          "code": "pub fn weld(&self, tolerance: f64) -> Mesh {\n        if self.vertex.is_empty() { return Mesh::new(); }\n\n        let mut vkeys: Vec<usize> = self.vertex.keys().copied().collect();\n        vkeys.sort();\n        let positions: Vec<Point> = vkeys.iter().map(|k| {\n            let v = &self.vertex[k];\n            Point::new(v.x, v.y, v.z)\n        }).collect();\n        let n = vkeys.len();\n\n        let mut parent: Vec<usize> = (0..n).collect();\n        fn find(parent: &mut Vec<usize>, mut x: usize) -> usize {\n            while parent[x] != x { parent[x] = parent[parent[x]]; x = parent[x]; }\n            x\n        }\n\n        if tolerance > 0.0 {\n            let boxes: Vec<Obb> = positions.iter().map(|p| Obb::from_point(p.clone(), tolerance)).collect();\n            let ws = BVH::compute_world_size(&boxes);\n            let bvh = BVH::from_boxes(&boxes, ws);\n            let (pairs, _, _) = bvh.check_all_collisions(&boxes);\n            for (i, j) in pairs {\n                if positions[i].distance(&positions[j], None) <= tolerance {\n                    let ri = find(&mut parent, i);\n                    let rj = find(&mut parent, j);\n                    if ri != rj { parent[ri] = rj; }\n                }\n            }\n        }\n\n        let mut root_to_rep: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();\n        for i in 0..n {\n            let root = find(&mut parent, i);\n            let entry = root_to_rep.entry(root).or_insert(vkeys[i]);\n            if vkeys[i] < *entry { *entry = vkeys[i]; }\n        }\n        let vkey_to_rep: std::collections::HashMap<usize, usize> = (0..n).map(|i| {\n            let root = find(&mut parent, i);\n            (vkeys[i], root_to_rep[&root])\n        }).collect();\n\n        let mut m = Mesh::new();\n        let mut added: std::collections::HashSet<usize> = std::collections::HashSet::new();\n        for i in 0..n {\n            let rep = vkey_to_rep[&vkeys[i]];\n            if added.insert(rep) {\n                let v = &self.vertex[&rep];\n                m.add_vertex(Point::new(v.x, v.y, v.z), Some(rep));\n            }\n        }\n        for (fk, fvkeys) in &self.face {\n            let new_vkeys: Vec<usize> = fvkeys.iter().map(|vk| vkey_to_rep[vk]).collect();\n            m.add_face(new_vkeys, Some(*fk));\n        }\n        m\n    }",
           "file": "mesh.rs"
         }
       },
@@ -9895,7 +8784,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "find(x)",
-          "code": "def find(x):\n\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [BoundingBox.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.",
+          "code": "def find(x):\n\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [Obb.from_point(p, tolerance) for p in positions]\n            ws = BVH.compute_world_size(boxes)\n            bvh = BVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.",
           "file": "mesh.py"
         }
       },
@@ -10310,11 +9199,13 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
+        "Mesh.centroid",
         "Mesh.clear",
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
         "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_edges",
         "Mesh.edge_line",
         "Mesh.edges",
@@ -10341,13 +9232,11 @@ window.API_INDEX = {
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
-        "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_point",
         "Mesh.vertex_vertices",
         "Mesh.vertices",
-        "Mesh.volume",
         "Mesh.widths"
       ]
     },
@@ -10356,7 +9245,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edge_line(u: int, v: int)",
-          "code": "def edge_line(self, u: int, v: int):\n\n        \"\"\"Get the edge as a Line.\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        from .line import Line\n        return Line.from_points(self.vertex_point(u), self.vertex_point(v))\n\n    def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"\n        verts = self.face.get(face_key)\n        if verts is None:\n            return None\n        n = len(verts)\n        return [(verts[i], verts[(i + 1) % n]) for i in range(n)]\n\n    def face_faces(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)",
+          "code": "def edge_line(self, u: int, v: int):\n\n        \"\"\"Get the edge as a Line.\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        from .line import Line\n        return Line.from_points(self.vertex_point(u), self.vertex_point(v))\n\n    def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"\n        verts = self.face.get(face_key)\n        if verts is None:\n            return None\n        n = len(verts)\n        return [(verts[i], verts[(i + 1) % n]) for i in range(n)]\n\n    def face_faces(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10371,11 +9260,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.centroid",
+        "Mesh.area",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_points",
@@ -10397,7 +9285,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_edges(face_key: int) -> Optional[List[Tuple[int, int]]]",
-          "code": "def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:\n\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"\n        verts = self.face.get(face_key)\n        if verts is None:\n            return None\n        n = len(verts)\n        return [(verts[i], verts[(i + 1) % n]) for i in range(n)]\n\n    def face_faces(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0",
+          "code": "def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:\n\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"\n        verts = self.face.get(face_key)\n        if verts is None:\n            return None\n        n = len(verts)\n        return [(verts[i], verts[(i + 1) % n]) for i in range(n)]\n\n    def face_faces(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10412,12 +9300,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.centroid",
+        "Mesh.area",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_faces",
         "Mesh.face_points",
         "Mesh.face_polyline",
@@ -10447,7 +9334,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_faces(face_key: int) -> Optional[List[int]]",
-          "code": "def face_faces(self, face_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties",
+          "code": "def face_faces(self, face_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get faces adjacent to a face (sharing an edge).\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return None\n        neighbors = []\n        for u, v in fe:\n            f = self.halfedge.get(v, {}).get(u)\n            if f is not None:\n                neighbors.append(f)\n        return neighbors\n\n    def face_points(self, face_key: int) -> Optional[List[Point]]:\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10462,12 +9349,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.area",
         "Mesh.centroid",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_points",
         "Mesh.face_polyline",
@@ -10488,7 +9375,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_points(face_key: int) -> Optional[List[Point]]",
-          "code": "def face_points(self, face_key: int) -> Optional[List[Point]]:\n\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])",
+          "code": "def face_points(self, face_key: int) -> Optional[List[Point]]:\n\n        \"\"\"Get the point positions of a face's vertices.\"\"\"\n        fv = self.face_vertices(face_key)\n        if fv is None:\n            return None\n        return [self.vertex_point(vk) for vk in fv]\n\n    def face_polyline(self, face_key: int):\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10503,15 +9390,15 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
-        "Mesh.face_normal",
         "Mesh.face_polyline",
         "Mesh.face_vertices",
         "Mesh.faces",
@@ -10529,7 +9416,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_polyline(face_key: int)",
-          "code": "def face_polyline(self, face_key: int):\n\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)",
+          "code": "def face_polyline(self, face_key: int):\n\n        \"\"\"Get the face as a Polyline.\"\"\"\n        pts = self.face_points(face_key)\n        if pts is None:\n            return None\n        from .polyline import Polyline\n        return Polyline(pts)\n\n    def face_vertices(self, face_key: int) -> Optional[List[int]]:\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10544,12 +9431,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
@@ -10570,7 +9458,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_vertices(face_key: int) -> Optional[List[int]]",
-          "code": "def face_vertices(self, face_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:",
+          "code": "def face_vertices(self, face_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the vertices of a face.\"\"\"\n        return self.face.get(face_key)\n\n    def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10587,6 +9475,8 @@ window.API_INDEX = {
       "related": [
         "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
@@ -10597,6 +9487,7 @@ window.API_INDEX = {
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
+        "Mesh.face_normals",
         "Mesh.face_points",
         "Mesh.face_polyline",
         "Mesh.faces",
@@ -10611,7 +9502,6 @@ window.API_INDEX = {
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
         "Mesh.vertex_index",
-        "Mesh.vertex_normal",
         "Mesh.vertex_point",
         "Mesh.vertex_vertices",
         "Mesh.vertices",
@@ -10623,7 +9513,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_edges(vertex_key: int) -> Optional[List[Tuple[int, int]]]",
-          "code": "def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(",
+          "code": "def vertex_edges(self, vertex_key: int) -> Optional[List[Tuple[int, int]]]:\n\n        \"\"\"Get edges incident to a vertex as (vertex_key, neighbor) pairs.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [(vertex_key, u) for u in self.halfedge[vertex_key]]\n\n    def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10640,11 +9530,12 @@ window.API_INDEX = {
       "related": [
         "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
         "Mesh.edges",
-        "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
@@ -10654,8 +9545,6 @@ window.API_INDEX = {
         "Mesh.faces",
         "Mesh.find",
         "Mesh.vertex_faces",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_point",
         "Mesh.vertex_vertices",
         "Mesh.vertices"
@@ -10666,7 +9555,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_faces(vertex_key: int) -> Optional[List[int]]",
-          "code": "def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None",
+          "code": "def vertex_faces(self, vertex_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the faces incident to a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return [f for f in self.halfedge[vertex_key].values() if f is not None]\n\n    def vertex_point(self, vertex_key: int) -> Optional[Point]:\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10683,18 +9572,22 @@ window.API_INDEX = {
       "related": [
         "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
-        "Mesh.face_centroid",
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
+        "Mesh.face_normals",
         "Mesh.face_points",
         "Mesh.face_polyline",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.find",
+        "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
@@ -10708,7 +9601,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_point(vertex_key: int) -> Optional[Point]",
-          "code": "def vertex_point(self, vertex_key: int) -> Optional[Point]:\n\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:",
+          "code": "def vertex_point(self, vertex_key: int) -> Optional[Point]:\n\n        \"\"\"Get the position of a vertex.\"\"\"\n        if vertex_key not in self.vertex:\n            return None\n        return self.vertex[vertex_key].position()\n\n    def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10727,15 +9620,19 @@ window.API_INDEX = {
         "Mesh.centroid",
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
+        "Mesh.edges",
         "Mesh.edsq",
         "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
+        "Mesh.face_normals",
         "Mesh.face_points",
         "Mesh.face_polyline",
         "Mesh.face_vertices",
@@ -10752,8 +9649,6 @@ window.API_INDEX = {
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted",
         "Mesh.vertex_vertices",
         "Mesh.vertices",
@@ -10765,7 +9660,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_vertices(vertex_key: int) -> Optional[List[int]]",
-          "code": "def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0",
+          "code": "def vertex_vertices(self, vertex_key: int) -> Optional[List[int]]:\n\n        \"\"\"Get the neighboring vertices of a vertex.\"\"\"\n        if vertex_key not in self.halfedge:\n            return None\n        return list(self.halfedge[vertex_key].keys())\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:\n                if with_points:\n                    pt = Point(mx, my, mz, str(deg))\n                    pt.pointcolor = Color(240, 220, 0, 255)\n                    points.append(pt)\n                continue\n            ef = self.edge_faces(u, v)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10782,10 +9677,11 @@ window.API_INDEX = {
       "related": [
         "Mesh.area",
         "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.edge_faces",
         "Mesh.edge_line",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
+        "Mesh.edges",
         "Mesh.face_edges",
         "Mesh.face_faces",
         "Mesh.face_normal",
@@ -10794,9 +9690,222 @@ window.API_INDEX = {
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.find",
+        "Mesh.str",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.area",
+      "implementations": {
+        "python": {
+          "sig": "area() -> float",
+          "code": "def area(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:\n                if with_points:\n                    pt = Point(mx, my, mz, str(deg))\n                    pt.pointcolor = Color(240, 220, 0, 255)\n                    points.append(pt)\n                continue\n            ef = self.edge_faces(u, v)\n            if ef is None or len(ef) < 2:\n                continue\n            ex = ep1[0]-ep0[0]; ey = ep1[1]-ep0[1]; ez = ep1[2]-ep0[2]\n            elen = math.sqrt(ex*ex+ey*ey+ez*ez)\n            if elen < 1e-10:\n                continue\n            ex /= elen; ey /= elen; ez /= elen\n            fc0 = self.face_centroid(ef[0])\n            fc1 = self.face_centroid(ef[1])\n            if fc0 is None or fc1 is None:",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "double area()",
+          "code": "double Mesh::area() const {\n    double total = 0.0;\n    for (const auto& [fk, _] : face) {\n        auto a = face_area(fk);\n        if (a) total += *a;\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "area() -> f64",
+          "code": "pub fn area(&self) -> f64 {\n        let mut total = 0.0;\n        for fk in self.face.keys() {\n            if let Some(a) = self.face_area(*fk) {\n                total += a;\n            }\n        }\n        total\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
+        "Mesh.edge_faces",
+        "Mesh.edge_line",
+        "Mesh.edges",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_edges",
+        "Mesh.face_faces",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_points",
+        "Mesh.face_polyline",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.from_lines",
+        "Mesh.from_polygon_with_holes",
+        "Mesh.get_open",
+        "Mesh.get_vid",
+        "Mesh.loft",
+        "Mesh.proj",
+        "Mesh.project_2d",
+        "Mesh.sarea",
+        "Mesh.signed_area",
+        "Mesh.str",
+        "Mesh.strip_close",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertex_point",
+        "Mesh.vertex_vertices",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.centroid",
+      "implementations": {
+        "python": {
+          "sig": "centroid() -> Point",
+          "code": "def centroid(self) -> Point:\n\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:\n                if with_points:\n                    pt = Point(mx, my, mz, str(deg))\n                    pt.pointcolor = Color(240, 220, 0, 255)\n                    points.append(pt)\n                continue\n            ef = self.edge_faces(u, v)\n            if ef is None or len(ef) < 2:\n                continue\n            ex = ep1[0]-ep0[0]; ey = ep1[1]-ep0[1]; ez = ep1[2]-ep0[2]\n            elen = math.sqrt(ex*ex+ey*ey+ez*ez)\n            if elen < 1e-10:\n                continue\n            ex /= elen; ey /= elen; ez /= elen\n            fc0 = self.face_centroid(ef[0])\n            fc1 = self.face_centroid(ef[1])\n            if fc0 is None or fc1 is None:\n                continue\n            d0x = fc0[0]-mx; d0y = fc0[1]-my; d0z = fc0[2]-mz\n            dot0 = d0x*ex+d0y*ey+d0z*ez\n            d0x -= dot0*ex; d0y -= dot0*ey; d0z -= dot0*ez\n            d0len = math.sqrt(d0x*d0x+d0y*d0y+d0z*d0z)\n            if d0len < 1e-10:\n                continue\n            d0x /= d0len; d0y /= d0len; d0z /= d0len\n            d1x = fc1[0]-mx; d1y = fc1[1]-my; d1z = fc1[2]-mz\n            dot1 = d1x*ex+d1y*ey+d1z*ez\n            d1x -= dot1*ex; d1y -= dot1*ey; d1z -= dot1*ez\n            d1len = math.sqrt(d1x*d1x+d1y*d1y+d1z*d1z)\n            if d1len < 1e-10:\n                continue\n            d1x /= d1len; d1y /= d1len; d1z /= d1len\n            theta = math.acos(max(-1.0, min(1.0, d0x*d1x+d0y*d1y+d0z*d1z)))\n            if abs(math.sin(theta)) < 1e-10:\n                continue\n            arc_pts = []\n            for j in range(arc_n+1):",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "Point centroid()",
+          "code": "Point Mesh::centroid() const {\n    double x = 0, y = 0, z = 0;\n    for (const auto& [vk, v] : vertex) {\n        auto p = v.position();\n        x += p[0]; y += p[1]; z += p[2];\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "centroid() -> Point",
+          "code": "pub fn centroid(&self) -> Point {\n        let mut x = 0.0_f64; let mut y = 0.0_f64; let mut z = 0.0_f64;\n        for vk in self.vertex.keys() {\n            let p = self.vertex_point(*vk).unwrap();\n            x += p[0]; y += p[1]; z += p[2];\n        }\n        let n = if self.vertex.is_empty() { 1.0 } else { self.vertex.len() as f64 };\n        Point::new(x / n, y / n, z / n)\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_faces",
+        "Mesh.face_normal",
+        "Mesh.face_points",
+        "Mesh.face_polyline",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.is_empty",
+        "Mesh.loft_panels",
+        "Mesh.new",
+        "Mesh.str",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertex_vertices",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.dihedral_angle",
+      "implementations": {
+        "python": {
+          "sig": "dihedral_angle(u: int, v: int) -> Optional[float]",
+          "code": "def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return (math.pi - math.acos(dot)) * 180.0 / math.pi\n\n    def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:\n                if with_points:\n                    pt = Point(mx, my, mz, str(deg))\n                    pt.pointcolor = Color(240, 220, 0, 255)\n                    points.append(pt)\n                continue\n            ef = self.edge_faces(u, v)\n            if ef is None or len(ef) < 2:\n                continue\n            ex = ep1[0]-ep0[0]; ey = ep1[1]-ep0[1]; ez = ep1[2]-ep0[2]\n            elen = math.sqrt(ex*ex+ey*ey+ez*ez)\n            if elen < 1e-10:\n                continue\n            ex /= elen; ey /= elen; ez /= elen\n            fc0 = self.face_centroid(ef[0])\n            fc1 = self.face_centroid(ef[1])\n            if fc0 is None or fc1 is None:\n                continue\n            d0x = fc0[0]-mx; d0y = fc0[1]-my; d0z = fc0[2]-mz\n            dot0 = d0x*ex+d0y*ey+d0z*ez\n            d0x -= dot0*ex; d0y -= dot0*ey; d0z -= dot0*ez\n            d0len = math.sqrt(d0x*d0x+d0y*d0y+d0z*d0z)\n            if d0len < 1e-10:\n                continue\n            d0x /= d0len; d0y /= d0len; d0z /= d0len\n            d1x = fc1[0]-mx; d1y = fc1[1]-my; d1z = fc1[2]-mz\n            dot1 = d1x*ex+d1y*ey+d1z*ez\n            d1x -= dot1*ex; d1y -= dot1*ey; d1z -= dot1*ez\n            d1len = math.sqrt(d1x*d1x+d1y*d1y+d1z*d1z)\n            if d1len < 1e-10:\n                continue\n            d1x /= d1len; d1y /= d1len; d1z /= d1len\n            theta = math.acos(max(-1.0, min(1.0, d0x*d1x+d0y*d1y+d0z*d1z)))\n            if abs(math.sin(theta)) < 1e-10:\n                continue\n            arc_pts = []\n            for j in range(arc_n+1):\n                t = j / arc_n\n                w1 = math.sin((1.0-t)*theta) / math.sin(theta)\n                w2 = math.sin(t*theta) / math.sin(theta)\n                arc_pts.append(Point(\n                    mx+(w1*d0x+w2*d1x)*scale,\n                    my+(w1*d0y+w2*d1y)*scale,\n                    mz+(w1*d0z+w2*d1z)*scale))\n            if with_arcs:\n                arc = Polyline(arc_pts)",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::optional<double> dihedral_angle(size_t u, size_t v)",
+          "code": "std::optional<double> Mesh::dihedral_angle(size_t u, size_t v) const {\n    auto ef = edge_faces(u, v);\n    if (!ef || ef->size() < 2) return std::nullopt;\n    auto n0_opt = face_normal((*ef)[0]);\n    auto n1_opt = face_normal((*ef)[1]);\n    if (!n0_opt.has_value() || !n1_opt.has_value()) return std::nullopt;\n    double dot = std::clamp(n0_opt->dot(*n1_opt), -1.0, 1.0);\n    return (Tolerance::PI - std::acos(dot)) * 180.0 / Tolerance::PI;\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "dihedral_angle(u: usize, v: usize) -> Option<f64>",
+          "code": "pub fn dihedral_angle(&self, u: usize, v: usize) -> Option<f64> {\n        let ef = self.edge_faces(u, v)?;\n        if ef.len() < 2 { return None; }\n        let n0 = self.face_normal(ef[0])?;\n        let n1 = self.face_normal(ef[1])?;\n        let dot = n0.dot(&n1).clamp(-1.0, 1.0);\n        Some((std::f64::consts::PI - dot.acos()) * 180.0 / std::f64::consts::PI)\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.centroid",
+        "Mesh.dihedral_angles",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.face_centroid",
+        "Mesh.face_normal",
+        "Mesh.face_points",
+        "Mesh.face_polyline",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.str",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertex_vertices"
+      ]
+    },
+    {
+      "name": "Mesh.dihedral_angles",
+      "implementations": {
+        "python": {
+          "sig": "dihedral_angles(scale: float = 0.3, with_arcs: bool = True, with_points: bool = True)",
+          "code": "def dihedral_angles(self, scale: float = 0.3, with_arcs: bool = True, with_points: bool = True):\n\n        \"\"\"Calculate dihedral angles for all interior edges.\n        Returns (angles, arcs, points): angles dict (u,v)->radians; arcs slerp polylines if scale>0;\n        points at arc midpoint (scale>0) or edge midpoint (scale==0). arcs/points empty if flags false.\"\"\"\n        from .polyline import Polyline\n        angles = {}\n        arcs = []\n        points = []\n        arc_n = 12\n        for u, v in self.edges():\n            da = self.dihedral_angle(u, v)\n            if da is None:\n                continue\n            angles[(u, v)] = da\n            deg = da\n            ep0 = self.vertex_point(u)\n            ep1 = self.vertex_point(v)\n            if ep0 is None or ep1 is None:\n                continue\n            mx = (ep0[0]+ep1[0])*0.5\n            my = (ep0[1]+ep1[1])*0.5\n            mz = (ep0[2]+ep1[2])*0.5\n            if scale == 0.0:\n                if with_points:\n                    pt = Point(mx, my, mz, str(deg))\n                    pt.pointcolor = Color(240, 220, 0, 255)\n                    points.append(pt)\n                continue\n            ef = self.edge_faces(u, v)\n            if ef is None or len(ef) < 2:\n                continue\n            ex = ep1[0]-ep0[0]; ey = ep1[1]-ep0[1]; ez = ep1[2]-ep0[2]\n            elen = math.sqrt(ex*ex+ey*ey+ez*ez)\n            if elen < 1e-10:\n                continue\n            ex /= elen; ey /= elen; ez /= elen\n            fc0 = self.face_centroid(ef[0])\n            fc1 = self.face_centroid(ef[1])\n            if fc0 is None or fc1 is None:\n                continue\n            d0x = fc0[0]-mx; d0y = fc0[1]-my; d0z = fc0[2]-mz\n            dot0 = d0x*ex+d0y*ey+d0z*ez\n            d0x -= dot0*ex; d0y -= dot0*ey; d0z -= dot0*ez\n            d0len = math.sqrt(d0x*d0x+d0y*d0y+d0z*d0z)\n            if d0len < 1e-10:\n                continue\n            d0x /= d0len; d0y /= d0len; d0z /= d0len\n            d1x = fc1[0]-mx; d1y = fc1[1]-my; d1z = fc1[2]-mz\n            dot1 = d1x*ex+d1y*ey+d1z*ez\n            d1x -= dot1*ex; d1y -= dot1*ey; d1z -= dot1*ez\n            d1len = math.sqrt(d1x*d1x+d1y*d1y+d1z*d1z)\n            if d1len < 1e-10:\n                continue\n            d1x /= d1len; d1y /= d1len; d1z /= d1len\n            theta = math.acos(max(-1.0, min(1.0, d0x*d1x+d0y*d1y+d0z*d1z)))\n            if abs(math.sin(theta)) < 1e-10:\n                continue\n            arc_pts = []\n            for j in range(arc_n+1):\n                t = j / arc_n\n                w1 = math.sin((1.0-t)*theta) / math.sin(theta)\n                w2 = math.sin(t*theta) / math.sin(theta)\n                arc_pts.append(Point(\n                    mx+(w1*d0x+w2*d1x)*scale,\n                    my+(w1*d0y+w2*d1y)*scale,\n                    mz+(w1*d0z+w2*d1z)*scale))\n            if with_arcs:\n                arc = Polyline(arc_pts)\n                arc.name = \"dihedral_e\"+str(u)+\"_\"+str(v)+\"=\"+str(deg)\n                arc.linecolor = Color(240, 220, 0, 255)\n                arcs.append(arc)\n            if with_points:\n                mid = arc_pts[arc_n//2]\n                pt = Point(mid[0], mid[1], mid[2], str(deg))\n                pt.pointcolor = Color(240, 220, 0, 255)\n                points.append(pt)\n        return angles, arcs, points\n\n    def face_area(self, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the area of a face.\"\"\"",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::tuple<std::map<std::pair<size_t,size_t>,double>, std::vector<Polyline>, std::vector<Point>> dihedral_angles(double scale, bool with_arcs, bool with_points)",
+          "code": "std::tuple<std::map<std::pair<size_t,size_t>,double>, std::vector<Polyline>, std::vector<Point>>\nMesh::dihedral_angles(double scale, bool with_arcs, bool with_points) const {\n    std::map<std::pair<size_t,size_t>,double> angles;\n    std::vector<Polyline> arcs;\n    std::vector<Point> points;\n    const int arc_n = 12;\n    for (auto& [u, v] : edges()) {\n        auto da = dihedral_angle(u, v);\n        if (!da) continue;\n        angles[{u, v}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "dihedral_angles(scale: f64) -> (std::collections::BTreeMap<(usize, usize), f64>, Vec<Polyline>, Vec<Point>)",
+          "code": "pub fn dihedral_angles(&self, scale: f64)\n        -> (std::collections::BTreeMap<(usize, usize), f64>, Vec<Polyline>, Vec<Point>)\n    {\n        let mut angles: std::collections::BTreeMap<(usize, usize), f64> = std::collections::BTreeMap::new();\n        let mut arcs: Vec<Polyline> = Vec::new();\n        let mut points: Vec<Point> = Vec::new();\n        let arc_n: usize = 12;\n        for (u, v) in self.edges() {\n            let da = match self.dihedral_angle(u, v) { Some(a) => a, None => continue };\n            angles.insert((u, v), da);\n            let deg = da;\n            let ep0 = match self.vertex_point(u) { Some(p) => p, None => continue };\n            let ep1 = match self.vertex_point(v) { Some(p) => p, None => continue };\n            let mx = (ep0[0]+ep1[0])*0.5;\n            let my = (ep0[1]+ep1[1])*0.5;\n            let mz = (ep0[2]+ep1[2])*0.5;\n            if scale == 0.0 {\n                let mut pt = Point::new(mx, my, mz);\n                pt.name = deg.to_string();\n                pt.pointcolor = Color::new(240, 220, 0, 255);\n                points.push(pt);\n                continue;\n            }\n            let ef = match self.edge_faces(u, v) { Some(f) => f, None => continue };\n            if ef.len() < 2 { continue; }\n            let ex = ep1[0]-ep0[0]; let ey = ep1[1]-ep0[1]; let ez = ep1[2]-ep0[2];\n            let elen = (ex*ex+ey*ey+ez*ez).sqrt();\n            if elen < 1e-10 { continue; }\n            let ex = ex/elen; let ey = ey/elen; let ez = ez/elen;\n            let fc0 = match self.face_centroid(ef[0]) { Some(p) => p, None => continue };\n            let fc1 = match self.face_centroid(ef[1]) { Some(p) => p, None => continue };\n            let mut d0x = fc0[0]-mx; let mut d0y = fc0[1]-my; let mut d0z = fc0[2]-mz;\n            let dot0 = d0x*ex+d0y*ey+d0z*ez;\n            d0x -= dot0*ex; d0y -= dot0*ey; d0z -= dot0*ez;\n            let d0len = (d0x*d0x+d0y*d0y+d0z*d0z).sqrt();\n            if d0len < 1e-10 { continue; }\n            let d0x = d0x/d0len; let d0y = d0y/d0len; let d0z = d0z/d0len;\n            let mut d1x = fc1[0]-mx; let mut d1y = fc1[1]-my; let mut d1z = fc1[2]-mz;\n            let dot1 = d1x*ex+d1y*ey+d1z*ez;\n            d1x -= dot1*ex; d1y -= dot1*ey; d1z -= dot1*ez;\n            let d1len = (d1x*d1x+d1y*d1y+d1z*d1z).sqrt();\n            if d1len < 1e-10 { continue; }\n            let d1x = d1x/d1len; let d1y = d1y/d1len; let d1z = d1z/d1len;\n            let theta = (d0x*d1x+d0y*d1y+d0z*d1z).clamp(-1.0, 1.0).acos();\n            if theta.sin().abs() < 1e-10 { continue; }\n            let mut arc_pts: Vec<Point> = Vec::new();\n            for j in 0..=arc_n {\n                let t = j as f64 / arc_n as f64;\n                let w1 = ((1.0-t)*theta).sin() / theta.sin();\n                let w2 = (t*theta).sin() / theta.sin();\n                arc_pts.push(Point::new(\n                    mx+(w1*d0x+w2*d1x)*scale,\n                    my+(w1*d0y+w2*d1y)*scale,\n                    mz+(w1*d0z+w2*d1z)*scale));\n            }\n            let mut arc = Polyline::new(arc_pts.clone());\n            arc.name = format!(\"dihedral_e{}_{}={}\", u, v, deg);\n            arc.linecolor = Color::new(240, 220, 0, 255);\n            arcs.push(arc);\n            let mid = &arc_pts[arc_n/2];\n            let mut pt = Point::new(mid[0], mid[1], mid[2]);\n            pt.name = deg.to_string();\n            pt.pointcolor = Color::new(240, 220, 0, 255);\n            points.push(pt);\n        }\n        (angles, arcs, points)\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.centroid",
+        "Mesh.dihedral_angle",
+        "Mesh.edge_faces",
+        "Mesh.edges",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.new",
+        "Mesh.str",
+        "Mesh.vertex_edges",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertex_vertices"
+      ]
+    },
+    {
+      "name": "Mesh.face_area",
+      "implementations": {
+        "python": {
+          "sig": "face_area(face_key: int) -> Optional[float]",
+          "code": "def face_area(self, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0\n        vd0 = self.vertex.get(vkeys[0])\n        if vd0 is None:\n            return None\n        x0, y0, z0 = vd0.x, vd0.y, vd0.z\n        area = 0.0\n        for i in range(1, len(vkeys) - 1):\n            vd1 = self.vertex.get(vkeys[i])\n            vd2 = self.vertex.get(vkeys[i + 1])\n            if vd1 is None or vd2 is None:\n                return None\n            ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n            vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n            cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n            area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return area\n\n    def face_centroid(self, face_key: int) -> Optional[Point]:\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::optional<double> face_area(size_t face_key)",
+          "code": "std::optional<double> Mesh::face_area(size_t face_key) const {\n    auto vertices_opt = face_vertices(face_key);\n    if (!vertices_opt.has_value() || vertices_opt->size() < 3) {\n        return 0.0;\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "face_area(face_key: usize) -> Option<f64>",
+          "code": "pub fn face_area(&self, face_key: usize) -> Option<f64> {\n        let vertices = self.face.get(&face_key)?;\n        if vertices.len() < 3 {\n            return Some(0.0);\n        }\n\n        let mut area = 0.0;\n        let p0 = self.vertex_point(vertices[0])?;\n\n        for i in 1..(vertices.len() - 1) {\n            let p1 = self.vertex_point(vertices[i])?;\n            let p2 = self.vertex_point(vertices[i + 1])?;\n\n            let u = Vector::new(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]);\n            let v = Vector::new(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]);\n\n            area += u.cross(&v).magnitude() * 0.5;\n        }\n\n        Some(area)\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.centroid",
+        "Mesh.dihedral_angles",
+        "Mesh.face_centroid",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.new",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_point",
@@ -10808,7 +9917,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_centroid(face_key: int) -> Optional[Point]",
-          "code": "def face_centroid(self, face_key: int) -> Optional[Point]:\n\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def centroid(self) -> Point:\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight",
+          "code": "def face_centroid(self, face_key: int) -> Optional[Point]:\n\n        \"\"\"Get the centroid of a face.\"\"\"\n        verts = self.face.get(face_key)\n        if not verts:\n            return None\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in verts:\n            p = self.vertex_point(vk)\n            if p is None:\n                return None\n            x += p[0]; y += p[1]; z += p[2]\n        n = len(verts)\n        return Point(x / n, y / n, z / n)\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10825,69 +9934,20 @@ window.API_INDEX = {
       "related": [
         "Mesh.area",
         "Mesh.centroid",
-        "Mesh.edge_line",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.face_area",
-        "Mesh.face_edges",
-        "Mesh.face_faces",
         "Mesh.face_normal",
-        "Mesh.face_points",
-        "Mesh.face_polyline",
+        "Mesh.face_normals",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.is_empty",
         "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_edges",
-        "Mesh.vertex_faces",
+        "Mesh.vertex_index",
         "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.vertices"
-      ]
-    },
-    {
-      "name": "Mesh.centroid",
-      "implementations": {
-        "python": {
-          "sig": "centroid() -> Point",
-          "code": "def centroid(self) -> Point:\n\n        \"\"\"Get the centroid of all vertices.\"\"\"\n        x, y, z = 0.0, 0.0, 0.0\n        for vk in self.vertex:\n            p = self.vertex_point(vk)\n            x += p[0]; y += p[1]; z += p[2]\n        n = max(len(self.vertex), 1)\n        return Point(x / n, y / n, z / n)\n\n    ###########################################################################################\n    # Geometric Properties\n    ###########################################################################################\n\n    def face_normal(self, face_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def face_area(self, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "Point centroid()",
-          "code": "Point Mesh::centroid() const {\n    double x = 0, y = 0, z = 0;\n    for (const auto& [vk, v] : vertex) {\n        auto p = v.position();\n        x += p[0]; y += p[1]; z += p[2];\n    }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "centroid() -> Point",
-          "code": "pub fn centroid(&self) -> Point {\n        let mut x = 0.0_f64; let mut y = 0.0_f64; let mut z = 0.0_f64;\n        for vk in self.vertex.keys() {\n            let p = self.vertex_point(*vk).unwrap();\n            x += p[0]; y += p[1]; z += p[2];\n        }\n        let n = if self.vertex.is_empty() { 1.0 } else { self.vertex.len() as f64 };\n        Point::new(x / n, y / n, z / n)\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.edge_line",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
-        "Mesh.face_edges",
-        "Mesh.face_faces",
-        "Mesh.face_normal",
-        "Mesh.face_points",
-        "Mesh.face_polyline",
-        "Mesh.face_vertices",
-        "Mesh.faces",
-        "Mesh.is_empty",
-        "Mesh.loft_panels",
-        "Mesh.new",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_edges",
-        "Mesh.vertex_faces",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
         "Mesh.vertices"
       ]
     },
@@ -10896,7 +9956,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_normal(face_key: int) -> Optional[Vector]",
-          "code": "def face_normal(self, face_key: int) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def face_area(self, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0\n        vd0 = self.vertex.get(vkeys[0])\n        if vd0 is None:\n            return None\n        x0, y0, z0 = vd0.x, vd0.y, vd0.z\n        area = 0.0\n        for i in range(1, len(vkeys) - 1):\n            vd1 = self.vertex.get(vkeys[i])\n            vd2 = self.vertex.get(vkeys[i + 1])\n            if vd1 is None or vd2 is None:\n                return None\n            ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n            vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n            cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx",
+          "code": "def face_normal(self, face_key: int) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or len(vertices) < 3:\n            return None\n\n        p0 = self.vertex_point(vertices[0])\n        p1 = self.vertex_point(vertices[1])\n        p2 = self.vertex_point(vertices[2])\n\n        if p0 is None or p1 is None or p2 is None:\n            return None\n\n        u = Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n        v = Vector(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])\n\n        normal = u.cross(v)\n        length = normal.magnitude()\n\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(normal[0] / length, normal[1] / length, normal[2] / length)\n\n        return None\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -10917,7 +9977,6 @@ window.API_INDEX = {
         "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_normals",
-        "Mesh.face_points",
         "Mesh.face_polyline",
         "Mesh.face_vertices",
         "Mesh.faces",
@@ -10926,292 +9985,12 @@ window.API_INDEX = {
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_edges",
         "Mesh.vertex_faces",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.vertex_normal",
-      "implementations": {
-        "python": {
-          "sig": "vertex_normal(vertex_key: int) -> Optional[Vector]",
-          "code": "def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def face_area(self, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0\n        vd0 = self.vertex.get(vkeys[0])\n        if vd0 is None:\n            return None\n        x0, y0, z0 = vd0.x, vd0.y, vd0.z\n        area = 0.0\n        for i in range(1, len(vkeys) - 1):\n            vd1 = self.vertex.get(vkeys[i])\n            vd2 = self.vertex.get(vkeys[i + 1])\n            if vd1 is None or vd2 is None:\n                return None\n            ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n            vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n            cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n            area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return area\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def volume(self) -> float:",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "std::optional<Vector> vertex_normal(size_t vertex_key)",
-          "code": "std::optional<Vector> Mesh::vertex_normal(size_t vertex_key) const {\n    return vertex_normal_weighted(vertex_key, NormalWeighting::Area);\n}",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "vertex_normal(vertex_key: usize) -> Option<Vector>",
-          "code": "pub fn vertex_normal(&self, vertex_key: usize) -> Option<Vector> {\n        self.vertex_normal_weighted(vertex_key, NormalWeighting::Area)\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.centroid",
-        "Mesh.dihedral_angle",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
-        "Mesh.face_normal",
-        "Mesh.face_normals",
-        "Mesh.face_vertices",
-        "Mesh.faces",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_edges",
-        "Mesh.vertex_faces",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.vertex_normal_weighted",
-      "implementations": {
-        "python": {
-          "sig": "vertex_normal_weighted(\n        vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]",
-          "code": "def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def face_area(self, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0\n        vd0 = self.vertex.get(vkeys[0])\n        if vd0 is None:\n            return None\n        x0, y0, z0 = vd0.x, vd0.y, vd0.z\n        area = 0.0\n        for i in range(1, len(vkeys) - 1):\n            vd1 = self.vertex.get(vkeys[i])\n            vd2 = self.vertex.get(vkeys[i + 1])\n            if vd1 is None or vd2 is None:\n                return None\n            ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n            vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n            cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n            area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return area\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "std::optional<Vector> vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting)",
-          "code": "std::optional<Vector> Mesh::vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting) const {\n    auto faces_opt = vertex_faces(vertex_key);\n    if (!faces_opt || faces_opt->empty()) {\n        return std::nullopt;\n    }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "vertex_normal_weighted(\n        ,\n        vertex_key: usize,\n        weighting: NormalWeighting,\n    ) -> Option<Vector>",
-          "code": "pub fn vertex_normal_weighted(\n        &self,\n        vertex_key: usize,\n        weighting: NormalWeighting,\n    ) -> Option<Vector> {\n        let faces = match self.vertex_faces(vertex_key) {\n            Some(f) if !f.is_empty() => f,\n            _ => return None,\n        };\n\n        let mut normal_acc = Vector::new(0.0, 0.0, 0.0);\n\n        for face_key in faces {\n            if let Some(face_normal) = self.face_normal(face_key) {\n                let weight = match weighting {\n                    NormalWeighting::Area => self.face_area(face_key).unwrap_or(1.0),\n                    NormalWeighting::Angle => self\n                        .vertex_angle_in_face(vertex_key, face_key)\n                        .unwrap_or(1.0),\n                    NormalWeighting::Uniform => 1.0,\n                };\n\n                normal_acc[0] = normal_acc[0] + face_normal[0] * weight;\n                normal_acc[1] = normal_acc[1] + face_normal[1] * weight;\n                normal_acc[2] = normal_acc[2] + face_normal[2] * weight;\n            }\n        }\n\n        let len = normal_acc.magnitude();\n        if len > Tolerance::ZERO_TOLERANCE {\n            Some(Vector::new(\n                normal_acc[0] / len,\n                normal_acc[1] / len,\n                normal_acc[2] / len,\n            ))\n        } else {\n            None\n        }\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.centroid",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
-        "Mesh.face_normal",
-        "Mesh.faces",
-        "Mesh.is_empty",
-        "Mesh.new",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_edges",
-        "Mesh.vertex_faces",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.face_area",
-      "implementations": {
-        "python": {
-          "sig": "face_area(face_key: int) -> Optional[float]",
-          "code": "def face_area(self, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the area of a face.\"\"\"\n        vkeys = self.face.get(face_key)\n        if vkeys is None or len(vkeys) < 3:\n            return 0.0\n        vd0 = self.vertex.get(vkeys[0])\n        if vd0 is None:\n            return None\n        x0, y0, z0 = vd0.x, vd0.y, vd0.z\n        area = 0.0\n        for i in range(1, len(vkeys) - 1):\n            vd1 = self.vertex.get(vkeys[i])\n            vd2 = self.vertex.get(vkeys[i + 1])\n            if vd1 is None or vd2 is None:\n                return None\n            ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n            vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n            cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n            area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return area\n\n    def area(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "std::optional<double> face_area(size_t face_key)",
-          "code": "std::optional<double> Mesh::face_area(size_t face_key) const {\n    auto vertices_opt = face_vertices(face_key);\n    if (!vertices_opt.has_value() || vertices_opt->size() < 3) {\n        return 0.0;\n    }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "face_area(face_key: usize) -> Option<f64>",
-          "code": "pub fn face_area(&self, face_key: usize) -> Option<f64> {\n        let vertices = self.face.get(&face_key)?;\n        if vertices.len() < 3 {\n            return Some(0.0);\n        }\n\n        let mut area = 0.0;\n        let p0 = self.vertex_point(vertices[0])?;\n\n        for i in 1..(vertices.len() - 1) {\n            let p1 = self.vertex_point(vertices[i])?;\n            let p2 = self.vertex_point(vertices[i + 1])?;\n\n            let u = Vector::new(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]);\n            let v = Vector::new(p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]);\n\n            area += u.cross(&v).magnitude() * 0.5;\n        }\n\n        Some(area)\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.centroid",
-        "Mesh.face_centroid",
-        "Mesh.face_normal",
-        "Mesh.face_vertices",
-        "Mesh.new",
-        "Mesh.vertex_angle_in_face",
         "Mesh.vertex_index",
         "Mesh.vertex_normal",
         "Mesh.vertex_normal_weighted",
         "Mesh.vertex_point",
         "Mesh.vertex_vertices",
-        "Mesh.vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.area",
-      "implementations": {
-        "python": {
-          "sig": "area() -> float",
-          "code": "def area(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                ux = vd1.x - x0; uy = vd1.y - y0; uz = vd1.z - z0\n                vx = vd2.x - x0; vy = vd2.y - y0; vz = vd2.z - z0\n                cx = uy * vz - uz * vy; cy = uz * vx - ux * vz; cz = ux * vy - uy * vx\n                total += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n        return total\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "double area()",
-          "code": "double Mesh::area() const {\n    double total = 0.0;\n    for (const auto& [fk, _] : face) {\n        auto a = face_area(fk);\n        if (a) total += *a;\n    }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "area() -> f64",
-          "code": "pub fn area(&self) -> f64 {\n        let mut total = 0.0;\n        for fk in self.face.keys() {\n            if let Some(a) = self.face_area(*fk) {\n                total += a;\n            }\n        }\n        total\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.centroid",
-        "Mesh.dihedral_angle",
-        "Mesh.edge_faces",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
-        "Mesh.face_normal",
-        "Mesh.face_normals",
-        "Mesh.face_vertices",
-        "Mesh.faces",
-        "Mesh.from_lines",
-        "Mesh.from_polygon_with_holes",
-        "Mesh.get_open",
-        "Mesh.get_vid",
-        "Mesh.loft",
-        "Mesh.proj",
-        "Mesh.project_2d",
-        "Mesh.sarea",
-        "Mesh.signed_area",
-        "Mesh.strip_close",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_edges",
-        "Mesh.vertex_faces",
-        "Mesh.vertex_index",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.volume",
-      "implementations": {
-        "python": {
-          "sig": "volume() -> float",
-          "code": "def volume(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return math.pi - math.acos(dot)\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "double volume()",
-          "code": "double Mesh::volume() const {\n    double total = 0.0;\n    for (const auto& [fk, vkeys] : face) {\n        if (vkeys.size() < 3) continue;\n        auto p0o = vertex_point(vkeys[0]);\n        if (!p0o) continue;\n        const auto& p0 = *p0o;\n        for (size_t i = 1; i + 1 < vkeys.size(); ++i) {\n            auto p1o = vertex_point(vkeys[i]);\n            auto p2o = vertex_point(vkeys[i + 1]);\n            if (!p1o || !p2o) continue;\n            const auto& p1 = *p1o;\n            const auto& p2 = *p2o;\n            total += p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                   + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                   + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);\n        }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "volume() -> f64",
-          "code": "pub fn volume(&self) -> f64 {\n        let mut total = 0.0;\n        for (_, vkeys) in &self.face {\n            if vkeys.len() < 3 {\n                continue;\n            }\n            let p0 = match self.vertex_point(vkeys[0]) { Some(p) => p, None => continue };\n            for i in 1..(vkeys.len() - 1) {\n                let p1 = match self.vertex_point(vkeys[i]) { Some(p) => p, None => continue };\n                let p2 = match self.vertex_point(vkeys[i + 1]) { Some(p) => p, None => continue };\n                total += p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                       + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                       + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);\n            }\n        }\n        total.abs() / 6.0\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.dihedral_angle",
-        "Mesh.edge_faces",
-        "Mesh.face_area",
-        "Mesh.face_normal",
-        "Mesh.face_normals",
-        "Mesh.face_vertices",
-        "Mesh.faces",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
-        "Mesh.vertex_point",
         "Mesh.vertices"
-      ]
-    },
-    {
-      "name": "Mesh.vertex_angle_in_face",
-      "implementations": {
-        "python": {
-          "sig": "vertex_angle_in_face(vertex_key: int, face_key: int) -> Optional[float]",
-          "code": "def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return math.pi - math.acos(dot)\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key)",
-          "code": "std::optional<double> Mesh::vertex_angle_in_face(size_t vertex_key, size_t face_key) const {\n    auto vertices_opt = face_vertices(face_key);\n    if (!vertices_opt) return std::nullopt;\n    \n    const auto& vertices = *vertices_opt;\n    auto it = std::find(vertices.begin(), vertices.end(), vertex_key);\n    if (it == vertices.end()) return std::nullopt;\n    \n    size_t vertex_index = std::distance(vertices.begin(), it);\n    size_t n = vertices.size();\n    size_t prev_vertex = vertices[(vertex_index + n - 1) % n];\n    size_t next_vertex = vertices[(vertex_index + 1) % n];\n    \n    auto center_opt = vertex_point(vertex_key);\n    auto prev_opt = vertex_point(prev_vertex);\n    auto next_opt = vertex_point(next_vertex);\n    \n    if (!center_opt || !prev_opt || !next_opt) return std::nullopt;\n    \n    const auto& center = *center_opt;\n    const auto& prev_pos = *prev_opt;\n    const auto& next_pos = *next_opt;\n    \n    Vector u(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2]);\n    Vector v(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2]);\n    \n    double u_len = u.magnitude();\n    double v_len = v.magnitude();\n    \n    if (u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE) {\n        return 0.0;\n    }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "vertex_angle_in_face(vertex_key: usize, face_key: usize) -> Option<f64>",
-          "code": "pub fn vertex_angle_in_face(&self, vertex_key: usize, face_key: usize) -> Option<f64> {\n        let vertices = self.face.get(&face_key)?;\n        let vertex_index = vertices.iter().position(|&v| v == vertex_key)?;\n\n        let n = vertices.len();\n        let prev_vertex = vertices[(vertex_index + n - 1) % n];\n        let next_vertex = vertices[(vertex_index + 1) % n];\n\n        let center = self.vertex_point(vertex_key)?;\n        let prev_pos = self.vertex_point(prev_vertex)?;\n        let next_pos = self.vertex_point(next_vertex)?;\n\n        let u = Vector::new(\n            prev_pos[0] - center[0],\n            prev_pos[1] - center[1],\n            prev_pos[2] - center[2],\n        );\n        let v = Vector::new(\n            next_pos[0] - center[0],\n            next_pos[1] - center[1],\n            next_pos[2] - center[2],\n        );\n\n        let u_len = u.magnitude();\n        let v_len = v.magnitude();\n\n        if u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE {\n            return Some(0.0);\n        }\n\n        let cos_angle = u.dot(&v) / (u_len * v_len);\n        let cos_angle = cos_angle.clamp(-1.0, 1.0);\n        Some(cos_angle.acos())\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.centroid",
-        "Mesh.dihedral_angle",
-        "Mesh.edge_faces",
-        "Mesh.face_area",
-        "Mesh.face_centroid",
-        "Mesh.face_normal",
-        "Mesh.face_normals",
-        "Mesh.face_vertices",
-        "Mesh.faces",
-        "Mesh.find",
-        "Mesh.new",
-        "Mesh.vertex_index",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normal_weighted",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
-        "Mesh.vertex_point",
-        "Mesh.vertex_vertices",
-        "Mesh.vertices",
-        "Mesh.volume"
-      ]
-    },
-    {
-      "name": "Mesh.dihedral_angle",
-      "implementations": {
-        "python": {
-          "sig": "dihedral_angle(u: int, v: int) -> Optional[float]",
-          "code": "def dihedral_angle(self, u: int, v: int) -> Optional[float]:\n\n        \"\"\"Calculate the dihedral angle between two faces sharing edge (u,v).\"\"\"\n        ef = self.edge_faces(u, v)\n        if ef is None or len(ef) < 2:\n            return None\n        n0 = self.face_normal(ef[0])\n        n1 = self.face_normal(ef[1])\n        if n0 is None or n1 is None:\n            return None\n        dot = max(-1.0, min(1.0, n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2]))\n        return math.pi - math.acos(dot)\n\n    def face_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])",
-          "file": "mesh.py"
-        },
-        "cpp": {
-          "sig": "std::optional<double> dihedral_angle(size_t u, size_t v)",
-          "code": "std::optional<double> Mesh::dihedral_angle(size_t u, size_t v) const {\n    auto ef = edge_faces(u, v);\n    if (!ef || ef->size() < 2) return std::nullopt;\n    auto n0_opt = face_normal((*ef)[0]);\n    auto n1_opt = face_normal((*ef)[1]);\n    if (!n0_opt.has_value() || !n1_opt.has_value()) return std::nullopt;\n    double dot = std::clamp(n0_opt->dot(*n1_opt), -1.0, 1.0);\n    return Tolerance::PI - std::acos(dot);\n}",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "dihedral_angle(u: usize, v: usize) -> Option<f64>",
-          "code": "pub fn dihedral_angle(&self, u: usize, v: usize) -> Option<f64> {\n        let ef = self.edge_faces(u, v)?;\n        if ef.len() < 2 { return None; }\n        let n0 = self.face_normal(ef[0])?;\n        let n1 = self.face_normal(ef[1])?;\n        let dot = n0.dot(&n1).clamp(-1.0, 1.0);\n        Some(std::f64::consts::PI - dot.acos())\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.area",
-        "Mesh.edge_faces",
-        "Mesh.face_normal",
-        "Mesh.face_normals",
-        "Mesh.faces",
-        "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_normal",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
-        "Mesh.vertices",
-        "Mesh.volume"
       ]
     },
     {
@@ -11219,7 +9998,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "face_normals() -> Dict[int, Vector]",
-          "code": "def face_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns",
+          "code": "def face_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all faces.\"\"\"\n        normals = {}\n        for face_key in self.face:\n            normal = self.face_normal(face_key)\n            if normal is not None:\n                normals[face_key] = normal\n        return normals\n\n    def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"",
           "file": "mesh.py"
         },
         "cpp": {
@@ -11235,18 +10014,129 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
-        "Mesh.dihedral_angle",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
         "Mesh.face_normal",
+        "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.from_polyline_pairs_vnf",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_faces",
         "Mesh.vertex_index",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.vertex_angle_in_face",
+      "implementations": {
+        "python": {
+          "sig": "vertex_angle_in_face(vertex_key: int, face_key: int) -> Optional[float]",
+          "code": "def vertex_angle_in_face(self, vertex_key: int, face_key: int) -> Optional[float]:\n\n        \"\"\"Calculate the angle at a vertex in a face.\"\"\"\n        vertices = self.face_vertices(face_key)\n        if vertices is None or vertex_key not in vertices:\n            return None\n\n        vertex_index = vertices.index(vertex_key)\n        n = len(vertices)\n        prev_vertex = vertices[(vertex_index - 1) % n]\n        next_vertex = vertices[(vertex_index + 1) % n]\n\n        center = self.vertex_point(vertex_key)\n        prev_pos = self.vertex_point(prev_vertex)\n        next_pos = self.vertex_point(next_vertex)\n\n        if center is None or prev_pos is None or next_pos is None:\n            return None\n\n        u = Vector(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2])\n        v = Vector(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2])\n\n        u_len = u.magnitude()\n        v_len = v.magnitude()\n\n        if u_len < Tolerance.ZERO_TOLERANCE or v_len < Tolerance.ZERO_TOLERANCE:\n            return 0.0\n\n        cos_angle = u.dot(v) / (u_len * v_len)\n        cos_angle = max(-1.0, min(1.0, cos_angle))\n        return math.acos(cos_angle)\n\n    def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key)",
+          "code": "std::optional<double> Mesh::vertex_angle_in_face(size_t vertex_key, size_t face_key) const {\n    auto vertices_opt = face_vertices(face_key);\n    if (!vertices_opt) return std::nullopt;\n\n    const auto& vertices = *vertices_opt;\n    auto it = std::find(vertices.begin(), vertices.end(), vertex_key);\n    if (it == vertices.end()) return std::nullopt;\n\n    size_t vertex_index = std::distance(vertices.begin(), it);\n    size_t n = vertices.size();\n    size_t prev_vertex = vertices[(vertex_index + n - 1) % n];\n    size_t next_vertex = vertices[(vertex_index + 1) % n];\n\n    auto center_opt = vertex_point(vertex_key);\n    auto prev_opt = vertex_point(prev_vertex);\n    auto next_opt = vertex_point(next_vertex);\n\n    if (!center_opt || !prev_opt || !next_opt) return std::nullopt;\n\n    const auto& center = *center_opt;\n    const auto& prev_pos = *prev_opt;\n    const auto& next_pos = *next_opt;\n\n    Vector u(prev_pos[0] - center[0], prev_pos[1] - center[1], prev_pos[2] - center[2]);\n    Vector v(next_pos[0] - center[0], next_pos[1] - center[1], next_pos[2] - center[2]);\n\n    double u_len = u.magnitude();\n    double v_len = v.magnitude();\n\n    if (u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE) {\n        return 0.0;\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "vertex_angle_in_face(vertex_key: usize, face_key: usize) -> Option<f64>",
+          "code": "pub fn vertex_angle_in_face(&self, vertex_key: usize, face_key: usize) -> Option<f64> {\n        let vertices = self.face.get(&face_key)?;\n        let vertex_index = vertices.iter().position(|&v| v == vertex_key)?;\n\n        let n = vertices.len();\n        let prev_vertex = vertices[(vertex_index + n - 1) % n];\n        let next_vertex = vertices[(vertex_index + 1) % n];\n\n        let center = self.vertex_point(vertex_key)?;\n        let prev_pos = self.vertex_point(prev_vertex)?;\n        let next_pos = self.vertex_point(next_vertex)?;\n\n        let u = Vector::new(\n            prev_pos[0] - center[0],\n            prev_pos[1] - center[1],\n            prev_pos[2] - center[2],\n        );\n        let v = Vector::new(\n            next_pos[0] - center[0],\n            next_pos[1] - center[1],\n            next_pos[2] - center[2],\n        );\n\n        let u_len = u.magnitude();\n        let v_len = v.magnitude();\n\n        if u_len < Tolerance::ZERO_TOLERANCE || v_len < Tolerance::ZERO_TOLERANCE {\n            return Some(0.0);\n        }\n\n        let cos_angle = u.dot(&v) / (u_len * v_len);\n        let cos_angle = cos_angle.clamp(-1.0, 1.0);\n        Some(cos_angle.acos())\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.find",
+        "Mesh.new",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_index",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.vertex_normal",
+      "implementations": {
+        "python": {
+          "sig": "vertex_normal(vertex_key: int) -> Optional[Vector]",
+          "code": "def vertex_normal(self, vertex_key: int) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a vertex (area-weighted).\"\"\"\n        return self.vertex_normal_weighted(vertex_key, NormalWeighting.AREA)\n\n    def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::optional<Vector> vertex_normal(size_t vertex_key)",
+          "code": "std::optional<Vector> Mesh::vertex_normal(size_t vertex_key) const {\n    return vertex_normal_weighted(vertex_key, NormalWeighting::Area);\n}",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "vertex_normal(vertex_key: usize) -> Option<Vector>",
+          "code": "pub fn vertex_normal(&self, vertex_key: usize) -> Option<Vector> {\n        self.vertex_normal_weighted(vertex_key, NormalWeighting::Area)\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.faces",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_faces",
+        "Mesh.vertex_normal_weighted",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.vertex_normal_weighted",
+      "implementations": {
+        "python": {
+          "sig": "vertex_normal_weighted(\n        vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]",
+          "code": "def vertex_normal_weighted(\n        self, vertex_key: int, weighting: NormalWeighting\n    ) -> Optional[Vector]:\n\n        \"\"\"Calculate the normal of a vertex with specified weighting.\"\"\"\n        faces = self.vertex_faces(vertex_key)\n        if not faces:\n            return None\n\n        normal_acc = Vector(0.0, 0.0, 0.0)\n\n        for face_key in faces:\n            face_normal = self.face_normal(face_key)\n            if face_normal is None:\n                continue\n\n            if weighting == NormalWeighting.AREA:\n                weight = self.face_area(face_key) or 1.0\n            elif weighting == NormalWeighting.ANGLE:\n                weight = self.vertex_angle_in_face(vertex_key, face_key) or 1.0\n            else:  # UNIFORM\n                weight = 1.0\n\n            normal_acc[0] += face_normal[0] * weight\n            normal_acc[1] += face_normal[1] * weight\n            normal_acc[2] += face_normal[2] * weight\n\n        length = normal_acc.magnitude()\n        if length > Tolerance.ZERO_TOLERANCE:\n            return Vector(\n                normal_acc[0] / length, normal_acc[1] / length, normal_acc[2] / length\n            )\n\n        return None\n\n    def vertex_normals(self) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "std::optional<Vector> vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting)",
+          "code": "std::optional<Vector> Mesh::vertex_normal_weighted(size_t vertex_key, NormalWeighting weighting) const {\n    auto faces_opt = vertex_faces(vertex_key);\n    if (!faces_opt || faces_opt->empty()) {\n        return std::nullopt;\n    }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "vertex_normal_weighted(\n        ,\n        vertex_key: usize,\n        weighting: NormalWeighting,\n    ) -> Option<Vector>",
+          "code": "pub fn vertex_normal_weighted(\n        &self,\n        vertex_key: usize,\n        weighting: NormalWeighting,\n    ) -> Option<Vector> {\n        let faces = match self.vertex_faces(vertex_key) {\n            Some(f) if !f.is_empty() => f,\n            _ => return None,\n        };\n\n        let mut normal_acc = Vector::new(0.0, 0.0, 0.0);\n\n        for face_key in faces {\n            if let Some(face_normal) = self.face_normal(face_key) {\n                let weight = match weighting {\n                    NormalWeighting::Area => self.face_area(face_key).unwrap_or(1.0),\n                    NormalWeighting::Angle => self\n                        .vertex_angle_in_face(vertex_key, face_key)\n                        .unwrap_or(1.0),\n                    NormalWeighting::Uniform => 1.0,\n                };\n\n                normal_acc[0] = normal_acc[0] + face_normal[0] * weight;\n                normal_acc[1] = normal_acc[1] + face_normal[1] * weight;\n                normal_acc[2] = normal_acc[2] + face_normal[2] * weight;\n            }\n        }\n\n        let len = normal_acc.magnitude();\n        if len > Tolerance::ZERO_TOLERANCE {\n            Some(Vector::new(\n                normal_acc[0] / len,\n                normal_acc[1] / len,\n                normal_acc[2] / len,\n            ))\n        } else {\n            None\n        }\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.face_area",
+        "Mesh.face_normal",
+        "Mesh.face_normals",
+        "Mesh.faces",
+        "Mesh.is_empty",
+        "Mesh.new",
+        "Mesh.vertex_angle_in_face",
+        "Mesh.vertex_faces",
         "Mesh.vertex_normal",
         "Mesh.vertex_normals",
         "Mesh.vertex_normals_weighted",
-        "Mesh.vertices",
-        "Mesh.volume"
+        "Mesh.vertices"
       ]
     },
     {
@@ -11254,7 +10144,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals() -> Dict[int, Vector]",
-          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:",
+          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))",
           "file": "mesh.py"
         },
         "cpp": {
@@ -11270,13 +10160,10 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
-        "Mesh.dihedral_angle",
         "Mesh.face_normals",
-        "Mesh.faces",
-        "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals_weighted",
         "Mesh.vertices",
         "Mesh.volume"
@@ -11287,7 +10174,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals_weighted(weighting: NormalWeighting) -> Dict[int, Vector]",
-          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------",
+          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export",
           "file": "mesh.py"
         },
         "cpp": {
@@ -11303,18 +10190,47 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
-        "Mesh.dihedral_angle",
-        "Mesh.face_normals",
-        "Mesh.faces",
         "Mesh.new",
-        "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_index",
         "Mesh.vertex_normal",
+        "Mesh.vertex_normal_weighted",
         "Mesh.vertex_normals",
         "Mesh.vertex_point",
         "Mesh.vertices",
         "Mesh.volume"
+      ]
+    },
+    {
+      "name": "Mesh.volume",
+      "implementations": {
+        "python": {
+          "sig": "volume() -> float",
+          "code": "def volume(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            xform.transform_point(pos)\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "double volume()",
+          "code": "double Mesh::volume() const {\n    double total = 0.0;\n    for (const auto& [fk, vkeys] : face) {\n        if (vkeys.size() < 3) continue;\n        auto p0o = vertex_point(vkeys[0]);\n        if (!p0o) continue;\n        const auto& p0 = *p0o;\n        for (size_t i = 1; i + 1 < vkeys.size(); ++i) {\n            auto p1o = vertex_point(vkeys[i]);\n            auto p2o = vertex_point(vkeys[i + 1]);\n            if (!p1o || !p2o) continue;\n            const auto& p1 = *p1o;\n            const auto& p2 = *p2o;\n            total += p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                   + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                   + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);\n        }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "volume() -> f64",
+          "code": "pub fn volume(&self) -> f64 {\n        let mut total = 0.0;\n        for (_, vkeys) in &self.face {\n            if vkeys.len() < 3 {\n                continue;\n            }\n            let p0 = match self.vertex_point(vkeys[0]) { Some(p) => p, None => continue };\n            for i in 1..(vkeys.len() - 1) {\n                let p1 = match self.vertex_point(vkeys[i]) { Some(p) => p, None => continue };\n                let p2 = match self.vertex_point(vkeys[i + 1]) { Some(p) => p, None => continue };\n                total += p0[0] * (p1[1] * p2[2] - p1[2] * p2[1])\n                       + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2])\n                       + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);\n            }\n        }\n        total.abs() / 6.0\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.transformed",
+        "Mesh.vertex_index",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertex_point",
+        "Mesh.vertices",
+        "Mesh.xform"
       ]
     },
     {
@@ -11338,8 +10254,9 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__jsondump__",
-        "Mesh.area",
         "Mesh.face_area",
+        "Mesh.face_centroid",
+        "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
         "Mesh.faces",
@@ -11349,8 +10266,6 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_angle_in_face",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
         "Mesh.vertices",
         "Mesh.volume",
         "Mesh.xform"
@@ -11386,9 +10301,8 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
-        "Mesh.vertex_normals",
-        "Mesh.vertex_normals_weighted",
         "Mesh.vertices",
+        "Mesh.volume",
         "Mesh.xform"
       ]
     },
@@ -11423,6 +10337,7 @@ window.API_INDEX = {
         "Mesh.transformed",
         "Mesh.vertex_index",
         "Mesh.vertices",
+        "Mesh.volume",
         "Mesh.xform"
       ]
     },
@@ -11456,7 +10371,8 @@ window.API_INDEX = {
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.vertex_index",
-        "Mesh.vertices"
+        "Mesh.vertices",
+        "Mesh.volume"
       ]
     },
     {
@@ -19979,7 +18895,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "make_non_rational() -> bool",
-          "code": "def make_non_rational(self) -> bool:\n\n        \"\"\"Convert surface to non-rational (OpenNURBS implementation).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self.m_is_rat:\n            return True\n        \n        # OpenNURBS algorithm: iterate through CVs, divide by weight, pack tightly\n        if self.m_order[0] > 0 and self.m_order[1] > 0 and self.m_dim > 0:\n            new_cv = np.zeros(self.m_cv_count[0] * self.m_cv_count[1] * self.m_dim, dtype=np.float64)\n            new_idx = 0\n            \n            # Process in optimal order based on stride\n            if self.m_cv_stride[0] < self.m_cv_stride[1]:\n                # Iterate j (outer), then i (inner)\n                for j in range(self.m_cv_count[1]):\n                    for i in range(self.m_cv_count[0]):\n                        cv_ptr = self.cv(i, j)\n                        if cv_ptr is not None and len(cv_ptr) > self.m_dim:\n                            w = cv_ptr[self.m_dim]\n                            w = 1.0 / w if abs(w) > 1e-14 else 1.0\n                            for d in range(self.m_dim):\n                                new_cv[new_idx] = w * cv_ptr[d]\n                                new_idx += 1\n            else:\n                # Iterate i (outer), then j (inner)\n                for i in range(self.m_cv_count[0]):\n                    for j in range(self.m_cv_count[1]):\n                        cv_ptr = self.cv(i, j)\n                        if cv_ptr is not None and len(cv_ptr) > self.m_dim:\n                            w = cv_ptr[self.m_dim]\n                            w = 1.0 / w if abs(w) > 1e-14 else 1.0\n                            for d in range(self.m_dim):\n                                new_cv[new_idx] = w * cv_ptr[d]\n                                new_idx += 1\n            \n            # Update strides for non-rational layout\n            self.m_is_rat = 0\n            if self.m_cv_stride[0] < self.m_cv_stride[1]:\n                self.m_cv_stride[0] = self.m_dim\n                self.m_cv_stride[1] = self.m_dim * self.m_cv_count[0]\n            else:\n                self.m_cv_stride[1] = self.m_dim\n                self.m_cv_stride[0] = self.m_dim * self.m_cv_count[1]\n            \n            self.m_cv = new_cv\n        \n        return not self.is_rational()\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS\n    ###########################################################################\n    \n    def get_bounding_box(self) -> BoundingBox:\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        BoundingBox\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return BoundingBox()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))",
+          "code": "def make_non_rational(self) -> bool:\n\n        \"\"\"Convert surface to non-rational (OpenNURBS implementation).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if not self.m_is_rat:\n            return True\n        \n        # OpenNURBS algorithm: iterate through CVs, divide by weight, pack tightly\n        if self.m_order[0] > 0 and self.m_order[1] > 0 and self.m_dim > 0:\n            new_cv = np.zeros(self.m_cv_count[0] * self.m_cv_count[1] * self.m_dim, dtype=np.float64)\n            new_idx = 0\n            \n            # Process in optimal order based on stride\n            if self.m_cv_stride[0] < self.m_cv_stride[1]:\n                # Iterate j (outer), then i (inner)\n                for j in range(self.m_cv_count[1]):\n                    for i in range(self.m_cv_count[0]):\n                        cv_ptr = self.cv(i, j)\n                        if cv_ptr is not None and len(cv_ptr) > self.m_dim:\n                            w = cv_ptr[self.m_dim]\n                            w = 1.0 / w if abs(w) > 1e-14 else 1.0\n                            for d in range(self.m_dim):\n                                new_cv[new_idx] = w * cv_ptr[d]\n                                new_idx += 1\n            else:\n                # Iterate i (outer), then j (inner)\n                for i in range(self.m_cv_count[0]):\n                    for j in range(self.m_cv_count[1]):\n                        cv_ptr = self.cv(i, j)\n                        if cv_ptr is not None and len(cv_ptr) > self.m_dim:\n                            w = cv_ptr[self.m_dim]\n                            w = 1.0 / w if abs(w) > 1e-14 else 1.0\n                            for d in range(self.m_dim):\n                                new_cv[new_idx] = w * cv_ptr[d]\n                                new_idx += 1\n            \n            # Update strides for non-rational layout\n            self.m_is_rat = 0\n            if self.m_cv_stride[0] < self.m_cv_stride[1]:\n                self.m_cv_stride[0] = self.m_dim\n                self.m_cv_stride[1] = self.m_dim * self.m_cv_count[0]\n            else:\n                self.m_cv_stride[1] = self.m_dim\n                self.m_cv_stride[0] = self.m_dim * self.m_cv_count[1]\n            \n            self.m_cv = new_cv\n        \n        return not self.is_rational()\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS\n    ###########################################################################\n    \n    def get_bounding_box(self) -> Obb:\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        Obb\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return Obb()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -20013,13 +18929,13 @@ window.API_INDEX = {
       "name": "NurbsSurface.get_bounding_box",
       "implementations": {
         "python": {
-          "sig": "get_bounding_box() -> BoundingBox",
-          "code": "def get_bounding_box(self) -> BoundingBox:\n\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        BoundingBox\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return BoundingBox()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))\n\n        center = Point((min_pt.x + max_pt.x) / 2.0,\n                      (min_pt.y + max_pt.y) / 2.0,\n                      (min_pt.z + max_pt.z) / 2.0)\n        half_size = Vector((max_pt.x - min_pt.x) / 2.0,\n                          (max_pt.y - min_pt.y) / 2.0,\n                          (max_pt.z - min_pt.z) / 2.0)\n\n        return BoundingBox(center, Vector.x_axis(), Vector.y_axis(), Vector.z_axis(), half_size)\n    \n    def divide_by_count(self, nu: int, nv: int):\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def divide_by_count_points(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        grid_vector = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            row_vector = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                row_vector.append(self.normal_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            grid_vector.append(row_vector)\n            params.append(param_row)\n\n        return grid, grid_vector, params\n\n    def divide_by_count_planes(self, nu: int, nv: int):\n        if not self.is_valid():",
+          "sig": "get_bounding_box() -> Obb",
+          "code": "def get_bounding_box(self) -> Obb:\n\n        \"\"\"Get bounding box of surface.\n\n        Returns\n        -------\n        Obb\n            Bounding box containing all control points.\n        \"\"\"\n        if not self.is_valid() or self.m_cv_count[0] == 0 or self.m_cv_count[1] == 0:\n            return Obb()\n\n        min_pt = self.get_cv(0, 0)\n        max_pt = Point(min_pt.x, min_pt.y, min_pt.z)\n\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                pt = self.get_cv(i, j)\n                min_pt = Point(min(min_pt.x, pt.x),\n                              min(min_pt.y, pt.y),\n                              min(min_pt.z, pt.z))\n                max_pt = Point(max(max_pt.x, pt.x),\n                              max(max_pt.y, pt.y),\n                              max(max_pt.z, pt.z))\n\n        center = Point((min_pt.x + max_pt.x) / 2.0,\n                      (min_pt.y + max_pt.y) / 2.0,\n                      (min_pt.z + max_pt.z) / 2.0)\n        half_size = Vector((max_pt.x - min_pt.x) / 2.0,\n                          (max_pt.y - min_pt.y) / 2.0,\n                          (max_pt.z - min_pt.z) / 2.0)\n\n        return Obb(center, Vector.x_axis(), Vector.y_axis(), Vector.z_axis(), half_size)\n    \n    def divide_by_count(self, nu: int, nv: int):\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            params.append(param_row)\n\n        return grid, params\n\n    def divide_by_count_points(self, nu: int, nv: int):\n        if not self.is_valid():\n            return [], [], []\n\n        u0, u1 = self.domain(0)\n        v0, v1 = self.domain(1)\n\n        grid = []\n        grid_vector = []\n        params = []\n        for i in range(nu + 1):\n            row = []\n            row_vector = []\n            param_row = []\n            u = u0 + (u1 - u0) * (i / nu) if nu > 0 else u0\n            for j in range(nv + 1):\n                v = v0 + (v1 - v0) * (j / nv) if nv > 0 else v0\n                row.append(self.point_at(u, v))\n                row_vector.append(self.normal_at(u, v))\n                param_row.append((u, v))\n            grid.append(row)\n            grid_vector.append(row_vector)\n            params.append(param_row)\n\n        return grid, grid_vector, params\n\n    def divide_by_count_planes(self, nu: int, nv: int):\n        if not self.is_valid():",
           "file": "nurbssurface.py"
         },
         "rust": {
-          "sig": "get_bounding_box() -> BoundingBox",
-          "code": "pub fn get_bounding_box(&self) -> BoundingBox {\n        let mut min_pt = Point::new(f64::MAX, f64::MAX, f64::MAX);\n        let mut max_pt = Point::new(f64::MIN, f64::MIN, f64::MIN);\n        for i in 0..self.m_cv_count[0] {\n            for j in 0..self.m_cv_count[1] {\n                if let Some(pt) = self.get_cv(i, j) {\n                    if pt[0] < min_pt[0] { min_pt[0] = pt[0]; }\n                    if pt[1] < min_pt[1] { min_pt[1] = pt[1]; }\n                    if pt[2] < min_pt[2] { min_pt[2] = pt[2]; }\n                    if pt[0] > max_pt[0] { max_pt[0] = pt[0]; }\n                    if pt[1] > max_pt[1] { max_pt[1] = pt[1]; }\n                    if pt[2] > max_pt[2] { max_pt[2] = pt[2]; }\n                }\n            }\n        }\n        let center = Point::new(\n            (min_pt[0] + max_pt[0]) * 0.5,\n            (min_pt[1] + max_pt[1]) * 0.5,\n            (min_pt[2] + max_pt[2]) * 0.5,\n        );\n        let half_size = Vector::new(\n            (max_pt[0] - min_pt[0]) * 0.5,\n            (max_pt[1] - min_pt[1]) * 0.5,\n            (max_pt[2] - min_pt[2]) * 0.5,\n        );\n        BoundingBox::new(\n            center,\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            half_size,\n        )\n    }",
+          "sig": "get_bounding_box() -> Obb",
+          "code": "pub fn get_bounding_box(&self) -> Obb {\n        let mut min_pt = Point::new(f64::MAX, f64::MAX, f64::MAX);\n        let mut max_pt = Point::new(f64::MIN, f64::MIN, f64::MIN);\n        for i in 0..self.m_cv_count[0] {\n            for j in 0..self.m_cv_count[1] {\n                if let Some(pt) = self.get_cv(i, j) {\n                    if pt[0] < min_pt[0] { min_pt[0] = pt[0]; }\n                    if pt[1] < min_pt[1] { min_pt[1] = pt[1]; }\n                    if pt[2] < min_pt[2] { min_pt[2] = pt[2]; }\n                    if pt[0] > max_pt[0] { max_pt[0] = pt[0]; }\n                    if pt[1] > max_pt[1] { max_pt[1] = pt[1]; }\n                    if pt[2] > max_pt[2] { max_pt[2] = pt[2]; }\n                }\n            }\n        }\n        let center = Point::new(\n            (min_pt[0] + max_pt[0]) * 0.5,\n            (min_pt[1] + max_pt[1]) * 0.5,\n            (min_pt[2] + max_pt[2]) * 0.5,\n        );\n        let half_size = Vector::new(\n            (max_pt[0] - min_pt[0]) * 0.5,\n            (max_pt[1] - min_pt[1]) * 0.5,\n            (max_pt[2] - min_pt[2]) * 0.5,\n        );\n        Obb::new(\n            center,\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            half_size,\n        )\n    }",
           "file": "nurbssurface.rs"
         }
       },
@@ -21640,7 +20556,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_objects\"\n        self.points: list[Point] = []\n        self.lines: list[Line] = []\n        self.planes: list[Plane] = []\n        self.bboxes: list[BoundingBox] = []\n        self.polylines: list[Polyline] = []\n        self.pointclouds: list[PointCloud] = []\n        self.meshes: list[Mesh] = []\n        self.nurbscurves: list[NurbsCurve] = []\n        self.nurbssurfaces: list[NurbsSurface] = []\n        self.breps: list[BRep] = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node",
+          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_objects\"\n        self.points: list[Point] = []\n        self.lines: list[Line] = []\n        self.planes: list[Plane] = []\n        self.bboxes: list[Obb] = []\n        self.polylines: list[Polyline] = []\n        self.pointclouds: list[PointCloud] = []\n        self.meshes: list[Mesh] = []\n        self.nurbscurves: list[NurbsCurve] = []\n        self.nurbssurfaces: list[NurbsSurface] = []\n        self.breps: list[BRep] = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node",
           "file": "objects.py"
         }
       },
@@ -21791,7 +20707,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)",
           "file": "objects.py"
         },
         "cpp": {
@@ -21829,7 +20745,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())",
           "file": "objects.py"
         },
         "cpp": {
@@ -21868,7 +20784,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:",
           "file": "objects.py"
         },
         "cpp": {
@@ -21906,7 +20822,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -21944,7 +20860,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def pb_dumps(self):\n\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:\n            ns.pb_fill(proto.nurbssurfaces.add())\n        for b in self.breps:\n            proto.breps.add().ParseFromString(b.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def from_proto(cls, proto):\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         },
         "cpp": {
@@ -21977,7 +20893,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_proto(cls, proto)",
-          "code": "def from_proto(cls, proto):\n\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(BoundingBox.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def from_proto(cls, proto):\n\n        \"\"\"Create Objects from proto message directly (no SerializeToString).\"\"\"\n        objects = cls()\n        objects.guid = proto.guid\n        objects.name = proto.name\n        for p in proto.points:\n            objects.points.append(Point.pb_loads(p.SerializeToString()))\n        for l in proto.lines:\n            objects.lines.append(Line.pb_loads(l.SerializeToString()))\n        for pl in proto.planes:\n            objects.planes.append(Plane.pb_loads(pl.SerializeToString()))\n        for b in proto.bboxes:\n            objects.bboxes.append(Obb.pb_loads(b.SerializeToString()))\n        for pl in proto.polylines:\n            objects.polylines.append(Polyline.pb_loads(pl.SerializeToString()))\n        for pc in proto.pointclouds:\n            objects.pointclouds.append(PointCloud.pb_loads(pc.SerializeToString()))\n        for m in proto.meshes:\n            objects.meshes.append(Mesh.from_proto(m))\n        for nc in proto.nurbscurves:\n            objects.nurbscurves.append(NurbsCurve.pb_loads(nc.SerializeToString()))\n        for ns in proto.nurbssurfaces:\n            objects.nurbssurfaces.append(NurbsSurface.pb_loads(ns.SerializeToString()))\n        for b in proto.breps:\n            objects.breps.append(BRep.pb_loads(b.SerializeToString()))\n        return objects\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.ParseFromString(data)\n        return cls.from_proto(proto)\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "objects.py"
         }
       },
@@ -22003,12 +20919,12 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "Objects pb_loads(const std::string& data)",
-          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<BoundingBox>(BoundingBox::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& nc : proto.nurbscurves())\n    objects.nurbscurves->push_back(std::make_shared<NurbsCurve>(NurbsCurve::pb_loads(nc.SerializeAsString())));\n  for (const auto& ns : proto.nurbssurfaces())\n    objects.nurbssurfaces->push_back(std::make_shared<NurbsSurface>(NurbsSurface::pb_loads(ns.SerializeAsString())));\n  for (const auto& b : proto.breps())\n    objects.breps->push_back(std::make_shared<BRep>(BRep::pb_loads(b.SerializeAsString())));\n  return objects;\n}",
+          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<Obb>(Obb::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& nc : proto.nurbscurves())\n    objects.nurbscurves->push_back(std::make_shared<NurbsCurve>(NurbsCurve::pb_loads(nc.SerializeAsString())));\n  for (const auto& ns : proto.nurbssurfaces())\n    objects.nurbssurfaces->push_back(std::make_shared<NurbsSurface>(NurbsSurface::pb_loads(ns.SerializeAsString())));\n  for (const auto& b : proto.breps())\n    objects.breps->push_back(std::make_shared<BRep>(BRep::pb_loads(b.SerializeAsString())));\n  return objects;\n}",
           "file": "objects.cpp"
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.guid = proto.guid;\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::boundingbox::BoundingBox::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for nc in &proto.nurbscurves {\n            objects.nurbscurves.push(crate::nurbscurve::NurbsCurve::pb_loads(&nc.encode_to_vec())?);\n        }\n        for ns in &proto.nurbssurfaces {\n            objects.nurbssurfaces.push(crate::nurbssurface::NurbsSurface::pb_loads(&ns.encode_to_vec())?);\n        }\n        for b in &proto.breps {\n            objects.breps.push(crate::brep::BRep::pb_loads(&b.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.guid = proto.guid;\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::obb::Obb::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for nc in &proto.nurbscurves {\n            objects.nurbscurves.push(crate::nurbscurve::NurbsCurve::pb_loads(&nc.encode_to_vec())?);\n        }\n        for ns in &proto.nurbssurfaces {\n            objects.nurbssurfaces.push(crate::nurbssurface::NurbsSurface::pb_loads(&ns.encode_to_vec())?);\n        }\n        for b in &proto.breps {\n            objects.breps.push(crate::brep::BRep::pb_loads(&b.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
           "file": "objects.rs"
         }
       },
@@ -30614,6 +29530,11 @@ window.API_INDEX = {
           "code": "def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")",
           "file": "polyline.py"
         },
+        "cpp": {
+          "sig": "Polyline quick_hull(const Polyline& polygon)",
+          "code": "Polyline Polyline::quick_hull(const Polyline& polygon) {\n    Point origin;\n    Vector xa, ya, za;\n    polygon.get_average_plane(origin, xa, ya, za);\n    std::vector<Point> pts = polygon.get_points();\n\n    std::vector<std::array<double,2>> pts2d;\n    pts2d.reserve(pts.size());\n    for (const auto& p : pts) {\n        double dx = p[0]-origin[0], dy = p[1]-origin[1], dz = p[2]-origin[2];\n        pts2d.push_back({dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]}",
+          "file": "polyline.cpp"
+        },
         "rust": {
           "sig": "quick_hull(polygon: &Polyline) -> Polyline",
           "code": "pub fn quick_hull(polygon: &Polyline) -> Polyline {\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n        let pts = polygon.get_points();\n\n        // Project to 2D\n        let pts2d: Vec<[f64; 2]> = pts.iter().map(|p| {\n            let dx = p[0] - orig[0];\n            let dy = p[1] - orig[1];\n            let dz = p[2] - orig[2];\n            [dx * xa[0] + dy * xa[1] + dz * xa[2],\n             dx * ya[0] + dy * ya[1] + dz * ya[2]]\n        }).collect();\n\n        fn ccw_2d(ax: f64, ay: f64, bx: f64, by: f64, px: f64, py: f64) -> f64 {\n            (bx - ax) * (py - ay) - (by - ay) * (px - ax)\n        }\n        fn qh_recurse(v: &[[f64; 2]], ax: f64, ay: f64, bx: f64, by: f64, hull: &mut Vec<[f64; 2]>) {\n            if v.is_empty() { return; }\n            let (fi, _) = v.iter().enumerate()\n                .max_by(|(_, a), (_, b)| {\n                    ccw_2d(ax, ay, bx, by, a[0], a[1])\n                        .partial_cmp(&ccw_2d(ax, ay, bx, by, b[0], b[1]))\n                        .unwrap()\n                }).unwrap();\n            let fx = v[fi][0]; let fy = v[fi][1];\n            let left: Vec<_> = v.iter().filter(|p| ccw_2d(ax, ay, fx, fy, p[0], p[1]) > 0.0).cloned().collect();\n            qh_recurse(&left, ax, ay, fx, fy, hull);\n            hull.push([fx, fy]);\n            let right: Vec<_> = v.iter().filter(|p| ccw_2d(fx, fy, bx, by, p[0], p[1]) > 0.0).cloned().collect();\n            qh_recurse(&right, fx, fy, bx, by, hull);\n        }\n\n        let ai = pts2d.iter().enumerate().min_by(|(_, a), (_, b)| a[0].partial_cmp(&b[0]).unwrap()).map(|(i, _)| i).unwrap_or(0);\n        let bi = pts2d.iter().enumerate().max_by(|(_, a), (_, b)| a[0].partial_cmp(&b[0]).unwrap()).map(|(i, _)| i).unwrap_or(0);\n        let (ax, ay) = (pts2d[ai][0], pts2d[ai][1]);\n        let (bx, by) = (pts2d[bi][0], pts2d[bi][1]);\n\n        let left: Vec<_>  = pts2d.iter().filter(|p| ccw_2d(ax, ay, bx, by, p[0], p[1]) > 0.0).cloned().collect();\n        let right: Vec<_> = pts2d.iter().filter(|p| ccw_2d(ax, ay, bx, by, p[0], p[1]) <= 0.0).cloned().collect();\n        let mut hull = vec![[ax, ay]];\n        qh_recurse(&left, ax, ay, bx, by, &mut hull);\n        hull.push([bx, by]);\n        qh_recurse(&right, bx, by, ax, ay, &mut hull);\n\n        let pts3d: Vec<Point> = hull.iter().map(|h| {\n            Point::new(orig[0] + h[0] * xa[0] + h[1] * ya[0],\n                       orig[1] + h[0] * xa[1] + h[1] * ya[1],\n                       orig[2] + h[0] * xa[2] + h[1] * ya[2])\n        }).collect();\n        Polyline::new(pts3d)\n    }",
@@ -30764,6 +29685,11 @@ window.API_INDEX = {
           "code": "def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area\n                best_corners = [\n                    (min_u * ex - min_v * ey, min_u * ey + min_v * ex),\n                    (max_u * ex - min_v * ey, max_u * ey + min_v * ex),\n                    (max_u * ex - max_v * ey, max_u * ey + max_v * ex),\n                    (min_u * ex - max_v * ey, min_u * ey + max_v * ex),\n                ]\n\n        if best_corners is None:\n            return None\n\n        pts3d = [unproj(u, v) for u, v in best_corners]\n        pts3d.append(pts3d[0])\n        return Polyline(pts3d)\n\n    @staticmethod\n    def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
           "file": "polyline.py"
         },
+        "cpp": {
+          "sig": "std::optional<Polyline> bounding_rectangle(const Polyline& polygon)",
+          "code": "std::optional<Polyline> Polyline::bounding_rectangle(const Polyline& polygon) {\n    Polyline hull = quick_hull(polygon);\n    if (hull.point_count() <= 2) return std::nullopt;\n    Point origin;\n    Vector xa, ya, za;\n    polygon.get_average_plane(origin, xa, ya, za);\n\n    std::vector<Point> hull_pts = hull.get_points();\n    std::vector<std::array<double,2>> hull2d;\n    hull2d.reserve(hull_pts.size());\n    for (const auto& p : hull_pts) {\n        double dx = p[0]-origin[0], dy = p[1]-origin[1], dz = p[2]-origin[2];\n        hull2d.push_back({dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]}",
+          "file": "polyline.cpp"
+        },
         "rust": {
           "sig": "bounding_rectangle(polygon: &Polyline) -> Option<Polyline>",
           "code": "pub fn bounding_rectangle(polygon: &Polyline) -> Option<Polyline> {\n        let hull = Self::quick_hull(polygon);\n        if hull.point_count() <= 2 { return None; }\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n\n        // Project hull to 2D\n        let hull_pts = hull.get_points();\n        let hull2d: Vec<[f64; 2]> = hull_pts.iter().map(|p| {\n            let dx = p[0] - orig[0]; let dy = p[1] - orig[1]; let dz = p[2] - orig[2];\n            [dx * xa[0] + dy * xa[1] + dz * xa[2],\n             dx * ya[0] + dy * ya[1] + dz * ya[2]]\n        }).collect();\n\n        let mut best_area = f64::MAX;\n        let mut best = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);\n        let hn = hull2d.len();\n        for i in 0..hn {\n            let j = (i + 1) % hn;\n            let ex = hull2d[j][0] - hull2d[i][0];\n            let ey = hull2d[j][1] - hull2d[i][1];\n            let len = (ex * ex + ey * ey).sqrt();\n            if len < 1e-12 { continue; }\n            let (ca, sa) = (ex / len, ey / len);\n            let (mut min_u, mut max_u) = (f64::MAX, f64::MIN);\n            let (mut min_v, mut max_v) = (f64::MAX, f64::MIN);\n            for h in &hull2d {\n                let u =  h[0] * ca + h[1] * sa;\n                let v = -h[0] * sa + h[1] * ca;\n                min_u = min_u.min(u); max_u = max_u.max(u);\n                min_v = min_v.min(v); max_v = max_v.max(v);\n            }\n            let area = (max_u - min_u) * (max_v - min_v);\n            if area < best_area {\n                best_area = area;\n                best = (min_u, max_u, min_v, max_v, ey.atan2(ex));\n            }\n        }\n        let (min_u, max_u, min_v, max_v, angle) = best;\n        let (ca, sa) = (angle.cos(), angle.sin());\n        let rot_back = |u: f64, v: f64| -> [f64; 2] { [u * ca - v * sa, u * sa + v * ca] };\n        let to3d = |u2: f64, v2: f64| -> Point {\n            Point::new(orig[0] + u2 * xa[0] + v2 * ya[0],\n                       orig[1] + u2 * xa[1] + v2 * ya[1],\n                       orig[2] + u2 * xa[2] + v2 * ya[2])\n        };\n        let c = [rot_back(min_u, min_v), rot_back(min_u, max_v),\n                 rot_back(max_u, max_v), rot_back(max_u, min_v)];\n        let mut pts3d: Vec<Point> = c.iter().map(|h| to3d(h[0], h[1])).collect();\n        pts3d.push(pts3d[0].clone());\n        Some(Polyline::new(pts3d))\n    }",
@@ -30796,6 +29722,11 @@ window.API_INDEX = {
           "sig": "grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]",
           "code": "def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalize()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.",
           "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Point> grid_of_points_in_polygon(const Polyline& polygon,\n                                                       double offset_dist, double div_dist,\n                                                       size_t max_pts)",
+          "code": "std::vector<Point> Polyline::grid_of_points_in_polygon(const Polyline& polygon,\n                                                       double offset_dist, double div_dist,\n                                                       size_t max_pts) {\n    (void)offset_dist;\n    if (div_dist < 1e-12) return {}",
+          "file": "polyline.cpp"
         },
         "rust": {
           "sig": "grid_of_points_in_polygon(polygon: &Polyline, _offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point>",
@@ -33360,7 +32291,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Session::decode(data)?;\n\n        let mut session = Session::new(&proto.name);\n        session.guid = proto.guid;\n\n        // Rebuild objects\n        if let Some(objects_proto) = &proto.objects {\n            session.objects.guid = objects_proto.guid.clone();\n            session.objects.name = objects_proto.name.clone();\n            for p in &objects_proto.points {\n                let pt = Point::pb_loads(&p.encode_to_vec())?;\n                session.objects.points.push(pt);\n            }\n            for l in &objects_proto.lines {\n                let ln = Line::pb_loads(&l.encode_to_vec())?;\n                session.objects.lines.push(ln);\n            }\n            for pl in &objects_proto.planes {\n                let pln = Plane::pb_loads(&pl.encode_to_vec())?;\n                session.objects.planes.push(pln);\n            }\n            for b in &objects_proto.bboxes {\n                let bb = BoundingBox::pb_loads(&b.encode_to_vec())?;\n                session.objects.bboxes.push(bb);\n            }\n            for pl in &objects_proto.polylines {\n                let pll = Polyline::pb_loads(&pl.encode_to_vec())?;\n                session.objects.polylines.push(pll);\n            }\n            for pc in &objects_proto.pointclouds {\n                let pcl = PointCloud::pb_loads(&pc.encode_to_vec());\n                session.objects.pointclouds.push(pcl);\n            }\n            for m in &objects_proto.meshes {\n                let msh = Mesh::pb_loads(&m.encode_to_vec())?;\n                session.objects.meshes.push(msh);\n            }\n            for b in &objects_proto.breps {\n                let brp = BRep::pb_loads(&b.encode_to_vec())?;\n                session.objects.breps.push(brp);\n            }\n        }\n\n        // Rebuild tree\n        if let Some(tree_proto) = &proto.tree {\n            session.tree = Tree::new(&tree_proto.name);\n            session.tree.guid = tree_proto.guid.clone();\n            if let Some(root_proto) = &tree_proto.root {\n                fn proto_to_treenode(proto: &crate::proto::TreeNode) -> Rc<RefCell<TreeNode>> {\n                    let node = TreeNode::new(&proto.name);\n                    for child_proto in &proto.children {\n                        let child = proto_to_treenode(child_proto);\n                        node.borrow_mut().add(&child);\n                    }\n                    node\n                }\n                let root = proto_to_treenode(root_proto);\n                session.tree.add(&root, None);\n            }\n        }\n\n        // Rebuild graph\n        if let Some(graph_proto) = &proto.graph {\n            session.graph = Graph::new(&graph_proto.name);\n            session.graph.guid = graph_proto.guid.clone();\n            for (name, v) in &graph_proto.vertices {\n                session.graph.add_node(name, &v.attribute);\n            }\n            for e in &graph_proto.edges {\n                session.graph.add_edge(&e.v0, &e.v1, &e.attribute);\n            }\n        }\n\n        // Rebuild lookup\n        for bbox in &session.objects.bboxes {\n            session.lookup.insert(bbox.guid.clone(), Geometry::BoundingBox(bbox.clone()));\n        }\n        for line in &session.objects.lines {\n            session.lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for mesh in &session.objects.meshes {\n            session.lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &session.objects.planes {\n            session.lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for point in &session.objects.points {\n            session.lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &session.objects.pointclouds {\n            session.lookup.insert(pointcloud.guid.clone(), Geometry::PointCloud(pointcloud.clone()));\n        }\n        for polyline in &session.objects.polylines {\n            session.lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &session.objects.breps {\n            session.lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        Ok(session)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Session::decode(data)?;\n\n        let mut session = Session::new(&proto.name);\n        session.guid = proto.guid;\n\n        // Rebuild objects\n        if let Some(objects_proto) = &proto.objects {\n            session.objects.guid = objects_proto.guid.clone();\n            session.objects.name = objects_proto.name.clone();\n            for p in &objects_proto.points {\n                let pt = Point::pb_loads(&p.encode_to_vec())?;\n                session.objects.points.push(pt);\n            }\n            for l in &objects_proto.lines {\n                let ln = Line::pb_loads(&l.encode_to_vec())?;\n                session.objects.lines.push(ln);\n            }\n            for pl in &objects_proto.planes {\n                let pln = Plane::pb_loads(&pl.encode_to_vec())?;\n                session.objects.planes.push(pln);\n            }\n            for b in &objects_proto.bboxes {\n                let bb = Obb::pb_loads(&b.encode_to_vec())?;\n                session.objects.bboxes.push(bb);\n            }\n            for pl in &objects_proto.polylines {\n                let pll = Polyline::pb_loads(&pl.encode_to_vec())?;\n                session.objects.polylines.push(pll);\n            }\n            for pc in &objects_proto.pointclouds {\n                let pcl = PointCloud::pb_loads(&pc.encode_to_vec());\n                session.objects.pointclouds.push(pcl);\n            }\n            for m in &objects_proto.meshes {\n                let msh = Mesh::pb_loads(&m.encode_to_vec())?;\n                session.objects.meshes.push(msh);\n            }\n            for b in &objects_proto.breps {\n                let brp = BRep::pb_loads(&b.encode_to_vec())?;\n                session.objects.breps.push(brp);\n            }\n        }\n\n        // Rebuild tree\n        if let Some(tree_proto) = &proto.tree {\n            session.tree = Tree::new(&tree_proto.name);\n            session.tree.guid = tree_proto.guid.clone();\n            if let Some(root_proto) = &tree_proto.root {\n                fn proto_to_treenode(proto: &crate::proto::TreeNode) -> Rc<RefCell<TreeNode>> {\n                    let node = TreeNode::new(&proto.name);\n                    for child_proto in &proto.children {\n                        let child = proto_to_treenode(child_proto);\n                        node.borrow_mut().add(&child);\n                    }\n                    node\n                }\n                let root = proto_to_treenode(root_proto);\n                session.tree.add(&root, None);\n            }\n        }\n\n        // Rebuild graph\n        if let Some(graph_proto) = &proto.graph {\n            session.graph = Graph::new(&graph_proto.name);\n            session.graph.guid = graph_proto.guid.clone();\n            for (name, v) in &graph_proto.vertices {\n                session.graph.add_node(name, &v.attribute);\n            }\n            for e in &graph_proto.edges {\n                session.graph.add_edge(&e.v0, &e.v1, &e.attribute);\n            }\n        }\n\n        // Rebuild lookup\n        for bbox in &session.objects.bboxes {\n            session.lookup.insert(bbox.guid.clone(), Geometry::Obb(bbox.clone()));\n        }\n        for line in &session.objects.lines {\n            session.lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for mesh in &session.objects.meshes {\n            session.lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &session.objects.planes {\n            session.lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for point in &session.objects.points {\n            session.lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &session.objects.pointclouds {\n            session.lookup.insert(pointcloud.guid.clone(), Geometry::PointCloud(pointcloud.clone()));\n        }\n        for polyline in &session.objects.polylines {\n            session.lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &session.objects.breps {\n            session.lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        Ok(session)\n    }",
           "file": "session.rs"
         }
       },
@@ -33582,13 +32513,13 @@ window.API_INDEX = {
           "file": "session.py"
         },
         "cpp": {
-          "sig": "std::shared_ptr<TreeNode> add_bbox(std::shared_ptr<BoundingBox> bbox)",
-          "code": "std::shared_ptr<TreeNode> Session::add_bbox(std::shared_ptr<BoundingBox> bbox) {\n  objects.bboxes->push_back(bbox);\n  lookup[bbox->guid] = bbox;\n  graph.add_node(bbox->guid, \"bbox_\" + bbox->name);\n  cache_geometry_aabb(bbox->guid, bbox);  // Incremental AABB caching\n  auto tree_node = std::make_shared<TreeNode>(bbox->guid);\n  return tree_node;\n}",
+          "sig": "std::shared_ptr<TreeNode> add_bbox(std::shared_ptr<Obb> bbox)",
+          "code": "std::shared_ptr<TreeNode> Session::add_bbox(std::shared_ptr<Obb> bbox) {\n  objects.bboxes->push_back(bbox);\n  lookup[bbox->guid] = bbox;\n  graph.add_node(bbox->guid, \"bbox_\" + bbox->name);\n  cache_geometry_aabb(bbox->guid, bbox);  // Incremental AABB caching\n  auto tree_node = std::make_shared<TreeNode>(bbox->guid);\n  return tree_node;\n}",
           "file": "session.cpp"
         },
         "rust": {
-          "sig": "add_bbox(bbox: BoundingBox) -> Rc<RefCell<TreeNode>>",
-          "code": "pub fn add_bbox(&mut self, bbox: BoundingBox) -> Rc<RefCell<TreeNode>> {\n        let guid = bbox.guid.clone();\n        let name = bbox.name.clone();\n        let geometry = Geometry::BoundingBox(bbox.clone());\n\n        self.objects.bboxes.push(bbox);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::BoundingBox(b)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::BoundingBox(b.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"bbox_{name}\"));\n\n        TreeNode::new(&guid)\n    }",
+          "sig": "add_bbox(bbox: Obb) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn add_bbox(&mut self, bbox: Obb) -> Rc<RefCell<TreeNode>> {\n        let guid = bbox.guid.clone();\n        let name = bbox.name.clone();\n        let geometry = Geometry::Obb(bbox.clone());\n\n        self.objects.bboxes.push(bbox);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::Obb(b)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::Obb(b.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"bbox_{name}\"));\n\n        TreeNode::new(&guid)\n    }",
           "file": "session.rs"
         }
       },
@@ -33927,7 +32858,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_edge(guid1: str, guid2: str, attribute: str = \"\") -> None",
-          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> BoundingBox:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        BoundingBox\n            Inflated bounding box for collision detection.\n        \"\"\"",
+          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> Obb:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        Obb\n            Inflated bounding box for collision detection.\n        \"\"\"",
           "file": "session.py"
         },
         "cpp": {
@@ -33967,7 +32898,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_object(guid: str) -> Optional[Point]",
-          "code": "def get_object(self, guid: str) -> Optional[Point]:\n\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> BoundingBox:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        BoundingBox\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return BoundingBox.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return BoundingBox.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return BoundingBox.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return BoundingBox.from_points(geometry.points, inflate)",
+          "code": "def get_object(self, guid: str) -> Optional[Point]:\n\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> Obb:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        Obb\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return Obb.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return Obb.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return Obb.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return Obb.from_points(geometry.points, inflate)",
           "file": "session.py"
         },
         "cpp": {
@@ -34001,7 +32932,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "remove_object(guid: str) -> bool",
-          "code": "def remove_object(self, guid: str) -> bool:\n\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> BoundingBox:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        BoundingBox\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return BoundingBox.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return BoundingBox.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return BoundingBox.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return BoundingBox.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return BoundingBox.from_point(Point(0, 0, 0), inflate)\n            return BoundingBox.from_points(points, inflate)\n        elif isinstance(geometry, BoundingBox):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = BoundingBox(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,",
+          "code": "def remove_object(self, guid: str) -> bool:\n\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - tree should handle GUID lookup\n        self.tree.remove_node_by_guid(guid)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # BVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> Obb:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        Obb\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return Obb.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return Obb.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return Obb.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return Obb.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return Obb.from_point(Point(0, 0, 0), inflate)\n            return Obb.from_points(points, inflate)\n        elif isinstance(geometry, Obb):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = Obb(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,",
           "file": "session.py"
         },
         "cpp": {
@@ -34034,8 +32965,8 @@ window.API_INDEX = {
       "name": "Session._compute_bounding_box",
       "implementations": {
         "python": {
-          "sig": "_compute_bounding_box(geometry) -> BoundingBox",
-          "code": "def _compute_bounding_box(geometry) -> BoundingBox:\n\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        BoundingBox\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return BoundingBox.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return BoundingBox.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return BoundingBox.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return BoundingBox.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return BoundingBox.from_point(Point(0, 0, 0), inflate)\n            return BoundingBox.from_points(points, inflate)\n        elif isinstance(geometry, BoundingBox):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = BoundingBox(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,\n                half_size=Vector(\n                    geometry.half_size[0] + inflate,\n                    geometry.half_size[1] + inflate,\n                    geometry.half_size[2] + inflate,\n                ),\n            )\n            return inflated\n        elif isinstance(geometry, Plane):\n            # Create bounded box around plane origin\n            return BoundingBox.from_point(geometry.origin, inflate * 10.0)\n        else:\n            # Fallback\n            return BoundingBox.from_point(Point(0, 0, 0), inflate)\n\n    def get_collisions(self) -> List[Tuple[str, str]]:\n        \"\"\"Get all collision pairs using BVH and add them as graph edges.\n\n        Automatically:\n        - Computes bounding boxes for all objects with tolerance inflation\n        - Builds/rebuilds the BVH with auto-computed world size\n        - Detects all collision pairs\n        - Adds collision edges to the graph\n\n        Returns\n        -------\n        list of tuple\n            List of (guid1, guid2) tuples representing colliding geometry pairs.\n        \"\"\"\n        # Collect all objects with their bounding boxes and GUIDs\n        boxes_with_guids = []\n\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))",
+          "sig": "_compute_bounding_box(geometry) -> Obb",
+          "code": "def _compute_bounding_box(geometry) -> Obb:\n\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        Obb\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return Obb.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return Obb.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return Obb.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return Obb.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return Obb.from_point(Point(0, 0, 0), inflate)\n            return Obb.from_points(points, inflate)\n        elif isinstance(geometry, Obb):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = Obb(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,\n                half_size=Vector(\n                    geometry.half_size[0] + inflate,\n                    geometry.half_size[1] + inflate,\n                    geometry.half_size[2] + inflate,\n                ),\n            )\n            return inflated\n        elif isinstance(geometry, Plane):\n            # Create bounded box around plane origin\n            return Obb.from_point(geometry.origin, inflate * 10.0)\n        else:\n            # Fallback\n            return Obb.from_point(Point(0, 0, 0), inflate)\n\n    def get_collisions(self) -> List[Tuple[str, str]]:\n        \"\"\"Get all collision pairs using BVH and add them as graph edges.\n\n        Automatically:\n        - Computes bounding boxes for all objects with tolerance inflation\n        - Builds/rebuilds the BVH with auto-computed world size\n        - Detects all collision pairs\n        - Adds collision edges to the graph\n\n        Returns\n        -------\n        list of tuple\n            List of (guid1, guid2) tuples representing colliding geometry pairs.\n        \"\"\"\n        # Collect all objects with their bounding boxes and GUIDs\n        boxes_with_guids = []\n\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))",
           "file": "session.py"
         }
       },
@@ -34056,17 +32987,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_collisions() -> List[Tuple[str, str]]",
-          "code": "def get_collisions(self) -> List[Tuple[str, str]]:\n\n        \"\"\"Get all collision pairs using BVH and add them as graph edges.\n\n        Automatically:\n        - Computes bounding boxes for all objects with tolerance inflation\n        - Builds/rebuilds the BVH with auto-computed world size\n        - Detects all collision pairs\n        - Adds collision edges to the graph\n\n        Returns\n        -------\n        list of tuple\n            List of (guid1, guid2) tuples representing colliding geometry pairs.\n        \"\"\"\n        # Collect all objects with their bounding boxes and GUIDs\n        boxes_with_guids = []\n\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n\n        if not boxes_with_guids:\n            return []\n\n        # Build BVH with GUIDs (auto-computes world size)\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        # Extract just the boxes for collision checking\n        boxes = [bbox for bbox, _ in boxes_with_guids]\n\n        # Get collision pairs as GUIDs directly\n        collision_pairs = self.bvh.check_all_collisions_guids(boxes)\n\n        # Add collision edges to graph\n        for guid1, guid2 in collision_pairs:\n            self.graph.add_edge(guid1, guid2, \"bvh_collision\")\n\n        return collision_pairs\n\n    def ray_cast(\n        self, origin: Point, direction, tolerance: float = 1e-3\n    ) -> List[RayHit]:\n        from .line import Line\n        from .vector import Vector\n        from .polyline import Polyline\n        from .plane import Plane\n        from .boundingbox import BoundingBox\n        from .mesh import Mesh\n        from .intersection import line_line, line_plane, ray_box, ray_mesh_bvh\n\n        dir_vec = Vector(direction[0], direction[1], direction[2])\n        if dir_vec.magnitude() <= 0.0:\n            return []\n        dir_unit = dir_vec.normalize()\n\n        FAR = 1e6\n        ray_line = Line(\n            origin[0],\n            origin[1],\n            origin[2],\n            origin[0] + dir_unit[0] * FAR,\n            origin[1] + dir_unit[1] * FAR,\n            origin[2] + dir_unit[2] * FAR,\n        )\n\n        boxes_with_guids: List[Tuple[BoundingBox, str]] = []\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n        if not boxes_with_guids:\n            return []\n\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        candidates: List[int] = []\n        self.bvh.ray_cast(origin, dir_unit, candidates, True)\n\n        hits_all: List[RayHit] = []\n\n        def point_hit(p: Point) -> Tuple[bool, Point, float]:",
+          "code": "def get_collisions(self) -> List[Tuple[str, str]]:\n\n        \"\"\"Get all collision pairs using BVH and add them as graph edges.\n\n        Automatically:\n        - Computes bounding boxes for all objects with tolerance inflation\n        - Builds/rebuilds the BVH with auto-computed world size\n        - Detects all collision pairs\n        - Adds collision edges to the graph\n\n        Returns\n        -------\n        list of tuple\n            List of (guid1, guid2) tuples representing colliding geometry pairs.\n        \"\"\"\n        # Collect all objects with their bounding boxes and GUIDs\n        boxes_with_guids = []\n\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n\n        if not boxes_with_guids:\n            return []\n\n        # Build BVH with GUIDs (auto-computes world size)\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        # Extract just the boxes for collision checking\n        boxes = [bbox for bbox, _ in boxes_with_guids]\n\n        # Get collision pairs as GUIDs directly\n        collision_pairs = self.bvh.check_all_collisions_guids(boxes)\n\n        # Add collision edges to graph\n        for guid1, guid2 in collision_pairs:\n            self.graph.add_edge(guid1, guid2, \"bvh_collision\")\n\n        return collision_pairs\n\n    def ray_cast(\n        self, origin: Point, direction, tolerance: float = 1e-3\n    ) -> List[RayHit]:\n        from .line import Line\n        from .vector import Vector\n        from .polyline import Polyline\n        from .plane import Plane\n        from .obb import Obb\n        from .mesh import Mesh\n        from .intersection import line_line, line_plane, ray_box, ray_mesh_bvh\n\n        dir_vec = Vector(direction[0], direction[1], direction[2])\n        if dir_vec.magnitude() <= 0.0:\n            return []\n        dir_unit = dir_vec.normalize()\n\n        FAR = 1e6\n        ray_line = Line(\n            origin[0],\n            origin[1],\n            origin[2],\n            origin[0] + dir_unit[0] * FAR,\n            origin[1] + dir_unit[1] * FAR,\n            origin[2] + dir_unit[2] * FAR,\n        )\n\n        boxes_with_guids: List[Tuple[Obb, str]] = []\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n        if not boxes_with_guids:\n            return []\n\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        candidates: List[int] = []\n        self.bvh.ray_cast(origin, dir_unit, candidates, True)\n\n        hits_all: List[RayHit] = []\n\n        def point_hit(p: Point) -> Tuple[bool, Point, float]:",
           "file": "session.py"
         },
         "cpp": {
           "sig": "std::vector<std::pair<std::string, std::string>> get_collisions()",
-          "code": "std::vector<std::pair<std::string, std::string>> Session::get_collisions() {\n  // Collect all objects with their bounding boxes and GUIDs\n  std::vector<BoundingBox> boxes;\n  std::vector<std::string> guids;\n  boxes.reserve(lookup.size());\n  guids.reserve(lookup.size());\n  \n  for (const auto& [g, geometry] : lookup) {\n    BoundingBox bbox = compute_bounding_box(geometry);\n    boxes.push_back(bbox);\n    guids.push_back(g);\n  }",
+          "code": "std::vector<std::pair<std::string, std::string>> Session::get_collisions() {\n  // Collect all objects with their bounding boxes and GUIDs\n  std::vector<Obb> boxes;\n  std::vector<std::string> guids;\n  boxes.reserve(lookup.size());\n  guids.reserve(lookup.size());\n  \n  for (const auto& [g, geometry] : lookup) {\n    Obb bbox = compute_bounding_box(geometry);\n    boxes.push_back(bbox);\n    guids.push_back(g);\n  }",
           "file": "session.cpp"
         },
         "rust": {
           "sig": "get_collisions() -> Vec<(String, String)>",
-          "code": "pub fn get_collisions(&mut self) -> Vec<(String, String)> {\n        // Collect all objects with their bounding boxes and GUIDs\n        let mut boxes_with_guids: Vec<(BoundingBox, String)> = Vec::new();\n\n        for (guid, geometry) in &self.lookup {\n            let bbox = Self::compute_bounding_box(geometry);\n            boxes_with_guids.push((bbox, guid.clone()));\n        }\n\n        if boxes_with_guids.is_empty() {\n            return Vec::new();\n        }\n\n        // Build BVH with GUIDs (auto-computes world size)\n        self.bvh.build_with_guids(&boxes_with_guids);\n\n        // Extract just the boxes for collision checking\n        let boxes: Vec<BoundingBox> = boxes_with_guids\n            .iter()\n            .map(|(bbox, _)| bbox.clone())\n            .collect();\n\n        // Get collision pairs as GUIDs directly\n        let collision_pairs = self.bvh.check_all_collisions_guids(&boxes);\n\n        // Add collision edges to graph\n        for (guid1, guid2) in &collision_pairs {\n            self.graph.add_edge(guid1, guid2, \"bvh_collision\");\n        }\n\n        collision_pairs\n    }",
+          "code": "pub fn get_collisions(&mut self) -> Vec<(String, String)> {\n        // Collect all objects with their bounding boxes and GUIDs\n        let mut boxes_with_guids: Vec<(Obb, String)> = Vec::new();\n\n        for (guid, geometry) in &self.lookup {\n            let bbox = Self::compute_bounding_box(geometry);\n            boxes_with_guids.push((bbox, guid.clone()));\n        }\n\n        if boxes_with_guids.is_empty() {\n            return Vec::new();\n        }\n\n        // Build BVH with GUIDs (auto-computes world size)\n        self.bvh.build_with_guids(&boxes_with_guids);\n\n        // Extract just the boxes for collision checking\n        let boxes: Vec<Obb> = boxes_with_guids\n            .iter()\n            .map(|(bbox, _)| bbox.clone())\n            .collect();\n\n        // Get collision pairs as GUIDs directly\n        let collision_pairs = self.bvh.check_all_collisions_guids(&boxes);\n\n        // Add collision edges to graph\n        for (guid1, guid2) in &collision_pairs {\n            self.graph.add_edge(guid1, guid2, \"bvh_collision\");\n        }\n\n        collision_pairs\n    }",
           "file": "session.rs"
         }
       },
@@ -34087,7 +33018,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "ray_cast(\n        origin: Point, direction, tolerance: float = 1e-3\n    ) -> List[RayHit]",
-          "code": "def ray_cast(\n        self, origin: Point, direction, tolerance: float = 1e-3\n    ) -> List[RayHit]:\n\n        from .line import Line\n        from .vector import Vector\n        from .polyline import Polyline\n        from .plane import Plane\n        from .boundingbox import BoundingBox\n        from .mesh import Mesh\n        from .intersection import line_line, line_plane, ray_box, ray_mesh_bvh\n\n        dir_vec = Vector(direction[0], direction[1], direction[2])\n        if dir_vec.magnitude() <= 0.0:\n            return []\n        dir_unit = dir_vec.normalize()\n\n        FAR = 1e6\n        ray_line = Line(\n            origin[0],\n            origin[1],\n            origin[2],\n            origin[0] + dir_unit[0] * FAR,\n            origin[1] + dir_unit[1] * FAR,\n            origin[2] + dir_unit[2] * FAR,\n        )\n\n        boxes_with_guids: List[Tuple[BoundingBox, str]] = []\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n        if not boxes_with_guids:\n            return []\n\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        candidates: List[int] = []\n        self.bvh.ray_cast(origin, dir_unit, candidates, True)\n\n        hits_all: List[RayHit] = []\n\n        def point_hit(p: Point) -> Tuple[bool, Point, float]:\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, BoundingBox):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp",
+          "code": "def ray_cast(\n        self, origin: Point, direction, tolerance: float = 1e-3\n    ) -> List[RayHit]:\n\n        from .line import Line\n        from .vector import Vector\n        from .polyline import Polyline\n        from .plane import Plane\n        from .obb import Obb\n        from .mesh import Mesh\n        from .intersection import line_line, line_plane, ray_box, ray_mesh_bvh\n\n        dir_vec = Vector(direction[0], direction[1], direction[2])\n        if dir_vec.magnitude() <= 0.0:\n            return []\n        dir_unit = dir_vec.normalize()\n\n        FAR = 1e6\n        ray_line = Line(\n            origin[0],\n            origin[1],\n            origin[2],\n            origin[0] + dir_unit[0] * FAR,\n            origin[1] + dir_unit[1] * FAR,\n            origin[2] + dir_unit[2] * FAR,\n        )\n\n        boxes_with_guids: List[Tuple[Obb, str]] = []\n        for guid, geometry in self.lookup.items():\n            bbox = self._compute_bounding_box(geometry)\n            boxes_with_guids.append((bbox, guid))\n        if not boxes_with_guids:\n            return []\n\n        self.bvh.build_with_guids(boxes_with_guids)\n\n        candidates: List[int] = []\n        self.bvh.ray_cast(origin, dir_unit, candidates, True)\n\n        hits_all: List[RayHit] = []\n\n        def point_hit(p: Point) -> Tuple[bool, Point, float]:\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, Obb):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp",
           "file": "session.py"
         },
         "cpp": {
@@ -34097,7 +33028,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "ray_cast(\n        ,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit>",
-          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f64;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached BVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::BoundingBox(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, Tolerance::APPROXIMATION)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                Tolerance::APPROXIMATION,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(_) => {}\n                Geometry::BRep(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    hits_all.push(RayHit {\n                        guid: guid.clone(),\n                        point: hp,\n                        distance: dist,\n                    });\n                }\n            }\n        }\n\n        if hits_all.is_empty() {\n            return Vec::new();\n        }\n\n        let mut min_d = f64::INFINITY;\n        for h in &hits_all {\n            if h.distance < min_d {\n                min_d = h.distance;\n            }\n        }\n        let eps = tolerance;\n        let mut hits: Vec<RayHit> = hits_all\n            .into_iter()\n            .filter(|h| (h.distance - min_d).abs() <= eps)\n            .collect();\n        hits.sort_by(|a, b| {\n            a.distance\n                .partial_cmp(&b.distance)\n                .unwrap_or(std::cmp::Ordering::Equal)\n        });\n        hits\n    }",
+          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f64;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached BVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::Obb(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, Tolerance::APPROXIMATION)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                Tolerance::APPROXIMATION,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(_) => {}\n                Geometry::BRep(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    hits_all.push(RayHit {\n                        guid: guid.clone(),\n                        point: hp,\n                        distance: dist,\n                    });\n                }\n            }\n        }\n\n        if hits_all.is_empty() {\n            return Vec::new();\n        }\n\n        let mut min_d = f64::INFINITY;\n        for h in &hits_all {\n            if h.distance < min_d {\n                min_d = h.distance;\n            }\n        }\n        let eps = tolerance;\n        let mut hits: Vec<RayHit> = hits_all\n            .into_iter()\n            .filter(|h| (h.distance - min_d).abs() <= eps)\n            .collect();\n        hits.sort_by(|a, b| {\n            a.distance\n                .partial_cmp(&b.distance)\n                .unwrap_or(std::cmp::Ordering::Equal)\n        });\n        hits\n    }",
           "file": "session.rs"
         }
       },
@@ -34118,7 +33049,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_hit(p: Point) -> Tuple[bool, Point, float]",
-          "code": "def point_hit(p: Point) -> Tuple[bool, Point, float]:\n\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, BoundingBox):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp\n            elif isinstance(geom, Polyline):\n                best_t = float(\"inf\")\n                best_p: Optional[Point] = None\n                for i in range(len(geom.points) - 1):\n                    seg = Line.from_points(geom.points[i], geom.points[i + 1])\n                    hp = line_line(ray_line, seg, Tolerance.APPROXIMATION)\n                    if hp is None:\n                        continue\n                    t = (\n                        (hp[0] - origin[0]) * dir_unit[0]\n                        + (hp[1] - origin[1]) * dir_unit[1]\n                        + (hp[2] - origin[2]) * dir_unit[2]\n                    )\n                    if t >= 0.0 and t < best_t:\n                        best_t = t\n                        best_p = hp\n                if best_p is not None:\n                    hit_point = best_p\n            elif isinstance(geom, Mesh):\n                pts = ray_mesh_bvh(ray_line, geom, 1e-6, False)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Point):\n                ok, hp, t = point_hit(geom)\n                if ok:\n                    hit_point = hp\n\n            if hit_point is None:\n                continue\n\n            d = (\n                (hit_point[0] - origin[0]) * dir_unit[0]\n                + (hit_point[1] - origin[1]) * dir_unit[1]\n                + (hit_point[2] - origin[2]) * dir_unit[2]\n            )\n            if d >= 0.0:\n                hits_all.append(RayHit(guid, hit_point, d))",
+          "code": "def point_hit(p: Point) -> Tuple[bool, Point, float]:\n\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, Obb):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp\n            elif isinstance(geom, Polyline):\n                best_t = float(\"inf\")\n                best_p: Optional[Point] = None\n                for i in range(len(geom.points) - 1):\n                    seg = Line.from_points(geom.points[i], geom.points[i + 1])\n                    hp = line_line(ray_line, seg, Tolerance.APPROXIMATION)\n                    if hp is None:\n                        continue\n                    t = (\n                        (hp[0] - origin[0]) * dir_unit[0]\n                        + (hp[1] - origin[1]) * dir_unit[1]\n                        + (hp[2] - origin[2]) * dir_unit[2]\n                    )\n                    if t >= 0.0 and t < best_t:\n                        best_t = t\n                        best_p = hp\n                if best_p is not None:\n                    hit_point = best_p\n            elif isinstance(geom, Mesh):\n                pts = ray_mesh_bvh(ray_line, geom, 1e-6, False)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Point):\n                ok, hp, t = point_hit(geom)\n                if ok:\n                    hit_point = hp\n\n            if hit_point is None:\n                continue\n\n            d = (\n                (hit_point[0] - origin[0]) * dir_unit[0]\n                + (hit_point[1] - origin[1]) * dir_unit[1]\n                + (hit_point[2] - origin[2]) * dir_unit[2]\n            )\n            if d >= 0.0:\n                hits_all.append(RayHit(guid, hit_point, d))",
           "file": "session.py"
         }
       },
@@ -34263,7 +33194,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "get_geometry() -> Objects",
-          "code": "pub fn get_geometry(&self) -> Objects {\n        use crate::Xform;\n\n        // Deep copy all objects\n        let mut transformed_objects = self.objects.clone();\n\n        // Rebuild lookup from copied objects\n        let mut transformed_lookup: HashMap<String, Geometry> = HashMap::new();\n\n        for point in &transformed_objects.points {\n            transformed_lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for line in &transformed_objects.lines {\n            transformed_lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for plane in &transformed_objects.planes {\n            transformed_lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for bbox in &transformed_objects.bboxes {\n            transformed_lookup.insert(bbox.guid.clone(), Geometry::BoundingBox(bbox.clone()));\n        }\n        for polyline in &transformed_objects.polylines {\n            transformed_lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for pointcloud in &transformed_objects.pointclouds {\n            transformed_lookup.insert(\n                pointcloud.guid.clone(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for mesh in &transformed_objects.meshes {\n            transformed_lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for brep in &transformed_objects.breps {\n            transformed_lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        fn transform_node(\n            node: &Rc<RefCell<TreeNode>>,\n            parent_xform: &Xform,\n            transformed_lookup: &HashMap<String, Geometry>,\n            transformed_objects: &mut Objects,\n        ) {\n            let node_name = node.borrow().name.clone();\n            let geometry = transformed_lookup.get(&node_name);\n\n            let current_xform = if let Some(geom) = geometry {\n                // Get mutable reference and transform in-place\n                let combined_xform = parent_xform\n                    * match geom {\n                        Geometry::Point(g) => &g.xform,\n                        Geometry::Line(g) => &g.xform,\n                        Geometry::Plane(g) => &g.xform,\n                        Geometry::BoundingBox(g) => &g.xform,\n                        Geometry::Polyline(g) => &g.xform,\n                        Geometry::PointCloud(g) => &g.xform,\n                        Geometry::Mesh(g) => &g.xform,\n                        Geometry::BRep(g) => &g.xform,\n                    };\n\n                // Find and update the geometry in the collections\n                match geom {\n                    Geometry::Point(_) => {\n                        if let Some(g) = transformed_objects\n                            .points\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Line(_) => {\n                        if let Some(g) = transformed_objects\n                            .lines\n                            .iter_mut()\n                            .find(|l| l.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Plane(_) => {\n                        if let Some(g) = transformed_objects\n                            .planes\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::BoundingBox(_) => {\n                        if let Some(g) = transformed_objects\n                            .bboxes\n                            .iter_mut()\n                            .find(|b| b.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Polyline(_) => {\n                        if let Some(g) = transformed_objects\n                            .polylines\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::PointCloud(_) => {\n                        if let Some(g) = transformed_objects\n                            .pointclouds\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Mesh(_) => {\n                        if let Some(g) = transformed_objects\n                            .meshes\n                            .iter_mut()\n                            .find(|m| m.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::BRep(_) => {\n                        if let Some(g) = transformed_objects\n                            .breps\n                            .iter_mut()\n                            .find(|b| b.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                }\n\n                combined_xform\n            } else {\n                parent_xform.clone()\n            };\n\n            for child in node.borrow().children() {\n                transform_node(\n                    &child,\n                    &current_xform,\n                    transformed_lookup,\n                    transformed_objects,\n                );\n            }\n        }\n\n        if let Some(root) = self.tree.root() {\n            transform_node(\n                &root,\n                &Xform::identity(),\n                &transformed_lookup,\n                &mut transformed_objects,\n            );\n        }\n\n        // Apply accumulated transformations to actual geometry coordinates\n        for point in &mut transformed_objects.points {\n            point.transform();\n        }\n        for line in &mut transformed_objects.lines {\n            line.transform();\n        }\n        for plane in &mut transformed_objects.planes {\n            plane.transform();\n        }\n        for bbox in &mut transformed_objects.bboxes {\n            bbox.transform();\n        }\n        for polyline in &mut transformed_objects.polylines {\n            polyline.transform();\n        }\n        for pointcloud in &mut transformed_objects.pointclouds {\n            pointcloud.transform();\n        }\n        for mesh in &mut transformed_objects.meshes {\n            mesh.transform(None);\n        }\n        for brep in &mut transformed_objects.breps {\n            brep.transform();\n        }\n\n        transformed_objects\n    }",
+          "code": "pub fn get_geometry(&self) -> Objects {\n        use crate::Xform;\n\n        // Deep copy all objects\n        let mut transformed_objects = self.objects.clone();\n\n        // Rebuild lookup from copied objects\n        let mut transformed_lookup: HashMap<String, Geometry> = HashMap::new();\n\n        for point in &transformed_objects.points {\n            transformed_lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for line in &transformed_objects.lines {\n            transformed_lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for plane in &transformed_objects.planes {\n            transformed_lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for bbox in &transformed_objects.bboxes {\n            transformed_lookup.insert(bbox.guid.clone(), Geometry::Obb(bbox.clone()));\n        }\n        for polyline in &transformed_objects.polylines {\n            transformed_lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for pointcloud in &transformed_objects.pointclouds {\n            transformed_lookup.insert(\n                pointcloud.guid.clone(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for mesh in &transformed_objects.meshes {\n            transformed_lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for brep in &transformed_objects.breps {\n            transformed_lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        fn transform_node(\n            node: &Rc<RefCell<TreeNode>>,\n            parent_xform: &Xform,\n            transformed_lookup: &HashMap<String, Geometry>,\n            transformed_objects: &mut Objects,\n        ) {\n            let node_name = node.borrow().name.clone();\n            let geometry = transformed_lookup.get(&node_name);\n\n            let current_xform = if let Some(geom) = geometry {\n                // Get mutable reference and transform in-place\n                let combined_xform = parent_xform\n                    * match geom {\n                        Geometry::Point(g) => &g.xform,\n                        Geometry::Line(g) => &g.xform,\n                        Geometry::Plane(g) => &g.xform,\n                        Geometry::Obb(g) => &g.xform,\n                        Geometry::Polyline(g) => &g.xform,\n                        Geometry::PointCloud(g) => &g.xform,\n                        Geometry::Mesh(g) => &g.xform,\n                        Geometry::BRep(g) => &g.xform,\n                    };\n\n                // Find and update the geometry in the collections\n                match geom {\n                    Geometry::Point(_) => {\n                        if let Some(g) = transformed_objects\n                            .points\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Line(_) => {\n                        if let Some(g) = transformed_objects\n                            .lines\n                            .iter_mut()\n                            .find(|l| l.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Plane(_) => {\n                        if let Some(g) = transformed_objects\n                            .planes\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Obb(_) => {\n                        if let Some(g) = transformed_objects\n                            .bboxes\n                            .iter_mut()\n                            .find(|b| b.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Polyline(_) => {\n                        if let Some(g) = transformed_objects\n                            .polylines\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::PointCloud(_) => {\n                        if let Some(g) = transformed_objects\n                            .pointclouds\n                            .iter_mut()\n                            .find(|p| p.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Mesh(_) => {\n                        if let Some(g) = transformed_objects\n                            .meshes\n                            .iter_mut()\n                            .find(|m| m.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::BRep(_) => {\n                        if let Some(g) = transformed_objects\n                            .breps\n                            .iter_mut()\n                            .find(|b| b.guid == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                }\n\n                combined_xform\n            } else {\n                parent_xform.clone()\n            };\n\n            for child in node.borrow().children() {\n                transform_node(\n                    &child,\n                    &current_xform,\n                    transformed_lookup,\n                    transformed_objects,\n                );\n            }\n        }\n\n        if let Some(root) = self.tree.root() {\n            transform_node(\n                &root,\n                &Xform::identity(),\n                &transformed_lookup,\n                &mut transformed_objects,\n            );\n        }\n\n        // Apply accumulated transformations to actual geometry coordinates\n        for point in &mut transformed_objects.points {\n            point.transform();\n        }\n        for line in &mut transformed_objects.lines {\n            line.transform();\n        }\n        for plane in &mut transformed_objects.planes {\n            plane.transform();\n        }\n        for bbox in &mut transformed_objects.bboxes {\n            bbox.transform();\n        }\n        for polyline in &mut transformed_objects.polylines {\n            polyline.transform();\n        }\n        for pointcloud in &mut transformed_objects.pointclouds {\n            pointcloud.transform();\n        }\n        for mesh in &mut transformed_objects.meshes {\n            mesh.transform(None);\n        }\n        for brep in &mut transformed_objects.breps {\n            brep.transform();\n        }\n\n        transformed_objects\n    }",
           "file": "session.rs"
         }
       },
@@ -37563,6 +36494,7 @@ window.API_INDEX = {
         "Vector.magnitude",
         "Vector.new",
         "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.repr",
         "Vector.str",
         "Vector.x",
@@ -37608,6 +36540,7 @@ window.API_INDEX = {
         "Vector.angle_between_vector_xy_components",
         "Vector.angle_from_cosine_law",
         "Vector.average",
+        "Vector.average_normal",
         "Vector.compute_magnitude",
         "Vector.constructor",
         "Vector.coordinate_direction_2angles",
@@ -37697,6 +36630,7 @@ window.API_INDEX = {
         "Vector.angle_between_vector_xy_components",
         "Vector.angle_from_cosine_law",
         "Vector.average",
+        "Vector.average_normal",
         "Vector.compute_magnitude",
         "Vector.constructor",
         "Vector.coordinate_direction_2angles",
@@ -37785,6 +36719,7 @@ window.API_INDEX = {
         "Vector.angle",
         "Vector.angle_between_vector_xy_components",
         "Vector.average",
+        "Vector.average_normal",
         "Vector.compute_magnitude",
         "Vector.constructor",
         "Vector.coordinate_direction_2angles",
@@ -38009,7 +36944,7 @@ window.API_INDEX = {
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
-        "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.repr",
         "Vector.with_name",
         "Vector.x",
@@ -38710,6 +37645,11 @@ window.API_INDEX = {
           "sig": "void scale(double factor)",
           "code": "void Vector::scale(double factor) {\n  (*this)[0] = _x * factor;\n  (*this)[1] = _y * factor;\n  (*this)[2] = _z * factor;\n}",
           "file": "vector.cpp"
+        },
+        "rust": {
+          "sig": "scale(factor: f64)",
+          "code": "pub fn scale(&mut self, factor: f64) {\n        self[0] *= factor;\n        self[1] *= factor;\n        self[2] *= factor;\n    }",
+          "file": "vector.rs"
         }
       },
       "related": [
@@ -38746,6 +37686,11 @@ window.API_INDEX = {
           "sig": "void scale_up()",
           "code": "void Vector::scale_up() { scale(static_cast<double>(session_cpp::SCALE)); }",
           "file": "vector.cpp"
+        },
+        "rust": {
+          "sig": "scale_up()",
+          "code": "pub fn scale_up(&mut self) {\n        self.scale(SCALE);\n    }",
+          "file": "vector.rs"
         }
       },
       "related": [
@@ -38779,6 +37724,11 @@ window.API_INDEX = {
           "sig": "void scale_down()",
           "code": "void Vector::scale_down() { scale(1.0 / static_cast<double>(session_cpp::SCALE)); }",
           "file": "vector.cpp"
+        },
+        "rust": {
+          "sig": "scale_down()",
+          "code": "pub fn scale_down(&mut self) {\n        self.scale(1.0 / SCALE);\n    }",
+          "file": "vector.rs"
         }
       },
       "related": [
@@ -38991,6 +37941,7 @@ window.API_INDEX = {
       },
       "related": [
         "Vector._compute_magnitude",
+        "Vector.average_normal",
         "Vector.compute_magnitude",
         "Vector.cross",
         "Vector.dot",
@@ -39001,6 +37952,8 @@ window.API_INDEX = {
         "Vector.new",
         "Vector.normalize",
         "Vector.normalized",
+        "Vector.pb_dump",
+        "Vector.pb_load",
         "Vector.projection",
         "Vector.x",
         "Vector.y",
@@ -39030,6 +37983,7 @@ window.API_INDEX = {
       "related": [
         "Vector._compute_magnitude",
         "Vector.angle",
+        "Vector.average_normal",
         "Vector.compute_magnitude",
         "Vector.cross",
         "Vector.dot",
@@ -39041,6 +37995,8 @@ window.API_INDEX = {
         "Vector.new",
         "Vector.normalize_self",
         "Vector.normalized",
+        "Vector.pb_dump",
+        "Vector.pb_load",
         "Vector.projection",
         "Vector.reverse",
         "Vector.scale",
@@ -39116,6 +38072,7 @@ window.API_INDEX = {
         "Vector.normalize",
         "Vector.normalize_self",
         "Vector.normalized",
+        "Vector.perpendicular_to",
         "Vector.projection",
         "Vector.reflect",
         "Vector.sum_of_vectors",
@@ -39146,6 +38103,7 @@ window.API_INDEX = {
       },
       "related": [
         "Vector.angle",
+        "Vector.coordinate_direction_2angles",
         "Vector.dot",
         "Vector.get_leveled_vector",
         "Vector.is_parallel_to",
@@ -39155,7 +38113,9 @@ window.API_INDEX = {
         "Vector.normalize",
         "Vector.normalize_self",
         "Vector.normalized",
+        "Vector.perpendicular_to",
         "Vector.projection",
+        "Vector.reflect",
         "Vector.x",
         "Vector.y",
         "Vector.z",
@@ -39572,6 +38532,10 @@ window.API_INDEX = {
         "Vector.is_zero",
         "Vector.magnitude",
         "Vector.new",
+        "Vector.pb_dump",
+        "Vector.pb_dumps",
+        "Vector.pb_load",
+        "Vector.pb_loads",
         "Vector.perpendicular_to",
         "Vector.side_from_sine_law",
         "Vector.sum_of_vectors",
@@ -39695,7 +38659,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "coordinate_direction_2angles(degrees=True)",
-          "code": "def coordinate_direction_2angles(self, degrees=True):\n\n        \"\"\"Compute coordinate direction angles (phi, theta).\n\n        Parameters\n        ----------\n        degrees : bool, optional\n            Return angles in degrees if True, radians if False.\n\n        Returns\n        -------\n        tuple\n            (phi, theta)\n\n        \"\"\"\n        r = math.sqrt(self._x**2 + self._y**2 + self._z**2)\n\n        if r == 0:\n            return (0, 0)\n\n        phi = math.acos(self._z / r)\n        theta = math.atan2(self._y, self._x)\n\n        if degrees:\n            phi *= TO_DEGREES\n            theta *= TO_DEGREES\n\n        return (phi, theta)\n\n    def perpendicular_to(self, v):\n        \"\"\"Set this vector to be perpendicular to `v`.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Reference vector.\n\n        Returns\n        -------\n        bool\n            True on success, False otherwise.\n\n        \"\"\"\n        k = 2\n\n        if abs(v[1]) > abs(v[0]):\n            if abs(v[2]) > abs(v[1]):\n                # |v.z| > |v.y| > |v.x|\n                i, j, k = 2, 1, 0\n                a, b = v[2], -v[1]\n            elif abs(v[2]) >= abs(v[0]):\n                # |v.y| >= |v.z| >= |v.x|\n                i, j, k = 1, 2, 0\n                a, b = v[1], -v[2]\n            else:\n                # |v.y| > |v.x| > |v.z|\n                i, j, k = 1, 0, 2\n                a, b = v[1], -v[0]\n        elif abs(v[2]) > abs(v[0]):\n            # |v.z| > |v.x| >= |v.y|\n            i, j, k = 2, 0, 1\n            a, b = v[2], -v[0]\n        elif abs(v[2]) > abs(v[1]):\n            # |v.x| >= |v.z| > |v.y|\n            i, j, k = 0, 2, 1\n            a, b = v[0], -v[2]\n        else:\n            # |v.x| >= |v.y| >= |v.z|\n            i, j, k = 0, 1, 2\n            a, b = v[0], -v[1]\n\n        coords = [0, 0, 0]\n        coords[i] = b\n        coords[j] = a\n        coords[k] = 0.0\n\n        self._x, self._y, self._z = coords\n        self._has_magnitude = False\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)",
+          "code": "def coordinate_direction_2angles(self, degrees=True):\n\n        \"\"\"Compute coordinate direction angles (phi, theta).\n\n        Parameters\n        ----------\n        degrees : bool, optional\n            Return angles in degrees if True, radians if False.\n\n        Returns\n        -------\n        tuple\n            (phi, theta)\n\n        \"\"\"\n        r = math.sqrt(self._x**2 + self._y**2 + self._z**2)\n\n        if r == 0:\n            return (0, 0)\n\n        phi = math.acos(self._z / r)\n        theta = math.atan2(self._y, self._x)\n\n        if degrees:\n            phi *= TO_DEGREES\n            theta *= TO_DEGREES\n\n        return (phi, theta)\n\n    def perpendicular_to(self, v):\n        \"\"\"Set this vector to be perpendicular to `v`.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Reference vector.\n\n        Returns\n        -------\n        bool\n            True on success, False otherwise.\n\n        \"\"\"\n        k = 2\n\n        if abs(v[1]) > abs(v[0]):\n            if abs(v[2]) > abs(v[1]):\n                # |v.z| > |v.y| > |v.x|\n                i, j, k = 2, 1, 0\n                a, b = v[2], -v[1]\n            elif abs(v[2]) >= abs(v[0]):\n                # |v.y| >= |v.z| >= |v.x|\n                i, j, k = 1, 2, 0\n                a, b = v[1], -v[2]\n            else:\n                # |v.y| > |v.x| > |v.z|\n                i, j, k = 1, 0, 2\n                a, b = v[1], -v[0]\n        elif abs(v[2]) > abs(v[0]):\n            # |v.z| > |v.x| >= |v.y|\n            i, j, k = 2, 0, 1\n            a, b = v[2], -v[0]\n        elif abs(v[2]) > abs(v[1]):\n            # |v.x| >= |v.z| > |v.y|\n            i, j, k = 0, 2, 1\n            a, b = v[0], -v[2]\n        else:\n            # |v.x| >= |v.y| >= |v.z|\n            i, j, k = 0, 1, 2\n            a, b = v[0], -v[1]\n\n        coords = [0, 0, 0]\n        coords[i] = b\n        coords[j] = a\n        coords[k] = 0.0\n\n        self._x, self._y, self._z = coords\n        self._has_magnitude = False\n\n    def reflect(self, plane_normal):\n        \"\"\"Reflect this vector across a plane defined by its normal.",
           "file": "vector.py"
         },
         "cpp": {
@@ -39713,10 +38677,12 @@ window.API_INDEX = {
         "Vector.angle",
         "Vector.compute_magnitude",
         "Vector.coordinate_direction_3angles",
+        "Vector.cross",
         "Vector.is_perpendicular_to",
         "Vector.is_zero",
         "Vector.magnitude",
         "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.x",
         "Vector.y",
         "Vector.z"
@@ -39727,7 +38693,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "perpendicular_to(v)",
-          "code": "def perpendicular_to(self, v):\n\n        \"\"\"Set this vector to be perpendicular to `v`.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Reference vector.\n\n        Returns\n        -------\n        bool\n            True on success, False otherwise.\n\n        \"\"\"\n        k = 2\n\n        if abs(v[1]) > abs(v[0]):\n            if abs(v[2]) > abs(v[1]):\n                # |v.z| > |v.y| > |v.x|\n                i, j, k = 2, 1, 0\n                a, b = v[2], -v[1]\n            elif abs(v[2]) >= abs(v[0]):\n                # |v.y| >= |v.z| >= |v.x|\n                i, j, k = 1, 2, 0\n                a, b = v[1], -v[2]\n            else:\n                # |v.y| > |v.x| > |v.z|\n                i, j, k = 1, 0, 2\n                a, b = v[1], -v[0]\n        elif abs(v[2]) > abs(v[0]):\n            # |v.z| > |v.x| >= |v.y|\n            i, j, k = 2, 0, 1\n            a, b = v[2], -v[0]\n        elif abs(v[2]) > abs(v[1]):\n            # |v.x| >= |v.z| > |v.y|\n            i, j, k = 0, 2, 1\n            a, b = v[0], -v[2]\n        else:\n            # |v.x| >= |v.y| >= |v.z|\n            i, j, k = 0, 1, 2\n            a, b = v[0], -v[1]\n\n        coords = [0, 0, 0]\n        coords[i] = b\n        coords[j] = a\n        coords[k] = 0.0\n\n        self._x, self._y, self._z = coords\n        self._has_magnitude = False\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"x\": self[0],\n            \"y\": self[1],\n            \"z\": self[2],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        vec = cls(data[\"x\"], data[\"y\"], data[\"z\"])\n        vec.guid = guid if guid is not None else data.get(\"guid\", vec.guid)\n        vec.name = name if name is not None else data.get(\"name\", vec.name)\n        return vec\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path",
+          "code": "def perpendicular_to(self, v):\n\n        \"\"\"Set this vector to be perpendicular to `v`.\n\n        Parameters\n        ----------\n        v : :class:`Vector`\n            Reference vector.\n\n        Returns\n        -------\n        bool\n            True on success, False otherwise.\n\n        \"\"\"\n        k = 2\n\n        if abs(v[1]) > abs(v[0]):\n            if abs(v[2]) > abs(v[1]):\n                # |v.z| > |v.y| > |v.x|\n                i, j, k = 2, 1, 0\n                a, b = v[2], -v[1]\n            elif abs(v[2]) >= abs(v[0]):\n                # |v.y| >= |v.z| >= |v.x|\n                i, j, k = 1, 2, 0\n                a, b = v[1], -v[2]\n            else:\n                # |v.y| > |v.x| > |v.z|\n                i, j, k = 1, 0, 2\n                a, b = v[1], -v[0]\n        elif abs(v[2]) > abs(v[0]):\n            # |v.z| > |v.x| >= |v.y|\n            i, j, k = 2, 0, 1\n            a, b = v[2], -v[0]\n        elif abs(v[2]) > abs(v[1]):\n            # |v.x| >= |v.z| > |v.y|\n            i, j, k = 0, 2, 1\n            a, b = v[0], -v[2]\n        else:\n            # |v.x| >= |v.y| >= |v.z|\n            i, j, k = 0, 1, 2\n            a, b = v[0], -v[1]\n\n        coords = [0, 0, 0]\n        coords[i] = b\n        coords[j] = a\n        coords[k] = 0.0\n\n        self._x, self._y, self._z = coords\n        self._has_magnitude = False\n\n    def reflect(self, plane_normal):\n        \"\"\"Reflect this vector across a plane defined by its normal.\n\n        Parameters\n        ----------\n        plane_normal : :class:`Vector`\n            The normal of the plane to reflect across.\n\n        Returns\n        -------\n        :class:`Vector`\n            The reflected vector.\n\n        \"\"\"\n        d = self.dot(plane_normal)\n        return Vector(\n            self[0] - 2.0 * d * plane_normal[0],\n            self[1] - 2.0 * d * plane_normal[1],\n            self[2] - 2.0 * d * plane_normal[2]\n        )\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"guid\": self.guid,",
           "file": "vector.py"
         },
         "cpp": {
@@ -39743,22 +38709,61 @@ window.API_INDEX = {
       },
       "related": [
         "Vector.__jsondump__",
-        "Vector.__jsonload__",
         "Vector.angle_between_vector_xy_components",
         "Vector.average",
         "Vector.coordinate_direction_2angles",
         "Vector.coordinate_direction_3angles",
+        "Vector.cross",
+        "Vector.dot",
         "Vector.format",
         "Vector.guid",
         "Vector.invalidate_magnitude_cache",
         "Vector.is_perpendicular_to",
         "Vector.is_zero",
+        "Vector.jsondump",
+        "Vector.magnitude",
+        "Vector.reflect",
+        "Vector.sum_of_vectors",
+        "Vector.x",
+        "Vector.y",
+        "Vector.z"
+      ]
+    },
+    {
+      "name": "Vector.reflect",
+      "implementations": {
+        "python": {
+          "sig": "reflect(plane_normal)",
+          "code": "def reflect(self, plane_normal):\n\n        \"\"\"Reflect this vector across a plane defined by its normal.\n\n        Parameters\n        ----------\n        plane_normal : :class:`Vector`\n            The normal of the plane to reflect across.\n\n        Returns\n        -------\n        :class:`Vector`\n            The reflected vector.\n\n        \"\"\"\n        d = self.dot(plane_normal)\n        return Vector(\n            self[0] - 2.0 * d * plane_normal[0],\n            self[1] - 2.0 * d * plane_normal[1],\n            self[2] - 2.0 * d * plane_normal[2]\n        )\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization (COMPAS-style)\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"x\": self[0],\n            \"y\": self[1],\n            \"z\": self[2],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        vec = cls(data[\"x\"], data[\"y\"], data[\"z\"])\n        vec.guid = guid if guid is not None else data.get(\"guid\", vec.guid)\n        vec.name = name if name is not None else data.get(\"name\", vec.name)\n        return vec\n\n    def json_dump(self, filepath):\n        \"\"\"Write JSON to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        \"\"\"Read JSON from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the JSON file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"",
+          "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "Vector reflect(const Vector& plane_normal)",
+          "code": "Vector Vector::reflect(const Vector& plane_normal) const {\n    double d = this->dot(plane_normal);\n    return Vector(\n        _x - 2.0 * d * plane_normal[0],\n        _y - 2.0 * d * plane_normal[1],\n        _z - 2.0 * d * plane_normal[2]\n    );\n}",
+          "file": "vector.cpp"
+        },
+        "rust": {
+          "sig": "reflect(plane_normal: &Vector) -> Vector",
+          "code": "pub fn reflect(&self, plane_normal: &Vector) -> Vector {\n        let d = self.dot(plane_normal);\n        Vector::new(\n            self[0] - 2.0 * d * plane_normal[0],\n            self[1] - 2.0 * d * plane_normal[1],\n            self[2] - 2.0 * d * plane_normal[2],\n        )\n    }",
+          "file": "vector.rs"
+        }
+      },
+      "related": [
+        "Vector.__jsondump__",
+        "Vector.__jsonload__",
+        "Vector.coordinate_direction_2angles",
+        "Vector.cross",
+        "Vector.dot",
+        "Vector.format",
+        "Vector.guid",
         "Vector.json_dump",
+        "Vector.json_dumps",
+        "Vector.json_load",
         "Vector.jsondump",
         "Vector.jsonload",
-        "Vector.magnitude",
+        "Vector.new",
+        "Vector.perpendicular_to",
         "Vector.str",
-        "Vector.sum_of_vectors",
         "Vector.x",
         "Vector.y",
         "Vector.z"
@@ -39786,6 +38791,7 @@ window.API_INDEX = {
         "Vector.pb_dump",
         "Vector.pb_dumps",
         "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
@@ -39815,7 +38821,7 @@ window.API_INDEX = {
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
-        "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
@@ -39854,7 +38860,7 @@ window.API_INDEX = {
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
-        "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
@@ -39894,6 +38900,7 @@ window.API_INDEX = {
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
@@ -39932,6 +38939,7 @@ window.API_INDEX = {
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
@@ -39981,7 +38989,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.x = self._x\n        proto.y = self._y\n        proto.z = self._z\n        proto.name = self.name\n        \n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Vector from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded vector data.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.ParseFromString(data)\n        \n        v = cls(proto.x, proto.y, proto.z)\n        v.name = proto.name\n        \n        return v\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.x = self._x\n        proto.y = self._y\n        proto.z = self._z\n        proto.name = self.name\n        \n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Vector from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded vector data.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.ParseFromString(data)\n        \n        v = cls(proto.x, proto.y, proto.z)\n        v.name = proto.name\n        \n        return v\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n\ndef average_normal(pts):\n    \"\"\"Compute the average normal of a polygon defined by a list of points.",
           "file": "vector.py"
         },
         "cpp": {
@@ -39998,6 +39006,8 @@ window.API_INDEX = {
       "related": [
         "Vector.__jsondump__",
         "Vector.__jsonload__",
+        "Vector.average",
+        "Vector.average_normal",
         "Vector.format",
         "Vector.json_dump",
         "Vector.json_dumps",
@@ -40017,7 +39027,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Vector from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded vector data.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.ParseFromString(data)\n        \n        v = cls(proto.x, proto.y, proto.z)\n        v.name = proto.name\n        \n        return v\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)",
+          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Vector from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded vector data.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        from .proto import vector_pb2\n        \n        proto = vector_pb2.Vector()\n        proto.ParseFromString(data)\n        \n        v = cls(proto.x, proto.y, proto.z)\n        v.name = proto.name\n        \n        return v\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n\ndef average_normal(pts):\n    \"\"\"Compute the average normal of a polygon defined by a list of points.\n\n    Parameters\n    ----------\n    pts : list of :class:`Point`\n        The polygon vertices. May be closed (first == last).\n\n    Returns\n    -------\n    :class:`Vector`\n        The unit average normal.\n\n    \"\"\"\n    DISTANCE_SQUARED = 1e-10\n    dx = pts[-1][0] - pts[0][0]\n    dy = pts[-1][1] - pts[0][1]\n    dz = pts[-1][2] - pts[0][2]\n    n = len(pts) - 1 if (dx * dx + dy * dy + dz * dz) < DISTANCE_SQUARED else len(pts)\n    avg = Vector(0.0, 0.0, 0.0)\n    for i in range(n):\n        prev = (i - 1 + n) % n\n        nxt = (i + 1) % n",
           "file": "vector.py"
         },
         "cpp": {
@@ -40033,6 +39043,8 @@ window.API_INDEX = {
       },
       "related": [
         "Vector.__jsonload__",
+        "Vector.average",
+        "Vector.average_normal",
         "Vector.json_dump",
         "Vector.json_dumps",
         "Vector.json_load",
@@ -40052,7 +39064,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dump(filepath)",
-          "code": "def pb_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)",
+          "code": "def pb_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n\ndef average_normal(pts):\n    \"\"\"Compute the average normal of a polygon defined by a list of points.\n\n    Parameters\n    ----------\n    pts : list of :class:`Point`\n        The polygon vertices. May be closed (first == last).\n\n    Returns\n    -------\n    :class:`Vector`\n        The unit average normal.\n\n    \"\"\"\n    DISTANCE_SQUARED = 1e-10\n    dx = pts[-1][0] - pts[0][0]\n    dy = pts[-1][1] - pts[0][1]\n    dz = pts[-1][2] - pts[0][2]\n    n = len(pts) - 1 if (dx * dx + dy * dy + dz * dz) < DISTANCE_SQUARED else len(pts)\n    avg = Vector(0.0, 0.0, 0.0)\n    for i in range(n):\n        prev = (i - 1 + n) % n\n        nxt = (i + 1) % n\n        ax = pts[i][0] - pts[prev][0]\n        ay = pts[i][1] - pts[prev][1]\n        az = pts[i][2] - pts[prev][2]\n        bx = pts[nxt][0] - pts[i][0]\n        by = pts[nxt][1] - pts[i][1]\n        bz = pts[nxt][2] - pts[i][2]\n        avg[0] += ay * bz - az * by\n        avg[1] += az * bx - ax * bz\n        avg[2] += ax * by - ay * bx\n    avg.normalize_self()\n    return avg\n\n\ndef interpolate_points(from_pt, to_pt, steps, type=0):\n    \"\"\"Interpolate points between two endpoints.\n\n    Parameters\n    ----------\n    from_pt : :class:`Point`\n        Start point.\n    to_pt : :class:`Point`\n        End point.\n    steps : int\n        Number of interior steps.",
           "file": "vector.py"
         },
         "cpp": {
@@ -40069,10 +39081,15 @@ window.API_INDEX = {
       "related": [
         "Vector.__jsondump__",
         "Vector.__jsonload__",
+        "Vector.average",
+        "Vector.average_normal",
+        "Vector.interpolate_points",
         "Vector.json_dump",
         "Vector.json_dumps",
         "Vector.json_load",
         "Vector.json_loads",
+        "Vector.normalize",
+        "Vector.normalize_self",
         "Vector.pb_dumps",
         "Vector.pb_load",
         "Vector.pb_loads",
@@ -40087,7 +39104,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_load(cls, filepath)",
-          "code": "def pb_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)",
+          "code": "def pb_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Vector`\n            The deserialized Vector.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n\ndef average_normal(pts):\n    \"\"\"Compute the average normal of a polygon defined by a list of points.\n\n    Parameters\n    ----------\n    pts : list of :class:`Point`\n        The polygon vertices. May be closed (first == last).\n\n    Returns\n    -------\n    :class:`Vector`\n        The unit average normal.\n\n    \"\"\"\n    DISTANCE_SQUARED = 1e-10\n    dx = pts[-1][0] - pts[0][0]\n    dy = pts[-1][1] - pts[0][1]\n    dz = pts[-1][2] - pts[0][2]\n    n = len(pts) - 1 if (dx * dx + dy * dy + dz * dz) < DISTANCE_SQUARED else len(pts)\n    avg = Vector(0.0, 0.0, 0.0)\n    for i in range(n):\n        prev = (i - 1 + n) % n\n        nxt = (i + 1) % n\n        ax = pts[i][0] - pts[prev][0]\n        ay = pts[i][1] - pts[prev][1]\n        az = pts[i][2] - pts[prev][2]\n        bx = pts[nxt][0] - pts[i][0]\n        by = pts[nxt][1] - pts[i][1]\n        bz = pts[nxt][2] - pts[i][2]\n        avg[0] += ay * bz - az * by\n        avg[1] += az * bx - ax * bz\n        avg[2] += ax * by - ay * bx\n    avg.normalize_self()\n    return avg\n\n\ndef interpolate_points(from_pt, to_pt, steps, type=0):\n    \"\"\"Interpolate points between two endpoints.\n\n    Parameters\n    ----------\n    from_pt : :class:`Point`\n        Start point.\n    to_pt : :class:`Point`\n        End point.\n    steps : int\n        Number of interior steps.\n    type : int, optional\n        0 = interior only, 1 = both endpoints included, 2 = start + interior.\n\n    Returns\n    -------\n    list of :class:`Point`\n        Interpolated points.\n\n    \"\"\"\n    from .point import Point\n    pts = []\n    if type == 1:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    elif type == 2:",
           "file": "vector.py"
         },
         "cpp": {
@@ -40103,10 +39120,15 @@ window.API_INDEX = {
       },
       "related": [
         "Vector.__jsonload__",
+        "Vector.average",
+        "Vector.average_normal",
+        "Vector.interpolate_points",
         "Vector.json_dump",
         "Vector.json_dumps",
         "Vector.json_load",
         "Vector.json_loads",
+        "Vector.normalize",
+        "Vector.normalize_self",
         "Vector.parse",
         "Vector.pb_dump",
         "Vector.pb_dumps",
@@ -40115,6 +39137,55 @@ window.API_INDEX = {
         "Vector.x",
         "Vector.y",
         "Vector.z"
+      ]
+    },
+    {
+      "name": "Vector.average_normal",
+      "implementations": {
+        "python": {
+          "sig": "average_normal(pts)",
+          "code": "def average_normal(pts):\n\n    \"\"\"Compute the average normal of a polygon defined by a list of points.\n\n    Parameters\n    ----------\n    pts : list of :class:`Point`\n        The polygon vertices. May be closed (first == last).\n\n    Returns\n    -------\n    :class:`Vector`\n        The unit average normal.\n\n    \"\"\"\n    DISTANCE_SQUARED = 1e-10\n    dx = pts[-1][0] - pts[0][0]\n    dy = pts[-1][1] - pts[0][1]\n    dz = pts[-1][2] - pts[0][2]\n    n = len(pts) - 1 if (dx * dx + dy * dy + dz * dz) < DISTANCE_SQUARED else len(pts)\n    avg = Vector(0.0, 0.0, 0.0)\n    for i in range(n):\n        prev = (i - 1 + n) % n\n        nxt = (i + 1) % n\n        ax = pts[i][0] - pts[prev][0]\n        ay = pts[i][1] - pts[prev][1]\n        az = pts[i][2] - pts[prev][2]\n        bx = pts[nxt][0] - pts[i][0]\n        by = pts[nxt][1] - pts[i][1]\n        bz = pts[nxt][2] - pts[i][2]\n        avg[0] += ay * bz - az * by\n        avg[1] += az * bx - ax * bz\n        avg[2] += ax * by - ay * bx\n    avg.normalize_self()\n    return avg\n\n\ndef interpolate_points(from_pt, to_pt, steps, type=0):\n    \"\"\"Interpolate points between two endpoints.\n\n    Parameters\n    ----------\n    from_pt : :class:`Point`\n        Start point.\n    to_pt : :class:`Point`\n        End point.\n    steps : int\n        Number of interior steps.\n    type : int, optional\n        0 = interior only, 1 = both endpoints included, 2 = start + interior.\n\n    Returns\n    -------\n    list of :class:`Point`\n        Interpolated points.\n\n    \"\"\"\n    from .point import Point\n    pts = []\n    if type == 1:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    elif type == 2:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    for i in range(1, steps + 1):\n        t = i / (1 + steps)\n        pts.append(Point(\n            from_pt[0] + t * (to_pt[0] - from_pt[0]),\n            from_pt[1] + t * (to_pt[1] - from_pt[1]),\n            from_pt[2] + t * (to_pt[2] - from_pt[2])\n        ))\n    if type == 1:\n        pts.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n    return pts",
+          "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "void average_normal(const std::vector<Point>& pts, Vector& out)",
+          "code": "void average_normal(const std::vector<Point>& pts, Vector& out);",
+          "file": "vector.h"
+        }
+      },
+      "related": [
+        "Vector.average",
+        "Vector.interpolate_points",
+        "Vector.normalize",
+        "Vector.normalize_self",
+        "Vector.pb_dump",
+        "Vector.pb_dumps",
+        "Vector.pb_load",
+        "Vector.pb_loads",
+        "Vector.x",
+        "Vector.y",
+        "Vector.z"
+      ]
+    },
+    {
+      "name": "Vector.interpolate_points",
+      "implementations": {
+        "python": {
+          "sig": "interpolate_points(from_pt, to_pt, steps, type=0)",
+          "code": "def interpolate_points(from_pt, to_pt, steps, type=0):\n\n    \"\"\"Interpolate points between two endpoints.\n\n    Parameters\n    ----------\n    from_pt : :class:`Point`\n        Start point.\n    to_pt : :class:`Point`\n        End point.\n    steps : int\n        Number of interior steps.\n    type : int, optional\n        0 = interior only, 1 = both endpoints included, 2 = start + interior.\n\n    Returns\n    -------\n    list of :class:`Point`\n        Interpolated points.\n\n    \"\"\"\n    from .point import Point\n    pts = []\n    if type == 1:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    elif type == 2:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    for i in range(1, steps + 1):\n        t = i / (1 + steps)\n        pts.append(Point(\n            from_pt[0] + t * (to_pt[0] - from_pt[0]),\n            from_pt[1] + t * (to_pt[1] - from_pt[1]),\n            from_pt[2] + t * (to_pt[2] - from_pt[2])\n        ))\n    if type == 1:\n        pts.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n    return pts",
+          "file": "vector.py"
+        },
+        "cpp": {
+          "sig": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0)",
+          "code": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0);",
+          "file": "vector.h"
+        }
+      },
+      "related": [
+        "Vector.average_normal",
+        "Vector.pb_dump",
+        "Vector.pb_load",
+        "Vector.y"
       ]
     },
     {
@@ -40219,7 +39290,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle",
           "file": "xform.py"
         }
       },
@@ -40254,7 +39325,7 @@ window.API_INDEX = {
         "Xform.rotation",
         "Xform.rotation_x",
         "Xform.rotation_y",
-        "Xform.scaling",
+        "Xform.rotation_z",
         "Xform.str",
         "Xform.transform_point",
         "Xform.transform_vector",
@@ -40270,7 +39341,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__eq__(other)",
-          "code": "def __eq__(self, other):\n\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod",
           "file": "xform.py"
         }
       },
@@ -40289,7 +39360,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.str",
         "Xform.translation",
         "Xform.x",
@@ -40302,7 +39372,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)",
           "file": "xform.py"
         }
       },
@@ -40321,7 +39391,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.str",
         "Xform.translation",
         "Xform.x",
@@ -40334,7 +39403,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__()",
-          "code": "def __str__(self):\n\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod",
+          "code": "def __str__(self):\n\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]",
           "file": "xform.py"
         }
       },
@@ -40353,7 +39422,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.str",
         "Xform.translation",
         "Xform.x",
@@ -40366,7 +39434,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]",
+          "code": "def __repr__(self):\n\n        \"\"\"Full representation with all 16 matrix values.\"\"\"\n        vals = [f\"{v:.3f}\" for v in self.m]\n        return f\"Xform(name='{self.name}', matrix=[{', '.join(vals)}])\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos",
           "file": "xform.py"
         }
       },
@@ -40385,7 +39453,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40397,7 +39464,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "duplicate()",
-          "code": "def duplicate(self):\n\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle",
+          "code": "def duplicate(self):\n\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform",
           "file": "xform.py"
         },
         "rust": {
@@ -40420,7 +39487,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40432,7 +39498,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "identity()",
-          "code": "def identity():\n\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos",
+          "code": "def identity():\n\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):\n        a = x_axis_1.dot(y_axis_1)\n        b = x_axis_1.dot(z_axis_1)",
           "file": "xform.py"
         },
         "cpp": {
@@ -40470,7 +39536,6 @@ window.API_INDEX = {
         "Xform.rotation_y",
         "Xform.rotation_z",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.str",
         "Xform.to_frame",
         "Xform.translation",
@@ -40485,7 +39550,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_matrix(m)",
-          "code": "def from_matrix(m):\n\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):",
+          "code": "def from_matrix(m):\n\n        return Xform(m)\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):\n        a = x_axis_1.dot(y_axis_1)\n        b = x_axis_1.dot(z_axis_1)\n        c = y_axis_1.dot(z_axis_1)\n        r = [\n            [\n                x_axis_1.dot(x_axis_1),\n                a,\n                b,",
           "file": "xform.py"
         },
         "cpp": {
@@ -40525,7 +39590,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.str",
         "Xform.translation",
         "Xform.x",
@@ -40538,7 +39602,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "translation(x, y, z)",
-          "code": "def translation(x, y, z):\n\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def scaling(x, y, z):\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):\n        a = x_axis_1.dot(y_axis_1)\n        b = x_axis_1.dot(z_axis_1)\n        c = y_axis_1.dot(z_axis_1)\n        r = [",
+          "code": "def translation(x, y, z):\n\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):\n        a = x_axis_1.dot(y_axis_1)\n        b = x_axis_1.dot(z_axis_1)\n        c = y_axis_1.dot(z_axis_1)\n        r = [\n            [\n                x_axis_1.dot(x_axis_1),\n                a,\n                b,\n                x_axis_1.dot(x_axis_0),\n                x_axis_1.dot(y_axis_0),\n                x_axis_1.dot(z_axis_0),\n            ],",
           "file": "xform.py"
         },
         "cpp": {
@@ -40572,52 +39636,7 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
-        "Xform.x",
-        "Xform.xy_to_plane",
-        "Xform.y",
-        "Xform.z"
-      ]
-    },
-    {
-      "name": "Xform.scaling",
-      "implementations": {
-        "python": {
-          "sig": "scaling(x, y, z)",
-          "code": "def scaling(x, y, z):\n\n        xform = Xform()\n        xform.m[0] = x\n        xform.m[5] = y\n        xform.m[10] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle_radians):\n        xform = Xform()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle_radians):\n        xform = Xform()\n        axis = axis.normalize()\n        cos_angle = math.cos(angle_radians)\n        sin_angle = math.sin(angle_radians)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle\n        xform.m[9] = yz * one_minus_cos - axis[0] * sin_angle\n        xform.m[10] = cos_angle + zz * one_minus_cos\n        return xform\n\n    @staticmethod\n    def change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1, origin_0, x_axis_0, y_axis_0, z_axis_0\n    ):\n        a = x_axis_1.dot(y_axis_1)\n        b = x_axis_1.dot(z_axis_1)\n        c = y_axis_1.dot(z_axis_1)\n        r = [\n            [\n                x_axis_1.dot(x_axis_1),\n                a,\n                b,\n                x_axis_1.dot(x_axis_0),\n                x_axis_1.dot(y_axis_0),\n                x_axis_1.dot(z_axis_0),\n            ],",
-          "file": "xform.py"
-        },
-        "cpp": {
-          "sig": "Xform scaling(double x, double y, double z)",
-          "code": "Xform Xform::scaling(double x, double y, double z) {\n    Xform xform;\n    xform.m[0] = x;\n    xform.m[5] = y;\n    xform.m[10] = z;\n    return xform;\n}",
-          "file": "xform.cpp"
-        },
-        "rust": {
-          "sig": "scaling(x: f64, y: f64, z: f64) -> Self",
-          "code": "pub fn scaling(x: f64, y: f64, z: f64) -> Self {\n        let mut xform = Self::identity();\n        xform.m[0] = x;\n        xform.m[5] = y;\n        xform.m[10] = z;\n        xform\n    }",
-          "file": "xform.rs"
-        }
-      },
-      "related": [
-        "Xform.__eq__",
-        "Xform.__ne__",
-        "Xform.__repr__",
-        "Xform.__str__",
-        "Xform.change_basis",
-        "Xform.duplicate",
-        "Xform.from_matrix",
-        "Xform.guid",
-        "Xform.identity",
-        "Xform.plane_to_xy",
-        "Xform.rotation",
-        "Xform.rotation_x",
-        "Xform.rotation_y",
-        "Xform.rotation_z",
-        "Xform.scale_uniform",
-        "Xform.scale_xyz",
-        "Xform.to_frame",
-        "Xform.translation",
         "Xform.x",
         "Xform.xy_to_plane",
         "Xform.y",
@@ -40656,7 +39675,6 @@ window.API_INDEX = {
         "Xform.rotation",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40695,7 +39713,6 @@ window.API_INDEX = {
         "Xform.rotation",
         "Xform.rotation_x",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40729,11 +39746,11 @@ window.API_INDEX = {
         "Xform.change_basis",
         "Xform.duplicate",
         "Xform.from_matrix",
+        "Xform.guid",
         "Xform.identity",
         "Xform.rotation",
         "Xform.rotation_x",
         "Xform.rotation_y",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40776,7 +39793,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.translation",
         "Xform.x",
@@ -40811,7 +39827,6 @@ window.API_INDEX = {
         "Xform.rotation_x",
         "Xform.rotation_y",
         "Xform.rotation_z",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -40852,7 +39867,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "plane_to_xy(origin, x_axis, y_axis, z_axis)",
-          "code": "def plane_to_xy(origin, x_axis, y_axis, z_axis):\n\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        t = Xform.translation(-origin[0], -origin[1], -origin[2])\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[1] = x[1]\n        f.m[2] = x[2]\n        f.m[4] = y[0]\n        f.m[5] = y[1]\n        f.m[6] = y[2]\n        f.m[8] = z[0]\n        f.m[9] = z[1]\n        f.m[10] = z[2]\n        return f * t\n\n    @staticmethod\n    def xy_to_plane(origin, x_axis, y_axis, z_axis):\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[4] = y[0]\n        f.m[8] = z[0]\n        f.m[1] = x[1]\n        f.m[5] = y[1]\n        f.m[9] = z[1]\n        f.m[2] = x[2]\n        f.m[6] = y[2]\n        f.m[10] = z[2]\n        t = Xform.translation(origin[0], origin[1], origin[2])\n        return t * f\n\n    @staticmethod\n    def to_frame(frame):\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scaling(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])",
+          "code": "def plane_to_xy(origin, x_axis, y_axis, z_axis):\n\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        t = Xform.translation(-origin[0], -origin[1], -origin[2])\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[1] = x[1]\n        f.m[2] = x[2]\n        f.m[4] = y[0]\n        f.m[5] = y[1]\n        f.m[6] = y[2]\n        f.m[8] = z[0]\n        f.m[9] = z[1]\n        f.m[10] = z[2]\n        return f * t\n\n    @staticmethod\n    def xy_to_plane(origin, x_axis, y_axis, z_axis):\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[4] = y[0]\n        f.m[8] = z[0]\n        f.m[1] = x[1]\n        f.m[5] = y[1]\n        f.m[9] = z[1]\n        f.m[2] = x[2]\n        f.m[6] = y[2]\n        f.m[10] = z[2]\n        t = Xform.translation(origin[0], origin[1], origin[2])\n        return t * f\n\n    @staticmethod\n    def to_frame(frame):\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])",
           "file": "xform.py"
         },
         "cpp": {
@@ -40872,7 +39887,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.translation",
         "Xform.x",
@@ -40886,7 +39900,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "xy_to_plane(origin, x_axis, y_axis, z_axis)",
-          "code": "def xy_to_plane(origin, x_axis, y_axis, z_axis):\n\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[4] = y[0]\n        f.m[8] = z[0]\n        f.m[1] = x[1]\n        f.m[5] = y[1]\n        f.m[9] = z[1]\n        f.m[2] = x[2]\n        f.m[6] = y[2]\n        f.m[10] = z[2]\n        t = Xform.translation(origin[0], origin[1], origin[2])\n        return t * f\n\n    @staticmethod\n    def to_frame(frame):\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scaling(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s",
+          "code": "def xy_to_plane(origin, x_axis, y_axis, z_axis):\n\n        x = x_axis.normalize()\n        y = y_axis.normalize()\n        z = z_axis.normalize()\n        f = Xform()\n        f.m[0] = x[0]\n        f.m[4] = y[0]\n        f.m[8] = z[0]\n        f.m[1] = x[1]\n        f.m[5] = y[1]\n        f.m[9] = z[1]\n        f.m[2] = x[2]\n        f.m[6] = y[2]\n        f.m[10] = z[2]\n        t = Xform.translation(origin[0], origin[1], origin[2])\n        return t * f\n\n    @staticmethod\n    def to_frame(frame):\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s",
           "file": "xform.py"
         },
         "cpp": {
@@ -40909,7 +39923,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.translation",
         "Xform.x",
@@ -40922,7 +39935,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_frame(frame)",
-          "code": "def to_frame(frame):\n\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scaling(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]",
+          "code": "def to_frame(frame):\n\n        \"\"\"Transform from world XY to target frame/plane (same as COMPAS from_frame).\n\n        Parameters\n        ----------\n        frame : Plane\n            Target frame/plane.\n\n        Returns\n        -------\n        :class:`Xform`\n            Transformation matrix.\n        \"\"\"\n        x = frame.x_axis.normalize()\n        y = frame.y_axis.normalize()\n        z = frame.z_axis.normalize()\n        o = frame.origin\n        xf = Xform()\n        xf.m[0] = x[0]; xf.m[4] = y[0]; xf.m[8]  = z[0]; xf.m[12] = o[0]\n        xf.m[1] = x[1]; xf.m[5] = y[1]; xf.m[9]  = z[1]; xf.m[13] = o[1]\n        xf.m[2] = x[2]; xf.m[6] = y[2]; xf.m[10] = z[2]; xf.m[14] = o[2]\n        xf.m[3] = 0.0;  xf.m[7] = 0.0;  xf.m[11] = 0.0;  xf.m[15] = 1.0\n        return xf\n\n    @staticmethod\n    def scale_xyz(scale_x, scale_y, scale_z):\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]",
           "file": "xform.py"
         },
         "cpp": {
@@ -40945,7 +39958,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.translation",
         "Xform.x",
         "Xform.xy_to_plane",
@@ -40958,7 +39970,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "scale_xyz(scale_x, scale_y, scale_z)",
-          "code": "def scale_xyz(scale_x, scale_y, scale_z):\n\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scaling(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:",
+          "code": "def scale_xyz(scale_x, scale_y, scale_z):\n\n        xform = Xform()\n        xform.m[0] = scale_x\n        xform.m[5] = scale_y\n        xform.m[10] = scale_z\n        return xform\n\n    @staticmethod\n    def scale_uniform(origin, scale_value):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:",
           "file": "xform.py"
         },
         "cpp": {
@@ -40981,7 +39993,6 @@ window.API_INDEX = {
         "Xform.rotation",
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.translation",
         "Xform.x",
@@ -40995,17 +40006,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "scale_uniform(origin, scale_value)",
-          "code": "def scale_uniform(origin, scale_value):\n\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scaling(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det",
+          "code": "def scale_uniform(origin, scale_value):\n\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_value, scale_value, scale_value)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def scale_non_uniform(origin, scale_x, scale_y, scale_z):\n        t0 = Xform.translation(-origin[0], -origin[1], -origin[2])\n        t1 = Xform.scale_xyz(scale_x, scale_y, scale_z)\n        t2 = Xform.translation(origin[0], origin[1], origin[2])\n        return t2 * (t1 * t0)\n\n    @staticmethod\n    def axis_rotation(angle, axis):\n        c = math.cos(angle)\n        s = math.sin(angle)\n        ux = axis[0]\n        uy = axis[1]\n        uz = axis[2]\n        t = 1.0 - c\n        xform = Xform()\n        xform.m[0] = t * ux * ux + c\n        xform.m[4] = t * ux * uy - uz * s\n        xform.m[8] = t * ux * uz + uy * s\n        xform.m[1] = t * ux * uy + uz * s\n        xform.m[5] = t * uy * uy + c\n        xform.m[9] = t * uy * uz - ux * s\n        xform.m[2] = t * ux * uz - uy * s\n        xform.m[6] = t * uy * uz + ux * s\n        xform.m[10] = t * uz * uz + c\n        return xform\n\n    @staticmethod\n    def look_at_rh(eye, target, up):\n        from .vector import Vector\n\n        f = (target - eye).normalize()\n        s = f.cross(up.normalize()).normalize()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det",
           "file": "xform.py"
         },
         "cpp": {
           "sig": "Xform scale_uniform(Point& origin, double scale_value)",
-          "code": "Xform Xform::scale_uniform(Point& origin, double scale_value) {\n    Xform t0 = translation(-origin[0], -origin[1], -origin[2]);\n    Xform t1 = scaling(scale_value, scale_value, scale_value);\n    Xform t2 = translation(origin[0], origin[1], origin[2]);\n    return t2 * (t1 * t0);\n}",
+          "code": "Xform Xform::scale_uniform(Point& origin, double scale_value) {\n    Xform t0 = translation(-origin[0], -origin[1], -origin[2]);\n    Xform t1 = scale_xyz(scale_value, scale_value, scale_value);\n    Xform t2 = translation(origin[0], origin[1], origin[2]);\n    return t2 * (t1 * t0);\n}",
           "file": "xform.cpp"
         },
         "rust": {
           "sig": "scale_uniform(origin: &Point, scale_value: f64) -> Self",
-          "code": "pub fn scale_uniform(origin: &Point, scale_value: f64) -> Self {\n        let t0 = Self::translation(-origin[0], -origin[1], -origin[2]);\n        let t1 = Self::scaling(scale_value, scale_value, scale_value);\n        let t2 = Self::translation(origin[0], origin[1], origin[2]);\n        &t2 * &(&t1 * &t0)\n    }",
+          "code": "pub fn scale_uniform(origin: &Point, scale_value: f64) -> Self {\n        let t0 = Self::translation(-origin[0], -origin[1], -origin[2]);\n        let t1 = Self::scale_xyz(scale_value, scale_value, scale_value);\n        let t2 = Self::translation(origin[0], origin[1], origin[2]);\n        &t2 * &(&t1 * &t0)\n    }",
           "file": "xform.rs"
         }
       },
@@ -41017,7 +40028,6 @@ window.API_INDEX = {
         "Xform.rotation",
         "Xform.scale_non_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.translation",
         "Xform.x",
@@ -41843,150 +40853,6 @@ window.API_INDEX = {
         "Xform.x",
         "Xform.y",
         "Xform.z"
-      ]
-    },
-    {
-      "name": "BoundingBox.constructor",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox(const Point& center, const Vector& x_axis, const Vector& y_axis, const Vector& z_axis, const Vector& half_size)",
-          "code": "BoundingBox(const Point& center, const Vector& x_axis, const Vector& y_axis, const Vector& z_axis, const Vector& half_size);",
-          "file": "boundingbox.h"
-        }
-      }
-    },
-    {
-      "name": "BoundingBox.collides_with_rtcd",
-      "implementations": {
-        "cpp": {
-          "sig": "bool collides_with_rtcd(const BoundingBox& other)",
-          "code": "bool BoundingBox::collides_with_rtcd(const BoundingBox& other) const {\n    const double EPS = 1e-9;\n    const Vector A0 = x_axis;\n    const Vector A1 = y_axis;\n    const Vector A2 = z_axis;\n    const Vector B0 = other.x_axis;\n    const Vector B1 = other.y_axis;\n    const Vector B2 = other.z_axis;\n    const double a0 = half_size[0];\n    const double a1 = half_size[1];\n    const double a2 = half_size[2];\n    const double b0 = other.half_size[0];\n    const double b1 = other.half_size[1];\n    const double b2 = other.half_size[2];\n\n    double R00 = A0.dot(B0), R01 = A0.dot(B1), R02 = A0.dot(B2);\n    double R10 = A1.dot(B0), R11 = A1.dot(B1), R12 = A1.dot(B2);\n    double R20 = A2.dot(B0), R21 = A2.dot(B1), R22 = A2.dot(B2);\n\n    Vector d(other.center[0] - center[0], other.center[1] - center[1], other.center[2] - center[2]);\n    double t0 = d.dot(A0);\n    double t1 = d.dot(A1);\n    double t2 = d.dot(A2);\n\n    double AbsR00 = std::abs(R00) + EPS, AbsR01 = std::abs(R01) + EPS, AbsR02 = std::abs(R02) + EPS;\n    double AbsR10 = std::abs(R10) + EPS, AbsR11 = std::abs(R11) + EPS, AbsR12 = std::abs(R12) + EPS;\n    double AbsR20 = std::abs(R20) + EPS, AbsR21 = std::abs(R21) + EPS, AbsR22 = std::abs(R22) + EPS;\n\n    double ra, rb, t;\n\n    ra = a0; rb = b0 * AbsR00 + b1 * AbsR01 + b2 * AbsR02; t = std::abs(t0); if (t > ra + rb) return false;\n    ra = a1; rb = b0 * AbsR10 + b1 * AbsR11 + b2 * AbsR12; t = std::abs(t1); if (t > ra + rb) return false;\n    ra = a2; rb = b0 * AbsR20 + b1 * AbsR21 + b2 * AbsR22; t = std::abs(t2); if (t > ra + rb) return false;\n\n    ra = a0 * AbsR00 + a1 * AbsR10 + a2 * AbsR20; rb = b0; t = std::abs(t0 * R00 + t1 * R10 + t2 * R20); if (t > ra + rb) return false;\n    ra = a0 * AbsR01 + a1 * AbsR11 + a2 * AbsR21; rb = b1; t = std::abs(t0 * R01 + t1 * R11 + t2 * R21); if (t > ra + rb) return false;\n    ra = a0 * AbsR02 + a1 * AbsR12 + a2 * AbsR22; rb = b2; t = std::abs(t0 * R02 + t1 * R12 + t2 * R22); if (t > ra + rb) return false;\n\n    ra = a1 * AbsR20 + a2 * AbsR10; rb = b1 * AbsR02 + b2 * AbsR01; t = std::abs(t2 * R10 - t1 * R20); if (t > ra + rb) return false;\n    ra = a1 * AbsR21 + a2 * AbsR11; rb = b0 * AbsR02 + b2 * AbsR00; t = std::abs(t2 * R11 - t1 * R21); if (t > ra + rb) return false;\n    ra = a1 * AbsR22 + a2 * AbsR12; rb = b0 * AbsR01 + b1 * AbsR00; t = std::abs(t2 * R12 - t1 * R22); if (t > ra + rb) return false;\n\n    ra = a0 * AbsR20 + a2 * AbsR00; rb = b1 * AbsR12 + b2 * AbsR11; t = std::abs(t0 * R20 - t2 * R00); if (t > ra + rb) return false;\n    ra = a0 * AbsR21 + a2 * AbsR01; rb = b0 * AbsR12 + b2 * AbsR10; t = std::abs(t0 * R21 - t2 * R01); if (t > ra + rb) return false;\n    ra = a0 * AbsR22 + a2 * AbsR02; rb = b0 * AbsR11 + b1 * AbsR10; t = std::abs(t0 * R22 - t2 * R02); if (t > ra + rb) return false;\n\n    ra = a0 * AbsR10 + a1 * AbsR00; rb = b1 * AbsR22 + b2 * AbsR21; t = std::abs(t1 * R00 - t0 * R10); if (t > ra + rb) return false;\n    ra = a0 * AbsR11 + a1 * AbsR01; rb = b0 * AbsR22 + b2 * AbsR20; t = std::abs(t1 * R01 - t0 * R11); if (t > ra + rb) return false;\n    ra = a0 * AbsR12 + a1 * AbsR02; rb = b0 * AbsR21 + b1 * AbsR20; t = std::abs(t1 * R02 - t0 * R12); if (t > ra + rb) return false;\n\n    return true;\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.collides_with"
-      ]
-    },
-    {
-      "name": "BoundingBox.collides_with_naive",
-      "implementations": {
-        "cpp": {
-          "sig": "bool collides_with_naive(const BoundingBox& other)",
-          "code": "bool BoundingBox::collides_with_naive(const BoundingBox& other) const {\n    Point center_pt(center[0], center[1], center[2]);\n    Point other_center_pt(other.center[0], other.center[1], other.center[2]);\n    Vector relative_position = Vector::from_points(center_pt, other_center_pt);\n    \n    const Vector x1 = x_axis, y1 = y_axis, z1 = z_axis;\n    const Vector x2 = other.x_axis, y2 = other.y_axis, z2 = other.z_axis;\n\n    if (separating_plane_exists(relative_position, x1, *this, other)) return false;\n    if (separating_plane_exists(relative_position, y1, *this, other)) return false;\n    if (separating_plane_exists(relative_position, z1, *this, other)) return false;\n    if (separating_plane_exists(relative_position, x2, *this, other)) return false;\n    if (separating_plane_exists(relative_position, y2, *this, other)) return false;\n    if (separating_plane_exists(relative_position, z2, *this, other)) return false;\n\n    if (separating_plane_exists(relative_position, x1.cross(x2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, x1.cross(y2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, x1.cross(z2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, y1.cross(x2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, y1.cross(y2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, y1.cross(z2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, z1.cross(x2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, z1.cross(y2), *this, other)) return false;\n    if (separating_plane_exists(relative_position, z1.cross(z2), *this, other)) return false;\n\n    return true;\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.collides_with",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.separating_plane_exists"
-      ]
-    },
-    {
-      "name": "BoundingBox.jsondump",
-      "implementations": {
-        "cpp": {
-          "sig": "nlohmann::ordered_json jsondump()",
-          "code": "nlohmann::ordered_json BoundingBox::jsondump() const {\n    return {\n        {\"type\", \"BoundingBox\"}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "jsondump() -> Result<String, std::boxed::Box<dyn std::error::Error>>",
-          "code": "pub fn jsondump(&self) -> Result<String, std::boxed::Box<dyn std::error::Error>> {\n        let data = serde_json::json!({\n            \"type\": \"BoundingBox\",\n            \"center\": serde_json::from_str::<serde_json::Value>(&self.center.jsondump()?)?,\n            \"x_axis\": serde_json::from_str::<serde_json::Value>(&self.x_axis.jsondump()?)?,\n            \"y_axis\": serde_json::from_str::<serde_json::Value>(&self.y_axis.jsondump()?)?,\n            \"z_axis\": serde_json::from_str::<serde_json::Value>(&self.z_axis.jsondump()?)?,\n            \"half_size\": serde_json::from_str::<serde_json::Value>(&self.half_size.jsondump()?)?,\n            \"guid\": self.guid,\n            \"name\": self.name,\n        });\n        Ok(serde_json::to_string(&data)?)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_loads",
-        "BoundingBox.to_json",
-        "BoundingBox.to_json_file",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.jsonload",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox jsonload(const nlohmann::json& data)",
-          "code": "BoundingBox BoundingBox::jsonload(const nlohmann::json& data) {\n    BoundingBox box;\n    box.center = Point::jsonload(data[\"center\"]);\n    box.x_axis = Vector::jsonload(data[\"x_axis\"]);\n    box.y_axis = Vector::jsonload(data[\"y_axis\"]);\n    box.z_axis = Vector::jsonload(data[\"z_axis\"]);\n    box.half_size = Vector::jsonload(data[\"half_size\"]);\n    box.guid = data[\"guid\"];\n    box.name = data[\"name\"];\n    return box;\n}",
-          "file": "boundingbox.cpp"
-        },
-        "rust": {
-          "sig": "jsonload(json_data: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>>",
-          "code": "pub fn jsonload(json_data: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>> {\n        let data: serde_json::Value = serde_json::from_str(json_data)?;\n        let mut bbox = BoundingBox::new(\n            Point::jsonload(&data[\"center\"].to_string())?,\n            Vector::jsonload(&data[\"x_axis\"].to_string())?,\n            Vector::jsonload(&data[\"y_axis\"].to_string())?,\n            Vector::jsonload(&data[\"z_axis\"].to_string())?,\n            Vector::jsonload(&data[\"half_size\"].to_string())?,\n        );\n        bbox.guid = data[\"guid\"].as_str().unwrap().to_string();\n        bbox.name = data[\"name\"].as_str().unwrap().to_string();\n        Ok(bbox)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.__jsondump__",
-        "BoundingBox.__jsonload__",
-        "BoundingBox.from_json",
-        "BoundingBox.from_json_file",
-        "BoundingBox.guid",
-        "BoundingBox.json_dump",
-        "BoundingBox.json_dumps",
-        "BoundingBox.json_load",
-        "BoundingBox.json_loads",
-        "BoundingBox.new",
-        "BoundingBox.transform",
-        "BoundingBox.transformed"
-      ]
-    },
-    {
-      "name": "BoundingBox.to_json_file",
-      "implementations": {
-        "cpp": {
-          "sig": "void to_json_file(const std::string& filepath)",
-          "code": "void BoundingBox::to_json_file(const std::string& filepath) const {\n    std::ofstream file(filepath);\n    file << jsondump().dump(4);\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.jsondump",
-        "BoundingBox.to_json"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_json_file",
-      "implementations": {
-        "cpp": {
-          "sig": "BoundingBox from_json_file(const std::string& filepath)",
-          "code": "BoundingBox BoundingBox::from_json_file(const std::string& filepath) {\n    std::ifstream file(filepath);\n    nlohmann::json data;\n    file >> data;\n    return jsonload(data);\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox.from_json",
-        "BoundingBox.jsonload"
-      ]
-    },
-    {
-      "name": "BoundingBox.separating_plane_exists",
-      "implementations": {
-        "cpp": {
-          "sig": "bool separating_plane_exists(const Vector& relative_position, const Vector& axis, const BoundingBox& box1, const BoundingBox& box2)",
-          "code": "bool BoundingBox::separating_plane_exists(const Vector& relative_position, const Vector& axis, const BoundingBox& box1, const BoundingBox& box2) {\n    // Fallback (unused by optimized path, but kept for API completeness)\n    Vector rp = relative_position;\n    double dot_rp = std::abs(rp.dot(axis));\n    Vector v1 = box1.x_axis * box1.half_size[0];\n    Vector v2 = box1.y_axis * box1.half_size[1];\n    Vector v3 = box1.z_axis * box1.half_size[2];\n    double proj1 = std::abs(v1.dot(axis)) + std::abs(v2.dot(axis)) + std::abs(v3.dot(axis));\n    Vector v4 = box2.x_axis * box2.half_size[0];\n    Vector v5 = box2.y_axis * box2.half_size[1];\n    Vector v6 = box2.z_axis * box2.half_size[2];\n    double proj2 = std::abs(v4.dot(axis)) + std::abs(v5.dot(axis)) + std::abs(v6.dot(axis));\n    return dot_rp > (proj1 + proj2);\n}",
-          "file": "boundingbox.cpp"
-        }
-      },
-      "related": [
-        "BoundingBox._separating_plane_exists",
-        "BoundingBox.collides_with",
-        "BoundingBox.collides_with_naive",
-        "BoundingBox.corners",
-        "BoundingBox.inflate",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.point_at",
-        "BoundingBox.two_rectangles"
       ]
     },
     {
@@ -43727,17 +42593,68 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "ColorMode.face_normal",
+      "name": "ColorMode.area",
       "implementations": {
         "cpp": {
-          "sig": "std::optional<Vector> face_normal(size_t face_key)",
-          "code": "std::optional<Vector> face_normal(size_t face_key) const;",
+          "sig": "double area()",
+          "code": "double area() const;",
           "file": "mesh.h"
         }
       },
       "related": [
-        "ColorMode.face_normals",
-        "ColorMode.normal"
+        "ColorMode.face_area"
+      ]
+    },
+    {
+      "name": "ColorMode.centroid",
+      "implementations": {
+        "cpp": {
+          "sig": "Point centroid()",
+          "code": "Point centroid() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.face_centroid"
+      ]
+    },
+    {
+      "name": "ColorMode.dihedral_angle",
+      "implementations": {
+        "cpp": {
+          "sig": "std::optional<double> dihedral_angle(size_t u, size_t v)",
+          "code": "std::optional<double> dihedral_angle(size_t u, size_t v) const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.dihedral_angles"
+      ]
+    },
+    {
+      "name": "ColorMode.dihedral_angles",
+      "implementations": {
+        "cpp": {
+          "sig": "std::tuple<std::map<std::pair<size_t,size_t>,double>, std::vector<Polyline>, std::vector<Point>> dihedral_angles(double scale = 0.3, bool with_arcs = true, bool with_points = true)",
+          "code": "std::tuple<std::map<std::pair<size_t,size_t>,double>, std::vector<Polyline>, std::vector<Point>>\n    dihedral_angles(double scale = 0.3, bool with_arcs = true, bool with_points = true) const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.dihedral_angle"
+      ]
+    },
+    {
+      "name": "ColorMode.face_area",
+      "implementations": {
+        "cpp": {
+          "sig": "std::optional<double> face_area(size_t face_key)",
+          "code": "std::optional<double> face_area(size_t face_key) const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.area"
       ]
     },
     {
@@ -43754,17 +42671,42 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "ColorMode.centroid",
+      "name": "ColorMode.face_normal",
       "implementations": {
         "cpp": {
-          "sig": "Point centroid()",
-          "code": "Point centroid() const;",
+          "sig": "std::optional<Vector> face_normal(size_t face_key)",
+          "code": "std::optional<Vector> face_normal(size_t face_key) const;",
           "file": "mesh.h"
         }
       },
       "related": [
-        "ColorMode.face_centroid"
+        "ColorMode.face_normals",
+        "ColorMode.normal"
       ]
+    },
+    {
+      "name": "ColorMode.face_normals",
+      "implementations": {
+        "cpp": {
+          "sig": "std::map<size_t, Vector> face_normals()",
+          "code": "std::map<size_t, Vector> face_normals() const;",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.face_normal",
+        "ColorMode.normal"
+      ]
+    },
+    {
+      "name": "ColorMode.vertex_angle_in_face",
+      "implementations": {
+        "cpp": {
+          "sig": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key)",
+          "code": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key) const;",
+          "file": "mesh.h"
+        }
+      }
     },
     {
       "name": "ColorMode.vertex_normal",
@@ -43797,76 +42739,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "ColorMode.face_area",
-      "implementations": {
-        "cpp": {
-          "sig": "std::optional<double> face_area(size_t face_key)",
-          "code": "std::optional<double> face_area(size_t face_key) const;",
-          "file": "mesh.h"
-        }
-      },
-      "related": [
-        "ColorMode.area"
-      ]
-    },
-    {
-      "name": "ColorMode.area",
-      "implementations": {
-        "cpp": {
-          "sig": "double area()",
-          "code": "double area() const;",
-          "file": "mesh.h"
-        }
-      },
-      "related": [
-        "ColorMode.face_area"
-      ]
-    },
-    {
-      "name": "ColorMode.volume",
-      "implementations": {
-        "cpp": {
-          "sig": "double volume()",
-          "code": "double volume() const;",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "ColorMode.vertex_angle_in_face",
-      "implementations": {
-        "cpp": {
-          "sig": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key)",
-          "code": "std::optional<double> vertex_angle_in_face(size_t vertex_key, size_t face_key) const;",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "ColorMode.dihedral_angle",
-      "implementations": {
-        "cpp": {
-          "sig": "std::optional<double> dihedral_angle(size_t u, size_t v)",
-          "code": "std::optional<double> dihedral_angle(size_t u, size_t v) const;",
-          "file": "mesh.h"
-        }
-      }
-    },
-    {
-      "name": "ColorMode.face_normals",
-      "implementations": {
-        "cpp": {
-          "sig": "std::map<size_t, Vector> face_normals()",
-          "code": "std::map<size_t, Vector> face_normals() const;",
-          "file": "mesh.h"
-        }
-      },
-      "related": [
-        "ColorMode.face_normal",
-        "ColorMode.normal"
-      ]
-    },
-    {
       "name": "ColorMode.vertex_normals",
       "implementations": {
         "cpp": {
@@ -43895,6 +42767,16 @@ window.API_INDEX = {
         "ColorMode.vertex_normal",
         "ColorMode.vertex_normals"
       ]
+    },
+    {
+      "name": "ColorMode.volume",
+      "implementations": {
+        "cpp": {
+          "sig": "double volume()",
+          "code": "double volume() const;",
+          "file": "mesh.h"
+        }
+      }
     },
     {
       "name": "ColorMode.transform",
@@ -44177,6 +43059,16 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "std.acos",
+      "implementations": {
+        "cpp": {
+          "sig": "return acos(cos_angle)",
+          "code": "return std::acos(cos_angle);\n}",
+          "file": "mesh.cpp"
+        }
+      }
+    },
+    {
       "name": "std.abs",
       "implementations": {
         "cpp": {
@@ -44188,16 +43080,6 @@ window.API_INDEX = {
       "related": [
         "std.fabs"
       ]
-    },
-    {
-      "name": "std.acos",
-      "implementations": {
-        "cpp": {
-          "sig": "return acos(cos_angle)",
-          "code": "return std::acos(cos_angle);\n}",
-          "file": "mesh.cpp"
-        }
-      }
     },
     {
       "name": "Mesh.jsondump",
@@ -44371,7 +43253,11 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh.area",
+        "Mesh.centroid",
         "Mesh.clone_with_new_guid",
+        "Mesh.dihedral_angle",
+        "Mesh.dihedral_angles",
         "Mesh.duplicate",
         "Mesh.faces",
         "Mesh.from_polygon_with_holes",
@@ -44399,6 +43285,7 @@ window.API_INDEX = {
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
+        "Mesh.vertex_vertices",
         "Mesh.vertices",
         "Mesh.xform"
       ]
@@ -45351,7 +44238,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "Objects(std::string name = \"my_objects\")",
-          "code": "Objects(std::string name = \"my_objects\") : name(std::move(name)) {\n    // Initialize all geometry collections\n    this->points = std::make_shared<std::vector<std::shared_ptr<Point>>>();\n    this->lines = std::make_shared<std::vector<std::shared_ptr<Line>>>();\n    this->planes = std::make_shared<std::vector<std::shared_ptr<Plane>>>();\n    this->bboxes = std::make_shared<std::vector<std::shared_ptr<BoundingBox>>>();\n    this->polylines = std::make_shared<std::vector<std::shared_ptr<Polyline>>>();\n    this->pointclouds = std::make_shared<std::vector<std::shared_ptr<PointCloud>>>();\n    this->meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();\n    this->nurbscurves = std::make_shared<std::vector<std::shared_ptr<NurbsCurve>>>();\n    this->nurbssurfaces = std::make_shared<std::vector<std::shared_ptr<NurbsSurface>>>();\n    this->breps = std::make_shared<std::vector<std::shared_ptr<BRep>>>();\n  }",
+          "code": "Objects(std::string name = \"my_objects\") : name(std::move(name)) {\n    // Initialize all geometry collections\n    this->points = std::make_shared<std::vector<std::shared_ptr<Point>>>();\n    this->lines = std::make_shared<std::vector<std::shared_ptr<Line>>>();\n    this->planes = std::make_shared<std::vector<std::shared_ptr<Plane>>>();\n    this->bboxes = std::make_shared<std::vector<std::shared_ptr<Obb>>>();\n    this->polylines = std::make_shared<std::vector<std::shared_ptr<Polyline>>>();\n    this->pointclouds = std::make_shared<std::vector<std::shared_ptr<PointCloud>>>();\n    this->meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();\n    this->nurbscurves = std::make_shared<std::vector<std::shared_ptr<NurbsCurve>>>();\n    this->nurbssurfaces = std::make_shared<std::vector<std::shared_ptr<NurbsSurface>>>();\n    this->breps = std::make_shared<std::vector<std::shared_ptr<BRep>>>();\n  }",
           "file": "objects.h"
         }
       },
@@ -45422,7 +44309,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "Objects jsonload(const nlohmann::json &data)",
-          "code": "Objects Objects::jsonload(const nlohmann::json &data) {\n  // Create Objects instance\n  Objects objects(data[\"name\"].get<std::string>());\n  \n  // Load bboxes\n  if (data.contains(\"bboxes\")) {\n    std::vector<std::shared_ptr<BoundingBox>> bboxes;\n    bboxes.reserve(data[\"bboxes\"].size());\n    for (const auto &bbox_data : data[\"bboxes\"])\n      bboxes.push_back(std::make_shared<BoundingBox>(BoundingBox::jsonload(bbox_data)));\n    *objects.bboxes = std::move(bboxes);\n  }",
+          "code": "Objects Objects::jsonload(const nlohmann::json &data) {\n  // Create Objects instance\n  Objects objects(data[\"name\"].get<std::string>());\n  \n  // Load bboxes\n  if (data.contains(\"bboxes\")) {\n    std::vector<std::shared_ptr<Obb>> bboxes;\n    bboxes.reserve(data[\"bboxes\"].size());\n    for (const auto &bbox_data : data[\"bboxes\"])\n      bboxes.push_back(std::make_shared<Obb>(Obb::jsonload(bbox_data)));\n    *objects.bboxes = std::move(bboxes);\n  }",
           "file": "objects.cpp"
         },
         "rust": {
@@ -46910,8 +45797,8 @@ window.API_INDEX = {
       "name": "Session.compute_bounding_box",
       "implementations": {
         "cpp": {
-          "sig": "BoundingBox compute_bounding_box(const Geometry& geometry)",
-          "code": "BoundingBox Session::compute_bounding_box(const Geometry& geometry) {\n  double inflate = Tolerance::APPROXIMATION;\n  \n  return std::visit([inflate](auto&& geom_ptr) -> BoundingBox {\n    using T = std::decay_t<decltype(geom_ptr)>;\n    \n    if constexpr (std::is_same_v<T, std::shared_ptr<Point>>) {\n      return BoundingBox::from_point(*geom_ptr, inflate);\n    }",
+          "sig": "Obb compute_bounding_box(const Geometry& geometry)",
+          "code": "Obb Session::compute_bounding_box(const Geometry& geometry) {\n  double inflate = Tolerance::APPROXIMATION;\n  \n  return std::visit([inflate](auto&& geom_ptr) -> Obb {\n    using T = std::decay_t<decltype(geom_ptr)>;\n    \n    if constexpr (std::is_same_v<T, std::shared_ptr<Point>>) {\n      return Obb::from_point(*geom_ptr, inflate);\n    }",
           "file": "session.cpp"
         }
       },
@@ -46963,7 +45850,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json_obj: serde_json::Value = serde_json::from_str(json_data)?;\n\n        // Deserialize components using their custom methods\n        let objects: Objects = serde_json::from_value(json_obj[\"objects\"].clone())?;\n        let tree: Tree = serde_json::from_value(json_obj[\"tree\"].clone())?;\n        // Convert graph JSON value to properly formatted string\n        let graph_json_str = serde_json::to_string(&json_obj[\"graph\"])?;\n        let graph: Graph = Graph::jsonload(&graph_json_str)?;\n\n        // Rebuild lookup table from all objects\n        let mut lookup = HashMap::new();\n        for bbox in &objects.bboxes {\n            lookup.insert(bbox.guid.clone(), Geometry::BoundingBox(bbox.clone()));\n        }\n        for line in &objects.lines {\n            lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for mesh in &objects.meshes {\n            lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &objects.planes {\n            lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for point in &objects.points {\n            lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &objects.pointclouds {\n            lookup.insert(\n                pointcloud.guid.clone(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for polyline in &objects.polylines {\n            lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &objects.breps {\n            lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        let session = Session {\n            guid: json_obj[\"guid\"].as_str().unwrap_or(\"\").to_string(),\n            name: json_obj[\"name\"]\n                .as_str()\n                .unwrap_or(\"my_session\")\n                .to_string(),\n            objects,\n            lookup,\n            tree,\n            graph,\n            bvh: BVH::new(),\n            cached_ray_bvh: None,\n            cached_guids: Vec::new(),\n            cached_boxes: Vec::new(),\n            bvh_cache_dirty: true,\n        };\n\n        Ok(session)\n    }",
+          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json_obj: serde_json::Value = serde_json::from_str(json_data)?;\n\n        // Deserialize components using their custom methods\n        let objects: Objects = serde_json::from_value(json_obj[\"objects\"].clone())?;\n        let tree: Tree = serde_json::from_value(json_obj[\"tree\"].clone())?;\n        // Convert graph JSON value to properly formatted string\n        let graph_json_str = serde_json::to_string(&json_obj[\"graph\"])?;\n        let graph: Graph = Graph::jsonload(&graph_json_str)?;\n\n        // Rebuild lookup table from all objects\n        let mut lookup = HashMap::new();\n        for bbox in &objects.bboxes {\n            lookup.insert(bbox.guid.clone(), Geometry::Obb(bbox.clone()));\n        }\n        for line in &objects.lines {\n            lookup.insert(line.guid.clone(), Geometry::Line(line.clone()));\n        }\n        for mesh in &objects.meshes {\n            lookup.insert(mesh.guid.clone(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &objects.planes {\n            lookup.insert(plane.guid.clone(), Geometry::Plane(plane.clone()));\n        }\n        for point in &objects.points {\n            lookup.insert(point.guid.clone(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &objects.pointclouds {\n            lookup.insert(\n                pointcloud.guid.clone(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for polyline in &objects.polylines {\n            lookup.insert(polyline.guid.clone(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &objects.breps {\n            lookup.insert(brep.guid.clone(), Geometry::BRep(brep.clone()));\n        }\n\n        let session = Session {\n            guid: json_obj[\"guid\"].as_str().unwrap_or(\"\").to_string(),\n            name: json_obj[\"name\"]\n                .as_str()\n                .unwrap_or(\"my_session\")\n                .to_string(),\n            objects,\n            lookup,\n            tree,\n            graph,\n            bvh: BVH::new(),\n            cached_ray_bvh: None,\n            cached_guids: Vec::new(),\n            cached_boxes: Vec::new(),\n            bvh_cache_dirty: true,\n        };\n\n        Ok(session)\n    }",
           "file": "session.rs"
         }
       },
@@ -47055,6 +45942,32 @@ window.API_INDEX = {
           "file": "session.cpp"
         }
       }
+    },
+    {
+      "name": "Obb.from_point",
+      "implementations": {
+        "cpp": {
+          "sig": "return from_point(Point(0, 0, 0)",
+          "code": "return Obb::from_point(Point(0, 0, 0), inflate);\n    }",
+          "file": "session.cpp"
+        }
+      },
+      "related": [
+        "Obb.from_points"
+      ]
+    },
+    {
+      "name": "Obb.from_points",
+      "implementations": {
+        "cpp": {
+          "sig": "return from_points(points, inflate)",
+          "code": "return Obb::from_points(points, inflate);\n    }",
+          "file": "session.cpp"
+        }
+      },
+      "related": [
+        "Obb.from_point"
+      ]
     },
     {
       "name": "std.round",
@@ -47752,6 +46665,7 @@ window.API_INDEX = {
         "Vector.json_load",
         "Vector.new",
         "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.x",
         "Vector.y",
         "Vector.z"
@@ -47779,53 +46693,11 @@ window.API_INDEX = {
         "Vector.json_dumps",
         "Vector.json_load",
         "Vector.json_loads",
-        "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.str",
         "Vector.x",
         "Vector.y",
         "Vector.z"
-      ]
-    },
-    {
-      "name": "Vector.reflect",
-      "implementations": {
-        "cpp": {
-          "sig": "Vector reflect(const Vector& plane_normal)",
-          "code": "Vector Vector::reflect(const Vector& plane_normal) const {\n    double d = this->dot(plane_normal);\n    return Vector(\n        _x - 2.0 * d * plane_normal[0],\n        _y - 2.0 * d * plane_normal[1],\n        _z - 2.0 * d * plane_normal[2]\n    );\n}",
-          "file": "vector.cpp"
-        }
-      },
-      "related": [
-        "Vector.dot",
-        "Vector.x",
-        "Vector.y",
-        "Vector.z"
-      ]
-    },
-    {
-      "name": "Vector.average_normal",
-      "implementations": {
-        "cpp": {
-          "sig": "void average_normal(const std::vector<Point>& pts, Vector& out)",
-          "code": "void average_normal(const std::vector<Point>& pts, Vector& out);",
-          "file": "vector.h"
-        }
-      },
-      "related": [
-        "Vector.average"
-      ]
-    },
-    {
-      "name": "Vector.interpolate_points",
-      "implementations": {
-        "cpp": {
-          "sig": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0)",
-          "code": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0);",
-          "file": "vector.h"
-        }
-      },
-      "related": [
-        "Vector.y"
       ]
     },
     {
@@ -47870,6 +46742,7 @@ window.API_INDEX = {
         "Vector.parse",
         "Vector.pb_dumps",
         "Vector.perpendicular_to",
+        "Vector.reflect",
         "Vector.repr",
         "Vector.str",
         "Vector.x",
@@ -48147,136 +47020,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "BoundingBox.new",
-      "implementations": {
-        "rust": {
-          "sig": "new(\n        center: Point,\n        x_axis: Vector,\n        y_axis: Vector,\n        z_axis: Vector,\n        half_size: Vector,\n    ) -> Self",
-          "code": "pub fn new(\n        center: Point,\n        x_axis: Vector,\n        y_axis: Vector,\n        z_axis: Vector,\n        half_size: Vector,\n    ) -> Self {\n        BoundingBox {\n            center,\n            x_axis,\n            y_axis,\n            z_axis,\n            half_size,\n            guid: Uuid::new_v4().to_string(),\n            name: \"my_boundingbox\".to_string(),\n            xform: Xform::identity(),\n        }\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.aabb",
-        "BoundingBox.collides_with",
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_nurbscurve_with_plane",
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_nurbssurface_with_plane",
-        "BoundingBox.from_plane",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.guid",
-        "BoundingBox.inflate",
-        "BoundingBox.jsonload",
-        "BoundingBox.max_point",
-        "BoundingBox.min_point",
-        "BoundingBox.pb_loads",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_nurbscurve_with_plane",
-      "implementations": {
-        "rust": {
-          "sig": "from_nurbscurve_with_plane(\n        curve: &crate::nurbscurve::NurbsCurve,\n        plane: &Plane,\n        inflate: f64,\n        tight: bool,\n    ) -> Self",
-          "code": "pub fn from_nurbscurve_with_plane(\n        curve: &crate::nurbscurve::NurbsCurve,\n        plane: &Plane,\n        inflate: f64,\n        tight: bool,\n    ) -> Self {\n        if !curve.is_valid() || curve.cv_count() == 0 {\n            return BoundingBox::default();\n        }\n\n        if !tight {\n            let points: Vec<Point> = (0..curve.cv_count())\n                .filter_map(|i| curve.get_cv(i))\n                .collect();\n            return Self::from_points_with_plane(&points, plane, inflate);\n        }\n\n        let (t0, t1) = curve.domain();\n        let mut extrema_points = vec![curve.point_at(t0), curve.point_at(t1)];\n\n        let spans = curve.get_span_vector();\n        for t in spans {\n            if t > t0 && t < t1 {\n                extrema_points.push(curve.point_at(t));\n            }\n        }\n\n        let axes = [plane.x_axis(), plane.y_axis(), plane.z_axis()];\n        const NUM_SAMPLES: usize = 20;\n        let dt = (t1 - t0) / NUM_SAMPLES as f64;\n\n        for axis in &axes {\n            for i in 0..NUM_SAMPLES {\n                let t_start = t0 + i as f64 * dt;\n                let t_end = t_start + dt;\n\n                let deriv_start = curve.evaluate(t_start, 1);\n                let deriv_end = curve.evaluate(t_end, 1);\n                if deriv_start.len() < 2 || deriv_end.len() < 2 {\n                    continue;\n                }\n\n                let mut d_start = deriv_start[1].dot(axis);\n                let d_end = deriv_end[1].dot(axis);\n\n                if d_start * d_end < 0.0 {\n                    let mut t_lo = t_start;\n                    let mut t_hi = t_end;\n                    let mut t_root = (t_lo + t_hi) * 0.5;\n\n                    for _ in 0..20 {\n                        let deriv = curve.evaluate(t_root, 2);\n                        if deriv.len() < 3 {\n                            break;\n                        }\n\n                        let f = deriv[1].dot(axis);\n                        let fp = deriv[2].dot(axis);\n\n                        if f.abs() < 1e-12 {\n                            break;\n                        }\n\n                        if fp.abs() > 1e-14 {\n                            let t_new = t_root - f / fp;\n                            if t_new >= t_lo && t_new <= t_hi {\n                                t_root = t_new;\n                            } else {\n                                if f * d_start < 0.0 {\n                                    t_hi = t_root;\n                                } else {\n                                    t_lo = t_root;\n                                }\n                                t_root = (t_lo + t_hi) * 0.5;\n                            }\n                        } else {\n                            t_root = (t_lo + t_hi) * 0.5;\n                        }\n\n                        let deriv_check = curve.evaluate(t_root, 1);\n                        if deriv_check.len() >= 2 {\n                            let f_check = deriv_check[1].dot(axis);\n                            if f_check * d_start < 0.0 {\n                                t_hi = t_root;\n                            } else {\n                                t_lo = t_root;\n                                d_start = f_check;\n                            }\n                        }\n                    }\n\n                    extrema_points.push(curve.point_at(t_root));\n                }\n            }\n        }\n\n        Self::from_points_with_plane(&extrema_points, plane, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_nurbscurve",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.new",
-        "BoundingBox.point_at"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_mesh_with_plane",
-      "implementations": {
-        "rust": {
-          "sig": "from_mesh_with_plane(mesh: &crate::mesh::Mesh, plane: &Plane, inflate: f64) -> Self",
-          "code": "pub fn from_mesh_with_plane(mesh: &crate::mesh::Mesh, plane: &Plane, inflate: f64) -> Self {\n        let (vertices, _) = mesh.to_vertices_and_faces();\n        Self::from_points_with_plane(&vertices, plane, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_mesh",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_pointcloud_with_plane",
-      "implementations": {
-        "rust": {
-          "sig": "from_pointcloud_with_plane(pointcloud: &crate::pointcloud::PointCloud, plane: &Plane, inflate: f64) -> Self",
-          "code": "pub fn from_pointcloud_with_plane(pointcloud: &crate::pointcloud::PointCloud, plane: &Plane, inflate: f64) -> Self {\n        Self::from_points_with_plane(&pointcloud.get_points(), plane, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_point",
-        "BoundingBox.from_pointcloud",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_nurbssurface_with_plane",
-      "implementations": {
-        "rust": {
-          "sig": "from_nurbssurface_with_plane(surface: &crate::nurbssurface::NurbsSurface, plane: &Plane, inflate: f64) -> Self",
-          "code": "pub fn from_nurbssurface_with_plane(surface: &crate::nurbssurface::NurbsSurface, plane: &Plane, inflate: f64) -> Self {\n        if !surface.is_valid() || surface.cv_count_dir(Some(0)) == 0 || surface.cv_count_dir(Some(1)) == 0 {\n            return BoundingBox::default();\n        }\n        let mut points = Vec::new();\n        for i in 0..surface.cv_count_dir(Some(0)) {\n            for j in 0..surface.cv_count_dir(Some(1)) {\n                if let Some(pt) = surface.get_cv(i, j) {\n                    points.push(pt);\n                }\n            }\n        }\n        Self::from_points_with_plane(&points, plane, inflate)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_nurbssurface",
-        "BoundingBox.from_point",
-        "BoundingBox.from_points",
-        "BoundingBox.from_points_with_plane",
-        "BoundingBox.inflate",
-        "BoundingBox.new"
-      ]
-    },
-    {
-      "name": "BoundingBox.to_json",
-      "implementations": {
-        "rust": {
-          "sig": "to_json(filepath: &str) -> Result<(), std::boxed::Box<dyn std::error::Error>>",
-          "code": "pub fn to_json(&self, filepath: &str) -> Result<(), std::boxed::Box<dyn std::error::Error>> {\n        let json_string = self.jsondump()?;\n        let value: serde_json::Value = serde_json::from_str(&json_string)?;\n        let pretty = serde_json::to_string_pretty(&value)?;\n        std::fs::write(filepath, pretty)?;\n        Ok(())\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.json_dump",
-        "BoundingBox.jsondump",
-        "BoundingBox.to_json_file"
-      ]
-    },
-    {
-      "name": "BoundingBox.from_json",
-      "implementations": {
-        "rust": {
-          "sig": "from_json(filepath: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>>",
-          "code": "pub fn from_json(filepath: &str) -> Result<Self, std::boxed::Box<dyn std::error::Error>> {\n        let json_string = std::fs::read_to_string(filepath)?;\n        Self::jsonload(&json_string)\n    }",
-          "file": "boundingbox.rs"
-        }
-      },
-      "related": [
-        "BoundingBox.from_json_file",
-        "BoundingBox.json_load",
-        "BoundingBox.jsonload"
-      ]
-    },
-    {
       "name": "Color.new",
       "implementations": {
         "rust": {
@@ -48510,6 +47253,7 @@ window.API_INDEX = {
         "Mesh.clone_with_new_guid",
         "Mesh.create_box",
         "Mesh.create_dodecahedron",
+        "Mesh.dihedral_angles",
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edges",
@@ -49395,7 +48139,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "guid() -> &str",
-          "code": "pub fn guid(&self) -> &str {\n        match self {\n            Geometry::BoundingBox(g) => &g.guid,\n            Geometry::BRep(g) => &g.guid,\n            Geometry::Line(g) => &g.guid,\n            Geometry::Mesh(g) => &g.guid,\n            Geometry::Plane(g) => &g.guid,\n            Geometry::Point(g) => &g.guid,\n            Geometry::PointCloud(g) => &g.guid,\n            Geometry::Polyline(g) => &g.guid,\n        }\n    }",
+          "code": "pub fn guid(&self) -> &str {\n        match self {\n            Geometry::Obb(g) => &g.guid,\n            Geometry::BRep(g) => &g.guid,\n            Geometry::Line(g) => &g.guid,\n            Geometry::Mesh(g) => &g.guid,\n            Geometry::Plane(g) => &g.guid,\n            Geometry::Point(g) => &g.guid,\n            Geometry::PointCloud(g) => &g.guid,\n            Geometry::Polyline(g) => &g.guid,\n        }\n    }",
           "file": "session.rs"
         }
       }
@@ -50086,6 +48830,7 @@ window.API_INDEX = {
         "Vector.normalized",
         "Vector.pb_loads",
         "Vector.projection",
+        "Vector.reflect",
         "Vector.x",
         "Vector.x_axis",
         "Vector.y",
@@ -50110,6 +48855,26 @@ window.API_INDEX = {
         "Vector.y",
         "Vector.z"
       ]
+    },
+    {
+      "name": "fmt.average_normal",
+      "implementations": {
+        "rust": {
+          "sig": "average_normal(pts: &[Point]) -> Vector",
+          "code": "pub fn average_normal(pts: &[Point]) -> Vector {\n    const DISTANCE_SQUARED: f64 = 1e-10;\n    let last = pts.len() - 1;\n    let dx = pts[last][0] - pts[0][0];\n    let dy = pts[last][1] - pts[0][1];\n    let dz = pts[last][2] - pts[0][2];\n    let n = if dx * dx + dy * dy + dz * dz < DISTANCE_SQUARED {\n        pts.len() - 1\n    } else {\n        pts.len()\n    };\n    let mut avg = Vector::new(0.0, 0.0, 0.0);\n    for i in 0..n {\n        let prev = (i + n - 1) % n;\n        let next = (i + 1) % n;\n        let ax = pts[i][0] - pts[prev][0];\n        let ay = pts[i][1] - pts[prev][1];\n        let az = pts[i][2] - pts[prev][2];\n        let bx = pts[next][0] - pts[i][0];\n        let by = pts[next][1] - pts[i][1];\n        let bz = pts[next][2] - pts[i][2];\n        avg[0] += ay * bz - az * by;\n        avg[1] += az * bx - ax * bz;\n        avg[2] += ax * by - ay * bx;\n    }\n    avg.normalize();\n    avg\n}",
+          "file": "vector.rs"
+        }
+      }
+    },
+    {
+      "name": "fmt.interpolate_points",
+      "implementations": {
+        "rust": {
+          "sig": "interpolate_points(from: &Point, to: &Point, steps: usize, type_: usize) -> Vec<Point>",
+          "code": "pub fn interpolate_points(from: &Point, to: &Point, steps: usize, type_: usize) -> Vec<Point> {\n    let mut pts: Vec<Point> = Vec::new();\n    if type_ == 1 || type_ == 2 {\n        pts.push(Point::new(from[0], from[1], from[2]));\n    }\n    for i in 1..=steps {\n        let t = i as f64 / (1 + steps) as f64;\n        pts.push(Point::new(\n            from[0] + t * (to[0] - from[0]),\n            from[1] + t * (to[1] - from[1]),\n            from[2] + t * (to[2] - from[2]),\n        ));\n    }\n    if type_ == 1 {\n        pts.push(Point::new(to[0], to[1], to[2]));\n    }\n    pts\n}",
+          "file": "vector.rs"
+        }
+      }
     },
     {
       "name": "Xform.new",
@@ -50209,7 +48974,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.transform_point",
         "Xform.transform_vector",
@@ -50271,7 +49035,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.transform_point",
         "Xform.transform_vector",
@@ -50331,7 +49094,6 @@ window.API_INDEX = {
         "Xform.scale_non_uniform",
         "Xform.scale_uniform",
         "Xform.scale_xyz",
-        "Xform.scaling",
         "Xform.to_frame",
         "Xform.transform_point",
         "Xform.transform_vector",
@@ -50340,81 +49102,6 @@ window.API_INDEX = {
         "Xform.translation",
         "Xform.xy_to_plane"
       ]
-    },
-    {
-      "name": "BoundingBox.test_Constructor",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"BoundingBox\", \"Constructor\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Constructor\") {\n    // from_point\n    BoundingBox bb1 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 2.0);\n    MINI_CHECK(TOLERANCE.is_close(bb1.center[0], 5.0));\n    MINI_CHECK(TOLERANCE.is_close(bb1.half_size[0], 2.0));\n\n    // from_points (AABB)\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)};\n    BoundingBox bb2 = BoundingBox::from_points(pts);\n    Point mn = bb2.min_point();\n    Point mx = bb2.max_point();\n    MINI_CHECK(TOLERANCE.is_close(mn[0], 0.0) && TOLERANCE.is_close(mn[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(mx[0], 2.0) && TOLERANCE.is_close(mx[2], 4.0));\n\n    // OBB constructor\n    BoundingBox obb(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 2.0, 3.0)\n    );\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[1], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[2], 3.0));\n\n    // aabb\n    BoundingBox bb_aabb = bb2.aabb();\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0));\n\n    // corners\n    std::array<Point, 8> corners = bb2.corners();\n    MINI_CHECK(corners.size() == 8);\n\n    // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    Point p_center = bb2.point_at(0.0, 0.0, 0.0);\n    double hx = bb2.half_size[0], hy = bb2.half_size[1], hz = bb2.half_size[2];\n    Point p_max_pt = bb2.point_at(hx, hy, hz);\n    MINI_CHECK(TOLERANCE.is_close(p_center[0], 1.0) && TOLERANCE.is_close(p_center[2], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(p_max_pt[0], 2.0) && TOLERANCE.is_close(p_max_pt[2], 4.0));\n\n    // inflate\n    BoundingBox bb3 = BoundingBox::from_points({Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)});\n    bb3.inflate(1.0);\n    MINI_CHECK(TOLERANCE.is_close(bb3.min_point()[0], -1.0));\n    MINI_CHECK(TOLERANCE.is_close(bb3.max_point()[0], 3.0));\n\n    // guid and name\n    MINI_CHECK(!bb1.guid.empty());\n    bb1.name = \"test_bbox\";\n    MINI_CHECK(bb1.name == \"test_bbox\");\n}",
-          "file": "boundingbox_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"BoundingBox\", \"Constructor\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Constructor\")\ndef test_boundingbox_constructor():\n    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 2.0)\n    MINI_CHECK(TOLERANCE.is_close(bb1.center[0], 5.0))\n    MINI_CHECK(TOLERANCE.is_close(bb1.half_size[0], 2.0))\n\n    # from_points (AABB)\n    pts = [Point(0.0, 0.0, 0.0), Point(2.0, 3.0, 4.0)]\n    bb2 = BoundingBox.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n    MINI_CHECK(TOLERANCE.is_close(mn[0], 0.0) and TOLERANCE.is_close(mn[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(mx[0], 2.0) and TOLERANCE.is_close(mx[2], 4.0))\n\n    # OBB constructor\n    obb = BoundingBox(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[1], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(obb.half_size[2], 3.0))\n\n    # aabb\n    bb_aabb = bb2.aabb()\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0))\n\n    # corners\n    corners = bb2.corners()\n    MINI_CHECK(len(corners) == 8)\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n    MINI_CHECK(TOLERANCE.is_close(p_center[0], 1.0) and TOLERANCE.is_close(p_center[2], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(p_max_pt[0], 2.0) and TOLERANCE.is_close(p_max_pt[2], 4.0))\n\n    # inflate\n    bb3 = BoundingBox.from_points([Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)])\n    bb3.inflate(1.0)\n    MINI_CHECK(TOLERANCE.is_close(bb3.min_point()[0], -1.0))\n    MINI_CHECK(TOLERANCE.is_close(bb3.max_point()[0], 3.0))\n\n    # guid and name\n    MINI_CHECK(bb1.guid)\n    bb1.name = \"test_bbox\"\n    MINI_CHECK(bb1.name == \"test_bbox\")",
-          "file": "boundingbox_test.py"
-        }
-      }
-    },
-    {
-      "name": "BoundingBox.test_Collision",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"BoundingBox\", \"Collision\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Collision\") {\n    BoundingBox bb1 = BoundingBox::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    BoundingBox bb2 = BoundingBox::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    BoundingBox bb3 = BoundingBox::from_point(Point(5.0, 5.0, 5.0), 0.5);\n\n    MINI_CHECK(bb1.collides_with(bb2));\n    MINI_CHECK(!bb1.collides_with(bb3));\n    MINI_CHECK(bb1.collides_with_rtcd(bb2));\n    MINI_CHECK(!bb1.collides_with_rtcd(bb3));\n    MINI_CHECK(bb1.collides_with_naive(bb2));\n    MINI_CHECK(!bb1.collides_with_naive(bb3));\n}",
-          "file": "boundingbox_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"BoundingBox\", \"Collision\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Collision\")\ndef test_boundingbox_collision():\n    from session_py import BoundingBox\n    from session_py import Point\n\n    bb1 = BoundingBox.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = BoundingBox.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = BoundingBox.from_point(Point(5.0, 5.0, 5.0), 0.5)\n\n    MINI_CHECK(bb1.collides_with(bb2))\n    MINI_CHECK(not bb1.collides_with(bb3))",
-          "file": "boundingbox_test.py"
-        }
-      }
-    },
-    {
-      "name": "BoundingBox.test_Transformation",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"BoundingBox\", \"Transformation\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Transformation\") {\n    std::vector<Point> pts = {Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)};\n    BoundingBox bb = BoundingBox::from_points(pts);\n    bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n    BoundingBox bbt = bb.transformed();\n    MINI_CHECK(TOLERANCE.is_close(bbt.center[2], 5.0));\n\n    bb.transform();\n    MINI_CHECK(bb.xform == Xform::identity());\n    MINI_CHECK(TOLERANCE.is_close(bb.center[2], 5.0));\n}",
-          "file": "boundingbox_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"BoundingBox\", \"Transformation\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Transformation\")\ndef test_boundingbox_transformation():\n    from session_py import BoundingBox\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)]\n    bb = BoundingBox.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n    MINI_CHECK(TOLERANCE.is_close(bbt.center[2], 5.0))\n\n    bb.transform()\n    MINI_CHECK(bb.xform == Xform.identity())\n    MINI_CHECK(TOLERANCE.is_close(bb.center[2], 5.0))",
-          "file": "boundingbox_test.py"
-        }
-      }
-    },
-    {
-      "name": "BoundingBox.test_Json Roundtrip",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Json Roundtrip\") {\n    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    BoundingBox loaded_j = BoundingBox::jsonload(j);\n    MINI_CHECK(loaded_j.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_j.center[0], 1.0));\n\n    // String\n    std::string s = bb.json_dumps();\n    BoundingBox loaded_s = BoundingBox::json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.half_size[0], 5.0));\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.json\";\n    bb.json_dump(fname);\n    BoundingBox loaded = BoundingBox::json_load(fname);\n    MINI_CHECK(loaded.name == \"test_bbox\");\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0));\n}",
-          "file": "boundingbox_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Json Roundtrip\")\ndef test_boundingbox_json_roundtrip():\n    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = BoundingBox.__jsonload__(d)\n    MINI_CHECK(loaded_j.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_j.center[0], 1.0))\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = BoundingBox.json_loads(s)\n    MINI_CHECK(loaded_s.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.half_size[0], 5.0))\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.json\"\n    bb.json_dump(fname)\n    loaded = BoundingBox.json_load(fname)\n    MINI_CHECK(loaded.name == \"test_bbox\")\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0))",
-          "file": "boundingbox_test.py"
-        }
-      }
-    },
-    {
-      "name": "BoundingBox.test_Protobuf Roundtrip",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\") {\n    BoundingBox bb = BoundingBox::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    BoundingBox loaded_s = BoundingBox::pb_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_bbox_proto\");\n    MINI_CHECK(loaded_s.guid == bb.guid);\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.center[0], 1.0));\n\n    // File\n    std::string fname = \"serialization/test_boundingbox.bin\";\n    bb.pb_dump(fname);\n    BoundingBox loaded = BoundingBox::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_bbox_proto\");\n    MINI_CHECK(loaded.guid == bb.guid);\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0));\n}",
-          "file": "boundingbox_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"BoundingBox\", \"Protobuf Roundtrip\")\ndef test_boundingbox_protobuf_roundtrip():\n    from session_py import BoundingBox\n    from session_py import Point\n    from pathlib import Path\n\n    bb = BoundingBox.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = BoundingBox.pb_loads(b)\n    MINI_CHECK(loaded_s.name == \"test_bbox_proto\")\n    MINI_CHECK(loaded_s.guid == bb.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded_s.center[0], 1.0))\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_boundingbox.bin\"\n    bb.pb_dump(fname)\n    loaded = BoundingBox.pb_load(fname)\n    MINI_CHECK(loaded.name == \"test_bbox_proto\")\n    MINI_CHECK(loaded.guid == bb.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded.center[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded.half_size[0], 5.0))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
-          "file": "boundingbox_test.py"
-        }
-      }
     },
     {
       "name": "Color.test_Constructor",
@@ -51126,12 +49813,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(-1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,3}, {0,3,2}});\n        auto vkeys = mesh.vertices();\n        size_t v0 = vkeys[0];\n        size_t v1 = vkeys[1];\n        size_t v3 = vkeys[3];\n        size_t f0 = mesh.faces()[0];\n\n        // face_normal\n        std::optional<Vector> fn = mesh.face_normal(f0);\n        MINI_CHECK(fn.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fn)[2], 1.0));\n\n        // face_centroid\n        std::optional<Point> fc = mesh.face_centroid(f0);\n        MINI_CHECK(fc.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*fc)[0], 1.0 / 3.0));\n        MINI_CHECK(TOLERANCE.is_close((*fc)[1], 1.0 / 3.0));\n        MINI_CHECK((*fc)[2] == 0.0);\n\n        // centroid\n        Point c = mesh.centroid();\n        MINI_CHECK(c[0] == 0.0);\n        MINI_CHECK(TOLERANCE.is_close(c[1], 0.25));\n        MINI_CHECK(c[2] == 0.0);\n\n        // vertex_normal\n        std::optional<Vector> vn = mesh.vertex_normal(v0);\n        MINI_CHECK(vn.has_value());\n        MINI_CHECK(std::abs((*vn)[2]) == 1.0);\n\n        // vertex_normal_weighted\n        std::optional<Vector> vnw = mesh.vertex_normal_weighted(v0, NormalWeighting::Angle);\n        MINI_CHECK(vnw.has_value());\n        MINI_CHECK(TOLERANCE.is_close((*vnw)[2], 1.0));\n\n        // face_area\n        std::optional<double> area = mesh.face_area(f0);\n        MINI_CHECK(area.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*area, 0.5));\n\n        // vertex_angle_in_face\n        std::optional<double> angle = mesh.vertex_angle_in_face(v0, f0);\n        MINI_CHECK(angle.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*angle, TOLERANCE.PI / 2.0));\n        MINI_CHECK(!mesh.vertex_angle_in_face(999, f0).has_value());\n\n        // dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n        std::optional<double> da = mesh.dihedral_angle(v3, v0);\n        MINI_CHECK(da.has_value());\n        MINI_CHECK(TOLERANCE.is_close(*da, TOLERANCE.PI));\n        // boundary edge \u00e2\u20ac\u201d only one face\n        MINI_CHECK(!mesh.dihedral_angle(v0, v1).has_value());\n\n        // face_normals\n        std::map<size_t, Vector> fns = mesh.face_normals();\n        MINI_CHECK(fns.size() == 2);\n        MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0));\n\n        // vertex_normals\n        std::map<size_t, Vector> vns = mesh.vertex_normals();\n        MINI_CHECK(vns.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0));\n\n        // vertex_normals_weighted\n        std::map<size_t, Vector> vnsw = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        MINI_CHECK(vnsw.size() == mesh.number_of_vertices());\n        MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0));\n\n        // area\n        Mesh box = Mesh::create_box(2.0, 2.0, 2.0);\n        MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0));\n\n        // volume\n        MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        double area = mesh.area();\n        MINI_CHECK(TOLERANCE.is_close(area, 46.4528898159021));\n\n        // centroid\n        Point centroid = mesh.centroid();\n        MINI_CHECK(TOLERANCE.is_point_close(centroid, Point(0.0, 0.0, 0.0)));\n\n        // dihedral angle\n        auto [angles, arcs, points] = mesh.dihedral_angles(0.3);\n\n        for (const auto& [edge, angle] : angles) {\n            size_t u = edge.first;\n            size_t v = edge.second;\n            double angle_in_degrees = angle;\n            MINI_CHECK(TOLERANCE.is_close(angle_in_degrees, 116.565051177078));\n        }\n\n        // face area\n        for (size_t f : mesh.faces()) {\n            double face_area = mesh.face_area(f).value();\n            MINI_CHECK(TOLERANCE.is_close(face_area, 3.87107415132518));\n        }\n        \n        // face centroid\n        std::vector<Point> centroids;\n        for (size_t f : mesh.faces()) \n            centroids.emplace_back(*mesh.face_centroid(f));\n\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[0],  Point( 0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[1],  Point( 1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[2],  Point( 0.0,                1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[3],  Point( 0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[4],  Point( 0.0,                1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[5],  Point( 0.0,               -1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[6],  Point( 1.420820393249937, -0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[7],  Point( 0.0,               -1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[8],  Point(-1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[9],  Point(-0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[10], Point(-0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[11], Point(-1.420820393249937, -0.878115294937453, 0.0              )));\n\n        // face normal / s\n        std::map<size_t, Vector> face_normals = mesh.face_normals();\n        for (size_t f : mesh.faces()) {\n            Vector normal0 = mesh.face_normal(f).value();\n            Vector normal1 = face_normals.at(f);\n            MINI_CHECK(TOLERANCE.is_vector_close(face_normals.at(f), *mesh.face_normal(f)));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[0],  Vector( 0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[1],  Vector( 0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[2],  Vector( 0.0,                 0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[3],  Vector( 0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[4],  Vector( 0.0,                 0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[5],  Vector( 0.0,                -0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[6],  Vector( 0.8506508083520400, -0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[7],  Vector( 0.0,                -0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[8],  Vector(-0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[9],  Vector(-0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[10], Vector(-0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[11], Vector(-0.8506508083520400, -0.5257311121191336,  0.0               )));\n\n        // vertex angle in face\n        for (const size_t f : mesh.faces())\n            for (const size_t v : *mesh.face_vertices(f)){\n                double angle = mesh.vertex_angle_in_face(v, f).value();\n                MINI_CHECK(TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f).value(), 1.8849555921538759));\n            }\n\n        // vertex normal / s\n        std::map<size_t, Vector> vertex_normals = mesh.vertex_normals();\n        for (const size_t v : mesh.vertices()){\n            Vector normal0 = mesh.vertex_normal(v).value();\n            Vector normal1 = vertex_normals.at(v);\n            MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals.at(v), *mesh.vertex_normal(v)));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[0],  Vector( 0.5773502691896258,  0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[1],  Vector( 0.0,                 0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[2],  Vector( 0.0,                -0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[3],  Vector( 0.5773502691896257, -0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[4],  Vector( 0.9341723589627158,  0.0,                 0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[5],  Vector( 0.9341723589627158,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[6],  Vector( 0.5773502691896258,  0.5773502691896257, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[7],  Vector( 0.3568220897730899,  0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[8],  Vector(-0.3568220897730899,  0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[9],  Vector(-0.5773502691896258,  0.5773502691896258,  0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[10], Vector( 0.5773502691896258, -0.5773502691896258, -0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[11], Vector( 0.0,                -0.3568220897730899, -0.9341723589627157)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[12], Vector( 0.0,                 0.3568220897730899, -0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[13], Vector(-0.5773502691896257,  0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[14], Vector(-0.5773502691896258, -0.5773502691896257,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[15], Vector(-0.3568220897730899, -0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[16], Vector( 0.3568220897730899, -0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[17], Vector(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[18], Vector(-0.9341723589627157,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(ve",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")\ndef test_mesh_geometric_properties():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import NormalWeighting\n\n    pts = [\n        Point(0,0,0),\n        Point(1,0,0),\n        Point(-1,0,0),\n        Point(0,1,0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,3], [0,3,2]])\n    vkeys = mesh.vertices()\n    v0 = vkeys[0]\n    v1 = vkeys[1]\n    v3 = vkeys[3]\n    f0 = mesh.faces()[0]\n\n    # face_normal\n    fn = mesh.face_normal(f0)\n    MINI_CHECK(fn is not None)\n    MINI_CHECK(TOLERANCE.is_close(fn[2], 1.0))\n\n    # face_centroid\n    fc = mesh.face_centroid(f0)\n    MINI_CHECK(fc is not None)\n    MINI_CHECK(TOLERANCE.is_close(fc[0], 1.0 / 3.0))\n    MINI_CHECK(TOLERANCE.is_close(fc[1], 1.0 / 3.0))\n    MINI_CHECK(fc[2] == 0.0)\n\n    # centroid\n    c = mesh.centroid()\n    MINI_CHECK(c[0] == 0.0)\n    MINI_CHECK(TOLERANCE.is_close(c[1], 0.25))\n    MINI_CHECK(c[2] == 0.0)\n\n    # vertex_normal\n    vn = mesh.vertex_normal(v0)\n    MINI_CHECK(vn is not None)\n    MINI_CHECK(abs(vn[2]) == 1.0)\n\n    # vertex_normal_weighted\n    vnw = mesh.vertex_normal_weighted(v0, NormalWeighting.ANGLE)\n    MINI_CHECK(vnw is not None)\n    MINI_CHECK(TOLERANCE.is_close(vnw[2], 1.0))\n\n    # face_area\n    area = mesh.face_area(f0)\n    MINI_CHECK(area is not None)\n    MINI_CHECK(TOLERANCE.is_close(area, 0.5))\n\n    # vertex_angle_in_face\n    angle = mesh.vertex_angle_in_face(v0, f0)\n    MINI_CHECK(angle is not None)\n    MINI_CHECK(TOLERANCE.is_close(angle, TOLERANCE.PI / 2.0))\n    MINI_CHECK(mesh.vertex_angle_in_face(999, f0) is None)\n\n    # dihedral_angle \u00e2\u20ac\u201d interior edge v0-v3 shared by f0 and f1 (coplanar = PI)\n    da = mesh.dihedral_angle(v3, v0)\n    MINI_CHECK(da is not None)\n    MINI_CHECK(TOLERANCE.is_close(da, TOLERANCE.PI))\n    # boundary edge \u00e2\u20ac\u201d only one face\n    MINI_CHECK(mesh.dihedral_angle(v0, v1) is None)\n\n    # face_normals\n    fns = mesh.face_normals()\n    MINI_CHECK(len(fns) == 2)\n    MINI_CHECK(TOLERANCE.is_close(fns[f0][2], 1.0))\n\n    # vertex_normals\n    vns = mesh.vertex_normals()\n    MINI_CHECK(len(vns) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vns[v0][2], 1.0))\n\n    # vertex_normals_weighted\n    vnsw = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n    MINI_CHECK(len(vnsw) == mesh.number_of_vertices())\n    MINI_CHECK(TOLERANCE.is_close(vnsw[v0][2], 1.0))\n\n    # area\n    box = Mesh.create_box(2.0, 2.0, 2.0)\n    MINI_CHECK(TOLERANCE.is_close(box.area(), 24.0))\n\n    # volume\n    MINI_CHECK(TOLERANCE.is_close(box.volume(), 8.0))",
+          "code": "@MINI_TEST(\"Mesh\", \"Geometric Properties\")\ndef test_mesh_geometric_properties():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import NormalWeighting\n\n    mesh = Mesh.create_dodecahedron(1.5)\n\n    # area\n    area = mesh.area()\n    MINI_CHECK(TOLERANCE.is_close(area, 46.4528898159021))\n\n    # centroid\n    centroid = mesh.centroid()\n    MINI_CHECK(TOLERANCE.is_point_close(centroid, Point(0.0, 0.0, 0.0)))\n\n    # dihedral angle\n    angles, arcs, points = mesh.dihedral_angles(0.3)\n\n    for edge, angle in angles.items():\n        u, v = edge\n        angle_in_degrees = angle\n        MINI_CHECK(TOLERANCE.is_close(angle_in_degrees, 116.565051177078))\n\n    # face area\n    for f in mesh.faces():\n        face_area = mesh.face_area(f)\n        MINI_CHECK(TOLERANCE.is_close(face_area, 3.87107415132518))\n\n    # face centroid\n    centroids = []\n    for f in mesh.faces():\n        centroids.append(mesh.face_centroid(f))\n\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[0],  Point( 0.878115294937453,  0.0,               1.420820393249937)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[1],  Point( 1.420820393249937,  0.878115294937453, 0.0              )))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[2],  Point( 0.0,                1.420820393249937,  0.878115294937453)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[3],  Point( 0.878115294937453,  0.0,              -1.420820393249937)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[4],  Point( 0.0,                1.420820393249937, -0.878115294937453)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[5],  Point( 0.0,               -1.420820393249937,  0.878115294937453)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[6],  Point( 1.420820393249937, -0.878115294937453, 0.0              )))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[7],  Point( 0.0,               -1.420820393249937, -0.878115294937453)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[8],  Point(-1.420820393249937,  0.878115294937453, 0.0              )))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[9],  Point(-0.878115294937453,  0.0,               1.420820393249937)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[10], Point(-0.878115294937453,  0.0,              -1.420820393249937)))\n    MINI_CHECK(TOLERANCE.is_point_close(centroids[11], Point(-1.420820393249937, -0.878115294937453, 0.0              )))\n\n    # face normal / s\n    face_normals = mesh.face_normals()\n    for f in mesh.faces():\n        normal0 = mesh.face_normal(f)\n        normal1 = face_normals[f]\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[f], mesh.face_normal(f)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[0],  Vector( 0.5257311121191336,  0.0,                 0.8506508083520400)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[1],  Vector( 0.8506508083520400,  0.5257311121191336,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[2],  Vector( 0.0,                 0.8506508083520400,  0.5257311121191336)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[3],  Vector( 0.5257311121191336,  0.0,                -0.8506508083520400)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[4],  Vector( 0.0,                 0.8506508083520400, -0.5257311121191336)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[5],  Vector( 0.0,                -0.8506508083520400,  0.5257311121191336)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[6],  Vector( 0.8506508083520400, -0.5257311121191336,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[7],  Vector( 0.0,                -0.8506508083520400, -0.5257311121191336)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[8],  Vector(-0.8506508083520400,  0.5257311121191336,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[9],  Vector(-0.5257311121191336,  0.0,                 0.8506508083520400)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[10], Vector(-0.5257311121191336,  0.0,                -0.8506508083520400)))\n    MINI_CHECK(TOLERANCE.is_vector_close(face_normals[11], Vector(-0.8506508083520400, -0.5257311121191336,  0.0               )))\n\n    # vertex angle in face\n    for f in mesh.faces():\n        for v in mesh.face_vertices(f):\n            angle = mesh.vertex_angle_in_face(v, f)\n            MINI_CHECK(TOLERANCE.is_close(mesh.vertex_angle_in_face(v, f), 1.8849555921538759))\n\n    # vertex normal / s\n    vertex_normals = mesh.vertex_normals()\n    for v in mesh.vertices():\n        normal0 = mesh.vertex_normal(v)\n        normal1 = vertex_normals[v]\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[v], mesh.vertex_normal(v)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[0],  Vector( 0.5773502691896258,  0.5773502691896258,  0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[1],  Vector( 0.0,                 0.3568220897730899,  0.9341723589627158)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[2],  Vector( 0.0,                -0.3568220897730899,  0.9341723589627158)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[3],  Vector( 0.5773502691896257, -0.5773502691896258,  0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[4],  Vector( 0.9341723589627158,  0.0,                 0.3568220897730899)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[5],  Vector( 0.9341723589627158,  0.0,                -0.3568220897730899)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[6],  Vector( 0.5773502691896258,  0.5773502691896257, -0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[7],  Vector( 0.3568220897730899,  0.9341723589627158,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[8],  Vector(-0.3568220897730899,  0.9341723589627157,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[9],  Vector(-0.5773502691896258,  0.5773502691896258,  0.5773502691896257)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[10], Vector( 0.5773502691896258, -0.5773502691896258, -0.5773502691896257)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[11], Vector( 0.0,                -0.3568220897730899, -0.9341723589627157)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[12], Vector( 0.0,                 0.3568220897730899, -0.9341723589627158)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[13], Vector(-0.5773502691896257,  0.5773502691896258, -0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[14], Vector(-0.5773502691896258, -0.5773502691896257,  0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[15], Vector(-0.3568220897730899, -0.9341723589627157,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[16], Vector( 0.3568220897730899, -0.9341723589627158,  0.0               )))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[17], Vector(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[18], Vector(-0.9341723589627157,  0.0,                -0.3568220897730899)))\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[19], Vector(-0.9341723589627158,  0.0,                 0.3568220897730899)))\n\n    # vertex normal weighted / s\n    vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n    for v in mesh.vertices():\n        normal0 = mesh.vertex_normal_weighted(v, NormalWeighting.ANGLE)\n        normal1 = vertex_normals_weighted[v]\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals_weighted[v], mesh.vertex_normal_weighted(v, NormalWeighting.ANGLE)))\n\n    MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals_weighted[0],  Vector( 0.5773502691896257,  0.5773502691896257,  0.5773502691896257)))\n    MINI_CHECK(TOLERANCE.",
           "file": "mesh_test.py"
         }
       }
@@ -51156,12 +49843,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // JSON object\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n        MINI_CHECK(loaded_json.name == mesh.name);\n        MINI_CHECK(loaded_json.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_json.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_json.xform == mesh.xform);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        nlohmann::ordered_json pjson = pmesh.jsondump();\n        Mesh loaded_tri = Mesh::jsonload(pjson);\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Json Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // JSON object\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n\n        // String\n        std::string json_string = mesh.json_dumps();\n        Mesh loaded_string = Mesh::json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.json_dump(filename);\n        Mesh loaded_file = Mesh::json_load(filename);\n\n        MINI_CHECK(loaded_json == mesh);\n        MINI_CHECK(loaded_string == mesh);\n        MINI_CHECK(loaded_file == mesh);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::jsonload(pmesh.jsondump());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")\ndef test_mesh_json_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh\"\n    from session_py import Color\n    mesh.set_objectcolor(Color(255, 0, 0, 255))\n    fc = []\n    for _ in range(mesh.number_of_faces()):\n        fc.append(Color(255, 0, 0, 255))\n    mesh.set_facecolors(fc)\n\n    # JSON object\n    from session_py import Xform\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n    MINI_CHECK(loaded_json.name == mesh.name)\n    MINI_CHECK(loaded_json.objectcolor == mesh.objectcolor)\n    MINI_CHECK(loaded_json.color_mode == mesh.color_mode)\n    MINI_CHECK(loaded_json.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_json.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_json.xform == mesh.xform)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.objectcolor == mesh.objectcolor)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])",
+          "code": "@MINI_TEST(\"Mesh\", \"Json Roundtrip\")\ndef test_mesh_json_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh\"\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n\n    # JSON object\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n\n    # String\n    json_string = mesh.json_dumps()\n    loaded_string = Mesh.json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.json_dump(filename)\n    loaded_file = Mesh.json_load(filename)\n\n    MINI_CHECK(loaded_json == mesh)\n    MINI_CHECK(loaded_string == mesh)\n    MINI_CHECK(loaded_file == mesh)\n\n    # Triangulation roundtrip\n    polys = [[\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]]\n    pmesh = Mesh.from_polylines(polys)\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])",
           "file": "mesh_test.py"
         }
       }
@@ -51171,12 +49858,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.set_objectcolor(Color(255, 0, 0, 255));\n        std::vector<Color> fc;\n        fc.reserve(mesh.number_of_faces());\n        for (size_t i = 0; i < mesh.number_of_faces(); ++i) fc.push_back(Color(255, 0, 0, 255));\n        mesh.set_facecolors(std::move(fc));\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n        MINI_CHECK(loaded_string.name == mesh.name);\n        MINI_CHECK(loaded_string.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_string.color_mode == mesh.color_mode);\n        MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices());\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n        MINI_CHECK(loaded_file.name == mesh.name);\n        MINI_CHECK(loaded_file.get_objectcolor() == mesh.get_objectcolor());\n        MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices());\n        MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces());\n        MINI_CHECK(loaded_file.guid == mesh.guid);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        MINI_CHECK(!pmesh.get_triangulation().empty());\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        MINI_CHECK(!hmesh.get_face_holes().empty());\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\") {\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n\n        MINI_CHECK(loaded_string == mesh);\n        MINI_CHECK(loaded_file == mesh);\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n        MINI_CHECK(!loaded_tri.get_triangulation().empty());\n        MINI_CHECK(loaded_tri.get_triangulation().count(fk) > 0);\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {{Point(0,0,0),Point(4,0,0),Point(4,4,0),Point(0,4,0)},\n             {Point(1,1,0),Point(3,1,0),Point(3,3,0),Point(1,3,0)}}, true);\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;\n        MINI_CHECK(!loaded_holes.get_face_holes().empty());\n        MINI_CHECK(loaded_holes.get_face_holes().at(hfk) == hmesh.get_face_holes().at(hfk));\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")\ndef test_mesh_protobuf_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh_proto\"\n    from session_py import Color\n    mesh.set_objectcolor(Color(255, 0, 0, 255))\n    fc = []\n    for _ in range(mesh.number_of_faces()):\n        fc.append(Color(255, 0, 0, 255))\n    mesh.set_facecolors(fc)\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n    MINI_CHECK(loaded_string.name == mesh.name)\n    MINI_CHECK(loaded_string.objectcolor == mesh.objectcolor)\n    MINI_CHECK(loaded_string.color_mode == mesh.color_mode)\n    MINI_CHECK(loaded_string.number_of_vertices() == mesh.number_of_vertices())\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n    MINI_CHECK(loaded_file.name == mesh.name)\n    MINI_CHECK(loaded_file.objectcolor == mesh.objectcolor)\n    MINI_CHECK(loaded_file.number_of_vertices() == mesh.number_of_vertices())\n    MINI_CHECK(loaded_file.number_of_faces() == mesh.number_of_faces())\n    MINI_CHECK(loaded_file.guid == mesh.guid)\n\n    # Triangulation roundtrip\n    pmesh = Mesh.from_polylines([[Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)]])\n    MINI_CHECK(len(pmesh.triangulation) > 0)\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    MINI_CHECK(len(hmesh.face_holes) > 0)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Protobuf Roundtrip\")\ndef test_mesh_protobuf_roundtrip():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh_proto\"\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n\n    MINI_CHECK(loaded_string == mesh)\n    MINI_CHECK(loaded_file == mesh)\n\n    # Triangulation roundtrip\n    polys = [[\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]]\n    pmesh = Mesh.from_polylines(polys)\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n    MINI_CHECK(len(loaded_tri.triangulation) > 0)\n    MINI_CHECK(fk in loaded_tri.triangulation)\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [Point(0,0,0), Point(4,0,0), Point(4,4,0), Point(0,4,0)],\n        [Point(1,1,0), Point(3,1,0), Point(3,3,0), Point(1,3,0)]], True)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]\n    MINI_CHECK(len(loaded_holes.face_holes) > 0)\n    MINI_CHECK(loaded_holes.face_holes[hfk] == hmesh.face_holes[hfk])\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "mesh_test.py"
         }
       }
@@ -52137,6 +50824,51 @@ window.API_INDEX = {
         "python": {
           "sig": "@MINI_TEST(\"Polyline\", \"Average Plane\")",
           "code": "@MINI_TEST(\"Polyline\", \"Average Plane\")\ndef test_polyline_average_plane():\n    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0), Point(0.0, 2.0, 0.0),\n    ])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()\n\n    MINI_CHECK(TOLERANCE.is_close(origin[0], 1.0) and TOLERANCE.is_close(origin[1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(abs(z_axis[2]), 1.0))\n    MINI_CHECK(fast_plane is not None)\n    MINI_CHECK(TOLERANCE.is_close(abs(avg_normal[2]), 1.0))",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Quick Hull",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Quick Hull\")",
+          "code": "MINI_TEST(\"Polyline\", \"Quick Hull\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    });\n    Polyline hull = Polyline::quick_hull(poly);\n\n    MINI_CHECK(hull.point_count() == 4);\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Quick Hull\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Quick Hull\")\ndef test_polyline_quick_hull():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Square with one interior point \u00e2\u20ac\u201d hull should be the 4 corners\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n    ])\n    hull = Polyline.quick_hull(polygon)\n\n    MINI_CHECK(hull.point_count() == 4)",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Bounding Rectangle",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Bounding Rectangle\")",
+          "code": "MINI_TEST(\"Polyline\", \"Bounding Rectangle\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    });\n    std::optional<Polyline> rect = Polyline::bounding_rectangle(poly);\n\n    MINI_CHECK(rect.has_value() && rect->point_count() == 5);\n    MINI_CHECK(TOLERANCE.is_close(rect->get_point(0)[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(rect->get_point(0)[0], rect->get_point(4)[0]));\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")\ndef test_polyline_bounding_rectangle():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Axis-aligned 4x3 rectangle\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect = Polyline.bounding_rectangle(polygon)\n\n    MINI_CHECK(rect is not None)\n    MINI_CHECK(rect.point_count() == 5)\n    for p in rect.get_points():\n        MINI_CHECK(abs(p[2]) < 1e-6)",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Grid Of Points In Polygon",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")",
+          "code": "MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    });\n    std::vector<Point> pts = Polyline::grid_of_points_in_polygon(poly, 0.0, 1.0, 100);\n\n    MINI_CHECK(pts.size() > 0);\n    for (const auto& p : pts) {\n        MINI_CHECK(p[0] >= 0.0 && p[0] <= 4.0);\n        MINI_CHECK(p[1] >= 0.0 && p[1] <= 4.0);\n    }\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")\ndef test_polyline_grid_of_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    # 4x4 square polygon\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    ])\n    pts = Polyline.grid_of_points_in_polygon(polygon, 0.0, 1.0, 100)\n\n    MINI_CHECK(len(pts) > 0)\n    for p in pts:\n        MINI_CHECK(p[0] > 0.0 and p[0] < 4.0)\n        MINI_CHECK(p[1] > 0.0 and p[1] < 4.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "polyline_test.py"
         }
       }
@@ -53132,6 +51864,66 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Vector.test_Scale",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Vector\", \"Scale\")",
+          "code": "MINI_TEST(\"Vector\", \"Scale\") {\n    // uncomment #include \"vector.h\"\n\n    Vector v(2.0, 4.0, 6.0);\n    v.scale(0.5);\n    Vector v_up(1.0, 2.0, 3.0);\n    v_up.scale_up();\n    Vector v_rt(1.0, 2.0, 3.0);\n    v_rt.scale_up();\n    v_rt.scale_down();\n\n    MINI_CHECK(v[0] == 1.0 && v[1] == 2.0 && v[2] == 3.0);\n    MINI_CHECK(v_up[0] > 1.0);\n    MINI_CHECK(TOLERANCE.is_close(v_rt[0], 1.0) && TOLERANCE.is_close(v_rt[1], 2.0) && TOLERANCE.is_close(v_rt[2], 3.0));\n}",
+          "file": "vector_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Vector\", \"Scale\")",
+          "code": "@MINI_TEST(\"Vector\", \"Scale\")\ndef test_vector_scale():\n    from session_py import Vector\n\n    v = Vector(2.0, 4.0, 6.0)\n    v.scale(0.5)\n    v_up = Vector(1.0, 2.0, 3.0)\n    v_up.scale_up()\n    v_rt = Vector(1.0, 2.0, 3.0)\n    v_rt.scale_up()\n    v_rt.scale_down()\n\n    MINI_CHECK(v[0] == 1.0 and v[1] == 2.0 and v[2] == 3.0)\n    MINI_CHECK(v_up[0] > 1.0)\n    MINI_CHECK(TOLERANCE.is_close(v_rt[0], 1.0) and TOLERANCE.is_close(v_rt[1], 2.0) and TOLERANCE.is_close(v_rt[2], 3.0))",
+          "file": "vector_test.py"
+        }
+      }
+    },
+    {
+      "name": "Vector.test_Reflect",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Vector\", \"Reflect\")",
+          "code": "MINI_TEST(\"Vector\", \"Reflect\") {\n    // uncomment #include \"vector.h\"\n\n    // Reflect across YZ plane (normal = x_axis): x flips, y/z unchanged\n    Vector v(1.0, 2.0, 3.0);\n    Vector n = Vector::x_axis();\n    Vector r = v.reflect(n);\n\n    MINI_CHECK(TOLERANCE.is_close(r[0], -1.0));\n    MINI_CHECK(TOLERANCE.is_close(r[1], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(r[2], 3.0));\n}",
+          "file": "vector_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Vector\", \"Reflect\")",
+          "code": "@MINI_TEST(\"Vector\", \"Reflect\")\ndef test_vector_reflect():\n    from session_py import Vector\n\n    v = Vector(1.0, 2.0, 3.0)\n    n = Vector.x_axis()\n    r = v.reflect(n)\n\n    MINI_CHECK(TOLERANCE.is_close(r[0], -1.0))\n    MINI_CHECK(TOLERANCE.is_close(r[1], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(r[2], 3.0))",
+          "file": "vector_test.py"
+        }
+      }
+    },
+    {
+      "name": "Vector.test_Average Normal",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Vector\", \"Average Normal\")",
+          "code": "MINI_TEST(\"Vector\", \"Average Normal\") {\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane \u00e2\u20ac\u201d normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n;\n    average_normal(sq, n);\n\n    MINI_CHECK(TOLERANCE.is_close(std::abs(n[2]), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(n[0], 0.0) && TOLERANCE.is_close(n[1], 0.0));\n}",
+          "file": "vector_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Vector\", \"Average Normal\")",
+          "code": "@MINI_TEST(\"Vector\", \"Average Normal\")\ndef test_vector_average_normal():\n    from session_py import Point\n    from session_py.vector import average_normal\n\n    sq = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    ]\n    n = average_normal(sq)\n\n    MINI_CHECK(TOLERANCE.is_close(abs(n[2]), 1.0))\n    MINI_CHECK(TOLERANCE.is_close(n[0], 0.0) and TOLERANCE.is_close(n[1], 0.0))",
+          "file": "vector_test.py"
+        }
+      }
+    },
+    {
+      "name": "Vector.test_Interpolate Points",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Vector\", \"Interpolate Points\")",
+          "code": "MINI_TEST(\"Vector\", \"Interpolate Points\") {\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    Point from(0.0, 0.0, 0.0);\n    Point to(1.0, 0.0, 0.0);\n    std::vector<Point> pts0;\n    interpolate_points(from, to, 2, pts0, 0);\n    std::vector<Point> pts1;\n    interpolate_points(from, to, 1, pts1, 1);\n\n    MINI_CHECK((int)pts0.size() == 2);\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0));\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0));\n    MINI_CHECK((int)pts1.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0) && TOLERANCE.is_close(pts1[2][0], 1.0));\n}",
+          "file": "vector_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Vector\", \"Interpolate Points\")",
+          "code": "@MINI_TEST(\"Vector\", \"Interpolate Points\")\ndef test_vector_interpolate_points():\n    from session_py import Point\n    from session_py.vector import interpolate_points\n\n    from_pt = Point(0.0, 0.0, 0.0)\n    to_pt = Point(1.0, 0.0, 0.0)\n    pts0 = interpolate_points(from_pt, to_pt, 2, 0)\n    pts1 = interpolate_points(from_pt, to_pt, 1, 1)\n\n    MINI_CHECK(len(pts0) == 2)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0))\n    MINI_CHECK(len(pts1) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0) and TOLERANCE.is_close(pts1[2][0], 1.0))",
+          "file": "vector_test.py"
+        }
+      }
+    },
+    {
       "name": "Vector.test_Json Roundtrip",
       "implementations": {
         "cpp": {
@@ -53181,12 +51973,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Xform\", \"Constructor\")",
-          "code": "MINI_TEST(\"Xform\", \"Constructor\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    });\n\n    // Minimal and Full String Representation\n    std::string xstr = x.str();\n    std::string xrepr = x.repr();\n\n    // Copy (duplicates everything except guid)\n    Xform xcopy = x;\n    Xform xother;\n\n    // Equality operators\n    bool x_eq = (x == xother);\n    bool x_ne = (x != xfrom);\n\n    // Matrix multiplication (*)\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scaling(2.0, 1.0, 1.0);\n    Xform combined = t * s;\n    Point p(1.0, 0.0, 0.0);\n    Point result = combined.transformed_point(p);\n\n    // In-place multiplication (*=)\n    Xform t2 = Xform::translation(10.0, 0.0, 0.0);\n    t2 *= s;\n    Point result2 = t2.transformed_point(p);\n\n    MINI_CHECK(x.name == \"my_xform\" && !x.guid.empty());\n    MINI_CHECK(m00 == 1.0 && m11 == 1.0 && m22 == 1.0 && m33 == 1.0);\n    MINI_CHECK(is_id == true);\n    MINI_CHECK(xfrom.m[12] == 5.0 && xfrom.m[13] == 10.0 && xfrom.m[14] == 15.0);\n    MINI_CHECK(xstr.find(\"1.000000\") != std::string::npos);\n    MINI_CHECK(xrepr.find(\"Xform(\") != std::string::npos);\n    MINI_CHECK(xrepr.find(\"my_xform\") != std::string::npos);\n    MINI_CHECK(xcopy == x && xcopy.guid != x.guid);\n    MINI_CHECK(x_eq == true && x_ne == true);\n    // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)\n    MINI_CHECK(TOLERANCE.is_close(result[0], 12.0));\n    MINI_CHECK(TOLERANCE.is_close(result[1], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[0], 12.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[1], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[2], 0.0));\n}",
+          "code": "MINI_TEST(\"Xform\", \"Constructor\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    });\n\n    // Minimal and Full String Representation\n    std::string xstr = x.str();\n    std::string xrepr = x.repr();\n\n    // Copy (duplicates everything except guid)\n    Xform xcopy = x;\n    Xform xother;\n\n    // Equality operators\n    bool x_eq = (x == xother);\n    bool x_ne = (x != xfrom);\n\n    // Matrix multiplication (*)\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scale_xyz(2.0, 1.0, 1.0);\n    Xform combined = t * s;\n    Point p(1.0, 0.0, 0.0);\n    Point result = combined.transformed_point(p);\n\n    // In-place multiplication (*=)\n    Xform t2 = Xform::translation(10.0, 0.0, 0.0);\n    t2 *= s;\n    Point result2 = t2.transformed_point(p);\n\n    MINI_CHECK(x.name == \"my_xform\" && !x.guid.empty());\n    MINI_CHECK(m00 == 1.0 && m11 == 1.0 && m22 == 1.0 && m33 == 1.0);\n    MINI_CHECK(is_id == true);\n    MINI_CHECK(xfrom.m[12] == 5.0 && xfrom.m[13] == 10.0 && xfrom.m[14] == 15.0);\n    MINI_CHECK(xstr.find(\"1.000000\") != std::string::npos);\n    MINI_CHECK(xrepr.find(\"Xform(\") != std::string::npos);\n    MINI_CHECK(xrepr.find(\"my_xform\") != std::string::npos);\n    MINI_CHECK(xcopy == x && xcopy.guid != x.guid);\n    MINI_CHECK(x_eq == true && x_ne == true);\n    // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)\n    MINI_CHECK(TOLERANCE.is_close(result[0], 12.0));\n    MINI_CHECK(TOLERANCE.is_close(result[1], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[0], 12.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[1], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(result2[2], 0.0));\n}",
           "file": "xform_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Xform\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Xform\", \"Constructor\")\ndef test_xform_constructor():\n    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Equality operators\n    x_eq = (x == xother)\n    x_ne = (x != xfrom)\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scaling(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    result = combined.transformed_point(p)\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    result2 = t2.transformed_point(p)\n\n    MINI_CHECK(x.name == \"my_xform\" and x.guid != \"\")\n    MINI_CHECK(m00 == 1.0 and m11 == 1.0 and m22 == 1.0 and m33 == 1.0)\n    MINI_CHECK(is_id == True)\n    MINI_CHECK(xfrom.m[12] == 5.0 and xfrom.m[13] == 10.0 and xfrom.m[14] == 15.0)\n    MINI_CHECK(\"1.000000\" in xstr)\n    MINI_CHECK(\"Xform(\" in xrepr and \"my_xform\" in xrepr)\n    MINI_CHECK(xcopy == x and xcopy.guid != x.guid)\n    MINI_CHECK(x_eq == True and x_ne == True)\n    # (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)\n    MINI_CHECK(TOLERANCE.is_close(result[0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(result[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[2], 0.0))",
+          "code": "@MINI_TEST(\"Xform\", \"Constructor\")\ndef test_xform_constructor():\n    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Equality operators\n    x_eq = (x == xother)\n    x_ne = (x != xfrom)\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scale_xyz(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    result = combined.transformed_point(p)\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    result2 = t2.transformed_point(p)\n\n    MINI_CHECK(x.name == \"my_xform\" and x.guid != \"\")\n    MINI_CHECK(m00 == 1.0 and m11 == 1.0 and m22 == 1.0 and m33 == 1.0)\n    MINI_CHECK(is_id == True)\n    MINI_CHECK(xfrom.m[12] == 5.0 and xfrom.m[13] == 10.0 and xfrom.m[14] == 15.0)\n    MINI_CHECK(\"1.000000\" in xstr)\n    MINI_CHECK(\"Xform(\" in xrepr and \"my_xform\" in xrepr)\n    MINI_CHECK(xcopy == x and xcopy.guid != x.guid)\n    MINI_CHECK(x_eq == True and x_ne == True)\n    # (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)\n    MINI_CHECK(TOLERANCE.is_close(result[0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(result[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[1], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(result2[2], 0.0))",
           "file": "xform_test.py"
         }
       }
@@ -53211,12 +52003,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Xform\", \"Scaling\")",
-          "code": "MINI_TEST(\"Xform\", \"Scaling\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Scaling matrix\n    Xform s = Xform::scaling(2.0, 3.0, 4.0);\n\n    // Apply to point\n    Point p(1.0, 1.0, 1.0);\n    Point sp = s.transformed_point(p);\n\n    MINI_CHECK(TOLERANCE.is_close(sp[0], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(sp[1], 3.0));\n    MINI_CHECK(TOLERANCE.is_close(sp[2], 4.0));\n}",
+          "code": "MINI_TEST(\"Xform\", \"Scaling\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Scaling matrix\n    Xform s = Xform::scale_xyz(2.0, 3.0, 4.0);\n\n    // Apply to point\n    Point p(1.0, 1.0, 1.0);\n    Point sp = s.transformed_point(p);\n\n    MINI_CHECK(TOLERANCE.is_close(sp[0], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(sp[1], 3.0));\n    MINI_CHECK(TOLERANCE.is_close(sp[2], 4.0));\n}",
           "file": "xform_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Xform\", \"Scaling\")",
-          "code": "@MINI_TEST(\"Xform\", \"Scaling\")\ndef test_xform_scaling():\n    from session_py import Xform\n    from session_py import Point\n\n    # Scaling matrix\n    s = Xform.scaling(2.0, 3.0, 4.0)\n\n    # Apply to point\n    p = Point(1.0, 1.0, 1.0)\n    sp = s.transformed_point(p)\n\n    MINI_CHECK(TOLERANCE.is_close(sp[0], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(sp[1], 3.0))\n    MINI_CHECK(TOLERANCE.is_close(sp[2], 4.0))",
+          "code": "@MINI_TEST(\"Xform\", \"Scaling\")\ndef test_xform_scaling():\n    from session_py import Xform\n    from session_py import Point\n\n    # Scaling matrix\n    s = Xform.scale_xyz(2.0, 3.0, 4.0)\n\n    # Apply to point\n    p = Point(1.0, 1.0, 1.0)\n    sp = s.transformed_point(p)\n\n    MINI_CHECK(TOLERANCE.is_close(sp[0], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(sp[1], 3.0))\n    MINI_CHECK(TOLERANCE.is_close(sp[2], 4.0))",
           "file": "xform_test.py"
         }
       }
@@ -53241,12 +52033,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Xform\", \"Inverse\")",
-          "code": "MINI_TEST(\"Xform\", \"Inverse\") {\n    // uncomment #include \"xform.h\"\n\n    // Create composite transformation\n    Xform t = Xform::translation(1.0, 2.0, 3.0);\n    Xform s = Xform::scaling(2.0, 2.0, 2.0);\n    Xform composite = t * s;\n\n    // Compute inverse\n    auto inv_opt = composite.inverse();\n    Xform inv = inv_opt.value();\n\n    // Multiply should give identity\n    Xform result = composite * inv;\n\n    MINI_CHECK(result.is_identity());\n}",
+          "code": "MINI_TEST(\"Xform\", \"Inverse\") {\n    // uncomment #include \"xform.h\"\n\n    // Create composite transformation\n    Xform t = Xform::translation(1.0, 2.0, 3.0);\n    Xform s = Xform::scale_xyz(2.0, 2.0, 2.0);\n    Xform composite = t * s;\n\n    // Compute inverse\n    auto inv_opt = composite.inverse();\n    Xform inv = inv_opt.value();\n\n    // Multiply should give identity\n    Xform result = composite * inv;\n\n    MINI_CHECK(result.is_identity());\n}",
           "file": "xform_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Xform\", \"Inverse\")",
-          "code": "@MINI_TEST(\"Xform\", \"Inverse\")\ndef test_xform_inverse():\n    from session_py import Xform\n\n    # Create composite transformation\n    t = Xform.translation(1.0, 2.0, 3.0)\n    s = Xform.scaling(2.0, 2.0, 2.0)\n    composite = t * s\n\n    # Compute inverse\n    inv = composite.inverse()\n\n    # Multiply should give identity\n    result = composite * inv\n\n    MINI_CHECK(result.is_identity())",
+          "code": "@MINI_TEST(\"Xform\", \"Inverse\")\ndef test_xform_inverse():\n    from session_py import Xform\n\n    # Create composite transformation\n    t = Xform.translation(1.0, 2.0, 3.0)\n    s = Xform.scale_xyz(2.0, 2.0, 2.0)\n    composite = t * s\n\n    # Compute inverse\n    inv = composite.inverse()\n\n    # Multiply should give identity\n    result = composite * inv\n\n    MINI_CHECK(result.is_identity())",
           "file": "xform_test.py"
         }
       }
@@ -53362,36 +52154,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Polyline.test_Quick Hull",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Polyline\", \"Quick Hull\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Quick Hull\")\ndef test_polyline_quick_hull():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Square with one interior point \u00e2\u20ac\u201d hull should be the 4 corners\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n    ])\n    hull = Polyline.quick_hull(polygon)\n\n    MINI_CHECK(hull.point_count() == 4)",
-          "file": "polyline_test.py"
-        }
-      }
-    },
-    {
-      "name": "Polyline.test_Bounding Rectangle",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Bounding Rectangle\")\ndef test_polyline_bounding_rectangle():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Axis-aligned 4x3 rectangle\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect = Polyline.bounding_rectangle(polygon)\n\n    MINI_CHECK(rect is not None)\n    MINI_CHECK(rect.point_count() == 5)\n    for p in rect.get_points():\n        MINI_CHECK(abs(p[2]) < 1e-6)",
-          "file": "polyline_test.py"
-        }
-      }
-    },
-    {
-      "name": "Polyline.test_Grid Of Points In Polygon",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Grid Of Points In Polygon\")\ndef test_polyline_grid_of_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    # 4x4 square polygon\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    ])\n    pts = Polyline.grid_of_points_in_polygon(polygon, 0.0, 1.0, 100)\n\n    MINI_CHECK(len(pts) > 0)\n    for p in pts:\n        MINI_CHECK(p[0] > 0.0 and p[0] < 4.0)\n        MINI_CHECK(p[1] > 0.0 and p[1] < 4.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "polyline_test.py"
-        }
-      }
-    },
-    {
       "name": "Primitives.test_Mesh Edge Pipes",
       "implementations": {
         "python": {
@@ -53456,11 +52218,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
         "n",
-        "subdivide",
-        "points",
+        "circle",
         "into",
+        "points",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -53474,11 +52236,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
-        "ellipse",
-        "arc",
         "by",
         "length",
+        "arc",
+        "ellipse",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -53492,9 +52254,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "through",
         "points",
         "arc",
-        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -53508,12 +52270,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
         "polyline",
+        "from",
+        "open",
+        "adaptive",
         "points",
         "curve",
-        "from",
-        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -53528,9 +52290,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
         "evaluation",
         "parameter",
+        "at",
         "curve",
         "set_domain",
         "point_at",
@@ -53550,10 +52312,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
         "frames",
         "along",
         "curve",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -53575,9 +52337,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "frames",
         "perpendicular",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -53616,11 +52378,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
-        "and",
-        "vertices",
-        "from",
         "faces",
+        "from",
+        "vertices",
+        "and",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -53633,7 +52395,6 @@ window.API_INDEX = {
     }
   ],
   "class_summaries": {
-    "BoundingBox": "An axis-aligned bounding box",
     "Color": "An RGBA color with preset colors and interpolation",
     "Edge": "An edge in a mesh connecting two vertices",
     "Graph": "A graph data structure with nodes and edges",
@@ -53664,13 +52425,13 @@ window.API_INDEX = {
     "std": "std geometry class",
     "ColorMode": "ColorMode geometry class",
     "knot": "knot geometry class",
+    "Obb": "Obb geometry class",
     "ToleranceGuard": "ToleranceGuard geometry class",
     "Geometry": "Geometry geometry class",
     "GlobalTolerance": "GlobalTolerance geometry class"
   },
   "method_index": {
     "__init__": [
-      "BoundingBox.__init__",
       "Color.__init__",
       "Edge.__init__",
       "Graph.__init__",
@@ -53697,7 +52458,6 @@ window.API_INDEX = {
       "Xform.__init__"
     ],
     "guid": [
-      "BoundingBox.guid",
       "Color.guid",
       "Edge.guid",
       "Graph.guid",
@@ -53718,290 +52478,6 @@ window.API_INDEX = {
       "Vertex.guid",
       "Xform.guid",
       "Geometry.guid"
-    ],
-    "from_plane": [
-      "BoundingBox.from_plane"
-    ],
-    "from_point": [
-      "BoundingBox.from_point"
-    ],
-    "from_points": [
-      "BoundingBox.from_points",
-      "Line.from_points",
-      "Plane.from_points",
-      "Vector.from_points"
-    ],
-    "from_line": [
-      "BoundingBox.from_line"
-    ],
-    "from_polyline": [
-      "BoundingBox.from_polyline"
-    ],
-    "from_mesh": [
-      "BoundingBox.from_mesh"
-    ],
-    "from_pointcloud": [
-      "BoundingBox.from_pointcloud"
-    ],
-    "from_nurbssurface": [
-      "BoundingBox.from_nurbssurface"
-    ],
-    "from_nurbscurve": [
-      "BoundingBox.from_nurbscurve"
-    ],
-    "from_points_with_plane": [
-      "BoundingBox.from_points_with_plane"
-    ],
-    "aabb": [
-      "BoundingBox.aabb"
-    ],
-    "point_at": [
-      "BoundingBox.point_at",
-      "Line.point_at",
-      "NurbsCurve.point_at",
-      "NurbsSurface.point_at",
-      "Polyline.point_at"
-    ],
-    "min_point": [
-      "BoundingBox.min_point"
-    ],
-    "max_point": [
-      "BoundingBox.max_point"
-    ],
-    "corners": [
-      "BoundingBox.corners"
-    ],
-    "two_rectangles": [
-      "BoundingBox.two_rectangles"
-    ],
-    "inflate": [
-      "BoundingBox.inflate"
-    ],
-    "_separating_plane_exists": [
-      "BoundingBox._separating_plane_exists"
-    ],
-    "collides_with": [
-      "BoundingBox.collides_with"
-    ],
-    "transform": [
-      "BoundingBox.transform",
-      "Line.transform",
-      "Mesh.transform",
-      "NurbsCurve.transform",
-      "NurbsSurface.transform",
-      "Plane.transform",
-      "Point.transform",
-      "PointCloud.transform",
-      "Polyline.transform",
-      "ColorMode.transform"
-    ],
-    "transformed": [
-      "BoundingBox.transformed",
-      "Line.transformed",
-      "Mesh.transformed",
-      "NurbsCurve.transformed",
-      "NurbsSurface.transformed",
-      "Plane.transformed",
-      "Point.transformed",
-      "PointCloud.transformed",
-      "Polyline.transformed",
-      "ColorMode.transformed"
-    ],
-    "__jsondump__": [
-      "BoundingBox.__jsondump__",
-      "Color.__jsondump__",
-      "Edge.__jsondump__",
-      "Graph.__jsondump__",
-      "Line.__jsondump__",
-      "Mesh.__jsondump__",
-      "NurbsCurve.__jsondump__",
-      "NurbsSurface.__jsondump__",
-      "Objects.__jsondump__",
-      "Plane.__jsondump__",
-      "Point.__jsondump__",
-      "PointCloud.__jsondump__",
-      "Polyline.__jsondump__",
-      "Quaternion.__jsondump__",
-      "Session.__jsondump__",
-      "Tree.__jsondump__",
-      "TreeNode.__jsondump__",
-      "Vector.__jsondump__",
-      "Vertex.__jsondump__",
-      "Xform.__jsondump__"
-    ],
-    "__jsonload__": [
-      "BoundingBox.__jsonload__",
-      "Color.__jsonload__",
-      "Edge.__jsonload__",
-      "Graph.__jsonload__",
-      "Line.__jsonload__",
-      "Mesh.__jsonload__",
-      "NurbsCurve.__jsonload__",
-      "NurbsSurface.__jsonload__",
-      "Objects.__jsonload__",
-      "Plane.__jsonload__",
-      "Point.__jsonload__",
-      "PointCloud.__jsonload__",
-      "Polyline.__jsonload__",
-      "Quaternion.__jsonload__",
-      "Session.__jsonload__",
-      "Tree.__jsonload__",
-      "TreeNode.__jsonload__",
-      "Vector.__jsonload__",
-      "Vertex.__jsonload__",
-      "Xform.__jsonload__"
-    ],
-    "json_dumps": [
-      "BoundingBox.json_dumps",
-      "Color.json_dumps",
-      "Graph.json_dumps",
-      "Line.json_dumps",
-      "Mesh.json_dumps",
-      "NurbsCurve.json_dumps",
-      "NurbsSurface.json_dumps",
-      "Objects.json_dumps",
-      "Plane.json_dumps",
-      "Point.json_dumps",
-      "PointCloud.json_dumps",
-      "Polyline.json_dumps",
-      "Session.json_dumps",
-      "Tree.json_dumps",
-      "Vector.json_dumps",
-      "Xform.json_dumps",
-      "ColorMode.json_dumps"
-    ],
-    "json_loads": [
-      "BoundingBox.json_loads",
-      "Color.json_loads",
-      "Graph.json_loads",
-      "Line.json_loads",
-      "Mesh.json_loads",
-      "NurbsCurve.json_loads",
-      "NurbsSurface.json_loads",
-      "Objects.json_loads",
-      "Plane.json_loads",
-      "Point.json_loads",
-      "PointCloud.json_loads",
-      "Polyline.json_loads",
-      "Session.json_loads",
-      "Tree.json_loads",
-      "Vector.json_loads",
-      "Xform.json_loads",
-      "ColorMode.json_loads"
-    ],
-    "json_dump": [
-      "BoundingBox.json_dump",
-      "Color.json_dump",
-      "Graph.json_dump",
-      "Line.json_dump",
-      "Mesh.json_dump",
-      "NurbsCurve.json_dump",
-      "NurbsSurface.json_dump",
-      "Objects.json_dump",
-      "Plane.json_dump",
-      "Point.json_dump",
-      "PointCloud.json_dump",
-      "Polyline.json_dump",
-      "Session.json_dump",
-      "Tree.json_dump",
-      "Vector.json_dump",
-      "Xform.json_dump",
-      "ColorMode.json_dump"
-    ],
-    "json_load": [
-      "BoundingBox.json_load",
-      "Color.json_load",
-      "Graph.json_load",
-      "Line.json_load",
-      "Mesh.json_load",
-      "NurbsCurve.json_load",
-      "NurbsSurface.json_load",
-      "Objects.json_load",
-      "Plane.json_load",
-      "Point.json_load",
-      "PointCloud.json_load",
-      "Polyline.json_load",
-      "Session.json_load",
-      "Tree.json_load",
-      "Vector.json_load",
-      "Xform.json_load",
-      "ColorMode.json_load"
-    ],
-    "pb_dumps": [
-      "BoundingBox.pb_dumps",
-      "Color.pb_dumps",
-      "Graph.pb_dumps",
-      "Line.pb_dumps",
-      "Mesh.pb_dumps",
-      "NurbsCurve.pb_dumps",
-      "NurbsSurface.pb_dumps",
-      "Objects.pb_dumps",
-      "Plane.pb_dumps",
-      "Point.pb_dumps",
-      "PointCloud.pb_dumps",
-      "Polyline.pb_dumps",
-      "Session.pb_dumps",
-      "Tree.pb_dumps",
-      "Vector.pb_dumps",
-      "Xform.pb_dumps",
-      "ColorMode.pb_dumps"
-    ],
-    "pb_loads": [
-      "BoundingBox.pb_loads",
-      "Color.pb_loads",
-      "Graph.pb_loads",
-      "Line.pb_loads",
-      "Mesh.pb_loads",
-      "NurbsCurve.pb_loads",
-      "NurbsSurface.pb_loads",
-      "Objects.pb_loads",
-      "Plane.pb_loads",
-      "Point.pb_loads",
-      "PointCloud.pb_loads",
-      "Polyline.pb_loads",
-      "Session.pb_loads",
-      "Tree.pb_loads",
-      "Vector.pb_loads",
-      "Xform.pb_loads",
-      "ColorMode.pb_loads"
-    ],
-    "pb_dump": [
-      "BoundingBox.pb_dump",
-      "Color.pb_dump",
-      "Graph.pb_dump",
-      "Line.pb_dump",
-      "Mesh.pb_dump",
-      "NurbsCurve.pb_dump",
-      "NurbsSurface.pb_dump",
-      "Objects.pb_dump",
-      "Plane.pb_dump",
-      "Point.pb_dump",
-      "PointCloud.pb_dump",
-      "Polyline.pb_dump",
-      "Session.pb_dump",
-      "Tree.pb_dump",
-      "Vector.pb_dump",
-      "Xform.pb_dump",
-      "ColorMode.pb_dump"
-    ],
-    "pb_load": [
-      "BoundingBox.pb_load",
-      "Color.pb_load",
-      "Graph.pb_load",
-      "Line.pb_load",
-      "Mesh.pb_load",
-      "NurbsCurve.pb_load",
-      "NurbsSurface.pb_load",
-      "Objects.pb_load",
-      "Plane.pb_load",
-      "Point.pb_load",
-      "PointCloud.pb_load",
-      "Polyline.pb_load",
-      "Session.pb_load",
-      "Tree.pb_load",
-      "Vector.pb_load",
-      "Xform.pb_load",
-      "ColorMode.pb_load"
     ],
     "r": [
       "Color.r"
@@ -54126,6 +52602,192 @@ window.API_INDEX = {
     ],
     "palette": [
       "Color.palette"
+    ],
+    "__jsondump__": [
+      "Color.__jsondump__",
+      "Edge.__jsondump__",
+      "Graph.__jsondump__",
+      "Line.__jsondump__",
+      "Mesh.__jsondump__",
+      "NurbsCurve.__jsondump__",
+      "NurbsSurface.__jsondump__",
+      "Objects.__jsondump__",
+      "Plane.__jsondump__",
+      "Point.__jsondump__",
+      "PointCloud.__jsondump__",
+      "Polyline.__jsondump__",
+      "Quaternion.__jsondump__",
+      "Session.__jsondump__",
+      "Tree.__jsondump__",
+      "TreeNode.__jsondump__",
+      "Vector.__jsondump__",
+      "Vertex.__jsondump__",
+      "Xform.__jsondump__"
+    ],
+    "__jsonload__": [
+      "Color.__jsonload__",
+      "Edge.__jsonload__",
+      "Graph.__jsonload__",
+      "Line.__jsonload__",
+      "Mesh.__jsonload__",
+      "NurbsCurve.__jsonload__",
+      "NurbsSurface.__jsonload__",
+      "Objects.__jsonload__",
+      "Plane.__jsonload__",
+      "Point.__jsonload__",
+      "PointCloud.__jsonload__",
+      "Polyline.__jsonload__",
+      "Quaternion.__jsonload__",
+      "Session.__jsonload__",
+      "Tree.__jsonload__",
+      "TreeNode.__jsonload__",
+      "Vector.__jsonload__",
+      "Vertex.__jsonload__",
+      "Xform.__jsonload__"
+    ],
+    "json_dump": [
+      "Color.json_dump",
+      "Graph.json_dump",
+      "Line.json_dump",
+      "Mesh.json_dump",
+      "NurbsCurve.json_dump",
+      "NurbsSurface.json_dump",
+      "Objects.json_dump",
+      "Plane.json_dump",
+      "Point.json_dump",
+      "PointCloud.json_dump",
+      "Polyline.json_dump",
+      "Session.json_dump",
+      "Tree.json_dump",
+      "Vector.json_dump",
+      "Xform.json_dump",
+      "ColorMode.json_dump"
+    ],
+    "json_load": [
+      "Color.json_load",
+      "Graph.json_load",
+      "Line.json_load",
+      "Mesh.json_load",
+      "NurbsCurve.json_load",
+      "NurbsSurface.json_load",
+      "Objects.json_load",
+      "Plane.json_load",
+      "Point.json_load",
+      "PointCloud.json_load",
+      "Polyline.json_load",
+      "Session.json_load",
+      "Tree.json_load",
+      "Vector.json_load",
+      "Xform.json_load",
+      "ColorMode.json_load"
+    ],
+    "json_dumps": [
+      "Color.json_dumps",
+      "Graph.json_dumps",
+      "Line.json_dumps",
+      "Mesh.json_dumps",
+      "NurbsCurve.json_dumps",
+      "NurbsSurface.json_dumps",
+      "Objects.json_dumps",
+      "Plane.json_dumps",
+      "Point.json_dumps",
+      "PointCloud.json_dumps",
+      "Polyline.json_dumps",
+      "Session.json_dumps",
+      "Tree.json_dumps",
+      "Vector.json_dumps",
+      "Xform.json_dumps",
+      "ColorMode.json_dumps"
+    ],
+    "json_loads": [
+      "Color.json_loads",
+      "Graph.json_loads",
+      "Line.json_loads",
+      "Mesh.json_loads",
+      "NurbsCurve.json_loads",
+      "NurbsSurface.json_loads",
+      "Objects.json_loads",
+      "Plane.json_loads",
+      "Point.json_loads",
+      "PointCloud.json_loads",
+      "Polyline.json_loads",
+      "Session.json_loads",
+      "Tree.json_loads",
+      "Vector.json_loads",
+      "Xform.json_loads",
+      "ColorMode.json_loads"
+    ],
+    "pb_dumps": [
+      "Color.pb_dumps",
+      "Graph.pb_dumps",
+      "Line.pb_dumps",
+      "Mesh.pb_dumps",
+      "NurbsCurve.pb_dumps",
+      "NurbsSurface.pb_dumps",
+      "Objects.pb_dumps",
+      "Plane.pb_dumps",
+      "Point.pb_dumps",
+      "PointCloud.pb_dumps",
+      "Polyline.pb_dumps",
+      "Session.pb_dumps",
+      "Tree.pb_dumps",
+      "Vector.pb_dumps",
+      "Xform.pb_dumps",
+      "ColorMode.pb_dumps"
+    ],
+    "pb_loads": [
+      "Color.pb_loads",
+      "Graph.pb_loads",
+      "Line.pb_loads",
+      "Mesh.pb_loads",
+      "NurbsCurve.pb_loads",
+      "NurbsSurface.pb_loads",
+      "Objects.pb_loads",
+      "Plane.pb_loads",
+      "Point.pb_loads",
+      "PointCloud.pb_loads",
+      "Polyline.pb_loads",
+      "Session.pb_loads",
+      "Tree.pb_loads",
+      "Vector.pb_loads",
+      "Xform.pb_loads",
+      "ColorMode.pb_loads"
+    ],
+    "pb_dump": [
+      "Color.pb_dump",
+      "Graph.pb_dump",
+      "Line.pb_dump",
+      "Mesh.pb_dump",
+      "NurbsCurve.pb_dump",
+      "NurbsSurface.pb_dump",
+      "Objects.pb_dump",
+      "Plane.pb_dump",
+      "Point.pb_dump",
+      "PointCloud.pb_dump",
+      "Polyline.pb_dump",
+      "Session.pb_dump",
+      "Tree.pb_dump",
+      "Vector.pb_dump",
+      "Xform.pb_dump",
+      "ColorMode.pb_dump"
+    ],
+    "pb_load": [
+      "Color.pb_load",
+      "Graph.pb_load",
+      "Line.pb_load",
+      "Mesh.pb_load",
+      "NurbsCurve.pb_load",
+      "NurbsSurface.pb_load",
+      "Objects.pb_load",
+      "Plane.pb_load",
+      "Point.pb_load",
+      "PointCloud.pb_load",
+      "Polyline.pb_load",
+      "Session.pb_load",
+      "Tree.pb_load",
+      "Vector.pb_load",
+      "Xform.pb_load",
+      "ColorMode.pb_load"
     ],
     "__str__": [
       "Color.__str__",
@@ -54386,6 +53048,12 @@ window.API_INDEX = {
     "fit_points": [
       "Line.fit_points"
     ],
+    "from_points": [
+      "Line.from_points",
+      "Plane.from_points",
+      "Vector.from_points",
+      "Obb.from_points"
+    ],
     "from_point_and_vector": [
       "Line.from_point_and_vector"
     ],
@@ -54412,6 +53080,12 @@ window.API_INDEX = {
     ],
     "to_direction": [
       "Line.to_direction"
+    ],
+    "point_at": [
+      "Line.point_at",
+      "NurbsCurve.point_at",
+      "NurbsSurface.point_at",
+      "Polyline.point_at"
     ],
     "subdivide": [
       "Line.subdivide"
@@ -54498,6 +53172,28 @@ window.API_INDEX = {
     "__neg__": [
       "Line.__neg__",
       "Polyline.__neg__"
+    ],
+    "transform": [
+      "Line.transform",
+      "Mesh.transform",
+      "NurbsCurve.transform",
+      "NurbsSurface.transform",
+      "Plane.transform",
+      "Point.transform",
+      "PointCloud.transform",
+      "Polyline.transform",
+      "ColorMode.transform"
+    ],
+    "transformed": [
+      "Line.transformed",
+      "Mesh.transformed",
+      "NurbsCurve.transformed",
+      "NurbsSurface.transformed",
+      "Plane.transformed",
+      "Point.transformed",
+      "PointCloud.transformed",
+      "Polyline.transformed",
+      "ColorMode.transformed"
     ],
     "position": [
       "VertexData.position",
@@ -54812,17 +53508,42 @@ window.API_INDEX = {
       "Mesh.vertex_vertices",
       "ColorMode.vertex_vertices"
     ],
-    "face_centroid": [
-      "Mesh.face_centroid",
-      "ColorMode.face_centroid"
+    "area": [
+      "Mesh.area",
+      "Point.area",
+      "ColorMode.area"
     ],
     "centroid": [
       "Mesh.centroid",
       "ColorMode.centroid"
     ],
+    "dihedral_angle": [
+      "Mesh.dihedral_angle",
+      "ColorMode.dihedral_angle"
+    ],
+    "dihedral_angles": [
+      "Mesh.dihedral_angles",
+      "ColorMode.dihedral_angles"
+    ],
+    "face_area": [
+      "Mesh.face_area",
+      "ColorMode.face_area"
+    ],
+    "face_centroid": [
+      "Mesh.face_centroid",
+      "ColorMode.face_centroid"
+    ],
     "face_normal": [
       "Mesh.face_normal",
       "ColorMode.face_normal"
+    ],
+    "face_normals": [
+      "Mesh.face_normals",
+      "ColorMode.face_normals"
+    ],
+    "vertex_angle_in_face": [
+      "Mesh.vertex_angle_in_face",
+      "ColorMode.vertex_angle_in_face"
     ],
     "vertex_normal": [
       "Mesh.vertex_normal",
@@ -54832,31 +53553,6 @@ window.API_INDEX = {
       "Mesh.vertex_normal_weighted",
       "ColorMode.vertex_normal_weighted"
     ],
-    "face_area": [
-      "Mesh.face_area",
-      "ColorMode.face_area"
-    ],
-    "area": [
-      "Mesh.area",
-      "Point.area",
-      "ColorMode.area"
-    ],
-    "volume": [
-      "Mesh.volume",
-      "ColorMode.volume"
-    ],
-    "vertex_angle_in_face": [
-      "Mesh.vertex_angle_in_face",
-      "ColorMode.vertex_angle_in_face"
-    ],
-    "dihedral_angle": [
-      "Mesh.dihedral_angle",
-      "ColorMode.dihedral_angle"
-    ],
-    "face_normals": [
-      "Mesh.face_normals",
-      "ColorMode.face_normals"
-    ],
     "vertex_normals": [
       "Mesh.vertex_normals",
       "ColorMode.vertex_normals"
@@ -54864,6 +53560,10 @@ window.API_INDEX = {
     "vertex_normals_weighted": [
       "Mesh.vertex_normals_weighted",
       "ColorMode.vertex_normals_weighted"
+    ],
+    "volume": [
+      "Mesh.volume",
+      "ColorMode.volume"
     ],
     "vertex_index": [
       "Mesh.vertex_index",
@@ -55260,7 +53960,6 @@ window.API_INDEX = {
     ],
     "jsondump": [
       "NurbsSurface.jsondump",
-      "BoundingBox.jsondump",
       "Color.jsondump",
       "Edge.jsondump",
       "Graph.jsondump",
@@ -55283,7 +53982,6 @@ window.API_INDEX = {
     ],
     "jsonload": [
       "NurbsSurface.jsonload",
-      "BoundingBox.jsonload",
       "Color.jsonload",
       "Edge.jsonload",
       "Graph.jsonload",
@@ -55633,7 +54331,8 @@ window.API_INDEX = {
     ],
     "interpolate_points": [
       "Polyline.interpolate_points",
-      "Vector.interpolate_points"
+      "Vector.interpolate_points",
+      "fmt.interpolate_points"
     ],
     "quick_hull": [
       "Polyline.quick_hull"
@@ -56163,14 +54862,19 @@ window.API_INDEX = {
     "perpendicular_to": [
       "Vector.perpendicular_to"
     ],
+    "reflect": [
+      "Vector.reflect"
+    ],
+    "average_normal": [
+      "Vector.average_normal",
+      "Polyline.average_normal",
+      "fmt.average_normal"
+    ],
     "from_matrix": [
       "Xform.from_matrix"
     ],
     "translation": [
       "Xform.translation"
-    ],
-    "scaling": [
-      "Xform.scaling"
     ],
     "rotation_x": [
       "Xform.rotation_x"
@@ -56233,7 +54937,6 @@ window.API_INDEX = {
       "Xform.transform_vector"
     ],
     "constructor": [
-      "BoundingBox.constructor",
       "Color.constructor",
       "Edge.constructor",
       "Graph.constructor",
@@ -56255,21 +54958,6 @@ window.API_INDEX = {
       "Vector.constructor",
       "Vertex.constructor",
       "Xform.constructor"
-    ],
-    "collides_with_rtcd": [
-      "BoundingBox.collides_with_rtcd"
-    ],
-    "collides_with_naive": [
-      "BoundingBox.collides_with_naive"
-    ],
-    "to_json_file": [
-      "BoundingBox.to_json_file"
-    ],
-    "from_json_file": [
-      "BoundingBox.from_json_file"
-    ],
-    "separating_plane_exists": [
-      "BoundingBox.separating_plane_exists"
     ],
     "format_to": [
       "fmt.format_to"
@@ -56372,11 +55060,11 @@ window.API_INDEX = {
     "get_cached_aabb_tree": [
       "ColorMode.get_cached_aabb_tree"
     ],
-    "abs": [
-      "std.abs"
-    ],
     "acos": [
       "std.acos"
+    ],
+    "abs": [
+      "std.abs"
     ],
     "cv_capacity": [
       "NurbsCurve.cv_capacity"
@@ -56463,10 +55151,6 @@ window.API_INDEX = {
     "recompute_plane_if_needed": [
       "Polyline.recompute_plane_if_needed"
     ],
-    "average_normal": [
-      "Polyline.average_normal",
-      "Vector.average_normal"
-    ],
     "polyline_length": [
       "Polyline.polyline_length"
     ],
@@ -56530,6 +55214,9 @@ window.API_INDEX = {
     "visit": [
       "std.visit"
     ],
+    "from_point": [
+      "Obb.from_point"
+    ],
     "round": [
       "std.round"
     ],
@@ -56591,9 +55278,6 @@ window.API_INDEX = {
     "compute_magnitude": [
       "Vector.compute_magnitude"
     ],
-    "reflect": [
-      "Vector.reflect"
-    ],
     "asin": [
       "std.asin"
     ],
@@ -56607,7 +55291,6 @@ window.API_INDEX = {
       "Xform.operator"
     ],
     "new": [
-      "BoundingBox.new",
       "Color.new",
       "Edge.new",
       "Vertex.new",
@@ -56630,26 +55313,6 @@ window.API_INDEX = {
       "TreeNode.new",
       "Vector.new",
       "Xform.new"
-    ],
-    "from_nurbscurve_with_plane": [
-      "BoundingBox.from_nurbscurve_with_plane"
-    ],
-    "from_mesh_with_plane": [
-      "BoundingBox.from_mesh_with_plane"
-    ],
-    "from_pointcloud_with_plane": [
-      "BoundingBox.from_pointcloud_with_plane"
-    ],
-    "from_nurbssurface_with_plane": [
-      "BoundingBox.from_nurbssurface_with_plane"
-    ],
-    "to_json": [
-      "BoundingBox.to_json",
-      "Quaternion.to_json"
-    ],
-    "from_json": [
-      "BoundingBox.from_json",
-      "Quaternion.from_json"
     ],
     "to_float_array": [
       "Color.to_float_array"
@@ -56725,6 +55388,12 @@ window.API_INDEX = {
     ],
     "move_by": [
       "Polyline.move_by"
+    ],
+    "to_json": [
+      "Quaternion.to_json"
+    ],
+    "from_json": [
+      "Quaternion.from_json"
     ],
     "with_tolerance": [
       "GlobalTolerance.with_tolerance"

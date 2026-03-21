@@ -37,7 +37,7 @@
   {
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 31,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Basic clamped uniform knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2];\n    double k3 = k[3], k4 = k[4], k5 = k[5];\n\n    // With custom delta\n    auto k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n    size_t k2_len = k2_vec.size();\n    auto [t0, t1] = knot::get_domain(3, 4, k2_vec);\n\n    // Invalid params\n    auto k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n    auto k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "Clamp",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 70,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamp a periodic knot vector\n    std::vector<double> k = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};\n    bool clamp_result = knot::clamp(4, 4, k, 2);\n    bool first_clamped = k[0] == k[1] && k[1] == k[2];\n    bool last_clamped = k[3] == k[4] && k[4] == k[5];",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 84,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);",
     "checks": [
@@ -217,7 +217,7 @@
   {
     "test_name": "Set Domain",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 144,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Create knot vector and set domain\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool set_result = knot::set_domain(4, 4, k, 5.0, 10.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n    bool t0_close = std::fabs(t0 - 5.0) < 1e-10;\n    bool t1_close = std::fabs(t1 - 10.0) < 1e-10;",
     "checks": [
@@ -287,7 +287,7 @@
   {
     "test_name": "Span Count",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 187,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Single Bezier span\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span1 = knot::span_count(4, 4, k);\n\n    // Multiple spans\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2 = knot::span_count(3, 5, k2);",
     "checks": [
@@ -307,7 +307,7 @@
   {
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 202,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Find span in single-span knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span_0 = knot::find_span(4, 4, k, 0.0);\n    int span_mid = knot::find_span(4, 4, k, 0.5);\n    int span_1 = knot::find_span(4, 4, k, 1.0);\n\n    // Find span in multi-span knot vector\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2_0 = knot::find_span(3, 5, k2, 0.0);\n    int span2_mid = knot::find_span(3, 5, k2, 1.5);\n    int span2_end = knot::find_span(3, 5, k2, 2.5);",
     "checks": [
