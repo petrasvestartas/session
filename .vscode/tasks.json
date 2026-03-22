@@ -25,6 +25,12 @@
       "type": "shell",
       "command": "bash/git_push.sh \"${input:commitMessage}\"",
       "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "git pull",
+      "type": "shell",
+      "command": "bash/git_pull.sh",
+      "presentation": { "reveal": "always", "panel": "shared" }
     }
   ],
   "inputs": [

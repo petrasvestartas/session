@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.177,
+    "time_ms": 0.174,
     "line": 6,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)",
     "checks": [
@@ -32,7 +32,7 @@
   {
     "test_name": "Parameters",
     "passed": true,
-    "time_ms": 0.13,
+    "time_ms": 0.145,
     "line": 20,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)\n    ta.set_max_angle(15.0) \\\n      .set_max_edge_length(2.0) \\\n      .set_min_edge_length(0.1) \\\n      .set_max_chord_height(0.05)",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 311.0,
+    "time_ms": 370.68,
     "line": 38,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)\n    m = ta.mesh()",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 686.169,
+    "time_ms": 723.147,
     "line": 52,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.torus_surface(0, 0, 0, 3.0, 1.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 26.157,
+    "time_ms": 30.063,
     "line": 65,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 23.39,
+    "time_ms": 31.877,
     "line": 78,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cone_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 790.705,
+    "time_ms": 854.713,
     "line": 91,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 118.466,
+    "time_ms": 124.548,
     "line": 104,
     "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
     "checks": [

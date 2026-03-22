@@ -11,6 +11,7 @@
   "VsCodeTaskButtons.tasks": [
     { "label": "$(tools) cpp",         "task": "cpp" },
     { "label": "$(beaker) test",       "task": "minitest" },
-    { "label": "$(cloud-upload) push", "task": "git push" }
+    { "label": "$(cloud-upload) push", "task": "git push" },
+    { "label": "$(cloud-download) pull", "task": "git pull" }
   ]
 }

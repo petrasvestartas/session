@@ -2,7 +2,7 @@
   {
     "test_name": "Default Values",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 7,
     "code": "",
     "checks": [

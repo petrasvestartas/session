@@ -62,7 +62,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 13.884,
+    "time_ms": 12.701,
     "line": 34,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    RemeshNurbssurfaceAdaptive ta(s);\n    Mesh m = ta.mesh();",
     "checks": [
@@ -87,7 +87,7 @@
   {
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 31.457,
+    "time_ms": 28.676,
     "line": 44,
     "code": "    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbssurfaceAdaptive(s).mesh();",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 1.475,
+    "time_ms": 1.405,
     "line": 52,
     "code": "    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbssurfaceAdaptive(s).mesh();",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 1.359,
+    "time_ms": 1.242,
     "line": 60,
     "code": "    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbssurfaceAdaptive(s).mesh();",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 34.627,
+    "time_ms": 27.7,
     "line": 68,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbssurfaceAdaptive(s).mesh();",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 4.619,
+    "time_ms": 4.257,
     "line": 76,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.0);\n    Mesh m = RemeshNurbssurfaceAdaptive(s).mesh();",
     "checks": [

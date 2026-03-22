@@ -2,7 +2,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 11.419,
+    "time_ms": 10.131,
     "line": 39,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let ta = RemeshNurbssurfaceAdaptive::new(s);\n        let m = ta.mesh();\n",
     "checks": [
@@ -27,7 +27,7 @@
   {
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 23.425,
+    "time_ms": 26.472,
     "line": 54,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
     "checks": [
@@ -112,7 +112,7 @@
   {
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.946,
+    "time_ms": 1.511,
     "line": 82,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
     "checks": [
@@ -137,7 +137,7 @@
   {
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 1.059,
+    "time_ms": 1.789,
     "line": 68,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
     "checks": [
@@ -162,7 +162,7 @@
   {
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 23.68,
+    "time_ms": 24.123,
     "line": 96,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::wave_surface(1.0, 0.5);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
     "checks": [
@@ -187,7 +187,7 @@
   {
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 3.072,
+    "time_ms": 3.587,
     "line": 110,
     "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::wave_surface(1.0, 0.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
     "checks": [

@@ -2,7 +2,7 @@
   {
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 7,
     "code": "        let result = TOLERANCE.is_zero(1e-10);",
     "checks": [
@@ -17,7 +17,7 @@
   {
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 14,
     "code": "        let result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 42,
     "code": "        let result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 49,
     "code": "        let result = TOLERANCE.key([1.0, 2.0, 3.0], -999);",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 56,
     "code": "        // Get current default values\n        let original_absolute = TOLERANCE.absolute();\n        let original_relative = TOLERANCE.relative();\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        let close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        let close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
@@ -232,7 +232,7 @@
   {
     "test_name": "Count Digits",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 126,
     "code": "        use crate::tolerance::count_digits;",
     "checks": [

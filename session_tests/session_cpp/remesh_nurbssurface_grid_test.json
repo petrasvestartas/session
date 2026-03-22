@@ -2,7 +2,7 @@
   {
     "test_name": "Sphere",
     "passed": true,
-    "time_ms": 1.562,
+    "time_ms": 1.447,
     "line": 9,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -27,7 +27,7 @@
   {
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 5.471,
+    "time_ms": 4.341,
     "line": 18,
     "code": "    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 0.346,
+    "time_ms": 0.25,
     "line": 27,
     "code": "    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.222,
+    "time_ms": 0.173,
     "line": 36,
     "code": "    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -102,7 +102,7 @@
   {
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 9.113,
+    "time_ms": 8.276,
     "line": 45,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -127,7 +127,7 @@
   {
     "test_name": "Grid Target",
     "passed": true,
-    "time_ms": 13.309,
+    "time_ms": 11.632,
     "line": 54,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m_lo = RemeshNurbsSurfaceGrid::from_u_v(s, 8, 8);\n    Mesh m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);",
     "checks": [
@@ -157,7 +157,7 @@
   {
     "test_name": "Flat Quad",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.05,
     "line": 65,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0,0,0), Point(0,4,0),\n        Point(4,0,0), Point(4,4,0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -182,7 +182,7 @@
   {
     "test_name": "Flat Triangle",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.031,
     "line": 77,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0,0,0), Point(2,4,0),\n        Point(4,0,0), Point(2,4,0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
