@@ -2,7 +2,7 @@
   {
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.142,
+    "time_ms": 0.147,
     "line": 20,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        // Create a bilinear surface\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, Point(6.0, 0.0, 0.0));\n        srf.set_cv(0, 1, Point(0.0, 6.0, 0.0));\n        srf.set_cv(1, 1, Point(6.0, 6.0, 0.0));\n\n        // Outer trim loop (rectangle in UV space)\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0.0), Point(0.9, 0.1, 0.0),\n            Point(0.9, 0.9, 0.0), Point(0.1, 0.9, 0.0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n\n        // String representations\n        std::string sstr = ts.str();\n        std::string srepr = ts.repr();\n\n        // Copy (new guid)\n        TrimmedSurface tscopy = ts;",
     "checks": [
@@ -57,7 +57,7 @@
   {
     "test_name": "Constructor Planar",
     "passed": true,
-    "time_ms": 55.251,
+    "time_ms": 67.766,
     "line": 60,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        // Planar curve boundary\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(3, 1, 0),\n            Point(5, 0.5, 0),\n            Point(6, 3, 0),\n            Point(4, 5, 0),\n            Point(1, 4, 0),\n        };\n        NurbsCurve bnd = NurbsCurve::create(true, 3, pts);\n        TrimmedSurface ts = TrimmedSurface::create_planar(bnd);\n\n        // Rotated planar\n        pts = {Point(0, 0, 0), Point(3, 1, -2), Point(5, 2, -3), Point(4, 4, 0), Point(1, 3, 2)};\n        bnd = NurbsCurve::create(true, 3, pts);\n        ts = TrimmedSurface::create_planar(bnd);\n\n        // Triangle\n        bnd = NurbsCurve::create(true, 1, {Point(0, 0, 0), Point(6, 3, 3), Point(2, 5, 1)});\n        ts = TrimmedSurface::create_planar(bnd);\n\n        // Trapezoid\n        bnd = NurbsCurve::create(true, 1, {\n            Point(0, 0, 6), Point(5, 0, 6), Point(4, 4, 2), Point(1, 4, 2)});\n        ts = TrimmedSurface::create_planar(bnd);\n\n        // Rectangle with a hole\n        bnd = NurbsCurve::create(true, 1, {\n            Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0)});\n        ts = TrimmedSurface::create_planar(bnd);\n        ts.add_hole(NurbsCurve::create(true, 1, {\n            Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0)}));\n\n        // Hexagon with 2 holes\n        double R = 4.0;\n        pts = {};\n        for (int k = 0; k < 6; ++k) {\n            double a = k * TOLERANCE.PI / 3.0;\n            pts.push_back(Point(R*cos(a), R*sin(a), R*cos(a)*0.5));\n        }\n        bnd = NurbsCurve::create(true, 1, pts);\n        ts = TrimmedSurface::create_planar(bnd);\n        ts.add_holes({\n            NurbsCurve::create(true, 1, {\n                Point(1.5, 0.5, 0.75), Point(2.5, 0.5, 1.25), Point(2.0, 1.5, 1.0)}),\n            NurbsCurve::create(true, 1, {\n                Point(-2, -0.5, -1), Point(-1, -0.5, -0.5),\n                Point(-1, -1.5, -0.5), Point(-2, -1.5, -1)})\n        });",
     "checks": [],
@@ -66,7 +66,7 @@
   {
     "test_name": "Constructor Hole",
     "passed": true,
-    "time_ms": 4.168,
+    "time_ms": 6.421,
     "line": 116,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        // Create surface with bump\n        int n = 8;\n        std::vector<Point> pts;\n        for (int i = 0; i < n; ++i)\n            for (int j = 0; j < n; ++j) {\n                double x = i, y = j;\n                double r2 = (x - 1.5) * (x - 1.5) + (y - 1.5) * (y - 1.5);\n                double z = 5.0 * exp(-r2 / 1.0) + 0.3 * sin(Tolerance::PI * x / 7) * sin(Tolerance::PI * y / 7);\n                pts.push_back(Point(x, y, z));\n            }\n\n        NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, n, n, pts);\n\n        // Create outer loop (full boundary in UV)\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n\n        // Add hole\n        NurbsCurve hole = Primitives::circle(3.5, 3.5, 0, 1.0);\n        ts.add_hole(hole);",
     "checks": [
@@ -91,7 +91,7 @@
   {
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.127,
+    "time_ms": 0.276,
     "line": 152,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(5, 0, 0));\n        srf.set_cv(0, 1, Point(0, 5, 0));\n        srf.set_cv(1, 1, Point(5, 5, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0), Point(0.1, 0.9, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n        ts.name = \"test_accessors\";\n        ts.width = 2.5;\n\n        NurbsSurface got_srf = ts.surface();\n        NurbsCurve got_loop = ts.get_outer_loop();",
     "checks": [
@@ -136,7 +136,7 @@
   {
     "test_name": "Add Inner Loop",
     "passed": true,
-    "time_ms": 0.351,
+    "time_ms": 0.755,
     "line": 186,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(10, 0, 0));\n        srf.set_cv(0, 1, Point(0, 10, 0));\n        srf.set_cv(1, 1, Point(10, 10, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n\n        // Add inner loop (hole in UV)\n        NurbsCurve hole1 = NurbsCurve::create(true, 1, {\n            Point(0.2, 0.2, 0), Point(0.4, 0.2, 0),\n            Point(0.4, 0.4, 0), Point(0.2, 0.4, 0)\n        });\n        NurbsCurve hole2 = NurbsCurve::create(true, 1, {\n            Point(0.6, 0.6, 0), Point(0.8, 0.6, 0),\n            Point(0.8, 0.8, 0), Point(0.6, 0.8, 0)\n        });\n\n        ts.add_inner_loop(hole1);\n        ts.add_inner_loop(hole2);\n\n        NurbsCurve got = ts.get_inner_loop(0);\n\n\n        ts.clear_inner_loops();",
     "checks": [
@@ -161,7 +161,7 @@
   {
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.122,
+    "time_ms": 0.135,
     "line": 227,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(4, 0, 0));\n        srf.set_cv(0, 1, Point(0, 4, 0));\n        srf.set_cv(1, 1, Point(4, 4, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n\n        auto dom_u = ts.surface().domain(0);\n        auto dom_v = ts.surface().domain(1);\n        double u_mid = (dom_u.first + dom_u.second) / 2.0;\n        double v_mid = (dom_v.first + dom_v.second) / 2.0;\n\n        Point pt = ts.point_at(u_mid, v_mid);\n        Vector nm = ts.normal_at(u_mid, v_mid);",
     "checks": [
@@ -191,7 +191,7 @@
   {
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 0.415,
+    "time_ms": 0.476,
     "line": 260,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"mesh.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(6, 0, 0));\n        srf.set_cv(0, 1, Point(0, 6, 0));\n        srf.set_cv(1, 1, Point(6, 6, 0));\n\n        // Untrimmed mesh\n        Mesh m_full = srf.mesh();\n\n        // Trimmed mesh (smaller outer boundary)\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0), Point(0.1, 0.9, 0)\n        });\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n        Mesh m = ts.mesh();\n\n        // Trimmed with hole\n        NurbsCurve hole = NurbsCurve::create(true, 1, {\n            Point(0.3, 0.3, 0), Point(0.7, 0.3, 0),\n            Point(0.7, 0.7, 0), Point(0.3, 0.7, 0)\n        });\n        TrimmedSurface ts_hole = TrimmedSurface::create(srf, outer);\n        ts_hole.add_inner_loop(hole);\n        Mesh m_hole = ts_hole.mesh();",
     "checks": [
@@ -226,7 +226,7 @@
   {
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.12,
+    "time_ms": 0.129,
     "line": 301,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(1, 0, 0));\n        srf.set_cv(0, 1, Point(0, 1, 0));\n        srf.set_cv(1, 1, Point(1, 1, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n        ts.xform = Xform::translation(10.0, 20.0, 30.0);\n        TrimmedSurface ts2 = ts.transformed();\n\n        auto dom_u = ts2.surface().domain(0);\n        auto dom_v = ts2.surface().domain(1);\n        Point pt = ts2.point_at(dom_u.first, dom_v.first);",
     "checks": [
@@ -251,7 +251,7 @@
   {
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.111,
+    "time_ms": 12.041,
     "line": 332,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(5, 0, 0));\n        srf.set_cv(0, 1, Point(0, 5, 0));\n        srf.set_cv(1, 1, Point(5, 5, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0), Point(0.1, 0.9, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n        ts.name = \"test_trimmedsurface\";\n        ts.width = 2.0;\n        ts.surfacecolor = Color(255, 128, 64, 255);\n\n        // JSON object\n        nlohmann::ordered_json json = ts.jsondump();\n        TrimmedSurface loaded_json = TrimmedSurface::jsonload(json);\n\n        // String\n        std::string json_string = ts.json_dumps();\n        TrimmedSurface loaded_json_string = TrimmedSurface::json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_trimmedsurface.json\").string();\n        ts.json_dump(filename);\n        TrimmedSurface loaded_from_file = TrimmedSurface::json_load(filename);",
     "checks": [
@@ -276,7 +276,7 @@
   {
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.741,
+    "time_ms": 12.762,
     "line": 374,
     "code": "        // uncomment #include \"trimmedsurface.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(5, 0, 0));\n        srf.set_cv(0, 1, Point(0, 5, 0));\n        srf.set_cv(1, 1, Point(5, 5, 0));\n\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0), Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0), Point(0.1, 0.9, 0)\n        });\n\n        TrimmedSurface ts = TrimmedSurface::create(srf, outer);\n        ts.name = \"test_trimmedsurface\";\n        ts.width = 2.0;\n        ts.surfacecolor = Color(255, 128, 64, 255);\n\n        // String\n        std::string proto_string = ts.pb_dumps();\n        TrimmedSurface loaded_proto_string = TrimmedSurface::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_trimmedsurface.bin\").string();\n        ts.pb_dump(filename);\n        TrimmedSurface loaded = TrimmedSurface::pb_load(filename);",
     "checks": [

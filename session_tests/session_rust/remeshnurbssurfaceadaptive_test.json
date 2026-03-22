@@ -1,0 +1,212 @@
+[
+  {
+    "test_name": "Mesh",
+    "passed": true,
+    "time_ms": 11.419,
+    "line": 39,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let ta = RemeshNurbssurfaceAdaptive::new(s);\n        let m = ta.mesh();\n",
+    "checks": [
+      {
+        "line": 47,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Torus",
+    "passed": true,
+    "time_ms": 23.425,
+    "line": 54,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Parameters",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 20,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let mut ta = RemeshNurbssurfaceAdaptive::new(s);\n        ta.set_max_angle(15.0)\n          .set_max_edge_length(2.0)\n          .set_min_edge_length(0.1)\n          .set_max_chord_height(0.05);\n",
+    "checks": [
+      {
+        "line": 31,
+        "code_line": "ta.get_max_angle() == 15.0",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "ta.get_max_edge_length() == 2.0",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "ta.get_min_edge_length() == 0.1",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "ta.get_max_chord_height() == 0.05",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 5,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let ta = RemeshNurbssurfaceAdaptive::new(s);\n",
+    "checks": [
+      {
+        "line": 12,
+        "code_line": "ta.get_max_angle() == 20.0",
+        "passed": true
+      },
+      {
+        "line": 13,
+        "code_line": "ta.get_max_edge_length() == 0.0",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "ta.get_min_edge_length() == 0.0",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "ta.get_max_chord_height() == 0.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Cone",
+    "passed": true,
+    "time_ms": 0.946,
+    "line": 82,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
+    "checks": [
+      {
+        "line": 89,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 91,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Cylinder",
+    "passed": true,
+    "time_ms": 1.059,
+    "line": 68,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
+    "checks": [
+      {
+        "line": 75,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Doubly Curved",
+    "passed": true,
+    "time_ms": 23.68,
+    "line": 96,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::wave_surface(1.0, 0.5);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
+    "checks": [
+      {
+        "line": 103,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Flat",
+    "passed": true,
+    "time_ms": 3.072,
+    "line": 110,
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbssurfaceAdaptive;\n\n        let s = Primitives::wave_surface(1.0, 0.0);\n        let m = RemeshNurbssurfaceAdaptive::new(s).mesh();\n",
+    "checks": [
+      {
+        "line": 117,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "m.number_of_faces() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

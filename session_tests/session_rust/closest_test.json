@@ -2,7 +2,7 @@
   {
     "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 7,
     "code": "        use crate::Closest;\n        use crate::Line;\n        use crate::Point;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n        let (cp1, t1, d1) = Closest::line_point(&l, &Point::new(5.0, 5.0, 0.0));\n\n        let (cp2, t2, d2) = Closest::line_point(&l, &Point::new(-5.0, 0.0, 0.0));\n\n        let (cp3, t3, d3) = Closest::line_point(&l, &Point::new(15.0, 0.0, 0.0));",
     "checks": [
@@ -62,7 +62,7 @@
   {
     "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.018,
     "line": 33,
     "code": "        use crate::Closest;\n        use crate::Polyline;\n        use crate::Point;\n\n        let pl = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0), Point::new(10.0, 10.0, 0.0)]);\n\n        let (_cp1, _t1, d1) = Closest::polyline_point(&pl, &Point::new(5.0, 5.0, 0.0));\n\n        let (cp2, _t2, d2) = Closest::polyline_point(&pl, &Point::new(10.0, 5.0, 0.0));",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 0.054,
+    "time_ms": 0.076,
     "line": 51,
     "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 2.0, 0.0), Point::new(4.0, 0.0, 0.0),\n        ];\n        let crv = NurbsCurve::create(false, 3, &pts);\n\n        let (t, dist) = Closest::curve_point(&crv, &Point::new(2.0, 3.0, 0.0), 0.0, 0.0);\n        let cp = crv.point_at(t);\n\n        let (_t2, dist2) = Closest::curve_point(&crv, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0);",
     "checks": [
@@ -117,7 +117,7 @@
   {
     "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 0.252,
+    "time_ms": 0.208,
     "line": 73,
     "code": "        use crate::Closest;\n        use crate::NurbsSurface;\n        use crate::Point;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 1.0),\n            Point::new(2.0, 1.0, 1.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(1.0, 2.0, 1.0),\n            Point::new(2.0, 2.0, 1.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n            Point::new(1.0, 3.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n\n        let (u, v, dist) = Closest::surface_point(&srf, &Point::new(1.5, 1.5, 2.0), 0.0, 0.0, 0.0, 0.0);\n        let cp = srf.point_at(u, v).unwrap();\n\n        let (_u2, _v2, dist2) = Closest::surface_point(&srf, &Point::new(0.0, 0.0, 0.0), 0.0, 0.0, 0.0, 0.0);",
     "checks": [
@@ -142,7 +142,7 @@
   {
     "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 0.136,
+    "time_ms": 0.083,
     "line": 109,
     "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n\n        let (cp1, _fk1, d1) = Closest::mesh_point(&m, &Point::new(0.0, 0.0, 2.0));\n\n        let (_cp2, _fk2, d2) = Closest::mesh_point(&m, &Point::new(1.0, 1.0, 1.0));",
     "checks": [
@@ -167,7 +167,7 @@
   {
     "test_name": "Mesh Point AABB",
     "passed": true,
-    "time_ms": 0.11,
+    "time_ms": 0.1,
     "line": 126,
     "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n\n        let (cp1, _fk1, d1) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 2.0));\n\n        let (_cp2, _fk2, d2) = Closest::mesh_point_aabb(&m, &Point::new(1.0, 1.0, 1.0));",
     "checks": [
@@ -192,7 +192,7 @@
   {
     "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 143,
     "code": "        use crate::Closest;\n        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 10.0, 0.0),\n        ], vec![], vec![]);\n\n        let (cp1, i1, d1) = Closest::pointcloud_point(&pc, &Point::new(4.0, 0.0, 0.0));\n\n        let (_cp2, i2, d2) = Closest::pointcloud_point(&pc, &Point::new(10.0, 10.0, 0.0));",
     "checks": [

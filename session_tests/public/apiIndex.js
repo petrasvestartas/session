@@ -19107,8 +19107,8 @@ window.API_INDEX = {
           "file": "nurbssurface.py"
         },
         "cpp": {
-          "sig": "Mesh mesh(double max_angle, double max_edge_length,\n                        double min_edge_length, double max_chord_height)",
-          "code": "Mesh NurbsSurface::mesh(double max_angle, double max_edge_length,\n                        double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid() && is_planar(nullptr, 1e-6)) {\n        Mesh result;\n        Point p00 = point_at_corner(0, 0);\n        Point p10 = point_at_corner(1, 0);\n        Point p11 = point_at_corner(1, 1);\n        Point p01 = point_at_corner(0, 1);\n        double d2 = (p00[0]-p01[0])*(p00[0]-p01[0]) + (p00[1]-p01[1])*(p00[1]-p01[1]) + (p00[2]-p01[2])*(p00[2]-p01[2]);\n        Vector normal;\n        if (d2 < 1e-20) {\n            auto v0 = result.add_vertex(p00);\n            auto v1 = result.add_vertex(p10);\n            auto v2 = result.add_vertex(p11);\n            result.add_face({v0, v1, v2}",
+          "sig": "Mesh mesh(double max_angle, double max_edge_length)",
+          "code": "Mesh NurbsSurface::mesh(double max_angle, double max_edge_length) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid() && is_planar(nullptr, 1e-6)) {\n        Mesh result;\n        Point p00 = point_at_corner(0, 0);\n        Point p10 = point_at_corner(1, 0);\n        Point p11 = point_at_corner(1, 1);\n        Point p01 = point_at_corner(0, 1);\n        double d2 = (p00[0]-p01[0])*(p00[0]-p01[0]) + (p00[1]-p01[1])*(p00[1]-p01[1]) + (p00[2]-p01[2])*(p00[2]-p01[2]);\n        Vector normal;\n        if (d2 < 1e-20) {\n            auto v0 = result.add_vertex(p00);\n            auto v1 = result.add_vertex(p10);\n            auto v2 = result.add_vertex(p11);\n            result.add_face({v0, v1, v2}",
           "file": "nurbssurface.cpp"
         },
         "rust": {
@@ -19170,7 +19170,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "grid_idx(i, j)",
-          "code": "def grid_idx(i, j):\n\n            return vkeys[i * nv_grid + (j - j_start)]\n        nu_faces = nu if closed_u else nu - 1\n        if sing_v0:\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([south_pole, grid_idx(i1, j_start), grid_idx(i, j_start)])\n        nv_interior = nv_grid - 1\n        if closed_v and not sing_v0 and not sing_v1:\n            nv_interior = nv_grid\n        for i in range(nu_faces):\n            for jj in range(nv_interior):\n                j = jj + j_start\n                i1 = (i + 1) % nu\n                j1 = ((jj + 1) % nv_grid + j_start) if (closed_v and not sing_v0 and not sing_v1) else (j + 1)\n                v00, v10 = grid_idx(i, j), grid_idx(i1, j)\n                v01, v11 = grid_idx(i, j1), grid_idx(i1, j1)\n                if (i + jj) % 2 == 0:\n                    result.add_face([v00, v10, v11])\n                    result.add_face([v00, v11, v01])\n                else:\n                    result.add_face([v00, v10, v01])\n                    result.add_face([v10, v11, v01])\n        if sing_v1:\n            j_last = j_end - 1\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([grid_idx(i, j_last), grid_idx(i1, j_last), north_pole])\n        max_vkey = max(result.vertex.keys()) if result.vertex else 0\n        vnx = [0.0] * (max_vkey + 1)\n        vny = [0.0] * (max_vkey + 1)\n        vnz = [0.0] * (max_vkey + 1)\n        for fi, vids in result.face.items():\n            if len(vids) < 3:\n                continue\n            p0 = result.vertex[vids[0]]\n            p1 = result.vertex[vids[1]]\n            p2 = result.vertex[vids[2]]\n            e1x, e1y, e1z = p1.x-p0.x, p1.y-p0.y, p1.z-p0.z\n            e2x, e2y, e2z = p2.x-p0.x, p2.y-p0.y, p2.z-p0.z\n            fnx = e1y*e2z - e1z*e2y\n            fny = e1z*e2x - e1x*e2z\n            fnz = e1x*e2y - e1y*e2x\n            for vi in vids:\n                vnx[vi] += fnx\n                vny[vi] += fny\n                vnz[vi] += fnz\n        for vk in result.vertex:\n            ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)\n            if ln > 1e-15:\n                vnx[vk] /= ln\n                vny[vk] /= ln\n                vnz[vk] /= ln\n            result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])\n        self.m_mesh = result\n        return self.m_mesh\n\n    def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .trimesh_adaptive import TrimeshAdaptive\n        mesher = TrimeshAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()",
+          "code": "def grid_idx(i, j):\n\n            return vkeys[i * nv_grid + (j - j_start)]\n        nu_faces = nu if closed_u else nu - 1\n        if sing_v0:\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([south_pole, grid_idx(i1, j_start), grid_idx(i, j_start)])\n        nv_interior = nv_grid - 1\n        if closed_v and not sing_v0 and not sing_v1:\n            nv_interior = nv_grid\n        for i in range(nu_faces):\n            for jj in range(nv_interior):\n                j = jj + j_start\n                i1 = (i + 1) % nu\n                j1 = ((jj + 1) % nv_grid + j_start) if (closed_v and not sing_v0 and not sing_v1) else (j + 1)\n                v00, v10 = grid_idx(i, j), grid_idx(i1, j)\n                v01, v11 = grid_idx(i, j1), grid_idx(i1, j1)\n                if (i + jj) % 2 == 0:\n                    result.add_face([v00, v10, v11])\n                    result.add_face([v00, v11, v01])\n                else:\n                    result.add_face([v00, v10, v01])\n                    result.add_face([v10, v11, v01])\n        if sing_v1:\n            j_last = j_end - 1\n            for i in range(nu_faces):\n                i1 = (i + 1) % nu\n                result.add_face([grid_idx(i, j_last), grid_idx(i1, j_last), north_pole])\n        max_vkey = max(result.vertex.keys()) if result.vertex else 0\n        vnx = [0.0] * (max_vkey + 1)\n        vny = [0.0] * (max_vkey + 1)\n        vnz = [0.0] * (max_vkey + 1)\n        for fi, vids in result.face.items():\n            if len(vids) < 3:\n                continue\n            p0 = result.vertex[vids[0]]\n            p1 = result.vertex[vids[1]]\n            p2 = result.vertex[vids[2]]\n            e1x, e1y, e1z = p1.x-p0.x, p1.y-p0.y, p1.z-p0.z\n            e2x, e2y, e2z = p2.x-p0.x, p2.y-p0.y, p2.z-p0.z\n            fnx = e1y*e2z - e1z*e2y\n            fny = e1z*e2x - e1x*e2z\n            fnz = e1x*e2y - e1y*e2x\n            for vi in vids:\n                vnx[vi] += fnx\n                vny[vi] += fny\n                vnz[vi] += fnz\n        for vk in result.vertex:\n            ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)\n            if ln > 1e-15:\n                vnx[vk] /= ln\n                vny[vk] /= ln\n                vnz[vk] /= ln\n            result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])\n        self.m_mesh = result\n        return self.m_mesh\n\n    def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .remesh_nurbssurface_adaptive import RemeshNurbssurfaceAdaptive\n        mesher = RemeshNurbssurfaceAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()",
           "file": "nurbssurface.py"
         }
       },
@@ -19180,8 +19180,7 @@ window.API_INDEX = {
         "NurbsSurface.is_valid",
         "NurbsSurface.jsondump",
         "NurbsSurface.mesh",
-        "NurbsSurface.mesh_adaptive",
-        "NurbsSurface.trim"
+        "NurbsSurface.mesh_adaptive"
       ]
     },
     {
@@ -19189,12 +19188,12 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "mesh_adaptive(max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0)",
-          "code": "def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .trimesh_adaptive import TrimeshAdaptive\n        mesher = TrimeshAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)",
+          "code": "def mesh_adaptive(self, max_angle: float = 20.0, max_edge_length: float = 0.0,\n                      min_edge_length: float = 0.0, max_chord_height: float = 0.0):\n\n        if self.m_mesh is not None:\n            return self.m_mesh\n        if not self.is_valid():\n            from .mesh import Mesh\n            return Mesh()\n        from .remesh_nurbssurface_adaptive import RemeshNurbssurfaceAdaptive\n        mesher = RemeshNurbssurfaceAdaptive(self)\n        mesher.set_max_angle(max_angle)\n        mesher.set_max_edge_length(max_edge_length)\n        mesher.set_min_edge_length(min_edge_length)\n        mesher.set_max_chord_height(max_chord_height)\n        self.m_mesh = mesher.mesh()\n        return self.m_mesh\n\n    ###########################################################################\n    # JSON SERIALIZATION\n    ###########################################################################\n    \n    def jsondump(self) -> dict:\n        \"\"\"Convert to JSON dictionary.\"\"\"\n        return self.__jsondump__()\n    \n    @staticmethod\n    def jsonload(data: dict) -> 'NurbsSurface':\n        \"\"\"Load from JSON dictionary.\"\"\"\n        return NurbsSurface.__jsonload__(data)\n    \n    ###########################################################################\n    # STRING REPRESENTATION\n    ###########################################################################\n    \n    def to_string(self) -> str:\n        \"\"\"Get string representation.\n        \n        Returns\n        -------\n        str\n            String representation of surface.\n        \"\"\"\n        return (f\"NurbsSurface(name={self.name}, \"\n                f\"degree=({self.degree(0)},{self.degree(1)}), \"\n                f\"cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}))\")\n    \n    def __str__(self) -> str:\n        return self.to_string()\n\n    def __repr__(self) -> str:\n        result = (f\"NurbsSurface(\\n  name={self.name},\\n\"\n                  f\"  degree=({self.degree(0)},{self.degree(1)}),\\n\"\n                  f\"  cvs=({self.m_cv_count[0]},{self.m_cv_count[1]}),\\n\"\n                  f\"  rational={'true' if self.m_is_rat else 'false'},\\n\"\n                  f\"  control_points=[\\n\")\n        for i in range(self.m_cv_count[0]):\n            for j in range(self.m_cv_count[1]):\n                p = self.get_cv(i, j)\n                result += f\"    {p[0]:g}, {p[1]:g}, {p[2]:g}\\n\"\n        result += \"  ]\\n)\"\n        return result\n\n    @staticmethod\n    def create_ruled(curveA, curveB):\n        from .primitives import Primitives\n        return Primitives.create_ruled(curveA, curveB)\n\n    @staticmethod\n    def create_loft(input_curves, degree_v=3):\n        from .primitives import Primitives\n        return Primitives.create_loft(input_curves, degree_v)\n\n    @staticmethod\n    def _merge_knot_vectors(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._merge_knot_vectors(a, b, tol)\n\n    @staticmethod\n    def _knot_vectors_equal(a, b, tol=1e-10):\n        from .primitives import Primitives\n        return Primitives._knot_vectors_equal(a, b, tol)",
           "file": "nurbssurface.py"
         },
         "cpp": {
           "sig": "Mesh mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height)",
-          "code": "Mesh NurbsSurface::mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        TrimeshAdaptive mesher(*this);\n        mesher.set_max_angle(max_angle)\n              .set_max_edge_length(max_edge_length)\n              .set_min_edge_length(min_edge_length)\n              .set_max_chord_height(max_chord_height);\n        m_mesh = mesher.mesh();\n    }",
+          "code": "Mesh NurbsSurface::mesh_adaptive(double max_angle, double max_edge_length,\n                                  double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        RemeshNurbssurfaceAdaptive mesher(*this);\n        mesher.set_max_angle(max_angle)\n              .set_max_edge_length(max_edge_length)\n              .set_min_edge_length(min_edge_length)\n              .set_max_chord_height(max_chord_height);\n        m_mesh = mesher.mesh();\n    }",
           "file": "nurbssurface.cpp"
         }
       },
@@ -19220,8 +19219,7 @@ window.API_INDEX = {
         "NurbsSurface.mesh",
         "NurbsSurface.repr",
         "NurbsSurface.str",
-        "NurbsSurface.to_string",
-        "NurbsSurface.trim"
+        "NurbsSurface.to_string"
       ]
     },
     {
@@ -19866,12 +19864,10 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
         "NurbsSurface.domain",
-        "NurbsSurface.grid_idx",
         "NurbsSurface.increase_degree",
         "NurbsSurface.insert_knot",
         "NurbsSurface.is_valid",
         "NurbsSurface.knot",
-        "NurbsSurface.mesh_adaptive",
         "NurbsSurface.order",
         "NurbsSurface.split"
       ]
@@ -44124,8 +44120,8 @@ window.API_INDEX = {
       "name": "NurbsSurface.mesh_grid",
       "implementations": {
         "cpp": {
-          "sig": "Mesh mesh_grid(double max_angle, double max_edge_length,\n                             double min_edge_length, double max_chord_height)",
-          "code": "Mesh NurbsSurface::mesh_grid(double max_angle, double max_edge_length,\n                             double min_edge_length, double max_chord_height) const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        TrimeshGrid mesher(*this);\n        mesher.set_max_angle(max_angle)\n              .set_max_edge_length(max_edge_length)\n              .set_min_edge_length(min_edge_length)\n              .set_max_chord_height(max_chord_height);\n        m_mesh = mesher.mesh();\n    }",
+          "sig": "Mesh mesh_grid()",
+          "code": "Mesh NurbsSurface::mesh_grid() const {\n    if (m_mesh.number_of_vertices() == 0 && is_valid()) {\n        m_mesh = remesh_nurbssurface_grid(*this, 0, 0);\n    }",
           "file": "nurbssurface.cpp"
         }
       },
@@ -52218,11 +52214,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "n",
-        "circle",
-        "into",
         "points",
+        "circle",
+        "n",
         "subdivide",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -52236,11 +52232,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "arc",
         "by",
         "length",
-        "arc",
-        "ellipse",
         "subdivide",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -52255,8 +52251,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "through",
-        "points",
         "arc",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -52270,11 +52266,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "points",
         "polyline",
         "from",
         "open",
         "adaptive",
-        "points",
         "curve",
         "to_polyline_adaptive",
         "create",
@@ -52290,9 +52286,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
         "parameter",
         "at",
+        "evaluation",
         "curve",
         "set_domain",
         "point_at",
@@ -52313,9 +52309,9 @@ window.API_INDEX = {
       "title": "Curve Frames Along Length",
       "tags": [
         "frames",
+        "length",
         "along",
         "curve",
-        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -52337,9 +52333,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -52360,9 +52356,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
         "point",
         "evaluate",
+        "cylinder",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -52378,11 +52374,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "mesh",
         "faces",
-        "from",
         "vertices",
         "and",
-        "mesh",
+        "from",
         "add_vertex",
         "add_face",
         "vertex"

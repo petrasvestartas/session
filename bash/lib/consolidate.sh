@@ -30,7 +30,12 @@ consolidate_test_data() {
             for lang_info in "cpp:session_cpp" "python:session_py" "rust:session_rust"; do
                 local lang="${lang_info%%:*}"
                 local dir="${lang_info#*:}"
-                local json_path="${tests_dir}/${dir}/${class_name}_test.json"
+                local rust_name="${class_name//_/}"
+                if [[ "$lang" == "rust" ]]; then
+                    local json_path="${tests_dir}/${dir}/${rust_name}_test.json"
+                else
+                    local json_path="${tests_dir}/${dir}/${class_name}_test.json"
+                fi
 
                 if [[ -f "$json_path" ]]; then
                     [[ "$first" == "false" ]] && echo ","

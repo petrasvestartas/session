@@ -1,0 +1,207 @@
+[
+  {
+    "test_name": "Sphere",
+    "passed": true,
+    "time_ms": 1.562,
+    "line": 9,
+    "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "m.number_of_vertices() == 191",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "m.number_of_faces() == 378",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Torus",
+    "passed": true,
+    "time_ms": 5.471,
+    "line": 18,
+    "code": "    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 22,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "m.number_of_vertices() == 693",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "m.number_of_faces() == 1386",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Cylinder",
+    "passed": true,
+    "time_ms": 0.346,
+    "line": 27,
+    "code": "    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 31,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "m.number_of_vertices() == 42",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "m.number_of_faces() == 42",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Cone",
+    "passed": true,
+    "time_ms": 0.222,
+    "line": 36,
+    "code": "    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 40,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 41,
+        "code_line": "m.number_of_vertices() == 22",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "m.number_of_faces() == 21",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Doubly Curved",
+    "passed": true,
+    "time_ms": 9.113,
+    "line": 45,
+    "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 49,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 50,
+        "code_line": "m.number_of_vertices() == 961",
+        "passed": true
+      },
+      {
+        "line": 51,
+        "code_line": "m.number_of_faces() == 1800",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Grid Target",
+    "passed": true,
+    "time_ms": 13.309,
+    "line": 54,
+    "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m_lo = RemeshNurbsSurfaceGrid::from_u_v(s, 8, 8);\n    Mesh m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);",
+    "checks": [
+      {
+        "line": 59,
+        "code_line": "m_lo.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 60,
+        "code_line": "m_lo.number_of_vertices() == 64",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "m_hi.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "m_hi.number_of_vertices() > m_lo.number_of_vertices()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Flat Quad",
+    "passed": true,
+    "time_ms": 0.047,
+    "line": 65,
+    "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0,0,0), Point(0,4,0),\n        Point(4,0,0), Point(4,4,0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 72,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "m.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "m.number_of_faces() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "test_name": "Flat Triangle",
+    "passed": true,
+    "time_ms": 0.032,
+    "line": 77,
+    "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0,0,0), Point(2,4,0),\n        Point(4,0,0), Point(2,4,0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "checks": [
+      {
+        "line": 84,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "m.number_of_vertices() == 3",
+        "passed": true
+      },
+      {
+        "line": 86,
+        "code_line": "m.number_of_faces() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

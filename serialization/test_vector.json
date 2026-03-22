@@ -1,7 +1,7 @@
 {
-    "type": "Vector",
-    "guid": "848b7826-3897-4dae-a55c-43630cc54c0a",
+    "guid": "8cdd9152-6313-4efa-9343-aa74bcccb101",
     "name": "test_vector",
+    "type": "Vector",
     "x": 42.1,
     "y": 84.2,
     "z": 126.3

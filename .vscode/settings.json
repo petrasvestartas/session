@@ -6,5 +6,11 @@
       "args": ["--login", "-i"],
       "icon": "terminal-bash"
     }
-  }
+  },
+  "VsCodeTaskButtons.showCounter": false,
+  "VsCodeTaskButtons.tasks": [
+    { "label": "$(tools) cpp",         "task": "cpp" },
+    { "label": "$(beaker) test",       "task": "minitest" },
+    { "label": "$(cloud-upload) push", "task": "git push" }
+  ]
 }

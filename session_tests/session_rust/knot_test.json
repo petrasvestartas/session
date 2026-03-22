@@ -82,7 +82,7 @@
   {
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 61,
     "code": "        use crate::knot;\n\n        // Create periodic uniform knot vector\n        let k = knot::make_periodic_uniform(3, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n",
     "checks": [

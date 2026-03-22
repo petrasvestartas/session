@@ -2,7 +2,7 @@
   {
     "test_name": "Eval Gyroid",
     "passed": true,
-    "time_ms": 0.183,
+    "time_ms": 0.032,
     "line": 8,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -22,7 +22,7 @@
   {
     "test_name": "Eval SchwarzP",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 17,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -52,7 +52,7 @@
   {
     "test_name": "From Tpms Gyroid Solid",
     "passed": true,
-    "time_ms": 7.342,
+    "time_ms": 7.323,
     "line": 33,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SOLID)",
     "checks": [
@@ -77,7 +77,7 @@
   {
     "test_name": "From Tpms Diamond Sheet",
     "passed": true,
-    "time_ms": 27.335,
+    "time_ms": 27.709,
     "line": 48,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHEET, 0.1)",
     "checks": [
@@ -92,7 +92,7 @@
   {
     "test_name": "From Tpms Neovius Shell",
     "passed": true,
-    "time_ms": 20.667,
+    "time_ms": 21.732,
     "line": 61,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
     "checks": [
@@ -107,7 +107,7 @@
   {
     "test_name": "SDF Sphere",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.015,
     "line": 74,
     "code": "    from session_py import MeshIso",
     "checks": [
@@ -132,7 +132,7 @@
   {
     "test_name": "Smooth Union",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 83,
     "code": "    from session_py import MeshIso",
     "checks": [
@@ -152,7 +152,7 @@
   {
     "test_name": "From Function",
     "passed": true,
-    "time_ms": 2.603,
+    "time_ms": 2.703,
     "line": 91,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
@@ -172,7 +172,7 @@
   {
     "test_name": "All Tpms Shells",
     "passed": true,
-    "time_ms": 281.276,
+    "time_ms": 323.445,
     "line": 105,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    types = [\n        TpmsType.GYROID, TpmsType.SCHWARZ_P, TpmsType.DIAMOND,\n        TpmsType.NEOVIUS, TpmsType.IWP, TpmsType.LIDINOID,\n        TpmsType.FISCHER_KOCH_S, TpmsType.FRD, TpmsType.PMY,\n    ]\n    for i in range(9):\n        m = MeshIso.from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
     "checks": [
@@ -272,7 +272,7 @@
   {
     "test_name": "SDF Box",
     "passed": true,
-    "time_ms": 3.345,
+    "time_ms": 5.89,
     "line": 125,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
@@ -292,7 +292,7 @@
   {
     "test_name": "SDF Torus",
     "passed": true,
-    "time_ms": 2.756,
+    "time_ms": 3.269,
     "line": 139,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
@@ -312,7 +312,7 @@
   {
     "test_name": "SDF Capsule",
     "passed": true,
-    "time_ms": 4.034,
+    "time_ms": 4.378,
     "line": 153,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_capsule(Point(0.0, -1.0, 0.0), Point(0.0, 1.0, 0.0), 0.5, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
@@ -332,7 +332,7 @@
   {
     "test_name": "Smooth Subtract",
     "passed": true,
-    "time_ms": 11.043,
+    "time_ms": 12.884,
     "line": 167,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z)\n        return MeshIso.smooth_subtract(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)",
     "checks": [
@@ -352,7 +352,7 @@
   {
     "test_name": "Smooth Intersect",
     "passed": true,
-    "time_ms": 12.419,
+    "time_ms": 13.924,
     "line": 183,
     "code": "    from session_py import MeshIso\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z)\n        return MeshIso.smooth_intersect(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)",
     "checks": [
@@ -372,7 +372,7 @@
   {
     "test_name": "Gyroid Sphere Shell",
     "passed": true,
-    "time_ms": 7.722,
+    "time_ms": 8.453,
     "line": 199,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import Obb\n    from session_py import Point\n\n    box = Obb.from_points([Point(-1.6, -1.6, -1.6), Point(1.6, 1.6, 1.6)])\n    def fn(x, y, z):\n        tpms = MeshIso.eval(TpmsType.GYROID, x, y, z, 1.0)\n        shell = abs(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z)) - 0.08\n        return MeshIso.smooth_union(tpms * 0.3, shell, 8.0)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [

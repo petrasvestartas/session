@@ -167,7 +167,14 @@ const openTestsMenu = () => {
 };
 
 const suiteLabel = (suite) => {
-  return suite.replace(/_test$/i, '');
+  if (typeof window.TEST_DATA !== 'undefined') {
+    for (const lang of ['cpp', 'python', 'rust']) {
+      const arr = window.TEST_DATA[suite + '_' + lang];
+      if (Array.isArray(arr) && arr.length > 0 && arr[0].group) return arr[0].group;
+    }
+  }
+  return suite.replace(/_test$/i, '')
+    .split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
 };
 
 const selectSuite = (suite) => {
@@ -262,7 +269,8 @@ onUnmounted(() => {
 }
 
 .sidebar {
-  width: 220px;
+  width: fit-content;
+  min-width: 120px;
   background: #000000;
   display: flex;
   flex-direction: column;
