@@ -1,362 +1,377 @@
 [
   {
-    "test_name": "Knot Count",
-    "passed": true,
-    "time_ms": 0.001,
-    "line": 7,
-    "code": "        use crate::knot;\n\n        // Calculate knot counts for various order/cv_count combinations\n        let count1 = knot::knot_count(2, 2);\n        let count2 = knot::knot_count(3, 3);\n        let count3 = knot::knot_count(4, 4);\n        let count4 = knot::knot_count(4, 5);\n        let count5 = knot::knot_count(3, 4);\n",
     "checks": [
       {
-        "line": 17,
         "code_line": "count1 == 2",
+        "line": 17,
         "passed": true
       },
       {
-        "line": 18,
         "code_line": "count2 == 4",
+        "line": 18,
         "passed": true
       },
       {
-        "line": 19,
         "code_line": "count3 == 6",
+        "line": 19,
         "passed": true
       },
       {
-        "line": 20,
         "code_line": "count4 == 7",
+        "line": 20,
         "passed": true
       },
       {
-        "line": 21,
         "code_line": "count5 == 5",
+        "line": 21,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Calculate knot counts for various order/cv_count combinations\n        let count1 = knot::knot_count(2, 2);\n        let count2 = knot::knot_count(3, 3);\n        let count3 = knot::knot_count(4, 4);\n        let count4 = knot::knot_count(4, 5);\n        let count5 = knot::knot_count(3, 4);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 7,
+    "passed": true,
+    "test_name": "Knot Count",
+    "time_ms": 0.001
   },
   {
-    "test_name": "Make Clamped Uniform",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 26,
-    "code": "        use crate::knot;\n\n        // Basic clamped uniform knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n        let k5 = k[5];\n\n        // With custom delta\n        let k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n        let k2_len = k2_vec.len();\n        let (t0, t1) = knot::get_domain(3, 4, &k2_vec);\n\n        // Invalid params\n        let k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n        let k_invalid1_empty = k_invalid1.is_empty();\n        let k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);\n        let k_invalid2_empty = k_invalid2.is_empty();\n",
     "checks": [
       {
-        "line": 50,
         "code_line": "k_len == 6",
+        "line": 50,
         "passed": true
       },
       {
-        "line": 51,
         "code_line": "k0 == 0.0 && k1 == 0.0 && k2 == 0.0",
+        "line": 51,
         "passed": true
       },
       {
-        "line": 52,
         "code_line": "k3 == 1.0 && k4 == 1.0 && k5 == 1.0",
+        "line": 52,
         "passed": true
       },
       {
-        "line": 53,
         "code_line": "k2_len == 5",
+        "line": 53,
         "passed": true
       },
       {
-        "line": 54,
         "code_line": "t0 == 0.0 && t1 == 5.0",
+        "line": 54,
         "passed": true
       },
       {
-        "line": 55,
         "code_line": "k_invalid1_empty",
+        "line": 55,
         "passed": true
       },
       {
-        "line": 56,
         "code_line": "k_invalid2_empty",
+        "line": 56,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Basic clamped uniform knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n        let k5 = k[5];\n\n        // With custom delta\n        let k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n        let k2_len = k2_vec.len();\n        let (t0, t1) = knot::get_domain(3, 4, &k2_vec);\n\n        // Invalid params\n        let k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n        let k_invalid1_empty = k_invalid1.is_empty();\n        let k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);\n        let k_invalid2_empty = k_invalid2.is_empty();\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 26,
+    "passed": true,
+    "test_name": "Make Clamped Uniform",
+    "time_ms": 0.001
   },
   {
-    "test_name": "Make Periodic Uniform",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 61,
-    "code": "        use crate::knot;\n\n        // Create periodic uniform knot vector\n        let k = knot::make_periodic_uniform(3, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n",
     "checks": [
       {
-        "line": 73,
         "code_line": "k_len == 5",
+        "line": 73,
         "passed": true
       },
       {
-        "line": 74,
         "code_line": "k0 == 0.0 && k1 == 1.0 && k2 == 2.0 && k3 == 3.0 && k4 == 4.0",
+        "line": 74,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Create periodic uniform knot vector\n        let k = knot::make_periodic_uniform(3, 4, 1.0);\n        let k_len = k.len();\n        let k0 = k[0];\n        let k1 = k[1];\n        let k2 = k[2];\n        let k3 = k[3];\n        let k4 = k[4];\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 61,
+    "passed": true,
+    "test_name": "Make Periodic Uniform",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Clamp",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 79,
-    "code": "        use crate::knot;\n\n        // Clamp a periodic knot vector\n        let mut k = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];\n        let clamp_result = knot::clamp(4, 4, &mut k, 2);\n        let first_clamped = k[0] == k[1] && k[1] == k[2];\n        let last_clamped = k[3] == k[4] && k[4] == k[5];\n",
     "checks": [
       {
-        "line": 88,
         "code_line": "clamp_result",
+        "line": 88,
         "passed": true
       },
       {
-        "line": 89,
         "code_line": "first_clamped",
+        "line": 89,
         "passed": true
       },
       {
-        "line": 90,
         "code_line": "last_clamped",
+        "line": 90,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Clamp a periodic knot vector\n        let mut k = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];\n        let clamp_result = knot::clamp(4, 4, &mut k, 2);\n        let first_clamped = k[0] == k[1] && k[1] == k[2];\n        let last_clamped = k[3] == k[4] && k[4] == k[5];\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 79,
+    "passed": true,
+    "test_name": "Clamp",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Is Valid",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 95,
-    "code": "        use crate::knot;\n\n        // Valid clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let valid = knot::is_valid(4, 4, &k);\n\n        // Invalid - decreasing values\n        let k_invalid = vec![0.0, 0.0, 1.0, 0.5, 1.0, 1.0];\n        let invalid = knot::is_valid(4, 4, &k_invalid);\n",
     "checks": [
       {
-        "line": 106,
         "code_line": "valid",
+        "line": 106,
         "passed": true
       },
       {
-        "line": 107,
         "code_line": "!invalid",
+        "line": 107,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Valid clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let valid = knot::is_valid(4, 4, &k);\n\n        // Invalid - decreasing values\n        let k_invalid = vec![0.0, 0.0, 1.0, 0.5, 1.0, 1.0];\n        let invalid = knot::is_valid(4, 4, &k_invalid);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 95,
+    "passed": true,
+    "test_name": "Is Valid",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Is Clamped",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 112,
-    "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
     "checks": [
       {
-        "line": 125,
         "code_line": "clamped_both",
+        "line": 125,
         "passed": true
       },
       {
-        "line": 126,
         "code_line": "clamped_start",
+        "line": 126,
         "passed": true
       },
       {
-        "line": 127,
         "code_line": "clamped_end",
+        "line": 127,
         "passed": true
       },
       {
-        "line": 128,
         "code_line": "!not_clamped",
+        "line": 128,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let clamped_both = knot::is_clamped(4, 4, &k, 2);\n        let clamped_start = knot::is_clamped(4, 4, &k, 0);\n        let clamped_end = knot::is_clamped(4, 4, &k, 1);\n\n        // Periodic knot vector (not clamped)\n        let k2 = knot::make_periodic_uniform(4, 5, 1.0);\n        let not_clamped = knot::is_clamped(4, 5, &k2, 2);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 112,
+    "passed": true,
+    "test_name": "Is Clamped",
+    "time_ms": 0.001
   },
   {
-    "test_name": "Is Periodic",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 133,
-    "code": "        use crate::knot;\n\n        // Periodic knot vector\n        let k = knot::make_periodic_uniform(3, 4, 1.0);\n        let periodic = knot::is_periodic(3, 4, &k);\n\n        // Clamped knot vector (not periodic)\n        let k2 = knot::make_clamped_uniform(4, 4, 1.0);\n        let not_periodic = knot::is_periodic(4, 4, &k2);\n",
     "checks": [
       {
-        "line": 144,
         "code_line": "periodic",
+        "line": 144,
         "passed": true
       },
       {
-        "line": 145,
         "code_line": "!not_periodic",
+        "line": 145,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Periodic knot vector\n        let k = knot::make_periodic_uniform(3, 4, 1.0);\n        let periodic = knot::is_periodic(3, 4, &k);\n\n        // Clamped knot vector (not periodic)\n        let k2 = knot::make_clamped_uniform(4, 4, 1.0);\n        let not_periodic = knot::is_periodic(4, 4, &k2);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 133,
+    "passed": true,
+    "test_name": "Is Periodic",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Get Domain",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 150,
-    "code": "        use crate::knot;\n\n        // Get domain of clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n",
     "checks": [
       {
-        "line": 157,
         "code_line": "t0 == 0.0",
+        "line": 157,
         "passed": true
       },
       {
-        "line": 158,
         "code_line": "t1 == 1.0",
+        "line": 158,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Get domain of clamped knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 150,
+    "passed": true,
+    "test_name": "Get Domain",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Set Domain",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 163,
-    "code": "        use crate::knot;\n\n        // Create knot vector and set domain\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let set_result = knot::set_domain(4, 4, &mut k, 5.0, 10.0);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_close = (t0 - 5.0).abs() < 1e-10;\n        let t1_close = (t1 - 10.0).abs() < 1e-10;\n",
     "checks": [
       {
-        "line": 173,
         "code_line": "set_result",
+        "line": 173,
         "passed": true
       },
       {
-        "line": 174,
         "code_line": "t0_close",
+        "line": 174,
         "passed": true
       },
       {
-        "line": 175,
         "code_line": "t1_close",
+        "line": 175,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Create knot vector and set domain\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let set_result = knot::set_domain(4, 4, &mut k, 5.0, 10.0);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_close = (t0 - 5.0).abs() < 1e-10;\n        let t1_close = (t1 - 10.0).abs() < 1e-10;\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 163,
+    "passed": true,
+    "test_name": "Set Domain",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Reverse",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 180,
-    "code": "        use crate::knot;\n\n        // Reverse knot vector\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0_orig, t1_orig) = knot::get_domain(4, 4, &k);\n        let reverse_result = knot::reverse(4, 4, &mut k);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_preserved = (t0 - t0_orig).abs() < 1e-10;\n        let t1_preserved = (t1 - t1_orig).abs() < 1e-10;\n",
     "checks": [
       {
-        "line": 191,
         "code_line": "reverse_result",
+        "line": 191,
         "passed": true
       },
       {
-        "line": 192,
         "code_line": "t0_preserved",
+        "line": 192,
         "passed": true
       },
       {
-        "line": 193,
         "code_line": "t1_preserved",
+        "line": 193,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Reverse knot vector\n        let mut k = knot::make_clamped_uniform(4, 4, 1.0);\n        let (t0_orig, t1_orig) = knot::get_domain(4, 4, &k);\n        let reverse_result = knot::reverse(4, 4, &mut k);\n        let (t0, t1) = knot::get_domain(4, 4, &k);\n        let t0_preserved = (t0 - t0_orig).abs() < 1e-10;\n        let t1_preserved = (t1 - t1_orig).abs() < 1e-10;\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 180,
+    "passed": true,
+    "test_name": "Reverse",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Multiplicity",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 198,
-    "code": "        use crate::knot;\n\n        // Check multiplicity at clamped ends\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let mult_first = knot::multiplicity(4, 4, &k, 0);\n        let mult_last = knot::multiplicity(4, 4, &k, 5);\n",
     "checks": [
       {
-        "line": 206,
         "code_line": "mult_first == 3",
+        "line": 206,
         "passed": true
       },
       {
-        "line": 207,
         "code_line": "mult_last == 3",
+        "line": 207,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Check multiplicity at clamped ends\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let mult_first = knot::multiplicity(4, 4, &k, 0);\n        let mult_last = knot::multiplicity(4, 4, &k, 5);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 198,
+    "passed": true,
+    "test_name": "Multiplicity",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Span Count",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 212,
-    "code": "        use crate::knot;\n\n        // Single Bezier span\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span1 = knot::span_count(4, 4, &k);\n\n        // Multiple spans\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2 = knot::span_count(3, 5, &k2);\n",
     "checks": [
       {
-        "line": 223,
         "code_line": "span1 == 1",
+        "line": 223,
         "passed": true
       },
       {
-        "line": 224,
         "code_line": "span2 == 3",
+        "line": 224,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Single Bezier span\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span1 = knot::span_count(4, 4, &k);\n\n        // Multiple spans\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2 = knot::span_count(3, 5, &k2);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 212,
+    "passed": true,
+    "test_name": "Span Count",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Find Span",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 229,
-    "code": "        use crate::knot;\n\n        // Find span in single-span knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span_0 = knot::find_span(4, 4, &k, 0.0);\n        let span_mid = knot::find_span(4, 4, &k, 0.5);\n        let span_1 = knot::find_span(4, 4, &k, 1.0);\n\n        // Find span in multi-span knot vector\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2_0 = knot::find_span(3, 5, &k2, 0.0);\n        let span2_mid = knot::find_span(3, 5, &k2, 1.5);\n        let span2_end = knot::find_span(3, 5, &k2, 2.5);\n",
     "checks": [
       {
-        "line": 244,
         "code_line": "span_0 == 0 && span_mid == 0 && span_1 == 0",
+        "line": 244,
         "passed": true
       },
       {
-        "line": 245,
         "code_line": "span2_0 == 0 && span2_mid == 1 && span2_end == 2",
+        "line": 245,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Find span in single-span knot vector\n        let k = knot::make_clamped_uniform(4, 4, 1.0);\n        let span_0 = knot::find_span(4, 4, &k, 0.0);\n        let span_mid = knot::find_span(4, 4, &k, 0.5);\n        let span_1 = knot::find_span(4, 4, &k, 1.0);\n\n        // Find span in multi-span knot vector\n        let k2 = knot::make_clamped_uniform(3, 5, 1.0);\n        let span2_0 = knot::find_span(3, 5, &k2, 0.0);\n        let span2_mid = knot::find_span(3, 5, &k2, 1.5);\n        let span2_end = knot::find_span(3, 5, &k2, 2.5);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 229,
+    "passed": true,
+    "test_name": "Find Span",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Greville Abcissae",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 250,
-    "code": "        use crate::knot;\n\n        // Get Greville abcissae (control point parameter values)\n        let k = knot::make_clamped_uniform(3, 4, 1.0);\n        let g = knot::get_greville_abcissae(3, 4, &k, false);\n        let g_len = g.len();\n",
     "checks": [
       {
-        "line": 258,
         "code_line": "g_len == 4",
+        "line": 258,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Get Greville abcissae (control point parameter values)\n        let k = knot::make_clamped_uniform(3, 4, 1.0);\n        let g = knot::get_greville_abcissae(3, 4, &k, false);\n        let g_len = g.len();\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 250,
+    "passed": true,
+    "test_name": "Greville Abcissae",
+    "time_ms": 0.0
   },
   {
-    "test_name": "Domain Tolerance",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 263,
-    "code": "        use crate::knot;\n\n        // Calculate domain tolerance\n        let tol_same = knot::domain_tolerance(1.0, 1.0);\n        let tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
     "checks": [
       {
-        "line": 270,
         "code_line": "tol_same == 0.0",
+        "line": 270,
         "passed": true
       },
       {
-        "line": 271,
         "code_line": "tol_diff > 0.0",
+        "line": 271,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::knot;\n\n        // Calculate domain tolerance\n        let tol_same = knot::domain_tolerance(1.0, 1.0);\n        let tol_diff = knot::domain_tolerance(0.0, 1.0);\n",
+    "failures": [],
+    "group": "Knot",
+    "line": 263,
+    "passed": true,
+    "test_name": "Domain Tolerance",
+    "time_ms": 0.0
   }
 ]

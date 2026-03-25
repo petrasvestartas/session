@@ -1,10 +1,11 @@
 [
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.174,
+    "time_ms": 0.256,
     "line": 6,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)",
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbsSurfaceAdaptive(s)",
     "checks": [
       {
         "line": 14,
@@ -30,11 +31,12 @@
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Parameters",
     "passed": true,
-    "time_ms": 0.145,
+    "time_ms": 0.124,
     "line": 20,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)\n    ta.set_max_angle(15.0) \\\n      .set_max_edge_length(2.0) \\\n      .set_min_edge_length(0.1) \\\n      .set_max_chord_height(0.05)",
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbsSurfaceAdaptive(s)\n    ta.set_max_angle(15.0) \\\n      .set_max_edge_length(2.0) \\\n      .set_min_edge_length(0.1) \\\n      .set_max_chord_height(0.05)",
     "checks": [
       {
         "line": 32,
@@ -60,11 +62,12 @@
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 370.68,
+    "time_ms": 249.489,
     "line": 38,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbssurfaceAdaptive(s)\n    m = ta.mesh()",
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    ta = RemeshNurbsSurfaceAdaptive(s)\n    m = ta.mesh()",
     "checks": [
       {
         "line": 47,
@@ -73,137 +76,154 @@
       },
       {
         "line": 48,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 49,
-        "code_line": "m.number_of_faces() > 0",
+        "code_line": "m.number_of_vertices() == 418",
         "passed": true
       }
     ],
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 723.147,
-    "line": 52,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.torus_surface(0, 0, 0, 3.0, 1.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
+    "time_ms": 518.703,
+    "line": 51,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.torus_surface(0, 0, 0, 3.0, 1.0)\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
     "checks": [
+      {
+        "line": 59,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
       {
         "line": 60,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 61,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 62,
-        "code_line": "m.number_of_faces() > 0",
+        "code_line": "m.number_of_vertices() == 1024",
         "passed": true
       }
     ],
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 30.063,
-    "line": 65,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
+    "time_ms": 20.215,
+    "line": 63,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
     "checks": [
       {
-        "line": 73,
+        "line": 71,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 74,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 75,
-        "code_line": "m.number_of_faces() > 0",
+        "line": 72,
+        "code_line": "m.number_of_vertices() == 64",
         "passed": true
       }
     ],
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 31.877,
-    "line": 78,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cone_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
+    "time_ms": 20.333,
+    "line": 75,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.cone_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
     "checks": [
       {
-        "line": 86,
+        "line": 83,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 87,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 88,
-        "code_line": "m.number_of_faces() > 0",
+        "line": 84,
+        "code_line": "m.number_of_vertices() == 33",
         "passed": true
       }
     ],
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 854.713,
-    "line": 91,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
+    "time_ms": 502.424,
+    "line": 87,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
     "checks": [
       {
-        "line": 99,
+        "line": 95,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 100,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 101,
-        "code_line": "m.number_of_faces() > 0",
+        "line": 96,
+        "code_line": "m.number_of_vertices() == 1175",
         "passed": true
       }
     ],
     "failures": []
   },
   {
+    "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 124.548,
-    "line": 104,
-    "code": "    from session_py import RemeshNurbssurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.0)\n    m = RemeshNurbssurfaceAdaptive(s).mesh()",
+    "time_ms": 73.789,
+    "line": 99,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.0)\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
     "checks": [
       {
-        "line": 112,
+        "line": 107,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 113,
-        "code_line": "m.number_of_vertices() > 0",
+        "line": 108,
+        "code_line": "m.number_of_vertices() == 169",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceAdaptive",
+    "test_name": "Singular Triangle",
+    "passed": true,
+    "time_ms": 25.168,
+    "line": 111,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 2, 1, 3, 2, [\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
+    "checks": [
+      {
+        "line": 127,
+        "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 114,
-        "code_line": "m.number_of_faces() > 0",
+        "line": 128,
+        "code_line": "m.number_of_vertices() == 83",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceAdaptive",
+    "test_name": "Double-Curved Triangle",
+    "passed": true,
+    "time_ms": 26.35,
+    "line": 131,
+    "code": "    from session_py import RemeshNurbsSurfaceAdaptive\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 2, 2, 3, 3, [\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceAdaptive(s).mesh()",
+    "checks": [
+      {
+        "line": 150,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 151,
+        "code_line": "m.number_of_vertices() == 91",
         "passed": true
       }
     ],

@@ -1,8 +1,9 @@
 [
   {
+    "group": "Knot",
     "test_name": "Knot Count",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 14,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Calculate knot counts for various order/cv_count combinations\n    int count1 = knot::knot_count(2, 2);\n    int count2 = knot::knot_count(3, 3);\n    int count3 = knot::knot_count(4, 4);\n    int count4 = knot::knot_count(4, 5);\n    int count5 = knot::knot_count(3, 4);",
     "checks": [
@@ -35,9 +36,10 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 31,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Basic clamped uniform knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2];\n    double k3 = k[3], k4 = k[4], k5 = k[5];\n\n    // With custom delta\n    auto k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n    size_t k2_len = k2_vec.size();\n    auto [t0, t1] = knot::get_domain(3, 4, k2_vec);\n\n    // Invalid params\n    auto k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n    auto k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);",
     "checks": [
@@ -80,6 +82,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
     "time_ms": 0.002,
@@ -100,9 +103,10 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Clamp",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 70,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Clamp a periodic knot vector\n    std::vector<double> k = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};\n    bool clamp_result = knot::clamp(4, 4, k, 2);\n    bool first_clamped = k[0] == k[1] && k[1] == k[2];\n    bool last_clamped = k[3] == k[4] && k[4] == k[5];",
     "checks": [
@@ -125,6 +129,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Is Valid",
     "passed": true,
     "time_ms": 0.001,
@@ -145,6 +150,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Is Clamped",
     "passed": true,
     "time_ms": 0.0,
@@ -175,9 +181,10 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Is Periodic",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 118,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    bool periodic = knot::is_periodic(3, 4, k);\n\n    // Clamped knot vector (not periodic)\n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n    bool not_periodic = knot::is_periodic(4, 4, k2);",
     "checks": [
@@ -195,6 +202,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Get Domain",
     "passed": true,
     "time_ms": 0.0,
@@ -215,6 +223,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Set Domain",
     "passed": true,
     "time_ms": 0.0,
@@ -240,6 +249,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Reverse",
     "passed": true,
     "time_ms": 0.0,
@@ -265,6 +275,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Multiplicity",
     "passed": true,
     "time_ms": 0.0,
@@ -285,9 +296,10 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Span Count",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 187,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Single Bezier span\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span1 = knot::span_count(4, 4, k);\n\n    // Multiple spans\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2 = knot::span_count(3, 5, k2);",
     "checks": [
@@ -305,9 +317,10 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 202,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Find span in single-span knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span_0 = knot::find_span(4, 4, k, 0.0);\n    int span_mid = knot::find_span(4, 4, k, 0.5);\n    int span_1 = knot::find_span(4, 4, k, 1.0);\n\n    // Find span in multi-span knot vector\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2_0 = knot::find_span(3, 5, k2, 0.0);\n    int span2_mid = knot::find_span(3, 5, k2, 1.5);\n    int span2_end = knot::find_span(3, 5, k2, 2.5);",
     "checks": [
@@ -325,6 +338,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Greville Abcissae",
     "passed": true,
     "time_ms": 0.0,
@@ -340,6 +354,7 @@
     "failures": []
   },
   {
+    "group": "Knot",
     "test_name": "Domain Tolerance",
     "passed": true,
     "time_ms": 0.0,

@@ -1,42 +1,44 @@
 [
   {
-    "test_name": "Default Values",
-    "passed": true,
-    "time_ms": 0.001,
-    "line": 7,
-    "code": "",
     "checks": [
       {
-        "line": 8,
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "line": 8,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "",
+    "failures": [],
+    "group": "SessionConfig",
+    "line": 7,
+    "passed": true,
+    "test_name": "Default Values",
+    "time_ms": 0.001
   },
   {
-    "test_name": "Runtime Modification",
-    "passed": true,
-    "time_ms": 0.001,
-    "line": 13,
-    "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();",
     "checks": [
       {
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
         "line": 14,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
         "passed": true
       },
       {
-        "line": 16,
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == true",
+        "line": 16,
         "passed": true
       },
       {
-        "line": 18,
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "line": 18,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();",
+    "failures": [],
+    "group": "SessionConfig",
+    "line": 13,
+    "passed": true,
+    "test_name": "Runtime Modification",
+    "time_ms": 0.001
   }
 ]

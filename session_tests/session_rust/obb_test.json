@@ -1,227 +1,232 @@
 [
   {
-    "test_name": "Constructor",
-    "passed": true,
-    "time_ms": 0.017,
-    "line": 7,
-    "code": "        use crate::Obb;\n        use crate::Point;\n        use crate::Vector;\n\n        // from_point\n        let mut bb1 = Obb::from_point(Point::new(5.0, 5.0, 5.0), 2.0);\n\n        // from_points (AABB)\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(2.0, 3.0, 4.0)];\n        let bb2 = Obb::from_points(&pts, 0.0);\n        let mn = bb2.min_point();\n        let mx = bb2.max_point();\n\n        // OBB constructor\n        let obb = Obb::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(1.0, 2.0, 3.0),\n        );\n\n        // aabb\n        let bb_aabb = bb2.aabb();\n\n        // corners\n        let corners = bb2.corners();\n\n        // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n        let p_center = bb2.point_at(0.0, 0.0, 0.0);\n        let hx = bb2.half_size[0];\n        let hy = bb2.half_size[1];\n        let hz = bb2.half_size[2];\n        let p_max_pt = bb2.point_at(hx, hy, hz);\n\n        // inflate\n        let mut bb3 = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        bb3.inflate(1.0);\n\n        // guid and name\n        bb1.name = \"test_bbox\".to_string();",
     "checks": [
       {
-        "line": 14,
         "code_line": "TOLERANCE.is_close(bb1.center[0], 5.0)",
+        "line": 14,
         "passed": true
       },
       {
-        "line": 15,
         "code_line": "TOLERANCE.is_close(bb1.half_size[0], 2.0)",
+        "line": 15,
         "passed": true
       },
       {
-        "line": 22,
         "code_line": "TOLERANCE.is_close(mn[0], 0.0) && TOLERANCE.is_close(mn[2], 0.0)",
+        "line": 22,
         "passed": true
       },
       {
-        "line": 23,
         "code_line": "TOLERANCE.is_close(mx[0], 2.0) && TOLERANCE.is_close(mx[2], 4.0)",
+        "line": 23,
         "passed": true
       },
       {
-        "line": 33,
         "code_line": "TOLERANCE.is_close(obb.half_size[0], 1.0)",
+        "line": 33,
         "passed": true
       },
       {
-        "line": 34,
         "code_line": "TOLERANCE.is_close(obb.half_size[1], 2.0)",
+        "line": 34,
         "passed": true
       },
       {
-        "line": 35,
         "code_line": "TOLERANCE.is_close(obb.half_size[2], 3.0)",
+        "line": 35,
         "passed": true
       },
       {
-        "line": 39,
         "code_line": "TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0)",
+        "line": 39,
         "passed": true
       },
       {
-        "line": 40,
         "code_line": "TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0)",
+        "line": 40,
         "passed": true
       },
       {
-        "line": 44,
         "code_line": "corners.len() == 8",
+        "line": 44,
         "passed": true
       },
       {
-        "line": 52,
         "code_line": "TOLERANCE.is_close(p_center[0], 1.0) && TOLERANCE.is_close(p_center[2], 2.0)",
+        "line": 52,
         "passed": true
       },
       {
-        "line": 53,
         "code_line": "TOLERANCE.is_close(p_max_pt[0], 2.0) && TOLERANCE.is_close(p_max_pt[2], 4.0)",
+        "line": 53,
         "passed": true
       },
       {
-        "line": 58,
         "code_line": "TOLERANCE.is_close(bb3.min_point()[0], -1.0)",
+        "line": 58,
         "passed": true
       },
       {
-        "line": 59,
         "code_line": "TOLERANCE.is_close(bb3.max_point()[0], 3.0)",
+        "line": 59,
         "passed": true
       },
       {
-        "line": 62,
         "code_line": "!bb1.guid.is_empty()",
+        "line": 62,
         "passed": true
       },
       {
-        "line": 64,
         "code_line": "bb1.name == \"test_bbox\"",
+        "line": 64,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Obb;\n        use crate::Point;\n        use crate::Vector;\n\n        // from_point\n        let mut bb1 = Obb::from_point(Point::new(5.0, 5.0, 5.0), 2.0);\n\n        // from_points (AABB)\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(2.0, 3.0, 4.0)];\n        let bb2 = Obb::from_points(&pts, 0.0);\n        let mn = bb2.min_point();\n        let mx = bb2.max_point();\n\n        // OBB constructor\n        let obb = Obb::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(1.0, 2.0, 3.0),\n        );\n\n        // aabb\n        let bb_aabb = bb2.aabb();\n\n        // corners\n        let corners = bb2.corners();\n\n        // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n        let p_center = bb2.point_at(0.0, 0.0, 0.0);\n        let hx = bb2.half_size[0];\n        let hy = bb2.half_size[1];\n        let hz = bb2.half_size[2];\n        let p_max_pt = bb2.point_at(hx, hy, hz);\n\n        // inflate\n        let mut bb3 = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        bb3.inflate(1.0);\n\n        // guid and name\n        bb1.name = \"test_bbox\".to_string();",
+    "failures": [],
+    "group": "Obb",
+    "line": 7,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.014
   },
   {
-    "test_name": "Collision",
-    "passed": true,
-    "time_ms": 0.002,
-    "line": 69,
-    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let bb1 = Obb::from_point(Point::new(0.0, 0.0, 0.0), 1.0);\n        let bb2 = Obb::from_point(Point::new(1.5, 0.0, 0.0), 1.0);\n        let bb3 = Obb::from_point(Point::new(5.0, 5.0, 5.0), 0.5);\n",
     "checks": [
       {
-        "line": 77,
         "code_line": "bb1.collides_with(&bb2)",
+        "line": 77,
         "passed": true
       },
       {
-        "line": 78,
         "code_line": "!bb1.collides_with(&bb3)",
+        "line": 78,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let bb1 = Obb::from_point(Point::new(0.0, 0.0, 0.0), 1.0);\n        let bb2 = Obb::from_point(Point::new(1.5, 0.0, 0.0), 1.0);\n        let bb3 = Obb::from_point(Point::new(5.0, 5.0, 5.0), 0.5);\n",
+    "failures": [],
+    "group": "Obb",
+    "line": 69,
+    "passed": true,
+    "test_name": "Collision",
+    "time_ms": 0.005
   },
   {
-    "test_name": "Transformation",
-    "passed": true,
-    "time_ms": 0.005,
-    "line": 83,
-    "code": "        use crate::Obb;\n        use crate::Point;\n        use crate::Xform;\n\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0)];\n        let mut bb = Obb::from_points(&pts, 0.0);\n        bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n        let bbt = bb.transformed();\n\n        bb.transform();",
     "checks": [
       {
-        "line": 93,
         "code_line": "TOLERANCE.is_close(bbt.center[2], 5.0)",
+        "line": 93,
         "passed": true
       },
       {
-        "line": 96,
         "code_line": "bb.xform == Xform::identity()",
+        "line": 96,
         "passed": true
       },
       {
-        "line": 97,
         "code_line": "TOLERANCE.is_close(bb.center[2], 5.0)",
+        "line": 97,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Obb;\n        use crate::Point;\n        use crate::Xform;\n\n        let pts = vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0)];\n        let mut bb = Obb::from_points(&pts, 0.0);\n        bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n        let bbt = bb.transformed();\n\n        bb.transform();",
+    "failures": [],
+    "group": "Obb",
+    "line": 83,
+    "passed": true,
+    "test_name": "Transformation",
+    "time_ms": 0.004
   },
   {
-    "test_name": "Json Roundtrip",
-    "passed": true,
-    "time_ms": 9.648,
-    "line": 102,
-    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let mut bb = Obb::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox\".to_string();\n\n        // JSON object (string)\n        let js = bb.jsondump().unwrap();\n        let loaded_j = Obb::jsonload(&js).unwrap();\n\n        // String\n        let s = bb.json_dumps();\n        let loaded_s = Obb::json_loads(&s);\n\n        // File\n        let fname = \"serialization/test_obb.json\";\n        bb.json_dump(fname);\n        let loaded = Obb::json_load(fname);",
     "checks": [
       {
-        "line": 112,
         "code_line": "loaded_j.name == \"test_bbox\"",
+        "line": 112,
         "passed": true
       },
       {
-        "line": 113,
         "code_line": "TOLERANCE.is_close(loaded_j.center[0], 1.0)",
+        "line": 113,
         "passed": true
       },
       {
-        "line": 118,
         "code_line": "loaded_s.name == \"test_bbox\"",
+        "line": 118,
         "passed": true
       },
       {
-        "line": 119,
         "code_line": "TOLERANCE.is_close(loaded_s.half_size[0], 5.0)",
+        "line": 119,
         "passed": true
       },
       {
-        "line": 125,
         "code_line": "loaded.name == \"test_bbox\"",
+        "line": 125,
         "passed": true
       },
       {
-        "line": 126,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
+        "line": 126,
         "passed": true
       },
       {
-        "line": 127,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
+        "line": 127,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let mut bb = Obb::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox\".to_string();\n\n        // JSON object (string)\n        let js = bb.jsondump().unwrap();\n        let loaded_j = Obb::jsonload(&js).unwrap();\n\n        // String\n        let s = bb.json_dumps();\n        let loaded_s = Obb::json_loads(&s);\n\n        // File\n        let fname = \"serialization/test_obb.json\";\n        bb.json_dump(fname);\n        let loaded = Obb::json_load(fname);",
+    "failures": [],
+    "group": "Obb",
+    "line": 102,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 11.604
   },
   {
-    "test_name": "Protobuf Roundtrip",
-    "passed": true,
-    "time_ms": 10.255,
-    "line": 132,
-    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let mut bb = Obb::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox_proto\".to_string();\n\n        // Bytes\n        let b = bb.pb_dumps();\n        let loaded_s = Obb::pb_loads(&b).unwrap();\n\n        // File\n        let fname = \"serialization/test_obb.bin\";\n        bb.pb_dump(fname);\n        let loaded = Obb::pb_load(fname);",
     "checks": [
       {
-        "line": 142,
         "code_line": "loaded_s.name == \"test_bbox_proto\"",
+        "line": 142,
         "passed": true
       },
       {
-        "line": 143,
         "code_line": "loaded_s.guid == bb.guid",
+        "line": 143,
         "passed": true
       },
       {
-        "line": 144,
         "code_line": "TOLERANCE.is_close(loaded_s.center[0], 1.0)",
+        "line": 144,
         "passed": true
       },
       {
-        "line": 150,
         "code_line": "loaded.name == \"test_bbox_proto\"",
+        "line": 150,
         "passed": true
       },
       {
-        "line": 151,
         "code_line": "loaded.guid == bb.guid",
+        "line": 151,
         "passed": true
       },
       {
-        "line": 152,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
+        "line": 152,
         "passed": true
       },
       {
-        "line": 153,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
+        "line": 153,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Obb;\n        use crate::Point;\n\n        let mut bb = Obb::from_point(Point::new(1.0, 2.0, 3.0), 5.0);\n        bb.name = \"test_bbox_proto\".to_string();\n\n        // Bytes\n        let b = bb.pb_dumps();\n        let loaded_s = Obb::pb_loads(&b).unwrap();\n\n        // File\n        let fname = \"serialization/test_obb.bin\";\n        bb.pb_dump(fname);\n        let loaded = Obb::pb_load(fname);",
+    "failures": [],
+    "group": "Obb",
+    "line": 132,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 10.387
   }
 ]

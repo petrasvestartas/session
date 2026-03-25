@@ -1,387 +1,392 @@
 [
   {
-    "test_name": "Constructor",
-    "passed": true,
-    "time_ms": 0.004,
-    "line": 173,
-    "code": "        use crate::Color;\n\n        // Constructor\n        let mut red = Color::new(255, 0, 0, 255);\n        red.name = \"red\".to_string();\n\n        // Setters\n        red.r = 255;\n        red.g = 0;\n        red.b = 0;\n        red.a = 255;\n\n        // Getters\n        let r = red.r;\n        let g = red.g;\n        let b = red.b;\n        let a = red.a;\n\n        // Minimal and Full String Representation\n        let cstr = red.str();\n        let crepr = red.repr();\n\n        // Copy (duplicates everything except guid)\n        let ccopy = red.duplicate();\n        let mut cother = Color::new(255, 0, 0, 255);\n        cother.name = \"red\".to_string();\n",
     "checks": [
       {
+        "code_line": "red.name == \"red\"",
         "line": 201,
-        "code_line": "red.name == \"red\"",
         "passed": true
       },
       {
-        "line": 202,
         "code_line": "!red.guid.is_empty()",
+        "line": 202,
         "passed": true
       },
       {
-        "line": 203,
         "code_line": "red.r == 255 && red.g == 0 && red.b == 0 && red.a == 255",
+        "line": 203,
         "passed": true
       },
       {
-        "line": 204,
         "code_line": "r == 255 && g == 0 && b == 0 && a == 255",
+        "line": 204,
         "passed": true
       },
       {
-        "line": 205,
         "code_line": "cstr == \"255, 0, 0, 255\"",
+        "line": 205,
         "passed": true
       },
       {
-        "line": 206,
         "code_line": "crepr == \"Color(red, 255, 0, 0, 255)\"",
+        "line": 206,
         "passed": true
       },
       {
-        "line": 207,
         "code_line": "ccopy == cother",
+        "line": 207,
         "passed": true
       },
       {
-        "line": 208,
         "code_line": "ccopy.guid != red.guid",
+        "line": 208,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Color;\n\n        // Constructor\n        let mut red = Color::new(255, 0, 0, 255);\n        red.name = \"red\".to_string();\n\n        // Setters\n        red.r = 255;\n        red.g = 0;\n        red.b = 0;\n        red.a = 255;\n\n        // Getters\n        let r = red.r;\n        let g = red.g;\n        let b = red.b;\n        let a = red.a;\n\n        // Minimal and Full String Representation\n        let cstr = red.str();\n        let crepr = red.repr();\n\n        // Copy (duplicates everything except guid)\n        let ccopy = red.duplicate();\n        let mut cother = Color::new(255, 0, 0, 255);\n        cother.name = \"red\".to_string();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 173,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.005
   },
   {
-    "test_name": "Json Roundtrip",
-    "passed": true,
-    "time_ms": 8.236,
-    "line": 213,
-    "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.json_dump(filename).unwrap();\n        let loaded = Color::json_load(filename).unwrap();\n",
     "checks": [
       {
+        "code_line": "loaded.name == \"test_color\"",
         "line": 227,
-        "code_line": "loaded.name == \"test_color\"",
         "passed": true
       },
       {
+        "code_line": "loaded.r == 255",
         "line": 228,
-        "code_line": "loaded.r == 255",
         "passed": true
       },
       {
+        "code_line": "loaded.g == 128",
         "line": 229,
-        "code_line": "loaded.g == 128",
         "passed": true
       },
       {
+        "code_line": "loaded.b == 64",
         "line": 230,
-        "code_line": "loaded.b == 64",
         "passed": true
       },
       {
+        "code_line": "loaded.a == 255",
         "line": 231,
-        "code_line": "loaded.a == 255",
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.json_dump(filename).unwrap();\n        let loaded = Color::json_load(filename).unwrap();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 213,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 9.606
   },
   {
-    "test_name": "Protobuf Roundtrip",
-    "passed": true,
-    "time_ms": 11.575,
-    "line": 236,
-    "code": "        use crate::Color;\n\n        let mut color = Color::new(255, 128, 64, 255);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"serialization/test_color.bin\";\n        color.pb_dump(filename);\n        let loaded = Color::pb_load(filename);\n",
     "checks": [
       {
-        "line": 246,
         "code_line": "loaded.name == \"test_color\"",
+        "line": 246,
         "passed": true
       },
       {
-        "line": 247,
         "code_line": "loaded.r == 255",
+        "line": 247,
         "passed": true
       },
       {
-        "line": 248,
         "code_line": "loaded.g == 128",
+        "line": 248,
         "passed": true
       },
       {
-        "line": 249,
         "code_line": "loaded.b == 64",
+        "line": 249,
         "passed": true
       },
       {
-        "line": 250,
         "code_line": "loaded.a == 255",
+        "line": 250,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Color;\n\n        let mut color = Color::new(255, 128, 64, 255);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"serialization/test_color.bin\";\n        color.pb_dump(filename);\n        let loaded = Color::pb_load(filename);\n",
+    "failures": [],
+    "group": "Color",
+    "line": 236,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 7.274
   },
   {
-    "test_name": "Conversion",
-    "passed": true,
-    "time_ms": 0.0,
-    "line": 255,
-    "code": "        use crate::Color;\n\n\n        let color = Color::new(255, 128, 64, 255);\n        let flts = color.to_float_array();\n        let ints = Color::from_float(flts[0], flts[1], flts[2], flts[3]);\n",
     "checks": [
       {
-        "line": 263,
         "code_line": "TOLERANCE.is_close(flts[0], 1.0)",
+        "line": 263,
         "passed": true
       },
       {
-        "line": 264,
         "code_line": "TOLERANCE.is_close(flts[1], 0.50196078)",
+        "line": 264,
         "passed": true
       },
       {
-        "line": 265,
         "code_line": "TOLERANCE.is_close(flts[2], 0.25098039)",
+        "line": 265,
         "passed": true
       },
       {
-        "line": 266,
         "code_line": "TOLERANCE.is_close(flts[3], 1.0)",
+        "line": 266,
         "passed": true
       },
       {
-        "line": 267,
         "code_line": "ints == color",
+        "line": 267,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Color;\n\n\n        let color = Color::new(255, 128, 64, 255);\n        let flts = color.to_float_array();\n        let ints = Color::from_float(flts[0], flts[1], flts[2], flts[3]);\n",
+    "failures": [],
+    "group": "Color",
+    "line": 255,
+    "passed": true,
+    "test_name": "Conversion",
+    "time_ms": 0.001
   },
   {
-    "test_name": "Presets",
-    "passed": true,
-    "time_ms": 0.013,
-    "line": 272,
-    "code": "        use crate::Color;\n\n        let white = Color::white();\n        let black = Color::black();\n        let grey = Color::grey();\n        let red = Color::red();\n        let orange = Color::orange();\n        let yellow = Color::yellow();\n        let lime = Color::lime();\n        let green = Color::green();\n        let mint = Color::mint();\n        let cyan = Color::cyan();\n        let azure = Color::azure();\n        let blue = Color::blue();\n        let violet = Color::violet();\n        let magenta = Color::magenta();\n        let pink = Color::pink();\n        let maroon = Color::maroon();\n        let brown = Color::brown();\n        let olive = Color::olive();\n        let teal = Color::teal();\n        let navy = Color::navy();\n        let purple = Color::purple();\n        let silver = Color::silver();\n",
     "checks": [
       {
-        "line": 298,
         "code_line": "white.r == 255 && white.g == 255 && white.b == 255",
+        "line": 298,
         "passed": true
       },
       {
-        "line": 299,
         "code_line": "white.name == \"white\"",
+        "line": 299,
         "passed": true
       },
       {
-        "line": 300,
         "code_line": "black.r == 0 && black.g == 0 && black.b == 0",
+        "line": 300,
         "passed": true
       },
       {
-        "line": 301,
         "code_line": "black.name == \"black\"",
+        "line": 301,
         "passed": true
       },
       {
-        "line": 302,
         "code_line": "grey.r == 128 && grey.g == 128 && grey.b == 128",
+        "line": 302,
         "passed": true
       },
       {
-        "line": 303,
         "code_line": "grey.name == \"grey\"",
+        "line": 303,
         "passed": true
       },
       {
-        "line": 304,
         "code_line": "red.r == 255 && red.g == 0 && red.b == 0",
+        "line": 304,
         "passed": true
       },
       {
-        "line": 305,
         "code_line": "red.name == \"red\"",
+        "line": 305,
         "passed": true
       },
       {
-        "line": 306,
         "code_line": "orange.r == 255 && orange.g == 128 && orange.b == 0",
+        "line": 306,
         "passed": true
       },
       {
-        "line": 307,
         "code_line": "orange.name == \"orange\"",
+        "line": 307,
         "passed": true
       },
       {
-        "line": 308,
         "code_line": "yellow.r == 255 && yellow.g == 255 && yellow.b == 0",
+        "line": 308,
         "passed": true
       },
       {
-        "line": 309,
         "code_line": "yellow.name == \"yellow\"",
+        "line": 309,
         "passed": true
       },
       {
-        "line": 310,
         "code_line": "lime.r == 128 && lime.g == 255 && lime.b == 0",
+        "line": 310,
         "passed": true
       },
       {
-        "line": 311,
         "code_line": "lime.name == \"lime\"",
+        "line": 311,
         "passed": true
       },
       {
-        "line": 312,
         "code_line": "green.r == 0 && green.g == 255 && green.b == 0",
+        "line": 312,
         "passed": true
       },
       {
-        "line": 313,
         "code_line": "green.name == \"green\"",
+        "line": 313,
         "passed": true
       },
       {
-        "line": 314,
         "code_line": "mint.r == 0 && mint.g == 255 && mint.b == 128",
+        "line": 314,
         "passed": true
       },
       {
-        "line": 315,
         "code_line": "mint.name == \"mint\"",
+        "line": 315,
         "passed": true
       },
       {
-        "line": 316,
         "code_line": "cyan.r == 0 && cyan.g == 255 && cyan.b == 255",
+        "line": 316,
         "passed": true
       },
       {
-        "line": 317,
         "code_line": "cyan.name == \"cyan\"",
+        "line": 317,
         "passed": true
       },
       {
-        "line": 318,
         "code_line": "azure.r == 0 && azure.g == 128 && azure.b == 255",
+        "line": 318,
         "passed": true
       },
       {
-        "line": 319,
         "code_line": "azure.name == \"azure\"",
+        "line": 319,
         "passed": true
       },
       {
-        "line": 320,
         "code_line": "blue.r == 0 && blue.g == 0 && blue.b == 255",
+        "line": 320,
         "passed": true
       },
       {
-        "line": 321,
         "code_line": "blue.name == \"blue\"",
+        "line": 321,
         "passed": true
       },
       {
-        "line": 322,
         "code_line": "violet.r == 128 && violet.g == 0 && violet.b == 255",
+        "line": 322,
         "passed": true
       },
       {
-        "line": 323,
         "code_line": "violet.name == \"violet\"",
+        "line": 323,
         "passed": true
       },
       {
-        "line": 324,
         "code_line": "magenta.r == 255 && magenta.g == 0 && magenta.b == 255",
+        "line": 324,
         "passed": true
       },
       {
-        "line": 325,
         "code_line": "magenta.name == \"magenta\"",
+        "line": 325,
         "passed": true
       },
       {
-        "line": 326,
         "code_line": "pink.r == 255 && pink.g == 0 && pink.b == 128",
+        "line": 326,
         "passed": true
       },
       {
-        "line": 327,
         "code_line": "pink.name == \"pink\"",
+        "line": 327,
         "passed": true
       },
       {
-        "line": 328,
         "code_line": "maroon.r == 128 && maroon.g == 0 && maroon.b == 0",
+        "line": 328,
         "passed": true
       },
       {
-        "line": 329,
         "code_line": "maroon.name == \"maroon\"",
+        "line": 329,
         "passed": true
       },
       {
-        "line": 330,
         "code_line": "brown.r == 128 && brown.g == 64 && brown.b == 0",
+        "line": 330,
         "passed": true
       },
       {
-        "line": 331,
         "code_line": "brown.name == \"brown\"",
+        "line": 331,
         "passed": true
       },
       {
-        "line": 332,
         "code_line": "olive.r == 128 && olive.g == 128 && olive.b == 0",
+        "line": 332,
         "passed": true
       },
       {
-        "line": 333,
         "code_line": "olive.name == \"olive\"",
+        "line": 333,
         "passed": true
       },
       {
-        "line": 334,
         "code_line": "teal.r == 0 && teal.g == 128 && teal.b == 128",
+        "line": 334,
         "passed": true
       },
       {
-        "line": 335,
         "code_line": "teal.name == \"teal\"",
+        "line": 335,
         "passed": true
       },
       {
-        "line": 336,
         "code_line": "navy.r == 0 && navy.g == 0 && navy.b == 128",
+        "line": 336,
         "passed": true
       },
       {
-        "line": 337,
         "code_line": "navy.name == \"navy\"",
+        "line": 337,
         "passed": true
       },
       {
-        "line": 338,
         "code_line": "purple.r == 128 && purple.g == 0 && purple.b == 128",
+        "line": 338,
         "passed": true
       },
       {
-        "line": 339,
         "code_line": "purple.name == \"purple\"",
+        "line": 339,
         "passed": true
       },
       {
-        "line": 340,
         "code_line": "silver.r == 192 && silver.g == 192 && silver.b == 192",
+        "line": 340,
         "passed": true
       },
       {
-        "line": 341,
         "code_line": "silver.name == \"silver\"",
+        "line": 341,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Color;\n\n        let white = Color::white();\n        let black = Color::black();\n        let grey = Color::grey();\n        let red = Color::red();\n        let orange = Color::orange();\n        let yellow = Color::yellow();\n        let lime = Color::lime();\n        let green = Color::green();\n        let mint = Color::mint();\n        let cyan = Color::cyan();\n        let azure = Color::azure();\n        let blue = Color::blue();\n        let violet = Color::violet();\n        let magenta = Color::magenta();\n        let pink = Color::pink();\n        let maroon = Color::maroon();\n        let brown = Color::brown();\n        let olive = Color::olive();\n        let teal = Color::teal();\n        let navy = Color::navy();\n        let purple = Color::purple();\n        let silver = Color::silver();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 272,
+    "passed": true,
+    "test_name": "Presets",
+    "time_ms": 0.009
   }
 ]

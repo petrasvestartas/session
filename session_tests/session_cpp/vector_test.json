@@ -1,8 +1,9 @@
 [
   {
+    "group": "Vector",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.183,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid)\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();",
     "checks": [
@@ -115,9 +116,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 85,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();",
     "checks": [
@@ -135,6 +137,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Normalize",
     "passed": true,
     "time_ms": 0.001,
@@ -155,6 +158,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Reverse",
     "passed": true,
     "time_ms": 0.0,
@@ -170,6 +174,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Dot Product",
     "passed": true,
     "time_ms": 0.001,
@@ -200,6 +205,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Cross Product",
     "passed": true,
     "time_ms": 0.001,
@@ -220,6 +226,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Angle",
     "passed": true,
     "time_ms": 0.002,
@@ -280,6 +287,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Projection",
     "passed": true,
     "time_ms": 0.002,
@@ -305,6 +313,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Is Parallel To",
     "passed": true,
     "time_ms": 0.002,
@@ -330,9 +339,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 238,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);",
     "checks": [
@@ -365,6 +375,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Get Leveled Vector",
     "passed": true,
     "time_ms": 0.001,
@@ -380,6 +391,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Cos Sin Laws",
     "passed": true,
     "time_ms": 0.001,
@@ -460,9 +472,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Sum Of Vectors",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 323,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);\n\n    // Empty list returns zero vector\n    std::vector<Vector> empty;\n    Vector zero = Vector::sum_of_vectors(empty);",
     "checks": [
@@ -500,9 +513,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 346,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
     "checks": [
@@ -525,9 +539,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.002,
     "line": 362,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12",
     "checks": [
@@ -550,6 +565,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Scale",
     "passed": true,
     "time_ms": 0.001,
@@ -575,6 +591,7 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Reflect",
     "passed": true,
     "time_ms": 0.001,
@@ -600,9 +617,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 403,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane — normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n;\n    average_normal(sq, n);",
     "checks": [
@@ -620,9 +638,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 422,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    Point from(0.0, 0.0, 0.0);\n    Point to(1.0, 0.0, 0.0);\n    std::vector<Point> pts0;\n    interpolate_points(from, to, 2, pts0, 0);\n    std::vector<Point> pts1;\n    interpolate_points(from, to, 1, pts1, 1);",
     "checks": [
@@ -655,9 +674,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 12.11,
+    "time_ms": 7.99,
     "line": 440,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);",
     "checks": [
@@ -685,9 +705,10 @@
     "failures": []
   },
   {
+    "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 1.773,
+    "time_ms": 10.276,
     "line": 464,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

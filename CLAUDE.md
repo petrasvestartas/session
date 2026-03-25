@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer. Use bun instead of npm.
+Multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and Vue test viewer.
 
 ## Style
 - Least verbose, no print messages, no excessive comments

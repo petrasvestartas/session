@@ -1,8 +1,9 @@
 [
   {
+    "group": "Obb",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.167,
+    "time_ms": 0.135,
     "line": 7,
     "code": "    from session_py import Obb\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = Obb.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n    # from_points (AABB)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    ]\n    bb2 = Obb.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n    # OBB constructor\n    box = Obb(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n    # corners\n    corners = bb2.corners()\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n    # inflate\n    bb3 = Obb.from_points([Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)])\n    bb3.inflate(1.0)\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
     "checks": [
@@ -90,9 +91,10 @@
     "failures": []
   },
   {
+    "group": "Obb",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.077,
+    "time_ms": 0.068,
     "line": 69,
     "code": "    from session_py import Obb\n    from session_py import Point\n\n    bb1 = Obb.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = Obb.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = Obb.from_point(Point(5.0, 5.0, 5.0), 0.5)",
     "checks": [
@@ -110,9 +112,10 @@
     "failures": []
   },
   {
+    "group": "Obb",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.164,
+    "time_ms": 0.137,
     "line": 82,
     "code": "    from session_py import Obb\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n    bb = Obb.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n    bb.transform()",
     "checks": [
@@ -135,9 +138,10 @@
     "failures": []
   },
   {
+    "group": "Obb",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.894,
+    "time_ms": 10.351,
     "line": 103,
     "code": "    from session_py import Obb\n    from session_py import Point\n    from pathlib import Path\n\n    bb = Obb.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = Obb.__jsonload__(d)\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = Obb.json_loads(s)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.json\"\n    bb.json_dump(fname)\n    loaded = Obb.json_load(fname)",
     "checks": [
@@ -180,9 +184,10 @@
     "failures": []
   },
   {
+    "group": "Obb",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.956,
+    "time_ms": 11.321,
     "line": 133,
     "code": "    from session_py import Obb\n    from session_py import Point\n    from pathlib import Path\n\n    bb = Obb.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = Obb.pb_loads(b)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.bin\"\n    bb.pb_dump(fname)\n    loaded = Obb.pb_load(fname)",
     "checks": [

@@ -1,17 +1,18 @@
 [
   {
-    "test_name": "Json Roundtrip",
-    "passed": true,
-    "time_ms": 9.702,
-    "line": 6,
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::encoders::{json_dump, json_load};\n        let axis = Vector::new(0.0, 0.0, 1.0);\n        let original = Quaternion::from_axis_angle(axis, 1.5708);\n        json_dump(&original, \"serialization/test_quaternion.json\", false).unwrap();\n        let loaded = json_load::<Quaternion>(\"serialization/test_quaternion.json\").unwrap();",
     "checks": [
       {
-        "line": 14,
         "code_line": "TOLERANCE.is_close(loaded.s, original.s)",
+        "line": 14,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::encoders::{json_dump, json_load};\n        let axis = Vector::new(0.0, 0.0, 1.0);\n        let original = Quaternion::from_axis_angle(axis, 1.5708);\n        json_dump(&original, \"serialization/test_quaternion.json\", false).unwrap();\n        let loaded = json_load::<Quaternion>(\"serialization/test_quaternion.json\").unwrap();",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 6,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 12.537
   }
 ]

@@ -1,1282 +1,1295 @@
 [
   {
-    "test_name": "Constructor",
-    "passed": true,
-    "time_ms": 0.445,
-    "line": 6,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get mesh\n        let _m = s.mesh();\n\n        // Point division matching Rhino's 4x6 grid\n        let (p, _v, _uv) = s.divide_by_count_points(4, 6);\n\n        // Minimal and Full String Representation\n        let sstr = s.to_string();\n        let srepr = s.repr();\n\n        // Copy (duplicates everything except guid)\n        let scopy = s.duplicate();\n        let _sother = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n",
     "checks": [
       {
-        "line": 49,
         "code_line": "s.is_valid() == true",
+        "line": 49,
         "passed": true
       },
       {
-        "line": 50,
         "code_line": "s.cv_count_dir(Some(0)) == 4",
+        "line": 50,
         "passed": true
       },
       {
-        "line": 51,
         "code_line": "s.cv_count_dir(Some(1)) == 4",
+        "line": 51,
         "passed": true
       },
       {
-        "line": 52,
         "code_line": "s.cv_count_dir(None) == 16",
+        "line": 52,
         "passed": true
       },
       {
-        "line": 53,
         "code_line": "s.degree(0) == 3",
+        "line": 53,
         "passed": true
       },
       {
-        "line": 54,
         "code_line": "s.degree(1) == 3",
+        "line": 54,
         "passed": true
       },
       {
-        "line": 55,
         "code_line": "s.order(0) == 4",
+        "line": 55,
         "passed": true
       },
       {
-        "line": 56,
         "code_line": "s.order(1) == 4",
+        "line": 56,
         "passed": true
       },
       {
-        "line": 57,
         "code_line": "s.dimension() == 3",
+        "line": 57,
         "passed": true
       },
       {
-        "line": 58,
         "code_line": "!s.is_rational()",
+        "line": 58,
         "passed": true
       },
       {
-        "line": 59,
         "code_line": "s.knot_count(0) == 6",
+        "line": 59,
         "passed": true
       },
       {
-        "line": 60,
         "code_line": "s.knot_count(1) == 6",
+        "line": 60,
         "passed": true
       },
       {
-        "line": 61,
         "code_line": "s.name == \"my_nurbssurface\"",
+        "line": 61,
         "passed": true
       },
       {
-        "line": 62,
         "code_line": "!s.guid.is_empty()",
+        "line": 62,
         "passed": true
       },
       {
-        "line": 63,
         "code_line": "sstr == \"NurbsSurface(name=my_nurbssurface, degree=(3,3), cvs=(4,4))\"",
+        "line": 63,
         "passed": true
       },
       {
-        "line": 64,
         "code_line": "srepr ==\n\"NurbsSurface(\\n  name=my_nurbssurface,\\n  degree=(3,3),\\n  cvs=(4,4),\\n  rational=false,\\n  control_points=[\\n    0, 0, 0\\n    -1, 0.75, 2\\n    -1, 4.25, 2\\n    0, 5, 0\\n    0.75, -1, 2\\n    1.25, 1.25, 4\\n    1.25, 3.75, 4\\n    0.75, 6, 2\\n    4.25, -1, 2\\n    3.75, 1.25, 4\\n    3.75, 3.75, 4\\n    4.25, 6, 2\\n    5, 0, 0\\n    6, 0.75, 2\\n    6, 4.25, 2\\n    5, 5, 0\\n  ]\\n)\"",
+        "line": 64,
         "passed": true
       },
       {
-        "line": 65,
         "code_line": "scopy.cv_count_dir(None) == s.cv_count_dir(None)",
+        "line": 65,
         "passed": true
       },
       {
-        "line": 66,
         "code_line": "scopy.guid != s.guid",
+        "line": 66,
         "passed": true
       },
       {
-        "line": 67,
         "code_line": "TOLERANCE.is_point_close(&p[0][0],\n&Point::new(0.000000000000000, 0.000000000000000, 0.000000000000000))",
+        "line": 67,
         "passed": true
       },
       {
-        "line": 68,
         "code_line": "TOLERANCE.is_point_close(&p[0][1],\n&Point::new(-0.416666666666667, 0.578703703703704, 0.833333333333333))",
+        "line": 68,
         "passed": true
       },
       {
-        "line": 69,
         "code_line": "TOLERANCE.is_point_close(&p[0][2],\n&Point::new(-0.666666666666667, 1.462962962962963, 1.333333333333333))",
+        "line": 69,
         "passed": true
       },
       {
-        "line": 70,
         "code_line": "TOLERANCE.is_point_close(&p[0][3],\n&Point::new(-0.750000000000000, 2.500000000000000, 1.500000000000000))",
+        "line": 70,
         "passed": true
       },
       {
-        "line": 71,
         "code_line": "TOLERANCE.is_point_close(&p[0][4],\n&Point::new(-0.666666666666667, 3.537037037037037, 1.333333333333333))",
+        "line": 71,
         "passed": true
       },
       {
-        "line": 72,
         "code_line": "TOLERANCE.is_point_close(&p[0][5],\n&Point::new(-0.416666666666667, 4.421296296296297, 0.833333333333333))",
+        "line": 72,
         "passed": true
       },
       {
-        "line": 73,
         "code_line": "TOLERANCE.is_point_close(&p[0][6],\n&Point::new(0.000000000000000, 5.000000000000000, 0.000000000000000))",
+        "line": 73,
         "passed": true
       },
       {
-        "line": 74,
         "code_line": "TOLERANCE.is_point_close(&p[1][0],\n&Point::new(0.992187500000000, -0.562500000000000, 1.125000000000000))",
+        "line": 74,
         "passed": true
       },
       {
-        "line": 75,
         "code_line": "TOLERANCE.is_point_close(&p[1][1],\n&Point::new(0.881510416666667, 0.333912037037037, 1.958333333333334))",
+        "line": 75,
         "passed": true
       },
       {
-        "line": 76,
         "code_line": "TOLERANCE.is_point_close(&p[1][2],\n&Point::new(0.815104166666667, 1.379629629629630, 2.458333333333333))",
+        "line": 76,
         "passed": true
       },
       {
-        "line": 77,
         "code_line": "TOLERANCE.is_point_close(&p[1][3],\n&Point::new(0.792968750000000, 2.500000000000000, 2.625000000000000))",
+        "line": 77,
         "passed": true
       },
       {
-        "line": 78,
         "code_line": "TOLERANCE.is_point_close(&p[1][4],\n&Point::new(0.815104166666667, 3.620370370370370, 2.458333333333334))",
+        "line": 78,
         "passed": true
       },
       {
-        "line": 79,
         "code_line": "TOLERANCE.is_point_close(&p[1][5],\n&Point::new(0.881510416666667, 4.666087962962964, 1.958333333333333))",
+        "line": 79,
         "passed": true
       },
       {
-        "line": 80,
         "code_line": "TOLERANCE.is_point_close(&p[1][6],\n&Point::new(0.992187500000000, 5.562500000000000, 1.125000000000000))",
+        "line": 80,
         "passed": true
       },
       {
-        "line": 81,
         "code_line": "TOLERANCE.is_point_close(&p[2][0],\n&Point::new(2.500000000000000, -0.750000000000000, 1.500000000000000))",
+        "line": 81,
         "passed": true
       },
       {
-        "line": 82,
         "code_line": "TOLERANCE.is_point_close(&p[2][1],\n&Point::new(2.500000000000000, 0.252314814814815, 2.333333333333334))",
+        "line": 82,
         "passed": true
       },
       {
-        "line": 83,
         "code_line": "TOLERANCE.is_point_close(&p[2][2],\n&Point::new(2.500000000000000, 1.351851851851852, 2.833333333333334))",
+        "line": 83,
         "passed": true
       },
       {
-        "line": 84,
         "code_line": "TOLERANCE.is_point_close(&p[2][3],\n&Point::new(2.500000000000000, 2.500000000000000, 3.000000000000000))",
+        "line": 84,
         "passed": true
       },
       {
-        "line": 85,
         "code_line": "TOLERANCE.is_point_close(&p[2][4],\n&Point::new(2.500000000000000, 3.648148148148148, 2.833333333333333))",
+        "line": 85,
         "passed": true
       },
       {
-        "line": 86,
         "code_line": "TOLERANCE.is_point_close(&p[2][5],\n&Point::new(2.500000000000000, 4.747685185185186, 2.333333333333333))",
+        "line": 86,
         "passed": true
       },
       {
-        "line": 87,
         "code_line": "TOLERANCE.is_point_close(&p[2][6],\n&Point::new(2.500000000000000, 5.750000000000000, 1.500000000000000))",
+        "line": 87,
         "passed": true
       },
       {
-        "line": 88,
         "code_line": "TOLERANCE.is_point_close(&p[3][0],\n&Point::new(4.007812500000000, -0.562500000000000, 1.125000000000000))",
+        "line": 88,
         "passed": true
       },
       {
-        "line": 89,
         "code_line": "TOLERANCE.is_point_close(&p[3][1],\n&Point::new(4.118489583333334, 0.333912037037037, 1.958333333333333))",
+        "line": 89,
         "passed": true
       },
       {
-        "line": 90,
         "code_line": "TOLERANCE.is_point_close(&p[3][2],\n&Point::new(4.184895833333334, 1.379629629629630, 2.458333333333333))",
+        "line": 90,
         "passed": true
       },
       {
-        "line": 91,
         "code_line": "TOLERANCE.is_point_close(&p[3][3],\n&Point::new(4.207031250000000, 2.500000000000000, 2.625000000000000))",
+        "line": 91,
         "passed": true
       },
       {
-        "line": 92,
         "code_line": "TOLERANCE.is_point_close(&p[3][4],\n&Point::new(4.184895833333333, 3.620370370370370, 2.458333333333333))",
+        "line": 92,
         "passed": true
       },
       {
-        "line": 93,
         "code_line": "TOLERANCE.is_point_close(&p[3][5],\n&Point::new(4.118489583333333, 4.666087962962964, 1.958333333333333))",
+        "line": 93,
         "passed": true
       },
       {
-        "line": 94,
         "code_line": "TOLERANCE.is_point_close(&p[3][6],\n&Point::new(4.007812500000000, 5.562500000000000, 1.125000000000000))",
+        "line": 94,
         "passed": true
       },
       {
-        "line": 95,
         "code_line": "TOLERANCE.is_point_close(&p[4][0],\n&Point::new(5.000000000000000, 0.000000000000000, 0.000000000000000))",
+        "line": 95,
         "passed": true
       },
       {
-        "line": 96,
         "code_line": "TOLERANCE.is_point_close(&p[4][1],\n&Point::new(5.416666666666668, 0.578703703703704, 0.833333333333333))",
+        "line": 96,
         "passed": true
       },
       {
-        "line": 97,
         "code_line": "TOLERANCE.is_point_close(&p[4][2],\n&Point::new(5.666666666666668, 1.462962962962963, 1.333333333333333))",
+        "line": 97,
         "passed": true
       },
       {
-        "line": 98,
         "code_line": "TOLERANCE.is_point_close(&p[4][3],\n&Point::new(5.750000000000000, 2.500000000000000, 1.500000000000000))",
+        "line": 98,
         "passed": true
       },
       {
-        "line": 99,
         "code_line": "TOLERANCE.is_point_close(&p[4][4],\n&Point::new(5.666666666666666, 3.537037037037037, 1.333333333333333))",
+        "line": 99,
         "passed": true
       },
       {
-        "line": 100,
         "code_line": "TOLERANCE.is_point_close(&p[4][5],\n&Point::new(5.416666666666667, 4.421296296296297, 0.833333333333333))",
+        "line": 100,
         "passed": true
       },
       {
-        "line": 101,
         "code_line": "TOLERANCE.is_point_close(&p[4][6],\n&Point::new(5.000000000000000, 5.000000000000000, 0.000000000000000))",
+        "line": 101,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get mesh\n        let _m = s.mesh();\n\n        // Point division matching Rhino's 4x6 grid\n        let (p, _v, _uv) = s.divide_by_count_points(4, 6);\n\n        // Minimal and Full String Representation\n        let sstr = s.to_string();\n        let srepr = s.repr();\n\n        // Copy (duplicates everything except guid)\n        let scopy = s.duplicate();\n        let _sother = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 6,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.334
   },
   {
-    "test_name": "Booleans Queries",
-    "passed": true,
-    "time_ms": 0.029,
-    "line": 106,
-    "code": "        use crate::primitives::Primitives;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 5.0);\n\n        // Validity surface and knots\n        let is_valid = s.is_valid();\n        let are_knots_valid = s.is_valid_knot_vector(0) && s.is_valid_knot_vector(1);\n\n        // Are control points weights enabled?\n        let is_rational = s.is_rational();\n\n        // Sphere has one seam that is closed, but two poles\n        let is_closed = s.is_closed(0) == true && s.is_closed(1) == false;\n\n        // sphere cannot be truly periodic because it has poles\n        let is_periodic = s.is_periodic(0) && s.is_periodic(1);\n\n        // Planarity\n        let is_planar = s.is_planar(1e-6);\n\n        // Surface is collapsed to a point\n        let is_point = s.is_singular(0) && s.is_singular(1) && s.is_singular(2) && s.is_singular(3);\n\n        // Most surfaces are clamped except periodic surfaces\n        let is_clamped = s.is_clamped(0, 2) && s.is_clamped(1, 2);\n",
     "checks": [
       {
-        "line": 133,
         "code_line": "is_valid",
+        "line": 133,
         "passed": true
       },
       {
-        "line": 134,
         "code_line": "are_knots_valid",
+        "line": 134,
         "passed": true
       },
       {
-        "line": 135,
         "code_line": "is_rational",
+        "line": 135,
         "passed": true
       },
       {
-        "line": 136,
         "code_line": "is_closed",
+        "line": 136,
         "passed": true
       },
       {
-        "line": 137,
         "code_line": "!is_periodic",
+        "line": 137,
         "passed": true
       },
       {
-        "line": 138,
         "code_line": "!is_planar",
+        "line": 138,
         "passed": true
       },
       {
-        "line": 139,
         "code_line": "!is_point",
+        "line": 139,
         "passed": true
       },
       {
-        "line": 140,
         "code_line": "is_clamped",
+        "line": 140,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::primitives::Primitives;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 5.0);\n\n        // Validity surface and knots\n        let is_valid = s.is_valid();\n        let are_knots_valid = s.is_valid_knot_vector(0) && s.is_valid_knot_vector(1);\n\n        // Are control points weights enabled?\n        let is_rational = s.is_rational();\n\n        // Sphere has one seam that is closed, but two poles\n        let is_closed = s.is_closed(0) == true && s.is_closed(1) == false;\n\n        // sphere cannot be truly periodic because it has poles\n        let is_periodic = s.is_periodic(0) && s.is_periodic(1);\n\n        // Planarity\n        let is_planar = s.is_planar(1e-6);\n\n        // Surface is collapsed to a point\n        let is_point = s.is_singular(0) && s.is_singular(1) && s.is_singular(2) && s.is_singular(3);\n\n        // Most surfaces are clamped except periodic surfaces\n        let is_clamped = s.is_clamped(0, 2) && s.is_clamped(1, 2);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 106,
+    "passed": true,
+    "test_name": "Booleans Queries",
+    "time_ms": 0.037
   },
   {
-    "test_name": "Attributes",
-    "passed": true,
-    "time_ms": 0.009,
-    "line": 145,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Check the dimentions of a surface\n        // Mostly 3d\n        // But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n        // Planar geometry: texture coordinates\n        let dimensions = s.dimension();\n\n        // Degree types 1 - linear, 2 - quadratic, 3 - cubic\n        let order_u = s.order(0);\n        let order_v = s.order(1);\n\n        // Control vertex count\n        let cv_count_u = s.cv_count_dir(Some(0));\n        let cv_count_v = s.cv_count_dir(Some(1));\n        let cv_count = s.cv_count_dir(None);\n        let cv_size = s.cv_size();\n\n        // Number of knots\n        let k_count_0 = s.knot_count(0);\n        let k_count_1 = s.knot_count(1);\n\n        // Span count\n        let s_count_0 = s.span_count(0);\n        let s_count_1 = s.span_count(1);\n",
     "checks": [
       {
-        "line": 198,
         "code_line": "dimensions == 3",
+        "line": 198,
         "passed": true
       },
       {
-        "line": 199,
         "code_line": "order_u == 4",
+        "line": 199,
         "passed": true
       },
       {
-        "line": 200,
         "code_line": "order_v == 4",
+        "line": 200,
         "passed": true
       },
       {
-        "line": 201,
         "code_line": "cv_count_u > 0",
+        "line": 201,
         "passed": true
       },
       {
-        "line": 202,
         "code_line": "cv_count_v > 0",
+        "line": 202,
         "passed": true
       },
       {
-        "line": 203,
         "code_line": "cv_count > 0",
+        "line": 203,
         "passed": true
       },
       {
-        "line": 204,
         "code_line": "cv_size > 0",
+        "line": 204,
         "passed": true
       },
       {
-        "line": 205,
         "code_line": "k_count_0 > 0",
+        "line": 205,
         "passed": true
       },
       {
-        "line": 206,
         "code_line": "k_count_1 > 0",
+        "line": 206,
         "passed": true
       },
       {
-        "line": 207,
         "code_line": "s_count_0 > 0",
+        "line": 207,
         "passed": true
       },
       {
-        "line": 208,
         "code_line": "s_count_1 > 0",
+        "line": 208,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Check the dimentions of a surface\n        // Mostly 3d\n        // But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n        // Planar geometry: texture coordinates\n        let dimensions = s.dimension();\n\n        // Degree types 1 - linear, 2 - quadratic, 3 - cubic\n        let order_u = s.order(0);\n        let order_v = s.order(1);\n\n        // Control vertex count\n        let cv_count_u = s.cv_count_dir(Some(0));\n        let cv_count_v = s.cv_count_dir(Some(1));\n        let cv_count = s.cv_count_dir(None);\n        let cv_size = s.cv_size();\n\n        // Number of knots\n        let k_count_0 = s.knot_count(0);\n        let k_count_1 = s.knot_count(1);\n\n        // Span count\n        let s_count_0 = s.span_count(0);\n        let s_count_1 = s.span_count(1);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 145,
+    "passed": true,
+    "test_name": "Attributes",
+    "time_ms": 0.008
   },
   {
-    "test_name": "Control Vertices Access",
-    "passed": true,
-    "time_ms": 0.01,
-    "line": 213,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        s.make_rational();\n\n        // Raw CV access\n        let cv_slice = s.cv(0, 0).unwrap();\n        let cv_mut_slice = s.cv_mut(0, 0).unwrap();\n        cv_mut_slice[2] = 10.0;\n\n        // Point and Weight\n        // NOTE\n        // point is (Xw, Yw, Zw, w)\n        // cv pointer is (X, Y, Z)\n        let cv = s.get_cv(0, 0).unwrap();\n        let (x, y, z, w) = s.get_cv_4d(0, 0).unwrap();\n\n        s.set_cv(0, 0, &Point::new(0.0, 0.0, 5.0));\n        s.set_cv_4d(0, 0, 0.0, 0.0, 4.0, 0.5);\n\n        let _w = s.weight(0, 0);\n        s.set_weight(0, 0, 1.0);",
     "checks": [
       {
-        "line": 245,
         "code_line": "cv_slice[2] == 0.0",
+        "line": 245,
         "passed": true
       },
       {
-        "line": 248,
         "code_line": "s.cv(0, 0).unwrap()[2] == 10.0",
+        "line": 248,
         "passed": true
       },
       {
-        "line": 255,
         "code_line": "cv == Point::new(0.0, 0.0, 10.0)",
+        "line": 255,
         "passed": true
       },
       {
-        "line": 257,
         "code_line": "x == 0.0 && y == 0.0 && z == 10.0 && w == 1.0",
+        "line": 257,
         "passed": true
       },
       {
-        "line": 260,
         "code_line": "s.get_cv(0, 0).unwrap() == Point::new(0.0, 0.0, 5.0)",
+        "line": 260,
         "passed": true
       },
       {
-        "line": 262,
         "code_line": "s.get_cv(0, 0).unwrap() == Point::new(0.0, 0.0, 8.0) && s.cv(0, 0).unwrap()[2]\n== 4.0 && s.weight(0, 0) == 0.5",
+        "line": 262,
         "passed": true
       },
       {
-        "line": 266,
         "code_line": "s.weight(0, 0) == 1.0",
+        "line": 266,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        s.make_rational();\n\n        // Raw CV access\n        let cv_slice = s.cv(0, 0).unwrap();\n        let cv_mut_slice = s.cv_mut(0, 0).unwrap();\n        cv_mut_slice[2] = 10.0;\n\n        // Point and Weight\n        // NOTE\n        // point is (Xw, Yw, Zw, w)\n        // cv pointer is (X, Y, Z)\n        let cv = s.get_cv(0, 0).unwrap();\n        let (x, y, z, w) = s.get_cv_4d(0, 0).unwrap();\n\n        s.set_cv(0, 0, &Point::new(0.0, 0.0, 5.0));\n        s.set_cv_4d(0, 0, 0.0, 0.0, 4.0, 0.5);\n\n        let _w = s.weight(0, 0);\n        s.set_weight(0, 0, 1.0);",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 213,
+    "passed": true,
+    "test_name": "Control Vertices Access",
+    "time_ms": 0.008
   },
   {
-    "test_name": "Knot Access",
-    "passed": true,
-    "time_ms": 0.023,
-    "line": 271,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get knot vectors and individual knot\n        let knots_u = s.get_knots(0);\n        for i in 0..s.knot_count(0) as usize {\n            let knot = s.knot(0, i).unwrap();\n        }\n\n        let knots_v = s.get_knots(1);\n        for i in 0..s.knot_count(1) as usize {\n            let knot = s.knot(1, i).unwrap();\n        }\n\n        // Set knots\n        let _is_set = s.set_knot(0, 2, 0.5);\n        let _is_set = s.set_knot(0, 2, 0.0);\n\n        // Verify start multiplicity\n        let mult_u_start = s.knot_multiplicity(0, 0);\n        let mult_v_start = s.knot_multiplicity(1, 0);\n\n        s.insert_knot(0, 0.1, 2);",
     "checks": [
       {
-        "line": 304,
         "code_line": "knot == knots_u[i]",
-        "passed": true
-      },
-      {
         "line": 304,
-        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_u[i]",
         "line": 304,
-        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_u[i]",
         "line": 304,
-        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_u[i]",
         "line": 304,
-        "code_line": "knot == knots_u[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_u[i]",
         "line": 304,
+        "passed": true
+      },
+      {
         "code_line": "knot == knots_u[i]",
+        "line": 304,
         "passed": true
       },
       {
-        "line": 310,
         "code_line": "knot == knots_v[i]",
-        "passed": true
-      },
-      {
         "line": 310,
-        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_v[i]",
         "line": 310,
-        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_v[i]",
         "line": 310,
-        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_v[i]",
         "line": 310,
-        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
+        "code_line": "knot == knots_v[i]",
         "line": 310,
-        "code_line": "knot == knots_v[i]",
         "passed": true
       },
       {
-        "line": 315,
+        "code_line": "knot == knots_v[i]",
+        "line": 310,
+        "passed": true
+      },
+      {
         "code_line": "s.knot(0, 2).unwrap() == 0.5",
+        "line": 315,
         "passed": true
       },
       {
-        "line": 321,
         "code_line": "mult_u_start == 3",
+        "line": 321,
         "passed": true
       },
       {
-        "line": 322,
         "code_line": "mult_v_start == 3",
+        "line": 322,
         "passed": true
       },
       {
-        "line": 325,
         "code_line": "s.knot_count(0) == 8",
+        "line": 325,
         "passed": true
       },
       {
-        "line": 326,
         "code_line": "s.knot(0, 3).unwrap() == 0.1",
+        "line": 326,
         "passed": true
       },
       {
-        "line": 327,
         "code_line": "s.knot_multiplicity(0, 3) == 2",
+        "line": 327,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get knot vectors and individual knot\n        let knots_u = s.get_knots(0);\n        for i in 0..s.knot_count(0) as usize {\n            let knot = s.knot(0, i).unwrap();\n        }\n\n        let knots_v = s.get_knots(1);\n        for i in 0..s.knot_count(1) as usize {\n            let knot = s.knot(1, i).unwrap();\n        }\n\n        // Set knots\n        let _is_set = s.set_knot(0, 2, 0.5);\n        let _is_set = s.set_knot(0, 2, 0.0);\n\n        // Verify start multiplicity\n        let mult_u_start = s.knot_multiplicity(0, 0);\n        let mult_v_start = s.knot_multiplicity(1, 0);\n\n        s.insert_knot(0, 0.1, 2);",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 271,
+    "passed": true,
+    "test_name": "Knot Access",
+    "time_ms": 0.018
   },
   {
-    "test_name": "Domain",
-    "passed": true,
-    "time_ms": 0.007,
-    "line": 332,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get domain 0 - 1\n        let domain_u = s.domain(0).unwrap();\n        let _domain_v = s.domain(1).unwrap();\n\n        // Set Domain\n        let is_set_u = s.set_domain(0, -1.1, 2.3);\n        let is_set_v = s.set_domain(1, -5.1, 1.3);\n\n        // Get sorted list of distinct knot values\n        let span_vector = s.get_span_vector(0);\n        let first_item = span_vector[0];\n        let last_item = span_vector[span_vector.len() - 1];",
     "checks": [
       {
-        "line": 365,
         "code_line": "TOLERANCE.is_close(domain_u.0, 0.0)",
+        "line": 365,
         "passed": true
       },
       {
-        "line": 366,
         "code_line": "TOLERANCE.is_close(domain_u.1, 1.0)",
+        "line": 366,
         "passed": true
       },
       {
-        "line": 371,
         "code_line": "is_set_u && TOLERANCE.is_close(s.domain(1).unwrap().0, -5.1)",
+        "line": 371,
         "passed": true
       },
       {
-        "line": 372,
         "code_line": "is_set_v && TOLERANCE.is_close(s.domain(1).unwrap().1, 1.3)",
+        "line": 372,
         "passed": true
       },
       {
-        "line": 378,
         "code_line": "TOLERANCE.is_close(first_item, -1.1)",
+        "line": 378,
         "passed": true
       },
       {
-        "line": 379,
         "code_line": "TOLERANCE.is_close(last_item, 2.3)",
+        "line": 379,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let mut s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // Get domain 0 - 1\n        let domain_u = s.domain(0).unwrap();\n        let _domain_v = s.domain(1).unwrap();\n\n        // Set Domain\n        let is_set_u = s.set_domain(0, -1.1, 2.3);\n        let is_set_v = s.set_domain(1, -5.1, 1.3);\n\n        // Get sorted list of distinct knot values\n        let span_vector = s.get_span_vector(0);\n        let first_item = span_vector[0];\n        let last_item = span_vector[span_vector.len() - 1];",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 332,
+    "passed": true,
+    "test_name": "Domain",
+    "time_ms": 0.007
   },
   {
-    "test_name": "Division",
-    "passed": true,
-    "time_ms": 0.185,
-    "line": 384,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Vector;\n\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // points, normals, uv\n        let (division_points, vectors, uvs0) = s.divide_by_count_points(3, 3);\n\n        // planes, uv\n        let (planes, _uvs1) = s.divide_by_count_planes(3, 3);\n",
     "checks": [
       {
-        "line": 421,
         "code_line": "TOLERANCE.is_point_close(&division_points[0][0], &Point::new(0.0, 0.0, 0.0))",
+        "line": 421,
         "passed": true
       },
       {
-        "line": 422,
         "code_line": "TOLERANCE.is_point_close(&division_points[0][1],\n&Point::new(-0.666666666666667, 1.46296296296296, 1.33333333333333))",
+        "line": 422,
         "passed": true
       },
       {
-        "line": 423,
         "code_line": "TOLERANCE.is_point_close(&division_points[0][2],\n&Point::new(-0.666666666666667, 3.53703703703704, 1.33333333333333))",
+        "line": 423,
         "passed": true
       },
       {
-        "line": 424,
         "code_line": "TOLERANCE.is_point_close(&division_points[0][3], &Point::new(0.0, 5.0, 0.0))",
+        "line": 424,
         "passed": true
       },
       {
-        "line": 425,
         "code_line": "TOLERANCE.is_point_close(&division_points[1][0],\n&Point::new(1.46296296296296, -0.666666666666667, 1.33333333333333))",
+        "line": 425,
         "passed": true
       },
       {
-        "line": 426,
         "code_line": "TOLERANCE.is_point_close(&division_points[1][1],\n&Point::new(1.3641975308642, 1.3641975308642, 2.66666666666667))",
+        "line": 426,
         "passed": true
       },
       {
-        "line": 427,
         "code_line": "TOLERANCE.is_point_close(&division_points[1][2],\n&Point::new(1.3641975308642, 3.6358024691358, 2.66666666666667))",
+        "line": 427,
         "passed": true
       },
       {
-        "line": 428,
         "code_line": "TOLERANCE.is_point_close(&division_points[1][3],\n&Point::new(1.46296296296296, 5.66666666666667, 1.33333333333333))",
+        "line": 428,
         "passed": true
       },
       {
-        "line": 429,
         "code_line": "TOLERANCE.is_point_close(&division_points[2][0],\n&Point::new(3.53703703703704, -0.666666666666667, 1.33333333333333))",
+        "line": 429,
         "passed": true
       },
       {
-        "line": 430,
         "code_line": "TOLERANCE.is_point_close(&division_points[2][1],\n&Point::new(3.6358024691358, 1.3641975308642, 2.66666666666667))",
+        "line": 430,
         "passed": true
       },
       {
-        "line": 431,
         "code_line": "TOLERANCE.is_point_close(&division_points[2][2],\n&Point::new(3.6358024691358, 3.6358024691358, 2.66666666666667))",
+        "line": 431,
         "passed": true
       },
       {
-        "line": 432,
         "code_line": "TOLERANCE.is_point_close(&division_points[2][3],\n&Point::new(3.53703703703704, 5.66666666666667, 1.33333333333333))",
+        "line": 432,
         "passed": true
       },
       {
-        "line": 433,
         "code_line": "TOLERANCE.is_point_close(&division_points[3][0], &Point::new(5.0, 0.0, 0.0))",
+        "line": 433,
         "passed": true
       },
       {
-        "line": 434,
         "code_line": "TOLERANCE.is_point_close(&division_points[3][1],\n&Point::new(5.66666666666667, 1.46296296296296, 1.33333333333333))",
+        "line": 434,
         "passed": true
       },
       {
-        "line": 435,
         "code_line": "TOLERANCE.is_point_close(&division_points[3][2],\n&Point::new(5.66666666666667, 3.53703703703704, 1.33333333333333))",
+        "line": 435,
         "passed": true
       },
       {
-        "line": 436,
         "code_line": "TOLERANCE.is_point_close(&division_points[3][3], &Point::new(5.0, 5.0, 0.0))",
+        "line": 436,
         "passed": true
       },
       {
-        "line": 437,
         "code_line": "TOLERANCE.is_vector_close(&vectors[0][0],\n&Vector::new(-0.704360725060499, -0.704360725060499, -0.0880450906325624))",
+        "line": 437,
         "passed": true
       },
       {
-        "line": 438,
         "code_line": "TOLERANCE.is_vector_close(&vectors[0][1],\n&Vector::new(-0.722897836195991, -0.327787263130091, 0.608255068661856))",
+        "line": 438,
         "passed": true
       },
       {
-        "line": 439,
         "code_line": "TOLERANCE.is_vector_close(&vectors[0][2],\n&Vector::new(-0.722897836195991, 0.327787263130091, 0.608255068661856))",
+        "line": 439,
         "passed": true
       },
       {
-        "line": 440,
         "code_line": "TOLERANCE.is_vector_close(&vectors[0][3],\n&Vector::new(-0.704360725060499, 0.704360725060499, -0.0880450906325624))",
+        "line": 440,
         "passed": true
       },
       {
-        "line": 441,
         "code_line": "TOLERANCE.is_vector_close(&vectors[1][0],\n&Vector::new(-0.327787263130091, -0.722897836195991, 0.608255068661856))",
+        "line": 441,
         "passed": true
       },
       {
-        "line": 442,
         "code_line": "TOLERANCE.is_vector_close(&vectors[1][1],\n&Vector::new(-0.280457757277237, -0.280457757277237, 0.917979788865771))",
+        "line": 442,
         "passed": true
       },
       {
-        "line": 443,
         "code_line": "TOLERANCE.is_vector_close(&vectors[1][2],\n&Vector::new(-0.280457757277237, 0.280457757277237, 0.917979788865771))",
+        "line": 443,
         "passed": true
       },
       {
-        "line": 444,
         "code_line": "TOLERANCE.is_vector_close(&vectors[1][3],\n&Vector::new(-0.327787263130091, 0.722897836195991, 0.608255068661856))",
+        "line": 444,
         "passed": true
       },
       {
-        "line": 445,
         "code_line": "TOLERANCE.is_vector_close(&vectors[2][0],\n&Vector::new(0.327787263130091, -0.722897836195991, 0.608255068661856))",
+        "line": 445,
         "passed": true
       },
       {
-        "line": 446,
         "code_line": "TOLERANCE.is_vector_close(&vectors[2][1],\n&Vector::new(0.280457757277237, -0.280457757277237, 0.917979788865771))",
+        "line": 446,
         "passed": true
       },
       {
-        "line": 447,
         "code_line": "TOLERANCE.is_vector_close(&vectors[2][2],\n&Vector::new(0.280457757277237, 0.280457757277237, 0.917979788865771))",
+        "line": 447,
         "passed": true
       },
       {
-        "line": 448,
         "code_line": "TOLERANCE.is_vector_close(&vectors[2][3],\n&Vector::new(0.327787263130091, 0.722897836195991, 0.608255068661856))",
+        "line": 448,
         "passed": true
       },
       {
-        "line": 449,
         "code_line": "TOLERANCE.is_vector_close(&vectors[3][0],\n&Vector::new(0.704360725060499, -0.704360725060499, -0.0880450906325624))",
+        "line": 449,
         "passed": true
       },
       {
-        "line": 450,
         "code_line": "TOLERANCE.is_vector_close(&vectors[3][1],\n&Vector::new(0.722897836195991, -0.327787263130091, 0.608255068661856))",
+        "line": 450,
         "passed": true
       },
       {
-        "line": 451,
         "code_line": "TOLERANCE.is_vector_close(&vectors[3][2],\n&Vector::new(0.722897836195991, 0.327787263130091, 0.608255068661856))",
+        "line": 451,
         "passed": true
       },
       {
-        "line": 452,
         "code_line": "TOLERANCE.is_vector_close(&vectors[3][3],\n&Vector::new(0.704360725060499, 0.704360725060499, -0.0880450906325624))",
+        "line": 452,
         "passed": true
       },
       {
-        "line": 453,
         "code_line": "TOLERANCE.is_close(uvs0[0][0].0, 0.0) && TOLERANCE.is_close(uvs0[0][0].1, 0.0)",
+        "line": 453,
         "passed": true
       },
       {
-        "line": 454,
         "code_line": "TOLERANCE.is_close(uvs0[0][1].0, 0.0) &&\nTOLERANCE.is_close(uvs0[0][1].1, 0.333333333333333)",
+        "line": 454,
         "passed": true
       },
       {
-        "line": 455,
         "code_line": "TOLERANCE.is_close(uvs0[0][2].0, 0.0) &&\nTOLERANCE.is_close(uvs0[0][2].1, 0.666666666666667)",
+        "line": 455,
         "passed": true
       },
       {
-        "line": 456,
         "code_line": "TOLERANCE.is_close(uvs0[0][3].0, 0.0) && TOLERANCE.is_close(uvs0[0][3].1, 1.0)",
+        "line": 456,
         "passed": true
       },
       {
-        "line": 457,
         "code_line": "TOLERANCE.is_close(uvs0[1][0].0, 0.333333333333333) &&\nTOLERANCE.is_close(uvs0[1][0].1, 0.0)",
+        "line": 457,
         "passed": true
       },
       {
-        "line": 458,
         "code_line": "TOLERANCE.is_close(uvs0[1][1].0, 0.333333333333333) &&\nTOLERANCE.is_close(uvs0[1][1].1, 0.333333333333333)",
+        "line": 458,
         "passed": true
       },
       {
-        "line": 459,
         "code_line": "TOLERANCE.is_close(uvs0[1][2].0, 0.333333333333333) &&\nTOLERANCE.is_close(uvs0[1][2].1, 0.666666666666667)",
+        "line": 459,
         "passed": true
       },
       {
-        "line": 460,
         "code_line": "TOLERANCE.is_close(uvs0[1][3].0, 0.333333333333333) &&\nTOLERANCE.is_close(uvs0[1][3].1, 1.0)",
+        "line": 460,
         "passed": true
       },
       {
-        "line": 461,
         "code_line": "TOLERANCE.is_close(uvs0[2][0].0, 0.666666666666667) &&\nTOLERANCE.is_close(uvs0[2][0].1, 0.0)",
+        "line": 461,
         "passed": true
       },
       {
-        "line": 462,
         "code_line": "TOLERANCE.is_close(uvs0[2][1].0, 0.666666666666667) &&\nTOLERANCE.is_close(uvs0[2][1].1, 0.333333333333333)",
+        "line": 462,
         "passed": true
       },
       {
-        "line": 463,
         "code_line": "TOLERANCE.is_close(uvs0[2][2].0, 0.666666666666667) &&\nTOLERANCE.is_close(uvs0[2][2].1, 0.666666666666667)",
+        "line": 463,
         "passed": true
       },
       {
-        "line": 464,
         "code_line": "TOLERANCE.is_close(uvs0[2][3].0, 0.666666666666667) &&\nTOLERANCE.is_close(uvs0[2][3].1, 1.0)",
+        "line": 464,
         "passed": true
       },
       {
-        "line": 465,
         "code_line": "TOLERANCE.is_close(uvs0[3][0].0, 1.0) && TOLERANCE.is_close(uvs0[3][0].1, 0.0)",
+        "line": 465,
         "passed": true
       },
       {
-        "line": 466,
         "code_line": "TOLERANCE.is_close(uvs0[3][1].0, 1.0) &&\nTOLERANCE.is_close(uvs0[3][1].1, 0.333333333333333)",
+        "line": 466,
         "passed": true
       },
       {
-        "line": 467,
         "code_line": "TOLERANCE.is_close(uvs0[3][2].0, 1.0) &&\nTOLERANCE.is_close(uvs0[3][2].1, 0.666666666666667)",
+        "line": 467,
         "passed": true
       },
       {
-        "line": 468,
         "code_line": "TOLERANCE.is_close(uvs0[3][3].0, 1.0) && TOLERANCE.is_close(uvs0[3][3].1, 1.0)",
+        "line": 468,
         "passed": true
       },
       {
-        "line": 469,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][0].x_axis(),\n&Vector::new(0.317999364001908, -0.423999152002544, 0.847998304005088))",
+        "line": 469,
         "passed": true
       },
       {
-        "line": 470,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][1].x_axis(),\n&Vector::new(0.657483781160109, -0.0556600026378928, 0.751410035611553))",
+        "line": 470,
         "passed": true
       },
       {
-        "line": 471,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][2].x_axis(),\n&Vector::new(0.657483781160109, 0.055660002637893, 0.751410035611553))",
+        "line": 471,
         "passed": true
       },
       {
-        "line": 472,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][3].x_axis(),\n&Vector::new(0.317999364001908, 0.423999152002544, 0.847998304005088))",
+        "line": 472,
         "passed": true
       },
       {
-        "line": 473,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][0].x_axis(),\n&Vector::new(0.93542594448836, -0.158100159631836, 0.316200319263671))",
+        "line": 473,
         "passed": true
       },
       {
-        "line": 474,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][1].x_axis(),\n&Vector::new(0.957938608304167, -0.0211991946512679, 0.286189127792116))",
+        "line": 474,
         "passed": true
       },
       {
-        "line": 475,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][2].x_axis(),\n&Vector::new(0.957938608304167, 0.0211991946512677, 0.286189127792116))",
+        "line": 475,
         "passed": true
       },
       {
-        "line": 476,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][3].x_axis(),\n&Vector::new(0.93542594448836, 0.158100159631835, 0.316200319263671))",
+        "line": 476,
         "passed": true
       },
       {
-        "line": 477,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][0].x_axis(),\n&Vector::new(0.93542594448836, 0.158100159631835, -0.316200319263671))",
+        "line": 477,
         "passed": true
       },
       {
-        "line": 478,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][1].x_axis(),\n&Vector::new(0.957938608304167, 0.0211991946512679, -0.286189127792116))",
+        "line": 478,
         "passed": true
       },
       {
-        "line": 479,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][2].x_axis(),\n&Vector::new(0.957938608304167, -0.021199194651268, -0.286189127792116))",
+        "line": 479,
         "passed": true
       },
       {
-        "line": 480,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][3].x_axis(),\n&Vector::new(0.93542594448836, -0.158100159631836, -0.316200319263671))",
+        "line": 480,
         "passed": true
       },
       {
-        "line": 481,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][0].x_axis(),\n&Vector::new(0.317999364001908, 0.423999152002544, -0.847998304005088))",
+        "line": 481,
         "passed": true
       },
       {
-        "line": 482,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][1].x_axis(),\n&Vector::new(0.657483781160109, 0.0556600026378928, -0.751410035611553))",
+        "line": 482,
         "passed": true
       },
       {
-        "line": 483,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][2].x_axis(),\n&Vector::new(0.657483781160109, -0.0556600026378928, -0.751410035611553))",
+        "line": 483,
         "passed": true
       },
       {
-        "line": 484,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][3].x_axis(),\n&Vector::new(0.317999364001908, -0.423999152002544, -0.847998304005088))",
+        "line": 484,
         "passed": true
       },
       {
-        "line": 485,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][0].y_axis(),\n&Vector::new(-0.423999152002544, 0.317999364001908, 0.847998304005088))",
+        "line": 485,
         "passed": true
       },
       {
-        "line": 486,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][1].y_axis(),\n&Vector::new(-0.158100159631836, 0.93542594448836, 0.316200319263671))",
+        "line": 486,
         "passed": true
       },
       {
-        "line": 487,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][2].y_axis(),\n&Vector::new(0.158100159631835, 0.93542594448836, -0.316200319263671))",
+        "line": 487,
         "passed": true
       },
       {
-        "line": 488,
         "code_line": "TOLERANCE.is_vector_close(&planes[0][3].y_axis(),\n&Vector::new(0.423999152002544, 0.317999364001908, -0.847998304005088))",
+        "line": 488,
         "passed": true
       },
       {
-        "line": 489,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][0].y_axis(),\n&Vector::new(-0.0556600026378928, 0.657483781160109, 0.751410035611553))",
+        "line": 489,
         "passed": true
       },
       {
-        "line": 490,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][1].y_axis(),\n&Vector::new(-0.0211991946512679, 0.957938608304167, 0.286189127792116))",
+        "line": 490,
         "passed": true
       },
       {
-        "line": 491,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][2].y_axis(),\n&Vector::new(0.0211991946512679, 0.957938608304167, -0.286189127792116))",
+        "line": 491,
         "passed": true
       },
       {
-        "line": 492,
         "code_line": "TOLERANCE.is_vector_close(&planes[1][3].y_axis(),\n&Vector::new(0.0556600026378928, 0.657483781160109, -0.751410035611553))",
+        "line": 492,
         "passed": true
       },
       {
-        "line": 493,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][0].y_axis(),\n&Vector::new(0.0556600026378928, 0.657483781160109, 0.751410035611553))",
+        "line": 493,
         "passed": true
       },
       {
-        "line": 494,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][1].y_axis(),\n&Vector::new(0.0211991946512678, 0.957938608304167, 0.286189127792116))",
+        "line": 494,
         "passed": true
       },
       {
-        "line": 495,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][2].y_axis(),\n&Vector::new(-0.0211991946512678, 0.957938608304167, -0.286189127792116))",
+        "line": 495,
         "passed": true
       },
       {
-        "line": 496,
         "code_line": "TOLERANCE.is_vector_close(&planes[2][3].y_axis(),\n&Vector::new(-0.0556600026378928, 0.657483781160109, -0.751410035611553))",
+        "line": 496,
         "passed": true
       },
       {
-        "line": 497,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][0].y_axis(),\n&Vector::new(0.423999152002544, 0.317999364001908, 0.847998304005088))",
+        "line": 497,
         "passed": true
       },
       {
-        "line": 498,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][1].y_axis(),\n&Vector::new(0.158100159631835, 0.93542594448836, 0.316200319263671))",
+        "line": 498,
         "passed": true
       },
       {
-        "line": 499,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][2].y_axis(),\n&Vector::new(-0.158100159631836, 0.93542594448836, -0.316200319263671))",
+        "line": 499,
         "passed": true
       },
       {
-        "line": 500,
         "code_line": "TOLERANCE.is_vector_close(&planes[3][3].y_axis(),\n&Vector::new(-0.423999152002544, 0.317999364001908, -0.847998304005088))",
+        "line": 500,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Vector;\n\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // points, normals, uv\n        let (division_points, vectors, uvs0) = s.divide_by_count_points(3, 3);\n\n        // planes, uv\n        let (planes, _uvs1) = s.divide_by_count_planes(3, 3);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 384,
+    "passed": true,
+    "test_name": "Division",
+    "time_ms": 0.138
   },
   {
-    "test_name": "Evaluation",
-    "passed": true,
-    "time_ms": 0.015,
-    "line": 505,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        let u = 0.5;\n        let v = 0.5;\n\n        // point_at(u, v) - returns Point\n        let p1 = s.point_at(u, v).unwrap();\n\n        // normal_at(u, v) - returns Vector\n        let n1 = s.normal_at(u, v);\n\n        // evaluate(u, v, num_derivs) - returns vector of derivatives\n        let derivs = s.evaluate(u, v, 1);\n\n        // point_at_corner(u_end, v_end) - corner point\n        let p_corner = s.point_at_corner(1, 1).unwrap();\n\n        // get isocurve - returns NurbsCurve\n        let iso_u = s.iso_curve(0, v).unwrap();\n        let iso_v = s.iso_curve(1, u).unwrap();",
     "checks": [
       {
-        "line": 540,
         "code_line": "TOLERANCE.is_point_close(&p1, &Point::new(2.5, 2.5, 3.0))",
+        "line": 540,
         "passed": true
       },
       {
-        "line": 544,
         "code_line": "TOLERANCE.is_vector_close(&n1, &Vector::new(0.0, 0.0, 1.0))",
+        "line": 544,
         "passed": true
       },
       {
-        "line": 548,
         "code_line": "TOLERANCE.is_vector_close(&derivs[0], &Vector::new(2.5, 2.5, 3.0))",
+        "line": 548,
         "passed": true
       },
       {
-        "line": 549,
         "code_line": "TOLERANCE.is_vector_close(&derivs[1], &Vector::new(0.0, 6.9375, 0.0))",
+        "line": 549,
         "passed": true
       },
       {
-        "line": 550,
         "code_line": "TOLERANCE.is_vector_close(&derivs[2], &Vector::new(6.9375, 0.0, 0.0))",
+        "line": 550,
         "passed": true
       },
       {
-        "line": 554,
         "code_line": "TOLERANCE.is_point_close(&p_corner, &Point::new(5.0, 5.0, 0.0))",
+        "line": 554,
         "passed": true
       },
       {
-        "line": 559,
         "code_line": "TOLERANCE.is_point_close(&iso_u.point_at(0.5), &Point::new(2.5, 2.5, 3.0))",
+        "line": 559,
         "passed": true
       },
       {
-        "line": 560,
         "code_line": "TOLERANCE.is_point_close(&iso_v.point_at(0.5), &Point::new(2.5, 2.5, 3.0))",
+        "line": 560,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        let u = 0.5;\n        let v = 0.5;\n\n        // point_at(u, v) - returns Point\n        let p1 = s.point_at(u, v).unwrap();\n\n        // normal_at(u, v) - returns Vector\n        let n1 = s.normal_at(u, v);\n\n        // evaluate(u, v, num_derivs) - returns vector of derivatives\n        let derivs = s.evaluate(u, v, 1);\n\n        // point_at_corner(u_end, v_end) - corner point\n        let p_corner = s.point_at_corner(1, 1).unwrap();\n\n        // get isocurve - returns NurbsCurve\n        let iso_u = s.iso_curve(0, v).unwrap();\n        let iso_v = s.iso_curve(1, u).unwrap();",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 505,
+    "passed": true,
+    "test_name": "Evaluation",
+    "time_ms": 0.012
   },
   {
-    "test_name": "Modification",
-    "passed": true,
-    "time_ms": 0.211,
-    "line": 565,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n\n        // Reverse one direction\n        let mut s_rev = s.clone();\n        s_rev.reverse(0);\n\n        // Swap u and v direction\n        let mut s_tr = s.clone();\n        s_tr.transpose();\n\n        // Swap coordinates - swap x and z\n        let mut s_swap = s.clone();\n        s_swap.swap_coordinates(0, 2);\n\n        // Trim surface, domain changed but parametrization preserved\n        let mut s_trim = s.clone();\n        s_trim.trim(0, (0.25, 0.75));\n\n        // Split surface into 4 quadrants, check shared corner point is the same\n        let (west, east) = s.split(0, 0.5);\n        let west = west.unwrap();\n        let east = east.unwrap();\n        let (ww, we) = west.split(1, (west.domain(1).unwrap().0 + west.domain(1).unwrap().1) / 2.0);\n        let (ew, ee) = east.split(1, (east.domain(1).unwrap().0 + east.domain(1).unwrap().1) / 2.0);\n        let ww = ww.unwrap();\n        let we = we.unwrap();\n        let ew = ew.unwrap();\n        let ee = ee.unwrap();\n        let center = s.point_at(0.5, 0.5).unwrap();\n\n        // Make rational and change weight\n        let mut s_rat = s.clone();\n        s_rat.make_rational();\n        s_rat.set_weight(2, 2, 3.0);\n        s_rat.make_non_rational();\n\n        // Increase degree\n        let mut s_deg = s.clone();\n        s_deg.increase_degree(0, 6);\n        s_deg.increase_degree(1, 6);",
     "checks": [
       {
-        "line": 598,
         "code_line": "s_rev.point_at_corner(0, 0).unwrap() == s.point_at_corner(1, 0).unwrap()",
+        "line": 598,
         "passed": true
       },
       {
-        "line": 599,
         "code_line": "s_rev.normal_at(0.5, 0.5) == s.normal_at(0.5, 0.5) * -1.0",
+        "line": 599,
         "passed": true
       },
       {
-        "line": 604,
         "code_line": "s.point_at(0.0, 0.5).unwrap() == s_tr.point_at(0.5, 0.0).unwrap()",
+        "line": 604,
         "passed": true
       },
       {
-        "line": 609,
         "code_line": "s.point_at(0.5, 0.5).unwrap()[0] == s_swap.point_at(0.5, 0.5).unwrap()[2]",
+        "line": 609,
         "passed": true
       },
       {
-        "line": 610,
         "code_line": "s.point_at(0.5, 0.5).unwrap()[2] == s_swap.point_at(0.5, 0.5).unwrap()[0]",
+        "line": 610,
         "passed": true
       },
       {
-        "line": 615,
         "code_line": "TOLERANCE.is_close(s_trim.domain(0).unwrap().0, 0.25) &&\nTOLERANCE.is_close(s_trim.domain(0).unwrap().1, 0.75)",
+        "line": 615,
         "passed": true
       },
       {
-        "line": 616,
         "code_line": "TOLERANCE.is_point_close(&s.point_at(0.25, 0.5).unwrap(),\n&s_trim.point_at(0.25, 0.5).unwrap())",
+        "line": 616,
         "passed": true
       },
       {
-        "line": 629,
         "code_line": "TOLERANCE.is_point_close(&ww.point_at_corner(1, 1).unwrap(), &center)",
+        "line": 629,
         "passed": true
       },
       {
-        "line": 630,
         "code_line": "TOLERANCE.is_point_close(&we.point_at_corner(1, 0).unwrap(), &center)",
+        "line": 630,
         "passed": true
       },
       {
-        "line": 631,
         "code_line": "TOLERANCE.is_point_close(&ew.point_at_corner(0, 1).unwrap(), &center)",
+        "line": 631,
         "passed": true
       },
       {
-        "line": 632,
         "code_line": "TOLERANCE.is_point_close(&ee.point_at_corner(0, 0).unwrap(), &center)",
+        "line": 632,
         "passed": true
       },
       {
-        "line": 638,
         "code_line": "s.point_at(0.5, 0.5).unwrap() != s_rat.point_at(0.5, 0.5).unwrap()",
+        "line": 638,
         "passed": true
       },
       {
-        "line": 640,
         "code_line": "s.point_at(0.5, 0.5).unwrap() == s_rat.point_at(0.5, 0.5).unwrap()",
+        "line": 640,
         "passed": true
       },
       {
-        "line": 646,
         "code_line": "s.cv_count_dir(Some(0)) == 4 && s.cv_count_dir(Some(1)) == 4",
+        "line": 646,
         "passed": true
       },
       {
-        "line": 647,
         "code_line": "s_deg.cv_count_dir(Some(0)) == 7 && s_deg.cv_count_dir(Some(1)) == 7",
+        "line": 647,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        let s = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n\n        // Reverse one direction\n        let mut s_rev = s.clone();\n        s_rev.reverse(0);\n\n        // Swap u and v direction\n        let mut s_tr = s.clone();\n        s_tr.transpose();\n\n        // Swap coordinates - swap x and z\n        let mut s_swap = s.clone();\n        s_swap.swap_coordinates(0, 2);\n\n        // Trim surface, domain changed but parametrization preserved\n        let mut s_trim = s.clone();\n        s_trim.trim(0, (0.25, 0.75));\n\n        // Split surface into 4 quadrants, check shared corner point is the same\n        let (west, east) = s.split(0, 0.5);\n        let west = west.unwrap();\n        let east = east.unwrap();\n        let (ww, we) = west.split(1, (west.domain(1).unwrap().0 + west.domain(1).unwrap().1) / 2.0);\n        let (ew, ee) = east.split(1, (east.domain(1).unwrap().0 + east.domain(1).unwrap().1) / 2.0);\n        let ww = ww.unwrap();\n        let we = we.unwrap();\n        let ew = ew.unwrap();\n        let ee = ee.unwrap();\n        let center = s.point_at(0.5, 0.5).unwrap();\n\n        // Make rational and change weight\n        let mut s_rat = s.clone();\n        s_rat.make_rational();\n        s_rat.set_weight(2, 2, 3.0);\n        s_rat.make_non_rational();\n\n        // Increase degree\n        let mut s_deg = s.clone();\n        s_deg.increase_degree(0, 6);\n        s_deg.increase_degree(1, 6);",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 565,
+    "passed": true,
+    "test_name": "Modification",
+    "time_ms": 0.217
   },
   {
-    "test_name": "Transformations",
-    "passed": true,
-    "time_ms": 0.024,
-    "line": 652,
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        // Variant 1: transform_self() - Apply stored xform (in-place)\n        let mut surface1 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface1.xform = Xform::translation(0.0, 0.0, 1.0);\n        surface1.transform_self();\n\n        // Variant 2: transform(&xform) - Apply custom xform (in-place)\n        let mut surface2 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        surface2.transform(&x);\n\n        // Variant 3: transformed(None) - Get copy with stored xform applied\n        let mut surface3 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let surface3_transformed = surface3.transformed(None);\n\n        // Variant 4: transformed(Some(&xform)) - Get copy with custom xform\n        let surface4 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let surface4_transformed = surface4.transformed(Some(&x));",
     "checks": [
       {
-        "line": 684,
         "code_line": "surface1.xform.is_identity() == false",
+        "line": 684,
         "passed": true
       },
       {
-        "line": 685,
         "code_line": "surface1.cv(0, 0).unwrap()[2] == 1.0",
+        "line": 685,
         "passed": true
       },
       {
-        "line": 691,
         "code_line": "surface2.xform.is_identity() == true",
+        "line": 691,
         "passed": true
       },
       {
-        "line": 692,
         "code_line": "surface2.cv(0, 0).unwrap()[2] == 1.0",
+        "line": 692,
         "passed": true
       },
       {
-        "line": 698,
         "code_line": "surface3_transformed.xform.is_identity() == false",
+        "line": 698,
         "passed": true
       },
       {
-        "line": 699,
         "code_line": "surface3_transformed.cv(0, 0).unwrap()[2] == 10.0",
+        "line": 699,
         "passed": true
       },
       {
-        "line": 705,
         "code_line": "surface4_transformed.xform.is_identity() == true",
+        "line": 705,
         "passed": true
       },
       {
-        "line": 706,
         "code_line": "surface4_transformed.cv(0, 0).unwrap()[2] == 10.0",
+        "line": 706,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        // Variant 1: transform_self() - Apply stored xform (in-place)\n        let mut surface1 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface1.xform = Xform::translation(0.0, 0.0, 1.0);\n        surface1.transform_self();\n\n        // Variant 2: transform(&xform) - Apply custom xform (in-place)\n        let mut surface2 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        surface2.transform(&x);\n\n        // Variant 3: transformed(None) - Get copy with stored xform applied\n        let mut surface3 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let surface3_transformed = surface3.transformed(None);\n\n        // Variant 4: transformed(Some(&xform)) - Get copy with custom xform\n        let surface4 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let surface4_transformed = surface4.transformed(Some(&x));",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 652,
+    "passed": true,
+    "test_name": "Transformations",
+    "time_ms": 0.024
   },
   {
-    "test_name": "Meshing",
-    "passed": true,
-    "time_ms": 30.425,
-    "line": 711,
-    "code": "        use crate::NurbsCurve;\n        use crate::Primitives;\n        use crate::Vector;\n        use crate::Point;\n\n        // 1. Sphere — two poles, closed U, rational\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let mesh_sphere = sphere.mesh();\n\n        // 2. Cone — singular apex (pole), closed U\n        let cone = Primitives::cone_surface(0.0, 12.0, 0.0, 2.0, 6.0);\n        let mesh_cone = cone.mesh();\n\n        // 3. Torus — doubly closed (U and V), rational\n        let torus = Primitives::torus_surface(0.0, 24.0, 0.0, 4.0, 1.5);\n        let mesh_torus = torus.mesh();\n\n        // 4. Loft — varying radius circles, closed U, multi-span V\n        let loft = Primitives::create_loft(&[\n            Primitives::circle(0.0, 38.0, 0.0, 2.0),\n            Primitives::circle(0.0, 38.0, 2.0, 1.0),\n            Primitives::circle(0.0, 38.0, 4.0, 1.5),\n            Primitives::circle(0.0, 38.0, 6.0, 0.8)], 3);\n        let mesh_loft = loft.mesh();\n\n        // 5. Extrusion (circle) — closed U, linear V, rational\n        let ext_dir = Vector::new(0.0, 0.0, 5.0);\n        let cylinder = Primitives::create_extrusion(&Primitives::circle(0.0, 52.0, 0.0, 3.0), &ext_dir);\n        let mesh_cylinder = cylinder.mesh();\n\n        // 6. Ruled — bilinear (degree 1x1), tests twist subdivision\n        let ra = NurbsCurve::create(false, 1, &[Point::new(0.0, 64.0, 0.0), Point::new(5.0, 64.0, 5.0)]);\n        let rb = NurbsCurve::create(false, 1, &[Point::new(0.0, 69.0, 5.0), Point::new(5.0, 69.0, 0.0)]);\n        let hypar = Primitives::create_ruled(&ra, &rb);\n        let mesh_hypar = hypar.mesh();\n\n        // 7. Sweep1 — circle along curved rail\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let rail = NurbsCurve::create(false, 2, &[Point::new(0.0, 76.0, 0.0), Point::new(0.0, 81.0, 0.0), Point::new(2.0, 85.0, 0.0)]);\n        let sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let mesh_sweep1 = sweep1.mesh();\n\n        // 8. Sweep2 — two rails + cross sections\n        let r1 = NurbsCurve::create(false, 2, &[Point::new(0.0, 89.0, 0.0), Point::new(1.0, 93.0, 0.0), Point::new(2.0, 94.0, 0.0)]);\n        let r2 = NurbsCurve::create(false, 2, &[Point::new(4.0, 89.0, 0.0), Point::new(4.0, 93.0, 0.0), Point::new(3.0, 94.0, 0.0)]);\n        let sh1 = NurbsCurve::create(false, 2, &[Point::new(0.0, 89.0, 0.0), Point::new(2.0, 89.0, 2.0), Point::new(4.0, 89.0, 0.0)]);\n        let sh2 = NurbsCurve::create(false, 2, &[Point::new(2.0, 94.0, 0.0), Point::new(2.5, 94.0, 1.5), Point::new(3.0, 94.0, 0.0)]);\n        let sweep2 = Primitives::create_sweep2(&r1, &r2, &[sh1, sh2]);\n        let mesh_sweep2 = sweep2.mesh();\n\n        // 9. Edge surface (Coons patch) — 4 boundary curves\n        let south = NurbsCurve::create(false, 3, &[Point::new(1.0, 104.0, 0.0), Point::new(1.0, 106.0, 3.0), Point::new(1.0, 109.0, 3.0), Point::new(1.0, 111.0, 0.0)]);\n        let west  = NurbsCurve::create(false, 2, &[Point::new(10.0, 104.0, 0.0), Point::new(5.5, 104.0, 3.5), Point::new(1.0, 104.0, 0.0)]);\n        let north = NurbsCurve::create(false, 3, &[Point::new(10.0, 104.0, 0.0), Point::new(10.0, 106.0, 3.0), Point::new(10.0, 109.0, 3.0), Point::new(10.0, 111.0, 0.0)]);\n        let east  = NurbsCurve::create(false, 2, &[Point::new(10.0, 111.0, 0.0), Point::new(5.5, 111.0, 3.5), Point::new(1.0, 111.0, 0.0)]);\n        let arched = Primitives::create_edge(&south, &west, &north, &east);\n        let mesh_arched = arched.mesh();\n\n        // 10. Wave — multi-span freeform (13x13 CVs, 10 spans)\n        let wave = Primitives::wave_surface(5.0, 1.5);\n        let mesh_wave = wave.mesh();\n\n        // 11. Planar — mesh() early exit: 2 triangles\n        let planar = NurbsCurve::create(false, 1, &[Point::new(0.0, 132.0, 0.0), Point::new(6.0, 132.0, 0.0), Point::new(6.0, 136.0, 0.0), Point::new(0.0, 136.0, 0.0), Point::new(0.0, 132.0, 0.0)]);\n        let pln = Primitives::create_planar(&planar);\n        let mesh_planar = pln.mesh();",
     "checks": [
       {
-        "line": 720,
         "code_line": "mesh_sphere.is_valid()",
+        "line": 720,
         "passed": true
       },
       {
-        "line": 725,
         "code_line": "mesh_cone.is_valid()",
+        "line": 725,
         "passed": true
       },
       {
-        "line": 730,
         "code_line": "mesh_torus.is_valid()",
+        "line": 730,
         "passed": true
       },
       {
-        "line": 739,
         "code_line": "mesh_loft.is_valid()",
+        "line": 739,
         "passed": true
       },
       {
-        "line": 745,
         "code_line": "mesh_cylinder.is_valid()",
+        "line": 745,
         "passed": true
       },
       {
-        "line": 752,
         "code_line": "mesh_hypar.is_valid()",
+        "line": 752,
         "passed": true
       },
       {
-        "line": 759,
         "code_line": "mesh_sweep1.is_valid()",
+        "line": 759,
         "passed": true
       },
       {
-        "line": 768,
         "code_line": "mesh_sweep2.is_valid()",
+        "line": 768,
         "passed": true
       },
       {
-        "line": 777,
         "code_line": "mesh_arched.is_valid()",
+        "line": 777,
         "passed": true
       },
       {
-        "line": 782,
         "code_line": "mesh_wave.is_valid()",
+        "line": 782,
         "passed": true
       },
       {
-        "line": 788,
         "code_line": "mesh_planar.is_valid()",
+        "line": 788,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::NurbsCurve;\n        use crate::Primitives;\n        use crate::Vector;\n        use crate::Point;\n\n        // 1. Sphere — two poles, closed U, rational\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let mesh_sphere = sphere.mesh();\n\n        // 2. Cone — singular apex (pole), closed U\n        let cone = Primitives::cone_surface(0.0, 12.0, 0.0, 2.0, 6.0);\n        let mesh_cone = cone.mesh();\n\n        // 3. Torus — doubly closed (U and V), rational\n        let torus = Primitives::torus_surface(0.0, 24.0, 0.0, 4.0, 1.5);\n        let mesh_torus = torus.mesh();\n\n        // 4. Loft — varying radius circles, closed U, multi-span V\n        let loft = Primitives::create_loft(&[\n            Primitives::circle(0.0, 38.0, 0.0, 2.0),\n            Primitives::circle(0.0, 38.0, 2.0, 1.0),\n            Primitives::circle(0.0, 38.0, 4.0, 1.5),\n            Primitives::circle(0.0, 38.0, 6.0, 0.8)], 3);\n        let mesh_loft = loft.mesh();\n\n        // 5. Extrusion (circle) — closed U, linear V, rational\n        let ext_dir = Vector::new(0.0, 0.0, 5.0);\n        let cylinder = Primitives::create_extrusion(&Primitives::circle(0.0, 52.0, 0.0, 3.0), &ext_dir);\n        let mesh_cylinder = cylinder.mesh();\n\n        // 6. Ruled — bilinear (degree 1x1), tests twist subdivision\n        let ra = NurbsCurve::create(false, 1, &[Point::new(0.0, 64.0, 0.0), Point::new(5.0, 64.0, 5.0)]);\n        let rb = NurbsCurve::create(false, 1, &[Point::new(0.0, 69.0, 5.0), Point::new(5.0, 69.0, 0.0)]);\n        let hypar = Primitives::create_ruled(&ra, &rb);\n        let mesh_hypar = hypar.mesh();\n\n        // 7. Sweep1 — circle along curved rail\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let rail = NurbsCurve::create(false, 2, &[Point::new(0.0, 76.0, 0.0), Point::new(0.0, 81.0, 0.0), Point::new(2.0, 85.0, 0.0)]);\n        let sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let mesh_sweep1 = sweep1.mesh();\n\n        // 8. Sweep2 — two rails + cross sections\n        let r1 = NurbsCurve::create(false, 2, &[Point::new(0.0, 89.0, 0.0), Point::new(1.0, 93.0, 0.0), Point::new(2.0, 94.0, 0.0)]);\n        let r2 = NurbsCurve::create(false, 2, &[Point::new(4.0, 89.0, 0.0), Point::new(4.0, 93.0, 0.0), Point::new(3.0, 94.0, 0.0)]);\n        let sh1 = NurbsCurve::create(false, 2, &[Point::new(0.0, 89.0, 0.0), Point::new(2.0, 89.0, 2.0), Point::new(4.0, 89.0, 0.0)]);\n        let sh2 = NurbsCurve::create(false, 2, &[Point::new(2.0, 94.0, 0.0), Point::new(2.5, 94.0, 1.5), Point::new(3.0, 94.0, 0.0)]);\n        let sweep2 = Primitives::create_sweep2(&r1, &r2, &[sh1, sh2]);\n        let mesh_sweep2 = sweep2.mesh();\n\n        // 9. Edge surface (Coons patch) — 4 boundary curves\n        let south = NurbsCurve::create(false, 3, &[Point::new(1.0, 104.0, 0.0), Point::new(1.0, 106.0, 3.0), Point::new(1.0, 109.0, 3.0), Point::new(1.0, 111.0, 0.0)]);\n        let west  = NurbsCurve::create(false, 2, &[Point::new(10.0, 104.0, 0.0), Point::new(5.5, 104.0, 3.5), Point::new(1.0, 104.0, 0.0)]);\n        let north = NurbsCurve::create(false, 3, &[Point::new(10.0, 104.0, 0.0), Point::new(10.0, 106.0, 3.0), Point::new(10.0, 109.0, 3.0), Point::new(10.0, 111.0, 0.0)]);\n        let east  = NurbsCurve::create(false, 2, &[Point::new(10.0, 111.0, 0.0), Point::new(5.5, 111.0, 3.5), Point::new(1.0, 111.0, 0.0)]);\n        let arched = Primitives::create_edge(&south, &west, &north, &east);\n        let mesh_arched = arched.mesh();\n\n        // 10. Wave — multi-span freeform (13x13 CVs, 10 spans)\n        let wave = Primitives::wave_surface(5.0, 1.5);\n        let mesh_wave = wave.mesh();\n\n        // 11. Planar — mesh() early exit: 2 triangles\n        let planar = NurbsCurve::create(false, 1, &[Point::new(0.0, 132.0, 0.0), Point::new(6.0, 132.0, 0.0), Point::new(6.0, 136.0, 0.0), Point::new(0.0, 136.0, 0.0), Point::new(0.0, 132.0, 0.0)]);\n        let pln = Primitives::create_planar(&planar);\n        let mesh_planar = pln.mesh();",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 711,
+    "passed": true,
+    "test_name": "Meshing",
+    "time_ms": 24.613
   },
   {
-    "test_name": "Json Roundtrip",
-    "passed": true,
-    "time_ms": 10.324,
-    "line": 793,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // JSON object\n        let json = surface.jsondump().unwrap();\n        let loaded_json = NurbsSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = surface.json_dumps();\n        let loaded_json_string = NurbsSurface::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.json\");\n        surface.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurface::json_load(filename.to_str().unwrap());\n",
     "checks": [
       {
-        "line": 836,
         "code_line": "loaded_json == surface",
+        "line": 836,
         "passed": true
       },
       {
-        "line": 837,
         "code_line": "loaded_json_string == surface",
+        "line": 837,
         "passed": true
       },
       {
-        "line": 838,
         "code_line": "loaded_from_file == surface",
+        "line": 838,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // JSON object\n        let json = surface.jsondump().unwrap();\n        let loaded_json = NurbsSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = surface.json_dumps();\n        let loaded_json_string = NurbsSurface::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.json\");\n        surface.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurface::json_load(filename.to_str().unwrap());\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 793,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 15.113
   },
   {
-    "test_name": "Protobuf Roundtrip",
-    "passed": true,
-    "time_ms": 13.323,
-    "line": 843,
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // String\n        let proto_string = surface.pb_dumps();\n        let loaded_proto_string = NurbsSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.bin\");\n        surface.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurface::pb_load(filename.to_str().unwrap());\n",
     "checks": [
       {
-        "line": 882,
         "code_line": "loaded_proto_string == surface",
+        "line": 882,
         "passed": true
       },
       {
-        "line": 883,
         "code_line": "loaded == surface",
+        "line": 883,
         "passed": true
       }
     ],
-    "failures": []
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // String\n        let proto_string = surface.pb_dumps();\n        let loaded_proto_string = NurbsSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.bin\");\n        surface.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurface::pb_load(filename.to_str().unwrap());\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 843,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 13.69
   }
 ]
