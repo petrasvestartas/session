@@ -3,7 +3,7 @@
     "group": "Session",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.009,
     "line": 11,
     "code": "    Session session;",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "Session",
     "test_name": "Jsondump",
     "passed": true,
-    "time_ms": 0.528,
+    "time_ms": 0.345,
     "line": 17,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, \"./serialization/test_session.json\");",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "Session",
     "test_name": "Jsonload",
     "passed": true,
-    "time_ms": 0.11,
+    "time_ms": 0.089,
     "line": 36,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n\n    auto data = session.jsondump();\n    Session session2 = Session::jsonload(data);",
     "checks": [
@@ -86,7 +86,7 @@
     "group": "Session",
     "test_name": "File Io",
     "passed": true,
-    "time_ms": 7.654,
+    "time_ms": 10.256,
     "line": 51,
     "code": "    Session session;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"connection\");\n    std::string filename = \"./serialization/test_session_roundtrip.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n\n    std::filesystem::remove(filename);",
     "checks": [
@@ -112,7 +112,7 @@
     "group": "Session",
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 71,
     "code": "    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);",
     "checks": [
@@ -175,7 +175,7 @@
     "group": "Session",
     "test_name": "File Io Comprehensive",
     "passed": true,
-    "time_ms": 10.244,
+    "time_ms": 9.406,
     "line": 102,
     "code": "    Session session(\"./serialization/test_session\");\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(point1);\n    session.add_point(point2);\n    session.add_edge(point1->guid, point2->guid, \"./serialization/test_connection\");\n    std::string filename = \"./serialization/test_session_comprehensive.json\";\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(session, filename);\n    Session loaded_session = encoders::json_load<Session>(filename);\n\n\n    std::filesystem::remove(filename);",
     "checks": [
@@ -206,7 +206,7 @@
     "group": "Session",
     "test_name": "Tree Transformation Hierarchy",
     "passed": true,
-    "time_ms": 0.142,
+    "time_ms": 0.136,
     "line": 123,
     "code": "    Session scene(\"tree_transformation_test\");\n\n    auto create_box = [](const Point& center, double size) -> std::shared_ptr<Mesh> {\n        auto mesh = std::make_shared<Mesh>();\n        double h = size * 0.5;\n        std::vector<Point> verts = {\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h)\n        };\n        for (size_t i = 0; i < verts.size(); ++i) mesh->add_vertex(verts[i], i);\n        std::vector<std::vector<size_t>> faces = {\n            {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}\n        };\n        for (const auto& f : faces) mesh->add_face(f);\n        return mesh;\n    };\n\n    auto box1 = create_box(Point(0, 0, 0), 2.0);\n    box1->name = \"box_1\";\n    auto box1_node = scene.add_mesh(box1);\n\n    auto box2 = create_box(Point(0, 0, 0), 2.0);\n    box2->name = \"box_2\";\n    auto box2_node = scene.add_mesh(box2);\n\n    auto box3 = create_box(Point(0, 0, 0), 2.0);\n    box3->name = \"box_3\";\n    auto box3_node = scene.add_mesh(box3);\n\n    scene.add(box1_node);\n    scene.add(box2_node, box1_node);\n    scene.add(box3_node, box2_node);\n\n    Point box1_top(0, 0, 1.0);\n    Vector normal(0, 0, 1), x(1, 0, 0), y(0, 1, 0);\n    Point xy_origin(0, 0, 0);\n    Vector xy_x(1, 0, 0), xy_y(0, 1, 0);\n\n    Plane plane_from(xy_origin, xy_x, xy_y);\n    Plane plane_to(box1_top, x, y);\n    Xform xy_to_top = Xform::plane_to_plane(plane_from, plane_to);\n    box1->xform = Xform::rotation_z(Tolerance::PI / 1.5) * xy_to_top;\n\n    box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(Tolerance::PI / 6.0);\n    box3->xform = Xform::translation(2.0, 0, 0);\n\n    Objects transformed = scene.get_geometry();\n\n\n    std::vector<std::array<double, 3>> expected_box1 = {\n        {1.36603, -0.366025, 0}, {0.366025, 1.36603, 0}, {-1.36603, 0.366025, 0},\n        {-0.366025, -1.36603, 0}, {1.36603, -0.366025, 2}, {0.366025, 1.36603, 2},\n        {-1.36603, 0.366025, 2}, {-0.366025, -1.36603, 2}\n    };\n\n    std::vector<std::array<double, 3>> expected_box2 = {\n        {0.366025, 2.09808, 0}, {-1.36603, 3.09808, 0}, {-2.36603, 1.36603, 0},\n        {-0.633975, 0.366025, 0}, {0.366025, 2.09808, 2}, {-1.36603, 3.09808, 2},\n        {-2.36603, 1.36603, 2}, {-0.633975, 0.366025, 2}\n    };\n\n    std::vector<std::array<double, 3>> expected_box3 = {\n        {-1.36603, 3.09808, 0}, {-3.09808, 4.09808, 0}, {-4.09808, 2.36603, 0},\n        {-2.36603, 1.36603, 0}, {-1.36603, 3.09808, 2}, {-3.09808, 4.09808, 2},\n        {-4.09808, 2.36603, 2}, {-2.36603, 1.36603, 2}\n    };\n\n    std::vector<std::vector<size_t>> expected_faces = {\n        {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}\n    };\n\n    auto& m1 = (*transformed.meshes)[0];\n    for (size_t i = 0; i < 8; ++i) {\n        Point vp = m1->vertex.at(i).position();\n    }\n\n    auto& m2 = (*transformed.meshes)[1];\n    for (size_t i = 0; i < 8; ++i) {\n        Point vp = m2->vertex.at(i).position();\n    }\n\n    auto& m3 = (*transformed.meshes)[2];\n    for (size_t i = 0; i < 8; ++i) {\n        Point vp = m3->vertex.at(i).position();\n    }\n\n    for (auto* mesh : {&m1, &m2, &m3}) {\n        size_t face_idx = 0;\n        for (const auto& [key, face] : (*mesh)->face) {\n            for (size_t i = 0; i < face.size(); ++i) {\n            }\n            face_idx++;",
     "checks": [

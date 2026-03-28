@@ -3,7 +3,7 @@
     "group": "BRep",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.144,
+    "time_ms": 0.135,
     "line": 6,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep()\n\n    sstr = str(b)\n    srepr = repr(b)\n\n    bcopy = b.duplicate()",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "BRep",
     "test_name": "Create Box",
     "passed": true,
-    "time_ms": 5.935,
+    "time_ms": 6.841,
     "line": 29,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BRep",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 5.557,
+    "time_ms": 6.321,
     "line": 44,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import NurbsSurface\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    fc = b.face_count()\n    ec = b.edge_count()\n    vc = b.vertex_count()",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "BRep",
     "test_name": "Add Face",
     "passed": true,
-    "time_ms": 0.197,
+    "time_ms": 0.237,
     "line": 64,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n\n    si = b.add_surface(srf)\n    fi = b.add_face(si, False)\n    li = b.add_loop(fi, 0)\n\n    trim = NurbsCurve.create(False, 1, [Point(0, 0, 0), Point(1, 0, 0)])\n    ci = b.add_curve_2d(trim)\n    b.add_trim(ci, -1, li, False, 0)",
     "checks": [
@@ -171,34 +171,25 @@
   {
     "group": "BRep",
     "test_name": "Mesh",
-    "passed": true,
-    "time_ms": 959.572,
+    "passed": false,
+    "time_ms": 135.267,
     "line": 92,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    m = b.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 100,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 101,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 102,
-        "code_line": "m.number_of_faces() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 6.061,
+    "time_ms": 6.176,
     "line": 105,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    pt = b.point_at(0, 0.5, 0.5)",
     "checks": [
@@ -214,7 +205,7 @@
     "group": "BRep",
     "test_name": "Is Solid",
     "passed": true,
-    "time_ms": 6.226,
+    "time_ms": 6.32,
     "line": 118,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    single = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n    si = single.add_surface(srf)\n    single.add_face(si, False)\n    single.add_vertex(Point(0, 0, 0))",
     "checks": [
@@ -235,7 +226,7 @@
     "group": "BRep",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 7.194,
+    "time_ms": 7.515,
     "line": 141,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import Xform\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.xform = Xform.translation(10.0, 20.0, 30.0)\n    moved = b.transformed()\n\n    pt = moved.point_at(0, 0.0, 0.0)\n    pt_orig = b.point_at(0, 0.0, 0.0)",
     "checks": [
@@ -261,7 +252,7 @@
     "group": "BRep",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 22.566,
+    "time_ms": 29.052,
     "line": 159,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # JSON object\n    json_obj = b.__jsondump__()\n    loaded_json = BRep.__jsonload__(json_obj)\n\n    # String\n    json_string = b.json_dumps()\n    loaded_json_string = BRep.json_loads(json_string)\n\n    # File\n    filename = str(Path(__file__).parent.parent.parent.parent / \"serialization\" / \"test_brep.json\")\n    Path(filename).parent.mkdir(parents=True, exist_ok=True)\n    b.json_dump(filename)\n    loaded_from_file = BRep.json_load(filename)",
     "checks": [
@@ -286,49 +277,25 @@
   {
     "group": "BRep",
     "test_name": "Create Cylinder",
-    "passed": true,
-    "time_ms": 819.855,
+    "passed": false,
+    "time_ms": 558.815,
     "line": 189,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    cyl = BRep.create_cylinder(1.0, 2.0)\n    m = cyl.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 197,
-        "code_line": "cyl.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 198,
-        "code_line": "cyl.face_count() == 3",
-        "passed": true
-      },
-      {
-        "line": 199,
-        "code_line": "cyl.is_solid()",
-        "passed": true
-      },
-      {
-        "line": 200,
-        "code_line": "cyl.name == \"cylinder\"",
-        "passed": true
-      },
-      {
-        "line": 201,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 202,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "Create Sphere",
     "passed": true,
-    "time_ms": 258.475,
+    "time_ms": 252.749,
     "line": 205,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    sph = BRep.create_sphere(2.0)\n    m = sph.mesh()",
     "checks": [
@@ -368,172 +335,76 @@
   {
     "group": "BRep",
     "test_name": "From Polylines",
-    "passed": true,
-    "time_ms": 796.94,
+    "passed": false,
+    "time_ms": 134.712,
     "line": 221,
     "code": "    from session_py import BRep\n    from session_py import Polyline\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz), Point(hx, -hy, -hz),\n        Point(hx, hy, -hz), Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz), Point(hx, -hy, hz),\n        Point(hx, hy, hz), Point(-hx, hy, hz),\n    ]\n\n    bottom = Polyline([c[0], c[3], c[2], c[1], c[0]])\n    top = Polyline([c[4], c[5], c[6], c[7], c[4]])\n    front = Polyline([c[0], c[1], c[5], c[4], c[0]])\n    right = Polyline([c[1], c[2], c[6], c[5], c[1]])\n    back = Polyline([c[2], c[3], c[7], c[6], c[2]])\n    left = Polyline([c[3], c[0], c[4], c[7], c[3]])\n\n    b = BRep.from_polylines([bottom, top, front, right, back, left])\n    m = b.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 246,
-        "code_line": "b.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 247,
-        "code_line": "b.face_count() == 6",
-        "passed": true
-      },
-      {
-        "line": 248,
-        "code_line": "b.edge_count() == 12",
-        "passed": true
-      },
-      {
-        "line": 249,
-        "code_line": "b.vertex_count() == 8",
-        "passed": true
-      },
-      {
-        "line": 250,
-        "code_line": "b.is_solid()",
-        "passed": true
-      },
-      {
-        "line": 251,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 252,
-        "code_line": "m.number_of_faces() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "From Nurbscurves",
-    "passed": true,
-    "time_ms": 278.965,
+    "passed": false,
+    "time_ms": 53.697,
     "line": 255,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz), Point(hx, -hy, -hz),\n        Point(hx, hy, -hz), Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz), Point(hx, -hy, hz),\n        Point(hx, hy, hz), Point(-hx, hy, hz),\n    ]\n\n    bottom = NurbsCurve.create(False, 1, [c[0], c[3], c[2], c[1], c[0]])\n    top = NurbsCurve.create(False, 1, [c[4], c[5], c[6], c[7], c[4]])\n    front = NurbsCurve.create(False, 1, [c[0], c[1], c[5], c[4], c[0]])\n    right = NurbsCurve.create(False, 1, [c[1], c[2], c[6], c[5], c[1]])\n    back = NurbsCurve.create(False, 1, [c[2], c[3], c[7], c[6], c[2]])\n    left = NurbsCurve.create(False, 1, [c[3], c[0], c[4], c[7], c[3]])\n\n    b = BRep.from_nurbscurves([bottom, top, front, right, back, left])\n    m = b.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 280,
-        "code_line": "b.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 281,
-        "code_line": "b.face_count() == 6",
-        "passed": true
-      },
-      {
-        "line": 282,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 283,
-        "code_line": "m.number_of_faces() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "From Nurbscurves Holes",
-    "passed": true,
-    "time_ms": 280.594,
+    "passed": false,
+    "time_ms": 328.802,
     "line": 286,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Primitives\n\n    outer = NurbsCurve.create(False, 1, [\n        Point(-5, -5, 0), Point(5, -5, 0), Point(5, 5, 0), Point(-5, 5, 0), Point(-5, -5, 0),\n    ])\n    hole = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n\n    b = BRep.from_nurbscurves([outer], [[hole]])\n    m = b.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 302,
-        "code_line": "b.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 303,
-        "code_line": "b.face_count() == 1",
-        "passed": true
-      },
-      {
-        "line": 304,
-        "code_line": "len(b.m_loops) == 2",
-        "passed": true
-      },
-      {
-        "line": 305,
-        "code_line": "b.m_loops[0].type == 0",
-        "passed": true
-      },
-      {
-        "line": 306,
-        "code_line": "b.m_loops[1].type == 1",
-        "passed": true
-      },
-      {
-        "line": 307,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 308,
-        "code_line": "m.number_of_faces() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "Create Block With Hole",
-    "passed": true,
-    "time_ms": 1357.445,
+    "passed": false,
+    "time_ms": 140.778,
     "line": 311,
     "code": "    from session_py.brep import BRep\n    from session_py import Mesh\n\n    bh = BRep.create_block_with_hole(8.0, 6.0, 4.0, 1.5)\n    m = bh.mesh()",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 319,
-        "code_line": "bh.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 320,
-        "code_line": "bh.face_count() == 7",
-        "passed": true
-      },
-      {
-        "line": 321,
-        "code_line": "bh.name == \"block_with_hole\"",
-        "passed": true
-      },
-      {
-        "line": 322,
-        "code_line": "not m.is_empty()",
-        "passed": true
-      },
-      {
-        "line": 323,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 324,
-        "code_line": "m.number_of_faces() > 0",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "BRep",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 20.169,
+    "time_ms": 19.376,
     "line": 327,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_data = b.pb_dumps()\n    loaded_proto = BRep.pb_loads(proto_data)\n\n    # File\n    filename = str(Path(__file__).parent.parent.parent.parent / \"serialization\" / \"test_brep.bin\")\n    Path(filename).parent.mkdir(parents=True, exist_ok=True)\n    b.pb_dump(filename)\n    loaded = BRep.pb_load(filename)",
     "checks": [

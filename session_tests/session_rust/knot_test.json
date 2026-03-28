@@ -79,7 +79,7 @@
     "line": 26,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

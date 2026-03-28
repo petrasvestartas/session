@@ -3,7 +3,7 @@
     "group": "AABBTree",
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.022,
     "line": 7,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "AABBTree",
     "test_name": "Build Single",
     "passed": true,
-    "time_ms": 0.088,
+    "time_ms": 0.085,
     "line": 18,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 1.0))",
     "checks": [
@@ -40,7 +40,7 @@
     "group": "AABBTree",
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.071,
+    "time_ms": 0.077,
     "line": 34,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(5.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(6.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(5.0, 1.0, 0.0))\n    vk6 = m.add_vertex(Point(10.0, 0.0, 0.0))\n    vk7 = m.add_vertex(Point(11.0, 0.0, 0.0))\n    vk8 = m.add_vertex(Point(10.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    m.add_face([vk6, vk7, vk8])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.5, 0.0, 0.0))",
     "checks": [
@@ -56,7 +56,7 @@
     "group": "AABBTree",
     "test_name": "Node Count",
     "passed": true,
-    "time_ms": 1.032,
+    "time_ms": 1.096,
     "line": 57,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vkeys = []\n    for i in range(100):\n        vkeys.append(m.add_vertex(Point(float(i), 0.0, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i) + 0.5, 0.5, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i), 0.5, 0.0)))\n    for i in range(100):\n        m.add_face([vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(50.0, 0.0, 0.0))",
     "checks": [
@@ -71,58 +71,35 @@
   {
     "group": "AABBTree",
     "test_name": "Mesh Point Aabb",
-    "passed": true,
-    "time_ms": 0.541,
+    "passed": false,
+    "time_ms": 1.207,
     "line": 75,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 83,
-        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 84,
-        "code_line": "TOLERANCE.is_close(d1, 1.0)",
-        "passed": true
-      },
-      {
-        "line": 86,
-        "code_line": "TOLERANCE.is_close(d2, 0.0)",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "AABBTree",
     "test_name": "Mesh Point Aabb Matches Bvh",
-    "passed": true,
-    "time_ms": 0.416,
+    "passed": false,
+    "time_ms": 0.234,
     "line": 89,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    tp = Point(0.3, 0.7, 1.5)\n    cp_bvh, fk_bvh, d_bvh = Closest.mesh_point(m, tp)\n    cp_aabb, fk_aabb, d_aabb = Closest.mesh_point_aabb(m, tp)",
-    "checks": [
+    "checks": [],
+    "failures": [
       {
-        "line": 99,
-        "code_line": "TOLERANCE.is_close(d_bvh, d_aabb)",
-        "passed": true
-      },
-      {
-        "line": 100,
-        "code_line": "TOLERANCE.is_close(cp_bvh[0], cp_aabb[0])",
-        "passed": true
-      },
-      {
-        "line": 101,
-        "code_line": "TOLERANCE.is_close(cp_bvh[1], cp_aabb[1])",
-        "passed": true
-      },
-      {
-        "line": 102,
-        "code_line": "TOLERANCE.is_close(cp_bvh[2], cp_aabb[2])",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   }
 ]

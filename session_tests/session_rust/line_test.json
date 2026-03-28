@@ -113,7 +113,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.024
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -200,7 +200,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.796
+    "time_ms": 9.289
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 7.832
+    "time_ms": 8.239
   },
   {
     "checks": [
@@ -287,7 +287,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -386,7 +386,7 @@
     "line": 252,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.004
+    "time_ms": 0.002
   },
   {
     "checks": [

@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.012
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 86,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -459,7 +459,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Cos Sin Laws",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 470,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.5
+    "time_ms": 8.78
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 493,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.978
+    "time_ms": 0.838
   },
   {
     "checks": [
@@ -640,7 +640,7 @@
     "line": 419,
     "passed": true,
     "test_name": "Reflect",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -702,7 +702,7 @@
     "line": 452,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [

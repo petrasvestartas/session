@@ -2,85 +2,86 @@
   {
     "group": "RemeshCDT",
     "test_name": "Triangle",
-    "passed": true,
-    "time_ms": 0.103,
+    "passed": false,
+    "time_ms": 0.563,
     "line": 6,
-    "code": "    from session_py.remesh_cdt import cdt_triangulate\n\n    tris = cdt_triangulate([(0, 0), (1, 0), (0, 1)], None)",
-    "checks": [
+    "code": "    from session_py.remesh_cdt import RemeshCDT\n\n    tris = RemeshCDT.triangulate([(0, 0), (1, 0), (0, 1)], None)",
+    "checks": [],
+    "failures": [
       {
-        "line": 12,
-        "code_line": "len(tris) == 1",
-        "passed": true
-      },
-      {
-        "line": 13,
-        "code_line": "tris[0][0] != tris[0][1]",
-        "passed": true
-      },
-      {
-        "line": 14,
-        "code_line": "tris[0][1] != tris[0][2]",
-        "passed": true
-      },
-      {
-        "line": 15,
-        "code_line": "tris[0][0] != tris[0][2]",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "RemeshCDT",
     "test_name": "Square",
-    "passed": true,
-    "time_ms": 0.08,
+    "passed": false,
+    "time_ms": 0.063,
     "line": 18,
-    "code": "    from session_py.remesh_cdt import cdt_triangulate\n\n    tris = cdt_triangulate([(0, 0), (1, 0), (1, 1), (0, 1)], None)",
-    "checks": [
+    "code": "    from session_py.remesh_cdt import RemeshCDT\n\n    tris = RemeshCDT.triangulate([(0, 0), (1, 0), (1, 1), (0, 1)], None)",
+    "checks": [],
+    "failures": [
       {
-        "line": 24,
-        "code_line": "len(tris) == 2",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "RemeshCDT",
     "test_name": "Convex Polygon",
-    "passed": true,
-    "time_ms": 0.104,
+    "passed": false,
+    "time_ms": 0.06,
     "line": 27,
-    "code": "    from session_py.remesh_cdt import cdt_triangulate\n    import math\n\n    hex_pts = [(math.cos(i * math.pi / 3), math.sin(i * math.pi / 3)) for i in range(6)]\n    tris = cdt_triangulate(hex_pts, None)",
-    "checks": [
+    "code": "    from session_py.remesh_cdt import RemeshCDT\n    import math\n\n    hex_pts = [(math.cos(i * math.pi / 3), math.sin(i * math.pi / 3)) for i in range(6)]\n    tris = RemeshCDT.triangulate(hex_pts, None)",
+    "checks": [],
+    "failures": [
       {
-        "line": 35,
-        "code_line": "len(tris) == 4",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
   },
   {
     "group": "RemeshCDT",
     "test_name": "Polygon With Hole",
-    "passed": true,
-    "time_ms": 0.126,
+    "passed": false,
+    "time_ms": 0.044,
     "line": 38,
-    "code": "    from session_py.remesh_cdt import cdt_triangulate\n    from session_py.tolerance import TOLERANCE\n\n    border = [(0, 0), (4, 0), (4, 4), (0, 4)]\n    hole = [(1, 1), (1, 3), (3, 3), (3, 1)]\n    tris = cdt_triangulate(border, [hole])\n\n    flat = [(0,0),(4,0),(4,4),(0,4),(1,1),(1,3),(3,3),(3,1)]\n    area = sum(abs((flat[b][0]-flat[a][0])*(flat[c][1]-flat[a][1]) - (flat[c][0]-flat[a][0])*(flat[b][1]-flat[a][1])) * 0.5\n               for a, b, c in tris)",
-    "checks": [
+    "code": "    from session_py.remesh_cdt import RemeshCDT\n    from session_py.tolerance import TOLERANCE\n\n    border = [(0, 0), (4, 0), (4, 4), (0, 4)]\n    hole = [(1, 1), (1, 3), (3, 3), (3, 1)]\n    tris = RemeshCDT.triangulate(border, [hole])\n\n    flat = [(0,0),(4,0),(4,4),(0,4),(1,1),(1,3),(3,3),(3,1)]\n    area = sum(abs((flat[b][0]-flat[a][0])*(flat[c][1]-flat[a][1]) - (flat[c][0]-flat[a][0])*(flat[b][1]-flat[a][1])) * 0.5\n               for a, b, c in tris)",
+    "checks": [],
+    "failures": [
       {
-        "line": 51,
-        "code_line": "len(tris) > 0",
-        "passed": true
-      },
-      {
-        "line": 52,
-        "code_line": "TOLERANCE.is_close(area, 4.0*4.0 - 2.0*2.0)",
-        "passed": true
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 904,
+        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
       }
-    ],
-    "failures": []
+    ]
+  },
+  {
+    "group": "RemeshCDT",
+    "test_name": "From Polylines",
+    "passed": false,
+    "time_ms": 0.165,
+    "line": 55,
+    "code": "    from session_py.remesh_cdt import RemeshCDT\n    from session_py.polyline import Polyline\n    from session_py.point import Point\n\n    border = Polyline([\n        Point(0, 0, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n        Point(0, 4, 0),\n    ])\n    hole = Polyline([\n        Point(1, 1, 0),\n        Point(1, 3, 0),\n        Point(3, 3, 0),\n        Point(3, 1, 0),\n    ])\n    from session_py.session_config import SESSION_CONFIG\n    m = RemeshCDT.from_polylines(border, [hole])\n\n\n    SESSION_CONFIG.mesh_triangulate_faces = True\n    mt = RemeshCDT.from_polylines(border, [hole])\n    SESSION_CONFIG.reset()",
+    "checks": [],
+    "failures": [
+      {
+        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
+        "line": 709,
+        "code_line": "tris = _cdt_triangulate(border_2d, holes_2d)",
+        "error": "NameError: name '_cdt_triangulate' is not defined"
+      }
+    ]
   }
 ]
