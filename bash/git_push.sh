@@ -5,6 +5,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
 cd "${REPO_ROOT}"
 
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo -e "\n=== Branch: $BRANCH ==="
+
 echo -e "\n=== Running tests before push ==="
 if ! "${SCRIPT_DIR}/minitest.sh" --no-web; then
     echo -e "\nABORTED: tests failed — fix before pushing"
@@ -27,7 +30,7 @@ for d in session_cpp session_py session_rust session_data session_proto session_
     if [ -d "$d" ]; then
         echo -e "\n=== $d ==="
         cd "$d"
-        git checkout main 2>/dev/null || git checkout -b main
+        git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
         git add -A
 
         if ! check_large_files; then
@@ -38,8 +41,8 @@ for d in session_cpp session_py session_rust session_data session_proto session_
         fi
 
         git commit -m "$m" 2>/dev/null
-        git pull --rebase origin main 2>/dev/null
-        if ! git push origin main; then
+        git pull --rebase origin "$BRANCH" 2>/dev/null
+        if ! git push -u origin "$BRANCH"; then
             echo "FAILED: $d push"
             FAILED="$FAILED $d"
         fi
@@ -51,13 +54,13 @@ echo -e "\n=== main repo ==="
 git add -A
 git add session_cpp session_py session_rust session_data session_proto session_rhino 2>/dev/null
 git commit -m "$m" 2>/dev/null
-if ! git push; then
+if ! git push -u origin "$BRANCH"; then
     echo "FAILED: main repo push"
     FAILED="$FAILED main"
 fi
 
 echo -e "\n=== Verify ==="
-git submodule foreach --quiet 'echo "$name: local=$(git rev-parse --short HEAD) remote=$(git ls-remote origin main 2>/dev/null | cut -c1-7)"'
+git submodule foreach --quiet 'echo "$name: local=$(git rev-parse --short HEAD) remote=$(git ls-remote origin '"$BRANCH"' 2>/dev/null | cut -c1-7)"'
 
 if [ -n "$FAILED" ]; then
     echo -e "\nFAILED:$FAILED"

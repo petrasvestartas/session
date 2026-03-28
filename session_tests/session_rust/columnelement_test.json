@@ -1,0 +1,271 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "name == \"col1\"",
+        "line": 277,
+        "passed": true
+      },
+      {
+        "code_line": "!guid.is_empty()",
+        "line": 278,
+        "passed": true
+      },
+      {
+        "code_line": "matches!(c.geometry(), ElementGeometry::Mesh(_))",
+        "line": 279,
+        "passed": true
+      },
+      {
+        "code_line": "c.width() == Some(0.4)",
+        "line": 280,
+        "passed": true
+      },
+      {
+        "code_line": "c.depth() == Some(0.4)",
+        "line": 281,
+        "passed": true
+      },
+      {
+        "code_line": "c.height() == Some(3.0)",
+        "line": 282,
+        "passed": true
+      },
+      {
+        "code_line": "cstr == \"ColumnElement(col1, 0.4, 0.4, 3)\"",
+        "line": 283,
+        "passed": true
+      },
+      {
+        "code_line": "crepr == format!(\"ColumnElement({}, col1, 0.4, 0.4, 3)\", guid)",
+        "line": 284,
+        "passed": true
+      },
+      {
+        "code_line": "ccopy == c && ccopy.guid != c.guid",
+        "line": 285,
+        "passed": true
+      },
+      {
+        "code_line": "c == c2",
+        "line": 286,
+        "passed": true
+      },
+      {
+        "code_line": "c != c3",
+        "line": 287,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::{Element, ElementGeometry, ElementKind};\n        use crate::Mesh;\n\n        let c = Element::column(0.4, 0.4, 3.0, \"col1\");\n\n        let name = &c.name;\n        let guid = &c.guid;\n        let cstr = c.str();\n        let crepr = c.repr();\n\n        let ccopy = c.duplicate();\n        let c2 = Element::column(0.4, 0.4, 3.0, \"col1\");\n        let c3 = Element::column(0.5, 0.4, 3.0, \"col1\");\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 262,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.103
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c.width() == Some(0.5)",
+        "line": 300,
+        "passed": true
+      },
+      {
+        "code_line": "c.depth() == Some(0.6)",
+        "line": 301,
+        "passed": true
+      },
+      {
+        "code_line": "c.height() == Some(4.0)",
+        "line": 302,
+        "passed": true
+      },
+      {
+        "code_line": "c.has_geometry()",
+        "line": 303,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        c.set_width(0.5);\n        c.set_depth(0.6);\n        c.set_height(4.0);\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 292,
+    "passed": true,
+    "test_name": "Setters",
+    "time_ms": 0.183
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(cl.start()[2], 0.0)",
+        "line": 315,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cl.end()[2], 5.0)",
+        "line": 316,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        use crate::Line;\n\n        let c = Element::column(0.4, 0.4, 5.0, \"my_column\");\n        let cl = c.center_line().unwrap();\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 308,
+    "passed": true,
+    "test_name": "Center Line",
+    "time_ms": 0.027
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(c.height().unwrap(), 4.0)",
+        "line": 327,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        c.extend(0.5);\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 321,
+    "passed": true,
+    "test_name": "Extend",
+    "time_ms": 0.043
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.2)",
+        "line": 338,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.2)",
+        "line": 339,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 1.5)",
+        "line": 340,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        let aabb = c.aabb();\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 332,
+    "passed": true,
+    "test_name": "Aabb",
+    "time_ms": 0.036
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
+        "line": 351,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
+        "line": 352,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[2], 1.5)",
+        "line": 353,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        let pt = c.point();\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 345,
+    "passed": true,
+    "test_name": "Compute Point",
+    "time_ms": 0.029
+  },
+  {
+    "checks": [
+      {
+        "code_line": "matches!(&sg, ElementGeometry::Mesh(_))",
+        "line": 366,
+        "passed": true
+      },
+      {
+        "code_line": "min_x > 9.0",
+        "line": 369,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        c.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = c.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f64::INFINITY, f64::min);\n        }",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 358,
+    "passed": true,
+    "test_name": "Session Geometry",
+    "time_ms": 0.029
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"json_col\"",
+        "line": 386,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.5)",
+        "line": 387,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.6)",
+        "line": 388,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.height().unwrap(), 4.0)",
+        "line": 389,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut c = Element::column(0.5, 0.6, 4.0, \"json_col\");\n        c.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_column_element.json\";\n        c.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 375,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 7.912
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"proto_col\"",
+        "line": 405,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.5)",
+        "line": 406,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.6)",
+        "line": 407,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.height().unwrap(), 4.0)",
+        "line": 408,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut c = Element::column(0.5, 0.6, 4.0, \"proto_col\");\n        c.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_column_element.bin\";\n        c.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 394,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 6.518
+  }
+]
