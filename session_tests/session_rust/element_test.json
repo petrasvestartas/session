@@ -1,0 +1,333 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "name == \"test_element\"",
+        "line": 34,
+        "passed": true
+      },
+      {
+        "code_line": "!guid.is_empty()",
+        "line": 35,
+        "passed": true
+      },
+      {
+        "code_line": "dirty",
+        "line": 36,
+        "passed": true
+      },
+      {
+        "code_line": "matches!(e.geometry(), ElementGeometry::Mesh(_))",
+        "line": 37,
+        "passed": true
+      },
+      {
+        "code_line": "estr == \"Element(test_element, Mesh)\"",
+        "line": 38,
+        "passed": true
+      },
+      {
+        "code_line": "erepr == format!(\"Element({}, test_element, Mesh)\", guid)",
+        "line": 39,
+        "passed": true
+      },
+      {
+        "code_line": "ecopy == e && ecopy.guid != e.guid",
+        "line": 40,
+        "passed": true
+      },
+      {
+        "code_line": "e == e2",
+        "line": 41,
+        "passed": true
+      },
+      {
+        "code_line": "e != e3",
+        "line": 42,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::{Element, ElementGeometry};\n        use crate::BRep;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let e = Element::from_mesh(m, \"test_element\");\n\n        let name = &e.name;\n        let guid = &e.guid;\n        let dirty = e.is_dirty();\n\n        let estr = e.str();\n        let erepr = e.repr();\n\n        let ecopy = e.duplicate();\n\n        let e2 = Element::from_mesh(Mesh::new(), \"test_element\");\n        let e3 = Element::from_brep(BRep::new(), \"other\");\n",
+    "failures": [],
+    "group": "Element",
+    "line": 10,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.042
+  },
+  {
+    "checks": [
+      {
+        "code_line": "e.is_dirty()",
+        "line": 61,
+        "passed": true
+      },
+      {
+        "code_line": "e.session_transformation == xf",
+        "line": 62,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::Xform;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        let xf = Xform::translation(10.0, 20.0, 30.0);\n        e.session_transformation = xf.clone();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 47,
+    "passed": true,
+    "test_name": "Session Transformation",
+    "time_ms": 0.015
+  },
+  {
+    "checks": [
+      {
+        "code_line": "e.is_dirty()",
+        "line": 81,
+        "passed": true
+      },
+      {
+        "code_line": "e.features_count() == 1",
+        "line": 82,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n\n        fn my_feature(geo: Mesh) -> Mesh { geo }\n        e.add_feature(my_feature);\n",
+    "failures": [],
+    "group": "Element",
+    "line": 67,
+    "passed": true,
+    "test_name": "Add Feature",
+    "time_ms": 0.012
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.5)",
+        "line": 99,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.5)",
+        "line": 100,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 0.0)",
+        "line": 101,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        let aabb = e.aabb();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 87,
+    "passed": true,
+    "test_name": "Aabb",
+    "time_ms": 0.024
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(obb.half_size[0], 0.5)",
+        "line": 118,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(obb.half_size[1], 0.5)",
+        "line": 119,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        let obb = e.obb();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 106,
+    "passed": true,
+    "test_name": "Obb",
+    "time_ms": 0.02
+  },
+  {
+    "checks": [
+      {
+        "code_line": "matches!(&sg, ElementGeometry::Mesh(_))",
+        "line": 138,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(verts[0].x, 10.0)",
+        "line": 141,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(verts[1].x, 11.0)",
+        "line": 142,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::Xform;\n        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        e.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = e.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let verts: Vec<_> = mesh.vertex.values().collect();\n        }",
+    "failures": [],
+    "group": "Element",
+    "line": 124,
+    "passed": true,
+    "test_name": "Session Geometry",
+    "time_ms": 0.017
+  },
+  {
+    "checks": [
+      {
+        "code_line": "e.is_dirty()",
+        "line": 162,
+        "passed": true
+      },
+      {
+        "code_line": "e.cached_aabb_ref().is_none()",
+        "line": 163,
+        "passed": true
+      },
+      {
+        "code_line": "e.cached_obb_ref().is_none()",
+        "line": 164,
+        "passed": true
+      },
+      {
+        "code_line": "e.cached_collision_mesh_ref().is_none()",
+        "line": 165,
+        "passed": true
+      },
+      {
+        "code_line": "e.cached_point_ref().is_none()",
+        "line": 166,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0), Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        let _ = e.aabb();\n        let _ = e.point();\n        e.reset();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 148,
+    "passed": true,
+    "test_name": "Reset",
+    "time_ms": 0.023
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pt[0], 1.0)",
+        "line": 183,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[1], 1.0)",
+        "line": 184,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
+        "line": 185,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0), Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"my_element\");\n        let pt = e.point();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 171,
+    "passed": true,
+    "test_name": "Compute Point",
+    "time_ms": 0.016
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 1.0)",
+        "line": 199,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 1.5)",
+        "line": 200,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 2.0)",
+        "line": 201,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
+        "line": 202,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
+        "line": 203,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
+        "line": 204,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::BRep;\n        use crate::element::Element;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n        let mut e = Element::from_brep(b, \"brep_element\");\n        let aabb = e.aabb();\n        let pt = e.point();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 190,
+    "passed": true,
+    "test_name": "Brep Aabb",
+    "time_ms": 2.008
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"json_test\"",
+        "line": 226,
+        "passed": true
+      },
+      {
+        "code_line": "matches!(loaded.geometry(), ElementGeometry::Mesh(_))",
+        "line": 227,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.vertex.len() == 4",
+        "line": 229,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::Xform;\n        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0)],\n            vec![vec![0, 1, 2, 3]],\n        );\n        let mut e = Element::from_mesh(m, \"json_test\");\n        e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_element.json\";\n        e.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
+    "failures": [],
+    "group": "Element",
+    "line": 209,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 10.585
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"proto_test\"",
+        "line": 248,
+        "passed": true
+      },
+      {
+        "code_line": "matches!(loaded.geometry(), ElementGeometry::BRep(_))",
+        "line": 249,
+        "passed": true
+      },
+      {
+        "code_line": "brep.m_faces.len() == 6",
+        "line": 251,
+        "passed": true
+      },
+      {
+        "code_line": "brep.m_vertices.len() == 8",
+        "line": 252,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::BRep;\n        use crate::Xform;\n        use crate::element::{Element, ElementGeometry};\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n        let mut e = Element::from_brep(b, \"proto_test\");\n        e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_element.bin\";\n        e.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
+    "failures": [],
+    "group": "Element",
+    "line": 235,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 12.327
+  }
+]

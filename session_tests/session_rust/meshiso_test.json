@@ -34,7 +34,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Eval SchwarzP",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -76,7 +76,7 @@
     "line": 32,
     "passed": true,
     "test_name": "From Tpms Gyroid Solid",
-    "time_ms": 1.333
+    "time_ms": 3.341
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 47,
     "passed": true,
     "test_name": "From Tpms Diamond Sheet",
-    "time_ms": 7.103
+    "time_ms": 15.68
   },
   {
     "checks": [
@@ -108,7 +108,7 @@
     "line": 60,
     "passed": true,
     "test_name": "From Tpms Neovius Shell",
-    "time_ms": 5.073
+    "time_ms": 169.581
   },
   {
     "checks": [
@@ -134,7 +134,7 @@
     "line": 73,
     "passed": true,
     "test_name": "SDF Sphere",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -176,28 +176,7 @@
     "line": 92,
     "passed": true,
     "test_name": "From Function",
-    "time_ms": 0.332
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 189,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 190,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n            MeshIso::smooth_subtract(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
-    "failures": [],
-    "group": "MeshIso",
-    "line": 176,
-    "passed": true,
-    "test_name": "Smooth Subtract",
-    "time_ms": 0.811
+    "time_ms": 0.649
   },
   {
     "checks": [
@@ -218,7 +197,49 @@
     "line": 214,
     "passed": true,
     "test_name": "Gyroid Sphere Shell",
-    "time_ms": 1.222
+    "time_ms": 2.406
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 208,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 209,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
+    "failures": [],
+    "group": "MeshIso",
+    "line": 195,
+    "passed": true,
+    "test_name": "Smooth Intersect",
+    "time_ms": 2.342
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 189,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 190,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n            MeshIso::smooth_subtract(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
+    "failures": [],
+    "group": "MeshIso",
+    "line": 176,
+    "passed": true,
+    "test_name": "Smooth Subtract",
+    "time_ms": 1.56
   },
   {
     "checks": [
@@ -239,7 +260,7 @@
     "line": 157,
     "passed": true,
     "test_name": "SDF Capsule",
-    "time_ms": 1.254
+    "time_ms": 1.776
   },
   {
     "checks": [
@@ -260,7 +281,28 @@
     "line": 142,
     "passed": true,
     "test_name": "SDF Torus",
-    "time_ms": 0.322
+    "time_ms": 0.532
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 136,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 137,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "failures": [],
+    "group": "MeshIso",
+    "line": 127,
+    "passed": true,
+    "test_name": "SDF Box",
+    "time_ms": 19.228
   },
   {
     "checks": [
@@ -361,48 +403,6 @@
     "line": 107,
     "passed": true,
     "test_name": "All Tpms Shells",
-    "time_ms": 67.624
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 136,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 137,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
-    "failures": [],
-    "group": "MeshIso",
-    "line": 127,
-    "passed": true,
-    "test_name": "SDF Box",
-    "time_ms": 0.4
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 208,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 209,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
-    "failures": [],
-    "group": "MeshIso",
-    "line": 195,
-    "passed": true,
-    "test_name": "Smooth Intersect",
-    "time_ms": 1.069
+    "time_ms": 844.961
   }
 ]

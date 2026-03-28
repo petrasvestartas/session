@@ -93,7 +93,7 @@
     "line": 616,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.044
+    "time_ms": 0.084
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 701,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.011
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 723,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.669
+    "time_ms": 73.402
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 753,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.299
+    "time_ms": 84.276
   },
   {
     "checks": [
@@ -217,7 +217,7 @@
     "line": 778,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 797,
     "passed": true,
     "test_name": "Center",
-    "time_ms": 0.005
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -264,7 +264,7 @@
     "line": 818,
     "passed": true,
     "test_name": "Is Closed",
-    "time_ms": 0.007
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -290,7 +290,7 @@
     "line": 847,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.008
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -321,7 +321,7 @@
     "line": 873,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.006
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -342,7 +342,7 @@
     "line": 895,
     "passed": true,
     "test_name": "Extend Segment",
-    "time_ms": 0.11
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -363,7 +363,7 @@
     "line": 913,
     "passed": true,
     "test_name": "Extend Segment Equally",
-    "time_ms": 0.01
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -419,7 +419,7 @@
     "line": 931,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -440,7 +440,7 @@
     "line": 954,
     "passed": true,
     "test_name": "Shift",
-    "time_ms": 0.005
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -461,7 +461,7 @@
     "line": 973,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -482,7 +482,7 @@
     "line": 988,
     "passed": true,
     "test_name": "Is Clockwise",
-    "time_ms": 0.007
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -498,7 +498,7 @@
     "line": 1011,
     "passed": true,
     "test_name": "Convex Corners",
-    "time_ms": 0.015
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -519,7 +519,7 @@
     "line": 1026,
     "passed": true,
     "test_name": "Tween",
-    "time_ms": 0.009
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -545,7 +545,7 @@
     "line": 1046,
     "passed": true,
     "test_name": "Average Plane",
-    "time_ms": 0.017
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -721,7 +721,33 @@
     "line": 1128,
     "passed": true,
     "test_name": "Grid Of Points",
-    "time_ms": 0.032
+    "time_ms": 0.041
+  },
+  {
+    "checks": [
+      {
+        "code_line": "rect.is_some()",
+        "line": 1118,
+        "passed": true
+      },
+      {
+        "code_line": "r.point_count() == 5",
+        "line": 1120,
+        "passed": true
+      },
+      {
+        "code_line": "(pts[0][0] - pts[4][0]).abs() < 1e-6",
+        "line": 1123,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Axis-aligned rectangle\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let rect = Polyline::bounding_rectangle(&poly);\n        let r = rect.unwrap();\n        // First == last (closed)\n        let pts = r.get_points();",
+    "failures": [],
+    "group": "Polyline",
+    "line": 1105,
+    "passed": true,
+    "test_name": "Bounding Rectangle",
+    "time_ms": 0.075
   },
   {
     "checks": [
@@ -737,7 +763,7 @@
     "line": 1087,
     "passed": true,
     "test_name": "Quick Hull",
-    "time_ms": 0.017
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -783,32 +809,6 @@
     "line": 1064,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.023
-  },
-  {
-    "checks": [
-      {
-        "code_line": "rect.is_some()",
-        "line": 1118,
-        "passed": true
-      },
-      {
-        "code_line": "r.point_count() == 5",
-        "line": 1120,
-        "passed": true
-      },
-      {
-        "code_line": "(pts[0][0] - pts[4][0]).abs() < 1e-6",
-        "line": 1123,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Polyline;\n        use crate::Point;\n\n        // Axis-aligned rectangle\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let rect = Polyline::bounding_rectangle(&poly);\n        let r = rect.unwrap();\n        // First == last (closed)\n        let pts = r.get_points();",
-    "failures": [],
-    "group": "Polyline",
-    "line": 1105,
-    "passed": true,
-    "test_name": "Bounding Rectangle",
-    "time_ms": 0.031
+    "time_ms": 0.007
   }
 ]

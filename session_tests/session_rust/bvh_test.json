@@ -33,7 +33,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 80,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 89,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.008
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.007
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.009
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.007
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 168,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.003
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -411,7 +411,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.185
+    "time_ms": 0.366
   },
   {
     "checks": [
@@ -447,6 +447,6 @@
     "line": 317,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.007
+    "time_ms": 0.015
   }
 ]

@@ -18,7 +18,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 14,
     "passed": true,
     "test_name": "Jsondump",
-    "time_ms": 0.254
+    "time_ms": 0.584
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 35,
     "passed": true,
     "test_name": "Jsonload",
-    "time_ms": 0.08
+    "time_ms": 0.154
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 52,
     "passed": true,
     "test_name": "File Io",
-    "time_ms": 15.073
+    "time_ms": 8.876
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 74,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.011
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.006
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -200,7 +200,7 @@
     "line": 111,
     "passed": true,
     "test_name": "File Io Comprehensive",
-    "time_ms": 10.423
+    "time_ms": 9.644
   },
   {
     "checks": [
@@ -591,6 +591,6 @@
     "line": 133,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.177
+    "time_ms": 0.308
   }
 ]

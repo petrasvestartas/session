@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.029
+    "time_ms": 0.103
   },
   {
     "checks": [
@@ -34,7 +34,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.044
+    "time_ms": 0.067
   },
   {
     "checks": [
@@ -50,7 +50,7 @@
     "line": 36,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.036
+    "time_ms": 0.056
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Node Count",
-    "time_ms": 0.634
+    "time_ms": 1.253
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 81,
     "passed": true,
     "test_name": "Mesh Point Aabb",
-    "time_ms": 0.111
+    "time_ms": 0.193
   },
   {
     "checks": [
@@ -123,6 +123,6 @@
     "line": 96,
     "passed": true,
     "test_name": "Mesh Point Aabb Matches Bvh",
-    "time_ms": 0.071
+    "time_ms": 0.15
   }
 ]

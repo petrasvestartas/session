@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.037
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 79,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.048
+    "time_ms": 1.782
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 114,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.077
+    "time_ms": 3.966
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 147,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.125
+    "time_ms": 0.273
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 0.238
+    "time_ms": 0.55
   },
   {
     "checks": [
@@ -203,7 +203,7 @@
     "line": 277,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 0.835
+    "time_ms": 11.942
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 0.598
+    "time_ms": 3.962
   },
   {
     "checks": [
@@ -380,7 +380,7 @@
     "line": 512,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.043
+    "time_ms": 0.082
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 571,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.062
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -752,7 +752,7 @@
     "line": 687,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.082
+    "time_ms": 0.163
   },
   {
     "checks": [
@@ -963,7 +963,7 @@
     "line": 698,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 0.132
+    "time_ms": 0.246
   },
   {
     "checks": [
@@ -1134,7 +1134,7 @@
     "line": 816,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.039
+    "time_ms": 0.062
   },
   {
     "checks": [
@@ -2250,7 +2250,7 @@
     "line": 1003,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 0.966
+    "time_ms": 1.904
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1149,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.02
+    "time_ms": 0.05
   },
   {
     "checks": [
@@ -2347,7 +2347,7 @@
     "line": 1193,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 11.412
+    "time_ms": 11.292
   },
   {
     "checks": [
@@ -2388,7 +2388,7 @@
     "line": 1247,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 10.106
+    "time_ms": 45.029
   },
   {
     "checks": [
@@ -2409,7 +2409,7 @@
     "line": 674,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.022
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -2510,6 +2510,6 @@
     "line": 350,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 0.519
+    "time_ms": 0.905
   }
 ]

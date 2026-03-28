@@ -32,7 +32,12 @@
       "Bash(echo:*)",
       "Bash(bash bash/minitest.sh --py --no-web)",
       "Bash(bash bash/quicktest.sh BVH --py)",
-      "Bash(powershell.exe -NoProfile -Command \"Set-Location ''C:\\\\pc\\\\3_code\\\\code_rust\\\\session\\\\session_rust''; cargo build --release --bin minitest 2>&1 | Where-Object { $_ -match ''error\\\\['' } | Select-Object -First 10; Write-Host ''Build done''\")"
+      "Bash(powershell.exe -NoProfile -Command \"Set-Location ''C:\\\\pc\\\\3_code\\\\code_rust\\\\session\\\\session_rust''; cargo build --release --bin minitest 2>&1 | Where-Object { $_ -match ''error\\\\['' } | Select-Object -First 10; Write-Host ''Build done''\")",
+      "Bash(pip install:*)",
+      "Bash(sed:*)",
+      "Bash(pip show:*)",
+      "Bash(curl:*)",
+      "Bash(mv:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
