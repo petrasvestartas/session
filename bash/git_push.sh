@@ -17,7 +17,12 @@ fi
 FAILED=""
 
 check_large_files() {
-    large=$(git diff --cached --name-only | xargs -I {} sh -c 'test -f "{}" && stat --format="%s {}" "{}" 2>/dev/null || stat -f "%z {}" "{}" 2>/dev/null' | awk '$1 > 100000000 {print $2}')
+    large=$(git diff --cached --name-only | while read f; do
+        if [ -f "$f" ]; then
+            sz=$(stat --format="%s" "$f" 2>/dev/null || stat -f "%z" "$f" 2>/dev/null)
+            [ -n "$sz" ] && [ "$sz" -gt 100000000 ] 2>/dev/null && echo "$f"
+        fi
+    done)
     if [ -n "$large" ]; then
         echo "ERROR: Files over 100MB (GitHub limit):"
         echo "$large"
