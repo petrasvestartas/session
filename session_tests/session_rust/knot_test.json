@@ -126,7 +126,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Clamp",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -293,7 +293,7 @@
     "line": 198,
     "passed": true,
     "test_name": "Multiplicity",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -351,7 +351,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Greville Abcissae",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [

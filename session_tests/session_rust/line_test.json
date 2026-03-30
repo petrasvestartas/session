@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.045
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.86
+    "time_ms": 6.275
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.92
+    "time_ms": 6.79
   },
   {
     "checks": [
@@ -427,7 +427,7 @@
     "line": 276,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -494,6 +494,6 @@
     "line": 308,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.01
+    "time_ms": 0.007
   }
 ]

@@ -14,7 +14,11 @@ Usage:
 import re
 import sys
 from pathlib import Path
-from mcp.server.fastmcp import FastMCP
+
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    FastMCP = None
 
 # =============================================================================
 # Configuration
@@ -554,155 +558,150 @@ class APIIndex:
 # MCP Server - FastMCP tools exposed to Claude Code
 # =============================================================================
 
-mcp = FastMCP("session-api")
 index = APIIndex()
 
+if FastMCP:
+    mcp = FastMCP("session-api")
 
-@mcp.tool()
-def get_api(method: str, language: str = None) -> str:
-    """
-    Get Session API method implementation and usage examples from tests.
+    @mcp.tool()
+    def get_api(method: str, language: str = None) -> str:
+        """
+        Get Session API method implementation and usage examples from tests.
 
-    Args:
-        method: Method name (e.g., 'Point.distance', 'Line.new', or just 'distance')
-        language: Optional filter (python, cpp, rust)
+        Args:
+            method: Method name (e.g., 'Point.distance', 'Line.new', or just 'distance')
+            language: Optional filter (python, cpp, rust)
 
-    Returns:
-        Method code for all languages, plus related test examples.
-    """
-    result = index.get_method(method, language)
-    if not result:
-        return f"Method '{method}' not found. Use search_api to find methods."
+        Returns:
+            Method code for all languages, plus related test examples.
+        """
+        result = index.get_method(method, language)
+        if not result:
+            return f"Method '{method}' not found. Use search_api to find methods."
 
-    lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
-    output = [f"# {result['name']}\n"]
-    for lang, impl in result['implementations'].items():
-        output.append(f"\n## {lang_names[lang]}\n```{lang}\n{impl['code']}\n```")
+        lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+        output = [f"# {result['name']}\n"]
+        for lang, impl in result['implementations'].items():
+            output.append(f"\n## {lang_names[lang]}\n```{lang}\n{impl['code']}\n```")
 
-    # Find related tests that use this method
-    class_name = result['name'].split('.')[0]
-    method_name = result['name'].split('.')[-1]
-    related_tests = []
-    for test_key, test_impls in index.tests.items():
-        if not test_key.startswith(f"{class_name}."):
-            continue
-        for lang, data in test_impls.items():
-            if language and lang != language:
+        # Find related tests that use this method
+        class_name = result['name'].split('.')[0]
+        method_name = result['name'].split('.')[-1]
+        related_tests = []
+        for test_key, test_impls in index.tests.items():
+            if not test_key.startswith(f"{class_name}."):
                 continue
-            if method_name in data['code']:
-                related_tests.append((test_key, lang, data))
-                break
-    if related_tests:
-        output.append(f"\n# Usage examples from tests\n")
-        for test_key, lang, data in related_tests:
-            output.append(f"\n## {test_key} ({lang_names.get(lang, lang)})\n```{lang}\n{data['code']}\n```")
-    return '\n'.join(output)
+            for lang, data in test_impls.items():
+                if language and lang != language:
+                    continue
+                if method_name in data['code']:
+                    related_tests.append((test_key, lang, data))
+                    break
+        if related_tests:
+            output.append(f"\n# Usage examples from tests\n")
+            for test_key, lang, data in related_tests:
+                output.append(f"\n## {test_key} ({lang_names.get(lang, lang)})\n```{lang}\n{data['code']}\n```")
+        return '\n'.join(output)
 
+    @mcp.tool()
+    def search_api(query: str) -> str:
+        """
+        Search for Session API methods by keyword.
 
-@mcp.tool()
-def search_api(query: str) -> str:
-    """
-    Search for Session API methods by keyword.
+        Args:
+            query: Search term (e.g., 'distance', 'transform', 'line')
 
-    Args:
-        query: Search term (e.g., 'distance', 'transform', 'line')
+        Returns:
+            List of matching methods with their available languages.
+        """
+        results = index.search(query)
+        if not results:
+            return f"No methods found for '{query}'."
 
-    Returns:
-        List of matching methods with their available languages.
-    """
-    results = index.search(query)
-    if not results:
-        return f"No methods found for '{query}'."
+        lines = ["Found methods:"]
+        for r in results:
+            lines.append(f"- {r['name']} ({', '.join(r['languages'])})")
+        return '\n'.join(lines)
 
-    lines = ["Found methods:"]
-    for r in results:
-        lines.append(f"- {r['name']} ({', '.join(r['languages'])})")
-    return '\n'.join(lines)
+    @mcp.tool()
+    def get_test(test_name: str, language: str = None) -> str:
+        """
+        Get Session API test implementation (usage examples from _test files).
 
+        Args:
+            test_name: Test name (e.g., 'NurbsCurve.test_constructor', 'test_Evaluation')
+            language: Optional filter (python, cpp, rust)
 
-@mcp.tool()
-def get_test(test_name: str, language: str = None) -> str:
-    """
-    Get Session API test implementation (usage examples from _test files).
+        Returns:
+            Test code for all languages or filtered by language.
+        """
+        result = index.get_test(test_name, language)
+        if not result:
+            return f"Test '{test_name}' not found. Use list_tests to see available tests."
 
-    Args:
-        test_name: Test name (e.g., 'NurbsCurve.test_constructor', 'test_Evaluation')
-        language: Optional filter (python, cpp, rust)
+        output = [f"# {result['name']}\n"]
+        lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+        for lang, impl in result['implementations'].items():
+            ext = {'python': 'python', 'cpp': 'cpp', 'rust': 'rust'}[lang]
+            output.append(f"\n## {lang_names[lang]}\n```{ext}\n{impl['code']}\n```")
+        return '\n'.join(output)
 
-    Returns:
-        Test code for all languages or filtered by language.
-    """
-    result = index.get_test(test_name, language)
-    if not result:
-        return f"Test '{test_name}' not found. Use list_tests to see available tests."
+    @mcp.tool()
+    def list_tests(class_name: str) -> str:
+        """
+        List all tests for a Session class (from _test files).
 
-    output = [f"# {result['name']}\n"]
-    lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
-    for lang, impl in result['implementations'].items():
-        ext = {'python': 'python', 'cpp': 'cpp', 'rust': 'rust'}[lang]
-        output.append(f"\n## {lang_names[lang]}\n```{ext}\n{impl['code']}\n```")
-    return '\n'.join(output)
+        Args:
+            class_name: Class name (e.g., 'NurbsCurve', 'Point', 'Mesh')
 
+        Returns:
+            List of test names with their available languages.
+        """
+        tests = index.list_tests(class_name)
+        if not tests:
+            return f"No tests found for '{class_name}'."
+        lines = [f"{class_name} tests:"]
+        for t in tests:
+            langs = list(index.tests[t].keys())
+            lines.append(f"  {t.split('.')[1]} ({', '.join(langs)})")
+        return '\n'.join(lines)
 
-@mcp.tool()
-def list_tests(class_name: str) -> str:
-    """
-    List all tests for a Session class (from _test files).
+    @mcp.tool()
+    def list_methods(class_name: str) -> str:
+        """
+        List all methods of a Session class.
 
-    Args:
-        class_name: Class name (e.g., 'NurbsCurve', 'Point', 'Mesh')
+        Args:
+            class_name: Class name (e.g., 'Point', 'Line', 'Mesh')
 
-    Returns:
-        List of test names with their available languages.
-    """
-    tests = index.list_tests(class_name)
-    if not tests:
-        return f"No tests found for '{class_name}'."
-    lines = [f"{class_name} tests:"]
-    for t in tests:
-        langs = list(index.tests[t].keys())
-        lines.append(f"  {t.split('.')[1]} ({', '.join(langs)})")
-    return '\n'.join(lines)
+        Returns:
+            Comma-separated list of method names.
+        """
+        methods = index.list_class(class_name)
+        if not methods:
+            return f"Class '{class_name}' not found. Available: {', '.join(index.list_classes())}"
+        return f"{class_name} methods: {', '.join(m.split('.')[-1] for m in methods)}"
 
+    @mcp.tool()
+    def list_classes() -> str:
+        """
+        List all available Session geometry classes.
 
-@mcp.tool()
-def list_methods(class_name: str) -> str:
-    """
-    List all methods of a Session class.
+        Returns:
+            Comma-separated list of class names.
+        """
+        return f"Classes: {', '.join(index.list_classes())}"
 
-    Args:
-        class_name: Class name (e.g., 'Point', 'Line', 'Mesh')
-
-    Returns:
-        Comma-separated list of method names.
-    """
-    methods = index.list_class(class_name)
-    if not methods:
-        return f"Class '{class_name}' not found. Available: {', '.join(index.list_classes())}"
-    return f"{class_name} methods: {', '.join(m.split('.')[-1] for m in methods)}"
-
-
-@mcp.tool()
-def list_classes() -> str:
-    """
-    List all available Session geometry classes.
-
-    Returns:
-        Comma-separated list of class names.
-    """
-    return f"Classes: {', '.join(index.list_classes())}"
-
-
-# =============================================================================
-# Entry Points
-# =============================================================================
-
-def main():
-    """Main entry point for MCP server."""
-    print(f"Session API Server - {len(index.methods)} methods, {len(index.tests)} tests indexed", file=sys.stderr)
-    print(f"Classes: {', '.join(index.list_classes())}", file=sys.stderr)
-    mcp.run()
+    def main():
+        """Main entry point for MCP server."""
+        print(f"Session API Server - {len(index.methods)} methods, {len(index.tests)} tests indexed", file=sys.stderr)
+        print(f"Classes: {', '.join(index.list_classes())}", file=sys.stderr)
+        mcp.run()
+else:
+    mcp = None
+    main = None
 
 
 if __name__ == "__main__":
-    main()
+    if main:
+        main()

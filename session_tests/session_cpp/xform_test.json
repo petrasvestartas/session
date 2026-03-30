@@ -437,7 +437,7 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 4.188,
+    "time_ms": 4.28,
     "line": 323,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.json\";\n    xform.json_dump(filename);\n    Xform loaded = Xform::json_load(filename);",
     "checks": [
@@ -468,7 +468,7 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.24,
+    "time_ms": 4.298,
     "line": 348,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform_proto\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.bin\";\n    xform.pb_dump(filename);\n    Xform loaded = Xform::pb_load(filename);",
     "checks": [

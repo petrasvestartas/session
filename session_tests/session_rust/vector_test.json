@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.023
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -145,7 +145,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Normalize",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 177,
     "passed": true,
     "test_name": "Angle",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 239,
     "passed": true,
     "test_name": "Is Parallel To",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 371,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 474,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.301
+    "time_ms": 5.777
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 497,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 1.142
+    "time_ms": 1.096
   },
   {
     "checks": [
@@ -650,7 +650,7 @@
     "line": 456,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.006
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -671,7 +671,7 @@
     "line": 437,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.003
+    "time_ms": 0.007
   },
   {
     "checks": [

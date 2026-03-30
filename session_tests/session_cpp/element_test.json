@@ -3,7 +3,7 @@
     "group": "PlateElement",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.106,
     "line": 469,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2, \"plate1\");\n\n    auto& geo = p.geometry();\n    std::string name = p.name;\n    const std::string& guid = p.guid();\n    std::string pstr = p.str();\n    std::string prepr = p.repr();\n\n    PlateElement pcopy = p.duplicate();\n    PlateElement p2(polygon, 0.2, \"plate1\");\n    PlateElement p3(polygon, 0.5, \"plate1\");",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "PlateElement",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.039,
     "line": 508,
     "code": "    PlateElement p;\n    p.set_thickness(0.3);\n    p.set_polygon({\n        Point(0, 0, 0),\n        Point(3, 0, 0),\n        Point(3, 3, 0),\n        Point(0, 3, 0),\n    });",
     "checks": [
@@ -137,7 +137,7 @@
     "group": "PlateElement",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.035,
     "line": 537,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    OBB aabb = p.aabb();",
     "checks": [
@@ -163,7 +163,7 @@
     "group": "PlateElement",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.033,
     "line": 552,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    Point pt = p.point();",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "PlateElement",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.958,
+    "time_ms": 6.856,
     "line": 580,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"json_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_plate_element.json\";\n    p.json_dump(fname);\n    PlateElement loaded = PlateElement::json_load(fname);",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "PlateElement",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 4.235,
+    "time_ms": 5.334,
     "line": 600,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"proto_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_plate_element.bin\";\n    p.pb_dump(path);\n    PlateElement loaded = PlateElement::pb_load(path);",
     "checks": [

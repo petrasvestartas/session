@@ -35,7 +35,7 @@ for d in session_cpp session_py session_rust session_data session_proto session_
     if [ -d "$d" ]; then
         echo -e "\n=== $d ==="
         cd "$d"
-        git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+        git checkout "$BRANCH" 2>/dev/null || git checkout -B "$BRANCH"
         git fetch origin "$BRANCH" 2>/dev/null
 
         # Rebase onto remote, auto-resolve pyproject.toml conflicts (CI version bumps)
