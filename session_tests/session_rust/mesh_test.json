@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.044
+    "time_ms": 0.056
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.043
+    "time_ms": 0.086
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.057
+    "time_ms": 0.111
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.13
+    "time_ms": 0.217
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 0.268
+    "time_ms": 0.4
   },
   {
     "checks": [
@@ -203,7 +203,7 @@
     "line": 286,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 0.784
+    "time_ms": 0.871
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 320,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 0.499
+    "time_ms": 0.631
   },
   {
     "checks": [
@@ -380,7 +380,7 @@
     "line": 538,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.045
+    "time_ms": 0.052
   },
   {
     "checks": [
@@ -726,38 +726,7 @@
     "line": 598,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.04
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 721,
-        "passed": true
-      },
-      {
-        "code_line": "nvi.len() == 4",
-        "line": 693,
-        "passed": true
-      },
-      {
-        "code_line": "nf.len() == 4",
-        "line": 695,
-        "passed": true
-      },
-      {
-        "code_line": "nfi.len() == 1",
-        "line": 697,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        let n_vertices = mesh.number_of_vertices();\n\n\n        let n_faces = mesh.number_of_faces();\n\n        let n_edges = mesh.number_of_edges();\n\n        let euler = mesh.euler();\n\n        let (pts, fidx) = mesh.to_vertices_and_faces();\n\n        let vertex_to_index = mesh.vertex_index();\n\n        // vertices / faces / edges\n        let vertices = mesh.vertices();\n        let faces = mesh.faces();\n        let edges = mesh.edges();\n\n        // naked (closed box: no naked edges before removal)\n        // remove one face — box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n        let ne = mesh.naked_edges(true);\n        let ni = mesh.naked_edges(false);\n        let nv = mesh.naked_vertices(true);\n        let nvi = mesh.naked_vertices(false);\n        let nf = mesh.naked_faces(true);\n        let nfi = mesh.naked_faces(false);",
-    "failures": [],
-    "group": "Mesh",
-    "line": 598,
-    "passed": true,
-    "test_name": "Attributes",
-    "time_ms": 0.057
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -783,7 +752,7 @@
     "line": 716,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.091
+    "time_ms": 0.129
   },
   {
     "checks": [
@@ -994,7 +963,7 @@
     "line": 728,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 0.15
+    "time_ms": 0.199
   },
   {
     "checks": [
@@ -1165,7 +1134,7 @@
     "line": 852,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.037
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -2281,7 +2250,7 @@
     "line": 1040,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 0.64
+    "time_ms": 1.055
   },
   {
     "checks": [
@@ -2332,7 +2301,7 @@
     "line": 1187,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.017
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -2378,7 +2347,7 @@
     "line": 1232,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 11.832
+    "time_ms": 9.694
   },
   {
     "checks": [
@@ -2419,7 +2388,7 @@
     "line": 1296,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.974
+    "time_ms": 10.125
   },
   {
     "checks": [
@@ -2440,7 +2409,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.03
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -2541,6 +2510,6 @@
     "line": 375,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 0.641
+    "time_ms": 0.689
   }
 ]

@@ -3,7 +3,7 @@
     "group": "Matrix",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.205,
+    "time_ms": 0.177,
     "line": 8,
     "code": "    from session_py import Matrix\n    m = Matrix.zeros(2, 3)\n    eye = Matrix.identity(3)\n    ml = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    mr = Matrix.from_rows([[1.0, 2.0], [3.0, 4.0]])\n    mc = Matrix.from_cols([[1.0, 3.0], [2.0, 4.0]])\n    v00 = ml[0, 0]\n    v01 = ml[0, 1]\n    v10 = ml[1, 0]\n    v11 = ml[1, 1]\n    eq = (ml == mr)\n    ne = (ml != Matrix.identity(2))\n    sstr = str(m)\n    srepr = repr(eye)\n    d = ml.duplicate()",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "Matrix",
     "test_name": "Properties",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.048,
     "line": 39,
     "code": "    from session_py import Matrix\n    m1 = Matrix.identity(3)\n    m2 = Matrix.zeros(2, 3)\n    m3 = Matrix.from_list(3, 3, [1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0])\n    m4 = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    sq1 = m1.is_square\n    sq2 = m2.is_square\n    sym1 = m3.is_symmetric\n    sym2 = m4.is_symmetric\n    tr = m1.trace()",
     "checks": [
@@ -131,7 +131,7 @@
     "group": "Matrix",
     "test_name": "Subtract",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.026,
     "line": 72,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [5.0, 6.0, 7.0, 8.0])\n    b = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    c = a.subtract(b)\n    d = a - b",
     "checks": [
@@ -157,7 +157,7 @@
     "group": "Matrix",
     "test_name": "Scale",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.025,
     "line": 85,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    b = a.scale(2.0)\n    c = a * 3.0\n    d = 4.0 * a",
     "checks": [
@@ -183,7 +183,7 @@
     "group": "Matrix",
     "test_name": "Multiply",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.053,
     "line": 98,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    b = Matrix.from_list(3, 2, [7.0, 8.0, 9.0, 10.0, 11.0, 12.0])\n    c = a.multiply(b)\n    d = a * b",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "Matrix",
     "test_name": "Transpose",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.016,
     "line": 112,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    t = a.transpose()",
     "checks": [
@@ -240,7 +240,7 @@
     "group": "Matrix",
     "test_name": "Determinant",
     "passed": true,
-    "time_ms": 0.082,
+    "time_ms": 0.066,
     "line": 123,
     "code": "    from session_py import Matrix\n    a1 = Matrix.from_list(1, 1, [5.0])\n    a2 = Matrix.from_list(2, 2, [4.0, 7.0, 2.0, 6.0])\n    a3 = Matrix.from_list(3, 3, [1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0])\n    eye3 = Matrix.identity(3)",
     "checks": [
@@ -271,7 +271,7 @@
     "group": "Matrix",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.09,
+    "time_ms": 0.072,
     "line": 137,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [4.0, 7.0, 2.0, 6.0])\n    inv = a.inverse()\n    singular = Matrix.from_list(2, 2, [1.0, 2.0, 2.0, 4.0])\n    inv_none = singular.inverse()\n    prod = a.multiply(inv)",
     "checks": [
@@ -312,7 +312,7 @@
     "group": "Matrix",
     "test_name": "Solve",
     "passed": true,
-    "time_ms": 0.051,
+    "time_ms": 0.042,
     "line": 154,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [2.0, 1.0, 1.0, 3.0])\n    b = Matrix.from_list(2, 1, [5.0, 10.0])\n    x = a.solve(b)\n    # 2x+y=5, x+3y=10 \u2192 x=1, y=3\n    residual_0 = 2.0 * x[0, 0] + 1.0 * x[1, 0]\n    residual_1 = 1.0 * x[0, 0] + 3.0 * x[1, 0]",
     "checks": [
@@ -348,7 +348,7 @@
     "group": "Matrix",
     "test_name": "LuDecompose",
     "passed": true,
-    "time_ms": 0.091,
+    "time_ms": 0.088,
     "line": 171,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0])\n    l, u, p = a.lu_decompose()\n    pa = p.multiply(a)\n    lu = l.multiply(u)\n\n    # L is lower triangular",
     "checks": [
@@ -394,7 +394,7 @@
     "group": "Matrix",
     "test_name": "QrDecompose",
     "passed": true,
-    "time_ms": 0.134,
+    "time_ms": 0.113,
     "line": 189,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0])\n    q, r = a.qr_decompose()\n    qt = q.transpose()\n    qtq = qt.multiply(q)\n    qr_prod = q.multiply(r)",
     "checks": [
@@ -440,7 +440,7 @@
     "group": "Matrix",
     "test_name": "Cholesky",
     "passed": true,
-    "time_ms": 0.05,
+    "time_ms": 0.06,
     "line": 207,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0])\n    l = a.cholesky()\n    lt = l.transpose()\n    llt = l.multiply(lt)\n    not_spd = Matrix.from_list(2, 2, [1.0, 2.0, 2.0, 1.0])\n    l_none = not_spd.cholesky()",
     "checks": [
@@ -476,7 +476,7 @@
     "group": "Matrix",
     "test_name": "Eigenvalues",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.058,
     "line": 224,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0])\n    evs = a.eigenvalues()\n    evs_sorted = sorted(evs)",
     "checks": [
@@ -507,7 +507,7 @@
     "group": "Matrix",
     "test_name": "Svd",
     "passed": true,
-    "time_ms": 0.108,
+    "time_ms": 0.138,
     "line": 237,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0])\n    u, sv, vt = a.svd()\n    sv_sorted = sorted(sv, reverse=True)",
     "checks": [
@@ -538,7 +538,7 @@
     "group": "Matrix",
     "test_name": "Norms",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.024,
     "line": 250,
     "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [1.0, -2.0, 3.0, -4.0])\n    nf = a.norm_frobenius()\n    n1 = a.norm_1()\n    ni = a.norm_inf()",
     "checks": [
@@ -564,7 +564,7 @@
     "group": "Matrix",
     "test_name": "Rank",
     "passed": true,
-    "time_ms": 0.989,
+    "time_ms": 1.466,
     "line": 263,
     "code": "    from session_py import Matrix\n    a = Matrix.identity(3)\n    b = Matrix.from_list(3, 3, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0])\n    c = Matrix.zeros(3, 3)",
     "checks": [
@@ -590,7 +590,7 @@
     "group": "Matrix",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 295.054,
+    "time_ms": 9.306,
     "line": 275,
     "code": "    from session_py import Matrix\n    from pathlib import Path\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    a.name = \"test_matrix\"\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_matrix.json\"\n    a.json_dump(fname)\n    loaded = Matrix.json_load(fname)",
     "checks": [
@@ -616,7 +616,7 @@
     "group": "Matrix",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.577,
+    "time_ms": 7.946,
     "line": 290,
     "code": "    from session_py import Matrix\n    from pathlib import Path\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    a.name = \"test_matrix_proto\"\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_matrix.bin\"\n    a.pb_dump(fname)\n    loaded = Matrix.pb_load(fname)",
     "checks": [
