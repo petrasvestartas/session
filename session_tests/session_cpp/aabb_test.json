@@ -1,130 +1,95 @@
 [
   {
-    "group": "AABBTree",
-    "test_name": "Build Empty",
+    "group": "Aabb",
+    "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 13,
-    "code": "    AABBTree tree;\n    tree.build(nullptr, 0);",
+    "time_ms": 0.003,
+    "line": 79,
+    "code": "    // AABB(0,0,0, 1,2,3) — dims 2×4×6\n    AABB a(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n\n\n\n\n    AABB b(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    a.union_with(b);",
     "checks": [
       {
-        "line": 16,
-        "code_line": "tree.empty()",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Build Single",
-    "passed": true,
-    "time_ms": 0.005,
-    "line": 19,
-    "code": "    BvhAABB aabb = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};\n    AABBTree tree;\n    tree.build(&aabb, 1);",
-    "checks": [
-      {
-        "line": 23,
-        "code_line": "tree.size() == 1",
+        "line": 83,
+        "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
         "passed": true
       },
       {
-        "line": 24,
-        "code_line": "tree.nodes[0].object_id == 0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Build Multiple",
-    "passed": true,
-    "time_ms": 0.005,
-    "line": 27,
-    "code": "    std::vector<BvhAABB> aabbs = {\n        {0.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {5.0, 0.0, 0.0, 1.0, 1.0, 1.0},\n        {10.0, 0.0, 0.0, 1.0, 1.0, 1.0}\n    };\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
-    "checks": [
-      {
-        "line": 35,
-        "code_line": "tree.size() == 5",
+        "line": 84,
+        "code_line": "a.center() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 36,
-        "code_line": "tree.nodes[0].object_id == -1",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Node Count",
-    "passed": true,
-    "time_ms": 0.016,
-    "line": 39,
-    "code": "    std::vector<BvhAABB> aabbs;\n    for (int i = 0; i < 100; i++) {\n        aabbs.push_back({static_cast<double>(i), 0.0, 0.0, 0.5, 0.5, 0.5});\n    }\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
-    "checks": [
-      {
-        "line": 46,
-        "code_line": "tree.size() == 199",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Mesh Point Aabb",
-    "passed": true,
-    "time_ms": 2.906,
-    "line": 49,
-    "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
-    "checks": [
-      {
-        "line": 53,
-        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "line": 85,
+        "code_line": "TOLERANCE.is_close(a.diagonal(), 2.0 * std::sqrt(14.0))",
         "passed": true
       },
       {
-        "line": 54,
-        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "line": 86,
+        "code_line": "a.is_valid()",
         "passed": true
       },
       {
-        "line": 57,
-        "code_line": "TOLERANCE.is_close(d2, 0.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Mesh Point Aabb Matches Bvh",
-    "passed": true,
-    "time_ms": 0.811,
-    "line": 60,
-    "code": "    Mesh m = Primitives::cube(2.0);\n    Point tp(0.3, 0.7, 1.5);\n\n    auto [cp_bvh, fk_bvh, d_bvh] = Closest::mesh_point(m, tp);\n    auto [cp_aabb, fk_aabb, d_aabb] = Closest::mesh_point_aabb(m, tp);",
-    "checks": [
-      {
-        "line": 67,
-        "code_line": "TOLERANCE.is_close(d_bvh, d_aabb)",
+        "line": 87,
+        "code_line": "TOLERANCE.is_close(a.volume(), 48.0)",
         "passed": true
       },
       {
-        "line": 68,
-        "code_line": "TOLERANCE.is_close(cp_bvh[0], cp_aabb[0])",
+        "line": 89,
+        "code_line": "a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 69,
-        "code_line": "TOLERANCE.is_close(cp_bvh[1], cp_aabb[1])",
+        "line": 90,
+        "code_line": "a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 70,
-        "code_line": "TOLERANCE.is_close(cp_bvh[2], cp_aabb[2])",
+        "line": 91,
+        "code_line": "a.contains(Point(0.0, 0.0, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 92,
+        "code_line": "!a.contains(Point(10.0, 0.0, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "a.corner(false, false, false) == Point(-1.0, -2.0, -3.0)",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "a.corner(true, true, true) == Point(1.0, 2.0, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "a.get_corners().size() == 8",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "a.get_edges().size() == 12",
+        "passed": true
+      },
+      {
+        "line": 99,
+        "code_line": "a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 100,
+        "code_line": "a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "a.min_point() == Point(-1.0, -2.0, -3.0)",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "a.max_point() == Point(6.0, 2.0, 3.0)",
         "passed": true
       }
     ],

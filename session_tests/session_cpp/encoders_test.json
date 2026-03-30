@@ -3,7 +3,7 @@
     "group": "Encoders",
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 5.55,
+    "time_ms": 5.191,
     "line": 13,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    Point original(1.5, 2.5, 3.5);\n    original.name = \"test_point\";\n\n    std::string filepath = \"./serialization/test_encoders_point.json\";\n    json_dump(original, filepath);\n\n    Point loaded = json_load<Point>(filepath);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
@@ -34,37 +34,37 @@
     "group": "Encoders",
     "test_name": "Json Dumps Loads",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.016,
     "line": 31,
-    "code": "    Vector original(42.1, 84.2, 126.3);\n    original.name = \"test_vector\";\n\n    std::string json_str = json_dumps(original);\n\n    Vector loaded = json_loads<Vector>(json_str);",
+    "code": "    Vector original(42.1, 84.2, 126.3);\n    original.name = \"test_vector\";\n\n    std::string json_str = json_dumps(original);\n\n\n    Vector loaded = json_loads<Vector>(json_str);",
     "checks": [
       {
-        "line": 36,
+        "line": 37,
         "code_line": "!json_str.empty()",
         "passed": true
       },
       {
-        "line": 37,
+        "line": 38,
         "code_line": "json_str.find(\"Vector\") != std::string::npos",
         "passed": true
       },
       {
-        "line": 41,
+        "line": 42,
         "code_line": "TOLERANCE.is_close(loaded[0], original[0])",
         "passed": true
       },
       {
-        "line": 42,
+        "line": 43,
         "code_line": "TOLERANCE.is_close(loaded[1], original[1])",
         "passed": true
       },
       {
-        "line": 43,
+        "line": 44,
         "code_line": "TOLERANCE.is_close(loaded[2], original[2])",
         "passed": true
       },
       {
-        "line": 44,
+        "line": 45,
         "code_line": "loaded.name == original.name",
         "passed": true
       }
@@ -75,32 +75,32 @@
     "group": "Encoders",
     "test_name": "Encode Collection Values",
     "passed": true,
-    "time_ms": 0.026,
-    "line": 47,
+    "time_ms": 0.025,
+    "line": 48,
     "code": "    std::vector<Point> points;\n    points.push_back(Point(1.0, 2.0, 3.0));\n    points.push_back(Point(4.0, 5.0, 6.0));\n    points.push_back(Point(7.0, 8.0, 9.0));\n\n    auto json_arr = encode_collection(points);",
     "checks": [
       {
-        "line": 55,
+        "line": 56,
         "code_line": "json_arr.is_array()",
         "passed": true
       },
       {
-        "line": 56,
+        "line": 57,
         "code_line": "json_arr.size() == 3",
         "passed": true
       },
       {
-        "line": 57,
+        "line": 58,
         "code_line": "json_arr[0][\"type\"] == \"Point\"",
         "passed": true
       },
       {
-        "line": 58,
+        "line": 59,
         "code_line": "json_arr[1][\"x\"] == 4.0",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 60,
         "code_line": "json_arr[2][\"z\"] == 9.0",
         "passed": true
       }
@@ -112,26 +112,26 @@
     "test_name": "Encode Collection Shared Ptr",
     "passed": true,
     "time_ms": 0.019,
-    "line": 62,
+    "line": 63,
     "code": "    std::vector<std::shared_ptr<Line>> lines;\n    lines.push_back(std::make_shared<Line>(0.0, 0.0, 0.0, 1.0, 0.0, 0.0));\n    lines.push_back(std::make_shared<Line>(0.0, 0.0, 0.0, 0.0, 1.0, 0.0));\n\n    auto json_arr = encode_collection(lines);",
     "checks": [
       {
-        "line": 69,
+        "line": 70,
         "code_line": "json_arr.is_array()",
         "passed": true
       },
       {
-        "line": 70,
+        "line": 71,
         "code_line": "json_arr.size() == 2",
         "passed": true
       },
       {
-        "line": 71,
+        "line": 72,
         "code_line": "json_arr[0][\"type\"] == \"Line\"",
         "passed": true
       },
       {
-        "line": 72,
+        "line": 73,
         "code_line": "json_arr[1][\"type\"] == \"Line\"",
         "passed": true
       }
@@ -142,22 +142,22 @@
     "group": "Encoders",
     "test_name": "Decode Collection",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 75,
+    "time_ms": 0.029,
+    "line": 76,
     "code": "    std::vector<Point> original_points;\n    original_points.push_back(Point(1.0, 2.0, 3.0));\n    original_points.push_back(Point(4.0, 5.0, 6.0));\n\n    auto json_arr = encode_collection(original_points);\n    auto decoded_points = decode_collection<Point>(json_arr);",
     "checks": [
       {
-        "line": 83,
+        "line": 84,
         "code_line": "decoded_points.size() == 2",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 85,
         "code_line": "TOLERANCE.is_close(decoded_points[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 86,
         "code_line": "TOLERANCE.is_close(decoded_points[1][1], 5.0)",
         "passed": true
       }
@@ -168,22 +168,22 @@
     "group": "Encoders",
     "test_name": "Decode Collection Ptr",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 88,
+    "time_ms": 0.009,
+    "line": 89,
     "code": "    std::vector<std::shared_ptr<Vector>> original_vectors;\n    original_vectors.push_back(std::make_shared<Vector>(1.0, 0.0, 0.0));\n    original_vectors.push_back(std::make_shared<Vector>(0.0, 1.0, 0.0));\n\n    auto json_arr = encode_collection(original_vectors);\n    auto decoded_vectors = decode_collection_ptr<Vector>(json_arr);",
     "checks": [
       {
-        "line": 96,
+        "line": 97,
         "code_line": "decoded_vectors.size() == 2",
         "passed": true
       },
       {
-        "line": 97,
+        "line": 98,
         "code_line": "TOLERANCE.is_close((*decoded_vectors[0])[0], 1.0)",
         "passed": true
       },
       {
-        "line": 98,
+        "line": 99,
         "code_line": "TOLERANCE.is_close((*decoded_vectors[1])[1], 1.0)",
         "passed": true
       }
@@ -194,27 +194,27 @@
     "group": "Encoders",
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.053,
-    "line": 101,
-    "code": "    std::vector<Line> lines;\n    lines.push_back(Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0));\n    lines.push_back(Line(0.0, 0.0, 0.0, 0.0, 1.0, 0.0));\n\n    auto json_arr = encode_collection(lines);\n    std::string json_str = json_arr.dump();\n\n    auto loaded_json = nlohmann::json::parse(json_str);\n    auto loaded = decode_collection<Line>(loaded_json);",
+    "time_ms": 0.048,
+    "line": 102,
+    "code": "    std::vector<Line> lines;\n    lines.push_back(Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0));\n    lines.push_back(Line(0.0, 0.0, 0.0, 0.0, 1.0, 0.0));\n\n    auto json_arr = encode_collection(lines);\n    std::string json_str = json_arr.dump();\n\n\n    auto loaded_json = nlohmann::json::parse(json_str);\n    auto loaded = decode_collection<Line>(loaded_json);",
     "checks": [
       {
-        "line": 108,
+        "line": 110,
         "code_line": "!json_str.empty()",
         "passed": true
       },
       {
-        "line": 113,
+        "line": 115,
         "code_line": "loaded.size() == 2",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 116,
         "code_line": "TOLERANCE.is_close(loaded[0].end()[0], 1.0)",
         "passed": true
       },
       {
-        "line": 115,
+        "line": 117,
         "code_line": "TOLERANCE.is_close(loaded[1].end()[1], 1.0)",
         "passed": true
       }
@@ -225,27 +225,27 @@
     "group": "Encoders",
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 5.253,
-    "line": 118,
+    "time_ms": 5.654,
+    "line": 120,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::vector<Vector> vectors;\n    vectors.push_back(Vector(1.0, 0.0, 0.0));\n    vectors.push_back(Vector(0.0, 1.0, 0.0));\n    vectors.push_back(Vector(0.0, 0.0, 1.0));\n\n    std::string filepath = \"./serialization/test_encoders_collection.json\";\n    auto json_arr = encode_collection(vectors);\n    json_dump(json_arr, filepath);\n\n    auto loaded_json = json_load_data(filepath);\n    auto decoded_vectors = decode_collection<Vector>(loaded_json);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
       {
-        "line": 132,
+        "line": 134,
         "code_line": "decoded_vectors.size() == 3",
         "passed": true
       },
       {
-        "line": 133,
+        "line": 135,
         "code_line": "TOLERANCE.is_close(decoded_vectors[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 134,
+        "line": 136,
         "code_line": "TOLERANCE.is_close(decoded_vectors[1][1], 1.0)",
         "passed": true
       },
       {
-        "line": 135,
+        "line": 137,
         "code_line": "TOLERANCE.is_close(decoded_vectors[2][2], 1.0)",
         "passed": true
       }
@@ -256,32 +256,32 @@
     "group": "Encoders",
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.078,
-    "line": 140,
+    "time_ms": 0.06,
+    "line": 142,
     "code": "    Point point(1.0, 2.0, 3.0);\n\n    std::string pretty = json_dumps(point, true);\n    std::string compact = json_dumps(point, false);\n\n\n    Point loaded_pretty = json_loads<Point>(pretty);\n    Point loaded_compact = json_loads<Point>(compact);",
     "checks": [
       {
-        "line": 146,
+        "line": 148,
         "code_line": "pretty.length() > compact.length()",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 149,
         "code_line": "pretty.find(\"\\n\") != std::string::npos",
         "passed": true
       },
       {
-        "line": 148,
+        "line": 150,
         "code_line": "compact.find(\"\\n\") == std::string::npos",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 155,
         "code_line": "TOLERANCE.is_close(loaded_pretty[0], 1.0)",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 156,
         "code_line": "TOLERANCE.is_close(loaded_compact[0], 1.0)",
         "passed": true
       }
@@ -292,27 +292,27 @@
     "group": "Encoders",
     "test_name": "Decode Primitives",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 157,
-    "code": "    nlohmann::json num = 42;\n    std::string json_str = num.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json float_val = 3.14;\n    json_str = float_val.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json text = \"hello\";\n    json_str = text.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json flag = true;\n    json_str = flag.dump();\n    loaded = nlohmann::json::parse(json_str);",
+    "time_ms": 0.005,
+    "line": 159,
+    "code": "    nlohmann::json num = 42;\n    std::string json_str = num.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n\n    nlohmann::json float_val = 3.14;\n    json_str = float_val.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json text = \"hello\";\n    json_str = text.dump();\n    loaded = nlohmann::json::parse(json_str);\n\n    nlohmann::json flag = true;\n    json_str = flag.dump();\n    loaded = nlohmann::json::parse(json_str);",
     "checks": [
       {
-        "line": 161,
+        "line": 164,
         "code_line": "loaded.get<int>() == 42",
         "passed": true
       },
       {
-        "line": 166,
+        "line": 169,
         "code_line": "TOLERANCE.is_close(loaded.get<double>(), 3.14)",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 174,
         "code_line": "loaded.get<std::string>() == \"hello\"",
         "passed": true
       },
       {
-        "line": 176,
+        "line": 179,
         "code_line": "loaded.get<bool>() == true",
         "passed": true
       }
@@ -323,37 +323,37 @@
     "group": "Encoders",
     "test_name": "Decode List",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 179,
-    "code": "    std::vector<int> data = {1, 2, 3};\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n    auto loaded_vec = loaded.get<std::vector<int>>();\n\n    std::vector<Point> points;\n    points.push_back(Point(1.0, 2.0, 3.0));\n    points.push_back(Point(4.0, 5.0, 6.0));\n\n    auto json_arr = encode_collection(points);\n    auto decoded = decode_collection<Point>(json_arr);",
+    "time_ms": 0.03,
+    "line": 182,
+    "code": "    std::vector<int> data = {1, 2, 3};\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n    auto loaded_vec = loaded.get<std::vector<int>>();\n\n\n    std::vector<Point> points;\n    points.push_back(Point(1.0, 2.0, 3.0));\n    points.push_back(Point(4.0, 5.0, 6.0));\n\n    auto json_arr = encode_collection(points);\n    auto decoded = decode_collection<Point>(json_arr);",
     "checks": [
       {
-        "line": 185,
+        "line": 189,
         "code_line": "loaded_vec.size() == 3",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 190,
         "code_line": "loaded_vec[0] == 1",
         "passed": true
       },
       {
-        "line": 187,
+        "line": 191,
         "code_line": "loaded_vec[2] == 3",
         "passed": true
       },
       {
-        "line": 195,
+        "line": 199,
         "code_line": "decoded.size() == 2",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 200,
         "code_line": "TOLERANCE.is_close(decoded[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 197,
+        "line": 201,
         "code_line": "TOLERANCE.is_close(decoded[1][0], 4.0)",
         "passed": true
       }
@@ -364,22 +364,22 @@
     "group": "Encoders",
     "test_name": "Decode Dict",
     "passed": true,
-    "time_ms": 0.014,
-    "line": 200,
-    "code": "    std::map<std::string, int> data;\n    data[\"a\"] = 1;\n    data[\"b\"] = 2;\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Vector vec(1.0, 2.0, 3.0);\n    std::string vec_json = json_dumps(vec);\n    Vector loaded_vec = json_loads<Vector>(vec_json);",
+    "time_ms": 0.01,
+    "line": 204,
+    "code": "    std::map<std::string, int> data;\n    data[\"a\"] = 1;\n    data[\"b\"] = 2;\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n\n    Vector vec(1.0, 2.0, 3.0);\n    std::string vec_json = json_dumps(vec);\n    Vector loaded_vec = json_loads<Vector>(vec_json);",
     "checks": [
       {
-        "line": 207,
+        "line": 212,
         "code_line": "loaded[\"a\"].get<int>() == 1",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 213,
         "code_line": "loaded[\"b\"].get<int>() == 2",
         "passed": true
       },
       {
-        "line": 213,
+        "line": 218,
         "code_line": "TOLERANCE.is_close(loaded_vec[0], 1.0)",
         "passed": true
       }
@@ -391,21 +391,21 @@
     "test_name": "List In List In List",
     "passed": true,
     "time_ms": 0.005,
-    "line": 216,
+    "line": 221,
     "code": "    nlohmann::json data = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);",
     "checks": [
       {
-        "line": 221,
+        "line": 226,
         "code_line": "loaded[0][0][0] == 1",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 227,
         "code_line": "loaded[1][1][1] == 8",
         "passed": true
       },
       {
-        "line": 223,
+        "line": 228,
         "code_line": "loaded.size() == 2",
         "passed": true
       }
@@ -416,27 +416,27 @@
     "group": "Encoders",
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.06,
-    "line": 226,
+    "time_ms": 0.046,
+    "line": 231,
     "code": "    std::vector<Point> points;\n    points.push_back(Point(1.0, 0.0, 0.0));\n    points.push_back(Point(0.0, 1.0, 0.0));\n\n    nlohmann::json data;\n    data[\"numbers\"] = {1, 2, 3};\n    data[\"letters\"] = {\"a\", \"b\", \"c\"};\n    data[\"points\"] = encode_collection(points);\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    auto loaded_points = decode_collection<Point>(loaded[\"points\"]);",
     "checks": [
       {
-        "line": 239,
+        "line": 244,
         "code_line": "loaded[\"numbers\"].size() == 3",
         "passed": true
       },
       {
-        "line": 240,
+        "line": 245,
         "code_line": "loaded[\"letters\"][0] == \"a\"",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 247,
         "code_line": "loaded_points.size() == 2",
         "passed": true
       },
       {
-        "line": 243,
+        "line": 248,
         "code_line": "TOLERANCE.is_close(loaded_points[0][0], 1.0)",
         "passed": true
       }
@@ -447,27 +447,27 @@
     "group": "Encoders",
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 246,
+    "time_ms": 0.027,
+    "line": 251,
     "code": "    Point point(1.0, 2.0, 3.0);\n\n    nlohmann::json data = nlohmann::json::array();\n    data.push_back({{\"name\", \"point1\"}, {\"value\", 10}});\n    data.push_back({{\"name\", \"point2\"}, {\"value\", 20}});\n    data.push_back({{\"geometry\", point.jsondump()}});\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[2][\"geometry\"]);",
     "checks": [
       {
-        "line": 257,
+        "line": 262,
         "code_line": "loaded.size() == 3",
         "passed": true
       },
       {
-        "line": 258,
+        "line": 263,
         "code_line": "loaded[0][\"name\"] == \"point1\"",
         "passed": true
       },
       {
-        "line": 259,
+        "line": 264,
         "code_line": "loaded[1][\"value\"] == 20",
         "passed": true
       },
       {
-        "line": 261,
+        "line": 266,
         "code_line": "TOLERANCE.is_close(loaded_point[2], 3.0)",
         "passed": true
       }
@@ -478,27 +478,27 @@
     "group": "Encoders",
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.032,
-    "line": 264,
+    "time_ms": 0.03,
+    "line": 269,
     "code": "    Point point(1.0, 2.0, 3.0);\n    Vector vec(0.0, 0.0, 1.0);\n\n    nlohmann::json data;\n    data[\"config\"][\"tolerance\"] = 0.001;\n    data[\"config\"][\"scale\"] = 1000;\n    data[\"geometry\"][\"point\"] = point.jsondump();\n    data[\"geometry\"][\"vector\"] = vec.jsondump();\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[\"geometry\"][\"point\"]);\n    Vector loaded_vec = Vector::jsonload(loaded[\"geometry\"][\"vector\"]);",
     "checks": [
       {
-        "line": 277,
+        "line": 282,
         "code_line": "TOLERANCE.is_close(loaded[\"config\"][\"tolerance\"].get<double>(), 0.001)",
         "passed": true
       },
       {
-        "line": 278,
+        "line": 283,
         "code_line": "loaded[\"config\"][\"scale\"] == 1000",
         "passed": true
       },
       {
-        "line": 281,
+        "line": 286,
         "code_line": "TOLERANCE.is_close(loaded_point[0], 1.0)",
         "passed": true
       },
       {
-        "line": 282,
+        "line": 287,
         "code_line": "TOLERANCE.is_close(loaded_vec[2], 1.0)",
         "passed": true
       }

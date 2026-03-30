@@ -3,13 +3,13 @@
     "group": "Tolerance",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 11,
     "code": "    result = TOLERANCE.is_zero(1e-10)",
     "checks": [
       {
-        "line": 14,
-        "code_line": "result == True",
+        "line": 15,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -19,13 +19,13 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 17,
+    "time_ms": 0.008,
+    "line": 18,
     "code": "    result = TOLERANCE.is_close(1.0, 1.0 + 1e-7)",
     "checks": [
       {
-        "line": 20,
-        "code_line": "result == True",
+        "line": 22,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -35,13 +35,13 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 23,
+    "time_ms": 0.002,
+    "line": 25,
     "code": "    result = TOLERANCE.is_positive(1.0)",
     "checks": [
       {
-        "line": 26,
-        "code_line": "result == True",
+        "line": 29,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -51,13 +51,13 @@
     "group": "Tolerance",
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 29,
+    "time_ms": 0.002,
+    "line": 32,
     "code": "    result = TOLERANCE.is_negative(-1.0)",
     "checks": [
       {
-        "line": 32,
-        "code_line": "result == True",
+        "line": 36,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -67,13 +67,13 @@
     "group": "Tolerance",
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 35,
+    "time_ms": 0.002,
+    "line": 39,
     "code": "    result = TOLERANCE.is_between(0.5, 0.0, 1.0)",
     "checks": [
       {
-        "line": 38,
-        "code_line": "result == True",
+        "line": 43,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -83,12 +83,12 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 41,
+    "time_ms": 0.004,
+    "line": 46,
     "code": "    result = TOLERANCE.format_number(3.14159, precision=2)",
     "checks": [
       {
-        "line": 44,
+        "line": 50,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -99,12 +99,12 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 47,
+    "time_ms": 0.006,
+    "line": 53,
     "code": "    result = TOLERANCE.key([1.0, 2.0, 3.0])",
     "checks": [
       {
-        "line": 50,
+        "line": 57,
         "code_line": "result == \"1.000,2.000,3.000\"",
         "passed": true
       }
@@ -115,48 +115,48 @@
     "group": "Tolerance",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 53,
-    "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
+    "time_ms": 0.009,
+    "line": 60,
+    "code": "    # Get current default values\n    original_absolute = TOLERANCE.absolute\n    original_relative = TOLERANCE.relative\n\n\n    # Modify tolerance values at runtime\n    TOLERANCE.absolute = 1e-12\n    TOLERANCE.relative = 1e-12\n\n    # Test with new tolerance - 1e-11 difference now fails is_close\n    close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11)\n\n    # Reset to defaults\n    TOLERANCE.reset()\n\n    # Same test now passes with default tolerance\n    close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11)",
     "checks": [
       {
-        "line": 58,
+        "line": 66,
         "code_line": "original_absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 67,
         "code_line": "original_relative == 1e-6",
         "passed": true
       },
       {
-        "line": 64,
+        "line": 72,
         "code_line": "TOLERANCE.absolute == 1e-12",
         "passed": true
       },
       {
-        "line": 65,
+        "line": 73,
         "code_line": "TOLERANCE.relative == 1e-12",
         "passed": true
       },
       {
-        "line": 69,
-        "code_line": "close_with_tight == False",
+        "line": 77,
+        "code_line": "not close_with_tight",
         "passed": true
       },
       {
-        "line": 73,
+        "line": 81,
         "code_line": "TOLERANCE.absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 74,
+        "line": 82,
         "code_line": "TOLERANCE.relative == 1e-6",
         "passed": true
       },
       {
-        "line": 78,
-        "code_line": "close_with_default == True",
+        "line": 86,
+        "code_line": "close_with_default",
         "passed": true
       }
     ],
@@ -166,17 +166,17 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 81,
+    "time_ms": 0.003,
+    "line": 89,
     "code": "    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)",
     "checks": [
       {
-        "line": 85,
+        "line": 94,
         "code_line": "r0 == r1",
         "passed": true
       },
       {
-        "line": 86,
+        "line": 95,
         "code_line": "r0 == (7 << 32) | 3",
         "passed": true
       }
@@ -187,32 +187,32 @@
     "group": "Tolerance",
     "test_name": "Wrap Index",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 89,
+    "time_ms": 0.004,
+    "line": 98,
     "code": "",
     "checks": [
       {
-        "line": 91,
+        "line": 100,
         "code_line": "wrap_index(0, 4)  == 0",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 101,
         "code_line": "wrap_index(3, 4)  == 3",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 102,
         "code_line": "wrap_index(4, 4)  == 0",
         "passed": true
       },
       {
-        "line": 94,
+        "line": 103,
         "code_line": "wrap_index(-1, 4) == 3",
         "passed": true
       },
       {
-        "line": 95,
+        "line": 104,
         "code_line": "wrap_index(0, 0)  == 0",
         "passed": true
       }
@@ -223,17 +223,17 @@
     "group": "Tolerance",
     "test_name": "Triangle Edge By Angle",
     "passed": true,
-    "time_ms": 0.014,
-    "line": 98,
+    "time_ms": 0.009,
+    "line": 107,
     "code": "",
     "checks": [
       {
-        "line": 100,
+        "line": 109,
         "code_line": "abs(triangle_edge_by_angle(1.0, 45.0) - 1.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 101,
+        "line": 110,
         "code_line": "abs(triangle_edge_by_angle(5.0, 0.0)) < 1e-9",
         "passed": true
       }
@@ -244,22 +244,22 @@
     "group": "Tolerance",
     "test_name": "Rad Deg Conversion",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 104,
+    "time_ms": 0.003,
+    "line": 113,
     "code": "",
     "checks": [
       {
-        "line": 106,
+        "line": 115,
         "code_line": "abs(rad_to_deg(PI) - 180.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 107,
+        "line": 116,
         "code_line": "abs(deg_to_rad(180.0) - PI) < 1e-9",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 117,
         "code_line": "abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9",
         "passed": true
       }
@@ -270,37 +270,37 @@
     "group": "Tolerance",
     "test_name": "Count Digits",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 111,
+    "time_ms": 0.005,
+    "line": 120,
     "code": "",
     "checks": [
       {
-        "line": 113,
+        "line": 122,
         "code_line": "count_digits(0.0)   == 0",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 123,
         "code_line": "count_digits(1.0)   == 1",
         "passed": true
       },
       {
-        "line": 115,
+        "line": 124,
         "code_line": "count_digits(9.9)   == 1",
         "passed": true
       },
       {
-        "line": 116,
+        "line": 125,
         "code_line": "count_digits(10.0)  == 2",
         "passed": true
       },
       {
-        "line": 117,
+        "line": 126,
         "code_line": "count_digits(100.5) == 3",
         "passed": true
       },
       {
-        "line": 118,
+        "line": 127,
         "code_line": "count_digits(-42.0) == 2",
         "passed": true
       }

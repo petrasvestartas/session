@@ -3,26 +3,167 @@
     "checks": [
       {
         "code_line": "loaded.number_of_vertices() == 2",
-        "line": 14,
+        "line": 47,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_edges() == 1",
-        "line": 15,
+        "line": 48,
         "passed": true
       },
       {
         "code_line": "loaded.has_edge((\"node1\", \"node2\"))",
-        "line": 16,
+        "line": 49,
         "passed": true
       }
     ],
-    "code": "        use crate::graph::Graph;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Graph::new(\"./serialization/test_graph\");\n        original.add_node(\"node1\", \"Node 1\");\n        original.add_node(\"node2\", \"Node 2\");\n        original.add_edge(\"node1\", \"node2\", \"edge1\");\n        json_dump(&original, \"serialization/test_graph.json\", false).unwrap();\n        let loaded = json_load::<Graph>(\"serialization/test_graph.json\").unwrap();",
+    "code": "        use crate::graph::Graph;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Graph::new(\"./serialization/test_graph\");\n        original.add_node(\"node1\", \"Node 1\");\n        original.add_node(\"node2\", \"Node 2\");\n        original.add_edge(\"node1\", \"node2\", \"edge1\");\n        json_dump(&original, \"serialization/test_graph.json\", false).unwrap();\n        let loaded = json_load::<Graph>(\"serialization/test_graph.json\").unwrap();\n",
     "failures": [],
     "group": "Graph",
-    "line": 5,
+    "line": 37,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.243
+    "time_ms": 5.32
+  },
+  {
+    "checks": [
+      {
+        "code_line": "cycles.len() == 1",
+        "line": 149,
+        "passed": true
+      },
+      {
+        "code_line": "cycle_set == expected",
+        "line": 153,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n        let cycles = g.cycle_basis();\n\n        let cycle_set: std::collections::BTreeSet<_> = cycles[0].iter().cloned().collect();\n        let expected: std::collections::BTreeSet<_> = vec![\"a\".to_string(), \"b\".to_string(), \"c\".to_string()].into_iter().collect();\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 139,
+    "passed": true,
+    "test_name": "Cycle Basis",
+    "time_ms": 0.026
+  },
+  {
+    "checks": [
+      {
+        "code_line": "g.has_cycle() == true",
+        "line": 129,
+        "passed": true
+      },
+      {
+        "code_line": "g2.has_cycle() == false",
+        "line": 134,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n\n        let mut g2 = Graph::new(\"test2\");\n        g2.add_edge(\"x\", \"y\", \"\");\n        g2.add_edge(\"y\", \"z\", \"\");\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 120,
+    "passed": true,
+    "test_name": "Has Cycle",
+    "time_ms": 0.012
+  },
+  {
+    "checks": [
+      {
+        "code_line": "g.shortest_path(\"a\", \"d\") == vec![\"a\", \"b\", \"d\"]",
+        "line": 112,
+        "passed": true
+      },
+      {
+        "code_line": "g.shortest_path_length(\"a\", \"d\") == 2",
+        "line": 113,
+        "passed": true
+      },
+      {
+        "code_line": "g.shortest_path(\"a\", \"e\") == Vec::<String>::new()",
+        "line": 114,
+        "passed": true
+      },
+      {
+        "code_line": "g.shortest_path_length(\"a\", \"e\") == -1",
+        "line": 115,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 103,
+    "passed": true,
+    "test_name": "Shortest Path",
+    "time_ms": 0.008
+  },
+  {
+    "checks": [
+      {
+        "code_line": "comps.len() == 2",
+        "line": 94,
+        "passed": true
+      },
+      {
+        "code_line": "comps[0] == vec![\"a\", \"b\", \"c\", \"d\"]",
+        "line": 95,
+        "passed": true
+      },
+      {
+        "code_line": "comps[1] == vec![\"e\", \"f\"]",
+        "line": 96,
+        "passed": true
+      },
+      {
+        "code_line": "g.is_connected() == false",
+        "line": 97,
+        "passed": true
+      },
+      {
+        "code_line": "g.number_connected_components() == 2",
+        "line": 98,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n        let comps = g.connected_components();\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 84,
+    "passed": true,
+    "test_name": "Connected Components",
+    "time_ms": 0.013
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result == vec![\"a\", \"b\", \"c\", \"d\"]",
+        "line": 79,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n        let result = g.dfs(\"a\");\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 69,
+    "passed": true,
+    "test_name": "Dfs",
+    "time_ms": 0.011
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result == vec![\"a\", \"b\", \"c\", \"d\"]",
+        "line": 64,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::graph::Graph;\n        let mut g = Graph::new(\"test\");\n        g.add_edge(\"a\", \"b\", \"\");\n        g.add_edge(\"b\", \"c\", \"\");\n        g.add_edge(\"c\", \"a\", \"\");\n        g.add_edge(\"b\", \"d\", \"\");\n        g.add_edge(\"e\", \"f\", \"\");\n        let result = g.bfs(\"a\");\n",
+    "failures": [],
+    "group": "Graph",
+    "line": 54,
+    "passed": true,
+    "test_name": "Bfs",
+    "time_ms": 0.01
   }
 ]

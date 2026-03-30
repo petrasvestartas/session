@@ -3,87 +3,117 @@
     "group": "Point",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.009,
     "line": 14,
-    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid)\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);\n\n            p.name == \"my_point\" &&\n            p[0] == 10.0 &&\n            p[1] == 20.0 &&\n            p[2] == 30.0 &&\n            p.width == 1.0 &&\n            p.pointcolor == Color::blue() &&\n            !p.guid.empty()\n        );",
+    "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid())\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);",
     "checks": [
       {
-        "line": 70,
-        "code_line": "p.name == \"my_point\" && p[0] == 10.0 && p[1] == 20.0 && p[2] == 30.0 && p.width == 1.0 && p.pointcolor == Color::blue() && !p.guid.empty()",
+        "line": 62,
+        "code_line": "p.name == \"my_point\"",
         "passed": true
       },
       {
-        "line": 71,
+        "line": 63,
+        "code_line": "p[0] == 10.0",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "p[1] == 20.0",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "p[2] == 30.0",
+        "passed": true
+      },
+      {
+        "line": 66,
+        "code_line": "p.width == 1.0",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "p.pointcolor == Color::blue()",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "!p.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 69,
         "code_line": "x == 10.0 && y == 20.0 && z == 30.0",
         "passed": true
       },
       {
-        "line": 72,
+        "line": 70,
         "code_line": "pstr == \"10.000000, 20.000000, 30.000000\"",
         "passed": true
       },
       {
-        "line": 73,
+        "line": 71,
         "code_line": "prepr == \"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 255, 255), 1.000000)\"",
         "passed": true
       },
       {
-        "line": 74,
-        "code_line": "pcopy == p && pcopy.guid != p.guid",
+        "line": 72,
+        "code_line": "pcopy == p && pcopy.guid() != p.guid()",
         "passed": true
       },
       {
-        "line": 75,
+        "line": 73,
         "code_line": "pother != p",
         "passed": true
       },
       {
-        "line": 76,
+        "line": 74,
         "code_line": "pmult[0] == 20.0 && pmult[1] == 40.0 && pmult[2] == 60.0",
         "passed": true
       },
       {
-        "line": 77,
+        "line": 75,
         "code_line": "pdiv[0] == 5.0 && pdiv[1] == 10.0 && pdiv[2] == 15.0",
         "passed": true
       },
       {
-        "line": 78,
+        "line": 76,
         "code_line": "padd[0] == 11.0 && padd[1] == 21.0 && padd[2] == 31.0",
         "passed": true
       },
       {
-        "line": 79,
+        "line": 77,
         "code_line": "psub[0] == 9.0 && psub[1] == 19.0 && psub[2] == 29.0",
         "passed": true
       },
       {
-        "line": 80,
+        "line": 78,
         "code_line": "result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0",
         "passed": true
       },
       {
-        "line": 81,
+        "line": 79,
         "code_line": "result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0",
         "passed": true
       },
       {
-        "line": 82,
+        "line": 80,
         "code_line": "result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0",
         "passed": true
       },
       {
-        "line": 83,
+        "line": 81,
         "code_line": "diff_point[0] == 9.0 && diff_point[1] == 19.0 && diff_point[2] == 29.0",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 82,
         "code_line": "psum[0] == 5.0 && psum[1] == 7.0 && psum[2] == 9.0",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 83,
         "code_line": "pdif[0] == 3.0 && pdif[1] == 3.0 && pdif[2] == 3.0",
         "passed": true
       }
@@ -94,22 +124,22 @@
     "group": "Point",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 88,
+    "time_ms": 0.001,
+    "line": 86,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Point p(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        Point p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset",
     "checks": [
       {
-        "line": 97,
+        "line": 95,
         "code_line": "p_transformed[0] == 2.0 && p_transformed[1] == 4.0 && p_transformed[2] == 6.0",
         "passed": true
       },
       {
-        "line": 98,
+        "line": 96,
         "code_line": "p[0] == 2.0 && p[1] == 4.0 && p[2] == 6.0",
         "passed": true
       },
       {
-        "line": 99,
+        "line": 97,
         "code_line": "p.xform == Xform::identity()",
         "passed": true
       }
@@ -120,52 +150,52 @@
     "group": "Point",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.795,
-    "line": 102,
+    "time_ms": 4.806,
+    "line": 100,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   json_dumps()    │ std::string  │ to JSON string\n        //   json_loads(s)   │ std::string  │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_point.json\";\n        p.json_dump(filename);\n        Point loaded = Point::json_load(filename);\n",
     "checks": [
       {
-        "line": 122,
+        "line": 120,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 123,
+        "line": 121,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 124,
+        "line": 122,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 125,
+        "line": 123,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 126,
+        "line": 124,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 127,
+        "line": 125,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 126,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 127,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 130,
+        "line": 128,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
@@ -176,52 +206,52 @@
     "group": "Point",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.35,
-    "line": 134,
+    "time_ms": 4.641,
+    "line": 132,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(255, 128, 64, 255);\n\n        std::string filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        Point loaded = Point::pb_load(filename);",
     "checks": [
       {
-        "line": 147,
+        "line": 145,
         "code_line": "loaded.name == p.name",
         "passed": true
       },
       {
-        "line": 148,
+        "line": 146,
         "code_line": "loaded[0] == p[0]",
         "passed": true
       },
       {
-        "line": 149,
+        "line": 147,
         "code_line": "loaded[1] == p[1]",
         "passed": true
       },
       {
-        "line": 150,
+        "line": 148,
         "code_line": "loaded[2] == p[2]",
         "passed": true
       },
       {
-        "line": 151,
+        "line": 149,
         "code_line": "loaded.width == p.width",
         "passed": true
       },
       {
-        "line": 152,
+        "line": 150,
         "code_line": "loaded.pointcolor.r == 255",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 151,
         "code_line": "loaded.pointcolor.g == 128",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 152,
         "code_line": "loaded.pointcolor.b == 64",
         "passed": true
       },
       {
-        "line": 155,
+        "line": 153,
         "code_line": "loaded.pointcolor.a == 255",
         "passed": true
       }
@@ -232,17 +262,17 @@
     "group": "Point",
     "test_name": "Is Ccw",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 158,
+    "time_ms": 0.004,
+    "line": 156,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(1.0, 0.0, 0.0);\n        Point p2(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        bool is_counter_clock_wise = Point::is_ccw(p0, p1, p2);\n        bool is_clock_wise = Point::is_ccw(p2, p1, p0);",
     "checks": [
       {
-        "line": 169,
+        "line": 167,
         "code_line": "is_counter_clock_wise",
         "passed": true
       },
       {
-        "line": 170,
+        "line": 168,
         "code_line": "!is_clock_wise",
         "passed": true
       }
@@ -253,12 +283,12 @@
     "group": "Point",
     "test_name": "Mid Point",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 173,
+    "time_ms": 0.0,
+    "line": 171,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);",
     "checks": [
       {
-        "line": 180,
+        "line": 178,
         "code_line": "mid[0] == 0.5 && mid[1] == 3.5 && mid[2] == 2.0",
         "passed": true
       }
@@ -270,11 +300,11 @@
     "test_name": "Distance",
     "passed": true,
     "time_ms": 0.001,
-    "line": 183,
+    "line": 181,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::distance(p0, p1);",
     "checks": [
       {
-        "line": 190,
+        "line": 188,
         "code_line": "TOLERANCE.is_close(d, 3.741657)",
         "passed": true
       }
@@ -285,12 +315,12 @@
     "group": "Point",
     "test_name": "Squared Distance",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 193,
+    "time_ms": 0.0,
+    "line": 191,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::squared_distance(p0, p1);",
     "checks": [
       {
-        "line": 200,
+        "line": 198,
         "code_line": "TOLERANCE.is_close(d, 14.0)",
         "passed": true
       }
@@ -301,12 +331,12 @@
     "group": "Point",
     "test_name": "Area",
     "passed": true,
-    "time_ms": 0.009,
-    "line": 203,
+    "time_ms": 0.001,
+    "line": 201,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n        double area = Point::area({p0, p1, p2, p3});",
     "checks": [
       {
-        "line": 212,
+        "line": 210,
         "code_line": "area == 4.0",
         "passed": true
       }
@@ -317,22 +347,22 @@
     "group": "Point",
     "test_name": "Centroid Quad",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 215,
+    "time_ms": 0.002,
+    "line": 213,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n        Point centroid = Point::centroid_quad({p0, p1, p2, p3});",
     "checks": [
       {
-        "line": 224,
+        "line": 222,
         "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
         "passed": true
       },
       {
-        "line": 225,
+        "line": 223,
         "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
         "passed": true
       },
       {
-        "line": 226,
+        "line": 224,
         "code_line": "TOLERANCE.is_close(centroid[2], 1.0)",
         "passed": true
       }

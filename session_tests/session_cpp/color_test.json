@@ -3,9 +3,9 @@
     "group": "Color",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.007,
     "line": 12,
-    "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid)\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");",
+    "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid())\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");",
     "checks": [
       {
         "line": 38,
@@ -14,7 +14,7 @@
       },
       {
         "line": 39,
-        "code_line": "c.guid != \"\"",
+        "code_line": "c.guid() != \"\"",
         "passed": true
       },
       {
@@ -44,7 +44,7 @@
       },
       {
         "line": 45,
-        "code_line": "ccopy.guid != c.guid",
+        "code_line": "ccopy.guid() != c.guid()",
         "passed": true
       }
     ],
@@ -54,7 +54,7 @@
     "group": "Color",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.169,
+    "time_ms": 4.277,
     "line": 48,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      //   jsondump()      │ ordered_json │ to JSON object (internal use)\n      //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n      //   json_dumps()    │ std::string  │ to JSON string\n      //   json_loads(s)   │ std::string  │ from JSON string\n      //   json_dump(path) │ file         │ write to file\n      //   json_load(path) │ file         │ read from file\n\n      std::string filename = \"serialization/test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "Color",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.498,
+    "time_ms": 3.799,
     "line": 71,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.pb_dump(filename);\n      Color loaded = Color::pb_load(filename);",
     "checks": [
@@ -162,117 +162,117 @@
     "group": "Color",
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.007,
     "line": 101,
     "code": "      // uncomment #include \"color.h\"\n\n      Color white = Color::white();\n      Color black = Color::black();\n      Color grey = Color::grey();\n      Color red = Color::red();\n      Color orange = Color::orange();\n      Color yellow = Color::yellow();\n      Color lime = Color::lime();\n      Color green = Color::green();\n      Color mint = Color::mint();\n      Color cyan = Color::cyan();\n      Color azure = Color::azure();\n      Color blue = Color::blue();\n      Color violet = Color::violet();\n      Color magenta = Color::magenta();\n      Color pink = Color::pink();\n      Color maroon = Color::maroon();\n      Color brown = Color::brown();\n      Color olive = Color::olive();\n      Color teal = Color::teal();\n      Color navy = Color::navy();\n      Color purple = Color::purple();\n      Color silver = Color::silver();",
     "checks": [
       {
-        "line": 126,
+        "line": 127,
         "code_line": "white == Color(255, 255, 255, 255, \"white\")",
         "passed": true
       },
       {
-        "line": 127,
+        "line": 128,
         "code_line": "black == Color(0, 0, 0, 255, \"black\")",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 129,
         "code_line": "grey == Color(128, 128, 128, 255, \"grey\")",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 130,
         "code_line": "red == Color(255, 0, 0, 255, \"red\")",
         "passed": true
       },
       {
-        "line": 130,
+        "line": 131,
         "code_line": "orange == Color(255, 128, 0, 255, \"orange\")",
         "passed": true
       },
       {
-        "line": 131,
+        "line": 132,
         "code_line": "yellow == Color(255, 255, 0, 255, \"yellow\")",
         "passed": true
       },
       {
-        "line": 132,
+        "line": 133,
         "code_line": "lime == Color(128, 255, 0, 255, \"lime\")",
         "passed": true
       },
       {
-        "line": 133,
+        "line": 134,
         "code_line": "green == Color(0, 255, 0, 255, \"green\")",
         "passed": true
       },
       {
-        "line": 134,
+        "line": 135,
         "code_line": "mint == Color(0, 255, 128, 255, \"mint\")",
         "passed": true
       },
       {
-        "line": 135,
+        "line": 136,
         "code_line": "cyan == Color(0, 255, 255, 255, \"cyan\")",
         "passed": true
       },
       {
-        "line": 136,
+        "line": 137,
         "code_line": "azure == Color(0, 128, 255, 255, \"azure\")",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 138,
         "code_line": "blue == Color(0, 0, 255, 255, \"blue\")",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 139,
         "code_line": "violet == Color(128, 0, 255, 255, \"violet\")",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 140,
         "code_line": "magenta == Color(255, 0, 255, 255, \"magenta\")",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 141,
         "code_line": "pink == Color(255, 0, 128, 255, \"pink\")",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 142,
         "code_line": "maroon == Color(128, 0, 0, 255, \"maroon\")",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 143,
         "code_line": "brown == Color(128, 64, 0, 255, \"brown\")",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 144,
         "code_line": "olive == Color(128, 128, 0, 255, \"olive\")",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 145,
         "code_line": "teal == Color(0, 128, 128, 255, \"teal\")",
         "passed": true
       },
       {
-        "line": 145,
+        "line": 146,
         "code_line": "navy == Color(0, 0, 128, 255, \"navy\")",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 147,
         "code_line": "purple == Color(128, 0, 128, 255, \"purple\")",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 148,
         "code_line": "silver == Color(192, 192, 192, 255, \"silver\")",
         "passed": true
       }

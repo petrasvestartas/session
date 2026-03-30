@@ -1,0 +1,92 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "mesh.number_of_vertices() == 8",
+        "line": 91,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.number_of_faces() == 12",
+        "line": 92,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(1.0, 0.0, 1.0),\n            Point::new(1.0, 1.0, 1.0),\n            Point::new(0.0, 1.0, 1.0),\n            Point::new(0.5, 0.5, 0.5),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 76,
+    "passed": true,
+    "test_name": "Hull3dCube",
+    "time_ms": 0.042
+  },
+  {
+    "checks": [
+      {
+        "code_line": "mesh.number_of_vertices() == 4",
+        "line": 69,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.number_of_faces() == 4",
+        "line": 70,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(0.25, 0.25, 0.25),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 58,
+    "passed": true,
+    "test_name": "Hull3d",
+    "time_ms": 0.032
+  },
+  {
+    "checks": [
+      {
+        "code_line": "hull.len() == n",
+        "line": 52,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{ConvexHull, Point};\n        use std::f64::consts::PI;\n        let n = 12_usize;\n        let mut pts = vec![];\n        for i in 0..n {\n            let angle = 2.0 * PI * i as f64 / n as f64;\n            pts.push(Point::new(angle.cos(), angle.sin(), 0.0));\n        }\n        pts.push(Point::new(0.0, 0.0, 0.0));\n        let hull = ConvexHull::hull_2d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 40,
+    "passed": true,
+    "test_name": "Hull2dCircle",
+    "time_ms": 0.044
+  },
+  {
+    "checks": [
+      {
+        "code_line": "hull.len() >= 3",
+        "line": 34,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(1.5, 1.0, 0.0),\n        ];\n        let hull = ConvexHull::hull_2d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 23,
+    "passed": true,
+    "test_name": "Hull2dCollinear",
+    "time_ms": 0.004
+  },
+  {
+    "checks": [
+      {
+        "code_line": "hull.len() == 4",
+        "line": 17,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.5, 0.5, 0.0),\n            Point::new(0.3, 0.3, 0.0),\n        ];\n        let hull = ConvexHull::hull_2d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 5,
+    "passed": true,
+    "test_name": "Hull2d",
+    "time_ms": 0.003
+  }
+]

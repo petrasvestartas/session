@@ -3,18 +3,18 @@
     "group": "PointCloud",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.015,
     "line": 14,
-    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    // uncomment #include <vector>\n\n    // Constructor with points, normals, colors\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(0.0, 1.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Color c0(255, 0, 0, 255);\n    Color c1(0, 255, 0, 255);\n    Color c2(0, 0, 255, 255);\n    PointCloud pc({p0, p1, p2}, {n0, n1, n2}, {c0, c1, c2});\n\n    // Basic properties\n    size_t point_count = pc.len();\n    size_t color_count = pc.color_count();\n    size_t normal_count = pc.normal_count();\n    bool is_empty = pc.is_empty();\n\n    // Minimal and Full String Representation\n    std::string pcstr = pc.str();\n    std::string pcrepr = pc.repr();\n\n    // Copy (duplicates everything except guid)\n    PointCloud pccopy = pc;\n\n    // Get point/color/normal at index\n    Point pt0 = pc.get_point(0);\n    Color col0 = pc.get_color(0);\n    Vector norm0 = pc.get_normal(0);\n\n    // Add points, colors, normals to empty cloud\n    PointCloud pc2;\n    pc2.add_point(Point(1.0, 2.0, 3.0));\n    pc2.add_color(Color(128, 64, 32, 255));\n    pc2.add_normal(Vector(1.0, 0.0, 0.0));\n\n    // Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0));\n    pc2.set_color(0, Color(200, 100, 50, 255));\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0));\n\n    // Translate with Vector offset\n    PointCloud pc3({Point(1.0, 2.0, 3.0)}, {}, {});\n    Vector offset(10.0, 20.0, 30.0);\n    PointCloud pc_iadd({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_iadd += offset;\n    PointCloud pc_isub({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_isub -= offset;\n    PointCloud pc_add = pc3 + offset;\n    PointCloud pc_sub = pc3 - offset;\n\n    // Create from flat arrays\n    std::vector<double> coords = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};\n    std::vector<int> colors_arr = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255};\n    std::vector<double> normals_arr = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0};\n    PointCloud pc4 = PointCloud::from_coords(coords, colors_arr, normals_arr);",
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    // uncomment #include <vector>\n\n    // Constructor with points, normals, colors\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(0.0, 1.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Color c0(255, 0, 0, 255);\n    Color c1(0, 255, 0, 255);\n    Color c2(0, 0, 255, 255);\n    PointCloud pc({p0, p1, p2}, {n0, n1, n2}, {c0, c1, c2});\n\n    // Basic properties\n    size_t point_count = pc.len();\n    size_t color_count = pc.color_count();\n    size_t normal_count = pc.normal_count();\n    bool is_empty = pc.is_empty();\n\n    // Minimal and Full String Representation\n    std::string pcstr = pc.str();\n    std::string pcrepr = pc.repr();\n\n    // Copy (duplicates everything except guid())\n    PointCloud pccopy = pc;\n\n    // Get point/color/normal at index\n    Point pt0 = pc.get_point(0);\n    Color col0 = pc.get_color(0);\n    Vector norm0 = pc.get_normal(0);\n\n    // Add points, colors, normals to empty cloud\n    PointCloud pc2;\n    pc2.add_point(Point(1.0, 2.0, 3.0));\n    pc2.add_color(Color(128, 64, 32, 255));\n    pc2.add_normal(Vector(1.0, 0.0, 0.0));\n\n    // Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0));\n    pc2.set_color(0, Color(200, 100, 50, 255));\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0));\n\n    // Translate with Vector offset\n    PointCloud pc3({Point(1.0, 2.0, 3.0)}, {}, {});\n    Vector offset(10.0, 20.0, 30.0);\n    PointCloud pc_iadd({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_iadd += offset;\n    PointCloud pc_isub({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_isub -= offset;\n    PointCloud pc_add = pc3 + offset;\n    PointCloud pc_sub = pc3 - offset;\n\n    // Create from flat arrays\n    std::vector<double> coords = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};\n    std::vector<int> colors_arr = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255};\n    std::vector<double> normals_arr = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0};\n    PointCloud pc4 = PointCloud::from_coords(coords, colors_arr, normals_arr);",
     "checks": [
       {
         "line": 78,
-        "code_line": "pc.name == \"my_pointcloud\" && !pc.guid.empty() && point_count == 3",
+        "code_line": "pc.name == \"my_pointcloud\" && !pc.guid().empty() && point_count == 3",
         "passed": true
       },
       {
         "line": 79,
-        "code_line": "color_count == 3 && normal_count == 3 && is_empty == false",
+        "code_line": "color_count == 3 && normal_count == 3 && !is_empty",
         "passed": true
       },
       {
@@ -29,7 +29,7 @@
       },
       {
         "line": 82,
-        "code_line": "pccopy == pc && pccopy.guid != pc.guid",
+        "code_line": "pccopy == pc && pccopy.guid() != pc.guid()",
         "passed": true
       },
       {
@@ -259,7 +259,7 @@
     "group": "PointCloud",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 129,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc.xform = Xform::translation(10.0, 20.0, 30.0);\n    pc.transform();\n\n    // Transformed - returns new cloud\n    PointCloud pc2({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc2.xform = Xform::translation(10.0, 20.0, 30.0);\n    PointCloud pc3 = pc2.transformed();",
     "checks": [
@@ -315,52 +315,52 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.064,
+    "time_ms": 5.034,
     "line": 155,
-    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);",
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);",
     "checks": [
       {
-        "line": 179,
+        "line": 188,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 180,
+        "line": 189,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 181,
+        "line": 190,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 182,
+        "line": 191,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
         "passed": true
       },
       {
-        "line": 183,
+        "line": 192,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
         "passed": true
       },
       {
-        "line": 184,
+        "line": 193,
         "code_line": "loaded.get_color(0).r == 255",
         "passed": true
       },
       {
-        "line": 185,
+        "line": 194,
         "code_line": "loaded.get_color(0).g == 0",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 195,
         "code_line": "loaded.get_color(0).b == 0",
         "passed": true
       },
       {
-        "line": 187,
+        "line": 196,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }
@@ -371,52 +371,52 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.714,
-    "line": 190,
-    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(255, 0, 0, 255), Color(0, 255, 0, 255)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
+    "time_ms": 3.752,
+    "line": 199,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
     "checks": [
       {
-        "line": 207,
+        "line": 225,
         "code_line": "loaded.name == \"test_pointcloud\"",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 226,
         "code_line": "loaded.len() == 2",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 227,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 210,
+        "line": 228,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
         "passed": true
       },
       {
-        "line": 211,
+        "line": 229,
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
         "passed": true
       },
       {
-        "line": 212,
+        "line": 230,
         "code_line": "loaded.get_color(0).r == 255",
         "passed": true
       },
       {
-        "line": 213,
+        "line": 231,
         "code_line": "loaded.get_color(0).g == 0",
         "passed": true
       },
       {
-        "line": 214,
+        "line": 232,
         "code_line": "loaded.get_color(0).b == 0",
         "passed": true
       },
       {
-        "line": 215,
+        "line": 233,
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
         "passed": true
       }

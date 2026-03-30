@@ -70,13 +70,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::GYROID, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID, 0.2);\n",
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::GYROID, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID, 0.2);\n",
     "failures": [],
     "group": "MeshIso",
     "line": 32,
     "passed": true,
     "test_name": "From Tpms Gyroid Solid",
-    "time_ms": 3.341
+    "time_ms": 1.324
   },
   {
     "checks": [
@@ -86,13 +86,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::DIAMOND, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);\n",
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::DIAMOND, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);\n",
     "failures": [],
     "group": "MeshIso",
     "line": 47,
     "passed": true,
     "test_name": "From Tpms Diamond Sheet",
-    "time_ms": 15.68
+    "time_ms": 6.109
   },
   {
     "checks": [
@@ -102,13 +102,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::NEOVIUS, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n",
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let m = MeshIso::from_tpms(TpmsType::NEOVIUS, &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n",
     "failures": [],
     "group": "MeshIso",
     "line": 60,
     "passed": true,
     "test_name": "From Tpms Neovius Shell",
-    "time_ms": 169.581
+    "time_ms": 5.134
   },
   {
     "checks": [
@@ -134,7 +134,7 @@
     "line": 73,
     "passed": true,
     "test_name": "SDF Sphere",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -170,239 +170,239 @@
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
     "line": 92,
     "passed": true,
     "test_name": "From Function",
-    "time_ms": 0.649
+    "time_ms": 0.297
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 227,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 228,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 229,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-1.6, -1.6, -1.6), Point::new(1.6, 1.6, 1.6)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n            let shell = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z).abs() - 0.08;\n            MeshIso::smooth_union(tpms * 0.3, shell, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-1.6, -1.6, -1.6), Point::new(1.6, 1.6, 1.6)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n            let shell = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z).abs() - 0.08;\n            MeshIso::smooth_union(tpms * 0.3, shell, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 214,
+    "line": 215,
     "passed": true,
     "test_name": "Gyroid Sphere Shell",
-    "time_ms": 2.406
+    "time_ms": 1.097
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 208,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 209,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 210,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 195,
+    "line": 196,
     "passed": true,
     "test_name": "Smooth Intersect",
-    "time_ms": 2.342
+    "time_ms": 0.992
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 189,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 190,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 191,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n            MeshIso::smooth_subtract(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n            MeshIso::smooth_subtract(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 176,
+    "line": 177,
     "passed": true,
     "test_name": "Smooth Subtract",
-    "time_ms": 1.56
+    "time_ms": 0.77
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 170,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 171,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 172,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let p0 = Point::new(0.0, -1.0, 0.0);\n            let p1 = Point::new(0.0, 1.0, 0.0);\n            MeshIso::sdf_capsule(&p0, &p1, 0.5, x, y, z)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let p0 = Point::new(0.0, -1.0, 0.0);\n            let p1 = Point::new(0.0, 1.0, 0.0);\n            MeshIso::sdf_capsule(&p0, &p1, 0.5, x, y, z)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 157,
+    "line": 158,
     "passed": true,
     "test_name": "SDF Capsule",
-    "time_ms": 1.776
+    "time_ms": 0.6
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 151,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 152,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 153,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 142,
+    "line": 143,
     "passed": true,
     "test_name": "SDF Torus",
-    "time_ms": 0.532
+    "time_ms": 0.209
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 136,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
         "line": 137,
         "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 138,
+        "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 127,
+    "line": 128,
     "passed": true,
     "test_name": "SDF Box",
-    "time_ms": 19.228
+    "time_ms": 0.294
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       },
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 121,
+        "line": 122,
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::Obb;\n        use crate::point::Point;\n\n        let box_ = Obb::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let types = [\n            TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n            TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n            TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n        ];\n        for i in 0..9 {\n            let m = MeshIso::from_tpms(types[i], &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n        }",
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let types = [\n            TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n            TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n            TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n        ];\n\n        for i in 0..9 {\n            let m = MeshIso::from_tpms(types[i], &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n        }",
     "failures": [],
     "group": "MeshIso",
     "line": 107,
     "passed": true,
     "test_name": "All Tpms Shells",
-    "time_ms": 844.961
+    "time_ms": 61.62
   }
 ]

@@ -3,26 +3,26 @@
     "checks": [
       {
         "code_line": "loaded.name == original.name",
-        "line": 16,
+        "line": 30,
         "passed": true
       },
       {
         "code_line": "loaded.v0 == original.v0",
-        "line": 17,
+        "line": 31,
         "passed": true
       },
       {
         "code_line": "loaded.v1 == original.v1",
-        "line": 18,
+        "line": 32,
         "passed": true
       }
     ],
-    "code": "        use crate::edge::Edge;\n        use crate::encoders::{json_dump, json_load};\n        let original = Edge::new(\n            Some(\"./serialization/test_edge\".to_string()),\n            Some(\"v0\".to_string()),\n            Some(\"v1\".to_string()),\n            None,\n        );\n        json_dump(&original, \"serialization/test_edge.json\", false).unwrap();\n        let loaded = json_load::<Edge>(\"serialization/test_edge.json\").unwrap();",
+    "code": "        use crate::graph::Edge;\n        use crate::encoders::{json_dump, json_load};\n        let original = Edge::new(\n            Some(\"./serialization/test_edge\".to_string()),\n            Some(\"v0\".to_string()),\n            Some(\"v1\".to_string()),\n            None,\n        );\n        json_dump(&original, \"serialization/test_edge.json\", false).unwrap();\n        let loaded = json_load::<Edge>(\"serialization/test_edge.json\").unwrap();\n",
     "failures": [],
     "group": "Edge",
-    "line": 5,
+    "line": 18,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.666
+    "time_ms": 5.511
   }
 ]

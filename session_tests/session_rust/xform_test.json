@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "x.name == \"my_xform\" && !x.guid.is_empty()",
+        "code_line": "x.name == \"my_xform\" && !x.guid().is_empty()",
         "line": 50,
         "passed": true
       },
@@ -32,7 +32,7 @@
         "passed": true
       },
       {
-        "code_line": "xcopy == x && xcopy.guid != x.guid",
+        "code_line": "xcopy == x && xcopy.guid() != x.guid()",
         "line": 56,
         "passed": true
       },
@@ -68,7 +68,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.017
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 67,
     "passed": true,
     "test_name": "Translation",
-    "time_ms": 0.005
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 85,
     "passed": true,
     "test_name": "Scaling",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -191,7 +191,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Rotation",
-    "time_ms": 0.01
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.031
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -364,7 +364,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Change Basis",
-    "time_ms": 0.006
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 272,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.009
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -416,7 +416,7 @@
     "line": 305,
     "passed": true,
     "test_name": "Look At Rh",
-    "time_ms": 0.004
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -447,7 +447,7 @@
     "line": 327,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.298
+    "time_ms": 4.995
   },
   {
     "checks": [
@@ -478,6 +478,6 @@
     "line": 351,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.166
+    "time_ms": 4.399
   }
 ]

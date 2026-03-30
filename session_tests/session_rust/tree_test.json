@@ -3,21 +3,21 @@
     "checks": [
       {
         "code_line": "loaded.name == original.name",
-        "line": 16,
+        "line": 17,
         "passed": true
       },
       {
         "code_line": "loaded.nodes().len() == original.nodes().len()",
-        "line": 17,
+        "line": 18,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Tree::new(\"./serialization/test_tree\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let node1 = TreeNode::new(&point1.guid.to_string());\n        original.add(&node1, None);\n        json_dump(&original, \"serialization/test_tree.json\", false).unwrap();\n        let loaded = json_load::<Tree>(\"serialization/test_tree.json\").unwrap();",
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n        use crate::Point;\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Tree::new(\"./serialization/test_tree\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let node1 = TreeNode::new(&point1.guid().to_string());\n        original.add(&node1, None);\n        json_dump(&original, \"serialization/test_tree.json\", false).unwrap();\n        let loaded = json_load::<Tree>(\"serialization/test_tree.json\").unwrap();\n",
     "failures": [],
     "group": "Tree",
     "line": 5,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.088
+    "time_ms": 4.689
   }
 ]
