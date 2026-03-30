@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.022
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 125,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.0
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Cross Product",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -378,7 +378,7 @@
     "line": 284,
     "passed": true,
     "test_name": "Get Leveled Vector",
-    "time_ms": 0.006
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 389,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 474,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.088
+    "time_ms": 13.425
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 497,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 1.238
+    "time_ms": 2.136
   },
   {
     "checks": [
@@ -650,7 +650,7 @@
     "line": 456,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.005
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -671,7 +671,7 @@
     "line": 437,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -733,6 +733,6 @@
     "line": 403,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.0
+    "time_ms": 0.001
   }
 ]

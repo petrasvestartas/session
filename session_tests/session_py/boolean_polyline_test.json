@@ -1,0 +1,88 @@
+[
+  {
+    "group": "Polyline",
+    "test_name": "Boolean Op",
+    "passed": true,
+    "time_ms": 13.673,
+    "line": 6,
+    "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    sq_a = Polyline([\n        P(-1.0, -1.0, 0.0),\n        P( 1.0, -1.0, 0.0),\n        P( 1.0,  1.0, 0.0),\n        P(-1.0,  1.0, 0.0),\n    ])\n    sq_b = Polyline([\n        P(0.0, 0.0, 0.0),\n        P(2.0, 0.0, 0.0),\n        P(2.0, 2.0, 0.0),\n        P(0.0, 2.0, 0.0),\n    ])\n    sq_inside = Polyline([\n        P(-0.5, -0.5, 0.0),\n        P( 0.5, -0.5, 0.0),\n        P( 0.5,  0.5, 0.0),\n        P(-0.5,  0.5, 0.0),\n    ])\n    sq_disjoint = Polyline([\n        P(5.0, 5.0, 0.0),\n        P(6.0, 5.0, 0.0),\n        P(6.0, 6.0, 0.0),\n        P(5.0, 6.0, 0.0),\n    ])\n\n    isect = Polyline.boolean_op(sq_a, sq_b, 0)\n    uni   = Polyline.boolean_op(sq_a, sq_b, 1)\n    diff  = Polyline.boolean_op(sq_a, sq_b, 2)\n\n\n    isect_in = Polyline.boolean_op(sq_a, sq_inside, 0)\n    uni_in   = Polyline.boolean_op(sq_a, sq_inside, 1)\n    diff_in  = Polyline.boolean_op(sq_a, sq_inside, 2)\n\n\n    isect_dis = Polyline.boolean_op(sq_a, sq_disjoint, 0)\n    uni_dis   = Polyline.boolean_op(sq_a, sq_disjoint, 1)\n    diff_dis  = Polyline.boolean_op(sq_a, sq_disjoint, 2)",
+    "checks": [
+      {
+        "line": 41,
+        "code_line": "len(isect) == 1",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "isect[0].point_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 43,
+        "code_line": "len(uni) == 1",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "uni[0].point_count() == 8",
+        "passed": true
+      },
+      {
+        "line": 45,
+        "code_line": "len(diff) == 1",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "diff[0].point_count() == 6",
+        "passed": true
+      },
+      {
+        "line": 52,
+        "code_line": "len(isect_in) == 1",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "isect_in[0].point_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "len(uni_in) == 1",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "uni_in[0].point_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "len(diff_in) == 1",
+        "passed": true
+      },
+      {
+        "line": 57,
+        "code_line": "diff_in[0].point_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "len(isect_dis) == 0",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "len(uni_dis) == 2",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "len(diff_dis) == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

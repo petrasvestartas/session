@@ -3,7 +3,7 @@
     "group": "TreeNode",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.263,
+    "time_ms": 11.947,
     "line": 10,
     "code": "    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original->jsondump(), \"./serialization/test_treenode.json\");\n    auto loaded_json = encoders::json_load_data(\"./serialization/test_treenode.json\");\n    auto loaded = TreeNode::jsonload(loaded_json);\n\n\n    std::filesystem::remove(\"./serialization/test_treenode.json\");",
     "checks": [
