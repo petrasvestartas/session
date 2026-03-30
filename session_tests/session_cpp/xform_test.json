@@ -3,7 +3,7 @@
     "group": "Xform",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.019,
     "line": 14,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    });\n\n    // Minimal and Full String Representation\n    std::string xstr = x.str();\n    std::string xrepr = x.repr();\n\n    // Copy (duplicates everything except guid())\n    Xform xcopy = x;\n    Xform xother;\n\n    // Equality operators\n    bool x_eq = (x == xother);\n    bool x_ne = (x != xfrom);\n\n    // Matrix multiplication (*)\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scale_xyz(2.0, 1.0, 1.0);\n    Xform combined = t * s;\n    Point p(1.0, 0.0, 0.0);\n    Point result = combined.transformed_point(p);\n\n    // In-place multiplication (*=)\n    Xform t2 = Xform::translation(10.0, 0.0, 0.0);\n    t2 *= s;\n    Point result2 = t2.transformed_point(p);\n\n    // (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "Xform",
     "test_name": "Rotation",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 112,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotation around X axis by 90 degrees\n    Xform rx = Xform::rotation_x(Tolerance::PI / 2.0);\n    // Apply to point (0,1,0) -> (0,0,1)\n    Point px(0.0, 1.0, 0.0);\n    Point rpx = rx.transformed_point(px);\n\n    // Rotation around Y axis by 90 degrees\n    Xform ry = Xform::rotation_y(Tolerance::PI / 2.0);\n    // Apply to point (0,0,1) -> (1,0,0)\n    Point py(0.0, 0.0, 1.0);\n    Point rpy = ry.transformed_point(py);\n\n    // Rotation around Z axis by 90 degrees\n    Xform rz = Xform::rotation_z(Tolerance::PI / 2.0);\n    // Apply to point (1,0,0) -> (0,1,0)\n    Point pz(1.0, 0.0, 0.0);\n    Point rpz = rz.transformed_point(pz);\n\n    // Rotation around arbitrary axis (1,1,1) by 120 degrees\n    // This cycles x->y->z->x\n    Vector axis(1.0, 1.0, 1.0);\n    Xform r = Xform::rotation(axis, 2.0 * Tolerance::PI / 3.0);\n    // Apply to point (1,0,0) -> (0,1,0)\n    Point p(1.0, 0.0, 0.0);\n    Point rp = r.transformed_point(p);",
     "checks": [
@@ -228,7 +228,7 @@
     "group": "Xform",
     "test_name": "Transform Geometry",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 176,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"polyline.h\"\n\n    // Simple translation by (10, 20, 30)\n    Xform t = Xform::translation(10.0, 20.0, 30.0);\n\n    // Transform Point: (1,2,3) -> (11,22,33)\n    Point pt(1.0, 2.0, 3.0);\n    pt.xform = t;\n    Point pt_transformed = pt.transformed();\n\n    // Transform Vector: translation should NOT affect vectors\n    Vector v(1.0, 0.0, 0.0);\n    Vector v_transformed = t.transformed_vector(v);\n\n    // Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    Line ln(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    ln.xform = t;\n    Line ln_transformed = ln.transformed();\n\n    // Transform Plane: origin (0,0,0) -> (10,20,30)\n    Point pl_origin(0.0, 0.0, 0.0);\n    Vector pl_x(1.0, 0.0, 0.0);\n    Vector pl_y(0.0, 1.0, 0.0);\n    Plane pl(pl_origin, pl_x, pl_y);\n    pl.xform = t;\n    Plane pl_transformed = pl.transformed();\n\n    // Transform Polyline: 3 points translated\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    });\n    poly.xform = t;\n    Polyline poly_transformed = poly.transformed();\n    std::vector<Point> pts = poly_transformed.get_points();",
     "checks": [
@@ -437,7 +437,7 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.825,
+    "time_ms": 11.493,
     "line": 323,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.json\";\n    xform.json_dump(filename);\n    Xform loaded = Xform::json_load(filename);",
     "checks": [
@@ -468,7 +468,7 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.396,
+    "time_ms": 6.026,
     "line": 348,
     "code": "    // uncomment #include \"xform.h\"\n\n    // Create a non-identity xform\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform_proto\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_xform.bin\";\n    xform.pb_dump(filename);\n    Xform loaded = Xform::pb_load(filename);",
     "checks": [

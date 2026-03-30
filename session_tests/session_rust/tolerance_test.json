@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.0
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 23,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.003
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -305,6 +305,6 @@
     "line": 126,
     "passed": true,
     "test_name": "Rad Deg Conversion",
-    "time_ms": 0.0
+    "time_ms": 0.001
   }
 ]

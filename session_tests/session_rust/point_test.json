@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.011
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.617
+    "time_ms": 9.798
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.044
+    "time_ms": 9.374
   },
   {
     "checks": [
@@ -247,7 +247,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Is Ccw",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -263,7 +263,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Mid Point",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Distance",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Squared Distance",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -337,6 +337,6 @@
     "line": 224,
     "passed": true,
     "test_name": "Centroid Quad",
-    "time_ms": 0.002
+    "time_ms": 0.004
   }
 ]

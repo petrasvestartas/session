@@ -3,7 +3,7 @@
     "group": "Vector",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.025,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid())\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();",
     "checks": [
@@ -119,7 +119,7 @@
     "group": "Vector",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 85,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();",
     "checks": [
@@ -177,7 +177,7 @@
     "group": "Vector",
     "test_name": "Dot Product",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 119,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Orthogonality and parallelism via dot product\n    // Perpendicular vectors are close to 0.0\n    // Parallel vectors are close to 1.0\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector v3(1.0, 0.0, 0.0);\n    double dot_perp = v1.dot(v2);\n    double dot_paral = v1.dot(v3);\n\n    // Projection of a onto b\n    // Scalar projection:\n    // (a . b) / ||b|| (here ||b||=1, so just a_x = 3.0)\n    // Projection coefficient:\n    // (a . b) / ||b||^2 = 6/4 = 1.5 (how many b2's fit in projection)\n    Vector a(3.0, 4.0, 0.0);\n    Vector b(1.0, 0.0, 0.0);\n    Vector b2(2.0, 0.0, 0.0);\n    double proj_scalar = a.dot(b) / std::sqrt(b[0]*b[0] + b[1]*b[1] + b[2]*b[2]);\n    double proj_coeff = a.dot(b2) / (b2[0]*b2[0] + b2[1]*b2[1] + b2[2]*b2[2]);",
     "checks": [
@@ -342,7 +342,7 @@
     "group": "Vector",
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 238,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);",
     "checks": [
@@ -630,7 +630,7 @@
     "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 408,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane — normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n;\n    average_normal(sq, n);",
     "checks": [
@@ -651,7 +651,7 @@
     "group": "Vector",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.009,
     "line": 427,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    Point from(0.0, 0.0, 0.0);\n    Point to(1.0, 0.0, 0.0);\n    std::vector<Point> pts0;\n    interpolate_points(from, to, 2, pts0, 0);\n    std::vector<Point> pts1;\n    interpolate_points(from, to, 1, pts1, 1);",
     "checks": [
@@ -687,7 +687,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.258,
+    "time_ms": 11.196,
     "line": 445,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);",
     "checks": [
@@ -718,7 +718,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.243,
+    "time_ms": 0.999,
     "line": 469,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

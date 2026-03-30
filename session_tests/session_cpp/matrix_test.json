@@ -3,7 +3,7 @@
     "group": "Matrix",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.047,
     "line": 10,
     "code": "    Matrix m = Matrix::zeros(2, 3);\n    Matrix eye = Matrix::identity(3);\n    Matrix ml = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix mr = Matrix::from_rows({{1.0, 2.0}, {3.0, 4.0}});\n    Matrix mc = Matrix::from_cols({{1.0, 3.0}, {2.0, 4.0}});\n    double v00 = ml(0, 0);\n    double v01 = ml(0, 1);\n    double v10 = ml(1, 0);\n    double v11 = ml(1, 1);\n    bool eq = (ml == mr);\n    bool ne = (ml != Matrix::identity(2));\n    std::string sstr = m.str();\n    std::string srepr = eye.repr();\n    Matrix d = ml.duplicate();",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "Matrix",
     "test_name": "Determinant",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 109,
     "code": "    Matrix a1 = Matrix::from_vec(1, 1, {5.0});\n    Matrix a2 = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    Matrix a3 = Matrix::from_vec(3, 3, {1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0});\n    Matrix eye3 = Matrix::identity(3);",
     "checks": [
@@ -266,7 +266,7 @@
     "group": "Matrix",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 121,
     "code": "    Matrix a = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    auto inv = a.inverse();\n    Matrix singular = Matrix::from_vec(2, 2, {1.0, 2.0, 2.0, 4.0});\n    auto inv_none = singular.inverse();\n    Matrix prod = a.multiply(*inv);",
     "checks": [
@@ -425,7 +425,7 @@
     "group": "Matrix",
     "test_name": "Cholesky",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 181,
     "code": "    Matrix a = Matrix::from_vec(3, 3, {4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0});\n    auto l = a.cholesky();\n\n    Matrix lt = l->transpose();\n    Matrix llt = l->multiply(lt);\n    Matrix not_spd = Matrix::from_vec(2, 2, {1.0, 2.0, 2.0, 1.0});\n    auto l_none = not_spd.cholesky();",
     "checks": [
@@ -549,7 +549,7 @@
     "group": "Matrix",
     "test_name": "Rank",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 230,
     "code": "    Matrix a = Matrix::identity(3);\n    Matrix b = Matrix::from_vec(3, 3, {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0});\n    Matrix c = Matrix::zeros(3, 3);",
     "checks": [
@@ -575,7 +575,7 @@
     "group": "Matrix",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.593,
+    "time_ms": 7.169,
     "line": 240,
     "code": "    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix\";\n    a.json_dump(\"../serialization/test_matrix.json\");\n    Matrix loaded = Matrix::json_load(\"../serialization/test_matrix.json\");",
     "checks": [
@@ -601,7 +601,7 @@
     "group": "Matrix",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.12,
+    "time_ms": 7.449,
     "line": 251,
     "code": "    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix_proto\";\n    a.pb_dump(\"../serialization/test_matrix.bin\");\n    Matrix loaded = Matrix::pb_load(\"../serialization/test_matrix.bin\");",
     "checks": [

@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.009
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -145,7 +145,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Normalize",
-    "time_ms": 0.001
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 177,
     "passed": true,
     "test_name": "Angle",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 239,
     "passed": true,
     "test_name": "Is Parallel To",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -459,7 +459,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Cos Sin Laws",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 371,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.0
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 474,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.739
+    "time_ms": 9.112
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 497,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.768
+    "time_ms": 8.175
   },
   {
     "checks": [
@@ -712,7 +712,7 @@
     "line": 456,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.003
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -733,6 +733,6 @@
     "line": 437,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.001
+    "time_ms": 0.003
   }
 ]

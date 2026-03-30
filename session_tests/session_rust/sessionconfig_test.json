@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Default Values",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [

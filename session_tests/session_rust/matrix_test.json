@@ -33,7 +33,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Multiply",
-    "time_ms": 0.002
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -69,7 +69,7 @@
     "line": 165,
     "passed": true,
     "test_name": "Solve",
-    "time_ms": 0.002
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -126,7 +126,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Svd",
-    "time_ms": 0.005
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Cholesky",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.31
+    "time_ms": 10.964
   },
   {
     "checks": [
@@ -327,7 +327,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -363,7 +363,7 @@
     "line": 38,
     "passed": true,
     "test_name": "Properties",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -429,7 +429,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.009
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -455,7 +455,7 @@
     "line": 115,
     "passed": true,
     "test_name": "Transpose",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -532,7 +532,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.148
+    "time_ms": 10.475
   },
   {
     "checks": [
@@ -604,7 +604,7 @@
     "line": 185,
     "passed": true,
     "test_name": "LuDecompose",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [

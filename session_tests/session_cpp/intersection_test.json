@@ -50,7 +50,7 @@
     "group": "Intersection",
     "test_name": "Line Line Parameters",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 33,
     "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);",
     "checks": [
@@ -309,7 +309,7 @@
     "group": "Intersection",
     "test_name": "Plane Plane Plane Parallel",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 187,
     "code": "    Point p0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Plane plane0 = Plane::from_point_normal(p0, n0);\n\n    Point p1(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Plane plane1 = Plane::from_point_normal(p1, n1);\n\n    Point p2(0.0, 0.0, 0.0);\n    Vector n2(1.0, 0.0, 0.0);\n    Plane plane2 = Plane::from_point_normal(p2, n2);\n\n    Point output;\n    bool result = Intersection::plane_plane_plane(plane0, plane1, plane2, output);",
     "checks": [
@@ -393,7 +393,7 @@
     "group": "Intersection",
     "test_name": "Ray Sphere Tangent",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 256,
     "code": "    Point origin(-5.0, 2.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
     "checks": [
@@ -456,7 +456,7 @@
     "group": "Intersection",
     "test_name": "Ray Triangle Miss",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 298,
     "code": "    Point origin(2.0, 2.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
     "checks": [
@@ -493,7 +493,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.047,
     "line": 329,
     "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
     "checks": [
@@ -540,7 +540,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Miss",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 386,
     "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
     "checks": [
@@ -561,7 +561,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Bvh",
     "passed": true,
-    "time_ms": 0.447,
+    "time_ms": 0.283,
     "line": 408,
     "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
     "checks": [
@@ -587,7 +587,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Bvh First",
     "passed": true,
-    "time_ms": 0.235,
+    "time_ms": 0.272,
     "line": 437,
     "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, false);",
     "checks": [
@@ -608,7 +608,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Bvh Miss",
     "passed": true,
-    "time_ms": 0.487,
+    "time_ms": 0.201,
     "line": 465,
     "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
     "checks": [
@@ -629,7 +629,7 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Bvh Vs Naive",
     "passed": true,
-    "time_ms": 2.207,
+    "time_ms": 2.034,
     "line": 487,
     "code": "    std::vector<std::vector<Point>> polygons;\n    for (int i = 0; i < 10; ++i) {\n        for (int j = 0; j < 10; ++j) {\n            double x = static_cast<double>(i);\n            double y = static_cast<double>(j);\n            polygons.push_back({\n                Point(x, y, 0.0),\n                Point(x + 1.0, y, 0.0),\n                Point(x + 1.0, y + 1.0, 0.0),\n                Point(x, y + 1.0, 0.0)\n            });\n        }\n    }\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.5, 5.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits_naive;\n    bool result_naive = Intersection::ray_mesh(origin, direction, mesh, hits_naive, true);\n\n    std::vector<Intersection::RayHit> hits_bvh;\n    bool result_bvh = Intersection::ray_mesh_bvh(origin, direction, mesh, hits_bvh, true);\n\n",
     "checks": [
@@ -660,7 +660,7 @@
     "group": "Intersection",
     "test_name": "Ray Box Real World",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 522,
     "code": "    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point min(214.0, 192.0, 484.0);\n    Point max(694.0, 567.0, 796.0);\n    std::vector<Point> points {min, max};\n    OBB box = OBB::from_points(points);\n\n    std::vector<Point> intersection_points;\n    bool result = Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points);\n\n",
     "checks": [
@@ -924,7 +924,7 @@
     "group": "Intersection",
     "test_name": "Surface Plane Curved",
     "passed": true,
-    "time_ms": 0.453,
+    "time_ms": 0.478,
     "line": 607,
     "code": "    // Degree 3 surface with bump, cut at z=3\n    std::vector<Point> pts;\n    for (int i = 0; i < 4; i++) {\n        for (int j = 0; j < 4; j++) {\n            double x = i * 10.0;\n            double y = j * 10.0;\n            double z = ((i == 1 || i == 2) && (j == 1 || j == 2)) ? 10.0 : 0.0;\n            pts.push_back(Point(x, y, z));\n        }\n    }\n    auto srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    Point pp(0, 0, 3);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);\n\n\n    // Evaluate — points should be near z=3\n    auto [t0, t1] = curves[0].domain();\n    for (int i = 0; i <= 10; i++) {\n        double t = t0 + (t1 - t0) * i / 10.0;\n        Point p = curves[0].point_at(t);",
     "checks": [
@@ -1124,7 +1124,7 @@
     "group": "Intersection",
     "test_name": "Plane 4 Planes Closed",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 713,
     "code": "    Point mp(0.0, 0.0, 0.0);\n    Vector mn(0.0, 0.0, 1.0);\n    Plane main_plane = Plane::from_point_normal(mp, mn);\n    Point o0(-1.0, 0.0, 0.0); Vector n0(1.0, 0.0, 0.0);\n    Point o1(0.0, -1.0, 0.0); Vector n1(0.0, 1.0, 0.0);\n    Point o2(1.0,  0.0, 0.0); Vector n2(1.0, 0.0, 0.0);\n    Point o3(0.0,  1.0, 0.0); Vector n3(0.0, 1.0, 0.0);\n    std::array<Plane, 4> planes = {\n        Plane::from_point_normal(o0, n0),\n        Plane::from_point_normal(o1, n1),\n        Plane::from_point_normal(o2, n2),\n        Plane::from_point_normal(o3, n3),\n    };\n    Polyline result;\n    bool ok = Intersection::plane_4planes(main_plane, planes, result);\n\n    for (size_t i = 0; i < result.point_count(); i++) {\n        Point p = result.get_point(i);\n    }\n    Point first = result.get_point(0);\n    Point last = result.get_point(4);",
     "checks": [
