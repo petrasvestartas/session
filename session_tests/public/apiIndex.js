@@ -12063,7 +12063,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool is_periodic()",
-          "code": "bool NurbsCurve::is_periodic() const {\n    if (m_order < 2) return false;\n    \n    // Check if last degree CVs match first degree CVs\n    int deg = degree();\n    for (int i = 0; i < deg; i++) {\n        Point p0 = get_cv(i);\n        Point p1 = get_cv(m_cv_count - deg + i);\n        if (p0.distance(p1) > Tolerance::ZERO_TOLERANCE) {\n            return false;\n        }",
+          "code": "bool NurbsCurve::is_periodic() const {\n    if (m_order < 2) return false;\n\n    // Check if last degree CVs match first degree CVs\n    int deg = degree();\n    for (int i = 0; i < deg; i++) {\n        Point p0 = get_cv(i);\n        Point p1 = get_cv(m_cv_count - deg + i);\n        if (p0.distance(p1) > Tolerance::ZERO_TOLERANCE) {\n            return false;\n        }",
           "file": "nurbscurve.cpp"
         },
         "rust": {
@@ -12349,9 +12349,7 @@ window.API_INDEX = {
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.domain",
-        "NurbsCurve.domain_end",
         "NurbsCurve.domain_middle",
-        "NurbsCurve.domain_start",
         "NurbsCurve.duplicate",
         "NurbsCurve.get_cv",
         "NurbsCurve.get_next_discontinuity",
@@ -14049,7 +14047,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_greville_abcissae() -> List[float]",
-          "code": "def get_greville_abcissae(self) -> List[float]:\n\n        \"\"\"Get all Greville abcissae.\n        \n        Returns\n        -------\n        list of float\n            Greville parameters for all control vertices.\n        \"\"\"\n        return [self.greville_abcissa(i) for i in range(self.m_cv_count)]\n\n\n    ###########################################################################################\n    # Domain & Parameterization\n    ###########################################################################################\n\n    def domain(self) -> Tuple[float, float]:\n        \"\"\"Get curve domain [start_param, end_param]\"\"\"\n        if not self.is_valid():\n            return (0.0, 0.0)\n        return (self.m_knot[self.m_order - 2], self.m_knot[self.m_cv_count - 1])\n\n    def domain_start(self) -> float:\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])",
+          "code": "def get_greville_abcissae(self) -> List[float]:\n\n        \"\"\"Get all Greville abcissae.\n        \n        Returns\n        -------\n        list of float\n            Greville parameters for all control vertices.\n        \"\"\"\n        return [self.greville_abcissa(i) for i in range(self.m_cv_count)]\n\n\n    ###########################################################################################\n    # Domain & Parameterization\n    ###########################################################################################\n\n    def domain(self) -> Tuple[float, float]:\n        \"\"\"Get curve domain [start_param, end_param]\"\"\"\n        if not self.is_valid():\n            return (0.0, 0.0)\n        return (self.m_knot[self.m_order - 2], self.m_knot[self.m_cv_count - 1])\n\n    def domain_start(self) -> float:\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14071,7 +14069,6 @@ window.API_INDEX = {
         "NurbsCurve.domain_end",
         "NurbsCurve.domain_middle",
         "NurbsCurve.domain_start",
-        "NurbsCurve.get_next_discontinuity",
         "NurbsCurve.get_span_vector",
         "NurbsCurve.greville_abcissa",
         "NurbsCurve.invalidate_rmf_cache",
@@ -14086,7 +14083,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "domain() -> Tuple[float, float]",
-          "code": "def domain(self) -> Tuple[float, float]:\n\n        \"\"\"Get curve domain [start_param, end_param]\"\"\"\n        if not self.is_valid():\n            return (0.0, 0.0)\n        return (self.m_knot[self.m_order - 2], self.m_knot[self.m_cv_count - 1])\n\n    def domain_start(self) -> float:\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0",
+          "code": "def domain(self) -> Tuple[float, float]:\n\n        \"\"\"Get curve domain [start_param, end_param]\"\"\"\n        if not self.is_valid():\n            return (0.0, 0.0)\n        return (self.m_knot[self.m_order - 2], self.m_knot[self.m_cv_count - 1])\n\n    def domain_start(self) -> float:\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14171,7 +14168,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "domain_start() -> float",
-          "code": "def domain_start(self) -> float:\n\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).\n\n        Parameters\n        ----------",
+          "code": "def domain_start(self) -> float:\n\n        \"\"\"Get start of domain\"\"\"\n        t0, _ = self.domain()\n        return t0\n\n    def domain_end(self) -> float:\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14187,7 +14184,6 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsCurve._invalidate_rmf_cache",
-        "NurbsCurve._span_is_singular",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.domain",
@@ -14198,13 +14194,11 @@ window.API_INDEX = {
         "NurbsCurve.get_span_vector",
         "NurbsCurve.greville_abcissa",
         "NurbsCurve.invalidate_rmf_cache",
-        "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.knot",
         "NurbsCurve.knot_multiplicity",
         "NurbsCurve.order",
-        "NurbsCurve.set_domain",
-        "NurbsCurve.span_is_singular"
+        "NurbsCurve.set_domain"
       ]
     },
     {
@@ -14212,7 +14206,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "domain_end() -> float",
-          "code": "def domain_end(self) -> float:\n\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).\n\n        Parameters\n        ----------\n        span_index : int\n            Index of the span.\n\n        Returns\n        -------",
+          "code": "def domain_end(self) -> float:\n\n        \"\"\"Get end of domain\"\"\"\n        _, t1 = self.domain()\n        return t1\n\n    def domain_middle(self) -> float:\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14228,7 +14222,6 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsCurve._invalidate_rmf_cache",
-        "NurbsCurve._span_is_singular",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.domain",
@@ -14239,13 +14232,11 @@ window.API_INDEX = {
         "NurbsCurve.get_span_vector",
         "NurbsCurve.greville_abcissa",
         "NurbsCurve.invalidate_rmf_cache",
-        "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.knot",
         "NurbsCurve.knot_multiplicity",
         "NurbsCurve.order",
-        "NurbsCurve.set_domain",
-        "NurbsCurve.span_is_singular"
+        "NurbsCurve.set_domain"
       ]
     },
     {
@@ -14253,7 +14244,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "domain_middle() -> float",
-          "code": "def domain_middle(self) -> float:\n\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).\n\n        Parameters\n        ----------\n        span_index : int\n            Index of the span.\n\n        Returns\n        -------\n        bool\n            True if span is singular.\n        \"\"\"\n        if not self.is_valid():\n            return False",
+          "code": "def domain_middle(self) -> float:\n\n        \"\"\"Get middle of domain\"\"\"\n        t0, t1 = self.domain()\n        return (t0 + t1) * 0.5\n\n    def set_domain(self, t0: float, t1: float) -> bool:\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -14298,17 +14289,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_domain(t0: float, t1: float) -> bool",
-          "code": "def set_domain(self, t0: float, t1: float) -> bool:\n\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).\n\n        Parameters\n        ----------\n        span_index : int\n            Index of the span.\n\n        Returns\n        -------\n        bool\n            True if span is singular.\n        \"\"\"\n        if not self.is_valid():\n            return False\n\n        spans = self.get_span_vector()\n        if span_index < 0 or span_index >= len(spans) - 1:\n            return False",
+          "code": "def set_domain(self, t0: float, t1: float) -> bool:\n\n        \"\"\"Set curve domain\"\"\"\n        if not self.is_valid():\n            return False\n        if t0 >= t1:\n            return False\n\n        old_t0, old_t1 = self.domain()\n        if abs(old_t1 - old_t0) < Tolerance.ZERO_TOLERANCE:\n            return False\n\n        clamped_start = (self.m_order >= 2 and\n            abs(self.m_knot[0] - self.m_knot[self.m_order - 2]) < Tolerance.ZERO_TOLERANCE)\n        clamped_end = (self.m_cv_count < len(self.m_knot) and\n            abs(self.m_knot[-1] - self.m_knot[self.m_cv_count - 1]) < Tolerance.ZERO_TOLERANCE)\n\n        scale = (t1 - t0) / (old_t1 - old_t0)\n        for i in range(len(self.m_knot)):\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale\n\n        if clamped_start:\n            for i in range(self.m_order - 1):\n                self.m_knot[i] = t0\n        if clamped_end:\n            for i in range(self.m_cv_count - 1, len(self.m_knot)):\n                self.m_knot[i] = t1\n\n        self._invalidate_rmf_cache()\n        return True\n\n    def get_span_vector(self) -> List[float]:\n        \"\"\"Get span (distinct knot intervals) values\"\"\"\n        if not self.is_valid():\n            return []\n        \n        spans = []\n        for i in range(self.m_order - 2, self.m_cv_count):\n            if i == self.m_order - 2 or abs(self.m_knot[i] - self.m_knot[i-1]) > Tolerance.ZERO_TOLERANCE:\n                spans.append(self.m_knot[i])\n        \n        return spans\n\n    ###########################################################################################\n    # Geometric Queries\n    ###########################################################################################\n\n    def get_next_discontinuity(self, continuity_type: int, t0: float, t1: float):\n        if not self.is_valid():\n            return False, 0.0\n        d0, d1 = self.domain()\n        t0 = max(t0, d0)\n        t1 = min(t1, d1)\n        if t0 >= t1:\n            return False, 0.0\n        for i in range(self.m_order - 1, self.m_cv_count - 1):\n            t = float(self.m_knot[i])\n            if t <= t0 or t >= t1:\n                continue\n            mult = self.knot_multiplicity(i)\n            found = False\n            if continuity_type == 0 and mult >= self.m_order:\n                found = True\n            elif continuity_type == 1 and mult >= self.m_order - 1:\n                found = True\n            elif continuity_type == 2 and mult >= self.m_order - 2:\n                found = True\n            elif continuity_type in (3, 4) and mult >= self.m_order - 1:\n                found = True\n            if found:\n                return True, t\n        return False, 0.0\n\n    def _span_is_singular(self, span_index: int) -> bool:\n        \"\"\"Check if span is singular (collapsed to a point).\n\n        Parameters\n        ----------\n        span_index : int\n            Index of the span.",
           "file": "nurbscurve.py"
         },
         "cpp": {
           "sig": "bool set_domain(double t0, double t1)",
-          "code": "bool NurbsCurve::set_domain(double t0, double t1) {\n    if (t0 >= t1 || !is_valid()) return false;\n\n    auto [d0, d1] = domain();\n    if (d0 >= d1) return false;\n\n    double scale = (t1 - t0) / (d1 - d0);\n\n    for (auto& k : m_knot) {\n        k = t0 + (k - d0) * scale;\n    }",
+          "code": "bool NurbsCurve::set_domain(double t0, double t1) {\n    if (t0 >= t1 || !is_valid()) return false;\n\n    auto [d0, d1] = domain();\n    if (d0 >= d1) return false;\n\n    // Check if ends are clamped before rescaling\n    bool clamped_start = (m_order >= 2 &&\n        std::abs(m_knot[0] - m_knot[m_order - 2]) < Tolerance::ZERO_TOLERANCE);\n    bool clamped_end = (m_cv_count < (int)m_knot.size() &&\n        std::abs(m_knot.back() - m_knot[m_cv_count - 1]) < Tolerance::ZERO_TOLERANCE);\n\n    double scale = (t1 - t0) / (d1 - d0);\n\n    for (auto& k : m_knot) {\n        k = t0 + (k - d0) * scale;\n    }",
           "file": "nurbscurve.cpp"
         },
         "rust": {
           "sig": "set_domain(t0: f64, t1: f64) -> bool",
-          "code": "pub fn set_domain(&mut self, t0: f64, t1: f64) -> bool {\n        if !self.is_valid() || t0 >= t1 {\n            return false;\n        }\n\n        let (old_t0, old_t1) = self.domain();\n        if (old_t0 - old_t1).abs() < 1e-14 {\n            return false;\n        }\n\n        let scale = (t1 - t0) / (old_t1 - old_t0);\n\n        for i in 0..self.m_knot.len() {\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale;\n        }\n\n        true\n    }",
+          "code": "pub fn set_domain(&mut self, t0: f64, t1: f64) -> bool {\n        if !self.is_valid() || t0 >= t1 {\n            return false;\n        }\n\n        let (old_t0, old_t1) = self.domain();\n        if (old_t0 - old_t1).abs() < 1e-14 {\n            return false;\n        }\n\n        let clamped_start = self.m_order >= 2 &&\n            (self.m_knot[0] - self.m_knot[self.m_order - 2]).abs() < Tolerance::ZERO_TOLERANCE;\n        let clamped_end = self.m_cv_count < self.m_knot.len() &&\n            (*self.m_knot.last().unwrap() - self.m_knot[self.m_cv_count - 1]).abs() < Tolerance::ZERO_TOLERANCE;\n\n        let scale = (t1 - t0) / (old_t1 - old_t0);\n\n        for i in 0..self.m_knot.len() {\n            self.m_knot[i] = t0 + (self.m_knot[i] - old_t0) * scale;\n        }\n\n        if clamped_start {\n            for i in 0..self.m_order - 1 {\n                self.m_knot[i] = t0;\n            }\n        }\n        if clamped_end {\n            for i in self.m_cv_count - 1..self.m_knot.len() {\n                self.m_knot[i] = t1;\n            }\n        }\n\n        true\n    }",
           "file": "nurbscurve.rs"
         }
       },
@@ -14408,7 +14399,6 @@ window.API_INDEX = {
         "NurbsCurve.domain_end",
         "NurbsCurve.domain_middle",
         "NurbsCurve.domain_start",
-        "NurbsCurve.get_greville_abcissae",
         "NurbsCurve.get_span_vector",
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
@@ -14432,9 +14422,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsCurve.domain_end",
         "NurbsCurve.domain_middle",
-        "NurbsCurve.domain_start",
         "NurbsCurve.evaluate",
         "NurbsCurve.get_next_discontinuity",
         "NurbsCurve.get_span_vector",
@@ -27503,7 +27491,6 @@ window.API_INDEX = {
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
-        "Polyline.is_empty",
         "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
@@ -27513,6 +27500,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
@@ -27524,7 +27512,6 @@ window.API_INDEX = {
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
-        "Polyline.segment_count",
         "Polyline.set_guid",
         "Polyline.set_point",
         "Polyline.str",
@@ -27571,7 +27558,6 @@ window.API_INDEX = {
         "Polyline.get_points",
         "Polyline.guid",
         "Polyline.insert_point",
-        "Polyline.is_empty",
         "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
@@ -27579,6 +27565,7 @@ window.API_INDEX = {
         "Polyline.jsondump",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
@@ -27591,7 +27578,6 @@ window.API_INDEX = {
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
-        "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
       ]
@@ -27642,6 +27628,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
@@ -27652,7 +27639,6 @@ window.API_INDEX = {
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
-        "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.transform"
       ]
@@ -27708,6 +27694,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
@@ -27729,7 +27716,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_count() -> int",
-          "code": "def point_count(self) -> int:\n\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    @classmethod\n    def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3",
+          "code": "def point_count(self) -> int:\n\n        \"\"\"Returns the number of points.\"\"\"\n        return len(self._coords) // 3\n\n    @classmethod\n    def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27777,6 +27764,7 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -27787,6 +27775,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.move_by",
         "Polyline.pb_dump",
@@ -27813,7 +27802,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\"",
-          "code": "def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"",
+          "code": "def from_sides(cls, sides: int, radius: float = 1.0, close: bool = False) -> \"Polyline\":\n\n        \"\"\"Create a regular polygon with given number of sides and radius.\"\"\"\n        import math\n        pts = []\n        for i in range(sides):\n            angle = 2.0 * Tolerance.PI * i / sides\n            pts.append(Point(radius * math.cos(angle), radius * math.sin(angle), 0.0))\n        if close:\n            pts.append(pts[0])\n        return cls(pts)\n\n    def get_points(self) -> List[Point]:\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27835,6 +27824,7 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline.extend",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -27842,10 +27832,10 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.segment_count",
-        "Polyline.set_point",
         "Polyline.xform"
       ]
     },
@@ -27854,7 +27844,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_points() -> List[Point]",
-          "code": "def get_points(self) -> List[Point]:\n\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()",
+          "code": "def get_points(self) -> List[Point]:\n\n        \"\"\"Returns all points as Point objects.\"\"\"\n        points = []\n        for i in range(self.point_count()):\n            idx = i * 3\n            points.append(Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]))\n        return points\n\n    @property\n    def points(self) -> List[Point]:\n        \"\"\"Property for backward compatibility - returns list of Point objects.\"\"\"\n        return self.get_points()\n\n    @points.setter\n    def points(self, value: List[Point]) -> None:\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -27884,6 +27874,7 @@ window.API_INDEX = {
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
@@ -27895,6 +27886,7 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.line_from_projected_points",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.new",
         "Polyline.point_count",
@@ -27918,7 +27910,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "points(value: List[Point]) -> None",
-          "code": "def points(self, value: List[Point]) -> None:\n\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]",
+          "code": "def points(self, value: List[Point]) -> None:\n\n        \"\"\"Set points from a list of Point objects.\"\"\"\n        self._coords = []\n        for p in value:\n            self._coords.extend([p[0], p[1], p[2]])\n\n    def __len__(self) -> int:\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:",
           "file": "polyline.py"
         }
       },
@@ -27961,6 +27953,7 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
@@ -27978,9 +27971,9 @@ window.API_INDEX = {
         "Polyline.line_line_overlap",
         "Polyline.line_line_overlap_average",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.merge_collinear",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_load",
@@ -28014,7 +28007,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__len__() -> int",
-          "code": "def __len__(self) -> int:\n\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:",
+          "code": "def __len__(self) -> int:\n\n        \"\"\"Returns the number of points in the polyline.\"\"\"\n        return self.point_count()\n\n    def __getitem__(self, index: int) -> Point:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:",
           "file": "polyline.py"
         }
       },
@@ -28026,6 +28019,7 @@ window.API_INDEX = {
         "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28034,11 +28028,9 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
-        "Polyline.move",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.remove_point",
-        "Polyline.reverse",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -28049,7 +28041,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__getitem__(index: int) -> Point",
-          "code": "def __getitem__(self, index: int) -> Point:\n\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []",
+          "code": "def __getitem__(self, index: int) -> Point:\n\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index: int, point: Point) -> None:\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:",
           "file": "polyline.py"
         }
       },
@@ -28061,6 +28053,7 @@ window.API_INDEX = {
         "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -28068,12 +28061,9 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
-        "Polyline.move",
-        "Polyline.new",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.remove_point",
-        "Polyline.reverse",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -28084,7 +28074,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__setitem__(index: int, point: Point) -> None",
-          "code": "def __setitem__(self, index: int, point: Point) -> None:\n\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):\n            idx = i * 3\n            new_coords.extend([self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]])\n        self._coords = new_coords\n        self.plane.reverse()",
+          "code": "def __setitem__(self, index: int, point: Point) -> None:\n\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def is_empty(self) -> bool:\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3",
           "file": "polyline.py"
         }
       },
@@ -28096,6 +28086,7 @@ window.API_INDEX = {
         "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.insert_point",
@@ -28103,12 +28094,11 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.move",
-        "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.remove_point",
-        "Polyline.reverse",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -28119,7 +28109,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_empty() -> bool",
-          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):\n            idx = i * 3\n            new_coords.extend([self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]])\n        self._coords = new_coords\n        self.plane.reverse()\n\n    def reversed(self) -> \"Polyline\":\n        \"\"\"Returns a new polyline with reversed point order.\"\"\"\n        result = Polyline.from_coords(self._coords[:])\n        result.guid = self.guid\n        result.name = self.name\n        result.width = self.width\n        result.linecolor = copy.deepcopy(self.linecolor)\n        result.xform = copy.deepcopy(self.xform)\n        result.plane = copy.deepcopy(self.plane)",
+          "code": "def is_empty(self) -> bool:\n\n        \"\"\"Returns true if the polyline has no points.\"\"\"\n        return self.point_count() == 0\n\n    def segment_count(self) -> int:\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"",
           "file": "polyline.py"
         },
         "cpp": {
@@ -28145,24 +28135,22 @@ window.API_INDEX = {
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
-        "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.len",
         "Polyline.length",
         "Polyline.line_from_projected_points",
-        "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.move",
-        "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.quick_hull",
         "Polyline.remove_point",
         "Polyline.reverse",
-        "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shift",
@@ -28174,7 +28162,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "segment_count() -> int",
-          "code": "def segment_count(self) -> int:\n\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):\n            idx = i * 3\n            new_coords.extend([self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]])\n        self._coords = new_coords\n        self.plane.reverse()\n\n    def reversed(self) -> \"Polyline\":\n        \"\"\"Returns a new polyline with reversed point order.\"\"\"\n        result = Polyline.from_coords(self._coords[:])\n        result.guid = self.guid\n        result.name = self.name\n        result.width = self.width\n        result.linecolor = copy.deepcopy(self.linecolor)\n        result.xform = copy.deepcopy(self.xform)\n        result.plane = copy.deepcopy(self.plane)\n        result.reverse()\n        return result\n\n    def _recompute_plane(self) -> None:",
+          "code": "def segment_count(self) -> int:\n\n        \"\"\"Returns the number of segments (n-1 for n points).\"\"\"\n        n = self.point_count()\n        return n - 1 if n > 1 else 0\n\n    def get_lines(self) -> List:\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):",
           "file": "polyline.py"
         },
         "cpp": {
@@ -28210,9 +28198,9 @@ window.API_INDEX = {
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.is_empty",
         "Polyline.len",
@@ -28220,7 +28208,7 @@ window.API_INDEX = {
         "Polyline.length_squared",
         "Polyline.line_from_projected_points",
         "Polyline.line_line_overlap_average",
-        "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.move",
         "Polyline.new",
@@ -28229,11 +28217,106 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.remove_point",
         "Polyline.reverse",
-        "Polyline.reversed",
         "Polyline.set_point",
         "Polyline.shift",
         "Polyline.transform",
-        "Polyline.transformed",
+        "Polyline.transformed"
+      ]
+    },
+    {
+      "name": "Polyline.get_lines",
+      "implementations": {
+        "python": {
+          "sig": "get_lines() -> List",
+          "code": "def get_lines(self) -> List:\n\n        \"\"\"Returns all segments as Line objects.\"\"\"\n        from .line import Line\n        result = []\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            result.append(Line(\n                self._coords[idx0], self._coords[idx0 + 1], self._coords[idx0 + 2],\n                self._coords[idx1], self._coords[idx1 + 1], self._coords[idx1 + 2],\n            ))\n        return result\n\n    @property\n    def lines(self) -> List:\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):\n            idx = i * 3\n            new_coords.extend([self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]])\n        self._coords = new_coords\n        self.plane.reverse()",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Line> get_lines()",
+          "code": "std::vector<Line> Polyline::get_lines() const {\n    std::vector<Line> result;\n    result.reserve(segment_count());\n    for (size_t i = 0; i < segment_count(); i++) {\n        size_t idx0 = i * 3;\n        size_t idx1 = (i + 1) * 3;\n        result.emplace_back(_coords[idx0], _coords[idx0 + 1], _coords[idx0 + 2],\n                           _coords[idx1], _coords[idx1 + 1], _coords[idx1 + 2]);\n    }",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "get_lines() -> Vec<Line>",
+          "code": "pub fn get_lines(&self) -> Vec<Line> {\n        let mut result = Vec::with_capacity(self.segment_count());\n        for i in 0..self.segment_count() {\n            let idx0 = i * 3;\n            let idx1 = (i + 1) * 3;\n            result.push(Line::new(\n                self.coords[idx0], self.coords[idx0 + 1], self.coords[idx0 + 2],\n                self.coords[idx1], self.coords[idx1 + 1], self.coords[idx1 + 2],\n            ));\n        }\n        result\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__getitem__",
+        "Polyline.__len__",
+        "Polyline.__setitem__",
+        "Polyline._recompute_plane",
+        "Polyline.add_point",
+        "Polyline.extend",
+        "Polyline.from_sides",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.insert_point",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.lines",
+        "Polyline.move",
+        "Polyline.new",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.remove_point",
+        "Polyline.reverse",
+        "Polyline.segment_count",
+        "Polyline.set_point"
+      ]
+    },
+    {
+      "name": "Polyline.lines",
+      "implementations": {
+        "python": {
+          "sig": "lines() -> List",
+          "code": "def lines(self) -> List:\n\n        \"\"\"Property returning all segments as Line objects.\"\"\"\n        return self.get_lines()\n\n    def length(self) -> float:\n        \"\"\"Calculates the total length of the polyline.\"\"\"\n        total_length = 0.0\n        for i in range(self.segment_count()):\n            idx0 = i * 3\n            idx1 = (i + 1) * 3\n            dx = self._coords[idx1] - self._coords[idx0]\n            dy = self._coords[idx1 + 1] - self._coords[idx0 + 1]\n            dz = self._coords[idx1 + 2] - self._coords[idx0 + 2]\n            total_length += (dx * dx + dy * dy + dz * dz) ** 0.5\n        return total_length\n\n    def get_point(self, index: int) -> Optional[Point]:\n        \"\"\"Returns the point at the given index, or None if out of bounds.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            return Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n        return None\n\n    def set_point(self, index: int, point: Point) -> None:\n        \"\"\"Sets the point at the given index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            self._coords[idx] = point[0]\n            self._coords[idx + 1] = point[1]\n            self._coords[idx + 2] = point[2]\n\n    def add_point(self, point: Point) -> None:\n        \"\"\"Adds a point to the end of the polyline.\"\"\"\n        self._coords.extend([point[0], point[1], point[2]])\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def insert_point(self, index: int, point: Point) -> None:\n        \"\"\"Inserts a point at the specified index.\"\"\"\n        idx = index * 3\n        self._coords[idx:idx] = [point[0], point[1], point[2]]\n        if self.point_count() == 3:\n            self._recompute_plane()\n\n    def remove_point(self, index: int) -> Optional[Point]:\n        \"\"\"Removes and returns the point at the specified index.\"\"\"\n        if 0 <= index < self.point_count():\n            idx = index * 3\n            point = Point(self._coords[idx], self._coords[idx + 1], self._coords[idx + 2])\n            del self._coords[idx:idx + 3]\n            if self.point_count() == 3:\n                self._recompute_plane()\n            return point\n        return None\n\n    def reverse(self) -> None:\n        \"\"\"Reverses the order of points in the polyline.\"\"\"\n        # Reverse coords in groups of 3\n        n = self.point_count()\n        new_coords = []\n        for i in range(n - 1, -1, -1):\n            idx = i * 3\n            new_coords.extend([self._coords[idx], self._coords[idx + 1], self._coords[idx + 2]])\n        self._coords = new_coords\n        self.plane.reverse()\n\n    def reversed(self) -> \"Polyline\":\n        \"\"\"Returns a new polyline with reversed point order.\"\"\"\n        result = Polyline.from_coords(self._coords[:])\n        result.guid = self.guid\n        result.name = self.name\n        result.width = self.width\n        result.linecolor = copy.deepcopy(self.linecolor)\n        result.xform = copy.deepcopy(self.xform)\n        result.plane = copy.deepcopy(self.plane)\n        result.reverse()\n        return result\n\n    def _recompute_plane(self) -> None:\n        \"\"\"Helper to recompute plane when points change.\"\"\"",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__eq__",
+        "Polyline.__getitem__",
+        "Polyline.__len__",
+        "Polyline.__repr__",
+        "Polyline.__setitem__",
+        "Polyline.__str__",
+        "Polyline._recompute_plane",
+        "Polyline.add_point",
+        "Polyline.extend",
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment_equally",
+        "Polyline.from_coords",
+        "Polyline.from_sides",
+        "Polyline.get_convex_corners",
+        "Polyline.get_lines",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.guid",
+        "Polyline.insert_point",
+        "Polyline.is_clockwise",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.line_line_overlap_average",
+        "Polyline.linecolor",
+        "Polyline.move",
+        "Polyline.new",
+        "Polyline.pb_dump",
+        "Polyline.pb_load",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.remove_point",
+        "Polyline.reverse",
+        "Polyline.reversed",
+        "Polyline.scale_line_static",
+        "Polyline.segment_count",
+        "Polyline.set_point",
+        "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
     },
@@ -28272,6 +28355,7 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
         "Polyline.from_sides",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28280,6 +28364,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length_squared",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.move",
         "Polyline.new",
@@ -28340,6 +28425,7 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
@@ -28351,6 +28437,7 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.line_from_projected_points",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.move",
         "Polyline.new",
@@ -28404,9 +28491,9 @@ window.API_INDEX = {
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
         "Polyline.from_coords",
-        "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28414,6 +28501,7 @@ window.API_INDEX = {
         "Polyline.is_empty",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.move",
         "Polyline.new",
         "Polyline.point_count",
@@ -28457,6 +28545,7 @@ window.API_INDEX = {
         "Polyline.duplicate",
         "Polyline.extend",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28465,6 +28554,7 @@ window.API_INDEX = {
         "Polyline.is_empty",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.move",
         "Polyline.new",
         "Polyline.point_count",
@@ -28510,6 +28600,7 @@ window.API_INDEX = {
         "Polyline.duplicate",
         "Polyline.extend",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28517,6 +28608,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.move",
         "Polyline.new",
         "Polyline.point_count",
@@ -28553,16 +28645,15 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__add__",
-        "Polyline.__getitem__",
         "Polyline.__iadd__",
         "Polyline.__isub__",
-        "Polyline.__len__",
         "Polyline.__setitem__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
         "Polyline.extend",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28570,6 +28661,7 @@ window.API_INDEX = {
         "Polyline.is_empty",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.move",
         "Polyline.new",
         "Polyline.point_count",
@@ -28605,15 +28697,12 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__add__",
-        "Polyline.__getitem__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
         "Polyline.__isub__",
         "Polyline.__itruediv__",
-        "Polyline.__len__",
         "Polyline.__mul__",
         "Polyline.__neg__",
-        "Polyline.__setitem__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
@@ -28622,6 +28711,7 @@ window.API_INDEX = {
         "Polyline.extend",
         "Polyline.flip",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28630,6 +28720,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
@@ -28679,16 +28770,15 @@ window.API_INDEX = {
         "Polyline.get_points",
         "Polyline.guid",
         "Polyline.insert_point",
-        "Polyline.is_empty",
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.remove_point",
         "Polyline.reverse",
-        "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.str",
         "Polyline.xform"
@@ -28717,6 +28807,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.duplicate",
         "Polyline.from_coords",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -28725,6 +28816,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
@@ -29452,6 +29544,7 @@ window.API_INDEX = {
         "Polyline.line_from_projected_points",
         "Polyline.line_line_average",
         "Polyline.line_line_overlap",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.new",
         "Polyline.point_at",
@@ -29910,6 +30003,7 @@ window.API_INDEX = {
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
@@ -29945,6 +30039,7 @@ window.API_INDEX = {
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.lines",
         "Polyline.points",
         "Polyline.scale_line",
         "Polyline.scale_line_static",
@@ -29974,6 +30069,7 @@ window.API_INDEX = {
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.lines",
         "Polyline.points",
         "Polyline.scale_line",
         "Polyline.tween_two_polylines"
@@ -30013,6 +30109,7 @@ window.API_INDEX = {
         "Polyline.interpolate_points",
         "Polyline.is_closed",
         "Polyline.len",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.quick_hull",
@@ -30055,6 +30152,7 @@ window.API_INDEX = {
         "Polyline.is_clockwise",
         "Polyline.is_closed",
         "Polyline.len",
+        "Polyline.lines",
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
@@ -30096,6 +30194,7 @@ window.API_INDEX = {
         "Polyline.interpolate_points",
         "Polyline.is_clockwise",
         "Polyline.len",
+        "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.proj2d",
@@ -30805,6 +30904,7 @@ window.API_INDEX = {
         "Polyline.json_loads",
         "Polyline.len",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
         "Polyline.pb_load",
@@ -30849,6 +30949,7 @@ window.API_INDEX = {
         "Polyline.json_loads",
         "Polyline.len",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.parse",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
@@ -30881,6 +30982,7 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.len",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.pb_loads",
@@ -30912,6 +31014,7 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.len",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.point_count",
@@ -30942,6 +31045,7 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.len",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.point_count",
@@ -45538,9 +45642,7 @@ window.API_INDEX = {
         "NurbsCurve._span_is_singular",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
-        "NurbsCurve.domain_end",
         "NurbsCurve.domain_middle",
-        "NurbsCurve.domain_start",
         "NurbsCurve.get_cv",
         "NurbsCurve.get_next_discontinuity",
         "NurbsCurve.get_span_vector",
@@ -46718,6 +46820,7 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
@@ -46741,6 +46844,7 @@ window.API_INDEX = {
         "Polyline.line_line_overlap",
         "Polyline.line_line_overlap_average",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.merge_collinear",
         "Polyline.pb_dump",
@@ -46895,6 +46999,7 @@ window.API_INDEX = {
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
+        "Polyline.get_lines",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
@@ -46909,6 +47014,7 @@ window.API_INDEX = {
         "Polyline.length_squared",
         "Polyline.line_from_projected_points",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.merge_collinear",
         "Polyline.new",
@@ -47217,16 +47323,15 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Polyline.__getitem__",
-        "Polyline.__len__",
         "Polyline.__setitem__",
         "Polyline.add_point",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.insert_point",
         "Polyline.is_empty",
         "Polyline.length",
+        "Polyline.lines",
         "Polyline.move_by",
-        "Polyline.points",
         "Polyline.remove_point",
         "Polyline.segment_count",
         "Polyline.set_point",
@@ -47339,6 +47444,7 @@ window.API_INDEX = {
         "Polyline.from_sides",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -47351,6 +47457,7 @@ window.API_INDEX = {
         "Polyline.json_loads",
         "Polyline.length",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
@@ -50087,7 +50194,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.__add__",
-        "Polyline.__getitem__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
         "Polyline.__init__",
@@ -50096,7 +50202,6 @@ window.API_INDEX = {
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
         "Polyline.__mul__",
-        "Polyline.__setitem__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._average_normal",
@@ -50110,13 +50215,13 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
+        "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.interpolate_points",
-        "Polyline.is_empty",
         "Polyline.jsondump",
         "Polyline.jsonload",
         "Polyline.len",
@@ -50124,6 +50229,7 @@ window.API_INDEX = {
         "Polyline.line_line_average",
         "Polyline.line_line_overlap_average",
         "Polyline.linecolor",
+        "Polyline.lines",
         "Polyline.merge_collinear",
         "Polyline.point_at",
         "Polyline.points",
@@ -53047,6 +53153,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Polyline.test_Get Lines",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Get Lines\")",
+          "code": "MINI_TEST(\"Polyline\", \"Get Lines\") {\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    std::vector<Line> lines = pl.get_lines();\n\n    MINI_CHECK(lines.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(lines[0][0], 0.0) && TOLERANCE.is_close(lines[0][3], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(lines[1][0], 1.0) && TOLERANCE.is_close(lines[1][4], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(lines[2][0], 1.0) && TOLERANCE.is_close(lines[2][3], 0.0));\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Get Lines\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Get Lines\")\ndef test_polyline_get_lines():\n    from session_py import Polyline\n    from session_py import Point\n    from session_py import Line\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    lines = pl.get_lines()\n    lines_prop = pl.lines\n\n    MINI_CHECK(len(lines) == 3)\n    MINI_CHECK(len(lines_prop) == 3)\n    MINI_CHECK(TOLERANCE.is_close(lines[0][0], 0.0) and TOLERANCE.is_close(lines[0][3], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(lines[1][0], 1.0) and TOLERANCE.is_close(lines[1][4], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(lines[2][0], 1.0) and TOLERANCE.is_close(lines[2][3], 0.0))",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
       "name": "Polyline.test_Shift",
       "implementations": {
         "cpp": {
@@ -53556,12 +53677,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\")",
-          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\") {\n    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve rail = NurbsCurve::create(false, 2, {\n        Point(0, 0, 0),\n        Point(0, 5, 0),\n        Point(2, 9, 0)});\n    NurbsCurve profile = Primitives::circle(0, 0, 0, 1.0);\n    NurbsSurface s_sweep1 = Primitives::create_sweep1(rail, profile);\n    s_sweep1.name = \"sweep1\";\n    auto m_sweep1 = s_sweep1.mesh();\n\n    NurbsCurve rail1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0),\n        Point(7, 3, 0),\n        Point(8, 4, 0)});\n    NurbsCurve rail2 = NurbsCurve::create(false, 2, {\n        Point(10, -1, 0),\n        Point(10, 3, 0),\n        Point(9, 4, 0)});\n    NurbsCurve shape1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0),\n        Point(8, -1, 2),\n        Point(10, -1, 0)});\n    NurbsCurve shape2 = NurbsCurve::create(false, 2, {\n        Point(8, 4, 0),\n        Point(8.5, 4, 1.5),\n        Point(9, 4, 0)});\n    NurbsSurface s_sweep2 = Primitives::create_sweep2(rail1, rail2, {shape1, shape2});\n    s_sweep2.name = \"sweep2\";\n    auto m_sweep2 = s_sweep2.mesh();\n\n    MINI_CHECK(s_sweep1.is_valid());\n    MINI_CHECK(s_sweep1.is_rational());\n    MINI_CHECK(s_sweep1.cv_count(0) == 9);\n    MINI_CHECK(s_sweep1.cv_count(1) == 6);\n    MINI_CHECK(m_sweep1.number_of_vertices() > 0);\n    MINI_CHECK(m_sweep1.number_of_faces() > 0);\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,3), Point(1.646130147308625, 5.890456645823520, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,4), Point(2.268126490080245, 7.550043751484516, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,0), Point(0.888888888888889, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,1), Point(0.888635792881381, 1.202714517481950, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,2), Point(1.024939251342349, 2.995270183326688, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,3), Point(1.646130147308625, 5.890456645823518, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,4), Point(2.268126490080246, 7.550043751484516, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,5), Point(2.795046402150731, 8.602476824301650, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,0), Point(-0.111111111111111, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,1), Point(-0.111375650381527, 1.252481986115285, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,2), Point(0.030563435078404, 3.128596097925310, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,3), Point(0.684572492801853, 6.178215457853874, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,4), Point(1.342568351103634, 7.935308821507740, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,5), Point(1.900619199731159, 9.049690396962294, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,0), Point(-1.111111111111111, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,1), Point(-1.111387093644435, 1.302249454748620, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,2), Point(-0.963812381185542, 3.261922012523934, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,3), Point(-0.276985161704920, 6.465974269884224, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,4), Point(0.417010212127023, 8.320573891530971, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,5), Point(1.006191997311586, 9.496903969622938, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,0), Point(-1.111111111111111, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,1), Point(-1.111387093644435, 1.302249454748620, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,2), Point(-0.963812381185542, 3.261922012523933, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,3), Point(-0.276985161704920, 6.465974269884226, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,4), Point(0.417010212127023, 8.320573891530966, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,5), Point(1.006191997311586, 9.496903969622938, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,0), Point(-1.111111111111111, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,1), Point(-1.111387093644435, 1.302249454748620, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,2), Point(-0.963812381185542, 3.261922012523934, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,3), Point(-0.276985161704920, 6.465974269884224, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,4), Point(0.417010212127023, 8.320573891530971, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,5), Point(1.006191997311586, 9.496903969622938, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,0), Point(-0.111111111111111, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,1), Point(-0.111375650381527, 1.252481986115285, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,2), Point(0.030563435078404, 3.128596097925310, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,3), Point(0.684572492801853, 6.178215457853874, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,4), Point(1.342568351103634, 7.935308821507740, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,5), Point(1.900619199731159, 9.049690396962294, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,0), Point(0.888888888888889, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,1), Point(0.888635792881381, 1.202714517481950, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,2), Point(1.024939251342349, 2.995270183326688, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,3), Point(1.646130147308625, 5.890456645823518, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,4), Point(2.268126490080246, 7.550043751484516, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,5), Point(2.795046402150731, 8.602476824301650, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,3), Point(1.6461301473",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\") {\n    // uncomment #include \"nurbssurface.h\"\n    NurbsCurve rail = NurbsCurve::create(false, 2, {\n        Point(0, 0, 0),\n        Point(0, 5, 0),\n        Point(2, 9, 0)});\n    NurbsCurve profile = Primitives::circle(0, 0, 0, 1.0);\n    NurbsSurface s_sweep1 = Primitives::create_sweep1(rail, profile);\n    s_sweep1.name = \"sweep1\";\n    auto m_sweep1 = s_sweep1.mesh();\n\n    NurbsCurve rail1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0),\n        Point(7, 3, 0),\n        Point(8, 4, 0)});\n    NurbsCurve rail2 = NurbsCurve::create(false, 2, {\n        Point(10, -1, 0),\n        Point(10, 3, 0),\n        Point(9, 4, 0)});\n    NurbsCurve shape1 = NurbsCurve::create(false, 2, {\n        Point(6, -1, 0),\n        Point(8, -1, 2),\n        Point(10, -1, 0)});\n    NurbsCurve shape2 = NurbsCurve::create(false, 2, {\n        Point(8, 4, 0),\n        Point(8.5, 4, 1.5),\n        Point(9, 4, 0)});\n    NurbsSurface s_sweep2 = Primitives::create_sweep2(rail1, rail2, {shape1, shape2});\n    s_sweep2.name = \"sweep2\";\n    auto m_sweep2 = s_sweep2.mesh();\n\n    MINI_CHECK(s_sweep1.is_valid());\n    MINI_CHECK(s_sweep1.is_rational());\n    MINI_CHECK(s_sweep1.cv_count(0) == 9);\n    MINI_CHECK(s_sweep1.cv_count(1) == 6);\n    MINI_CHECK(m_sweep1.number_of_vertices() > 0);\n    MINI_CHECK(m_sweep1.number_of_faces() > 0);\n    TOLERANCE.set_absolute(1e-6);\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,3), Point(1.646130147308625, 5.890456645823520, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,4), Point(2.268126490080245, 7.550043751484516, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0,5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,0), Point(0.888888888888889, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,1), Point(0.888635792881381, 1.202714517481950, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,2), Point(1.024939251342349, 2.995270183326688, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,3), Point(1.646130147308625, 5.890456645823518, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,4), Point(2.268126490080246, 7.550043751484516, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1,5), Point(2.795046402150731, 8.602476824301650, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,0), Point(-0.111111111111111, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,1), Point(-0.111375650381527, 1.252481986115285, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,2), Point(0.030563435078404, 3.128596097925310, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,3), Point(0.684572492801853, 6.178215457853874, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,4), Point(1.342568351103634, 7.935308821507740, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(2,5), Point(1.900619199731159, 9.049690396962294, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,0), Point(-1.111111111111111, 0.000000000000000, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,1), Point(-1.111387093644435, 1.302249454748620, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,2), Point(-0.963812381185542, 3.261922012523934, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,3), Point(-0.276985161704920, 6.465974269884224, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,4), Point(0.417010212127023, 8.320573891530971, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(3,5), Point(1.006191997311586, 9.496903969622938, -1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,0), Point(-1.111111111111111, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,1), Point(-1.111387093644435, 1.302249454748620, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,2), Point(-0.963812381185542, 3.261922012523933, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,3), Point(-0.276985161704920, 6.465974269884226, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,4), Point(0.417010212127023, 8.320573891530966, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4,5), Point(1.006191997311586, 9.496903969622938, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,0), Point(-1.111111111111111, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,1), Point(-1.111387093644435, 1.302249454748620, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,2), Point(-0.963812381185542, 3.261922012523934, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,3), Point(-0.276985161704920, 6.465974269884224, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,4), Point(0.417010212127023, 8.320573891530971, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(5,5), Point(1.006191997311586, 9.496903969622938, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,0), Point(-0.111111111111111, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,1), Point(-0.111375650381527, 1.252481986115285, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,2), Point(0.030563435078404, 3.128596097925310, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,3), Point(0.684572492801853, 6.178215457853874, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,4), Point(1.342568351103634, 7.935308821507740, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(6,5), Point(1.900619199731159, 9.049690396962294, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,0), Point(0.888888888888889, 0.000000000000000, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,1), Point(0.888635792881381, 1.202714517481950, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,2), Point(1.024939251342349, 2.995270183326688, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,3), Point(1.646130147308625, 5.890456645823518, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,4), Point(2.268126490080246, 7.550043751484516, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(7,5), Point(2.795046402150731, 8.602476824301650, 1.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8,2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_swee",
           "file": "primitives_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\")\ndef test_nurbssurface_sweep():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 5.0, 0.0),\n        Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(7.0, 3.0, 0.0),\n        Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0),\n        Point(10.0, 3.0, 0.0),\n        Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(8.0, -1.0, 2.0),\n        Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0),\n        Point(8.5, 4.0, 1.5),\n        Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()\n\n    MINI_CHECK(s_sweep1.is_valid())\n    MINI_CHECK(s_sweep1.is_rational())\n    MINI_CHECK(s_sweep1.cv_count_dir(0) == 9)\n    MINI_CHECK(s_sweep1.cv_count_dir(1) == 6)\n    MINI_CHECK(m_sweep1.number_of_vertices() > 0)\n    MINI_CHECK(m_sweep1.number_of_faces() > 0)\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 3), Point(1.646130147308625, 5.890456645823520, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 4), Point(2.268126490080245, 7.550043751484516, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1, 0), Point(0.888888888888889, 0.000000000000000, -1.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4, 0), Point(-1.111111111111111, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)))\n\n    MINI_CHECK(s_sweep2.is_valid())\n    MINI_CHECK(s_sweep2.cv_count_dir(0) == 3)\n    MINI_CHECK(s_sweep2.cv_count_dir(1) == 6)\n    MINI_CHECK(m_sweep2.number_of_vertices() > 0)\n    MINI_CHECK(m_sweep2.number_of_faces() > 0)\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(0, 0), Point(6.000000000000000, -1.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(0, 5), Point(8.000000000000000, 4.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(2, 0), Point(9.999999999999998, -1.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(2, 5), Point(8.999999999999998, 4.000000000000000, 0.000000000000000)))",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Sweep\")\ndef test_nurbssurface_sweep():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 5.0, 0.0),\n        Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(7.0, 3.0, 0.0),\n        Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0),\n        Point(10.0, 3.0, 0.0),\n        Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(8.0, -1.0, 2.0),\n        Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0),\n        Point(8.5, 4.0, 1.5),\n        Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()\n\n    MINI_CHECK(s_sweep1.is_valid())\n    MINI_CHECK(s_sweep1.is_rational())\n    MINI_CHECK(s_sweep1.cv_count_dir(0) == 9)\n    MINI_CHECK(s_sweep1.cv_count_dir(1) == 6)\n    MINI_CHECK(m_sweep1.number_of_vertices() > 0)\n    MINI_CHECK(m_sweep1.number_of_faces() > 0)\n    TOLERANCE.absolute = 1e-6\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 3), Point(1.646130147308625, 5.890456645823520, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 4), Point(2.268126490080245, 7.550043751484516, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(0, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(1, 0), Point(0.888888888888889, 0.000000000000000, -1.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(4, 0), Point(-1.111111111111111, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep1.get_cv(8, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000)))\n\n    MINI_CHECK(s_sweep2.is_valid())\n    MINI_CHECK(s_sweep2.cv_count_dir(0) == 3)\n    MINI_CHECK(s_sweep2.cv_count_dir(1) == 6)\n    MINI_CHECK(m_sweep2.number_of_vertices() > 0)\n    MINI_CHECK(m_sweep2.number_of_faces() > 0)\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(0, 0), Point(6.000000000000000, -1.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(0, 5), Point(8.000000000000000, 4.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(2, 0), Point(9.999999999999998, -1.000000000000000, 0.000000000000000)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_sweep2.get_cv(2, 5), Point(8.999999999999998, 4.000000000000000, 0.000000000000000)))\n    TOLERANCE.reset()",
           "file": "primitives_test.py"
         }
       }
@@ -54791,11 +54912,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
         "points",
         "n",
-        "into",
         "subdivide",
+        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54809,11 +54930,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "ellipse",
+        "subdivide",
         "by",
         "arc",
-        "subdivide",
         "length",
-        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -54827,9 +54948,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "arc",
         "points",
         "through",
-        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -54843,12 +54964,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "polyline",
         "points",
+        "polyline",
         "from",
+        "curve",
         "open",
         "adaptive",
-        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -54863,9 +54984,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "curve",
         "evaluation",
         "parameter",
-        "curve",
         "at",
         "set_domain",
         "point_at",
@@ -54885,10 +55006,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
-        "along",
         "curve",
+        "along",
         "frames",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -54910,9 +55031,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -54933,10 +55054,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "cylinder",
         "surface",
         "evaluate",
+        "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -54951,11 +55072,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
-        "and",
-        "mesh",
         "vertices",
+        "and",
+        "from",
         "faces",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -56893,6 +57014,12 @@ window.API_INDEX = {
     ],
     "segment_count": [
       "Polyline.segment_count"
+    ],
+    "get_lines": [
+      "Polyline.get_lines"
+    ],
+    "lines": [
+      "Polyline.lines"
     ],
     "insert_point": [
       "Polyline.insert_point"

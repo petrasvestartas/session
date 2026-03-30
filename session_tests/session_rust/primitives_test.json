@@ -18,7 +18,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Mesh Arrow",
-    "time_ms": 0.169
+    "time_ms": 0.184
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Mesh Cylinder",
-    "time_ms": 0.061
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Nurbscurve Polyline",
-    "time_ms": 0.116
+    "time_ms": 0.127
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Nurbscurve Circle",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Nurbscurve Ellipse",
-    "time_ms": 0.004
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -158,7 +158,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Nurbscurve Arc",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -210,7 +210,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Nurbscurve Hyperbola",
-    "time_ms": 0.014
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -236,7 +236,7 @@
     "line": 146,
     "passed": true,
     "test_name": "Nurbscurve Spiral",
-    "time_ms": 0.022
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -322,7 +322,7 @@
     "line": 158,
     "passed": true,
     "test_name": "Nurbssurface Cylinder",
-    "time_ms": 0.007
+    "time_ms": 0.139
   },
   {
     "checks": [
@@ -408,7 +408,7 @@
     "line": 188,
     "passed": true,
     "test_name": "Nurbssurface Cone",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Nurbssurface Sphere",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -710,7 +710,7 @@
     "line": 253,
     "passed": true,
     "test_name": "Nurbssurface Quad Sphere",
-    "time_ms": 0.096
+    "time_ms": 0.209
   },
   {
     "checks": [
@@ -796,7 +796,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Nurbssurface Torus",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -1122,7 +1122,7 @@
     "line": 317,
     "passed": true,
     "test_name": "Nurbssurface Ruled",
-    "time_ms": 2.335
+    "time_ms": 2.964
   },
   {
     "checks": [
@@ -1333,7 +1333,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Nurbssurface Planar",
-    "time_ms": 15.072
+    "time_ms": 14.274
   },
   {
     "checks": [
@@ -1564,7 +1564,7 @@
     "line": 529,
     "passed": true,
     "test_name": "Nurbssurface Extrusion",
-    "time_ms": 0.945
+    "time_ms": 1.337
   },
   {
     "checks": [
@@ -1845,7 +1845,7 @@
     "line": 616,
     "passed": true,
     "test_name": "Nurbssurface Loft",
-    "time_ms": 0.205
+    "time_ms": 0.187
   },
   {
     "checks": [
@@ -2106,7 +2106,7 @@
     "line": 715,
     "passed": true,
     "test_name": "Nurbssurface Revolve",
-    "time_ms": 23.809
+    "time_ms": 17.847
   },
   {
     "checks": [
@@ -2142,542 +2142,542 @@
       },
       {
         "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,0).unwrap(),\n&Point::new(0.888888888888889, 0.000000000000000, 0.000000000000000))",
-        "line": 869,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,1).unwrap(),\n&Point::new(0.888635792881381, 1.202714517481950, 0.000000000000000))",
         "line": 870,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,2).unwrap(),\n&Point::new(1.024939251342349, 2.995270183326687, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,1).unwrap(),\n&Point::new(0.888635792881381, 1.202714517481950, 0.000000000000000))",
         "line": 871,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,3).unwrap(),\n&Point::new(1.646130147308625, 5.890456645823520, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,2).unwrap(),\n&Point::new(1.024939251342349, 2.995270183326687, 0.000000000000000))",
         "line": 872,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,4).unwrap(),\n&Point::new(2.268126490080245, 7.550043751484516, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,3).unwrap(),\n&Point::new(1.646130147308625, 5.890456645823520, 0.000000000000000))",
         "line": 873,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,5).unwrap(),\n&Point::new(2.795046402150731, 8.602476824301650, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,4).unwrap(),\n&Point::new(2.268126490080245, 7.550043751484516, 0.000000000000000))",
         "line": 874,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(1,0).unwrap(),\n&Point::new(0.888888888888889, 0.000000000000000, -1.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(0,5).unwrap(),\n&Point::new(2.795046402150731, 8.602476824301650, 0.000000000000000))",
         "line": 875,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(4,0).unwrap(),\n&Point::new(-1.111111111111111, 0.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(1,0).unwrap(),\n&Point::new(0.888888888888889, 0.000000000000000, -1.000000000000000))",
         "line": 876,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(8,0).unwrap(),\n&Point::new(0.888888888888889, 0.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(4,0).unwrap(),\n&Point::new(-1.111111111111111, 0.000000000000000, 0.000000000000000))",
         "line": 877,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(8,5).unwrap(),\n&Point::new(2.795046402150731, 8.602476824301650, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(8,0).unwrap(),\n&Point::new(0.888888888888889, 0.000000000000000, 0.000000000000000))",
         "line": 878,
         "passed": true
       },
       {
-        "code_line": "s_sweep2.is_valid()",
-        "line": 880,
+        "code_line": "TOLERANCE.is_point_close(&s_sweep1.get_cv(8,5).unwrap(),\n&Point::new(2.795046402150731, 8.602476824301650, 0.000000000000000))",
+        "line": 879,
         "passed": true
       },
       {
-        "code_line": "s_sweep2.cv_count_dir(Some(0)) == 3",
+        "code_line": "s_sweep2.is_valid()",
         "line": 881,
         "passed": true
       },
       {
-        "code_line": "s_sweep2.cv_count_dir(Some(1)) == 6",
+        "code_line": "s_sweep2.cv_count_dir(Some(0)) == 3",
         "line": 882,
         "passed": true
       },
       {
-        "code_line": "m_sweep2.number_of_vertices() > 0",
+        "code_line": "s_sweep2.cv_count_dir(Some(1)) == 6",
         "line": 883,
         "passed": true
       },
       {
-        "code_line": "m_sweep2.number_of_faces() > 0",
+        "code_line": "m_sweep2.number_of_vertices() > 0",
         "line": 884,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(0,0).unwrap(),\n&Point::new(6.000000000000000, -1.000000000000000, 0.000000000000000))",
+        "code_line": "m_sweep2.number_of_faces() > 0",
         "line": 885,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(0,5).unwrap(),\n&Point::new(8.000000000000000, 4.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(0,0).unwrap(),\n&Point::new(6.000000000000000, -1.000000000000000, 0.000000000000000))",
         "line": 886,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(2,0).unwrap(),\n&Point::new(9.999999999999998, -1.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(0,5).unwrap(),\n&Point::new(8.000000000000000, 4.000000000000000, 0.000000000000000))",
         "line": 887,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(2,5).unwrap(),\n&Point::new(8.999999999999998, 4.000000000000000, 0.000000000000000))",
+        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(2,0).unwrap(),\n&Point::new(9.999999999999998, -1.000000000000000, 0.000000000000000))",
         "line": 888,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&s_sweep2.get_cv(2,5).unwrap(),\n&Point::new(8.999999999999998, 4.000000000000000, 0.000000000000000))",
+        "line": 889,
         "passed": true
       }
     ],
-    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let rail = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 5.0, 0.0),\n            Point::new(2.0, 9.0, 0.0),\n        ]);\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let s_sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let m_sweep1 = s_sweep1.mesh();\n\n        let rail1 = NurbsCurve::create(false, 2, &[\n            Point::new(6.0, -1.0, 0.0),\n            Point::new(7.0, 3.0, 0.0),\n            Point::new(8.0, 4.0, 0.0),\n        ]);\n        let rail2 = NurbsCurve::create(false, 2, &[\n            Point::new(10.0, -1.0, 0.0),\n            Point::new(10.0, 3.0, 0.0),\n            Point::new(9.0, 4.0, 0.0),\n        ]);\n        let shape1 = NurbsCurve::create(false, 2, &[\n            Point::new(6.0, -1.0, 0.0),\n            Point::new(8.0, -1.0, 2.0),\n            Point::new(10.0, -1.0, 0.0),\n        ]);\n        let shape2 = NurbsCurve::create(false, 2, &[\n            Point::new(8.0, 4.0, 0.0),\n            Point::new(8.5, 4.0, 1.5),\n            Point::new(9.0, 4.0, 0.0),\n        ]);\n        let s_sweep2 = Primitives::create_sweep2(&rail1, &rail2, &[shape1, shape2]);\n        let m_sweep2 = s_sweep2.mesh();\n\n",
+    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let rail = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 5.0, 0.0),\n            Point::new(2.0, 9.0, 0.0),\n        ]);\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let s_sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let m_sweep1 = s_sweep1.mesh();\n\n        let rail1 = NurbsCurve::create(false, 2, &[\n            Point::new(6.0, -1.0, 0.0),\n            Point::new(7.0, 3.0, 0.0),\n            Point::new(8.0, 4.0, 0.0),\n        ]);\n        let rail2 = NurbsCurve::create(false, 2, &[\n            Point::new(10.0, -1.0, 0.0),\n            Point::new(10.0, 3.0, 0.0),\n            Point::new(9.0, 4.0, 0.0),\n        ]);\n        let shape1 = NurbsCurve::create(false, 2, &[\n            Point::new(6.0, -1.0, 0.0),\n            Point::new(8.0, -1.0, 2.0),\n            Point::new(10.0, -1.0, 0.0),\n        ]);\n        let shape2 = NurbsCurve::create(false, 2, &[\n            Point::new(8.0, 4.0, 0.0),\n            Point::new(8.5, 4.0, 1.5),\n            Point::new(9.0, 4.0, 0.0),\n        ]);\n        let s_sweep2 = Primitives::create_sweep2(&rail1, &rail2, &[shape1, shape2]);\n        let m_sweep2 = s_sweep2.mesh();\n\n        TOLERANCE.set_absolute(1e-6);\n\n        TOLERANCE.reset();",
     "failures": [],
     "group": "Primitives",
     "line": 826,
     "passed": true,
     "test_name": "Nurbssurface Sweep",
-    "time_ms": 21.412
+    "time_ms": 23.498
   },
   {
     "checks": [
       {
         "code_line": "surf.is_valid()",
-        "line": 929,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 930,
-        "passed": true
-      },
-      {
-        "code_line": "surf.degree(0) == 2",
         "line": 931,
         "passed": true
       },
       {
-        "code_line": "surf.degree(1) == 3",
+        "code_line": "m.number_of_faces() > 0",
         "line": 932,
         "passed": true
       },
       {
-        "code_line": "surf.cv_count_dir(Some(0)) == 3",
+        "code_line": "surf.degree(0) == 2",
         "line": 933,
         "passed": true
       },
       {
-        "code_line": "surf.cv_count_dir(Some(1)) == 4",
+        "code_line": "surf.degree(1) == 3",
         "line": 934,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 0).unwrap(),\n&Point::new(1.0, 20.569076, 0.0))",
+        "code_line": "surf.cv_count_dir(Some(0)) == 3",
+        "line": 935,
+        "passed": true
+      },
+      {
+        "code_line": "surf.cv_count_dir(Some(1)) == 4",
         "line": 936,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 1).unwrap(),\n&Point::new(1.0, 22.569076, 3.0))",
-        "line": 937,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 2).unwrap(),\n&Point::new(1.0, 25.569076, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 0).unwrap(),\n&Point::new(1.0, 20.569076, 0.0))",
         "line": 938,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 3).unwrap(),\n&Point::new(1.0, 27.569076, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 1).unwrap(),\n&Point::new(1.0, 22.569076, 3.0))",
         "line": 939,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 0).unwrap(),\n&Point::new(5.5, 20.569076, 3.5))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 2).unwrap(),\n&Point::new(1.0, 25.569076, 3.0))",
         "line": 940,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 1).unwrap(),\n&Point::new(5.5, 22.569076, 6.5))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(0, 3).unwrap(),\n&Point::new(1.0, 27.569076, 0.0))",
         "line": 941,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 2).unwrap(),\n&Point::new(5.5, 25.569076, 6.5))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 0).unwrap(),\n&Point::new(5.5, 20.569076, 3.5))",
         "line": 942,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 3).unwrap(),\n&Point::new(5.5, 27.569076, 3.5))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 1).unwrap(),\n&Point::new(5.5, 22.569076, 6.5))",
         "line": 943,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 0).unwrap(),\n&Point::new(10.0, 20.569076, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 2).unwrap(),\n&Point::new(5.5, 25.569076, 6.5))",
         "line": 944,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 1).unwrap(),\n&Point::new(10.0, 22.569076, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(1, 3).unwrap(),\n&Point::new(5.5, 27.569076, 3.5))",
         "line": 945,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 2).unwrap(),\n&Point::new(10.0, 25.569076, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 0).unwrap(),\n&Point::new(10.0, 20.569076, 0.0))",
         "line": 946,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 3).unwrap(),\n&Point::new(10.0, 27.569076, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 1).unwrap(),\n&Point::new(10.0, 22.569076, 3.0))",
         "line": 947,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 2).unwrap(),\n&Point::new(10.0, 25.569076, 3.0))",
+        "line": 948,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&surf.get_cv(2, 3).unwrap(),\n&Point::new(10.0, 27.569076, 0.0))",
+        "line": 949,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n\n        let pts_south = vec![\n            Point::new(1.0, 20.569076, 0.0),\n            Point::new(1.0, 22.569076, 3.0),\n            Point::new(1.0, 25.569076, 3.0),\n            Point::new(1.0, 27.569076, 0.0),\n        ];\n        let pts_west  = vec![\n            Point::new(10.0, 20.569076, 0.0),\n            Point::new(5.5, 20.569076, 3.5),\n            Point::new(1.0, 20.569076, 0.0),\n        ];\n        let pts_north = vec![\n            Point::new(10.0, 20.569076, 0.0),\n            Point::new(10.0, 22.569076, 3.0),\n            Point::new(10.0, 25.569076, 3.0),\n            Point::new(10.0, 27.569076, 0.0),\n        ];\n        let pts_east  = vec![\n            Point::new(10.0, 27.569076, 0.0),\n            Point::new(5.5, 27.569076, 3.5),\n            Point::new(1.0, 27.569076, 0.0),\n        ];\n\n        let south = NurbsCurve::create(false, 3, &pts_south);\n        let west  = NurbsCurve::create(false, 2, &pts_west);\n        let north = NurbsCurve::create(false, 3, &pts_north);\n        let east  = NurbsCurve::create(false, 2, &pts_east);\n\n        let surf = Primitives::create_edge(&south, &west, &north, &east);\n        let m = surf.mesh();\n\n",
     "failures": [],
     "group": "Primitives",
-    "line": 893,
+    "line": 895,
     "passed": true,
     "test_name": "Nurbssurface Edge",
-    "time_ms": 0.742
+    "time_ms": 0.867
   },
   {
     "checks": [
       {
         "code_line": "m.number_of_vertices() == 40",
-        "line": 961,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() == 32",
-        "line": 962,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
         "line": 963,
         "passed": true
       },
       {
+        "code_line": "m.number_of_faces() == 32",
+        "line": 964,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 965,
+        "passed": true
+      },
+      {
         "code_line": "m2.number_of_vertices() == 26",
-        "line": 967,
+        "line": 969,
         "passed": true
       },
       {
         "code_line": "m2.number_of_faces() == 32",
-        "line": 968,
+        "line": 970,
         "passed": true
       },
       {
         "code_line": "m2.is_valid()",
-        "line": 969,
+        "line": 971,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::quad_mesh(&cyl, 8, 4);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::quad_mesh(&sph, 8, 4);",
     "failures": [],
     "group": "Primitives",
-    "line": 956,
+    "line": 958,
     "passed": true,
     "test_name": "Mesh Quad Mesh",
-    "time_ms": 0.279
+    "time_ms": 0.243
   },
   {
     "checks": [
       {
         "code_line": "m.number_of_vertices() == 40",
-        "line": 979,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() == 20",
-        "line": 980,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
         "line": 981,
         "passed": true
       },
       {
+        "code_line": "m.number_of_faces() == 20",
+        "line": 982,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 983,
+        "passed": true
+      },
+      {
         "code_line": "m2.number_of_vertices() == 26",
-        "line": 985,
+        "line": 987,
         "passed": true
       },
       {
         "code_line": "m2.number_of_faces() == 12",
-        "line": 986,
+        "line": 988,
         "passed": true
       },
       {
         "code_line": "m2.is_valid()",
-        "line": 987,
+        "line": 989,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::diamond_mesh(&cyl, 8, 4);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::diamond_mesh(&sph, 8, 4);",
     "failures": [],
     "group": "Primitives",
-    "line": 974,
+    "line": 976,
     "passed": true,
     "test_name": "Mesh Diamond Mesh",
-    "time_ms": 0.154
+    "time_ms": 0.159
   },
   {
     "checks": [
       {
         "code_line": "m.number_of_vertices() == 78",
-        "line": 997,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() == 15",
-        "line": 998,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
         "line": 999,
         "passed": true
       },
       {
+        "code_line": "m.number_of_faces() == 15",
+        "line": 1000,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 1001,
+        "passed": true
+      },
+      {
         "code_line": "m2.number_of_vertices() == 68",
-        "line": 1003,
+        "line": 1005,
         "passed": true
       },
       {
         "code_line": "m2.number_of_faces() == 15",
-        "line": 1004,
+        "line": 1006,
         "passed": true
       },
       {
         "code_line": "m2.is_valid()",
-        "line": 1005,
+        "line": 1007,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = Primitives::hex_mesh(&cyl, 6, 4, 1.0/3.0);\n\n        let sph = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let m2 = Primitives::hex_mesh(&sph, 6, 4, 1.0/3.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 992,
+    "line": 994,
     "passed": true,
     "test_name": "Mesh Hex Mesh",
-    "time_ms": 0.384
+    "time_ms": 3.396
   },
   {
     "checks": [
       {
         "code_line": "m1.number_of_vertices() == 33",
-        "line": 1016,
-        "passed": true
-      },
-      {
-        "code_line": "m1.number_of_faces() == 32",
-        "line": 1017,
-        "passed": true
-      },
-      {
-        "code_line": "m1.is_valid()",
         "line": 1018,
         "passed": true
       },
       {
+        "code_line": "m1.number_of_faces() == 32",
+        "line": 1019,
+        "passed": true
+      },
+      {
+        "code_line": "m1.is_valid()",
+        "line": 1020,
+        "passed": true
+      },
+      {
         "code_line": "m2.number_of_vertices() == 33",
-        "line": 1021,
-        "passed": true
-      },
-      {
-        "code_line": "m2.number_of_faces() == 16",
-        "line": 1022,
-        "passed": true
-      },
-      {
-        "code_line": "m2.is_valid()",
         "line": 1023,
         "passed": true
       },
       {
+        "code_line": "m2.number_of_faces() == 16",
+        "line": 1024,
+        "passed": true
+      },
+      {
+        "code_line": "m2.is_valid()",
+        "line": 1025,
+        "passed": true
+      },
+      {
         "code_line": "m3.number_of_vertices() == 73",
-        "line": 1026,
+        "line": 1028,
         "passed": true
       },
       {
         "code_line": "m3.number_of_faces() == 15",
-        "line": 1027,
+        "line": 1029,
         "passed": true
       },
       {
         "code_line": "m3.is_valid()",
-        "line": 1028,
+        "line": 1030,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let cone = Primitives::cone_surface(0.0, 0.0, 0.0, 3.0, 5.0);\n\n        let m1 = Primitives::quad_mesh(&cone, 8, 4);\n\n        let m2 = Primitives::diamond_mesh(&cone, 8, 4);\n\n        let m3 = Primitives::hex_mesh(&cone, 6, 4, 1.0/3.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 1010,
+    "line": 1012,
     "passed": true,
     "test_name": "Mesh Cone Subdivisions",
-    "time_ms": 0.267
+    "time_ms": 0.567
   },
   {
     "checks": [
       {
         "code_line": "c.is_valid()",
-        "line": 1050,
-        "passed": true
-      },
-      {
-        "code_line": "c.degree() == 3",
-        "line": 1051,
-        "passed": true
-      },
-      {
-        "code_line": "c.order() == 4",
         "line": 1052,
         "passed": true
       },
       {
-        "code_line": "c.cv_count() == 9",
+        "code_line": "c.degree() == 3",
         "line": 1053,
         "passed": true
       },
       {
-        "code_line": "c.is_rational() == false",
+        "code_line": "c.order() == 4",
         "line": 1054,
         "passed": true
       },
       {
+        "code_line": "c.cv_count() == 9",
+        "line": 1055,
+        "passed": true
+      },
+      {
+        "code_line": "c.is_rational() == false",
+        "line": 1056,
+        "passed": true
+      },
+      {
         "code_line": "TOLERANCE.is_point_close(&c.point_at(d0), &points[0])",
-        "line": 1058,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[3]), &points[1])",
-        "line": 1059,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[4]), &points[2])",
         "line": 1060,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[5]), &points[3])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[3]), &points[1])",
         "line": 1061,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[6]), &points[4])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[4]), &points[2])",
         "line": 1062,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[7]), &points[5])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[5]), &points[3])",
         "line": 1063,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(d1), &points[6])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[6]), &points[4])",
         "line": 1064,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.get_cv(0).unwrap(), &points[0])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[7]), &points[5])",
+        "line": 1065,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(d1), &points[6])",
         "line": 1066,
         "passed": true
       },
       {
+        "code_line": "TOLERANCE.is_point_close(&c.get_cv(0).unwrap(), &points[0])",
+        "line": 1068,
+        "passed": true
+      },
+      {
         "code_line": "TOLERANCE.is_point_close(&c.get_cv(8).unwrap(), &points[6])",
-        "line": 1067,
+        "line": 1069,
         "passed": true
       },
       {
         "code_line": "c4.is_valid()",
-        "line": 1076,
-        "passed": true
-      },
-      {
-        "code_line": "c4.degree() == 3",
-        "line": 1077,
-        "passed": true
-      },
-      {
-        "code_line": "c4.cv_count() == 6",
         "line": 1078,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c4.point_at(d4_0), &pts4[0])",
+        "code_line": "c4.degree() == 3",
+        "line": 1079,
+        "passed": true
+      },
+      {
+        "code_line": "c4.cv_count() == 6",
         "line": 1080,
         "passed": true
       },
       {
+        "code_line": "TOLERANCE.is_point_close(&c4.point_at(d4_0), &pts4[0])",
+        "line": 1082,
+        "passed": true
+      },
+      {
         "code_line": "TOLERANCE.is_point_close(&c4.point_at(d4_1), &pts4[3])",
-        "line": 1081,
+        "line": 1083,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n        use crate::knot::CurveKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(15.342777, 13.734889, 0.0),\n            Point::new(21.897914, 32.239195, 0.0),\n            Point::new(24.678472, 0.354555, 0.0),\n            Point::new(33.813678, 24.76858, 0.0),\n            Point::new(39.626394, 15.47249, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = Primitives::create_interpolated(&points, CurveKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n        let knots = c.get_knots();\n\n\n        let pts4 = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(5.0, 3.0, 0.0),\n        ];\n        let c4 = Primitives::create_interpolated(&pts4, CurveKnotStyle::Chord);\n        let (d4_0, d4_1) = c4.domain();",
     "failures": [],
     "group": "Primitives",
-    "line": 1033,
+    "line": 1035,
     "passed": true,
     "test_name": "Nurbscurve Interpolated",
-    "time_ms": 0.018
+    "time_ms": 0.02
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 1090,
+        "line": 1092,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 4",
-        "line": 1091,
+        "line": 1093,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 4",
-        "line": 1092,
+        "line": 1094,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::tetrahedron(2.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 1086,
+    "line": 1088,
     "passed": true,
     "test_name": "Mesh Tetrahedron",
-    "time_ms": 0.023
+    "time_ms": 0.022
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 1101,
+        "line": 1103,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 8",
-        "line": 1102,
+        "line": 1104,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 6",
-        "line": 1103,
+        "line": 1105,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::cube(2.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 1097,
+    "line": 1099,
     "passed": true,
     "test_name": "Mesh Cube",
     "time_ms": 0.062
@@ -2686,94 +2686,94 @@
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 1112,
+        "line": 1114,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 6",
-        "line": 1113,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 8",
-        "line": 1114,
+        "line": 1116,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::octahedron(2.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 1108,
+    "line": 1110,
     "passed": true,
     "test_name": "Mesh Octahedron",
-    "time_ms": 0.028
+    "time_ms": 0.025
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 1123,
+        "line": 1125,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 12",
-        "line": 1124,
+        "line": 1126,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 20",
-        "line": 1125,
+        "line": 1127,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let m = Primitives::icosahedron(2.0);",
     "failures": [],
     "group": "Primitives",
-    "line": 1119,
+    "line": 1121,
     "passed": true,
     "test_name": "Mesh Icosahedron",
-    "time_ms": 0.116
+    "time_ms": 0.057
   },
   {
     "checks": [
       {
         "code_line": "srf.is_valid()",
-        "line": 1134,
-        "passed": true
-      },
-      {
-        "code_line": "srf.degree(0) == 3",
-        "line": 1135,
-        "passed": true
-      },
-      {
-        "code_line": "srf.degree(1) == 3",
         "line": 1136,
         "passed": true
       },
       {
-        "code_line": "srf.cv_count_dir(Some(0)) == 13",
+        "code_line": "srf.degree(0) == 3",
         "line": 1137,
         "passed": true
       },
       {
-        "code_line": "srf.cv_count_dir(Some(1)) == 13",
+        "code_line": "srf.degree(1) == 3",
         "line": 1138,
         "passed": true
       },
       {
-        "code_line": "corner[2].abs() < 0.1",
+        "code_line": "srf.cv_count_dir(Some(0)) == 13",
+        "line": 1139,
+        "passed": true
+      },
+      {
+        "code_line": "srf.cv_count_dir(Some(1)) == 13",
         "line": 1140,
+        "passed": true
+      },
+      {
+        "code_line": "corner[2].abs() < 0.1",
+        "line": 1142,
         "passed": true
       }
     ],
     "code": "        use crate::primitives::Primitives;\n\n        let srf = Primitives::wave_surface(10.0, 2.0);\n        let corner = srf.point_at(0.0, 0.0).unwrap();",
     "failures": [],
     "group": "Primitives",
-    "line": 1130,
+    "line": 1132,
     "passed": true,
     "test_name": "Nurbssurface Wave",
-    "time_ms": 0.108
+    "time_ms": 3.559
   },
   {
     "checks": [
@@ -2794,6 +2794,6 @@
     "line": 32,
     "passed": true,
     "test_name": "Mesh Edge Pipes",
-    "time_ms": 0.569
+    "time_ms": 1.674
   }
 ]

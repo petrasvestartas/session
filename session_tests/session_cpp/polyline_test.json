@@ -3,7 +3,7 @@
     "group": "Polyline",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.041,
     "line": 17,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor with points\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    Point p3(0.0, 1.0, 0.0);\n    Polyline pl({p0, p1, p2, p3});\n\n    // Basic properties\n    size_t point_count = pl.len();\n    size_t segment_count = pl.segment_count();\n    bool is_empty = pl.is_empty();\n\n    // Get point\n    Point pt = pl.get_point(1);\n\n    // Index operator\n    Point pt_idx = pl[1];\n    Polyline pl_copy = pl;\n    pl_copy.set_point(0, Point(5.0, 6.0, 7.0));\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid())\n    Polyline plcopy = pl;\n    Polyline plother({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n\n    // No-copy operators\n    Polyline plmult = pl;\n    plmult *= 2.0;\n    Polyline pldiv = pl;\n    pldiv /= 2.0;\n    Polyline pladd = pl;\n    pladd += Vector(1.0, 1.0, 1.0);\n    Polyline plsub = pl;\n    plsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Polyline rmul = pl * 2.0;\n    Polyline rdiv = pl / 2.0;\n    Polyline radd = pl + Vector(1.0, 1.0, 1.0);\n    Polyline rdif = pl - Vector(1.0, 1.0, 1.0);\n\n    // Negation (reverse point order)\n    Polyline plneg({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    Polyline neg = -plneg;\n\n    // Polyline with custom color and width\n    Polyline plc({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    plc.linecolor = Color(255, 0, 0, 255, \"red\");\n    plc.width = 2.5;\n\n",
     "checks": [
@@ -109,7 +109,7 @@
     "group": "Polyline",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 114,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    pl.xform = Xform::translation(10.0, 0.0, 0.0);\n    Polyline pl_transformed = pl.transformed();\n    pl.transform();",
     "checks": [
@@ -135,7 +135,7 @@
     "group": "Polyline",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.235,
+    "time_ms": 6.307,
     "line": 134,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    });\n    pl.name = \"test_polyline\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(fname) / json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_polyline.json\";\n    pl.json_dump(fname);\n    Polyline loaded = Polyline::json_load(fname);\n\n\n",
     "checks": [
@@ -171,7 +171,7 @@
     "group": "Polyline",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.785,
+    "time_ms": 5.586,
     "line": 168,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    });\n    pl.name = \"test_polyline\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_polyline.bin\";\n    pl.pb_dump(fname);\n    Polyline loaded = Polyline::pb_load(fname);",
     "checks": [
@@ -207,7 +207,7 @@
     "group": "Polyline",
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 192,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // L-shaped polyline: 1 unit right, 1 unit up, 1 unit left = 3 units total\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    double ln = pl.length();\n    double mag_sq = pl.length_squared();\n\n",
     "checks": [
@@ -228,7 +228,7 @@
     "group": "Polyline",
     "test_name": "Center",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.009,
     "line": 212,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // Square polyline\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    });\n    Point c = pl.center();\n\n",
     "checks": [
@@ -254,7 +254,7 @@
     "group": "Polyline",
     "test_name": "Is Closed",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 232,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // Open polyline\n    Polyline open_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    });\n    bool is_open = open_pl.is_closed();\n\n    // Closed polyline (first and last point same)\n    Polyline closed_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    });\n    bool is_closed = closed_pl.is_closed();\n\n",
     "checks": [
@@ -275,7 +275,7 @@
     "group": "Polyline",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 260,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n\n    // Test reversed() returns new polyline\n    Polyline rev = pl.reversed();\n    double orig_first = pl.get_point(0)[0];\n    double rev_first = rev.get_point(0)[0];\n\n    // Test reverse() in place\n    pl.reverse();\n    double in_place_first = pl.get_point(0)[0];\n\n",
     "checks": [
@@ -301,7 +301,7 @@
     "group": "Polyline",
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 287,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    });\n    Point test_pt(1.0, 1.0, 0.0);\n    size_t edge_id = 0;\n    Point closest;\n    double distance = pl.closest_distance_and_point(test_pt, edge_id, closest);\n\n",
     "checks": [
@@ -332,7 +332,7 @@
     "group": "Polyline",
     "test_name": "Extend Segment",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.006,
     "line": 310,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    pl.extend_segment(0, 0.5, 0.5);\n    double first = pl.get_point(0)[0];\n    double second = pl.get_point(1)[0];",
     "checks": [
@@ -353,7 +353,7 @@
     "group": "Polyline",
     "test_name": "Extend Segment Equally",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 325,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    pl.extend_segment_equally(0, 0.5);\n    double first = pl.get_point(0)[0];\n    double second = pl.get_point(1)[0];",
     "checks": [
@@ -374,7 +374,7 @@
     "group": "Polyline",
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 340,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    std::vector<Point> points = pl.get_points();",
     "checks": [
@@ -408,19 +408,50 @@
   },
   {
     "group": "Polyline",
-    "test_name": "Shift",
+    "test_name": "Get Lines",
     "passed": true,
     "time_ms": 0.002,
     "line": 356,
+    "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    std::vector<Line> lines = pl.get_lines();",
+    "checks": [
+      {
+        "line": 365,
+        "code_line": "lines.size() == 3",
+        "passed": true
+      },
+      {
+        "line": 366,
+        "code_line": "TOLERANCE.is_close(lines[0][0], 0.0) && TOLERANCE.is_close(lines[0][3], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 367,
+        "code_line": "TOLERANCE.is_close(lines[1][0], 1.0) && TOLERANCE.is_close(lines[1][4], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 368,
+        "code_line": "TOLERANCE.is_close(lines[2][0], 1.0) && TOLERANCE.is_close(lines[2][3], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Polyline",
+    "test_name": "Shift",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 371,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    pl.shift(1);\n    double first_after_shift = pl.get_point(0)[0];\n    pl.shift(-1);\n    double first_after_unshift = pl.get_point(0)[0];",
     "checks": [
       {
-        "line": 368,
+        "line": 383,
         "code_line": "TOLERANCE.is_close(first_after_shift, 1.0)",
         "passed": true
       },
       {
-        "line": 369,
+        "line": 384,
         "code_line": "TOLERANCE.is_close(first_after_unshift, 0.0)",
         "passed": true
       }
@@ -432,16 +463,16 @@
     "test_name": "Point At",
     "passed": true,
     "time_ms": 0.001,
-    "line": 372,
+    "line": 387,
     "code": "    Point start(0.0, 0.0, 0.0);\n    Point end(2.0, 0.0, 0.0);\n    Point mid = Polyline::point_at(start, end, 0.5);\n    Point quarter = Polyline::point_at(start, end, 0.25);",
     "checks": [
       {
-        "line": 378,
+        "line": 393,
         "code_line": "TOLERANCE.is_close(mid[0], 1.0)",
         "passed": true
       },
       {
-        "line": 379,
+        "line": 394,
         "code_line": "TOLERANCE.is_close(quarter[0], 0.5)",
         "passed": true
       }
@@ -453,16 +484,16 @@
     "test_name": "Is Clockwise",
     "passed": true,
     "time_ms": 0.002,
-    "line": 382,
+    "line": 397,
     "code": "    // Clockwise square (when viewed from +Z)\n    Polyline cw_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n    });\n    // Counter-clockwise square\n    Polyline ccw_pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    Plane plane;",
     "checks": [
       {
-        "line": 399,
+        "line": 414,
         "code_line": "cw_pl.is_clockwise(plane)",
         "passed": true
       },
       {
-        "line": 400,
+        "line": 415,
         "code_line": "!ccw_pl.is_clockwise(plane)",
         "passed": true
       }
@@ -474,11 +505,11 @@
     "test_name": "Convex Corners",
     "passed": true,
     "time_ms": 0.004,
-    "line": 403,
+    "line": 418,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    std::vector<bool> corners;\n    pl.get_convex_corners(corners);",
     "checks": [
       {
-        "line": 413,
+        "line": 428,
         "code_line": "corners.size() == 4",
         "passed": true
       }
@@ -489,17 +520,17 @@
     "group": "Polyline",
     "test_name": "Tween",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 416,
+    "time_ms": 0.006,
+    "line": 431,
     "code": "    Polyline pl0({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    Polyline pl1({\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0),\n        Point(2.0, 1.0, 0.0),\n    });\n    Polyline tweened = Polyline::tween_two_polylines(pl0, pl1, 0.5);",
     "checks": [
       {
-        "line": 431,
+        "line": 446,
         "code_line": "TOLERANCE.is_close(tweened.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 432,
+        "line": 447,
         "code_line": "TOLERANCE.is_close(tweened.get_point(1)[0], 2.0)",
         "passed": true
       }
@@ -511,26 +542,26 @@
     "test_name": "Average Plane",
     "passed": true,
     "time_ms": 0.004,
-    "line": 435,
+    "line": 450,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    });\n    Point origin;\n    Vector x_axis, y_axis, z_axis;\n    pl.get_average_plane(origin, x_axis, y_axis, z_axis);\n    Point fast_origin;\n    Plane fast_plane;\n    pl.get_fast_plane(fast_origin, fast_plane);",
     "checks": [
       {
-        "line": 449,
+        "line": 464,
         "code_line": "TOLERANCE.is_close(origin[0], 1.0)",
         "passed": true
       },
       {
-        "line": 450,
+        "line": 465,
         "code_line": "TOLERANCE.is_close(origin[1], 1.0)",
         "passed": true
       },
       {
-        "line": 451,
+        "line": 466,
         "code_line": "TOLERANCE.is_close(std::abs(z_axis[2]), 1.0)",
         "passed": true
       },
       {
-        "line": 452,
+        "line": 467,
         "code_line": "fast_origin[0] >= 0.0",
         "passed": true
       }
@@ -541,12 +572,12 @@
     "group": "Polyline",
     "test_name": "Quick Hull",
     "passed": true,
-    "time_ms": 0.019,
-    "line": 455,
+    "time_ms": 0.008,
+    "line": 470,
     "code": "    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    });\n    Polyline hull = Polyline::quick_hull(poly);",
     "checks": [
       {
-        "line": 465,
+        "line": 480,
         "code_line": "hull.point_count() == 4",
         "passed": true
       }
@@ -558,21 +589,21 @@
     "test_name": "Bounding Rectangle",
     "passed": true,
     "time_ms": 0.008,
-    "line": 468,
+    "line": 483,
     "code": "    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    });\n    std::optional<Polyline> rect = Polyline::bounding_rectangle(poly);",
     "checks": [
       {
-        "line": 477,
+        "line": 492,
         "code_line": "rect.has_value() && rect->point_count() == 5",
         "passed": true
       },
       {
-        "line": 478,
+        "line": 493,
         "code_line": "TOLERANCE.is_close(rect->get_point(0)[2], 0.0)",
         "passed": true
       },
       {
-        "line": 479,
+        "line": 494,
         "code_line": "TOLERANCE.is_close(rect->get_point(0)[0], rect->get_point(4)[0])",
         "passed": true
       }
@@ -583,172 +614,172 @@
     "group": "Polyline",
     "test_name": "Grid Of Points In Polygon",
     "passed": true,
-    "time_ms": 0.019,
-    "line": 482,
+    "time_ms": 0.01,
+    "line": 497,
     "code": "    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    });\n    std::vector<Point> pts = Polyline::grid_of_points_in_polygon(poly, 0.0, 1.0, 100);\n\n    for (const auto& p : pts) {",
     "checks": [
       {
-        "line": 491,
+        "line": 506,
         "code_line": "pts.size() > 0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 508,
         "code_line": "p[0] >= 0.0 && p[0] <= 4.0",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 509,
         "code_line": "p[1] >= 0.0 && p[1] <= 4.0",
         "passed": true
       }
@@ -759,82 +790,82 @@
     "group": "Polyline",
     "test_name": "Boolean Op",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 498,
+    "time_ms": 0.047,
+    "line": 513,
     "code": "    using P = Point;\n    Polyline sq_a({\n        P(-1.0, -1.0, 0.0),\n        P( 1.0, -1.0, 0.0),\n        P( 1.0,  1.0, 0.0),\n        P(-1.0,  1.0, 0.0),\n    });\n    Polyline sq_b({\n        P(0.0, 0.0, 0.0),\n        P(2.0, 0.0, 0.0),\n        P(2.0, 2.0, 0.0),\n        P(0.0, 2.0, 0.0),\n    });\n    Polyline sq_inside({\n        P(-0.5, -0.5, 0.0),\n        P( 0.5, -0.5, 0.0),\n        P( 0.5,  0.5, 0.0),\n        P(-0.5,  0.5, 0.0),\n    });\n    Polyline sq_disjoint({\n        P(5.0, 5.0, 0.0),\n        P(6.0, 5.0, 0.0),\n        P(6.0, 6.0, 0.0),\n        P(5.0, 6.0, 0.0),\n    });\n\n    auto isect  = Polyline::boolean_op(sq_a, sq_b, 0);\n    auto uni    = Polyline::boolean_op(sq_a, sq_b, 1);\n    auto diff   = Polyline::boolean_op(sq_a, sq_b, 2);\n\n\n    auto isect_in  = Polyline::boolean_op(sq_a, sq_inside, 0);\n    auto uni_in    = Polyline::boolean_op(sq_a, sq_inside, 1);\n    auto diff_in   = Polyline::boolean_op(sq_a, sq_inside, 2);\n\n\n    auto isect_dis = Polyline::boolean_op(sq_a, sq_disjoint, 0);\n    auto uni_dis   = Polyline::boolean_op(sq_a, sq_disjoint, 1);\n    auto diff_dis  = Polyline::boolean_op(sq_a, sq_disjoint, 2);",
     "checks": [
       {
-        "line": 529,
+        "line": 544,
         "code_line": "isect.size() == 1",
         "passed": true
       },
       {
-        "line": 530,
+        "line": 545,
         "code_line": "isect[0].point_count() == 4",
         "passed": true
       },
       {
-        "line": 531,
+        "line": 546,
         "code_line": "uni.size() == 1",
         "passed": true
       },
       {
-        "line": 532,
+        "line": 547,
         "code_line": "uni[0].point_count() == 8",
         "passed": true
       },
       {
-        "line": 533,
+        "line": 548,
         "code_line": "diff.size() == 1",
         "passed": true
       },
       {
-        "line": 534,
+        "line": 549,
         "code_line": "diff[0].point_count() == 6",
         "passed": true
       },
       {
-        "line": 540,
+        "line": 555,
         "code_line": "isect_in.size() == 1",
         "passed": true
       },
       {
-        "line": 541,
+        "line": 556,
         "code_line": "isect_in[0].point_count() == 4",
         "passed": true
       },
       {
-        "line": 542,
+        "line": 557,
         "code_line": "uni_in.size() == 1",
         "passed": true
       },
       {
-        "line": 543,
+        "line": 558,
         "code_line": "uni_in[0].point_count() == 4",
         "passed": true
       },
       {
-        "line": 544,
+        "line": 559,
         "code_line": "diff_in.size() == 1",
         "passed": true
       },
       {
-        "line": 545,
+        "line": 560,
         "code_line": "diff_in[0].point_count() == 4",
         "passed": true
       },
       {
-        "line": 551,
+        "line": 566,
         "code_line": "isect_dis.size() == 0",
         "passed": true
       },
       {
-        "line": 552,
+        "line": 567,
         "code_line": "uni_dis.size() == 2",
         "passed": true
       },
       {
-        "line": 553,
+        "line": 568,
         "code_line": "diff_dis.size() == 1",
         "passed": true
       }
@@ -845,32 +876,32 @@
     "group": "Polyline",
     "test_name": "Simplify Points",
     "passed": true,
-    "time_ms": 0.048,
-    "line": 556,
+    "time_ms": 0.08,
+    "line": 571,
     "code": "    std::vector<Point> pts;\n    for (int i = 0; i < 100; ++i) {\n        double x = static_cast<double>(i);\n        double y = std::sin(static_cast<double>(i) * 0.1) * 0.001;\n        double z = 0.0;\n        pts.push_back(Point(x, y, z));\n    }\n    std::vector<Point> result_tight = Polyline::simplify_points(pts, 0.0001);\n    std::vector<Point> result_loose = Polyline::simplify_points(pts, 0.01);\n    std::vector<Point> result_very_loose = Polyline::simplify_points(pts, 1.0);",
     "checks": [
       {
-        "line": 568,
+        "line": 583,
         "code_line": "result_tight.size() <= pts.size()",
         "passed": true
       },
       {
-        "line": 569,
+        "line": 584,
         "code_line": "result_loose.size() <= result_tight.size()",
         "passed": true
       },
       {
-        "line": 570,
+        "line": 585,
         "code_line": "result_very_loose.size() <= result_loose.size()",
         "passed": true
       },
       {
-        "line": 571,
+        "line": 586,
         "code_line": "result_tight.front()[0] == pts.front()[0]",
         "passed": true
       },
       {
-        "line": 572,
+        "line": 587,
         "code_line": "result_tight.back()[0] == pts.back()[0]",
         "passed": true
       }
@@ -881,22 +912,22 @@
     "group": "Polyline",
     "test_name": "Simplify",
     "passed": true,
-    "time_ms": 0.011,
-    "line": 575,
+    "time_ms": 0.013,
+    "line": 590,
     "code": "    std::vector<Point> pts;\n    for (int i = 0; i < 20; ++i) {\n        double x = static_cast<double>(i);\n        double y = 0.0;\n        double z = 0.0;\n        pts.push_back(Point(x, y, z));\n    }\n    Polyline pl(pts);\n    Polyline result = pl.simplify(0.001);",
     "checks": [
       {
-        "line": 586,
+        "line": 601,
         "code_line": "result.point_count() == 2",
         "passed": true
       },
       {
-        "line": 587,
+        "line": 602,
         "code_line": "TOLERANCE.is_close(result.get_point(0)[0], 0.0)",
         "passed": true
       },
       {
-        "line": 588,
+        "line": 603,
         "code_line": "TOLERANCE.is_close(result.get_point(1)[0], 19.0)",
         "passed": true
       }
@@ -907,22 +938,22 @@
     "group": "Polyline",
     "test_name": "Simplify Collinear",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 591,
+    "time_ms": 0.003,
+    "line": 606,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    std::vector<Point> result = Polyline::simplify_points(pts, 0.001);",
     "checks": [
       {
-        "line": 601,
+        "line": 616,
         "code_line": "result.size() == 2",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 617,
         "code_line": "TOLERANCE.is_close(result.front()[0], 0.0)",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 618,
         "code_line": "TOLERANCE.is_close(result.back()[0], 4.0)",
         "passed": true
       }
@@ -933,17 +964,17 @@
     "group": "Polyline",
     "test_name": "Simplify Zigzag",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 606,
+    "time_ms": 0.009,
+    "line": 621,
     "code": "    std::vector<Point> pts;\n    for (int i = 0; i < 10; ++i) {\n        double x = static_cast<double>(i);\n        double y = (i % 2 == 1) ? 1.0 : 0.0;\n        double z = 0.0;\n        pts.push_back(Point(x, y, z));\n    }\n    std::vector<Point> result_tight = Polyline::simplify_points(pts, 0.1);\n    std::vector<Point> result_loose = Polyline::simplify_points(pts, 2.0);",
     "checks": [
       {
-        "line": 617,
+        "line": 632,
         "code_line": "result_tight.size() == 10",
         "passed": true
       },
       {
-        "line": 618,
+        "line": 633,
         "code_line": "result_loose.size() < result_tight.size()",
         "passed": true
       }
@@ -955,11 +986,11 @@
     "test_name": "Simplify Two Points",
     "passed": true,
     "time_ms": 0.001,
-    "line": 621,
+    "line": 636,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n    };\n    std::vector<Point> result = Polyline::simplify_points(pts, 0.001);",
     "checks": [
       {
-        "line": 628,
+        "line": 643,
         "code_line": "result.size() == 2",
         "passed": true
       }

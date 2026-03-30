@@ -37,7 +37,17 @@
       "Bash(sed:*)",
       "Bash(pip show:*)",
       "Bash(curl:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(bash bash/minitest.sh --cpp --no-web)",
+      "Bash(./build/Release/point_minitest.exe --filter \"Polyline\")",
+      "Bash(for i:*)",
+      "Bash(do echo:*)",
+      "Bash(./build/Release/bool_bench.exe)",
+      "Bash(done)",
+      "Bash(tasklist)",
+      "Bash(bash bash/minitest.sh --rust --no-web)",
+      "Bash(./build/Release/point_minitest.exe --filter \"Polyline::Boolean\")",
+      "Bash(./build/Release/main_1.exe)"
     ]
   },
   "enableAllProjectMcpServers": true,

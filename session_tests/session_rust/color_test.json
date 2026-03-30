@@ -84,7 +84,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.695
+    "time_ms": 6.544
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 236,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.86
+    "time_ms": 6.747
   },
   {
     "checks": [
@@ -156,7 +156,7 @@
     "line": 255,
     "passed": true,
     "test_name": "Conversion",
-    "time_ms": 0.0
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -387,6 +387,6 @@
     "line": 272,
     "passed": true,
     "test_name": "Presets",
-    "time_ms": 0.008
+    "time_ms": 0.019
   }
 ]

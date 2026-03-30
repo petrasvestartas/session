@@ -3,7 +3,7 @@
     "group": "Primitives",
     "test_name": "Mesh Arrow",
     "passed": true,
-    "time_ms": 0.35,
+    "time_ms": 0.326,
     "line": 9,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.arrow_mesh(line, 1.0)",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "Primitives",
     "test_name": "Mesh Cylinder",
     "passed": true,
-    "time_ms": 0.226,
+    "time_ms": 0.236,
     "line": 21,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.cylinder_mesh(line, 1.0)",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "Primitives",
     "test_name": "Mesh Edge Pipes",
     "passed": true,
-    "time_ms": 2.132,
+    "time_ms": 1.719,
     "line": 33,
     "code": "    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)",
     "checks": [
@@ -71,7 +71,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Polyline",
     "passed": true,
-    "time_ms": 1.449,
+    "time_ms": 1.146,
     "line": 54,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    c = NurbsCurve.create(False, 1, [\n        Point(0, 0, 0),\n        Point(1, 2, 0),\n        Point(2, 0, 0),\n        Point(3, 2, 0),\n        Point(4, 0, 0),\n    ])",
     "checks": [
@@ -112,7 +112,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Circle",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.041,
     "line": 75,
     "code": "    from session_py import Primitives\n\n    c = Primitives.circle(0.0, 0.0, 0.0, 1.0)",
     "checks": [
@@ -138,7 +138,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Ellipse",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.025,
     "line": 86,
     "code": "    from session_py import Primitives\n\n    c = Primitives.ellipse(0.0, 0.0, 0.0, 2.0, 1.0)",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Arc",
     "passed": true,
-    "time_ms": 0.051,
+    "time_ms": 0.036,
     "line": 97,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    mid = Point(1.0, 1.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    c = Primitives.arc(start, mid, end)",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Parabola",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.019,
     "line": 112,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    p0 = Point(-1.0, 1.0, 0.0)\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    c = Primitives.parabola(p0, p1, p2)",
     "checks": [
@@ -216,7 +216,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Hyperbola",
     "passed": true,
-    "time_ms": 0.064,
+    "time_ms": 0.05,
     "line": 127,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    center = Point(0.0, 0.0, 0.0)\n    c = Primitives.hyperbola(center, 1.0, 1.0, 1.0)",
     "checks": [
@@ -242,7 +242,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Spiral",
     "passed": true,
-    "time_ms": 0.083,
+    "time_ms": 0.075,
     "line": 140,
     "code": "    from session_py import Primitives\n\n    c = Primitives.spiral(1.0, 2.0, 1.0, 5.0)",
     "checks": [
@@ -268,7 +268,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Cylinder",
     "passed": true,
-    "time_ms": 0.421,
+    "time_ms": 0.362,
     "line": 151,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p01 = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(1.0, 0.5)",
     "checks": [
@@ -354,7 +354,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Cone",
     "passed": true,
-    "time_ms": 0.264,
+    "time_ms": 0.29,
     "line": 181,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cone_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    pbase = s.point_at(0.0, 0.0)\n\n    papex = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(0.0, 0.5)",
     "checks": [
@@ -440,7 +440,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Sphere",
     "passed": true,
-    "time_ms": 0.443,
+    "time_ms": 0.482,
     "line": 211,
     "code": "    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p_top = s.point_at(0.0, 2.0)\n\n    p_eq = s.point_at(0.0, 1.0)\n\n    p_eq2 = s.point_at(1.0, 1.0)",
     "checks": [
@@ -541,7 +541,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Quad Sphere",
     "passed": true,
-    "time_ms": 5.811,
+    "time_ms": 4.151,
     "line": 245,
     "code": "    from session_py import Primitives\n    import math\n\n    R = 5.0\n    faces = Primitives.quad_sphere(0.0, 0.0, 0.0, R)\n\n    for f in range(6):\n\n    max_err = 0.0\n    for f in range(6):\n        for i in range(5):\n            u = i / 4.0\n            for j in range(5):\n                v = j / 4.0\n                p = faces[f].point_at(u, v)\n                dist = math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2])\n                err = abs(dist - R)\n                if err > max_err:\n                    max_err = err",
     "checks": [
@@ -742,7 +742,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Torus",
     "passed": true,
-    "time_ms": 0.476,
+    "time_ms": 0.489,
     "line": 276,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.torus_surface(0.0, 0.0, 0.0, 3.0, 1.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p10 = s.point_at(1.0, 0.0)\n\n    p_top = s.point_at(0.0, 1.0)",
     "checks": [
@@ -828,7 +828,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Ruled",
     "passed": true,
-    "time_ms": 12.398,
+    "time_ms": 18.251,
     "line": 306,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [\n        Point(3.0, 0.0, 0.0),\n        Point(-2.0, 0.0, 5.0),\n    ]\n    pts_b = [\n        Point(3.0, 5.0, 5.0),\n        Point(-2.0, 5.0, 0.0),\n    ]\n    crv_a = NurbsCurve.create(False, 1, pts_a)\n    crv_b = NurbsCurve.create(False, 1, pts_b)\n    srf = Primitives.create_ruled(crv_a, crv_b)\n    _m = srf.mesh()\n\n\n    rd, ruv = srf.divide_by_count(4, 4)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(srf.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])",
     "checks": [
@@ -1154,7 +1154,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Planar",
     "passed": true,
-    "time_ms": 317.947,
+    "time_ms": 402.076,
     "line": 411,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = math.cos(0.7); s1 = math.sin(0.7)\n    c2 = math.cos(0.96); s2 = math.sin(0.96)\n    c3 = math.cos(0.52); s3 = math.sin(0.52)\n    c4 = math.cos(1.13); s4 = math.sin(1.13)\n\n    ca = NurbsCurve.create(False, 1, [\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0*c1, 3.0*s1),\n        Point(0.0, 3.0*c1, 3.0*s1),\n        Point(0.0, 0.0, 0.0),\n    ])\n    s_quad = Primitives.create_planar(ca)\n    m_quad = s_quad.mesh()\n\n    cb1 = NurbsCurve.create(False, 1, [\n        Point(8.0, 0.0, 0.0),\n        Point(8.0+5.0*c2, 0.0, 5.0*s2),\n        Point(8.0+2.0*c2, 3.0, 2.0*s2),\n        Point(8.0, 0.0, 0.0),\n    ])\n    s_triangle = Primitives.create_planar(cb1)\n    m_triangle = s_triangle.mesh()\n\n    ox = 18.0\n    cb2 = NurbsCurve.create(False, 1, [\n        Point(ox+0.0*c3, 0.0*s3, 0.0),\n        Point(ox+4.0*c3, 4.0*s3, 0.0),\n        Point(ox+5.0*c3-2.0*s3, 5.0*s3+2.0*c3, 0.0),\n        Point(ox+3.0*c3-4.0*s3, 3.0*s3+4.0*c3, 0.0),\n        Point(ox-1.0*c3-3.0*s3, -1.0*s3+3.0*c3, 0.0),\n        Point(ox+0.0*c3, 0.0*s3, 0.0)])\n    s_polygon = Primitives.create_planar(cb2)\n    m_polygon = s_polygon.mesh()\n\n    cc = NurbsCurve.create(False, 3, [\n        Point(26.0, 0.0, 0.0),\n        Point(29.0, 1.0*c4, 1.0*s4),\n        Point(31.0, 0.5*c4, 0.5*s4),\n        Point(32.0, 3.0*c4, 3.0*s4),\n        Point(30.0, 5.0*c4, 5.0*s4),\n        Point(27.0, 4.0*c4, 4.0*s4),\n        Point(26.0, 0.0, 0.0)])\n    s_nurbs = Primitives.create_planar(cc)\n    m_nurbs = s_nurbs.mesh()",
     "checks": [
@@ -1365,7 +1365,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Extrusion",
     "passed": true,
-    "time_ms": 11.612,
+    "time_ms": 23.162,
     "line": 508,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    direction = Vector(0.0, 1.0, 5.0)\n\n    c1 = NurbsCurve.create(False, 1, [\n        Point(13.0, 0.0, 0.0),\n        Point(18.0, 0.0, 0.0),\n    ])\n    s_line = Primitives.create_extrusion(c1, direction)\n    m_line = s_line.mesh()\n\n    c2 = Primitives.circle(24.0, 0.0, 0.0, 3.0)\n    s_circle = Primitives.create_extrusion(c2, direction)\n    m_circle = s_circle.mesh()\n\n    c3 = NurbsCurve.create(False, 2, [\n        Point(30.0, 0.0, 0.0),\n        Point(33.0, 5.0, 0.0),\n        Point(37.0, 0.0, 0.0),\n    ])\n    s_arc = Primitives.create_extrusion(c3, direction)\n    m_arc = s_arc.mesh()\n\n    c4 = NurbsCurve.create(False, 1, [\n        Point(40.0, 3.0, 0.0),\n        Point(45.0, 0.0, 0.0),\n        Point(50.0, 3.0, 0.0),\n        Point(55.0, 0.0, 0.0),\n    ])\n    s_wavy = Primitives.create_extrusion(c4, direction)\n    m_wavy = s_wavy.mesh()",
     "checks": [
@@ -1596,7 +1596,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Loft",
     "passed": true,
-    "time_ms": 3.421,
+    "time_ms": 12.701,
     "line": 594,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n    c2 = Primitives.circle(0.0, 0.0, 2.0, 1.0)\n    c3 = Primitives.circle(0.0, 0.0, 4.0, 1.5)\n    c4 = Primitives.circle(0.0, 0.0, 6.0, 0.8)\n\n    srf = Primitives.create_loft([c1, c2, c3, c4], 3)\n\n\n    open_pts = [\n        [\n            Point(10.0, -12.0, 0.0),\n            Point(10.0, -10.0, 3.0),\n            Point(10.0, -7.0, 3.0),\n            Point(10.0, -5.0, 0.0),\n        ],\n        [\n            Point(5.5, -12.0, 3.5),\n            Point(5.5, -10.0, 1.5),\n            Point(5.5, -7.0, 1.5),\n            Point(5.5, -5.0, 3.5),\n        ],\n        [\n            Point(1.0, -12.0, 0.0),\n            Point(1.0, -10.0, 3.0),\n            Point(1.0, -7.0, 3.0),\n            Point(1.0, -5.0, 0.0),\n        ],\n    ]\n    open_curves = [\n        NurbsCurve.create(False, 3, open_pts[0]),\n        NurbsCurve.create(False, 3, open_pts[1]),\n        NurbsCurve.create(False, 3, open_pts[2]),\n    ]\n    open_srf = Primitives.create_loft(open_curves, 3)",
     "checks": [
@@ -1877,7 +1877,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Revolve",
     "passed": true,
-    "time_ms": 168.289,
+    "time_ms": 211.187,
     "line": 692,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pa = NurbsCurve.create(False, 3, [\n        Point(1.5, 0.0, 0.0),\n        Point(1.5, 0.0, 0.3),\n        Point(0.3, 0.0, 0.5),\n        Point(0.3, 0.0, 2.5),\n        Point(0.2, 0.0, 3.0),\n        Point(2.0, 0.0, 4.5),\n        Point(1.8, 0.0, 5.0),\n    ])\n    s_vase = Primitives.create_revolve(pa, Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_vase = s_vase.mesh()\n\n    w = math.sqrt(2.0) / 2.0\n    cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0]\n    ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0]\n    sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0]\n    ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0]\n    rr = 5.0; r = 1.5; tcx = 14.0\n    pb = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=9)\n    for i in range(10):\n        pb.set_knot(i, ck[i])\n    for i in range(9):\n        pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i])\n    s_torus = Primitives.create_revolve(pb, Point(tcx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_torus = s_torus.mesh()\n\n    pc = NurbsCurve.create(False, 1, [Point(29.0, 0.0, -0.5), Point(29.0, 0.0, 0.5)])\n    s_elbow = Primitives.create_revolve(pc, Point(26.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), PI / 2.0)\n    m_elbow = s_elbow.mesh()\n\n    sr = 2.0; scx = 36.0\n    pd = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=5)\n    sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0]\n    for i in range(6):\n        pd.set_knot(i, sk[i])\n    spx = [0.0, sr, sr, sr, 0.0]; spz = [-sr, -sr, 0.0, sr, sr]; spw = [1.0, w, 1.0, w, 1.0]\n    for i in range(5):\n        pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i])\n    s_sphere = Primitives.create_revolve(pd, Point(scx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_sphere = s_sphere.mesh()\n\n    pe = NurbsCurve.create(False, 1, [Point(44.0, 0.0, 3.0), Point(46.0, 0.0, 0.0)])\n    s_cone = Primitives.create_revolve(pe, Point(44.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_cone = s_cone.mesh()",
     "checks": [
@@ -2138,9 +2138,9 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Sweep",
     "passed": true,
-    "time_ms": 569.656,
+    "time_ms": 378.951,
     "line": 800,
-    "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 5.0, 0.0),\n        Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(7.0, 3.0, 0.0),\n        Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0),\n        Point(10.0, 3.0, 0.0),\n        Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(8.0, -1.0, 2.0),\n        Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0),\n        Point(8.5, 4.0, 1.5),\n        Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()",
+    "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 5.0, 0.0),\n        Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(7.0, 3.0, 0.0),\n        Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0),\n        Point(10.0, 3.0, 0.0),\n        Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(8.0, -1.0, 2.0),\n        Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0),\n        Point(8.5, 4.0, 1.5),\n        Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()\n\n    TOLERANCE.absolute = 1e-6\n\n    TOLERANCE.reset()",
     "checks": [
       {
         "line": 838,
@@ -2173,97 +2173,97 @@
         "passed": true
       },
       {
-        "line": 844,
+        "line": 845,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 845,
+        "line": 846,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 1), Point(0.888635792881381, 1.202714517481950, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 846,
+        "line": 847,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 2), Point(1.024939251342349, 2.995270183326687, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 847,
+        "line": 848,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 3), Point(1.646130147308625, 5.890456645823520, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 848,
+        "line": 849,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 4), Point(2.268126490080245, 7.550043751484516, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 849,
+        "line": 850,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(0, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 850,
+        "line": 851,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(1, 0), Point(0.888888888888889, 0.000000000000000, -1.000000000000000))",
         "passed": true
       },
       {
-        "line": 851,
+        "line": 852,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(4, 0), Point(-1.111111111111111, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 852,
+        "line": 853,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(8, 0), Point(0.888888888888889, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 853,
+        "line": 854,
         "code_line": "TOLERANCE.is_point_close(s_sweep1.get_cv(8, 5), Point(2.795046402150731, 8.602476824301650, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 855,
+        "line": 856,
         "code_line": "s_sweep2.is_valid()",
         "passed": true
       },
       {
-        "line": 856,
+        "line": 857,
         "code_line": "s_sweep2.cv_count_dir(0) == 3",
         "passed": true
       },
       {
-        "line": 857,
+        "line": 858,
         "code_line": "s_sweep2.cv_count_dir(1) == 6",
         "passed": true
       },
       {
-        "line": 858,
+        "line": 859,
         "code_line": "m_sweep2.number_of_vertices() > 0",
         "passed": true
       },
       {
-        "line": 859,
+        "line": 860,
         "code_line": "m_sweep2.number_of_faces() > 0",
         "passed": true
       },
       {
-        "line": 860,
+        "line": 861,
         "code_line": "TOLERANCE.is_point_close(s_sweep2.get_cv(0, 0), Point(6.000000000000000, -1.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 861,
+        "line": 862,
         "code_line": "TOLERANCE.is_point_close(s_sweep2.get_cv(0, 5), Point(8.000000000000000, 4.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 862,
+        "line": 863,
         "code_line": "TOLERANCE.is_point_close(s_sweep2.get_cv(2, 0), Point(9.999999999999998, -1.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 863,
+        "line": 864,
         "code_line": "TOLERANCE.is_point_close(s_sweep2.get_cv(2, 5), Point(8.999999999999998, 4.000000000000000, 0.000000000000000))",
         "passed": true
       }
@@ -2274,97 +2274,97 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Edge",
     "passed": true,
-    "time_ms": 13.528,
-    "line": 866,
+    "time_ms": 7.211,
+    "line": 868,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts_south = [\n        Point(1.0, 20.569076, 0.0),\n        Point(1.0, 22.569076, 3.0),\n        Point(1.0, 25.569076, 3.0),\n        Point(1.0, 27.569076, 0.0),\n    ]\n    pts_west  = [\n        Point(10.0, 20.569076, 0.0),\n        Point(5.5, 20.569076, 3.5),\n        Point(1.0, 20.569076, 0.0),\n    ]\n    pts_north = [\n        Point(10.0, 20.569076, 0.0),\n        Point(10.0, 22.569076, 3.0),\n        Point(10.0, 25.569076, 3.0),\n        Point(10.0, 27.569076, 0.0),\n    ]\n    pts_east  = [\n        Point(10.0, 27.569076, 0.0),\n        Point(5.5, 27.569076, 3.5),\n        Point(1.0, 27.569076, 0.0),\n    ]\n\n    south = NurbsCurve.create(False, 3, pts_south)\n    west  = NurbsCurve.create(False, 2, pts_west)\n    north = NurbsCurve.create(False, 3, pts_north)\n    east  = NurbsCurve.create(False, 2, pts_east)\n\n    surf = Primitives.create_edge(south, west, north, east)\n    m = surf.mesh()",
     "checks": [
       {
-        "line": 903,
+        "line": 905,
         "code_line": "surf.is_valid()",
         "passed": true
       },
       {
-        "line": 904,
+        "line": 906,
         "code_line": "m.number_of_faces() > 0",
         "passed": true
       },
       {
-        "line": 905,
+        "line": 907,
         "code_line": "surf.degree(0) == 2",
         "passed": true
       },
       {
-        "line": 906,
+        "line": 908,
         "code_line": "surf.degree(1) == 3",
         "passed": true
       },
       {
-        "line": 907,
+        "line": 909,
         "code_line": "surf.cv_count_dir(0) == 3",
         "passed": true
       },
       {
-        "line": 908,
+        "line": 910,
         "code_line": "surf.cv_count_dir(1) == 4",
         "passed": true
       },
       {
-        "line": 910,
+        "line": 912,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(0, 0), Point(1.0, 20.569076, 0.0))",
         "passed": true
       },
       {
-        "line": 911,
+        "line": 913,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(0, 1), Point(1.0, 22.569076, 3.0))",
         "passed": true
       },
       {
-        "line": 912,
+        "line": 914,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(0, 2), Point(1.0, 25.569076, 3.0))",
         "passed": true
       },
       {
-        "line": 913,
+        "line": 915,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(0, 3), Point(1.0, 27.569076, 0.0))",
         "passed": true
       },
       {
-        "line": 914,
+        "line": 916,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(1, 0), Point(5.5, 20.569076, 3.5))",
         "passed": true
       },
       {
-        "line": 915,
+        "line": 917,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(1, 1), Point(5.5, 22.569076, 6.5))",
         "passed": true
       },
       {
-        "line": 916,
+        "line": 918,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(1, 2), Point(5.5, 25.569076, 6.5))",
         "passed": true
       },
       {
-        "line": 917,
+        "line": 919,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(1, 3), Point(5.5, 27.569076, 3.5))",
         "passed": true
       },
       {
-        "line": 918,
+        "line": 920,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(2, 0), Point(10.0, 20.569076, 0.0))",
         "passed": true
       },
       {
-        "line": 919,
+        "line": 921,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(2, 1), Point(10.0, 22.569076, 3.0))",
         "passed": true
       },
       {
-        "line": 920,
+        "line": 922,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(2, 2), Point(10.0, 25.569076, 3.0))",
         "passed": true
       },
       {
-        "line": 921,
+        "line": 923,
         "code_line": "TOLERANCE.is_point_close(surf.get_cv(2, 3), Point(10.0, 27.569076, 0.0))",
         "passed": true
       }
@@ -2375,37 +2375,37 @@
     "group": "Primitives",
     "test_name": "Mesh Quad Mesh",
     "passed": true,
-    "time_ms": 2.364,
-    "line": 928,
+    "time_ms": 2.338,
+    "line": 930,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.quad_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.quad_mesh(sph, 8, 4)",
     "checks": [
       {
-        "line": 934,
+        "line": 936,
         "code_line": "m.number_of_vertices() == 40",
         "passed": true
       },
       {
-        "line": 935,
+        "line": 937,
         "code_line": "m.number_of_faces() == 32",
         "passed": true
       },
       {
-        "line": 936,
+        "line": 938,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 940,
+        "line": 942,
         "code_line": "m2.number_of_vertices() == 26",
         "passed": true
       },
       {
-        "line": 941,
+        "line": 943,
         "code_line": "m2.number_of_faces() == 32",
         "passed": true
       },
       {
-        "line": 942,
+        "line": 944,
         "code_line": "m2.is_valid()",
         "passed": true
       }
@@ -2416,37 +2416,37 @@
     "group": "Primitives",
     "test_name": "Mesh Diamond Mesh",
     "passed": true,
-    "time_ms": 2.295,
-    "line": 945,
+    "time_ms": 1.923,
+    "line": 947,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.diamond_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.diamond_mesh(sph, 8, 4)",
     "checks": [
       {
-        "line": 951,
+        "line": 953,
         "code_line": "m.number_of_vertices() == 40",
         "passed": true
       },
       {
-        "line": 952,
+        "line": 954,
         "code_line": "m.number_of_faces() == 20",
         "passed": true
       },
       {
-        "line": 953,
+        "line": 955,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 957,
+        "line": 959,
         "code_line": "m2.number_of_vertices() == 26",
         "passed": true
       },
       {
-        "line": 958,
+        "line": 960,
         "code_line": "m2.number_of_faces() == 12",
         "passed": true
       },
       {
-        "line": 959,
+        "line": 961,
         "code_line": "m2.is_valid()",
         "passed": true
       }
@@ -2457,37 +2457,37 @@
     "group": "Primitives",
     "test_name": "Mesh Hex Mesh",
     "passed": true,
-    "time_ms": 6.3,
-    "line": 962,
+    "time_ms": 3.559,
+    "line": 964,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.hex_mesh(cyl, 6, 4, 1.0/3.0)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.hex_mesh(sph, 6, 4, 1.0/3.0)",
     "checks": [
       {
-        "line": 968,
+        "line": 970,
         "code_line": "m.number_of_vertices() == 78",
         "passed": true
       },
       {
-        "line": 969,
+        "line": 971,
         "code_line": "m.number_of_faces() == 15",
         "passed": true
       },
       {
-        "line": 970,
+        "line": 972,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 974,
+        "line": 976,
         "code_line": "m2.number_of_vertices() == 68",
         "passed": true
       },
       {
-        "line": 975,
+        "line": 977,
         "code_line": "m2.number_of_faces() == 15",
         "passed": true
       },
       {
-        "line": 976,
+        "line": 978,
         "code_line": "m2.is_valid()",
         "passed": true
       }
@@ -2498,52 +2498,52 @@
     "group": "Primitives",
     "test_name": "Mesh Cone Subdivisions",
     "passed": true,
-    "time_ms": 10.301,
-    "line": 980,
+    "time_ms": 3.274,
+    "line": 982,
     "code": "    from session_py import Primitives\n\n    cone = Primitives.cone_surface(0, 0, 0, 3.0, 5.0)\n\n    m1 = Primitives.quad_mesh(cone, 8, 4)\n\n    m2 = Primitives.diamond_mesh(cone, 8, 4)\n\n    m3 = Primitives.hex_mesh(cone, 6, 4, 1.0/3.0)",
     "checks": [
       {
-        "line": 987,
+        "line": 989,
         "code_line": "m1.number_of_vertices() == 33",
         "passed": true
       },
       {
-        "line": 988,
+        "line": 990,
         "code_line": "m1.number_of_faces() == 32",
         "passed": true
       },
       {
-        "line": 989,
+        "line": 991,
         "code_line": "m1.is_valid()",
         "passed": true
       },
       {
-        "line": 992,
+        "line": 994,
         "code_line": "m2.number_of_vertices() == 33",
         "passed": true
       },
       {
-        "line": 993,
+        "line": 995,
         "code_line": "m2.number_of_faces() == 16",
         "passed": true
       },
       {
-        "line": 994,
+        "line": 996,
         "code_line": "m2.is_valid()",
         "passed": true
       },
       {
-        "line": 997,
+        "line": 999,
         "code_line": "m3.number_of_vertices() == 73",
         "passed": true
       },
       {
-        "line": 998,
+        "line": 1000,
         "code_line": "m3.number_of_faces() == 15",
         "passed": true
       },
       {
-        "line": 999,
+        "line": 1001,
         "code_line": "m3.is_valid()",
         "passed": true
       }
@@ -2554,102 +2554,102 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Interpolated",
     "passed": true,
-    "time_ms": 0.599,
-    "line": 1002,
+    "time_ms": 0.573,
+    "line": 1004,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import knot\n\n    points = [\n        Point(14, 9, 0),\n        Point(15.342777, 13.734889, 0),\n        Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0),\n        Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0),\n        Point(41, 13, 0),\n    ]\n\n    c = Primitives.create_interpolated(points, knot.CurveKnotStyle.Chord)\n\n\n    d0, d1 = c.domain()\n    knots = c.get_knots()\n\n\n    pts4 = [\n        Point(0, 0, 0),\n        Point(1, 2, 0),\n        Point(3, 1, 0),\n        Point(5, 3, 0),\n    ]\n    c4 = Primitives.create_interpolated(pts4, knot.CurveKnotStyle.Chord)\n    d4_0, d4_1 = c4.domain()",
     "checks": [
       {
-        "line": 1021,
+        "line": 1023,
         "code_line": "c.is_valid()",
         "passed": true
       },
       {
-        "line": 1022,
+        "line": 1024,
         "code_line": "c.degree() == 3",
         "passed": true
       },
       {
-        "line": 1023,
+        "line": 1025,
         "code_line": "c.order() == 4",
         "passed": true
       },
       {
-        "line": 1024,
+        "line": 1026,
         "code_line": "c.cv_count() == 9",
         "passed": true
       },
       {
-        "line": 1025,
+        "line": 1027,
         "code_line": "c.is_rational() == False",
         "passed": true
       },
       {
-        "line": 1029,
+        "line": 1031,
         "code_line": "TOLERANCE.is_point_close(c.point_at(d0), points[0])",
         "passed": true
       },
       {
-        "line": 1030,
+        "line": 1032,
         "code_line": "TOLERANCE.is_point_close(c.point_at(knots[3]), points[1])",
         "passed": true
       },
       {
-        "line": 1031,
+        "line": 1033,
         "code_line": "TOLERANCE.is_point_close(c.point_at(knots[4]), points[2])",
         "passed": true
       },
       {
-        "line": 1032,
+        "line": 1034,
         "code_line": "TOLERANCE.is_point_close(c.point_at(knots[5]), points[3])",
         "passed": true
       },
       {
-        "line": 1033,
+        "line": 1035,
         "code_line": "TOLERANCE.is_point_close(c.point_at(knots[6]), points[4])",
         "passed": true
       },
       {
-        "line": 1034,
+        "line": 1036,
         "code_line": "TOLERANCE.is_point_close(c.point_at(knots[7]), points[5])",
         "passed": true
       },
       {
-        "line": 1035,
+        "line": 1037,
         "code_line": "TOLERANCE.is_point_close(c.point_at(d1), points[6])",
         "passed": true
       },
       {
-        "line": 1037,
+        "line": 1039,
         "code_line": "TOLERANCE.is_point_close(c.get_cv(0), points[0])",
         "passed": true
       },
       {
-        "line": 1038,
+        "line": 1040,
         "code_line": "TOLERANCE.is_point_close(c.get_cv(8), points[6])",
         "passed": true
       },
       {
-        "line": 1047,
+        "line": 1049,
         "code_line": "c4.is_valid()",
         "passed": true
       },
       {
-        "line": 1048,
+        "line": 1050,
         "code_line": "c4.degree() == 3",
         "passed": true
       },
       {
-        "line": 1049,
+        "line": 1051,
         "code_line": "c4.cv_count() == 6",
         "passed": true
       },
       {
-        "line": 1051,
+        "line": 1053,
         "code_line": "TOLERANCE.is_point_close(c4.point_at(d4_0), pts4[0])",
         "passed": true
       },
       {
-        "line": 1052,
+        "line": 1054,
         "code_line": "TOLERANCE.is_point_close(c4.point_at(d4_1), pts4[3])",
         "passed": true
       }
@@ -2660,22 +2660,22 @@
     "group": "Primitives",
     "test_name": "Mesh Tetrahedron",
     "passed": true,
-    "time_ms": 0.081,
-    "line": 1055,
+    "time_ms": 0.091,
+    "line": 1057,
     "code": "    from session_py import Primitives\n\n    m = Primitives.tetrahedron(2.0)",
     "checks": [
       {
-        "line": 1060,
+        "line": 1062,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 1061,
+        "line": 1063,
         "code_line": "m.number_of_vertices() == 4",
         "passed": true
       },
       {
-        "line": 1062,
+        "line": 1064,
         "code_line": "m.number_of_faces() == 4",
         "passed": true
       }
@@ -2686,22 +2686,22 @@
     "group": "Primitives",
     "test_name": "Mesh Cube",
     "passed": true,
-    "time_ms": 0.512,
-    "line": 1065,
+    "time_ms": 0.539,
+    "line": 1067,
     "code": "    from session_py import Primitives\n\n    m = Primitives.cube(2.0)",
     "checks": [
       {
-        "line": 1070,
+        "line": 1072,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 1071,
+        "line": 1073,
         "code_line": "m.number_of_vertices() == 8",
         "passed": true
       },
       {
-        "line": 1072,
+        "line": 1074,
         "code_line": "m.number_of_faces() == 6",
         "passed": true
       }
@@ -2712,22 +2712,22 @@
     "group": "Primitives",
     "test_name": "Mesh Octahedron",
     "passed": true,
-    "time_ms": 0.072,
-    "line": 1075,
+    "time_ms": 0.105,
+    "line": 1077,
     "code": "    from session_py import Primitives\n\n    m = Primitives.octahedron(2.0)",
     "checks": [
       {
-        "line": 1080,
+        "line": 1082,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 1081,
+        "line": 1083,
         "code_line": "m.number_of_vertices() == 6",
         "passed": true
       },
       {
-        "line": 1082,
+        "line": 1084,
         "code_line": "m.number_of_faces() == 8",
         "passed": true
       }
@@ -2738,22 +2738,22 @@
     "group": "Primitives",
     "test_name": "Mesh Icosahedron",
     "passed": true,
-    "time_ms": 0.144,
-    "line": 1085,
+    "time_ms": 0.197,
+    "line": 1087,
     "code": "    from session_py import Primitives\n\n    m = Primitives.icosahedron(2.0)",
     "checks": [
       {
-        "line": 1090,
+        "line": 1092,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 1091,
+        "line": 1093,
         "code_line": "m.number_of_vertices() == 12",
         "passed": true
       },
       {
-        "line": 1092,
+        "line": 1094,
         "code_line": "m.number_of_faces() == 20",
         "passed": true
       }
@@ -2764,37 +2764,37 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Wave",
     "passed": true,
-    "time_ms": 0.367,
-    "line": 1095,
+    "time_ms": 0.45,
+    "line": 1097,
     "code": "    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    corner = srf.point_at(0.0, 0.0)",
     "checks": [
       {
-        "line": 1100,
+        "line": 1102,
         "code_line": "srf.is_valid()",
         "passed": true
       },
       {
-        "line": 1101,
+        "line": 1103,
         "code_line": "srf.degree(0) == 3",
         "passed": true
       },
       {
-        "line": 1102,
+        "line": 1104,
         "code_line": "srf.degree(1) == 3",
         "passed": true
       },
       {
-        "line": 1103,
+        "line": 1105,
         "code_line": "srf.cv_count(0) == 13",
         "passed": true
       },
       {
-        "line": 1104,
+        "line": 1106,
         "code_line": "srf.cv_count(1) == 13",
         "passed": true
       },
       {
-        "line": 1106,
+        "line": 1108,
         "code_line": "abs(corner[2]) < 0.1",
         "passed": true
       }
