@@ -3,7 +3,7 @@
     "group": "Xform",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.258,
+    "time_ms": 0.204,
     "line": 8,
     "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Equality operators\n    x_eq = (x == xother)\n    x_ne = (x != xfrom)\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scale_xyz(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    result = combined.transformed_point(p)\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    result2 = t2.transformed_point(p)\n\n    # (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
     "checks": [
@@ -84,7 +84,7 @@
     "group": "Xform",
     "test_name": "Translation",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.028,
     "line": 74,
     "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Translation matrix\n    t = Xform.translation(1.0, 2.0, 3.0)\n\n    # Apply to point\n    p = Point(4.0, 5.0, 6.0)\n    tp = t.transformed_point(p)",
     "checks": [
@@ -110,7 +110,7 @@
     "group": "Xform",
     "test_name": "Scaling",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.016,
     "line": 91,
     "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Scaling matrix\n    s = Xform.scale_xyz(2.0, 3.0, 4.0)\n\n    # Apply to point\n    p = Point(1.0, 1.0, 1.0)\n    sp = s.transformed_point(p)",
     "checks": [
@@ -136,7 +136,7 @@
     "group": "Xform",
     "test_name": "Rotation",
     "passed": true,
-    "time_ms": 0.1,
+    "time_ms": 0.08,
     "line": 108,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # Rotation around X axis by 90 degrees\n    rx = Xform.rotation_x(PI / 2.0)\n    # Apply to point (0,1,0) -> (0,0,1)\n    px = Point(0.0, 1.0, 0.0)\n    rpx = rx.transformed_point(px)\n\n    # Rotation around Y axis by 90 degrees\n    ry = Xform.rotation_y(PI / 2.0)\n    # Apply to point (0,0,1) -> (1,0,0)\n    py = Point(0.0, 0.0, 1.0)\n    rpy = ry.transformed_point(py)\n\n    # Rotation around Z axis by 90 degrees\n    rz = Xform.rotation_z(PI / 2.0)\n    # Apply to point (1,0,0) -> (0,1,0)\n    pz = Point(1.0, 0.0, 0.0)\n    rpz = rz.transformed_point(pz)\n\n    # Rotation around arbitrary axis (1,1,1) by 120 degrees\n    # This cycles x->y->z->x\n    axis = Vector(1.0, 1.0, 1.0)\n    r = Xform.rotation(axis, 2.0 * PI / 3.0)\n    # Apply to point (1,0,0) -> (0,1,0)\n    p = Point(1.0, 0.0, 0.0)\n    rp = r.transformed_point(p)",
     "checks": [
@@ -207,7 +207,7 @@
     "group": "Xform",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.051,
     "line": 154,
     "code": "    from session_py import Xform\n\n    # Create composite transformation\n    t = Xform.translation(1.0, 2.0, 3.0)\n    s = Xform.scale_xyz(2.0, 2.0, 2.0)\n    composite = t * s\n\n    # Compute inverse\n    inv = composite.inverse()\n\n    # Multiply should give identity\n    result = composite * inv",
     "checks": [
@@ -223,7 +223,7 @@
     "group": "Xform",
     "test_name": "Transform Geometry",
     "passed": true,
-    "time_ms": 0.582,
+    "time_ms": 0.523,
     "line": 172,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Polyline\n\n    # Simple translation by (10, 20, 30)\n    t = Xform.translation(10.0, 20.0, 30.0)\n\n    # Transform Point: (1,2,3) -> (11,22,33)\n    pt = Point(1.0, 2.0, 3.0)\n    pt.xform = t.duplicate()\n    pt_transformed = pt.transformed()\n\n    # Transform Vector: translation should NOT affect vectors\n    v = Vector(1.0, 0.0, 0.0)\n    v_transformed = t.transformed_vector(v)\n\n    # Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    ln = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    ln.xform = t.duplicate()\n    ln_transformed = ln.transformed()\n\n    # Transform Plane: origin (0,0,0) -> (10,20,30)\n    pl = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    pl.xform = t.duplicate()\n    pl_transformed = pl.transformed()\n\n    # Transform Polyline: 3 points translated\n    poly = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)])\n    poly.xform = t.duplicate()\n    poly_transformed = poly.transformed()\n    pts = poly_transformed.get_points()",
     "checks": [
@@ -354,7 +354,7 @@
     "group": "Xform",
     "test_name": "Change Basis",
     "passed": true,
-    "time_ms": 0.106,
+    "time_ms": 0.078,
     "line": 235,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # System 0: standard XY plane at origin\n    origin_0 = Point(0.0, 0.0, 0.0)\n    x_axis_0 = Vector(1.0, 0.0, 0.0)\n    y_axis_0 = Vector(0.0, 1.0, 0.0)\n    z_axis_0 = Vector(0.0, 0.0, 1.0)\n\n    # System 1: translated and rotated 90 degrees around Z\n    origin_1 = Point(10.0, 20.0, 0.0)\n    x_axis_1 = Vector(0.0, 1.0, 0.0)\n    y_axis_1 = Vector(-1.0, 0.0, 0.0)\n    z_axis_1 = Vector(0.0, 0.0, 1.0)\n\n    # Transform maps points FROM system 1 TO system 0\n    xform = Xform.change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1,\n        origin_0, x_axis_0, y_axis_0, z_axis_0)\n\n    # Point at origin_1 should map to origin_0\n    p = Point(10.0, 20.0, 0.0)\n    tp = xform.transformed_point(p)",
     "checks": [
@@ -380,7 +380,7 @@
     "group": "Xform",
     "test_name": "Plane To Plane",
     "passed": true,
-    "time_ms": 0.14,
+    "time_ms": 0.094,
     "line": 267,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n\n    # Source plane at origin, XY plane\n    plane_from = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n\n    # Target plane translated and rotated\n    plane_to = Plane(Point(10.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0))\n\n    xform = Xform.plane_to_plane(plane_from, plane_to)\n\n    # Origin of source should map to origin of target\n    p = Point(0.0, 0.0, 0.0)\n    tp = xform.transformed_point(p)",
     "checks": [
@@ -406,7 +406,7 @@
     "group": "Xform",
     "test_name": "Look At Rh",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.032,
     "line": 291,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # Camera at (0,0,10) looking at origin\n    eye = Point(0.0, 0.0, 10.0)\n    target = Point(0.0, 0.0, 0.0)\n    up = Vector(0.0, 1.0, 0.0)\n\n    xform = Xform.look_at_rh(eye, target, up)\n\n    # The target point should be on the negative Z axis in view space\n    tp = xform.transformed_point(target)",
     "checks": [
@@ -432,7 +432,7 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.069,
+    "time_ms": 8.469,
     "line": 312,
     "code": "    from session_py import Xform\n    from pathlib import Path\n\n    # Create a non-identity xform\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.json\"\n    xform.json_dump(fname)\n    loaded = Xform.json_load(fname)",
     "checks": [
@@ -463,7 +463,7 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.924,
+    "time_ms": 8.442,
     "line": 339,
     "code": "    from session_py import Xform\n    from pathlib import Path\n\n    # Create a non-identity xform\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform_proto\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # pb_dump(fname) / pb_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.bin\"\n    xform.pb_dump(fname)\n    loaded = Xform.pb_load(fname)",
     "checks": [

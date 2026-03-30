@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

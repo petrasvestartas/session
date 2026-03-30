@@ -3,7 +3,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2d",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.02,
     "line": 11,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCollinear",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 25,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCircle",
     "passed": true,
-    "time_ms": 0.056,
+    "time_ms": 0.02,
     "line": 38,
     "code": "    int n = 12;\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double angle = 2.0 * std::numbers::pi * i / n;\n        pts.push_back(Point(std::cos(angle), std::sin(angle), 0.0));\n    }\n    pts.push_back(Point(0.0, 0.0, 0.0));\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3d",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.025,
     "line": 51,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3dCube",
     "passed": true,
-    "time_ms": 0.055,
+    "time_ms": 0.037,
     "line": 65,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);",
     "checks": [

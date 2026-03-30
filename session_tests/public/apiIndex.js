@@ -54882,11 +54882,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "subdivide",
-        "circle",
         "n",
+        "into",
+        "circle",
         "points",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54901,9 +54901,9 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "ellipse",
+        "by",
         "length",
         "subdivide",
-        "by",
         "arc",
         "divide_by_length",
         "nurbscurve",
@@ -54919,8 +54919,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "through",
-        "arc",
         "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -54934,11 +54934,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "polyline",
-        "from",
-        "curve",
-        "points",
         "open",
+        "from",
+        "points",
+        "curve",
+        "polyline",
         "adaptive",
         "to_polyline_adaptive",
         "create",
@@ -54954,8 +54954,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
         "parameter",
+        "curve",
         "evaluation",
         "at",
         "set_domain",
@@ -54976,8 +54976,8 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
         "frames",
+        "curve",
         "length",
         "along",
         "divide_by_count",
@@ -55025,8 +55025,8 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "point",
-        "cylinder",
         "surface",
+        "cylinder",
         "evaluate",
         "point_at",
         "cylinder_surface",
@@ -55042,10 +55042,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "faces",
+        "from",
         "mesh",
         "vertices",
-        "from",
-        "faces",
         "and",
         "add_vertex",
         "add_face",

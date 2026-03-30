@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.045
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.171
+    "time_ms": 6.153
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 11.21
+    "time_ms": 6.517
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 204,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 217,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.009
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -401,7 +401,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.012
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -427,7 +427,7 @@
     "line": 276,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -443,7 +443,7 @@
     "line": 291,
     "passed": true,
     "test_name": "Fit Points",
-    "time_ms": 0.006
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -494,6 +494,6 @@
     "line": 308,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.013
+    "time_ms": 0.009
   }
 ]
