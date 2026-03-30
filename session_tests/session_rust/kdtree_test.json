@@ -2,6 +2,27 @@
   {
     "checks": [
       {
+        "code_line": "idx == brute_idx",
+        "line": 28,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(dist, brute_dist)",
+        "line": 29,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{KDTree, Point};\n        // Simple deterministic random using LCG\n        let mut seed: u64 = 42;\n        let mut rng = || -> f64 {\n            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);\n            (seed >> 33) as f64 / (u32::MAX as f64) * 20.0 - 10.0\n        };\n        let mut pts = vec![];\n        for _ in 0..100 {\n            pts.push(Point::new(rng(), rng(), rng()));\n        }\n        let tree = KDTree::new(pts.clone());\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n        let brute_idx = (0..pts.len()).min_by(|&a, &b| {\n            let da = pts[a][0]*pts[a][0]+pts[a][1]*pts[a][1]+pts[a][2]*pts[a][2];\n            let db = pts[b][0]*pts[b][0]+pts[b][1]*pts[b][1]+pts[b][2]*pts[b][2];\n            da.partial_cmp(&db).unwrap()\n        }).unwrap();\n        let brute_dist = (pts[brute_idx][0].powi(2)+pts[brute_idx][1].powi(2)+pts[brute_idx][2].powi(2)).sqrt();\n",
+    "failures": [],
+    "group": "KDTree",
+    "line": 6,
+    "passed": true,
+    "test_name": "Nearest",
+    "time_ms": 0.093
+  },
+  {
+    "checks": [
+      {
         "code_line": "all_match",
         "line": 121,
         "passed": true
@@ -13,7 +34,7 @@
     "line": 91,
     "passed": true,
     "test_name": "NearestBruteForce",
-    "time_ms": 0.103
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -34,7 +55,7 @@
     "line": 77,
     "passed": true,
     "test_name": "SinglePoint",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -60,7 +81,7 @@
     "line": 57,
     "passed": true,
     "test_name": "RadiusSearch",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -91,27 +112,6 @@
     "line": 35,
     "passed": true,
     "test_name": "NearestK",
-    "time_ms": 0.005
-  },
-  {
-    "checks": [
-      {
-        "code_line": "idx == brute_idx",
-        "line": 28,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(dist, brute_dist)",
-        "line": 29,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{KDTree, Point};\n        // Simple deterministic random using LCG\n        let mut seed: u64 = 42;\n        let mut rng = || -> f64 {\n            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);\n            (seed >> 33) as f64 / (u32::MAX as f64) * 20.0 - 10.0\n        };\n        let mut pts = vec![];\n        for _ in 0..100 {\n            pts.push(Point::new(rng(), rng(), rng()));\n        }\n        let tree = KDTree::new(pts.clone());\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n        let brute_idx = (0..pts.len()).min_by(|&a, &b| {\n            let da = pts[a][0]*pts[a][0]+pts[a][1]*pts[a][1]+pts[a][2]*pts[a][2];\n            let db = pts[b][0]*pts[b][0]+pts[b][1]*pts[b][1]+pts[b][2]*pts[b][2];\n            da.partial_cmp(&db).unwrap()\n        }).unwrap();\n        let brute_dist = (pts[brute_idx][0].powi(2)+pts[brute_idx][1].powi(2)+pts[brute_idx][2].powi(2)).sqrt();\n",
-    "failures": [],
-    "group": "KDTree",
-    "line": 6,
-    "passed": true,
-    "test_name": "Nearest",
-    "time_ms": 0.095
+    "time_ms": 0.003
   }
 ]

@@ -155,6 +155,13 @@ if [[ $LANG_COUNT -ge 2 ]]; then
     done
 
     if [[ ${#LANG_FAILED[@]} -gt 0 ]]; then
+        # Extract and display failure lines from logs
+        echo ""
+        log "============ FAILURES ============"
+        for f in "${TMPDIR_LANG}"/*.log; do
+            [[ -f "$f" ]] && grep -E "FAIL |FAILURES:|failed$" "$f" 2>/dev/null || true
+        done
+        log "=================================="
         log "FAILED: ${LANG_FAILED[*]}"
         exit 1
     fi

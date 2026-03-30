@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "brep" "bvh" "closest" "color" "element" "element_beam" "element_column" "element_plate" "encoders" "graph" "intersection" "knot" "line" "mesh" "mesh_iso" "nurbscurve" "nurbssurface" "obb" "obj" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "rtree" "session" "session_config" "tolerance" "tree" "treenode" "trimmedsurface" "vector" "xform")
+CLASS_NAMES=("aabb" "brep" "bvh" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "encoders" "graph" "intersection" "kdtree" "knot" "line" "marching_squares" "matrix" "mesh" "mesh_iso" "nurbscurve" "nurbssurface" "obb" "obj" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "rtree" "session" "session_config" "tolerance" "tree" "treenode" "trimmedsurface" "vector" "xform")
 
 # Resolve repo root from script location
 resolve_repo_root() {
@@ -97,6 +97,27 @@ has_uv() {
 # Get number of CPU cores
 get_jobs() {
     echo "${MINITEST_JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
+}
+
+# Print per-class pass/fail summary by reading JSON output files
+# Usage: print_class_summary <lang_prefix> <json_dir> <python_exe>
+print_class_summary() {
+    local lang="$1"
+    local json_dir="$2"
+    local python_exe="${3:-python3}"
+    [[ -d "$json_dir" ]] || return 0
+    [[ -x "$python_exe" ]] || python_exe="python3"
+    "$python_exe" - "$json_dir" "$lang" <<'EOF' 2>/dev/null || true
+import json, glob, os, sys
+d, lang = sys.argv[1], sys.argv[2]
+for f in sorted(glob.glob(os.path.join(d, '*_test.json'))):
+    cls = os.path.basename(f).replace('_test.json', '')
+    tests = json.load(open(f))
+    total = len(tests)
+    passed = sum(1 for t in tests if t.get('passed', False))
+    status = 'passed' if passed == total else 'FAILED'
+    print(f'[{lang}-{cls}] {passed}/{total} {status}')
+EOF
 }
 
 # Setup Windows tool paths for MINGW64/MSYS2

@@ -27925,7 +27925,6 @@ window.API_INDEX = {
       "related": [
         "Polyline.__add__",
         "Polyline.__eq__",
-        "Polyline.__getitem__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
         "Polyline.__init__",
@@ -33754,18 +33753,18 @@ window.API_INDEX = {
       "name": "Session.add_obb",
       "implementations": {
         "python": {
-          "sig": "add_obb(bbox) -> TreeNode",
-          "code": "def add_obb(self, bbox) -> TreeNode:\n\n        \"\"\"Add a bounding box to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this bounding box.\n        \"\"\"\n        self.objects.bboxes.append(bbox)\n        self.lookup[bbox.guid] = bbox\n        self.graph.add_node(bbox.guid, f\"bbox_{bbox.name}\")\n        tree_node = TreeNode(name=bbox.guid)\n        return tree_node\n\n    def add_polyline(self, polyline) -> TreeNode:\n        \"\"\"Add a polyline to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this polyline.\n        \"\"\"\n        self.objects.polylines.append(polyline)\n        self.lookup[polyline.guid] = polyline\n        self.graph.add_node(polyline.guid, f\"polyline_{polyline.name}\")\n        tree_node = TreeNode(name=polyline.guid)\n        return tree_node\n\n    def add_pointcloud(self, pointcloud) -> TreeNode:\n        \"\"\"Add a point cloud to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point cloud.\n        \"\"\"\n        self.objects.pointclouds.append(pointcloud)\n        self.lookup[pointcloud.guid] = pointcloud\n        self.graph.add_node(pointcloud.guid, f\"pointcloud_{pointcloud.name}\")\n        tree_node = TreeNode(name=pointcloud.guid)\n        return tree_node\n\n    def add_mesh(self, mesh) -> TreeNode:\n        \"\"\"Add a mesh to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this mesh.\n        \"\"\"\n        self.objects.meshes.append(mesh)\n        self.lookup[mesh.guid] = mesh\n        self.graph.add_node(mesh.guid, f\"mesh_{mesh.name}\")\n        tree_node = TreeNode(name=mesh.guid)\n        return tree_node\n\n    def add_nurbscurve(self, nurbscurve) -> TreeNode:\n        self.objects.nurbscurves.append(nurbscurve)\n        self.lookup[nurbscurve.guid] = nurbscurve\n        self.graph.add_node(nurbscurve.guid, f\"nurbscurve_{nurbscurve.name}\")\n        return TreeNode(name=nurbscurve.guid)\n\n    def add_nurbssurface(self, nurbssurface) -> TreeNode:\n        self.objects.nurbssurfaces.append(nurbssurface)\n        self.lookup[nurbssurface.guid] = nurbssurface\n        self.graph.add_node(nurbssurface.guid, f\"nurbssurface_{nurbssurface.name}\")\n        return TreeNode(name=nurbssurface.guid)\n\n    def add_brep(self, brep) -> TreeNode:\n        self.objects.breps.append(brep)\n        self.lookup[brep.guid] = brep\n        self.graph.add_node(brep.guid, f\"brep_{brep.name}\")\n        return TreeNode(name=brep.guid)\n\n    def add_element(self, element) -> TreeNode:\n        self.objects.elements.append(element)\n        self.lookup[element.guid] = element\n        self.graph.add_node(element.guid, f\"element_{element.name}\")\n        return TreeNode(name=element.guid)",
+          "sig": "add_bbox(bbox) -> TreeNode",
+          "code": "def add_bbox(self, bbox) -> TreeNode:\n\n        \"\"\"Add a bounding box to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this bounding box.\n        \"\"\"\n        self.objects.bboxes.append(bbox)\n        self.lookup[bbox.guid] = bbox\n        self.graph.add_node(bbox.guid, f\"bbox_{bbox.name}\")\n        tree_node = TreeNode(name=bbox.guid)\n        return tree_node\n\n    def add_polyline(self, polyline) -> TreeNode:\n        \"\"\"Add a polyline to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this polyline.\n        \"\"\"\n        self.objects.polylines.append(polyline)\n        self.lookup[polyline.guid] = polyline\n        self.graph.add_node(polyline.guid, f\"polyline_{polyline.name}\")\n        tree_node = TreeNode(name=polyline.guid)\n        return tree_node\n\n    def add_pointcloud(self, pointcloud) -> TreeNode:\n        \"\"\"Add a point cloud to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this point cloud.\n        \"\"\"\n        self.objects.pointclouds.append(pointcloud)\n        self.lookup[pointcloud.guid] = pointcloud\n        self.graph.add_node(pointcloud.guid, f\"pointcloud_{pointcloud.name}\")\n        tree_node = TreeNode(name=pointcloud.guid)\n        return tree_node\n\n    def add_mesh(self, mesh) -> TreeNode:\n        \"\"\"Add a mesh to the Session.\n\n        Returns\n        -------\n        TreeNode\n            The TreeNode created for this mesh.\n        \"\"\"\n        self.objects.meshes.append(mesh)\n        self.lookup[mesh.guid] = mesh\n        self.graph.add_node(mesh.guid, f\"mesh_{mesh.name}\")\n        tree_node = TreeNode(name=mesh.guid)\n        return tree_node\n\n    def add_nurbscurve(self, nurbscurve) -> TreeNode:\n        self.objects.nurbscurves.append(nurbscurve)\n        self.lookup[nurbscurve.guid] = nurbscurve\n        self.graph.add_node(nurbscurve.guid, f\"nurbscurve_{nurbscurve.name}\")\n        return TreeNode(name=nurbscurve.guid)\n\n    def add_nurbssurface(self, nurbssurface) -> TreeNode:\n        self.objects.nurbssurfaces.append(nurbssurface)\n        self.lookup[nurbssurface.guid] = nurbssurface\n        self.graph.add_node(nurbssurface.guid, f\"nurbssurface_{nurbssurface.name}\")\n        return TreeNode(name=nurbssurface.guid)\n\n    def add_brep(self, brep) -> TreeNode:\n        self.objects.breps.append(brep)\n        self.lookup[brep.guid] = brep\n        self.graph.add_node(brep.guid, f\"brep_{brep.name}\")\n        return TreeNode(name=brep.guid)\n\n    def add_element(self, element) -> TreeNode:\n        self.objects.elements.append(element)\n        self.lookup[element.guid] = element\n        self.graph.add_node(element.guid, f\"element_{element.name}\")\n        return TreeNode(name=element.guid)",
           "file": "session.py"
         },
         "cpp": {
-          "sig": "std::shared_ptr<TreeNode> add_obb(std::shared_ptr<OBB> bbox)",
-          "code": "std::shared_ptr<TreeNode> Session::add_obb(std::shared_ptr<OBB> bbox) {\n  objects.bboxes->push_back(bbox);\n  lookup[bbox->guid()] = bbox;\n  graph.add_node(bbox->guid(), \"bbox_\" + bbox->name);\n  cache_geometry_aabb(bbox->guid(), bbox);  // Incremental AABB caching\n  auto tree_node = std::make_shared<TreeNode>(bbox->guid());\n  return tree_node;\n}",
+          "sig": "std::shared_ptr<TreeNode> add_bbox(std::shared_ptr<OBB> bbox)",
+          "code": "std::shared_ptr<TreeNode> Session::add_bbox(std::shared_ptr<OBB> bbox) {\n  objects.bboxes->push_back(bbox);\n  lookup[bbox->guid()] = bbox;\n  graph.add_node(bbox->guid(), \"bbox_\" + bbox->name);\n  cache_geometry_aabb(bbox->guid(), bbox);  // Incremental AABB caching\n  auto tree_node = std::make_shared<TreeNode>(bbox->guid());\n  return tree_node;\n}",
           "file": "session.cpp"
         },
         "rust": {
-          "sig": "add_obb(bbox: OBB) -> Rc<RefCell<TreeNode>>",
-          "code": "pub fn add_obb(&mut self, bbox: OBB) -> Rc<RefCell<TreeNode>> {\n        let guid = bbox.guid().to_string();\n        let name = bbox.name.clone();\n        let geometry = Geometry::OBB(bbox.clone());\n\n        self.objects.bboxes.push(bbox);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::OBB(b)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::OBB(b.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"bbox_{name}\"));\n\n        TreeNode::new(&guid)\n    }",
+          "sig": "add_bbox(bbox: OBB) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn add_bbox(&mut self, bbox: OBB) -> Rc<RefCell<TreeNode>> {\n        let guid = bbox.guid().to_string();\n        let name = bbox.name.clone();\n        let geometry = Geometry::OBB(bbox.clone());\n\n        self.objects.bboxes.push(bbox);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::OBB(b)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::OBB(b.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"bbox_{name}\"));\n\n        TreeNode::new(&guid)\n    }",
           "file": "session.rs"
         }
       },
@@ -34026,13 +34025,13 @@ window.API_INDEX = {
       },
       "related": [
         "Session.add",
+        "Session.add_bbox",
         "Session.add_brep",
         "Session.add_edge",
         "Session.add_group",
         "Session.add_mesh",
         "Session.add_nurbscurve",
         "Session.add_nurbssurface",
-        "Session.add_obb",
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.get_object",
@@ -46793,6 +46792,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.boolean_op",
         "Polyline.duplicate",
         "Polyline.from_coords",
         "Polyline.get_point",
@@ -47050,13 +47050,14 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "std::vector<Polyline> boolean_op(const Polyline& a, const Polyline& b, int clip_type)",
-          "code": "std::vector<Polyline> Polyline::boolean_op(const Polyline& a, const Polyline& b, int clip_type) {\n    const double* ca = a._coords.data();\n    const double* cb = b._coords.data();\n    int na = (int)(a._coords.size() / 3);\n    int nb = (int)(b._coords.size() / 3);\n\n    // Strip closing duplicate\n    if (na>=2) { double dx=ca[(na-1)*3]-ca[0],dy=ca[(na-1)*3+1]-ca[1]; if(dx*dx+dy*dy<1e-20) --na; }",
+          "code": "std::vector<Polyline> Polyline::boolean_op(const Polyline& a, const Polyline& b, int clip_type) {\n    // Work directly on _coords \u00e2\u20ac\u201d never construct Point/Vector/Polyline objects in the hot path.\n    const double* ca = a._coords.data();\n    const double* cb = b._coords.data();\n    int na = (int)(a._coords.size() / 3);\n    int nb = (int)(b._coords.size() / 3);\n\n    // Strip closing duplicate if present\n    auto dup_last = [](const double* c, int n) {\n        if (n < 2) return false;\n        double dx=c[(n-1)*3]-c[0], dy=c[(n-1)*3+1]-c[1], dz=c[(n-1)*3+2]-c[2];\n        return dx*dx+dy*dy+dz*dz < 1e-20;\n    }",
           "file": "polyline.cpp"
         }
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.duplicate"
+        "Polyline.duplicate",
+        "Polyline.str"
       ]
     },
     {
@@ -47674,7 +47675,6 @@ window.API_INDEX = {
         "Session.add_mesh",
         "Session.add_nurbscurve",
         "Session.add_nurbssurface",
-        "Session.add_obb",
         "Session.add_plane",
         "Session.add_point",
         "Session.add_pointcloud",
@@ -52871,12 +52871,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Polyline\", \"Constructor\")",
-          "code": "MINI_TEST(\"Polyline\", \"Constructor\") {\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor with points\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    Point p3(0.0, 1.0, 0.0);\n    Polyline pl({p0, p1, p2, p3});\n\n    // Basic properties\n    size_t point_count = pl.len();\n    size_t segment_count = pl.segment_count();\n    bool is_empty = pl.is_empty();\n\n    // Get point\n    Point pt = pl.get_point(1);\n\n    // Index operator\n    Point pt_idx = pl[1];\n    Polyline pl_copy = pl;\n    pl_copy.set_point(0, Point(5.0, 6.0, 7.0));\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid())\n    Polyline plcopy = pl;\n    Polyline plother({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n\n    // No-copy operators\n    Polyline plmult = pl;\n    plmult *= 2.0;\n    Polyline pldiv = pl;\n    pldiv /= 2.0;\n    Polyline pladd = pl;\n    pladd += Vector(1.0, 1.0, 1.0);\n    Polyline plsub = pl;\n    plsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Polyline rmul = pl * 2.0;\n    Polyline rdiv = pl / 2.0;\n    Polyline radd = pl + Vector(1.0, 1.0, 1.0);\n    Polyline rdif = pl - Vector(1.0, 1.0, 1.0);\n\n    // Negation (reverse point order)\n    Polyline plneg({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    Polyline neg = -plneg;\n\n    // Polyline with custom color and width\n    Polyline plc({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    plc.linecolor = Color(255, 0, 0, 255, \"red\");\n    plc.width = 2.5;\n\n    MINI_CHECK(pl.name == \"my_polyline\" && !pl.guid().empty() && point_count == 4);\n    MINI_CHECK(segment_count == 3 && !is_empty);\n    MINI_CHECK(pt[0] == 1.0 && pt[1] == 0.0 && pt[2] == 0.0);\n    MINI_CHECK(pt_idx[0] == 1.0 && pl_copy[0][0] == 5.0 && pl_copy[0][1] == 6.0);\n    MINI_CHECK(plstr.find(\"(0, 0, 0)\") != std::string::npos);\n    MINI_CHECK(plrepr.find(\"Polyline(my_polyline\") != std::string::npos);\n    MINI_CHECK(plrepr.find(\"4 points\") != std::string::npos);\n    MINI_CHECK(plcopy == plother);\n    MINI_CHECK(plcopy.guid() != pl.guid());\n    MINI_CHECK(plmult.get_point(1)[0] == 2.0);\n    MINI_CHECK(pldiv.get_point(1)[0] == 0.5);\n    MINI_CHECK(pladd.get_point(0)[0] == 1.0 && pladd.get_point(0)[1] == 1.0);\n    MINI_CHECK(plsub.get_point(0)[0] == -1.0 && plsub.get_point(0)[1] == -1.0);\n    MINI_CHECK(rmul.get_point(1)[0] == 2.0);\n    MINI_CHECK(rdiv.get_point(1)[0] == 0.5);\n    MINI_CHECK(radd.get_point(0)[0] == 1.0 && radd.get_point(0)[1] == 1.0);\n    MINI_CHECK(rdif.get_point(0)[0] == -1.0 && rdif.get_point(0)[1] == -1.0);\n    MINI_CHECK(neg.get_point(0)[0] == 3.0 && neg.get_point(3)[0] == 0.0);\n    MINI_CHECK(plc.linecolor[0] == 255 && plc.linecolor[1] == 0 && plc.width == 2.5);\n\n\n}",
+          "code": "MINI_TEST(\"Polyline\", \"Constructor\") {\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor with points\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(1.0, 1.0, 0.0);\n    Point p3(0.0, 1.0, 0.0);\n    Polyline pl({p0, p1, p2, p3});\n\n    // Basic properties\n    size_t point_count = pl.len();\n    size_t segment_count = pl.segment_count();\n    bool is_empty = pl.is_empty();\n\n    // Get point\n    Point pt = pl.get_point(1);\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid())\n    Polyline plcopy = pl;\n    Polyline plother({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n\n    // No-copy operators\n    Polyline plmult = pl;\n    plmult *= 2.0;\n    Polyline pldiv = pl;\n    pldiv /= 2.0;\n    Polyline pladd = pl;\n    pladd += Vector(1.0, 1.0, 1.0);\n    Polyline plsub = pl;\n    plsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Polyline rmul = pl * 2.0;\n    Polyline rdiv = pl / 2.0;\n    Polyline radd = pl + Vector(1.0, 1.0, 1.0);\n    Polyline rdif = pl - Vector(1.0, 1.0, 1.0);\n\n    // Negation (reverse point order)\n    Polyline plneg({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    Polyline neg = -plneg;\n\n    // Polyline with custom color and width\n    Polyline plc({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    });\n    plc.linecolor = Color(255, 0, 0, 255, \"red\");\n    plc.width = 2.5;\n\n    MINI_CHECK(pl.name == \"my_polyline\" && !pl.guid().empty() && point_count == 4);\n    MINI_CHECK(segment_count == 3 && !is_empty);\n    MINI_CHECK(pt[0] == 1.0 && pt[1] == 0.0 && pt[2] == 0.0);\n    MINI_CHECK(plstr.find(\"(0, 0, 0)\") != std::string::npos);\n    MINI_CHECK(plrepr.find(\"Polyline(my_polyline\") != std::string::npos);\n    MINI_CHECK(plrepr.find(\"4 points\") != std::string::npos);\n    MINI_CHECK(plcopy == plother);\n    MINI_CHECK(plcopy.guid() != pl.guid());\n    MINI_CHECK(plmult.get_point(1)[0] == 2.0);\n    MINI_CHECK(pldiv.get_point(1)[0] == 0.5);\n    MINI_CHECK(pladd.get_point(0)[0] == 1.0 && pladd.get_point(0)[1] == 1.0);\n    MINI_CHECK(plsub.get_point(0)[0] == -1.0 && plsub.get_point(0)[1] == -1.0);\n    MINI_CHECK(rmul.get_point(1)[0] == 2.0);\n    MINI_CHECK(rdiv.get_point(1)[0] == 0.5);\n    MINI_CHECK(radd.get_point(0)[0] == 1.0 && radd.get_point(0)[1] == 1.0);\n    MINI_CHECK(rdif.get_point(0)[0] == -1.0 && rdif.get_point(0)[1] == -1.0);\n    MINI_CHECK(neg.get_point(0)[0] == 3.0 && neg.get_point(3)[0] == 0.0);\n    MINI_CHECK(plc.linecolor[0] == 255 && plc.linecolor[1] == 0 && plc.width == 2.5);\n\n\n}",
           "file": "polyline_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Polyline\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Constructor\")\ndef test_polyline_constructor():\n    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    p3 = Point(0.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2, p3])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Index operator\n    pt_idx = pl[1]\n    pl_copy = pl.duplicate()\n    pl_copy[0] = Point(5.0, 6.0, 7.0)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n\n    # No-copy operators\n    plmult = pl.duplicate()\n    plmult *= 2.0\n    pldiv = pl.duplicate()\n    pldiv /= 2.0\n    pladd = pl.duplicate()\n    pladd += Vector(1.0, 1.0, 1.0)\n    plsub = pl.duplicate()\n    plsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = pl * 2.0\n    rdiv = pl / 2.0\n    radd = pl + Vector(1.0, 1.0, 1.0)\n    rdif = pl - Vector(1.0, 1.0, 1.0)\n\n    # Negation (reverse point order)\n    plneg = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    neg = -plneg\n\n    # Polyline with custom color and width\n    plc = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5\n\n    MINI_CHECK(pl.name == \"my_polyline\" and pl.guid != \"\" and point_count == 4)\n    MINI_CHECK(segment_count == 3 and not is_empty)\n    MINI_CHECK(pt[0] == 1.0 and pt[1] == 0.0 and pt[2] == 0.0)\n    MINI_CHECK(pt_idx[0] == 1.0 and pl_copy[0][0] == 5.0 and pl_copy[0][1] == 6.0)\n    MINI_CHECK(\"(0.0, 0.0, 0.0)\" in plstr)\n    MINI_CHECK(\"Polyline(my_polyline\" in plrepr and \"4 points\" in plrepr)\n    MINI_CHECK(plcopy == plother)\n    MINI_CHECK(plcopy.guid != pl.guid)\n    MINI_CHECK(plmult.get_point(1)[0] == 2.0)\n    MINI_CHECK(pldiv.get_point(1)[0] == 0.5)\n    MINI_CHECK(pladd.get_point(0)[0] == 1.0 and pladd.get_point(0)[1] == 1.0)\n    MINI_CHECK(plsub.get_point(0)[0] == -1.0 and plsub.get_point(0)[1] == -1.0)\n    MINI_CHECK(rmul.get_point(1)[0] == 2.0)\n    MINI_CHECK(rdiv.get_point(1)[0] == 0.5)\n    MINI_CHECK(radd.get_point(0)[0] == 1.0 and radd.get_point(0)[1] == 1.0)\n    MINI_CHECK(rdif.get_point(0)[0] == -1.0 and rdif.get_point(0)[1] == -1.0)\n    MINI_CHECK(neg.get_point(0)[0] == 3.0 and neg.get_point(3)[0] == 0.0)\n    MINI_CHECK(plc.linecolor[0] == 255 and plc.linecolor[1] == 0 and plc.width == 2.5)",
+          "code": "@MINI_TEST(\"Polyline\", \"Constructor\")\ndef test_polyline_constructor():\n    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    p3 = Point(0.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2, p3])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n\n    # No-copy operators\n    plmult = pl.duplicate()\n    plmult *= 2.0\n    pldiv = pl.duplicate()\n    pldiv /= 2.0\n    pladd = pl.duplicate()\n    pladd += Vector(1.0, 1.0, 1.0)\n    plsub = pl.duplicate()\n    plsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = pl * 2.0\n    rdiv = pl / 2.0\n    radd = pl + Vector(1.0, 1.0, 1.0)\n    rdif = pl - Vector(1.0, 1.0, 1.0)\n\n    # Negation (reverse point order)\n    plneg = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    neg = -plneg\n\n    # Polyline with custom color and width\n    plc = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5\n\n    MINI_CHECK(pl.name == \"my_polyline\" and pl.guid != \"\" and point_count == 4)\n    MINI_CHECK(segment_count == 3 and not is_empty)\n    MINI_CHECK(pt[0] == 1.0 and pt[1] == 0.0 and pt[2] == 0.0)\n    MINI_CHECK(\"(0.0, 0.0, 0.0)\" in plstr)\n    MINI_CHECK(\"Polyline(my_polyline\" in plrepr and \"4 points\" in plrepr)\n    MINI_CHECK(plcopy == plother)\n    MINI_CHECK(plcopy.guid != pl.guid)\n    MINI_CHECK(plmult.get_point(1)[0] == 2.0)\n    MINI_CHECK(pldiv.get_point(1)[0] == 0.5)\n    MINI_CHECK(pladd.get_point(0)[0] == 1.0 and pladd.get_point(0)[1] == 1.0)\n    MINI_CHECK(plsub.get_point(0)[0] == -1.0 and plsub.get_point(0)[1] == -1.0)\n    MINI_CHECK(rmul.get_point(1)[0] == 2.0)\n    MINI_CHECK(rdiv.get_point(1)[0] == 0.5)\n    MINI_CHECK(radd.get_point(0)[0] == 1.0 and radd.get_point(0)[1] == 1.0)\n    MINI_CHECK(rdif.get_point(0)[0] == -1.0 and rdif.get_point(0)[1] == -1.0)\n    MINI_CHECK(neg.get_point(0)[0] == 3.0 and neg.get_point(3)[0] == 0.0)\n    MINI_CHECK(plc.linecolor[0] == 255 and plc.linecolor[1] == 0 and plc.width == 2.5)",
           "file": "polyline_test.py"
         }
       }
@@ -54791,9 +54791,9 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "points",
         "subdivide",
         "circle",
-        "points",
         "n",
         "into",
         "divide_by_count",
@@ -54809,10 +54809,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "length",
-        "by",
+        "subdivide",
         "arc",
+        "by",
         "ellipse",
         "divide_by_length",
         "nurbscurve",
@@ -54827,9 +54827,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "arc",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -54843,12 +54843,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "polyline",
         "points",
         "adaptive",
+        "curve",
+        "polyline",
         "from",
         "open",
-        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -54863,10 +54863,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
+        "evaluation",
         "parameter",
         "curve",
-        "evaluation",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -54885,10 +54885,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "length",
         "curve",
         "along",
+        "length",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -54911,8 +54911,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "frames",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -54933,10 +54933,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
-        "surface",
         "cylinder",
+        "evaluate",
         "point",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -54951,9 +54951,9 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "vertices",
         "and",
+        "mesh",
         "from",
         "faces",
         "add_vertex",

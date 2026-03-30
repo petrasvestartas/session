@@ -1,0 +1,81 @@
+[
+  {
+    "group": "SubdivisionCatmullClark",
+    "test_name": "Cube",
+    "passed": true,
+    "time_ms": 0.244,
+    "line": 10,
+    "code": "",
+    "checks": [
+      {
+        "line": 14,
+        "code_line": "sub.number_of_vertices() == 26",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "sub.number_of_faces() == 24",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SubdivisionCatmullClark",
+    "test_name": "CubeTwoLevels",
+    "passed": true,
+    "time_ms": 0.925,
+    "line": 18,
+    "code": "",
+    "checks": [
+      {
+        "line": 22,
+        "code_line": "sub.number_of_faces() == 96",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SubdivisionCatmullClark",
+    "test_name": "Quad",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 25,
+    "code": "",
+    "checks": [
+      {
+        "line": 36,
+        "code_line": "sub.number_of_vertices() == 9",
+        "passed": true
+      },
+      {
+        "line": 37,
+        "code_line": "sub.number_of_faces() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SubdivisionCatmullClark",
+    "test_name": "FaceCount",
+    "passed": true,
+    "time_ms": 4.938,
+    "line": 40,
+    "code": "",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "sub2.number_of_faces() == sub1.number_of_faces() * 4",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "sub3.number_of_faces() == sub2.number_of_faces() * 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

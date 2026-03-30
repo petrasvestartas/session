@@ -24,7 +24,7 @@
     "group": "MeshIso",
     "test_name": "Eval SchwarzP",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.001,
     "line": 18,
     "code": "",
     "checks": [
@@ -56,7 +56,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Gyroid Solid",
     "passed": true,
-    "time_ms": 2.045,
+    "time_ms": 1.535,
     "line": 26,
     "code": "    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID);",
     "checks": [
@@ -82,7 +82,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Diamond Sheet",
     "passed": true,
-    "time_ms": 11.327,
+    "time_ms": 9.245,
     "line": 35,
     "code": "    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);",
     "checks": [
@@ -98,7 +98,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Neovius Shell",
     "passed": true,
-    "time_ms": 9.171,
+    "time_ms": 7.597,
     "line": 42,
     "code": "    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);",
     "checks": [
@@ -114,7 +114,7 @@
     "group": "MeshIso",
     "test_name": "SDF Sphere",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 49,
     "code": "",
     "checks": [
@@ -161,7 +161,7 @@
     "group": "MeshIso",
     "test_name": "From Function",
     "passed": true,
-    "time_ms": 0.463,
+    "time_ms": 0.401,
     "line": 60,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    auto fn = [](double x, double y, double z) {\n        return MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n    };\n    Mesh m = MeshIso::from_function(fn, box, 10, 10, 10, 0.0);",
     "checks": [
@@ -182,7 +182,7 @@
     "group": "MeshIso",
     "test_name": "All Tpms Shells",
     "passed": true,
-    "time_ms": 101.759,
+    "time_ms": 85.667,
     "line": 71,
     "code": "    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    TpmsType types[] = {\n        TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n        TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n        TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n    };\n\n    for (int i = 0; i < 9; ++i) {\n        Mesh m = MeshIso::from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);",
     "checks": [
@@ -283,7 +283,7 @@
     "group": "MeshIso",
     "test_name": "SDF Box",
     "passed": true,
-    "time_ms": 0.442,
+    "time_ms": 0.415,
     "line": 86,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n    }, box, 10, 10, 10);",
     "checks": [
@@ -304,7 +304,7 @@
     "group": "MeshIso",
     "test_name": "SDF Torus",
     "passed": true,
-    "time_ms": 0.333,
+    "time_ms": 0.317,
     "line": 96,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z);\n    }, box, 10, 10, 10);",
     "checks": [
@@ -325,7 +325,7 @@
     "group": "MeshIso",
     "test_name": "SDF Capsule",
     "passed": true,
-    "time_ms": 0.321,
+    "time_ms": 0.287,
     "line": 106,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_capsule(Point(0.0, -1.0, 0.0), Point(0.0, 1.0, 0.0), 0.5, x, y, z);\n    }, box, 10, 10, 10);",
     "checks": [
@@ -346,7 +346,7 @@
     "group": "MeshIso",
     "test_name": "Smooth Subtract",
     "passed": true,
-    "time_ms": 1.022,
+    "time_ms": 0.898,
     "line": 116,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n        double b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n        return MeshIso::smooth_subtract(a, b, 8.0);\n    }, box, 15, 15, 15);",
     "checks": [
@@ -367,7 +367,7 @@
     "group": "MeshIso",
     "test_name": "Smooth Intersect",
     "passed": true,
-    "time_ms": 1.425,
+    "time_ms": 1.199,
     "line": 128,
     "code": "    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n        double b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n        return MeshIso::smooth_intersect(a, b, 8.0);\n    }, box, 15, 15, 15);",
     "checks": [
@@ -388,7 +388,7 @@
     "group": "MeshIso",
     "test_name": "Gyroid Sphere Shell",
     "passed": true,
-    "time_ms": 1.312,
+    "time_ms": 1.277,
     "line": 140,
     "code": "    OBB box = OBB::from_points({Point(-1.6, -1.6, -1.6), Point(1.6, 1.6, 1.6)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n        double shell = std::abs(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z)) - 0.08;\n        return MeshIso::smooth_union(tpms * 0.3, shell, 8.0);\n    }, box, 10, 10, 10);",
     "checks": [

@@ -2,6 +2,22 @@
   {
     "checks": [
       {
+        "code_line": "result.len() == 0",
+        "line": 71,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n",
+    "failures": [],
+    "group": "MarchingSquares",
+    "line": 62,
+    "passed": true,
+    "test_name": "All Below",
+    "time_ms": 0.004
+  },
+  {
+    "checks": [
+      {
         "code_line": "result.len() == 1",
         "line": 85,
         "passed": true
@@ -23,23 +39,49 @@
     "line": 77,
     "passed": true,
     "test_name": "Interpolation",
-    "time_ms": 0.016
+    "time_ms": 0.01
   },
   {
     "checks": [
       {
-        "code_line": "result.len() == 0",
-        "line": 71,
+        "code_line": "result.len() == 1",
+        "line": 15,
+        "passed": true
+      },
+      {
+        "code_line": "result[0].point_count() == 5",
+        "line": 16,
+        "passed": true
+      },
+      {
+        "code_line": "result[0].is_closed()",
+        "line": 17,
         "passed": true
       }
     ],
-    "code": "        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n",
+    "code": "        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 1.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 0.5, 1.0);\n",
     "failures": [],
     "group": "MarchingSquares",
-    "line": 62,
+    "line": 6,
     "passed": true,
-    "test_name": "All Below",
-    "time_ms": 0.001
+    "test_name": "Extract",
+    "time_ms": 0.009
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.len() > 0",
+        "line": 30,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::MarchingSquares;\n        let result = MarchingSquares::extract_from_func(\n            |x, y| 1.0 - (x * x + y * y),\n            (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0\n        );\n",
+    "failures": [],
+    "group": "MarchingSquares",
+    "line": 23,
+    "passed": true,
+    "test_name": "Extract From Func",
+    "time_ms": 0.066
   },
   {
     "checks": [
@@ -72,47 +114,5 @@
     "passed": true,
     "test_name": "Empty Grid",
     "time_ms": 0.0
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result.len() > 0",
-        "line": 30,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::MarchingSquares;\n        let result = MarchingSquares::extract_from_func(\n            |x, y| 1.0 - (x * x + y * y),\n            (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0\n        );\n",
-    "failures": [],
-    "group": "MarchingSquares",
-    "line": 23,
-    "passed": true,
-    "test_name": "Extract From Func",
-    "time_ms": 0.165
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result.len() == 1",
-        "line": 15,
-        "passed": true
-      },
-      {
-        "code_line": "result[0].point_count() == 5",
-        "line": 16,
-        "passed": true
-      },
-      {
-        "code_line": "result[0].is_closed()",
-        "line": 17,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 1.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 0.5, 1.0);\n",
-    "failures": [],
-    "group": "MarchingSquares",
-    "line": 6,
-    "passed": true,
-    "test_name": "Extract",
-    "time_ms": 0.01
   }
 ]

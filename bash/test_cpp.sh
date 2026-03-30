@@ -78,6 +78,8 @@ else
 fi
 
 cd "$REPO_ROOT"
+PYTHON=$(get_python_path "$REPO_ROOT")
+print_class_summary "cpp" "${REPO_ROOT}/session_tests/session_cpp" "$PYTHON"
 log_lang "cpp" "Tests complete"
 
 # Update viewer if requested

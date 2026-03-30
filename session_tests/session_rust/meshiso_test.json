@@ -76,7 +76,7 @@
     "line": 32,
     "passed": true,
     "test_name": "From Tpms Gyroid Solid",
-    "time_ms": 3.196
+    "time_ms": 1.971
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 47,
     "passed": true,
     "test_name": "From Tpms Diamond Sheet",
-    "time_ms": 12.395
+    "time_ms": 6.587
   },
   {
     "checks": [
@@ -108,7 +108,7 @@
     "line": 60,
     "passed": true,
     "test_name": "From Tpms Neovius Shell",
-    "time_ms": 7.9
+    "time_ms": 5.242
   },
   {
     "checks": [
@@ -176,49 +176,7 @@
     "line": 92,
     "passed": true,
     "test_name": "From Function",
-    "time_ms": 0.336
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 228,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 229,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-1.6, -1.6, -1.6), Point::new(1.6, 1.6, 1.6)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n            let shell = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z).abs() - 0.08;\n            MeshIso::smooth_union(tpms * 0.3, shell, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
-    "failures": [],
-    "group": "MeshIso",
-    "line": 215,
-    "passed": true,
-    "test_name": "Gyroid Sphere Shell",
-    "time_ms": 1.496
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 209,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 210,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
-    "failures": [],
-    "group": "MeshIso",
-    "line": 196,
-    "passed": true,
-    "test_name": "Smooth Intersect",
-    "time_ms": 1.362
+    "time_ms": 0.282
   },
   {
     "checks": [
@@ -239,7 +197,28 @@
     "line": 177,
     "passed": true,
     "test_name": "Smooth Subtract",
-    "time_ms": 0.862
+    "time_ms": 0.801
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 228,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 229,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-1.6, -1.6, -1.6), Point::new(1.6, 1.6, 1.6)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n            let shell = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z).abs() - 0.08;\n            MeshIso::smooth_union(tpms * 0.3, shell, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 10, 10, 10, 0.0);\n",
+    "failures": [],
+    "group": "MeshIso",
+    "line": 215,
+    "passed": true,
+    "test_name": "Gyroid Sphere Shell",
+    "time_ms": 1.16
   },
   {
     "checks": [
@@ -260,7 +239,7 @@
     "line": 158,
     "passed": true,
     "test_name": "SDF Capsule",
-    "time_ms": 1.309
+    "time_ms": 0.967
   },
   {
     "checks": [
@@ -281,7 +260,113 @@
     "line": 143,
     "passed": true,
     "test_name": "SDF Torus",
-    "time_ms": 0.43
+    "time_ms": 0.22
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.is_valid()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 138,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let types = [\n            TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n            TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n            TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n        ];\n\n        for i in 0..9 {\n            let m = MeshIso::from_tpms(types[i], &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n        }",
+    "failures": [],
+    "group": "MeshIso",
+    "line": 107,
+    "passed": true,
+    "test_name": "All Tpms Shells",
+    "time_ms": 72.203
   },
   {
     "checks": [
@@ -302,107 +387,27 @@
     "line": 128,
     "passed": true,
     "test_name": "SDF Box",
-    "time_ms": 0.59
+    "time_ms": 0.412
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 121,
+        "line": 209,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
-        "passed": true
-      },
-      {
-        "code_line": "m.is_valid()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 122,
+        "line": 210,
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_iso::{MeshIso, TpmsType, TpmsMode};\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0)], 0.0);\n        let types = [\n            TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n            TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n            TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n        ];\n\n        for i in 0..9 {\n            let m = MeshIso::from_tpms(types[i], &box_, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n        }",
+    "code": "        use crate::mesh_iso::MeshIso;\n        use crate::obb::OBB;\n        use crate::point::Point;\n\n        let box_ = OBB::from_points(&[Point::new(-2.0, -2.0, -2.0), Point::new(2.0, 2.0, 2.0)], 0.0);\n        let fn_ = |x: f64, y: f64, z: f64| {\n            let a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n            let b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n            MeshIso::smooth_intersect(a, b, 8.0)\n        };\n        let m = MeshIso::from_function(fn_, &box_, 15, 15, 15, 0.0);\n",
     "failures": [],
     "group": "MeshIso",
-    "line": 107,
+    "line": 196,
     "passed": true,
-    "test_name": "All Tpms Shells",
-    "time_ms": 118.764
+    "test_name": "Smooth Intersect",
+    "time_ms": 2.12
   }
 ]
