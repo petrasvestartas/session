@@ -28840,7 +28840,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.boolean_op",
         "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.grid_of_points_in_polygon",
@@ -47126,13 +47125,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "std::vector<Polyline> boolean_op(const Polyline& a, const Polyline& b, int clip_type)",
-          "code": "std::vector<Polyline> Polyline::boolean_op(const Polyline& a, const Polyline& b, int clip_type) {\n    const double* ca = a._coords.data();\n    const double* cb = b._coords.data();\n    int na = (int)(a._coords.size() / 3);\n    int nb = (int)(b._coords.size() / 3);\n\n    // Strip closing duplicate\n    if (na>=2) { double dx=ca[(na-1)*3]-ca[0],dy=ca[(na-1)*3+1]-ca[1]; if(dx*dx+dy*dy<1e-20) --na; }",
+          "code": "std::vector<Polyline> Polyline::boolean_op(const Polyline& a, const Polyline& b, int clip_type) {\n    return BooleanPolyline::compute(a, b, clip_type);\n}",
           "file": "polyline.cpp"
         }
       },
       "related": [
-        "Polyline.Polyline",
-        "Polyline.duplicate"
+        "Polyline.Polyline"
       ]
     },
     {
@@ -47505,6 +47503,16 @@ window.API_INDEX = {
         "Polyline.transform",
         "Polyline.unproj"
       ]
+    },
+    {
+      "name": "BooleanPolyline.compute",
+      "implementations": {
+        "cpp": {
+          "sig": "return compute(a, b, clip_type)",
+          "code": "return BooleanPolyline::compute(a, b, clip_type);\n}",
+          "file": "polyline.cpp"
+        }
+      }
     },
     {
       "name": "Primitives.unit_cylinder_geometry",
@@ -54882,11 +54890,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "n",
-        "into",
-        "circle",
-        "points",
         "subdivide",
+        "into",
+        "points",
+        "n",
+        "circle",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54918,9 +54926,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "arc",
         "through",
         "points",
-        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -54934,12 +54942,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
         "from",
-        "points",
-        "curve",
-        "polyline",
+        "open",
         "adaptive",
+        "curve",
+        "points",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -54954,10 +54962,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "parameter",
-        "curve",
-        "evaluation",
         "at",
+        "parameter",
+        "evaluation",
+        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -54976,10 +54984,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "curve",
-        "length",
         "along",
+        "frames",
+        "length",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55001,9 +55009,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55026,8 +55034,8 @@ window.API_INDEX = {
       "tags": [
         "point",
         "surface",
-        "cylinder",
         "evaluate",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -55045,8 +55053,8 @@ window.API_INDEX = {
         "faces",
         "from",
         "mesh",
-        "vertices",
         "and",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -55090,6 +55098,7 @@ window.API_INDEX = {
     "ColorMode": "ColorMode geometry class",
     "RemeshCDT": "RemeshCDT geometry class",
     "knot": "knot geometry class",
+    "BooleanPolyline": "BooleanPolyline geometry class",
     "OBB": "OBB geometry class",
     "ToleranceGuard": "ToleranceGuard geometry class",
     "Geometry": "Geometry geometry class",
@@ -57942,6 +57951,9 @@ window.API_INDEX = {
     ],
     "scale_line": [
       "Polyline.scale_line"
+    ],
+    "compute": [
+      "BooleanPolyline.compute"
     ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"

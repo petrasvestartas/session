@@ -185,7 +185,7 @@
     "line": 87,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 97,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.015
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 115,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.044
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.009
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -411,7 +411,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.22
+    "time_ms": 0.268
   },
   {
     "checks": [
@@ -447,6 +447,6 @@
     "line": 331,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.016
+    "time_ms": 0.013
   }
 ]

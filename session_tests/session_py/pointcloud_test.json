@@ -3,7 +3,7 @@
     "group": "PointCloud",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.451,
+    "time_ms": 0.298,
     "line": 7,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points, normals, colors\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.0, 1.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    n2 = Vector(0.0, 0.0, 1.0)\n    c0 = Color(255, 0, 0, 255)\n    c1 = Color(0, 255, 0, 255)\n    c2 = Color(0, 0, 255, 255)\n    pc = PointCloud([p0, p1, p2], [n0, n1, n2], [c0, c1, c2])\n\n    # Basic properties\n    point_count = len(pc)\n    color_count = pc.color_count()\n    normal_count = pc.normal_count()\n    is_empty = pc.is_empty()\n\n    # Minimal and Full String Representation\n    pcstr = str(pc)\n    pcrepr = repr(pc)\n\n    # Copy (duplicates everything except guid)\n    pccopy = pc.duplicate()\n\n    # Get point/color/normal at index\n    pt0 = pc.get_point(0)\n    col0 = pc.get_color(0)\n    norm0 = pc.get_normal(0)\n\n    # Add points, colors, normals to empty cloud\n    pc2 = PointCloud()\n    pc2.add_point(Point(1.0, 2.0, 3.0))\n    pc2.add_color(Color(128, 64, 32, 255))\n    pc2.add_normal(Vector(1.0, 0.0, 0.0))\n\n    # Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0))\n    pc2.set_color(0, Color(200, 100, 50, 255))\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0))\n\n    # Translate with Vector offset\n    pc3 = PointCloud([Point(1.0, 2.0, 3.0)])\n    offset = Vector(10.0, 20.0, 30.0)\n    pc_iadd = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_iadd += offset\n    pc_isub = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_isub -= offset\n    pc_add = pc3 + offset\n    pc_sub = pc3 - offset\n\n    # Create from flat arrays\n    coords = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n    colors_arr = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]\n    normals_arr = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]\n    pc4 = PointCloud.from_coords(coords, colors_arr, normals_arr)",
     "checks": [
@@ -279,7 +279,7 @@
     "group": "PointCloud",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.115,
+    "time_ms": 0.117,
     "line": 126,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    # Transform - in-place transformation\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc.transform()\n\n    # Transformed - returns new cloud\n    pc2 = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc2.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc3 = pc2.transformed()",
     "checks": [
@@ -335,7 +335,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.02,
+    "time_ms": 7.413,
     "line": 153,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        ],\n        [\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        ],\n        [\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        ]\n    )\n    pc.name = \"test_pointcloud\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.json\"\n    pc.json_dump(fname)\n    loaded = PointCloud.json_load(fname)",
     "checks": [
@@ -391,7 +391,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.146,
+    "time_ms": 8.059,
     "line": 199,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        ],\n        [\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        ],\n        [\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        ]\n    )\n    pc.name = \"test_pointcloud\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.bin\"\n    pc.pb_dump(fname)\n    loaded = PointCloud.pb_load(fname)",
     "checks": [

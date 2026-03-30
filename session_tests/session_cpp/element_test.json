@@ -3,7 +3,7 @@
     "group": "PlateElement",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.127,
+    "time_ms": 0.117,
     "line": 469,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2, \"plate1\");\n\n    auto& geo = p.geometry();\n    std::string name = p.name;\n    const std::string& guid = p.guid();\n    std::string pstr = p.str();\n    std::string prepr = p.repr();\n\n    PlateElement pcopy = p.duplicate();\n    PlateElement p2(polygon, 0.2, \"plate1\");\n    PlateElement p3(polygon, 0.5, \"plate1\");",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "PlateElement",
     "test_name": "Default Polygon",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.033,
     "line": 500,
     "code": "    PlateElement p;",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "PlateElement",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.073,
+    "time_ms": 0.069,
     "line": 508,
     "code": "    PlateElement p;\n    p.set_thickness(0.3);\n    p.set_polygon({\n        Point(0, 0, 0),\n        Point(3, 0, 0),\n        Point(3, 3, 0),\n        Point(0, 3, 0),\n    });",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "PlateElement",
     "test_name": "Mesh Topology",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.026,
     "line": 523,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    };\n    PlateElement p(polygon, 0.5);\n    auto& geo = std::get<Mesh>(p.geometry());",
     "checks": [
@@ -137,7 +137,7 @@
     "group": "PlateElement",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.103,
+    "time_ms": 0.071,
     "line": 537,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    OBB aabb = p.aabb();",
     "checks": [
@@ -163,7 +163,7 @@
     "group": "PlateElement",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.054,
     "line": 552,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    Point pt = p.point();",
     "checks": [
@@ -189,7 +189,7 @@
     "group": "PlateElement",
     "test_name": "Triangle Polygon",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.022,
     "line": 567,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0.5, 1, 0),\n    };\n    PlateElement p(polygon, 0.1);\n    auto& geo = std::get<Mesh>(p.geometry());",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "PlateElement",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.231,
+    "time_ms": 8.355,
     "line": 580,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"json_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_plate_element.json\";\n    p.json_dump(fname);\n    PlateElement loaded = PlateElement::json_load(fname);",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "PlateElement",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.834,
+    "time_ms": 7.03,
     "line": 600,
     "code": "    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"proto_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_plate_element.bin\";\n    p.pb_dump(path);\n    PlateElement loaded = PlateElement::pb_load(path);",
     "checks": [
