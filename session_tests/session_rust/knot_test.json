@@ -33,7 +33,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Knot Count",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

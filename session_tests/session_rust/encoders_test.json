@@ -28,7 +28,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Json Dump Load",
-    "time_ms": 12.214
+    "time_ms": 12.698
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 26,
     "passed": true,
     "test_name": "Json Dumps Loads",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -90,7 +90,7 @@
     "line": 44,
     "passed": true,
     "test_name": "Encode Collection Values",
-    "time_ms": 0.024
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Encode Collection Shared Ptr",
-    "time_ms": 0.011
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -173,7 +173,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Decode Collection Ptr",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -199,7 +199,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Nested Collections",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 138,
     "passed": true,
     "test_name": "Roundtrip File Io",
-    "time_ms": 12.577
+    "time_ms": 10.377
   },
   {
     "checks": [
@@ -251,92 +251,92 @@
     "line": 159,
     "passed": true,
     "test_name": "Pretty Vs Compact",
-    "time_ms": 0.02
+    "time_ms": 0.018
   },
   {
     "checks": [
       {
         "code_line": "loaded == 42",
-        "line": 185,
+        "line": 186,
         "passed": true
       },
       {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded, 3.14)",
-        "line": 189,
+        "line": 190,
         "passed": true
       },
       {
         "code_line": "loaded == \"hello\"",
-        "line": 193,
+        "line": 194,
         "passed": true
       },
       {
         "code_line": "loaded",
-        "line": 197,
+        "line": 198,
         "passed": true
       }
     ],
-    "code": "        use crate::encoders::{json_dumps, json_loads};\n\n        let json_str = json_dumps(&42i32, false).unwrap();\n        let loaded: i32 = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&3.14f64, false).unwrap();\n        let loaded: f64 = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&\"hello\", false).unwrap();\n        let loaded: String = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&true, false).unwrap();\n        let loaded: bool = json_loads(&json_str).unwrap();",
+    "code": "        use crate::encoders::{json_dumps, json_loads};\n\n        let json_str = json_dumps(&42i32, false).unwrap();\n        let loaded: i32 = json_loads(&json_str).unwrap();\n\n\n        let json_str = json_dumps(&3.14f64, false).unwrap();\n        let loaded: f64 = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&\"hello\", false).unwrap();\n        let loaded: String = json_loads(&json_str).unwrap();\n\n        let json_str = json_dumps(&true, false).unwrap();\n        let loaded: bool = json_loads(&json_str).unwrap();",
     "failures": [],
     "group": "Encoders",
     "line": 180,
     "passed": true,
     "test_name": "Decode Primitives",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
       {
         "code_line": "loaded.len() == 3",
-        "line": 210,
-        "passed": true
-      },
-      {
-        "code_line": "loaded[0] == 1",
         "line": 211,
         "passed": true
       },
       {
-        "code_line": "loaded[2] == 3",
+        "code_line": "loaded[0] == 1",
         "line": 212,
         "passed": true
       },
       {
+        "code_line": "loaded[2] == 3",
+        "line": 213,
+        "passed": true
+      },
+      {
         "code_line": "decoded.len() == 2",
-        "line": 221,
+        "line": 222,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::encoders::{json_dumps, json_loads};\n\n        let data = vec![1i32, 2, 3];\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: Vec<i32> = json_loads(&json_str).unwrap();\n\n\n        let points = vec![\n            Point::new(1.0, 2.0, 3.0),\n            Point::new(4.0, 5.0, 6.0),\n        ];\n        let json_str = json_dumps(&points, false).unwrap();\n        let decoded: Vec<Point> = json_loads(&json_str).unwrap();\n",
     "failures": [],
     "group": "Encoders",
-    "line": 202,
+    "line": 203,
     "passed": true,
     "test_name": "Decode List",
-    "time_ms": 0.01
+    "time_ms": 0.013
   },
   {
     "checks": [
       {
         "code_line": "loaded.get(\"a\") == Some(&1)",
-        "line": 237,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.get(\"b\") == Some(&2)",
         "line": 238,
         "passed": true
       },
       {
+        "code_line": "loaded.get(\"b\") == Some(&2)",
+        "line": 239,
+        "passed": true
+      },
+      {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded_vec[0], 1.0)",
-        "line": 244,
+        "line": 245,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n        use crate::encoders::{json_dumps, json_loads};\n        use std::collections::HashMap;\n\n        let mut data = HashMap::new();\n        data.insert(\"a\".to_string(), 1i32);\n        data.insert(\"b\".to_string(), 2i32);\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: HashMap<String, i32> = json_loads(&json_str).unwrap();\n\n\n        let vec = Vector::new(1.0, 2.0, 3.0);\n        let json_str = json_dumps(&vec, false).unwrap();\n        let loaded_vec: Vector = json_loads(&json_str).unwrap();\n",
     "failures": [],
     "group": "Encoders",
-    "line": 226,
+    "line": 227,
     "passed": true,
     "test_name": "Decode Dict",
     "time_ms": 0.003
@@ -345,114 +345,114 @@
     "checks": [
       {
         "code_line": "loaded[0][0][0] == 1",
-        "line": 256,
-        "passed": true
-      },
-      {
-        "code_line": "loaded[1][1][1] == 8",
         "line": 257,
         "passed": true
       },
       {
-        "code_line": "loaded.len() == 2",
+        "code_line": "loaded[1][1][1] == 8",
         "line": 258,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.len() == 2",
+        "line": 259,
         "passed": true
       }
     ],
     "code": "        use crate::encoders::{json_dumps, json_loads};\n\n        let data = vec![vec![vec![1i32, 2], vec![3, 4]], vec![vec![5, 6], vec![7, 8]]];\n        let json_str = json_dumps(&data, false).unwrap();\n        let loaded: Vec<Vec<Vec<i32>>> = json_loads(&json_str).unwrap();\n",
     "failures": [],
     "group": "Encoders",
-    "line": 249,
+    "line": 250,
     "passed": true,
     "test_name": "List In List In List",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
       {
         "code_line": "loaded[\"numbers\"].as_array().unwrap().len() == 3",
-        "line": 279,
-        "passed": true
-      },
-      {
-        "code_line": "loaded[\"letters\"][0] == \"a\"",
         "line": 280,
         "passed": true
       },
       {
+        "code_line": "loaded[\"letters\"][0] == \"a\"",
+        "line": 281,
+        "passed": true
+      },
+      {
         "code_line": "loaded_points.len() == 2",
-        "line": 283,
+        "line": 284,
         "passed": true
       },
       {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded_points[0][0], 1.0)",
-        "line": 284,
+        "line": 285,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::encoders::json_loads;\n\n        let points = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let data = serde_json::json!({\n            \"numbers\": [1, 2, 3],\n            \"letters\": [\"a\", \"b\", \"c\"],\n            \"points\": points\n        });\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_points: Vec<Point> = serde_json::from_value(loaded[\"points\"].clone()).unwrap();",
     "failures": [],
     "group": "Encoders",
-    "line": 263,
+    "line": 264,
     "passed": true,
     "test_name": "Dict Of Lists",
-    "time_ms": 0.055
+    "time_ms": 0.039
   },
   {
     "checks": [
       {
         "code_line": "loaded[0][\"name\"] == \"point1\"",
-        "line": 302,
-        "passed": true
-      },
-      {
-        "code_line": "loaded[1][\"value\"] == 20",
         "line": 303,
         "passed": true
       },
       {
+        "code_line": "loaded[1][\"value\"] == 20",
+        "line": 304,
+        "passed": true
+      },
+      {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded_point[2], 3.0)",
-        "line": 306,
+        "line": 307,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::encoders::json_loads;\n\n        let point = Point::new(1.0, 2.0, 3.0);\n        let data = serde_json::json!([\n            {\"name\": \"point1\", \"value\": 10},\n            {\"name\": \"point2\", \"value\": 20},\n            {\"geometry\": point}\n        ]);\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_point: Point = serde_json::from_value(loaded[2][\"geometry\"].clone()).unwrap();",
     "failures": [],
     "group": "Encoders",
-    "line": 289,
+    "line": 290,
     "passed": true,
     "test_name": "List Of Dict",
-    "time_ms": 0.011
+    "time_ms": 0.014
   },
   {
     "checks": [
       {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded[\"config\"][\"tolerance\"].as_f64().unwrap(),\n0.001)",
-        "line": 325,
-        "passed": true
-      },
-      {
-        "code_line": "loaded[\"config\"][\"scale\"] == 1000",
         "line": 326,
         "passed": true
       },
       {
+        "code_line": "loaded[\"config\"][\"scale\"] == 1000",
+        "line": 327,
+        "passed": true
+      },
+      {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded_point[0], 1.0)",
-        "line": 330,
+        "line": 331,
         "passed": true
       },
       {
         "code_line": "crate::tolerance::TOLERANCE.is_close(loaded_vec[2], 1.0)",
-        "line": 331,
+        "line": 332,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::Vector;\n        use crate::encoders::json_loads;\n\n        let point = Point::new(1.0, 2.0, 3.0);\n        let vec = Vector::new(0.0, 0.0, 1.0);\n        let data = serde_json::json!({\n            \"config\": {\"tolerance\": 0.001, \"scale\": 1000},\n            \"geometry\": {\"point\": point, \"vector\": vec}\n        });\n        let json_str = data.to_string();\n        let loaded: serde_json::Value = json_loads(&json_str).unwrap();\n\n\n        let loaded_point: Point = serde_json::from_value(loaded[\"geometry\"][\"point\"].clone()).unwrap();\n        let loaded_vec: Vector = serde_json::from_value(loaded[\"geometry\"][\"vector\"].clone()).unwrap();",
     "failures": [],
     "group": "Encoders",
-    "line": 311,
+    "line": 312,
     "passed": true,
     "test_name": "Dict Of Dicts",
-    "time_ms": 0.016
+    "time_ms": 0.021
   }
 ]

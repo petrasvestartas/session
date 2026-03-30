@@ -3,170 +3,170 @@
     "checks": [
       {
         "code_line": "session.name == \"my_session\"",
-        "line": 8,
+        "line": 9,
         "passed": true
       },
       {
-        "code_line": "!session.guid.is_empty()",
-        "line": 9,
+        "code_line": "!session.guid().is_empty()",
+        "line": 10,
         "passed": true
       }
     ],
-    "code": "        use crate::Session;\n        let session = Session::default();",
+    "code": "        use crate::Session;\n        let session = Session::default();\n",
     "failures": [],
     "group": "Session",
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "data[\"name\"] == \"my_session\"",
-        "line": 25,
-        "passed": true
-      },
-      {
-        "code_line": "!data[\"guid\"].is_null()",
-        "line": 26,
-        "passed": true
-      },
-      {
-        "code_line": "data[\"objects\"][\"points\"].as_array().unwrap().len() == 2",
-        "line": 27,
-        "passed": true
-      },
-      {
-        "code_line": "data[\"graph\"][\"vertices\"].as_array().unwrap().len() == 2",
         "line": 28,
         "passed": true
       },
       {
-        "code_line": "data[\"graph\"][\"edges\"].as_array().unwrap().len() == 1",
+        "code_line": "!data[\"guid\"].is_null()",
         "line": 29,
+        "passed": true
+      },
+      {
+        "code_line": "data[\"objects\"][\"points\"].as_array().unwrap().len() == 2",
+        "line": 30,
+        "passed": true
+      },
+      {
+        "code_line": "data[\"graph\"][\"vertices\"].as_array().unwrap().len() == 2",
+        "line": 31,
+        "passed": true
+      },
+      {
+        "code_line": "data[\"graph\"][\"edges\"].as_array().unwrap().len() == 1",
+        "line": 32,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        use crate::encoders::json_dump;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let data: serde_json::Value = serde_json::from_str(&json_str).unwrap();\n        json_dump(&session, \"serialization/test_session.json\", true).unwrap();",
+    "code": "        use crate::{Session, Point};\n        use crate::encoders::json_dump;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        let _ = (point1.guid(), point2.guid());\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(point1.guid(), point2.guid(), \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let data: serde_json::Value = serde_json::from_str(&json_str).unwrap();\n\n        json_dump(&session, \"serialization/test_session.json\", true).unwrap();",
     "failures": [],
     "group": "Session",
-    "line": 14,
+    "line": 15,
     "passed": true,
     "test_name": "Jsondump",
-    "time_ms": 0.26
+    "time_ms": 0.252
   },
   {
     "checks": [
       {
         "code_line": "session2.name == \"my_session\"",
-        "line": 45,
+        "line": 50,
         "passed": true
       },
       {
         "code_line": "session2.lookup.len() == 2",
-        "line": 46,
+        "line": 51,
         "passed": true
       },
       {
         "code_line": "session2.graph.number_of_vertices() == 2",
-        "line": 47,
+        "line": 52,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let session2 = Session::jsonload(&json_str).unwrap();",
+    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        let _ = (point1.guid(), point2.guid());\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(point1.guid(), point2.guid(), \"connection\");\n        let json_str = session.jsondump().unwrap();\n        let session2 = Session::jsonload(&json_str).unwrap();\n",
     "failures": [],
     "group": "Session",
-    "line": 35,
+    "line": 38,
     "passed": true,
     "test_name": "Jsonload",
-    "time_ms": 0.107
+    "time_ms": 0.093
   },
   {
     "checks": [
       {
         "code_line": "loaded_session.name == session.name",
-        "line": 66,
+        "line": 72,
         "passed": true
       },
       {
         "code_line": "loaded_session.lookup.len() == session.lookup.len()",
-        "line": 67,
+        "line": 73,
         "passed": true
       },
       {
         "code_line": "loaded_session.graph.number_of_vertices() ==\nsession.graph.number_of_vertices()",
-        "line": 68,
+        "line": 74,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        use std::fs;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");\n        let filename = \"serialization/test_session_roundtrip.json\";\n        let json_str = session.jsondump().unwrap();\n        fs::write(filename, &json_str).unwrap();\n        let loaded_str = fs::read_to_string(filename).unwrap();\n        let loaded_session = Session::jsonload(&loaded_str).unwrap();\n        fs::remove_file(filename).ok();",
+    "code": "        use crate::{Session, Point};\n        use std::fs;\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(point1.guid(), point2.guid(), \"connection\");\n        let filename = \"serialization/test_session_roundtrip.json\";\n        let json_str = session.jsondump().unwrap();\n        fs::write(filename, &json_str).unwrap();\n        let loaded_str = fs::read_to_string(filename).unwrap();\n        let loaded_session = Session::jsonload(&loaded_str).unwrap();\n\n        fs::remove_file(filename).ok();",
     "failures": [],
     "group": "Session",
-    "line": 52,
+    "line": 57,
     "passed": true,
     "test_name": "File Io",
-    "time_ms": 9.658
+    "time_ms": 14.246
   },
   {
     "checks": [
       {
         "code_line": "session.objects.points.len() == 1",
-        "line": 79,
+        "line": 87,
         "passed": true
       },
       {
-        "code_line": "session.lookup.contains_key(&point.guid)",
-        "line": 80,
+        "code_line": "session.lookup.contains_key(point.guid())",
+        "line": 88,
         "passed": true
       },
       {
-        "code_line": "session.graph.has_node(&point.guid)",
-        "line": 81,
+        "code_line": "session.graph.has_node(point.guid())",
+        "line": 89,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        session.add_point(point.clone());",
+    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        let _ = point.guid();\n        session.add_point(point.clone());\n",
     "failures": [],
     "group": "Session",
-    "line": 74,
+    "line": 80,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.021
+    "time_ms": 0.01
   },
   {
     "checks": [
       {
-        "code_line": "session.graph.has_edge((&point1.guid, &point2.guid))",
-        "line": 94,
+        "code_line": "session.graph.has_edge((point1.guid(), point2.guid()))",
+        "line": 103,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"connection\");",
+    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(point1.guid(), point2.guid(), \"connection\");\n",
     "failures": [],
     "group": "Session",
-    "line": 86,
+    "line": 94,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.012
+    "time_ms": 0.01
   },
   {
     "checks": [
       {
         "code_line": "retrieved.is_some()",
-        "line": 105,
+        "line": 116,
         "passed": true
       },
       {
-        "code_line": "retrieved.unwrap().guid() == point.guid",
-        "line": 106,
+        "code_line": "retrieved.unwrap().guid() == point.guid()",
+        "line": 117,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        session.add_point(point.clone());\n        let retrieved = session.get_object(&point.guid);",
+    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        let _ = point.guid();\n        session.add_point(point.clone());\n        let retrieved = session.get_object(point.guid());\n",
     "failures": [],
     "group": "Session",
-    "line": 99,
+    "line": 108,
     "passed": true,
     "test_name": "Get Object",
     "time_ms": 0.006
@@ -175,422 +175,422 @@
     "checks": [
       {
         "code_line": "loaded_session.name == session.name",
-        "line": 124,
+        "line": 136,
         "passed": true
       },
       {
         "code_line": "loaded_session.objects.points.len() == session.objects.points.len()",
-        "line": 125,
+        "line": 137,
         "passed": true
       },
       {
         "code_line": "loaded_session.graph.number_of_vertices() ==\nsession.graph.number_of_vertices()",
-        "line": 126,
+        "line": 138,
         "passed": true
       },
       {
         "code_line": "loaded_session.graph.number_of_edges() == session.graph.number_of_edges()",
-        "line": 127,
+        "line": 139,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        use crate::encoders::{json_dump, json_load};\n        use std::fs;\n        let mut session = Session::new(\"./serialization/test_session\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(&point1.guid, &point2.guid, \"./serialization/test_connection\");\n        let filename = \"serialization/test_session_comprehensive.json\";\n        json_dump(&session, filename, true).unwrap();\n        let loaded_session: Session = json_load(filename).unwrap();\n        fs::remove_file(filename).ok();",
+    "code": "        use crate::{Session, Point};\n        use crate::encoders::{json_dump, json_load};\n        use std::fs;\n        let mut session = Session::new(\"./serialization/test_session\");\n        let point1 = Point::new(1.0, 2.0, 3.0);\n        let point2 = Point::new(4.0, 5.0, 6.0);\n        session.add_point(point1.clone());\n        session.add_point(point2.clone());\n        session.add_edge(point1.guid(), point2.guid(), \"./serialization/test_connection\");\n        let filename = \"serialization/test_session_comprehensive.json\";\n        json_dump(&session, filename, true).unwrap();\n        let loaded_session: Session = json_load(filename).unwrap();\n\n        fs::remove_file(filename).ok();",
     "failures": [],
     "group": "Session",
-    "line": 111,
+    "line": 122,
     "passed": true,
     "test_name": "File Io Comprehensive",
-    "time_ms": 10.165
+    "time_ms": 12.118
   },
   {
     "checks": [
       {
         "code_line": "transformed.meshes.len() == 3",
-        "line": 186,
+        "line": 199,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box1[i][0]).abs() < 1e-4",
-        "line": 212,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box1[i][1]).abs() < 1e-4",
-        "line": 213,
+        "line": 226,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box1[i][2]).abs() < 1e-4",
-        "line": 214,
+        "line": 227,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box2[i][0]).abs() < 1e-4",
-        "line": 222,
+        "line": 235,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box2[i][1]).abs() < 1e-4",
-        "line": 223,
+        "line": 236,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box2[i][2]).abs() < 1e-4",
-        "line": 224,
+        "line": 237,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "(v.x - expected_box3[i][0]).abs() < 1e-4",
-        "line": 232,
+        "line": 245,
         "passed": true
       },
       {
         "code_line": "(v.y - expected_box3[i][1]).abs() < 1e-4",
-        "line": 233,
+        "line": 246,
         "passed": true
       },
       {
         "code_line": "(v.z - expected_box3[i][2]).abs() < 1e-4",
-        "line": 234,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "mesh.face.len() == 6",
-        "line": 238,
+        "line": 251,
         "passed": true
       },
       {
         "code_line": "mesh.face.len() == 6",
-        "line": 238,
+        "line": 251,
         "passed": true
       },
       {
         "code_line": "mesh.face.len() == 6",
-        "line": 238,
+        "line": 251,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        use std::f64::consts::PI;\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone());\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone());\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone());\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n\n        let expected_box1: [[f64; 3]; 8] = [\n            [1.36603, -0.366025, 0.0], [0.366025, 1.36603, 0.0],\n            [-1.36603, 0.366025, 0.0], [-0.366025, -1.36603, 0.0],\n            [1.36603, -0.366025, 2.0], [0.366025, 1.36603, 2.0],\n            [-1.36603, 0.366025, 2.0], [-0.366025, -1.36603, 2.0],\n        ];\n        let expected_box2: [[f64; 3]; 8] = [\n            [0.366025, 2.09808, 0.0], [-1.36603, 3.09808, 0.0],\n            [-2.36603, 1.36603, 0.0], [-0.633975, 0.366025, 0.0],\n            [0.366025, 2.09808, 2.0], [-1.36603, 3.09808, 2.0],\n            [-2.36603, 1.36603, 2.0], [-0.633975, 0.366025, 2.0],\n        ];\n        let expected_box3: [[f64; 3]; 8] = [\n            [-1.36603, 3.09808, 0.0], [-3.09808, 4.09808, 0.0],\n            [-4.09808, 2.36603, 0.0], [-2.36603, 1.36603, 0.0],\n            [-1.36603, 3.09808, 2.0], [-3.09808, 4.09808, 2.0],\n            [-4.09808, 2.36603, 2.0], [-2.36603, 1.36603, 2.0],\n        ];\n\n        let m1 = &transformed.meshes[0];\n        let mut vkeys1: Vec<usize> = m1.vertex.keys().copied().collect();\n        vkeys1.sort();\n        for i in 0..8 {\n            let v = &m1.vertex[&vkeys1[i]];\n        }\n\n        let m2 = &transformed.meshes[1];\n        let mut vkeys2: Vec<usize> = m2.vertex.keys().copied().collect();\n        vkeys2.sort();\n        for i in 0..8 {\n            let v = &m2.vertex[&vkeys2[i]];\n        }\n\n        let m3 = &transformed.meshes[2];\n        let mut vkeys3: Vec<usize> = m3.vertex.keys().copied().collect();\n        vkeys3.sort();\n        for i in 0..8 {\n            let v = &m3.vertex[&vkeys3[i]];\n        }\n\n        for mesh in &[m1, m2, m3] {\n        }",
+    "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        use std::f64::consts::PI;\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone());\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone());\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone());\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n\n\n        let expected_box1: [[f64; 3]; 8] = [\n            [1.36603, -0.366025, 0.0], [0.366025, 1.36603, 0.0],\n            [-1.36603, 0.366025, 0.0], [-0.366025, -1.36603, 0.0],\n            [1.36603, -0.366025, 2.0], [0.366025, 1.36603, 2.0],\n            [-1.36603, 0.366025, 2.0], [-0.366025, -1.36603, 2.0],\n        ];\n        let expected_box2: [[f64; 3]; 8] = [\n            [0.366025, 2.09808, 0.0], [-1.36603, 3.09808, 0.0],\n            [-2.36603, 1.36603, 0.0], [-0.633975, 0.366025, 0.0],\n            [0.366025, 2.09808, 2.0], [-1.36603, 3.09808, 2.0],\n            [-2.36603, 1.36603, 2.0], [-0.633975, 0.366025, 2.0],\n        ];\n        let expected_box3: [[f64; 3]; 8] = [\n            [-1.36603, 3.09808, 0.0], [-3.09808, 4.09808, 0.0],\n            [-4.09808, 2.36603, 0.0], [-2.36603, 1.36603, 0.0],\n            [-1.36603, 3.09808, 2.0], [-3.09808, 4.09808, 2.0],\n            [-4.09808, 2.36603, 2.0], [-2.36603, 1.36603, 2.0],\n        ];\n\n        let m1 = &transformed.meshes[0];\n        let mut vkeys1: Vec<usize> = m1.vertex.keys().copied().collect();\n        vkeys1.sort();\n        for i in 0..8 {\n            let v = &m1.vertex[&vkeys1[i]];\n        }\n\n        let m2 = &transformed.meshes[1];\n        let mut vkeys2: Vec<usize> = m2.vertex.keys().copied().collect();\n        vkeys2.sort();\n        for i in 0..8 {\n            let v = &m2.vertex[&vkeys2[i]];\n        }\n\n        let m3 = &transformed.meshes[2];\n        let mut vkeys3: Vec<usize> = m3.vertex.keys().copied().collect();\n        vkeys3.sort();\n        for i in 0..8 {\n            let v = &m3.vertex[&vkeys3[i]];\n        }\n\n        for mesh in &[m1, m2, m3] {\n        }",
     "failures": [],
     "group": "Session",
-    "line": 133,
+    "line": 145,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.149
+    "time_ms": 0.135
   }
 ]

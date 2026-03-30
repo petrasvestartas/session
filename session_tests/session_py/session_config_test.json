@@ -3,18 +3,13 @@
     "group": "SessionConfig",
     "test_name": "Default Values",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 7,
     "code": "",
     "checks": [
       {
         "line": 9,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == False",
-        "passed": true
-      },
-      {
-        "line": 10,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == False",
+        "code_line": "not SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       }
     ],
@@ -24,38 +19,23 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 13,
-    "code": "    SESSION_CONFIG.explode_mesh_faces = True\n    SESSION_CONFIG.reset()\n    SESSION_CONFIG.mesh_triangulate_faces = True\n    SESSION_CONFIG.reset()",
+    "time_ms": 0.008,
+    "line": 12,
+    "code": "    SESSION_CONFIG.explode_mesh_faces = True\n    SESSION_CONFIG.reset()",
     "checks": [
       {
-        "line": 15,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == False",
+        "line": 14,
+        "code_line": "not SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 17,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == True",
+        "line": 16,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 19,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == False",
-        "passed": true
-      },
-      {
-        "line": 20,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == False",
-        "passed": true
-      },
-      {
-        "line": 22,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == True",
-        "passed": true
-      },
-      {
-        "line": 24,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == False",
+        "line": 18,
+        "code_line": "not SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       }
     ],

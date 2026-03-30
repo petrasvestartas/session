@@ -16,23 +16,22 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Rules applied to ALL files (tests + src)
 RULES_COMMON='
 ## RULE 1 — One item per line in coordinate/object arrays
-Any array or list where multiple Point/Vector/Color/BoundingBox constructors appear on a
-line longer than ~100 chars: split so each item is on its own indented line.
+Any list/array/vec! containing 2 or more Point, Vector, Color, Line, Plane, Polyline, or
+BoundingBox constructors: always put each item on its own indented line, regardless of
+total line length.
 
-BEFORE (C++):  {{1.28955,0,1.127558},{0.85791,0,0.225512},{0.64209,-0.866025,-0.225512}}
+BEFORE (C++):  {{1.28955,0,1.127558},{0.85791,0,0.225512}}
 AFTER:
     {
         {1.28955, 0, 1.127558},
         {0.85791, 0, 0.225512},
-        {0.64209, -0.866025, -0.225512},
     }
 
-BEFORE (Python):  [Point(0,0,0), Point(1,0,0), Point(1,1,0)]
+BEFORE (Python):  [Point(0,0,0), Point(1,0,0)]
 AFTER:
     [
         Point(0, 0, 0),
         Point(1, 0, 0),
-        Point(1, 1, 0),
     ]
 
 BEFORE (Rust):  vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0)]
@@ -41,6 +40,9 @@ AFTER:
         Point::new(0.0, 0.0, 0.0),
         Point::new(1.0, 0.0, 0.0),
     ]
+
+Exception: 2-element bounding box min/max pairs that are clearly min/max may stay inline
+if it reads more clearly (use judgement — when in doubt, expand).
 
 ## RULE 2 — Spaces after commas in ALL constructor arguments
 Every Point, Vector, Color, Line, Plane, Polyline, NurbsCurve, BoundingBox constructor
@@ -53,17 +55,17 @@ BEFORE:  Color(255,0,0,255)              →   AFTER:  Color(255, 0, 0, 255)
 BEFORE:  [0,0,0,0,1,1,1,1]              →   AFTER:  [0, 0, 0, 0, 1, 1, 1, 1]   (knot vectors)
 BEFORE:  vec![0.0,0.0,1.0,1.0]          →   AFTER:  vec![0.0, 0.0, 1.0, 1.0]
 
-## RULE 3 — One Line/Polyline per line in long arrays
-Arrays of Line::from_points()/Line.from_points()/Polyline(...) constructors that make
-lines longer than ~100 chars: put each constructor on its own line.
+## RULE 3 — One Line/Polyline per line in arrays
+Any array/list/vec! containing 2 or more Line::from_points()/Line.from_points()/Polyline(...)
+constructors: always put each constructor on its own line (same logic as Rule 1).
 
 ## RULE 4 — NurbsCurve/NurbsSurface constructor point lists
-NurbsCurve.create()/NurbsCurve::create()/NurbsSurface factory methods with a long points
-list as first argument: apply Rule 1 to that points list.
+NurbsCurve.create()/NurbsCurve::create()/NurbsSurface factory methods with a points list
+as first argument containing 2 or more points: apply Rule 1 to that points list.
 
 ## RULE 5 — Polyline with many points
-Polyline([...])/Polyline::new(vec![...]) with more than 4 points and line >100 chars:
-expand each point to its own line (apply Rule 1).
+Polyline([...])/Polyline::new(vec![...]) with more than 4 points: always expand each
+point to its own line (apply Rule 1).
 '
 
 # Additional rules applied only to test files (contain MINI_CHECK)
@@ -132,6 +134,44 @@ AFTER (Python):  REGISTER_MINI_TEST("From Polygon With Holes", run_mesh_from_pol
 
 BEFORE (Rust):   REGISTER_MINI_TEST!("From_polygon_with_holes", run_mesh_from_polygon_with_holes);
 AFTER (Rust):    REGISTER_MINI_TEST!("From Polygon With Holes", run_mesh_from_polygon_with_holes);
+
+## RULE 9 — Remove redundant bool literal comparisons in MINI_CHECK
+Any MINI_CHECK/MINI_CHECK! that compares a simple variable to a bool literal: drop the
+comparison and use the bare variable or its negation.
+
+BEFORE (C++):    MINI_CHECK(eq == true);      AFTER:  MINI_CHECK(eq);
+BEFORE (C++):    MINI_CHECK(sq2 == false);    AFTER:  MINI_CHECK(!sq2);
+BEFORE (Python): MINI_CHECK(eq == True)       AFTER:  MINI_CHECK(eq)
+BEFORE (Python): MINI_CHECK(sq2 == False)     AFTER:  MINI_CHECK(not sq2)
+BEFORE (Rust):   MINI_CHECK!(ok == true);     AFTER:  MINI_CHECK!(ok);
+BEFORE (Rust):   MINI_CHECK!(ok == false);    AFTER:  MINI_CHECK!(!ok);
+
+Only apply when the subject is a simple identifier (variable name). Do not strip when
+the subject is a method call or a complex expression — leave those unchanged.
+
+## RULE 10 — Exactly one blank line before first MINI_CHECK in each test block
+The last variable/assignment line in each test block must be followed by exactly one
+blank line before the first MINI_CHECK/MINI_CHECK! call. C++ is ground truth.
+
+BEFORE (missing blank line):
+    let d = ml.duplicate();
+    MINI_CHECK!(m.rows == 2);
+
+AFTER:
+    let d = ml.duplicate();
+
+    MINI_CHECK!(m.rows == 2);
+
+BEFORE (excess blank lines):
+    let d = ml.duplicate();
+
+
+    MINI_CHECK!(m.rows == 2);
+
+AFTER:
+    let d = ml.duplicate();
+
+    MINI_CHECK!(m.rows == 2);
 '
 
 PROMPT_TESTS="Read the file at the given path. Apply ALL rules below. Do NOT change code logic, variable names, or program behavior. Only apply rules to lines that actually need it.
@@ -143,26 +183,54 @@ PROMPT_SRC="Read the file at the given path. Apply ALL rules below. Do NOT chang
 $RULES_COMMON
 File to lint:"
 
+PARALLEL=${PARALLEL:-20}
+MODEL=${MODEL:-claude-haiku-4-5-20251001}
+
+# Single-file reformat (used for explicit file arg)
 reformat() {
     local file="$1"
     local prompt="$2"
     echo "  $(basename "$file")"
-    claude --dangerously-skip-permissions -p "$prompt $file"
+    claude --dangerously-skip-permissions --model "$MODEL" -p "$prompt $file"
+}
+
+# Run a batch of files in parallel; collect outputs and print in order
+run_batch() {
+    local prompt="$1"; shift
+    local files=("$@")
+    local tmps=()
+    for f in "${files[@]}"; do
+        local tmp
+        tmp=$(mktemp)
+        tmps+=("$tmp")
+        { echo "  $(basename "$f")"; claude --dangerously-skip-permissions -p "$prompt $f"; } \
+            > "$tmp" 2>&1 &
+    done
+    wait
+    for tmp in "${tmps[@]}"; do
+        cat "$tmp"
+        rm -f "$tmp"
+    done
 }
 
 run_tests() {
     local lang="$1"
+    local files=()
     case "$lang" in
-        py)   pat="$ROOT/session_py/src/session_py/*_test.py" ;;
-        rust) pat="$ROOT/session_rust/src/*_test.rs" ;;
-        cpp)  pat="$ROOT/session_cpp/src/*_test.cpp" ;;
+        py)   for f in "$ROOT"/session_py/src/session_py/*_test.py;  do [ -f "$f" ] && files+=("$f"); done ;;
+        rust) for f in "$ROOT"/session_rust/src/*_test.rs;            do [ -f "$f" ] && files+=("$f"); done ;;
+        cpp)  for f in "$ROOT"/session_cpp/src/*_test.cpp;            do [ -f "$f" ] && files+=("$f"); done ;;
     esac
-    for f in $pat; do [ -f "$f" ] && reformat "$f" "$PROMPT_TESTS"; done
+    local i=0
+    while [ $i -lt ${#files[@]} ]; do
+        run_batch "$PROMPT_TESTS" "${files[@]:$i:$PARALLEL}"; (( i += PARALLEL ))
+    done
 }
 
 run_src() {
     local lang="$1"
     echo "  [src]"
+    local files=()
     case "$lang" in
         py)
             for f in "$ROOT"/session_py/src/session_py/*.py; do
@@ -170,7 +238,7 @@ run_src() {
                 [[ "$base" == *_test.py ]] && continue
                 [[ "$base" == __init__.py ]] && continue
                 [[ "$base" == mini_test.py ]] && continue
-                reformat "$f" "$PROMPT_SRC"
+                [ -f "$f" ] && files+=("$f")
             done
             ;;
         rust)
@@ -179,17 +247,22 @@ run_src() {
                 [[ "$base" == *_test.rs ]] && continue
                 [[ "$base" == mini_test.rs ]] && continue
                 [[ "$base" == lib.rs ]] && continue
-                reformat "$f" "$PROMPT_SRC"
+                [ -f "$f" ] && files+=("$f")
             done
             ;;
         cpp)
             for f in "$ROOT"/session_cpp/src/*.cpp "$ROOT"/session_cpp/src/*.h; do
                 base="$(basename "$f")"
                 [[ "$base" == *_test.cpp ]] && continue
-                [ -f "$f" ] && reformat "$f" "$PROMPT_SRC"
+                [ -f "$f" ] && files+=("$f")
             done
             ;;
     esac
+    local i=0
+    while [ $i -lt ${#files[@]} ]; do
+        run_batch "$PROMPT_SRC" "${files[@]:$i:$PARALLEL}"
+        (( i += PARALLEL ))
+    done
 }
 
 run_lang() {

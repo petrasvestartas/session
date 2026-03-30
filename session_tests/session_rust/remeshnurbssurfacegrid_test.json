@@ -23,7 +23,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Sphere",
-    "time_ms": 1.274
+    "time_ms": 0.981
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Torus",
-    "time_ms": 4.77
+    "time_ms": 3.407
   },
   {
     "checks": [
@@ -75,7 +75,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Cylinder",
-    "time_ms": 0.49
+    "time_ms": 0.209
   },
   {
     "checks": [
@@ -101,7 +101,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Cone",
-    "time_ms": 0.302
+    "time_ms": 0.146
   },
   {
     "checks": [
@@ -127,7 +127,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Doubly Curved",
-    "time_ms": 9.581
+    "time_ms": 5.638
   },
   {
     "checks": [
@@ -158,84 +158,84 @@
     "line": 75,
     "passed": true,
     "test_name": "Grid Target",
-    "time_ms": 11.845
+    "time_ms": 7.891
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 102,
+        "line": 104,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 4",
-        "line": 103,
+        "line": 105,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 2",
-        "line": 104,
+        "line": 106,
         "passed": true
       }
     ],
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(0.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0), Point::new(4.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
     "failures": [],
     "group": "RemeshNurbsSurfaceGrid",
     "line": 91,
     "passed": true,
     "test_name": "Flat Quad",
-    "time_ms": 0.052
+    "time_ms": 0.036
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 120,
+        "line": 124,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 3",
-        "line": 121,
+        "line": 125,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 1",
-        "line": 122,
+        "line": 126,
         "passed": true
       }
     ],
-    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0), Point::new(2.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
     "failures": [],
     "group": "RemeshNurbsSurfaceGrid",
-    "line": 109,
+    "line": 111,
     "passed": true,
     "test_name": "Flat Triangle",
-    "time_ms": 0.031
+    "time_ms": 0.025
   },
   {
     "checks": [
       {
         "code_line": "m.is_valid()",
-        "line": 146,
+        "line": 150,
         "passed": true
       },
       {
         "code_line": "m.number_of_vertices() == 64",
-        "line": 147,
+        "line": 151,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() == 98",
-        "line": 148,
+        "line": 152,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 3.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(0.0, 2.0, 2.0),\n            Point::new(2.0, 2.0, 5.0),\n            Point::new(4.0, 2.0, 2.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ];\n        let s = NurbsSurface::create(false, false, 2, 2, 3, 3, &pts).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
     "failures": [],
     "group": "RemeshNurbsSurfaceGrid",
-    "line": 127,
+    "line": 131,
     "passed": true,
     "test_name": "Double-Curved Triangle",
-    "time_ms": 0.4
+    "time_ms": 0.26
   }
 ]

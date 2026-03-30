@@ -3,13 +3,301 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.214,
-    "line": 10,
-    "code": "    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");",
+    "time_ms": 10.876,
+    "line": 11,
+    "code": "    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");",
     "checks": [
       {
         "line": 18,
         "code_line": "TOLERANCE.is_close(loaded.s, original.s)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "From Arc",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 21,
+    "code": "    Vector src(1.0, 0.0, 0.0);\n    Vector dst(0.0, 1.0, 0.0);\n    Quaternion q = Quaternion::from_arc(src, dst);\n    Vector rotated = q.rotate_vector(src);\n\n    Vector src2(1.0, 0.0, 0.0);\n    Vector dst2(-1.0, 0.0, 0.0);\n    Quaternion q2 = Quaternion::from_arc(src2, dst2);\n    Vector rot = q2.rotate_vector(src2);",
+    "checks": [
+      {
+        "line": 27,
+        "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
+        "passed": true
+      },
+      {
+        "line": 35,
+        "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "From Euler",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 38,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q_euler = Quaternion::from_euler(0.0, 0.0, pi / 2.0);\n    Quaternion q_axis = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);",
+    "checks": [
+      {
+        "line": 43,
+        "code_line": "TOLERANCE.is_close(q_euler.s, q_axis.s)",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "TOLERANCE.is_close(q_euler.v[2], q_axis.v[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "slerp",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 47,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);\n    Quaternion mid = q1.slerp(q2, 0.5);\n    Quaternion expected = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n\n    Quaternion q3 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001);\n    Quaternion mid2 = q1.slerp(q3, 0.5);\n    Quaternion half = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005);",
+    "checks": [
+      {
+        "line": 54,
+        "code_line": "TOLERANCE.is_close(mid.s, expected.s)",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "TOLERANCE.is_close(mid.v[2], expected.v[2])",
+        "passed": true
+      },
+      {
+        "line": 59,
+        "code_line": "TOLERANCE.is_close(mid2.s, half.s)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "nlerp",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 62,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);\n    Quaternion r0 = q1.nlerp(q2, 0.0);\n    Quaternion r1 = q1.nlerp(q2, 1.0);",
+    "checks": [
+      {
+        "line": 69,
+        "code_line": "TOLERANCE.is_close(r0.s, q1.s)",
+        "passed": true
+      },
+      {
+        "line": 70,
+        "code_line": "TOLERANCE.is_close(r1.s, q2.s)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "invert",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 73,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 3.0);\n    Quaternion result = q * q.invert();",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "TOLERANCE.is_close(result.s, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(result.v[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.is_close(result.v[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "TOLERANCE.is_close(result.v[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "dot",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 84,
+    "code": "    Quaternion q = Quaternion::identity();",
+    "checks": [
+      {
+        "line": 87,
+        "code_line": "TOLERANCE.is_close(q.dot(q), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "magnitude2",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 90,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);",
+    "checks": [
+      {
+        "line": 94,
+        "code_line": "TOLERANCE.is_close(q.magnitude2(), q.magnitude() * q.magnitude())",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "add",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 97,
+    "code": "    Quaternion a = Quaternion::from_sv(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_sv(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion r = a + b;",
+    "checks": [
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_close(r.s, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "TOLERANCE.is_close(r.v[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "sub",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 106,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n    Quaternion r = q - q;",
+    "checks": [
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(r.s, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "TOLERANCE.is_close(r.v[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "neg",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 115,
+    "code": "    Quaternion q = Quaternion::identity();\n    Quaternion r = -q;",
+    "checks": [
+      {
+        "line": 119,
+        "code_line": "TOLERANCE.is_close(r.s, -1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Mul Scalar",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 122,
+    "code": "    Quaternion q = Quaternion::identity();\n    Quaternion r = q * 2.0;",
+    "checks": [
+      {
+        "line": 126,
+        "code_line": "TOLERANCE.is_close(r.s, 2.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "conjugate",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 129,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n    Quaternion r = q.conjugate();",
+    "checks": [
+      {
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(r.s, q.s)",
+        "passed": true
+      },
+      {
+        "line": 135,
+        "code_line": "TOLERANCE.is_close(r.v[0], -q.v[0])",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "TOLERANCE.is_close(r.v[2], -q.v[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "mul",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 139,
+    "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);\n    Quaternion r = q * q;\n    Vector v = r.rotate_vector(Vector(1.0, 0.0, 0.0));",
+    "checks": [
+      {
+        "line": 145,
+        "code_line": "TOLERANCE.is_close(v[0], -1.0)",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "TOLERANCE.is_close(v[1], 0.0)",
         "passed": true
       }
     ],

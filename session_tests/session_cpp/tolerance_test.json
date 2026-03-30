@@ -8,8 +8,8 @@
     "code": "        bool result = TOLERANCE.is_zero(1e-10);",
     "checks": [
       {
-        "line": 10,
-        "code_line": "result == true",
+        "line": 11,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -20,12 +20,12 @@
     "test_name": "Is Close",
     "passed": true,
     "time_ms": 0.0,
-    "line": 13,
+    "line": 14,
     "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
       {
-        "line": 15,
-        "code_line": "result == true",
+        "line": 17,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -36,12 +36,12 @@
     "test_name": "Is Positive",
     "passed": true,
     "time_ms": 0.0,
-    "line": 18,
+    "line": 20,
     "code": "        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
       {
-        "line": 20,
-        "code_line": "result == true",
+        "line": 23,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -52,12 +52,12 @@
     "test_name": "Is Negative",
     "passed": true,
     "time_ms": 0.0,
-    "line": 23,
+    "line": 26,
     "code": "        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
       {
-        "line": 25,
-        "code_line": "result == true",
+        "line": 29,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -68,12 +68,12 @@
     "test_name": "Is Between",
     "passed": true,
     "time_ms": 0.0,
-    "line": 28,
+    "line": 32,
     "code": "        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
       {
-        "line": 30,
-        "code_line": "result == true",
+        "line": 35,
+        "code_line": "result",
         "passed": true
       }
     ],
@@ -83,12 +83,12 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 33,
+    "time_ms": 0.004,
+    "line": 38,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
       {
-        "line": 35,
+        "line": 41,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -99,12 +99,12 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 38,
+    "time_ms": 0.001,
+    "line": 44,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
       {
-        "line": 40,
+        "line": 47,
         "code_line": "result == \"1.000,2.000,3.000\"",
         "passed": true
       }
@@ -116,47 +116,47 @@
     "test_name": "Runtime Modification",
     "passed": true,
     "time_ms": 0.0,
-    "line": 43,
-    "code": "        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
+    "line": 50,
+    "code": "        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
       {
-        "line": 47,
+        "line": 55,
         "code_line": "original_absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 48,
+        "line": 56,
         "code_line": "original_relative == 1e-6",
         "passed": true
       },
       {
-        "line": 53,
+        "line": 61,
         "code_line": "TOLERANCE.absolute() == 1e-12",
         "passed": true
       },
       {
-        "line": 54,
+        "line": 62,
         "code_line": "TOLERANCE.relative() == 1e-12",
         "passed": true
       },
       {
-        "line": 58,
-        "code_line": "close_with_tight == false",
+        "line": 66,
+        "code_line": "!close_with_tight",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 70,
         "code_line": "TOLERANCE.absolute() == 1e-9",
         "passed": true
       },
       {
-        "line": 63,
+        "line": 71,
         "code_line": "TOLERANCE.relative() == 1e-6",
         "passed": true
       },
       {
-        "line": 67,
-        "code_line": "close_with_default == true",
+        "line": 75,
+        "code_line": "close_with_default",
         "passed": true
       }
     ],

@@ -1,105 +1,98 @@
 [
   {
-    "group": "AABBTree",
-    "test_name": "Build Empty",
+    "group": "Aabb",
+    "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.022,
-    "line": 7,
-    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 0.0))",
+    "time_ms": 0.319,
+    "line": 111,
+    "code": "    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u2014 dims 2\u00d74\u00d76\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union(b)",
     "checks": [
       {
-        "line": 15,
-        "code_line": "d == float('inf')",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Build Single",
-    "passed": true,
-    "time_ms": 0.085,
-    "line": 18,
-    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 1.0))",
-    "checks": [
-      {
-        "line": 30,
-        "code_line": "d > 0.0",
+        "line": 120,
+        "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
         "passed": true
       },
       {
-        "line": 31,
-        "code_line": "TOLERANCE.is_close(d, 1.0)",
+        "line": 121,
+        "code_line": "a.center() == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "TOLERANCE.is_close(a.diagonal(), 2.0 * math.sqrt(14.0))",
+        "passed": true
+      },
+      {
+        "line": 123,
+        "code_line": "a.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "TOLERANCE.is_close(a.volume(), 48.0)",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "a.contains(Point(0.0, 0.0, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "not a.contains(Point(10.0, 0.0, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "a.corner(False, False, False) == Point(-1.0, -2.0, -3.0)",
+        "passed": true
+      },
+      {
+        "line": 130,
+        "code_line": "a.corner(True, True, True) == Point(1.0, 2.0, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "len(a.get_corners()) == 8",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "len(a.get_edges()) == 12",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "a.min_point() == Point(-1.0, -2.0, -3.0)",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "a.max_point() == Point(6.0, 2.0, 3.0)",
         "passed": true
       }
     ],
     "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Build Multiple",
-    "passed": true,
-    "time_ms": 0.077,
-    "line": 34,
-    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(5.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(6.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(5.0, 1.0, 0.0))\n    vk6 = m.add_vertex(Point(10.0, 0.0, 0.0))\n    vk7 = m.add_vertex(Point(11.0, 0.0, 0.0))\n    vk8 = m.add_vertex(Point(10.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    m.add_face([vk6, vk7, vk8])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.5, 0.0, 0.0))",
-    "checks": [
-      {
-        "line": 54,
-        "code_line": "d < 0.5",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Node Count",
-    "passed": true,
-    "time_ms": 1.096,
-    "line": 57,
-    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vkeys = []\n    for i in range(100):\n        vkeys.append(m.add_vertex(Point(float(i), 0.0, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i) + 0.5, 0.5, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i), 0.5, 0.0)))\n    for i in range(100):\n        m.add_face([vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(50.0, 0.0, 0.0))",
-    "checks": [
-      {
-        "line": 72,
-        "code_line": "d < 0.5",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Mesh Point Aabb",
-    "passed": false,
-    "time_ms": 1.207,
-    "line": 75,
-    "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
-    "checks": [],
-    "failures": [
-      {
-        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
-        "line": 904,
-        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
-        "error": "NameError: name '_cdt_triangulate' is not defined"
-      }
-    ]
-  },
-  {
-    "group": "AABBTree",
-    "test_name": "Mesh Point Aabb Matches Bvh",
-    "passed": false,
-    "time_ms": 0.234,
-    "line": 89,
-    "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    tp = Point(0.3, 0.7, 1.5)\n    cp_bvh, fk_bvh, d_bvh = Closest.mesh_point(m, tp)\n    cp_aabb, fk_aabb, d_aabb = Closest.mesh_point_aabb(m, tp)",
-    "checks": [],
-    "failures": [
-      {
-        "file": "C:\\pc\\3_code\\code_rust\\session\\session_py\\src\\session_py\\remesh_cdt.py",
-        "line": 904,
-        "code_line": "return _cdt_triangulate(border_2d, holes_2d)",
-        "error": "NameError: name '_cdt_triangulate' is not defined"
-      }
-    ]
   }
 ]

@@ -5,11 +5,6 @@
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
         "line": 8,
         "passed": true
-      },
-      {
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces() == false",
-        "line": 9,
-        "passed": true
       }
     ],
     "code": "",
@@ -18,45 +13,30 @@
     "line": 7,
     "passed": true,
     "test_name": "Default Values",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
-        "line": 15,
+        "line": 14,
         "passed": true
       },
       {
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == true",
-        "line": 17,
+        "line": 16,
         "passed": true
       },
       {
         "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
-        "line": 19,
-        "passed": true
-      },
-      {
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces() == false",
-        "line": 20,
-        "passed": true
-      },
-      {
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces() == true",
-        "line": 22,
-        "passed": true
-      },
-      {
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces() == false",
-        "line": 24,
+        "line": 18,
         "passed": true
       }
     ],
-    "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();\n        SESSION_CONFIG.set_mesh_triangulate_faces(true);\n        SESSION_CONFIG.reset();",
+    "code": "        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.reset();",
     "failures": [],
     "group": "SessionConfig",
-    "line": 14,
+    "line": 13,
     "passed": true,
     "test_name": "Runtime Modification",
     "time_ms": 0.0

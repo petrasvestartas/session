@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "pc.name == \"my_pointcloud\" && !pc.guid.is_empty()",
+        "code_line": "pc.name == \"my_pointcloud\" && !pc.guid().is_empty()",
         "line": 69,
         "passed": true
       },
@@ -12,7 +12,7 @@
         "passed": true
       },
       {
-        "code_line": "color_count == 3 && normal_count == 3 && is_empty == false",
+        "code_line": "color_count == 3 && normal_count == 3 && !is_empty",
         "line": 71,
         "passed": true
       },
@@ -27,7 +27,7 @@
         "passed": true
       },
       {
-        "code_line": "pccopy == pc && pccopy.guid != pc.guid",
+        "code_line": "pccopy == pc && pccopy.guid() != pc.guid()",
         "line": 74,
         "passed": true
       },
@@ -238,23 +238,53 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.019
+    "time_ms": 0.011
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 11.0) &&\nTOLERANCE.is_close(pc.get_point(0)[1], 22.0) &&\nTOLERANCE.is_close(pc.get_point(0)[2], 33.0)",
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 11.0)",
         "line": 134,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 11.0) &&\nTOLERANCE.is_close(pc3.get_point(0)[1], 22.0) &&\nTOLERANCE.is_close(pc3.get_point(0)[2], 33.0)",
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[1], 22.0)",
         "line": 135,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 1.0) &&\nTOLERANCE.is_close(pc2.get_point(0)[1], 2.0) &&\nTOLERANCE.is_close(pc2.get_point(0)[2], 3.0)",
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[2], 33.0)",
         "line": 136,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[0], 11.0)",
+        "line": 137,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[1], 22.0)",
+        "line": 138,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc3.get_point(0)[2], 33.0)",
+        "line": 139,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 1.0)",
+        "line": 140,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[1], 2.0)",
+        "line": 141,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[2], 3.0)",
+        "line": 142,
         "passed": true
       }
     ],
@@ -264,98 +294,118 @@
     "line": 119,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.006
+    "time_ms": 0.002
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_pointcloud\"",
-        "line": 163,
+        "line": 178,
         "passed": true
       },
       {
         "code_line": "loaded.len() == 2",
-        "line": 164,
+        "line": 179,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
-        "line": 165,
+        "line": 180,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
-        "line": 166,
+        "line": 181,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
-        "line": 167,
+        "line": 182,
         "passed": true
       },
       {
-        "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 &&\nloaded.get_color(0).b == 0",
-        "line": 168,
+        "code_line": "loaded.get_color(0).r == 255",
+        "line": 183,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.get_color(0).g == 0",
+        "line": 184,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.get_color(0).b == 0",
+        "line": 185,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
-        "line": 169,
+        "line": 186,
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![\n                Point::new(1.0, 2.0, 3.0),\n                Point::new(4.0, 5.0, 6.0),\n            ],\n            vec![\n                Vector::new(0.0, 0.0, 1.0),\n                Vector::new(0.0, 0.0, 1.0),\n            ],\n            vec![\n                Color::new(255, 0, 0, 255),\n                Color::new(0, 255, 0, 255),\n            ],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
     "failures": [],
     "group": "PointCloud",
-    "line": 141,
+    "line": 147,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.128
+    "time_ms": 10.114
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_pointcloud\"",
-        "line": 191,
+        "line": 217,
         "passed": true
       },
       {
         "code_line": "loaded.len() == 2",
-        "line": 192,
+        "line": 218,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
-        "line": 193,
+        "line": 219,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[1], 2.0)",
-        "line": 194,
+        "line": 220,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_point(0)[2], 3.0)",
-        "line": 195,
+        "line": 221,
         "passed": true
       },
       {
-        "code_line": "loaded.get_color(0).r == 255 && loaded.get_color(0).g == 0 &&\nloaded.get_color(0).b == 0",
-        "line": 196,
+        "code_line": "loaded.get_color(0).r == 255",
+        "line": 222,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.get_color(0).g == 0",
+        "line": 223,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.get_color(0).b == 0",
+        "line": 224,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
-        "line": 197,
+        "line": 225,
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.bin\";\n        pc.pb_dump(fname);\n        let loaded = PointCloud::pb_load(fname);\n",
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![\n                Point::new(1.0, 2.0, 3.0),\n                Point::new(4.0, 5.0, 6.0),\n            ],\n            vec![\n                Vector::new(0.0, 0.0, 1.0),\n                Vector::new(0.0, 0.0, 1.0),\n            ],\n            vec![\n                Color::new(255, 0, 0, 255),\n                Color::new(0, 255, 0, 255),\n            ],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        let fname = \"serialization/test_pointcloud.bin\";\n        pc.pb_dump(fname);\n        let loaded = PointCloud::pb_load(fname);\n",
     "failures": [],
     "group": "PointCloud",
-    "line": 174,
+    "line": 191,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 7.736
+    "time_ms": 7.669
   }
 ]

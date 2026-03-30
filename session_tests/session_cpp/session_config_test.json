@@ -9,12 +9,7 @@
     "checks": [
       {
         "line": 9,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == false",
-        "passed": true
-      },
-      {
-        "line": 10,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == false",
+        "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       }
     ],
@@ -24,38 +19,23 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 13,
-    "code": "        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.reset();\n        SESSION_CONFIG.mesh_triangulate_faces = true;\n        SESSION_CONFIG.reset();",
+    "time_ms": 0.0,
+    "line": 12,
+    "code": "        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.reset();",
     "checks": [
       {
-        "line": 14,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == false",
+        "line": 13,
+        "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 16,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == true",
+        "line": 15,
+        "code_line": "SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 18,
-        "code_line": "SESSION_CONFIG.explode_mesh_faces == false",
-        "passed": true
-      },
-      {
-        "line": 19,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == false",
-        "passed": true
-      },
-      {
-        "line": 21,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == true",
-        "passed": true
-      },
-      {
-        "line": 23,
-        "code_line": "SESSION_CONFIG.mesh_triangulate_faces == false",
+        "line": 17,
+        "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       }
     ],

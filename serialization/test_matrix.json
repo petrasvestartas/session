@@ -1,0 +1,15 @@
+{
+  "cols": 3,
+  "data": [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0
+  ],
+  "guid": "64ade4e4-7d52-42f5-bbc8-3f300d228090",
+  "name": "test_matrix",
+  "rows": 2,
+  "type": "Matrix"
+}

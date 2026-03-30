@@ -31,6 +31,12 @@
       "type": "shell",
       "command": "bash/git_pull.sh",
       "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "bash/lint.sh",
+      "presentation": { "reveal": "always", "panel": "shared" }
     }
   ],
   "inputs": [

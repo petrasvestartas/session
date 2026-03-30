@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "v.name == \"my_vector\" && v[0] == 10.0 && v[1] == 20.0 && v[2] == 30.0 &&\n!v.guid.is_empty()",
+        "code_line": "v.name == \"my_vector\" && v[0] == 10.0 && v[1] == 20.0 && v[2] == 30.0 &&\n!v.guid().is_empty()",
         "line": 57,
         "passed": true
       },
@@ -27,7 +27,7 @@
         "passed": true
       },
       {
-        "code_line": "vcopy == v && vcopy.guid != v.guid",
+        "code_line": "vcopy == v && vcopy.guid() != v.guid()",
         "line": 68,
         "passed": true
       },
@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.011
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 125,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Cross Product",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 219,
     "passed": true,
     "test_name": "Projection",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 239,
     "passed": true,
     "test_name": "Is Parallel To",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -362,7 +362,7 @@
     "line": 255,
     "passed": true,
     "test_name": "Is Perpendicular To",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -459,42 +459,42 @@
     "line": 297,
     "passed": true,
     "test_name": "Cos Sin Laws",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "sum[0] == 6.0",
-        "line": 356,
-        "passed": true
-      },
-      {
-        "code_line": "sum[1] == 6.0",
         "line": 357,
         "passed": true
       },
       {
-        "code_line": "sum[2] == 6.0",
+        "code_line": "sum[1] == 6.0",
         "line": 358,
         "passed": true
       },
       {
-        "code_line": "zero[0] == 0.0",
-        "line": 363,
+        "code_line": "sum[2] == 6.0",
+        "line": 359,
         "passed": true
       },
       {
-        "code_line": "zero[1] == 0.0",
+        "code_line": "zero[0] == 0.0",
         "line": 364,
         "passed": true
       },
       {
-        "code_line": "zero[2] == 0.0",
+        "code_line": "zero[1] == 0.0",
         "line": 365,
+        "passed": true
+      },
+      {
+        "code_line": "zero[2] == 0.0",
+        "line": 366,
         "passed": true
       }
     ],
-    "code": "        use crate::Vector;\n\n        // Sum of multiple vectors\n        let vecs = vec![\n            Vector::new(1.0, 1.0, 1.0),\n            Vector::new(2.0, 2.0, 2.0),\n            Vector::new(3.0, 3.0, 3.0),\n        ];\n        let sum = Vector::sum_of_vectors(&vecs);\n\n        // Empty list returns zero vector\n        let empty: Vec<Vector> = vec![];\n        let zero = Vector::sum_of_vectors(&empty);",
+    "code": "        use crate::Vector;\n\n        // Sum of multiple vectors\n        let vecs = vec![\n            Vector::new(1.0, 1.0, 1.0),\n            Vector::new(2.0, 2.0, 2.0),\n            Vector::new(3.0, 3.0, 3.0),\n        ];\n        let sum = Vector::sum_of_vectors(&vecs);\n\n\n        // Empty list returns zero vector\n        let empty: Vec<Vector> = vec![];\n        let zero = Vector::sum_of_vectors(&empty);",
     "failures": [],
     "group": "Vector",
     "line": 346,
@@ -506,223 +506,233 @@
     "checks": [
       {
         "code_line": "avg[0] == 3.0",
-        "line": 380,
+        "line": 382,
         "passed": true
       },
       {
         "code_line": "avg[1] == 4.0",
-        "line": 381,
+        "line": 383,
         "passed": true
       },
       {
         "code_line": "avg[2] == 5.0",
-        "line": 382,
+        "line": 384,
         "passed": true
       }
     ],
-    "code": "        use crate::Vector;\n\n        // Average of multiple vectors\n        let vecs = vec![\n            Vector::new(1.0, 2.0, 3.0),\n            Vector::new(3.0, 4.0, 5.0),\n            Vector::new(5.0, 6.0, 7.0),\n        ];\n        let avg = Vector::average(&vecs);",
+    "code": "        use crate::Vector;\n\n        // Average of multiple vectors\n        let vecs = vec![\n            Vector::new(1.0, 2.0, 3.0),\n            Vector::new(3.0, 4.0, 5.0),\n            Vector::new(5.0, 6.0, 7.0),\n        ];\n        let avg = Vector::average(&vecs);\n",
     "failures": [],
     "group": "Vector",
-    "line": 370,
+    "line": 371,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "zero.is_zero()",
-        "line": 394,
+        "line": 396,
         "passed": true
       },
       {
         "code_line": "!nonzero.is_zero()",
-        "line": 395,
+        "line": 397,
         "passed": true
       },
       {
         "code_line": "tiny.is_zero()",
-        "line": 396,
+        "line": 398,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n\n        let zero = Vector::new(0.0, 0.0, 0.0);\n        let nonzero = Vector::new(1.0, 0.0, 0.0);\n        let tiny = Vector::new(1e-13, 1e-13, 1e-13); // Magnitude ~ 1.7e-13 < 1e-12\n",
     "failures": [],
     "group": "Vector",
-    "line": 387,
+    "line": 389,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_vector\"",
-        "line": 485,
+        "line": 489,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
-        "line": 486,
+        "line": 490,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
-        "line": 487,
+        "line": 491,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
-        "line": 488,
+        "line": 492,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_vector.json\";\n        v.json_dump(filename).unwrap();\n        let loaded = Vector::json_load(filename).unwrap();\n",
     "failures": [],
     "group": "Vector",
-    "line": 470,
+    "line": 474,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.78
+    "time_ms": 7.739
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_vector\"",
-        "line": 504,
+        "line": 508,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
-        "line": 505,
+        "line": 509,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
-        "line": 506,
+        "line": 510,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
-        "line": 507,
+        "line": 511,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(42.1, 84.2, 126.3);\n        v.name = \"test_vector\".to_string();\n\n        // Test pb_dump / pb_load (file-based)\n        let filename = \"serialization/test_vector.bin\";\n        v.pb_dump(filename);\n        let loaded = Vector::pb_load(filename);\n",
     "failures": [],
     "group": "Vector",
-    "line": 493,
+    "line": 497,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.838
+    "time_ms": 0.768
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(r[0], -1.0)",
-        "line": 426,
+        "line": 430,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(r[1], 2.0)",
-        "line": 427,
+        "line": 431,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(r[2], 3.0)",
-        "line": 428,
+        "line": 432,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n\n        let v = Vector::new(1.0, 2.0, 3.0);\n        let n = Vector::x_axis();\n        let r = v.reflect(&n);\n",
     "failures": [],
     "group": "Vector",
-    "line": 419,
+    "line": 423,
     "passed": true,
     "test_name": "Reflect",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "v[0] == 1.0 && v[1] == 2.0 && v[2] == 3.0",
-        "line": 412,
+        "line": 414,
         "passed": true
       },
       {
         "code_line": "v_up[0] > 1.0",
-        "line": 413,
+        "line": 415,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(v_rt[0], 1.0) && TOLERANCE.is_close(v_rt[1], 2.0) &&\nTOLERANCE.is_close(v_rt[2], 3.0)",
-        "line": 414,
+        "code_line": "TOLERANCE.is_close(v_rt[0], 1.0)",
+        "line": 416,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(v_rt[1], 2.0)",
+        "line": 417,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(v_rt[2], 3.0)",
+        "line": 418,
         "passed": true
       }
     ],
     "code": "        use crate::Vector;\n\n        let mut v = Vector::new(2.0, 4.0, 6.0);\n        v.scale(0.5);\n        let mut v_up = Vector::new(1.0, 2.0, 3.0);\n        v_up.scale_up();\n        let mut v_rt = Vector::new(1.0, 2.0, 3.0);\n        v_rt.scale_up();\n        v_rt.scale_down();\n",
     "failures": [],
     "group": "Vector",
-    "line": 401,
+    "line": 403,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "pts0.len() == 2",
-        "line": 461,
+        "line": 465,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0)",
-        "line": 462,
+        "line": 466,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0)",
-        "line": 463,
+        "line": 467,
         "passed": true
       },
       {
         "code_line": "pts1.len() == 3",
-        "line": 464,
+        "line": 468,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pts1[0][0], 0.0) && TOLERANCE.is_close(pts1[2][0], 1.0)",
-        "line": 465,
+        "line": 469,
         "passed": true
       }
     ],
     "code": "        use crate::vector::interpolate_points;\n        use crate::Point;\n\n        let from_pt = Point::new(0.0, 0.0, 0.0);\n        let to_pt = Point::new(1.0, 0.0, 0.0);\n        let pts0 = interpolate_points(&from_pt, &to_pt, 2, 0);\n        let pts1 = interpolate_points(&from_pt, &to_pt, 1, 1);\n",
     "failures": [],
     "group": "Vector",
-    "line": 452,
+    "line": 456,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(n[2].abs(), 1.0)",
-        "line": 446,
+        "line": 450,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(n[0], 0.0) && TOLERANCE.is_close(n[1], 0.0)",
-        "line": 447,
+        "line": 451,
         "passed": true
       }
     ],
     "code": "        use crate::vector::average_normal;\n        use crate::Point;\n\n        let sq = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ];\n        let n = average_normal(&sq);\n",
     "failures": [],
     "group": "Vector",
-    "line": 433,
+    "line": 437,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.003
+    "time_ms": 0.001
   }
 ]

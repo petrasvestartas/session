@@ -3,77 +3,77 @@
     "checks": [
       {
         "code_line": "mesh.number_of_vertices() == 2503",
-        "line": 15,
-        "passed": true
-      },
-      {
-        "code_line": "mesh.number_of_faces() == 4968",
         "line": 16,
         "passed": true
       },
       {
-        "code_line": "vertices.len() == 2503",
-        "line": 18,
+        "code_line": "mesh.number_of_faces() == 4968",
+        "line": 17,
         "passed": true
       },
       {
-        "code_line": "faces.len() == 4968",
+        "code_line": "vertices.len() == 2503",
         "line": 19,
         "passed": true
       },
       {
+        "code_line": "faces.len() == 4968",
+        "line": 20,
+        "passed": true
+      },
+      {
         "code_line": "has_non_zero",
-        "line": 21,
+        "line": 22,
         "passed": true
       },
       {
         "code_line": "faces.iter().all(|f| f.len() >= 3)",
-        "line": 22,
+        "line": 23,
         "passed": true
       }
     ],
-    "code": "        use std::path::PathBuf;\n        use crate::obj::read_obj;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.obj\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let mesh = read_obj(bunny_path.to_str().unwrap()).unwrap();\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n        let has_non_zero = vertices.iter().any(|v| v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0);",
+    "code": "        use std::path::PathBuf;\n        use crate::obj::read_obj;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.obj\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let mesh = read_obj(bunny_path.to_str().unwrap()).unwrap();\n\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n        let has_non_zero = vertices.iter().any(|v| v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0);",
     "failures": [],
     "group": "OBJ",
     "line": 6,
     "passed": true,
     "test_name": "Read Bunny",
-    "time_ms": 8.311
+    "time_ms": 7.307
   },
   {
     "checks": [
       {
         "code_line": "original_mesh.number_of_vertices() == 4",
-        "line": 38,
+        "line": 40,
         "passed": true
       },
       {
         "code_line": "original_mesh.number_of_faces() == 2",
-        "line": 39,
+        "line": 41,
         "passed": true
       },
       {
         "code_line": "temp_file.exists()",
-        "line": 44,
-        "passed": true
-      },
-      {
-        "code_line": "loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices()",
         "line": 46,
         "passed": true
       },
       {
+        "code_line": "loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices()",
+        "line": 48,
+        "passed": true
+      },
+      {
         "code_line": "loaded_mesh.number_of_faces() == original_mesh.number_of_faces()",
-        "line": 47,
+        "line": 49,
         "passed": true
       }
     ],
-    "code": "        use crate::{Mesh, Point};\n        use crate::obj::{read_obj, write_obj};\n        use std::path::PathBuf;\n        let mut original_mesh = Mesh::new();\n        let v0 = original_mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = original_mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = original_mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = original_mesh.add_vertex(Point::new(0.0, 0.0, 1.0), None);\n        let _ = original_mesh.add_face(vec![v0, v1, v2], None);\n        let _ = original_mesh.add_face(vec![v0, v1, v3], None);\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let temp_file = src_dir.join(\"serialization\").join(\"test_temp_roundtrip.obj\");\n        let temp_str = temp_file.to_str().unwrap();\n        write_obj(&original_mesh, temp_str).unwrap();\n        let loaded_mesh = read_obj(temp_str).unwrap();\n        let _ = std::fs::remove_file(&temp_file);",
+    "code": "        use crate::{Mesh, Point};\n        use crate::obj::{read_obj, write_obj};\n        use std::path::PathBuf;\n        let mut original_mesh = Mesh::new();\n        let v0 = original_mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = original_mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = original_mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = original_mesh.add_vertex(Point::new(0.0, 0.0, 1.0), None);\n        let _ = original_mesh.add_face(vec![v0, v1, v2], None);\n        let _ = original_mesh.add_face(vec![v0, v1, v3], None);\n\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let temp_file = src_dir.join(\"serialization\").join(\"test_temp_roundtrip.obj\");\n        let temp_str = temp_file.to_str().unwrap();\n        write_obj(&original_mesh, temp_str).unwrap();\n        let loaded_mesh = read_obj(temp_str).unwrap();\n        let _ = std::fs::remove_file(&temp_file);",
     "failures": [],
     "group": "OBJ",
-    "line": 27,
+    "line": 28,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 1.049
+    "time_ms": 11.921
   }
 ]

@@ -3,269 +3,269 @@
     "checks": [
       {
         "code_line": "name == \"beam1\"",
-        "line": 431,
+        "line": 476,
         "passed": true
       },
       {
         "code_line": "!guid.is_empty()",
-        "line": 432,
+        "line": 477,
         "passed": true
       },
       {
         "code_line": "matches!(b.geometry(), ElementGeometry::Mesh(_))",
-        "line": 433,
+        "line": 478,
         "passed": true
       },
       {
         "code_line": "b.width() == Some(0.1)",
-        "line": 434,
+        "line": 479,
         "passed": true
       },
       {
         "code_line": "b.depth() == Some(0.2)",
-        "line": 435,
+        "line": 480,
         "passed": true
       },
       {
         "code_line": "b.length() == Some(3.0)",
-        "line": 436,
+        "line": 481,
         "passed": true
       },
       {
         "code_line": "bstr == \"BeamElement(beam1, 0.1, 0.2, 3)\"",
-        "line": 437,
+        "line": 482,
         "passed": true
       },
       {
         "code_line": "brepr == format!(\"BeamElement({}, beam1, 0.1, 0.2, 3)\", guid)",
-        "line": 438,
+        "line": 483,
         "passed": true
       },
       {
-        "code_line": "bcopy == b && bcopy.guid != b.guid",
-        "line": 439,
+        "code_line": "bcopy == b && bcopy.guid() != b.guid()",
+        "line": 484,
         "passed": true
       },
       {
         "code_line": "b == b2",
-        "line": 440,
+        "line": 485,
         "passed": true
       },
       {
         "code_line": "b != b3",
-        "line": 441,
+        "line": 486,
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n\n        let b = Element::beam(0.1, 0.2, 3.0, \"beam1\");\n\n        let name = &b.name;\n        let guid = &b.guid;\n        let bstr = b.str();\n        let brepr = b.repr();\n\n        let bcopy = b.duplicate();\n        let b2 = Element::beam(0.1, 0.2, 3.0, \"beam1\");\n        let b3 = Element::beam(0.1, 0.2, 5.0, \"beam1\");\n",
+    "code": "        use crate::element::{Element, ElementGeometry};\n\n        let b = Element::beam(0.1, 0.2, 3.0, \"beam1\");\n\n        let name = &b.name;\n        let guid = b.guid().to_string();\n        let bstr = b.str();\n        let brepr = b.repr();\n\n        let bcopy = b.duplicate();\n        let b2 = Element::beam(0.1, 0.2, 3.0, \"beam1\");\n        let b3 = Element::beam(0.1, 0.2, 5.0, \"beam1\");\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 417,
+    "line": 462,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.124
+    "time_ms": 0.057
   },
   {
     "checks": [
       {
         "code_line": "b.width() == Some(0.15)",
-        "line": 454,
+        "line": 499,
         "passed": true
       },
       {
         "code_line": "b.depth() == Some(0.3)",
-        "line": 455,
+        "line": 500,
         "passed": true
       },
       {
         "code_line": "b.length() == Some(5.0)",
-        "line": 456,
+        "line": 501,
         "passed": true
       },
       {
         "code_line": "b.has_geometry()",
-        "line": 457,
+        "line": 502,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        b.set_width(0.15);\n        b.set_depth(0.3);\n        b.set_length(5.0);\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 446,
+    "line": 491,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.118
+    "time_ms": 0.037
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(cl.start()[2], 0.0)",
-        "line": 468,
+        "line": 513,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(cl.end()[2], 5.0)",
-        "line": 469,
+        "line": 514,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n\n        let b = Element::beam(0.1, 0.2, 5.0, \"my_beam\");\n        let cl = b.center_line().unwrap();\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 462,
+    "line": 507,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.036
+    "time_ms": 0.009
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(b.length().unwrap(), 4.0)",
-        "line": 480,
+        "line": 525,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        b.extend(0.5);\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 474,
+    "line": 519,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.046
+    "time_ms": 0.018
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.05)",
-        "line": 491,
+        "line": 536,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.1)",
-        "line": 492,
+        "line": 537,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[2], 1.5)",
-        "line": 493,
+        "line": 538,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let aabb = b.aabb();\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 485,
+    "line": 530,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.045
+    "time_ms": 0.035
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
-        "line": 504,
+        "line": 549,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
-        "line": 505,
+        "line": 550,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[2], 1.5)",
-        "line": 506,
+        "line": 551,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let pt = b.point();\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 498,
+    "line": 543,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.031
+    "time_ms": 0.019
   },
   {
     "checks": [
       {
         "code_line": "matches!(&sg, ElementGeometry::Mesh(_))",
-        "line": 519,
+        "line": 564,
         "passed": true
       },
       {
         "code_line": "min_x > 9.0",
-        "line": 522,
+        "line": 567,
         "passed": true
       }
     ],
     "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        b.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = b.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f64::INFINITY, f64::min);\n        }",
     "failures": [],
     "group": "BeamElement",
-    "line": 511,
+    "line": 556,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.033
+    "time_ms": 0.013
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"json_beam\"",
-        "line": 539,
+        "line": 584,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.15)",
-        "line": 540,
+        "line": 585,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.3)",
-        "line": 541,
+        "line": 586,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.length().unwrap(), 5.0)",
-        "line": 542,
+        "line": 587,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut b = Element::beam(0.15, 0.3, 5.0, \"json_beam\");\n        b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_beam_element.json\";\n        b.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 528,
+    "line": 573,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.185
+    "time_ms": 14.203
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"proto_beam\"",
-        "line": 558,
+        "line": 603,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.15)",
-        "line": 559,
+        "line": 604,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.3)",
-        "line": 560,
+        "line": 605,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.length().unwrap(), 5.0)",
-        "line": 561,
+        "line": 606,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut b = Element::beam(0.15, 0.3, 5.0, \"proto_beam\");\n        b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_beam_element.bin\";\n        b.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
     "failures": [],
     "group": "BeamElement",
-    "line": 547,
+    "line": 592,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.014
+    "time_ms": 10.658
   }
 ]

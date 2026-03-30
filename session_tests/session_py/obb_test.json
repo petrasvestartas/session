@@ -1,89 +1,89 @@
 [
   {
-    "group": "Obb",
+    "group": "OBB",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.129,
+    "time_ms": 0.215,
     "line": 7,
-    "code": "    from session_py import Obb\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = Obb.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n    # from_points (AABB)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    ]\n    bb2 = Obb.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n    # OBB constructor\n    box = Obb(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n    # corners\n    corners = bb2.corners()\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n    # inflate\n    bb3 = Obb.from_points([Point(0.0, 0.0, 0.0), Point(2.0, 2.0, 2.0)])\n    bb3.inflate(1.0)\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
+    "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = OBB.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n\n    # from_points (AABB)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    ]\n    bb2 = OBB.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n\n    # OBB constructor\n    box = OBB(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n\n    # corners\n    corners = bb2.corners()\n\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n\n    # inflate\n    bb3 = OBB.from_points([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ])\n    bb3.inflate(1.0)\n\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
     "checks": [
       {
-        "line": 15,
+        "line": 16,
         "code_line": "TOLERANCE.is_close(bb1.center[0], 5.0)",
         "passed": true
       },
       {
-        "line": 16,
+        "line": 17,
         "code_line": "TOLERANCE.is_close(bb1.half_size[0], 2.0)",
         "passed": true
       },
       {
-        "line": 26,
+        "line": 28,
         "code_line": "TOLERANCE.is_close(mn[0], 0.0) and TOLERANCE.is_close(mn[2], 0.0)",
         "passed": true
       },
       {
-        "line": 27,
+        "line": 29,
         "code_line": "TOLERANCE.is_close(mx[0], 2.0) and TOLERANCE.is_close(mx[2], 4.0)",
         "passed": true
       },
       {
-        "line": 37,
+        "line": 40,
         "code_line": "TOLERANCE.is_close(box.half_size[0], 1.0)",
         "passed": true
       },
       {
-        "line": 38,
+        "line": 41,
         "code_line": "TOLERANCE.is_close(box.half_size[1], 2.0)",
         "passed": true
       },
       {
-        "line": 39,
+        "line": 42,
         "code_line": "TOLERANCE.is_close(box.half_size[2], 3.0)",
         "passed": true
       },
       {
-        "line": 43,
+        "line": 47,
         "code_line": "TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0)",
         "passed": true
       },
       {
-        "line": 44,
+        "line": 48,
         "code_line": "TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0)",
         "passed": true
       },
       {
-        "line": 48,
+        "line": 53,
         "code_line": "len(corners) == 8",
         "passed": true
       },
       {
-        "line": 54,
+        "line": 60,
         "code_line": "TOLERANCE.is_close(p_center[0], 1.0) and TOLERANCE.is_close(p_center[2], 2.0)",
         "passed": true
       },
       {
-        "line": 55,
+        "line": 61,
         "code_line": "TOLERANCE.is_close(p_max_pt[0], 2.0) and TOLERANCE.is_close(p_max_pt[2], 4.0)",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 70,
         "code_line": "TOLERANCE.is_close(bb3.min_point()[0], -1.0)",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 71,
         "code_line": "TOLERANCE.is_close(bb3.max_point()[0], 3.0)",
         "passed": true
       },
       {
-        "line": 64,
+        "line": 74,
         "code_line": "bb1.guid",
         "passed": true
       },
       {
-        "line": 66,
+        "line": 77,
         "code_line": "bb1.name == \"test_bbox\"",
         "passed": true
       }
@@ -91,46 +91,56 @@
     "failures": []
   },
   {
-    "group": "Obb",
+    "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.067,
-    "line": 69,
-    "code": "    from session_py import Obb\n    from session_py import Point\n\n    bb1 = Obb.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = Obb.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = Obb.from_point(Point(5.0, 5.0, 5.0), 0.5)",
+    "time_ms": 0.26,
+    "line": 80,
+    "code": "    from session_py import OBB\n    from session_py import Point\n\n    bb1 = OBB.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = OBB.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = OBB.from_point(Point(5.0, 5.0, 5.0), 0.5)",
     "checks": [
       {
-        "line": 78,
+        "line": 89,
         "code_line": "bb1.collides_with(bb2)",
         "passed": true
       },
       {
-        "line": 79,
+        "line": 90,
         "code_line": "not bb1.collides_with(bb3)",
+        "passed": true
+      },
+      {
+        "line": 91,
+        "code_line": "bb1.collides_with_broad(bb2)",
+        "passed": true
+      },
+      {
+        "line": 92,
+        "code_line": "not bb1.collides_with_broad(bb3)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "Obb",
+    "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.132,
-    "line": 82,
-    "code": "    from session_py import Obb\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n    bb = Obb.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n    bb.transform()",
+    "time_ms": 0.256,
+    "line": 95,
+    "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n    bb = OBB.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n\n    bb.transform()",
     "checks": [
       {
-        "line": 96,
+        "line": 110,
         "code_line": "TOLERANCE.is_close(bbt.center[2], 5.0)",
         "passed": true
       },
       {
-        "line": 99,
+        "line": 114,
         "code_line": "bb.xform == Xform.identity()",
         "passed": true
       },
       {
-        "line": 100,
+        "line": 115,
         "code_line": "TOLERANCE.is_close(bb.center[2], 5.0)",
         "passed": true
       }
@@ -138,45 +148,45 @@
     "failures": []
   },
   {
-    "group": "Obb",
+    "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.279,
-    "line": 103,
-    "code": "    from session_py import Obb\n    from session_py import Point\n    from pathlib import Path\n\n    bb = Obb.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = Obb.__jsonload__(d)\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = Obb.json_loads(s)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.json\"\n    bb.json_dump(fname)\n    loaded = Obb.json_load(fname)",
+    "time_ms": 10.079,
+    "line": 118,
+    "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = OBB.__jsonload__(d)\n\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = OBB.json_loads(s)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.json\"\n    bb.json_dump(fname)\n    loaded = OBB.json_load(fname)",
     "checks": [
       {
-        "line": 115,
+        "line": 131,
         "code_line": "loaded_j.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 116,
+        "line": 132,
         "code_line": "TOLERANCE.is_close(loaded_j.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 121,
+        "line": 138,
         "code_line": "loaded_s.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 122,
+        "line": 139,
         "code_line": "TOLERANCE.is_close(loaded_s.half_size[0], 5.0)",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 146,
         "code_line": "loaded.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 147,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 130,
+        "line": 148,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
         "passed": true
       }
@@ -184,46 +194,122 @@
     "failures": []
   },
   {
-    "group": "Obb",
+    "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.528,
-    "line": 133,
-    "code": "    from session_py import Obb\n    from session_py import Point\n    from pathlib import Path\n\n    bb = Obb.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = Obb.pb_loads(b)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.bin\"\n    bb.pb_dump(fname)\n    loaded = Obb.pb_load(fname)",
+    "time_ms": 12.252,
+    "line": 151,
+    "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = OBB.pb_loads(b)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.bin\"\n    bb.pb_dump(fname)\n    loaded = OBB.pb_load(fname)",
     "checks": [
       {
-        "line": 145,
+        "line": 164,
         "code_line": "loaded_s.name == \"test_bbox_proto\"",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 165,
         "code_line": "loaded_s.guid == bb.guid",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 166,
         "code_line": "TOLERANCE.is_close(loaded_s.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 173,
         "code_line": "loaded.name == \"test_bbox_proto\"",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 174,
         "code_line": "loaded.guid == bb.guid",
         "passed": true
       },
       {
-        "line": 155,
+        "line": 175,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 156,
+        "line": 176,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "OBB",
+    "test_name": "Accessors",
+    "passed": true,
+    "time_ms": 0.329,
+    "line": 179,
+    "code": "    import math\n    from session_py import OBB\n    from session_py import Point\n\n    # axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2\u00d74\u00d76\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    ]\n    b = OBB.from_points(pts)\n\n    c = OBB.from_point(Point(5.0, 2.0, 3.0), 1.0)\n    b.union(c)",
+    "checks": [
+      {
+        "line": 196,
+        "code_line": "TOLERANCE.is_close(b.area(), 88.0)",
+        "passed": true
+      },
+      {
+        "line": 197,
+        "code_line": "TOLERANCE.is_close(b.diagonal(), 2.0 * math.sqrt(14.0))",
+        "passed": true
+      },
+      {
+        "line": 198,
+        "code_line": "b.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "TOLERANCE.is_close(b.volume(), 48.0)",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "b.closest_point(Point(1.0, 2.0, 3.0)) == Point(1.0, 2.0, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "b.closest_point(Point(10.0, 2.0, 3.0)) == Point(2.0, 2.0, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 202,
+        "code_line": "b.contains(Point(1.0, 2.0, 3.0))",
+        "passed": true
+      },
+      {
+        "line": 203,
+        "code_line": "not b.contains(Point(10.0, 2.0, 3.0))",
+        "passed": true
+      },
+      {
+        "line": 204,
+        "code_line": "b.corner(False, False, False) == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 205,
+        "code_line": "b.corner(True, True, True) == Point(2.0, 4.0, 6.0)",
+        "passed": true
+      },
+      {
+        "line": 206,
+        "code_line": "len(b.get_corners()) == 8",
+        "passed": true
+      },
+      {
+        "line": 207,
+        "code_line": "len(b.get_edges()) == 12",
+        "passed": true
+      },
+      {
+        "line": 211,
+        "code_line": "TOLERANCE.is_close(b.half_size[0], 3.0)",
         "passed": true
       }
     ],

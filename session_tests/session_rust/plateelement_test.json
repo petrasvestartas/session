@@ -3,269 +3,269 @@
     "checks": [
       {
         "code_line": "name == \"plate1\"",
-        "line": 589,
+        "line": 636,
         "passed": true
       },
       {
         "code_line": "!guid.is_empty()",
-        "line": 590,
+        "line": 637,
         "passed": true
       },
       {
         "code_line": "matches!(p.geometry(), ElementGeometry::Mesh(_))",
-        "line": 591,
+        "line": 638,
         "passed": true
       },
       {
         "code_line": "p.polygon().unwrap().len() == 4",
-        "line": 592,
+        "line": 639,
         "passed": true
       },
       {
         "code_line": "p.thickness() == Some(0.2)",
-        "line": 593,
+        "line": 640,
         "passed": true
       },
       {
         "code_line": "pstr == \"PlateElement(plate1, 4 pts, 0.2)\"",
-        "line": 594,
+        "line": 641,
         "passed": true
       },
       {
         "code_line": "prepr == format!(\"PlateElement({}, plate1, 4 pts, 0.2)\", guid)",
-        "line": 595,
+        "line": 642,
         "passed": true
       },
       {
-        "code_line": "pcopy == p && pcopy.guid != p.guid",
-        "line": 596,
+        "code_line": "pcopy == p && pcopy.guid() != p.guid()",
+        "line": 643,
         "passed": true
       },
       {
         "code_line": "p == p2",
-        "line": 597,
+        "line": 644,
         "passed": true
       },
       {
         "code_line": "p != p3",
-        "line": 598,
+        "line": 645,
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ];\n        let p = Element::plate(polygon.clone(), 0.2, \"plate1\");\n\n        let name = &p.name;\n        let guid = &p.guid;\n        let pstr = p.str();\n        let prepr = p.repr();\n\n        let pcopy = p.duplicate();\n        let p2 = Element::plate(polygon.clone(), 0.2, \"plate1\");\n        let p3 = Element::plate(polygon.clone(), 0.5, \"plate1\");\n",
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ];\n        let p = Element::plate(polygon.clone(), 0.2, \"plate1\");\n\n        let name = &p.name;\n        let guid = p.guid().to_string();\n        let pstr = p.str();\n        let prepr = p.repr();\n\n        let pcopy = p.duplicate();\n        let p2 = Element::plate(polygon.clone(), 0.2, \"plate1\");\n        let p3 = Element::plate(polygon.clone(), 0.5, \"plate1\");\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 570,
+    "line": 615,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.142
+    "time_ms": 0.063
   },
   {
     "checks": [
       {
         "code_line": "matches!(p.geometry(), ElementGeometry::Mesh(_))",
-        "line": 608,
+        "line": 655,
         "passed": true
       },
       {
         "code_line": "p.polygon().unwrap().len() == 4",
-        "line": 609,
+        "line": 656,
         "passed": true
       },
       {
         "code_line": "p.thickness() == Some(0.1)",
-        "line": 610,
+        "line": 657,
         "passed": true
       }
     ],
     "code": "        use crate::element::{Element, ElementGeometry};\n\n        let p = Element::plate_default();\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 603,
+    "line": 650,
     "passed": true,
     "test_name": "Default Polygon",
-    "time_ms": 0.033
+    "time_ms": 0.012
   },
   {
     "checks": [
       {
         "code_line": "p.thickness() == Some(0.3)",
-        "line": 626,
+        "line": 675,
         "passed": true
       },
       {
         "code_line": "p.polygon().unwrap().len() == 4",
-        "line": 627,
+        "line": 676,
         "passed": true
       },
       {
         "code_line": "p.has_geometry()",
-        "line": 628,
+        "line": 677,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let mut p = Element::plate_default();\n        p.set_thickness(0.3);\n        p.set_polygon(vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(3.0, 0.0, 0.0),\n            Point::new(3.0, 3.0, 0.0), Point::new(0.0, 3.0, 0.0),\n        ]);\n",
+    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let mut p = Element::plate_default();\n        p.set_thickness(0.3);\n        p.set_polygon(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 615,
+    "line": 662,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.075
+    "time_ms": 0.029
   },
   {
     "checks": [
       {
         "code_line": "geo.vertex.len() == 8",
-        "line": 643,
+        "line": 695,
         "passed": true
       },
       {
         "code_line": "geo.face.len() == 6",
-        "line": 644,
+        "line": 696,
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ];\n        let p = Element::plate(polygon, 0.5, \"my_plate\");",
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let p = Element::plate(polygon, 0.5, \"my_plate\");\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 633,
+    "line": 682,
     "passed": true,
     "test_name": "Mesh Topology",
-    "time_ms": 0.028
+    "time_ms": 0.01
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[0], 1.0)",
-        "line": 661,
+        "line": 715,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[1], 1.0)",
-        "line": 662,
+        "line": 716,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(aabb.half_size[2], 0.1)",
-        "line": 663,
+        "line": 717,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let aabb = p.aabb();\n",
+    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let aabb = p.aabb();\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 650,
+    "line": 702,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.045
+    "time_ms": 0.016
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pt[0], 1.0)",
-        "line": 679,
+        "line": 735,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[1], 1.0)",
-        "line": 680,
+        "line": 736,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[2], -0.1)",
-        "line": 681,
+        "line": 737,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let pt = p.point();\n",
+    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let pt = p.point();\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 668,
+    "line": 722,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.037
+    "time_ms": 0.012
   },
   {
     "checks": [
       {
         "code_line": "geo.vertex.len() == 6",
-        "line": 695,
+        "line": 754,
         "passed": true
       },
       {
         "code_line": "geo.face.len() == 5",
-        "line": 696,
+        "line": 755,
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(0.5, 1.0, 0.0),\n        ];\n        let p = Element::plate(polygon, 0.1, \"my_plate\");",
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Point;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.5, 1.0, 0.0),\n        ];\n        let p = Element::plate(polygon, 0.1, \"my_plate\");\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 686,
+    "line": 742,
     "passed": true,
     "test_name": "Triangle Polygon",
-    "time_ms": 0.028
+    "time_ms": 0.008
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"json_plate\"",
-        "line": 718,
+        "line": 779,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.thickness().unwrap(), 0.3)",
-        "line": 719,
+        "line": 780,
         "passed": true
       },
       {
         "code_line": "loaded.polygon().unwrap().len() == 4",
-        "line": 720,
+        "line": 781,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.polygon().unwrap()[1][0], 2.0)",
-        "line": 721,
+        "line": 782,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Point;\n        use crate::Xform;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.3, \"json_plate\");\n        p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_plate_element.json\";\n        p.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
+    "code": "        use crate::element::Element;\n        use crate::Point;\n        use crate::Xform;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.3, \"json_plate\");\n        p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_plate_element.json\";\n        p.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 702,
+    "line": 761,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.346
+    "time_ms": 10.48
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"proto_plate\"",
-        "line": 742,
+        "line": 805,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.thickness().unwrap(), 0.3)",
-        "line": 743,
+        "line": 806,
         "passed": true
       },
       {
         "code_line": "loaded.polygon().unwrap().len() == 4",
-        "line": 744,
+        "line": 807,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.polygon().unwrap()[1][0], 2.0)",
-        "line": 745,
+        "line": 808,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Point;\n        use crate::Xform;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0), Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.3, \"proto_plate\");\n        p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_plate_element.bin\";\n        p.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
+    "code": "        use crate::element::Element;\n        use crate::Point;\n        use crate::Xform;\n\n        let polygon = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ];\n        let mut p = Element::plate(polygon, 0.3, \"proto_plate\");\n        p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_plate_element.bin\";\n        p.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 726,
+    "line": 787,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.93
+    "time_ms": 7.796
   }
 ]

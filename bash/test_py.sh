@@ -65,12 +65,22 @@ ensure_python_env() {
 
 ensure_python_env
 
+# Run a single class test and prefix output with class name
+run_py_test() {
+    local class_name="$1"
+    local output exit_code
+    output=$("$PYTHON" -m "session_py.${class_name}_test" 2>&1)
+    exit_code=$?
+    printf "%s\n" "$output" | sed "s/\[py-minitest\]/[py-${class_name}]/g"
+    return $exit_code
+}
+
 # Run tests
 if [[ -n "$CLASS_FILTER" ]]; then
     log_lang "py" "Running ${CLASS_FILTER} tests..."
-    "$PYTHON" -m "session_py.${CLASS_FILTER}_test"
+    run_py_test "$CLASS_FILTER"
 else
-    MAX_JOBS="${MINITEST_PY_JOBS:-6}"
+    MAX_JOBS="${MINITEST_PY_JOBS:-$(get_jobs)}"
     PIDS=()
     CLASSES=()
     FAILED=()
@@ -93,7 +103,7 @@ else
             [[ ${#PIDS[@]} -ge $MAX_JOBS ]] && sleep 0.1
         done
 
-        "$PYTHON" -m "session_py.${class_name}_test" &
+        run_py_test "$class_name" &
         PIDS+=($!)
         CLASSES+=("$class_name")
     done

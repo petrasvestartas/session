@@ -1,0 +1,98 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
+        "line": 125,
+        "passed": true
+      },
+      {
+        "code_line": "a.center() == Point::new(0.0, 0.0, 0.0)",
+        "line": 126,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(a.diagonal(), 2.0 * 14.0_f64.sqrt())",
+        "line": 127,
+        "passed": true
+      },
+      {
+        "code_line": "a.is_valid()",
+        "line": 128,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(a.volume(), 48.0)",
+        "line": 129,
+        "passed": true
+      },
+      {
+        "code_line": "a.closest_point(&Point::new(0.0, 0.0, 0.0)) == Point::new(0.0, 0.0, 0.0)",
+        "line": 130,
+        "passed": true
+      },
+      {
+        "code_line": "a.closest_point(&Point::new(10.0, 0.0, 0.0)) == Point::new(1.0, 0.0, 0.0)",
+        "line": 131,
+        "passed": true
+      },
+      {
+        "code_line": "a.contains(&Point::new(0.0, 0.0, 0.0))",
+        "line": 132,
+        "passed": true
+      },
+      {
+        "code_line": "!a.contains(&Point::new(10.0, 0.0, 0.0))",
+        "line": 133,
+        "passed": true
+      },
+      {
+        "code_line": "a.corner(false, false, false) == Point::new(-1.0, -2.0, -3.0)",
+        "line": 134,
+        "passed": true
+      },
+      {
+        "code_line": "a.corner(true, true, true) == Point::new(1.0, 2.0, 3.0)",
+        "line": 135,
+        "passed": true
+      },
+      {
+        "code_line": "a.get_corners().len() == 8",
+        "line": 136,
+        "passed": true
+      },
+      {
+        "code_line": "a.get_edges().len() == 12",
+        "line": 137,
+        "passed": true
+      },
+      {
+        "code_line": "a.point_at(1.0, 0.0, 0.0) == Point::new(1.0, 0.0, 0.0)",
+        "line": 138,
+        "passed": true
+      },
+      {
+        "code_line": "a.point_at(0.0, 0.0, 0.0) == Point::new(0.0, 0.0, 0.0)",
+        "line": 139,
+        "passed": true
+      },
+      {
+        "code_line": "a.min_point() == Point::new(-1.0, -2.0, -3.0)",
+        "line": 143,
+        "passed": true
+      },
+      {
+        "code_line": "a.max_point() == Point::new(6.0, 2.0, 3.0)",
+        "line": 144,
+        "passed": true
+      }
+    ],
+    "code": "        // AABB(0,0,0, 1,2,3) — dims 2×4×6\n        let a = AABB::new(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n        let mut a = a;\n        let b = AABB::new(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n        a.union_with(&b);",
+    "failures": [],
+    "group": "Aabb",
+    "line": 121,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.001
+  }
+]

@@ -18,72 +18,66 @@ consolidate_test_data() {
 
     log "Consolidating JSON into testData.js..."
 
-    {
-        echo "// Auto-generated test data - Do not edit manually"
-        echo "// Generated at: $(date)"
-        echo "window.TEST_DATA = {"
+    # Use Python for consolidation — avoids Windows MSYS fork overhead
+    # (bash loops with cat/awk per file take ~60s on Windows, Python takes <1s)
+    local PYTHON
+    PYTHON=$(get_python_path "$repo_root")
+    local repo_native
+    repo_native=$(cd "$repo_root" && pwd -W 2>/dev/null || pwd)
+    "$PYTHON" -c "
+import os, glob, json
 
-        local first=true
+repo = r'''${repo_native}'''
+tests = os.path.join(repo, 'session_tests')
+classes = '''${CLASS_NAMES[*]}'''.split()
+langs = [('cpp','session_cpp'), ('python','session_py'), ('rust','session_rust')]
 
-        # Process each class and language combination
-        for class_name in "${CLASS_NAMES[@]}"; do
-            for lang_info in "cpp:session_cpp" "python:session_py" "rust:session_rust"; do
-                local lang="${lang_info%%:*}"
-                local dir="${lang_info#*:}"
-                local rust_name="${class_name//_/}"
-                if [[ "$lang" == "rust" ]]; then
-                    local json_path="${tests_dir}/${dir}/${rust_name}_test.json"
-                else
-                    local json_path="${tests_dir}/${dir}/${class_name}_test.json"
-                fi
+parts = []
 
-                if [[ -f "$json_path" ]]; then
-                    [[ "$first" == "false" ]] && echo ","
-                    first=false
-                    echo -n "  \"${class_name}_test_${lang}\": "
-                    cat "$json_path"
-                fi
-            done
-        done
+# Test results
+for cls in classes:
+    for lang, d in langs:
+        if lang == 'rust':
+            name = cls.replace('_','') + '_test.json'
+        else:
+            name = cls + '_test.json'
+        p = os.path.join(tests, d, name)
+        if os.path.isfile(p):
+            with open(p, 'r') as f:
+                parts.append('  \"' + cls + '_test_' + lang + '\": ' + f.read().rstrip())
 
-        # Add artifact files (test_<class>.json from each language)
-        for class_name in "${CLASS_NAMES[@]}"; do
-            for lang_info in "cpp:session_cpp" "python:session_py" "rust:session_rust"; do
-                local lang="${lang_info%%:*}"
-                local dir="${lang_info#*:}"
-                local artifact_path="${repo_root}/${dir}/test_${class_name}.json"
-                # Also check serialization/ subdirectory
-                if [[ ! -f "$artifact_path" ]]; then
-                    artifact_path="${repo_root}/${dir}/serialization/test_${class_name}.json"
-                fi
+# Artifacts
+for cls in classes:
+    for lang, d in langs:
+        p = os.path.join(repo, d, 'test_' + cls + '.json')
+        if not os.path.isfile(p):
+            p = os.path.join(repo, d, 'serialization', 'test_' + cls + '.json')
+        if os.path.isfile(p):
+            with open(p, 'r') as f:
+                parts.append('  \"artifact_test_' + cls + '_' + lang + '\": ' + f.read().rstrip())
 
-                if [[ -f "$artifact_path" ]]; then
-                    echo ","
-                    echo -n "  \"artifact_test_${class_name}_${lang}\": "
-                    cat "$artifact_path"
-                fi
-            done
-        done
+# Proto schemas
+proto_dir = os.path.join(repo, 'session_proto')
+if os.path.isdir(proto_dir):
+    for pf in sorted(glob.glob(os.path.join(proto_dir, '*.proto'))):
+        name = os.path.splitext(os.path.basename(pf))[0]
+        with open(pf, 'r') as f:
+            content = f.read().replace('\\\\', '\\\\\\\\').replace('\"', '\\\\\"').replace('\\n', '\\\\n')
+        parts.append('  \"proto_' + name + '\": \"' + content + '\"')
 
-        # Add proto schemas
-        local proto_dir="${repo_root}/session_proto"
-        if [[ -d "$proto_dir" ]]; then
-            for proto_file in "${proto_dir}"/*.proto; do
-                if [[ -f "$proto_file" ]]; then
-                    local proto_name=$(basename "$proto_file" .proto)
-                    echo ","
-                    local content=$(awk 'BEGIN{ORS="\\n"}{gsub(/\\/,"\\\\");gsub(/"/,"\\\"");print}' "$proto_file" | sed 's/\\n$//')
-                    echo -n "  \"proto_${proto_name}\": \"${content}\""
-                fi
-            done
-        fi
+from datetime import datetime
+out = '// Auto-generated test data - Do not edit manually\n'
+out += '// Generated at: ' + datetime.now().strftime('%c') + '\n'
+out += 'window.TEST_DATA = {\n'
+out += ',\n'.join(parts)
+out += '\n};\n'
 
-        echo ""
-        echo "};"
-    } > "$output"
-
-    # Copy to root for backward compatibility
-    cp "$output" "${tests_dir}/testData.js"
+op = os.path.join(tests, 'public', 'testData.js')
+with open(op, 'w') as f:
+    f.write(out)
+import shutil
+shutil.copy2(op, os.path.join(tests, 'testData.js'))
+"
 
     log "testData.js updated"
 }

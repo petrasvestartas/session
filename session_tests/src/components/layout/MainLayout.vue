@@ -45,6 +45,7 @@
               class="suite-button"
               :class="{ active: s === selectedSuite }"
               @click="selectSuite(s)">
+              <span class="suite-dot" :style="{ color: suitePassedMap.get(s) === false ? '#ff5555' : '#50fa7b' }">●</span>
               {{ suiteLabel(s) }}
             </button>
             <div v-if="s === selectedSuite && suiteFunctions.length" class="functions-section">
@@ -181,6 +182,25 @@ const selectSuite = (suite) => {
   selectedSuite.value = suite;
   router.push({ path: '/tests', query: { suite } });
 };
+
+const suitePassedMap = computed(() => {
+  const _ = testsSuites.value; // reactive dependency
+  const map = new Map();
+  if (typeof window.TEST_DATA === 'undefined') return map;
+  const data = window.TEST_DATA;
+  for (const [key, testArray] of Object.entries(data)) {
+    if (!Array.isArray(testArray)) continue;
+    const parts = key.split('_');
+    parts.pop();
+    const suite = parts.join('_');
+    if (!suite) continue;
+    if (!map.has(suite)) map.set(suite, true);
+    for (const t of testArray) {
+      if (!t.passed) map.set(suite, false);
+    }
+  }
+  return map;
+});
 
 const suiteFunctions = computed(() => {
   if (!selectedSuite.value || typeof window.TEST_DATA === 'undefined') return [];
@@ -426,6 +446,9 @@ img.repo-icon {
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .suite-button:hover {
@@ -466,6 +489,11 @@ img.repo-icon {
 
 .fn-dot {
   font-size: 8px;
+}
+
+.suite-dot {
+  font-size: 8px;
+  flex-shrink: 0;
 }
 
 .main-content {
