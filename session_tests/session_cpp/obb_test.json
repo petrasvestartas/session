@@ -94,7 +94,7 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.011,
     "line": 79,
     "code": "    OBB bb1 = OBB::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    OBB bb2 = OBB::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    OBB bb3 = OBB::from_point(Point(5.0, 5.0, 5.0), 0.5);",
     "checks": [
@@ -171,7 +171,7 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 19.113,
+    "time_ms": 22.728,
     "line": 112,
     "code": "    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    OBB loaded_j = OBB::jsonload(j);\n\n\n    // String\n    std::string s = bb.json_dumps();\n    OBB loaded_s = OBB::json_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.json\";\n    bb.json_dump(fname);\n    OBB loaded = OBB::json_load(fname);",
     "checks": [
@@ -217,7 +217,7 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.237,
+    "time_ms": 13.685,
     "line": 140,
     "code": "    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    OBB loaded_s = OBB::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.bin\";\n    bb.pb_dump(fname);\n    OBB loaded = OBB::pb_load(fname);",
     "checks": [

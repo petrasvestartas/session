@@ -38,6 +38,17 @@ for d in session_cpp session_py session_rust session_data session_proto session_
         git checkout "$BRANCH" 2>/dev/null || git checkout -B "$BRANCH"
         git fetch origin "$BRANCH" 2>/dev/null
 
+        git add -A
+
+        if ! check_large_files; then
+            echo "SKIPPED: $d has large files"
+            FAILED="$FAILED $d(large-files)"
+            cd "${REPO_ROOT}"
+            continue
+        fi
+
+        git commit -m "$m" 2>/dev/null
+
         # Rebase onto remote, auto-resolve pyproject.toml conflicts (CI version bumps)
         if ! git rebase "origin/$BRANCH" 2>/dev/null; then
             if [ -f "pyproject.toml" ] && git diff --name-only --diff-filter=U 2>/dev/null | grep -q "pyproject.toml"; then
@@ -49,16 +60,6 @@ for d in session_cpp session_py session_rust session_data session_proto session_
             fi
         fi
 
-        git add -A
-
-        if ! check_large_files; then
-            echo "SKIPPED: $d has large files"
-            FAILED="$FAILED $d(large-files)"
-            cd "${REPO_ROOT}"
-            continue
-        fi
-
-        git commit -m "$m" 2>/dev/null
         if ! git push -u origin "$BRANCH"; then
             echo "FAILED: $d push"
             FAILED="$FAILED $d"
