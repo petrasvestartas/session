@@ -13,7 +13,7 @@
     "line": 91,
     "passed": true,
     "test_name": "NearestBruteForce",
-    "time_ms": 0.095
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -112,6 +112,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Nearest",
-    "time_ms": 0.078
+    "time_ms": 0.119
   }
 ]

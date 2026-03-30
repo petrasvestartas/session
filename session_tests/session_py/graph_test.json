@@ -3,7 +3,7 @@
     "group": "Graph",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.268,
+    "time_ms": 7.632,
     "line": 42,
     "code": "    from session_py import Graph\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Graph(\"./serialization/test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "Graph",
     "test_name": "Bfs",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.037,
     "line": 63,
     "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.bfs(\"a\")",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "Graph",
     "test_name": "Dfs",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.021,
     "line": 78,
     "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.dfs(\"a\")",
     "checks": [
@@ -61,7 +61,7 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.036,
     "line": 93,
     "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    comps = g.connected_components()",
     "checks": [
@@ -128,7 +128,7 @@
     "group": "Graph",
     "test_name": "Has Cycle",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.023,
     "line": 129,
     "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n\n    g2 = Graph(\"test2\")\n    g2.add_edge(\"x\", \"y\")\n    g2.add_edge(\"y\", \"z\")",
     "checks": [
@@ -149,7 +149,7 @@
     "group": "Graph",
     "test_name": "Cycle Basis",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.027,
     "line": 147,
     "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    cycles = g.cycle_basis()\n\n    cycle_set = set(cycles[0])",
     "checks": [

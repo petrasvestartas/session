@@ -3,7 +3,7 @@
     "group": "ColumnElement",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.468,
+    "time_ms": 0.781,
     "line": 7,
     "code": "    from session_py import ColumnElement\n    from session_py import Mesh\n\n    c = ColumnElement(width=0.4, depth=0.4, height=3.0, name=\"col1\")\n\n    geo = c.geometry\n    name = c.name\n    guid = c.guid\n    cstr = str(c)\n    crepr = repr(c)\n\n    ccopy = c.duplicate()\n    c2 = ColumnElement(width=0.4, depth=0.4, height=3.0, name=\"col1\")\n    c3 = ColumnElement(width=0.5, depth=0.4, height=3.0, name=\"col1\")",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "ColumnElement",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.196,
+    "time_ms": 0.136,
     "line": 37,
     "code": "    from session_py import ColumnElement\n\n    c = ColumnElement()\n    c.width = 0.5\n    c.depth = 0.6\n    c.height = 4.0",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "ColumnElement",
     "test_name": "Center Line",
     "passed": true,
-    "time_ms": 0.094,
+    "time_ms": 0.07,
     "line": 52,
     "code": "    from session_py import ColumnElement\n    from session_py import Line\n\n    c = ColumnElement(height=5.0)\n    cl = c.center_line",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "ColumnElement",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.089,
+    "time_ms": 0.058,
     "line": 65,
     "code": "    from session_py import ColumnElement\n\n    c = ColumnElement(height=3.0)\n    c.extend(0.5)",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "ColumnElement",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.303,
+    "time_ms": 0.268,
     "line": 75,
     "code": "    from session_py import ColumnElement\n\n    c = ColumnElement(width=0.4, depth=0.4, height=3.0)\n    aabb = c.aabb",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "ColumnElement",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.242,
+    "time_ms": 0.226,
     "line": 88,
     "code": "    from session_py import ColumnElement\n\n    c = ColumnElement(width=0.4, depth=0.4, height=3.0)\n    pt = c.point",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "ColumnElement",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.262,
+    "time_ms": 0.283,
     "line": 100,
     "code": "    from session_py import ColumnElement\n    from session_py import Xform\n    from session_py import Mesh\n\n    c = ColumnElement(width=0.4, depth=0.4, height=3.0)\n    c.session_transformation = Xform.translation(10.0, 0.0, 0.0)\n    sg = c.session_geometry\n\n    verts = list(sg.vertex.values())\n    xs = [v.x for v in verts]",
     "checks": [
@@ -220,7 +220,7 @@
     "group": "ColumnElement",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.855,
+    "time_ms": 9.892,
     "line": 116,
     "code": "    from session_py import ColumnElement\n    from session_py import Xform\n    from pathlib import Path\n\n    c = ColumnElement(width=0.5, depth=0.6, height=4.0, name=\"json_col\")\n    c.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_column_element.json\"\n    c.json_dump(fname)\n    loaded = ColumnElement.json_load(fname)",
     "checks": [
@@ -256,7 +256,7 @@
     "group": "ColumnElement",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.94,
+    "time_ms": 9.843,
     "line": 136,
     "code": "    from session_py import ColumnElement\n    from session_py import Xform\n    from pathlib import Path\n\n    c = ColumnElement(width=0.5, depth=0.6, height=4.0, name=\"proto_col\")\n    c.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_column_element.bin\"\n    c.pb_dump(path)\n    loaded = ColumnElement.pb_load(path)",
     "checks": [
