@@ -3,7 +3,7 @@
     "group": "Plane",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.031,
     "line": 15,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Default constructor - XY plane at origin\n    Plane pl;\n\n    // Origin and axes\n    Point origin = pl.origin();\n    Vector x_axis = pl.x_axis();\n    Vector y_axis = pl.y_axis();\n    Vector z_axis = pl.z_axis();\n\n    // Plane equation coefficients (ax + by + cz + d = 0)\n    double a = pl.a();\n    double b = pl.b();\n    double c = pl.c();\n    double d = pl.d();\n\n    // Index access for axes\n    Vector ax0 = pl[0];\n    Vector ax1 = pl[1];\n    Vector ax2 = pl[2];\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid())\n    Plane plcopy = pl;\n\n    // From point and normal\n    Point p(0.0, 0.0, 5.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane pl_pn = Plane::from_point_normal(p, n);\n\n    // From three points\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    };\n    Plane pl_pts = Plane::from_points(pts);\n\n    // From two points\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 0.0, 0.0);\n    Plane pl_2pts = Plane::from_two_points(p1, p2);\n\n    // Standard planes\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n\n    // Translation operators\n    Vector offset(1.0, 2.0, 3.0);\n\n    // In-place add\n    Plane pl_iadd = Plane::xy_plane();\n    pl_iadd += offset;\n\n    // In-place subtract\n    Plane pl_isub = Plane::xy_plane();\n    pl_isub -= offset;\n\n    // Copy add/subtract\n    Plane pl_base = Plane::xy_plane();\n    Plane pl_add = pl_base + offset;\n    Plane pl_sub = pl_base - offset;",
     "checks": [
@@ -224,7 +224,7 @@
     "group": "Plane",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 131,
     "code": "    // uncomment #include \"plane.h\"\n\n    // Reverse flips normal and swaps x/y axes\n    Plane pl = Plane::xy_plane();\n    pl.reverse();",
     "checks": [
@@ -270,7 +270,7 @@
     "group": "Plane",
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 147,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // Rotate plane 90 degrees around its normal\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);",
     "checks": [
@@ -286,7 +286,7 @@
     "group": "Plane",
     "test_name": "Is Right Hand",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 158,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    // All standard planes should be right-handed\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n    Plane default_pl;\n\n    bool xy_rh = xy.is_right_hand();\n    bool yz_rh = yz.is_right_hand();\n    bool xz_rh = xz.is_right_hand();\n    bool default_rh = default_pl.is_right_hand();\n\n    // After reverse, should still be right-handed\n    default_pl.reverse();\n    bool reversed_rh = default_pl.is_right_hand();\n\n    // After rotate, should still be right-handed\n    default_pl.rotate(Tolerance::PI / 4.0);\n    bool rotated_rh = default_pl.is_right_hand();",
     "checks": [
@@ -327,7 +327,7 @@
     "group": "Plane",
     "test_name": "Is Coplanar",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.009,
     "line": 189,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    // Same direction (parallel planes)\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    bool same_dir = Plane::is_same_direction(p1, p2, true);\n\n    // Flipped direction\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();\n    bool same_dir_flipped = Plane::is_same_direction(p1, p3, true);\n    bool same_dir_strict = Plane::is_same_direction(p1, p3, false);\n\n    // Same position\n    Plane p4 = Plane::xy_plane();\n    bool same_pos = Plane::is_same_position(p1, p4);\n    p4 += Vector(0.0, 0.0, 1.0);\n    bool diff_pos = Plane::is_same_position(p1, p4);\n\n    // Coplanar\n    Plane p5 = Plane::xy_plane();\n    Plane p6 = Plane::xy_plane();\n    bool coplanar = Plane::is_coplanar(p5, p6, true);\n    p6.reverse();\n    bool coplanar_reversed = Plane::is_coplanar(p5, p6, true);\n    p6 += Vector(0.0, 0.0, 1.0);\n    bool not_coplanar = Plane::is_coplanar(p5, p6, true);",
     "checks": [
@@ -378,7 +378,7 @@
     "group": "Plane",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 229,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    // Transform - in-place transformation\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    pl.transform();\n\n    // Transformed - returns new plane\n    Plane pl2 = Plane::xy_plane();\n    pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n    Plane pl3 = pl2.transformed();",
     "checks": [
@@ -434,7 +434,7 @@
     "group": "Plane",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.992,
+    "time_ms": 6.195,
     "line": 254,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.json_dump(fname);\n    Plane loaded = Plane::json_load(fname);",
     "checks": [
@@ -460,7 +460,7 @@
     "group": "Plane",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.883,
+    "time_ms": 6.005,
     "line": 276,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);",
     "checks": [

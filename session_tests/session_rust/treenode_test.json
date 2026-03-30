@@ -13,6 +13,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.467
+    "time_ms": 7.213
   }
 ]

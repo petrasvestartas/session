@@ -3,7 +3,7 @@
     "group": "Vector",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.017,
     "line": 12,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid())\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();",
     "checks": [
@@ -140,7 +140,7 @@
     "group": "Vector",
     "test_name": "Normalize",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 96,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Vector v0(3.0, 4.0, 0.0);\n    v0.normalize_self();\n\n    Vector v1(3.0, 4.0, 0.0);\n    Vector v2 = v1.normalize();",
     "checks": [
@@ -161,7 +161,7 @@
     "group": "Vector",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 110,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(1.0, -2.0, 3.0);\n    v.reverse();",
     "checks": [
@@ -208,7 +208,7 @@
     "group": "Vector",
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.008,
     "line": 148,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);",
     "checks": [
@@ -229,7 +229,7 @@
     "group": "Vector",
     "test_name": "Angle",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 166,
     "code": "    // uncomment #include \"vector.h\"\n\n    // angle(): Angle between two vectors (degrees)\n    Vector v1(1.0, 0.0, 0.0);  // x-axis\n    Vector v2(0.0, 1.0, 0.0);  // y-axis\n    Vector v3(1.0, 1.0, 0.0);  // 45 deg from x-axis\n\n    double angle_90 = v1.angle(v2, false);  // v1 to v2: 90 deg\n    double angle_45 = v1.angle(v3, false);  // v1 to v3: 45 deg\n\n    // angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n    Vector v_30(std::sqrt(3.0), 1.0, 0.0);  // 30 deg from x-axis\n    Vector v_60(1.0, std::sqrt(3.0), 0.0);  // 60 deg from x-axis\n    Vector v_neg(-1.0, 1.0, 0.0);           // 135 deg from x-axis\n\n    double xy_angle_30 = Vector::angle_between_vector_xy_components(v_30);\n    double xy_angle_60 = Vector::angle_between_vector_xy_components(v_60);\n    double xy_angle_135 = Vector::angle_between_vector_xy_components(v_neg);\n\n    // coordinate_direction_3angles(): Angles (alpha, beta, gamma) to x, y, z axes\n    Vector v_dir(35.4, 35.4, 86.6);\n    auto abg = v_dir.coordinate_direction_3angles(true);\n\n    // coordinate_direction_2angles(): Spherical angles (theta azimuth, phi elevation)\n    Vector v_sph(1.0, 1.0, std::sqrt(2.0));\n    auto pt = v_sph.coordinate_direction_2angles(true);",
     "checks": [
@@ -316,7 +316,7 @@
     "group": "Vector",
     "test_name": "Is Parallel To",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 224,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    Vector v1(2.0, 2.0, 2.0);\n    Vector v2(4.0, 4.0, 4.0);      // parallel (same direction)\n    Vector v3(-1.0, -1.0, -1.0);   // anti-parallel (opposite direction)\n    Vector v4(1.0, 0.0, 0.0);      // not parallel",
     "checks": [
@@ -342,7 +342,7 @@
     "group": "Vector",
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 238,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);",
     "checks": [
@@ -516,7 +516,7 @@
     "group": "Vector",
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.001,
     "line": 348,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
     "checks": [
@@ -542,7 +542,7 @@
     "group": "Vector",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 365,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12",
     "checks": [
@@ -604,7 +604,7 @@
     "group": "Vector",
     "test_name": "Reflect",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 395,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Reflect across YZ plane (normal = x_axis): x flips, y/z unchanged\n    Vector v(1.0, 2.0, 3.0);\n    Vector n = Vector::x_axis();\n    Vector r = v.reflect(n);",
     "checks": [
@@ -651,7 +651,7 @@
     "group": "Vector",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.002,
     "line": 427,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    Point from(0.0, 0.0, 0.0);\n    Point to(1.0, 0.0, 0.0);\n    std::vector<Point> pts0;\n    interpolate_points(from, to, 2, pts0, 0);\n    std::vector<Point> pts1;\n    interpolate_points(from, to, 1, pts1, 1);",
     "checks": [
@@ -687,7 +687,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.012,
+    "time_ms": 5.841,
     "line": 445,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    // json_dump(filename) / json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.json_dump(filename);\n    Vector loaded = Vector::json_load(filename);",
     "checks": [
@@ -718,7 +718,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 1.072,
+    "time_ms": 0.822,
     "line": 469,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

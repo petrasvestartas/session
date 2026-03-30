@@ -28,7 +28,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.723
+    "time_ms": 5.171
   },
   {
     "checks": [
@@ -59,7 +59,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.469
+    "time_ms": 6.231
   },
   {
     "checks": [
@@ -209,7 +209,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Cholesky",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 203,
     "passed": true,
     "test_name": "QrDecompose",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -337,7 +337,7 @@
     "line": 165,
     "passed": true,
     "test_name": "Solve",
-    "time_ms": 0.007
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -398,7 +398,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -429,7 +429,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Determinant",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -666,6 +666,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.016
+    "time_ms": 0.012
   }
 ]

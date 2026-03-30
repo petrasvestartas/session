@@ -37,7 +37,18 @@ for d in session_cpp session_py session_rust session_data session_proto session_
         cd "$d"
         git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
         git fetch origin "$BRANCH" 2>/dev/null
-        git rebase "origin/$BRANCH" 2>/dev/null || git rebase --abort 2>/dev/null
+
+        # Rebase onto remote, auto-resolve pyproject.toml conflicts (CI version bumps)
+        if ! git rebase "origin/$BRANCH" 2>/dev/null; then
+            if [ -f "pyproject.toml" ] && git diff --name-only --diff-filter=U 2>/dev/null | grep -q "pyproject.toml"; then
+                git checkout --theirs pyproject.toml 2>/dev/null
+                git add pyproject.toml 2>/dev/null
+                GIT_EDITOR=true git rebase --continue 2>/dev/null || git rebase --abort 2>/dev/null
+            else
+                git rebase --abort 2>/dev/null
+            fi
+        fi
+
         git add -A
 
         if ! check_large_files; then
