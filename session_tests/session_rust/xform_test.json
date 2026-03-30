@@ -68,7 +68,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.023
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -207,7 +207,7 @@
     "line": 150,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.022
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -364,7 +364,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Change Basis",
-    "time_ms": 0.007
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 272,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -447,7 +447,7 @@
     "line": 327,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.828
+    "time_ms": 6.909
   },
   {
     "checks": [
@@ -478,6 +478,6 @@
     "line": 351,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.262
+    "time_ms": 8.424
   }
 ]

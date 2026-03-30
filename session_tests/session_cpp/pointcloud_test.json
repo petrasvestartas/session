@@ -3,7 +3,7 @@
     "group": "PointCloud",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.018,
     "line": 14,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    // uncomment #include <vector>\n\n    // Constructor with points, normals, colors\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(0.0, 1.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Color c0(255, 0, 0, 255);\n    Color c1(0, 255, 0, 255);\n    Color c2(0, 0, 255, 255);\n    PointCloud pc({p0, p1, p2}, {n0, n1, n2}, {c0, c1, c2});\n\n    // Basic properties\n    size_t point_count = pc.len();\n    size_t color_count = pc.color_count();\n    size_t normal_count = pc.normal_count();\n    bool is_empty = pc.is_empty();\n\n    // Minimal and Full String Representation\n    std::string pcstr = pc.str();\n    std::string pcrepr = pc.repr();\n\n    // Copy (duplicates everything except guid())\n    PointCloud pccopy = pc;\n\n    // Get point/color/normal at index\n    Point pt0 = pc.get_point(0);\n    Color col0 = pc.get_color(0);\n    Vector norm0 = pc.get_normal(0);\n\n    // Add points, colors, normals to empty cloud\n    PointCloud pc2;\n    pc2.add_point(Point(1.0, 2.0, 3.0));\n    pc2.add_color(Color(128, 64, 32, 255));\n    pc2.add_normal(Vector(1.0, 0.0, 0.0));\n\n    // Set point/color/normal at index\n    pc2.set_point(0, Point(4.0, 5.0, 6.0));\n    pc2.set_color(0, Color(200, 100, 50, 255));\n    pc2.set_normal(0, Vector(0.0, 1.0, 0.0));\n\n    // Translate with Vector offset\n    PointCloud pc3({Point(1.0, 2.0, 3.0)}, {}, {});\n    Vector offset(10.0, 20.0, 30.0);\n    PointCloud pc_iadd({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_iadd += offset;\n    PointCloud pc_isub({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_isub -= offset;\n    PointCloud pc_add = pc3 + offset;\n    PointCloud pc_sub = pc3 - offset;\n\n    // Create from flat arrays\n    std::vector<double> coords = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};\n    std::vector<int> colors_arr = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255};\n    std::vector<double> normals_arr = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0};\n    PointCloud pc4 = PointCloud::from_coords(coords, colors_arr, normals_arr);",
     "checks": [
@@ -315,7 +315,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.356,
+    "time_ms": 5.697,
     "line": 155,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);",
     "checks": [
@@ -371,7 +371,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.424,
+    "time_ms": 4.436,
     "line": 199,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
     "checks": [

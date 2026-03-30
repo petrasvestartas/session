@@ -28,7 +28,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Json Dump Load",
-    "time_ms": 7.69
+    "time_ms": 8.547
   },
   {
     "checks": [
@@ -147,7 +147,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Decode Collection",
-    "time_ms": 0.024
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -173,7 +173,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Decode Collection Ptr",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -199,7 +199,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Nested Collections",
-    "time_ms": 0.026
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 138,
     "passed": true,
     "test_name": "Roundtrip File Io",
-    "time_ms": 8.013
+    "time_ms": 8.361
   },
   {
     "checks": [
@@ -251,7 +251,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Pretty Vs Compact",
-    "time_ms": 0.025
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -282,7 +282,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Decode Primitives",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Decode List",
-    "time_ms": 0.013
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 227,
     "passed": true,
     "test_name": "Decode Dict",
-    "time_ms": 0.004
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -365,7 +365,7 @@
     "line": 250,
     "passed": true,
     "test_name": "List In List In List",
-    "time_ms": 0.007
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -396,7 +396,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Dict Of Lists",
-    "time_ms": 0.047
+    "time_ms": 0.069
   },
   {
     "checks": [
@@ -422,7 +422,7 @@
     "line": 290,
     "passed": true,
     "test_name": "List Of Dict",
-    "time_ms": 0.017
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -453,6 +453,6 @@
     "line": 312,
     "passed": true,
     "test_name": "Dict Of Dicts",
-    "time_ms": 0.026
+    "time_ms": 0.032
   }
 ]

@@ -58,7 +58,7 @@
     "line": 615,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.085
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 650,
     "passed": true,
     "test_name": "Default Polygon",
-    "time_ms": 0.017
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -110,7 +110,7 @@
     "line": 662,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.04
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 682,
     "passed": true,
     "test_name": "Mesh Topology",
-    "time_ms": 0.015
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.018
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 722,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.016
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 742,
     "passed": true,
     "test_name": "Triangle Polygon",
-    "time_ms": 0.01
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 761,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.835
+    "time_ms": 9.284
   },
   {
     "checks": [
@@ -266,6 +266,6 @@
     "line": 787,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.283
+    "time_ms": 9.67
   }
 ]

@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.025
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -145,7 +145,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Normalize",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 125,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.0
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 474,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.388
+    "time_ms": 7.301
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 497,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.805
+    "time_ms": 1.142
   },
   {
     "checks": [
@@ -650,7 +650,7 @@
     "line": 456,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -671,7 +671,7 @@
     "line": 437,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.006
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -697,7 +697,7 @@
     "line": 423,
     "passed": true,
     "test_name": "Reflect",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
