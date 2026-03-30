@@ -24,6 +24,8 @@ def to_compas(obj):
 def view(filepath):
     from compas_viewer import Viewer
     from session_py.session import Session as PySession
+    from session_py.session_config import SESSION_CONFIG
+    from session_py.xform import Xform
 
     if str(filepath).endswith(".pb"):
         data = PySession.pb_load(filepath)
@@ -31,6 +33,9 @@ def view(filepath):
         with open(filepath, "r") as f:
             raw = json.load(f)
         data = PySession.__jsonload__(raw)
+
+    sf = SESSION_CONFIG.scale_factor
+    xf = Xform.scale_xyz(sf, sf, sf) if sf != 1.0 else None
 
     viewer = Viewer()
     collections = [
@@ -40,6 +45,9 @@ def view(filepath):
     ]
     for col in collections:
         for obj in col:
+            if xf is not None:
+                obj.xform = xf
+                obj.transform()
             type_name = type(obj).__name__
             if type_name not in _MODULE_MAP:
                 continue

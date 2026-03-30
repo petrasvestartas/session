@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.823,
+    "time_ms": 8.342,
     "line": 11,
     "code": "    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.012,
     "line": 21,
     "code": "    Vector src(1.0, 0.0, 0.0);\n    Vector dst(0.0, 1.0, 0.0);\n    Quaternion q = Quaternion::from_arc(src, dst);\n    Vector rotated = q.rotate_vector(src);\n\n    Vector src2(1.0, 0.0, 0.0);\n    Vector dst2(-1.0, 0.0, 0.0);\n    Quaternion q2 = Quaternion::from_arc(src2, dst2);\n    Vector rot = q2.rotate_vector(src2);",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "Quaternion",
     "test_name": "slerp",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 47,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);\n    Quaternion mid = q1.slerp(q2, 0.5);\n    Quaternion expected = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n\n    Quaternion q3 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001);\n    Quaternion mid2 = q1.slerp(q3, 0.5);\n    Quaternion half = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005);",
     "checks": [
@@ -102,7 +102,7 @@
     "group": "Quaternion",
     "test_name": "nlerp",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 62,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 2.0);\n    Quaternion r0 = q1.nlerp(q2, 0.0);\n    Quaternion r1 = q1.nlerp(q2, 1.0);",
     "checks": [
@@ -123,7 +123,7 @@
     "group": "Quaternion",
     "test_name": "invert",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.004,
     "line": 73,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
@@ -170,7 +170,7 @@
     "group": "Quaternion",
     "test_name": "magnitude2",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 90,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);",
     "checks": [
@@ -186,7 +186,7 @@
     "group": "Quaternion",
     "test_name": "add",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 97,
     "code": "    Quaternion a = Quaternion::from_sv(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_sv(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion r = a + b;",
     "checks": [
@@ -207,7 +207,7 @@
     "group": "Quaternion",
     "test_name": "sub",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 106,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n    Quaternion r = q - q;",
     "checks": [
@@ -228,7 +228,7 @@
     "group": "Quaternion",
     "test_name": "neg",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 115,
     "code": "    Quaternion q = Quaternion::identity();\n    Quaternion r = -q;",
     "checks": [
@@ -244,7 +244,7 @@
     "group": "Quaternion",
     "test_name": "Mul Scalar",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 122,
     "code": "    Quaternion q = Quaternion::identity();\n    Quaternion r = q * 2.0;",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Quaternion",
     "test_name": "conjugate",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 129,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n    Quaternion r = q.conjugate();",
     "checks": [

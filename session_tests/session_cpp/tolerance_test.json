@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 14,
     "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 38,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 44,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
@@ -115,7 +115,7 @@
     "group": "Tolerance",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.015,
     "line": 50,
     "code": "        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
