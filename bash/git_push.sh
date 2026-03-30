@@ -36,6 +36,8 @@ for d in session_cpp session_py session_rust session_data session_proto session_
         echo -e "\n=== $d ==="
         cd "$d"
         git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+        git fetch origin "$BRANCH" 2>/dev/null
+        git rebase "origin/$BRANCH" 2>/dev/null || git rebase --abort 2>/dev/null
         git add -A
 
         if ! check_large_files; then
@@ -46,7 +48,6 @@ for d in session_cpp session_py session_rust session_data session_proto session_
         fi
 
         git commit -m "$m" 2>/dev/null
-        git pull --rebase origin "$BRANCH" 2>/dev/null
         if ! git push -u origin "$BRANCH"; then
             echo "FAILED: $d push"
             FAILED="$FAILED $d"

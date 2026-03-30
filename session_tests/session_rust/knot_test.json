@@ -199,7 +199,7 @@
     "line": 133,
     "passed": true,
     "test_name": "Is Periodic",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -335,7 +335,7 @@
     "line": 229,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

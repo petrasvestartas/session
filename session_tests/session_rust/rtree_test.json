@@ -13,7 +13,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 14,
     "passed": true,
     "test_name": "Insert",
-    "time_ms": 0.007
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 36,
     "passed": true,
     "test_name": "Search Hit",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 52,
     "passed": true,
     "test_name": "Search Miss",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 87,
     "passed": true,
     "test_name": "Search Count",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Search Stop",
-    "time_ms": 0.003
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 115,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.059
+    "time_ms": 0.069
   },
   {
     "checks": [
@@ -1188,6 +1188,6 @@
     "line": 241,
     "passed": true,
     "test_name": "Perf 10k",
-    "time_ms": 4.497
+    "time_ms": 4.472
   }
 ]

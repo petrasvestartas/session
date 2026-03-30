@@ -94,7 +94,7 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 79,
     "code": "    OBB bb1 = OBB::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    OBB bb2 = OBB::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    OBB bb3 = OBB::from_point(Point(5.0, 5.0, 5.0), 0.5);",
     "checks": [
@@ -145,7 +145,7 @@
     "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 94,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    };\n    OBB bb = OBB::from_points(pts);\n    bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n    OBB bbt = bb.transformed();\n\n\n    bb.transform();",
     "checks": [
@@ -171,7 +171,7 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.97,
+    "time_ms": 7.208,
     "line": 112,
     "code": "    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    OBB loaded_j = OBB::jsonload(j);\n\n\n    // String\n    std::string s = bb.json_dumps();\n    OBB loaded_s = OBB::json_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.json\";\n    bb.json_dump(fname);\n    OBB loaded = OBB::json_load(fname);",
     "checks": [
@@ -217,7 +217,7 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 4.494,
+    "time_ms": 5.214,
     "line": 140,
     "code": "    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    OBB loaded_s = OBB::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.bin\";\n    bb.pb_dump(fname);\n    OBB loaded = OBB::pb_load(fname);",
     "checks": [
@@ -263,7 +263,7 @@
     "group": "OBB",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.006,
     "line": 163,
     "code": "    // axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2×4×6\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    };\n    OBB b = OBB::from_points(pts);\n\n\n\n\n    OBB c = OBB::from_point(Point(5.0, 2.0, 3.0), 1.0);\n    b.union_with(c);",
     "checks": [
