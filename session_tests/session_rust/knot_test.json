@@ -33,7 +33,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Knot Count",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 26,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -246,7 +246,7 @@
     "line": 163,
     "passed": true,
     "test_name": "Set Domain",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [

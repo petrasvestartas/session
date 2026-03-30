@@ -24241,11 +24241,6 @@ window.API_INDEX = {
           "sig": "x(value)",
           "code": "def x(self, value):\n\n        \"\"\"Set the X coordinate.\"\"\"\n        self._x = value\n\n    @property\n    def y(self):\n        \"\"\"Get the Y coordinate.\"\"\"\n        return self._y\n\n    @y.setter\n    def y(self, value):\n        \"\"\"Set the Y coordinate.\"\"\"\n        self._y = value\n\n    @property\n    def z(self):\n        \"\"\"Get the Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators",
           "file": "point.py"
-        },
-        "cpp": {
-          "sig": "double x()",
-          "code": "double x() const { return _x; }",
-          "file": "point.h"
         }
       },
       "related": [
@@ -24307,11 +24302,6 @@ window.API_INDEX = {
           "sig": "y(value)",
           "code": "def y(self, value):\n\n        \"\"\"Set the Y coordinate.\"\"\"\n        self._y = value\n\n    @property\n    def z(self):\n        \"\"\"Get the Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Point(self[0] * other, self[1] * other, self[2] * other)\n\n    def __truediv__(self, other):\n        return Point(self[0] / other, self[1] / other, self[2] / other)\n\n    def __add__(self, other):\n        return Point(self[0] + other[0], self[1] + other[1], self[2] + other[2])",
           "file": "point.py"
-        },
-        "cpp": {
-          "sig": "double y()",
-          "code": "double y() const { return _y; }",
-          "file": "point.h"
         }
       },
       "related": [
@@ -24370,11 +24360,6 @@ window.API_INDEX = {
           "sig": "z(value)",
           "code": "def z(self, value):\n\n        \"\"\"Set the Z coordinate.\"\"\"\n        self._z = value\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        return self\n\n    def __iadd__(self, other):\n        if isinstance(other, Vector):\n            self._x += other[0]\n            self._y += other[1]\n            self._z += other[2]\n        else:\n            raise TypeError(\"Point can only be added with Vector\")\n        return self\n\n    def __isub__(self, other):\n        if isinstance(other, Vector):\n            self._x -= other[0]\n            self._y -= other[1]\n            self._z -= other[2]\n        else:\n            raise TypeError(\"Point can only be subtracted with Vector\")\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Point(self[0] * other, self[1] * other, self[2] * other)\n\n    def __truediv__(self, other):\n        return Point(self[0] / other, self[1] / other, self[2] / other)\n\n    def __add__(self, other):\n        return Point(self[0] + other[0], self[1] + other[1], self[2] + other[2])\n\n    def __sub__(self, other):\n        return Vector(self[0] - other[0], self[1] - other[1], self[2] - other[2])\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self):\n        \"\"\"Apply the stored xform transformation to the point coordinates.",
           "file": "point.py"
-        },
-        "cpp": {
-          "sig": "double z()",
-          "code": "double z() const { return _z; }",
-          "file": "point.h"
         }
       },
       "related": [
@@ -37935,11 +37920,6 @@ window.API_INDEX = {
           "sig": "x(value)",
           "code": "def x(self, value):\n\n        \"\"\"Set X coordinate.\"\"\"\n        self._x = value\n        self._has_magnitude = False\n\n    @property\n    def y(self):\n        \"\"\"Get Y coordinate.\"\"\"\n        return self._y\n\n    @y.setter\n    def y(self, value):\n        \"\"\"Set Y coordinate.\"\"\"\n        self._y = value\n        self._has_magnitude = False\n\n    @property\n    def z(self):\n        \"\"\"Get Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)",
           "file": "vector.py"
-        },
-        "cpp": {
-          "sig": "double x()",
-          "code": "double x() const { return _x; }",
-          "file": "vector.h"
         }
       },
       "related": [
@@ -38025,11 +38005,6 @@ window.API_INDEX = {
           "sig": "y(value)",
           "code": "def y(self, value):\n\n        \"\"\"Set Y coordinate.\"\"\"\n        self._y = value\n        self._has_magnitude = False\n\n    @property\n    def z(self):\n        \"\"\"Get Z coordinate.\"\"\"\n        return self._z\n\n    @z.setter\n    def z(self, value):\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################",
           "file": "vector.py"
-        },
-        "cpp": {
-          "sig": "double y()",
-          "code": "double y() const { return _y; }",
-          "file": "vector.h"
         }
       },
       "related": [
@@ -38115,11 +38090,6 @@ window.API_INDEX = {
           "sig": "z(value)",
           "code": "def z(self, value):\n\n        \"\"\"Set Z coordinate.\"\"\"\n        self._z = value\n        self._has_magnitude = False\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = self.name\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result._magnitude = self._magnitude\n        result._has_magnitude = self._has_magnitude\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this vector with a new GUID.\n\n        Returns\n        -------\n        :class:`Vector`\n            A new Vector with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __str__(self):\n        return f\"Vector({self[0]}, {self[1]}, {self[2]})\"\n\n    def __repr__(self):\n        return f\"Vector({self.guid}, {self.name}, {self[0]}, {self[1]}, {self[2]})\"\n\n    def str(self):\n        \"\"\"Simple string form: just coordinates formatted to 6 decimals.\"\"\"\n        from .tolerance import Tolerance\n        return f\"{round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}\"\n\n    def repr(self):\n        \"\"\"Detailed representation with name, coordinates, and magnitude.\"\"\"\n        from .tolerance import Tolerance\n        mag = self.magnitude()\n        return f\"Vector({self.name}, {round(self[0], Tolerance.ROUNDING):.6f}, {round(self[1], Tolerance.ROUNDING):.6f}, {round(self[2], Tolerance.ROUNDING):.6f}, {round(mag, Tolerance.ROUNDING):.6f})\"\n\n    def __eq__(self, other):\n        return (\n            self.name == other.name\n            and round(self[0], 6) == round(other[0], 6)\n            and round(self[1], 6) == round(other[1], 6)\n            and round(self[2], 6) == round(other[2], 6)\n        )\n\n    def __ne__(self, other):\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")",
           "file": "vector.py"
-        },
-        "cpp": {
-          "sig": "double z()",
-          "code": "double z() const { return _z; }",
-          "file": "vector.h"
         }
       },
       "related": [
@@ -54912,11 +54882,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "n",
+        "into",
         "subdivide",
         "circle",
-        "into",
+        "n",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54931,10 +54901,10 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "ellipse",
+        "length",
         "subdivide",
         "by",
         "arc",
-        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -54948,9 +54918,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "through",
         "arc",
         "points",
-        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -54964,10 +54934,10 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
         "polyline",
         "from",
         "curve",
+        "points",
         "open",
         "adaptive",
         "to_polyline_adaptive",
@@ -54985,8 +54955,8 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "curve",
-        "evaluation",
         "parameter",
+        "evaluation",
         "at",
         "set_domain",
         "point_at",
@@ -55007,9 +54977,9 @@ window.API_INDEX = {
       "title": "Curve Frames Along Length",
       "tags": [
         "curve",
-        "along",
         "frames",
         "length",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55031,9 +55001,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55054,10 +55024,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "evaluate",
         "point",
         "cylinder",
+        "surface",
+        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -55072,11 +55042,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "mesh",
         "vertices",
-        "and",
         "from",
         "faces",
-        "mesh",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"

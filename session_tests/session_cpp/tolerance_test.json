@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.008,
     "line": 14,
     "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 20,
     "code": "        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Tolerance",
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 26,
     "code": "        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
@@ -67,7 +67,7 @@
     "group": "Tolerance",
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 32,
     "code": "        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 38,
     "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.012,
     "line": 44,
     "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [

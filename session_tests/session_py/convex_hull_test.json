@@ -3,7 +3,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2d",
     "passed": true,
-    "time_ms": 0.044,
+    "time_ms": 0.05,
     "line": 8,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCollinear",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.444,
     "line": 24,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCircle",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.085,
     "line": 39,
     "code": "    from session_py import ConvexHull, Point\n    pts = []\n    n = 12\n    for i in range(n):\n        angle = 2.0 * math.pi * i / n\n        pts.append(Point(math.cos(angle), math.sin(angle), 0.0))\n    pts.append(Point(0.0, 0.0, 0.0))\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3d",
     "passed": true,
-    "time_ms": 0.132,
+    "time_ms": 0.155,
     "line": 53,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    ]\n    mesh = ConvexHull.hull_3d(pts)",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3dCube",
     "passed": true,
-    "time_ms": 0.195,
+    "time_ms": 0.296,
     "line": 69,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    ]\n    mesh = ConvexHull.hull_3d(pts)",
     "checks": [
