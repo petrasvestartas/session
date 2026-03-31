@@ -38070,6 +38070,7 @@ window.API_INDEX = {
         "Vector.__jsonload__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38154,6 +38155,7 @@ window.API_INDEX = {
         "Vector.__jsonload__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38238,6 +38240,7 @@ window.API_INDEX = {
         "Vector.__jsonload__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38560,7 +38563,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():",
+          "code": "def __ne__(self, other):\n\n        return not self == other\n\n    ###########################################################################################\n    # No-copy Operators\n    ###########################################################################################\n\n    def __getitem__(self, index):\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################",
           "file": "vector.py"
         }
       },
@@ -38574,6 +38577,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__itruediv__",
         "Vector.__mul__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38585,8 +38589,7 @@ window.API_INDEX = {
         "Vector.str",
         "Vector.x",
         "Vector.y",
-        "Vector.z",
-        "Vector.zero"
+        "Vector.z"
       ]
     },
     {
@@ -38594,7 +38597,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__getitem__(index)",
-          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).",
+          "code": "def __getitem__(self, index):\n\n        \"\"\"Access coordinate by index (0=x, 1=y, 2=z).\"\"\"\n        if index == 0:\n            return self._x\n        elif index == 1:\n            return self._y\n        elif index == 2:\n            return self._z\n        else:\n            raise IndexError(\"Index out of range\")\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------",
           "file": "vector.py"
         }
       },
@@ -38608,6 +38611,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38628,7 +38632,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__setitem__(index, value)",
-          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).",
+          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set coordinate by index (0=x, 1=y, 2=z). Invalidates length cache.\"\"\"\n        if index == 0:\n            self._x = value\n        elif index == 1:\n            self._y = value\n        elif index == 2:\n            self._z = value\n        else:\n            raise IndexError(\"Index out of range\")\n        self._has_magnitude = False\n\n    def __imul__(self, other):\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns",
           "file": "vector.py"
         }
       },
@@ -38643,6 +38647,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__str__",
         "Vector.__sub__",
@@ -38663,7 +38668,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__imul__(other)",
-          "code": "def __imul__(self, other):\n\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).",
+          "code": "def __imul__(self, other):\n\n        self._x *= other\n        self._y *= other\n        self._z *= other\n        self._has_magnitude = False\n        return self\n\n    def __itruediv__(self, other):\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns",
           "file": "vector.py"
         }
       },
@@ -38676,6 +38681,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38698,7 +38704,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__itruediv__(other)",
-          "code": "def __itruediv__(self, other):\n\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.",
+          "code": "def __itruediv__(self, other):\n\n        self._x /= other\n        self._y /= other\n        self._z /= other\n        self._has_magnitude = False\n        return self\n\n    def __iadd__(self, other):\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)",
           "file": "vector.py"
         }
       },
@@ -38711,6 +38717,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38725,7 +38732,6 @@ window.API_INDEX = {
         "Vector.y",
         "Vector.y_axis",
         "Vector.z",
-        "Vector.z_axis",
         "Vector.zero"
       ]
     },
@@ -38734,7 +38740,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__iadd__(other)",
-          "code": "def __iadd__(self, other):\n\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"",
+          "code": "def __iadd__(self, other):\n\n        self._x += other._x\n        self._y += other._y\n        self._z += other._z\n        self._has_magnitude = False\n        return self\n\n    def __isub__(self, other):\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`",
           "file": "vector.py"
         }
       },
@@ -38747,6 +38753,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38769,7 +38776,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__isub__(other)",
-          "code": "def __isub__(self, other):\n\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters",
+          "code": "def __isub__(self, other):\n\n        self._x -= other._x\n        self._y -= other._y\n        self._z -= other._z\n        self._has_magnitude = False\n        return self\n\n    ###########################################################################################\n    # Copy Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):",
           "file": "vector.py"
         }
       },
@@ -38782,6 +38789,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__repr__",
         "Vector.__setitem__",
         "Vector.__str__",
@@ -38805,7 +38813,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__mul__(other)",
-          "code": "def __mul__(self, other):\n\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.",
+          "code": "def __mul__(self, other):\n\n        return Vector(self._x * other, self._y * other, self._z * other)\n\n    def __truediv__(self, other):\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------",
           "file": "vector.py"
         }
       },
@@ -38818,6 +38826,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__itruediv__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__setitem__",
         "Vector.__sub__",
         "Vector.__truediv__",
@@ -38837,7 +38846,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__truediv__(other)",
-          "code": "def __truediv__(self, other):\n\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])",
+          "code": "def __truediv__(self, other):\n\n        return Vector(self._x / other, self._y / other, self._z / other)\n\n    def __add__(self, other):\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.",
           "file": "vector.py"
         }
       },
@@ -38851,6 +38860,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__setitem__",
         "Vector.__sub__",
         "Vector.from_points",
@@ -38869,7 +38879,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__add__(other)",
-          "code": "def __add__(self, other):\n\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
+          "code": "def __add__(self, other):\n\n        return Vector(self._x + other._x, self._y + other._y, self._z + other._z)\n\n    def __sub__(self, other):\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])",
           "file": "vector.py"
         }
       },
@@ -38882,6 +38892,7 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__setitem__",
         "Vector.__sub__",
         "Vector.__truediv__",
@@ -38900,7 +38911,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__sub__(other)",
-          "code": "def __sub__(self, other):\n\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def scale(self, factor):\n        \"\"\"Scale the vector by a factor.",
+          "code": "def __sub__(self, other):\n\n        return Vector(self._x - other._x, self._y - other._y, self._z - other._z)\n\n    def __neg__(self):\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################",
           "file": "vector.py"
         }
       },
@@ -38914,7 +38925,39 @@ window.API_INDEX = {
         "Vector.__itruediv__",
         "Vector.__mul__",
         "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__setitem__",
+        "Vector.__truediv__",
+        "Vector.from_points",
+        "Vector.x",
+        "Vector.x_axis",
+        "Vector.y",
+        "Vector.y_axis",
+        "Vector.z",
+        "Vector.z_axis",
+        "Vector.zero"
+      ]
+    },
+    {
+      "name": "Vector.__neg__",
+      "implementations": {
+        "python": {
+          "sig": "__neg__()",
+          "code": "def __neg__(self):\n\n        return Vector(-self._x, -self._y, -self._z)\n\n    ###########################################################################################\n    # Static Methods\n    ###########################################################################################\n\n    @staticmethod\n    def zero():\n        \"\"\"Get a zero vector (0, 0, 0).\n\n        Returns\n        -------\n        :class:`Vector`\n            Zero vector (0, 0, 0).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 0.0)\n\n    @staticmethod\n    def x_axis():\n        \"\"\"Get unit vector along the x-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (1, 0, 0).\n\n        \"\"\"\n        return Vector(1.0, 0.0, 0.0)\n\n    @staticmethod\n    def y_axis():\n        \"\"\"Get unit vector along the y-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 1, 0).\n\n        \"\"\"\n        return Vector(0.0, 1.0, 0.0)\n\n    @staticmethod\n    def z_axis():\n        \"\"\"Get unit vector along the z-axis.\n\n        Returns\n        -------\n        :class:`Vector`\n            Unit vector (0, 0, 1).\n\n        \"\"\"\n        return Vector(0.0, 0.0, 1.0)\n\n    @staticmethod\n    def from_points(p0, p1):\n        \"\"\"Vector from p0 to p1 (p1 - p0).\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            Start point.\n        p1 : :class:`Point`\n            End point.\n\n        Returns\n        -------\n        :class:`Vector`\n            The vector from p0 to p1.\n\n        \"\"\"\n        return Vector(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def scale(self, factor):\n        \"\"\"Scale the vector by a factor.",
+          "file": "vector.py"
+        }
+      },
+      "related": [
+        "Vector.__add__",
+        "Vector.__getitem__",
+        "Vector.__iadd__",
+        "Vector.__imul__",
+        "Vector.__isub__",
+        "Vector.__itruediv__",
+        "Vector.__mul__",
+        "Vector.__ne__",
+        "Vector.__setitem__",
+        "Vector.__sub__",
         "Vector.__truediv__",
         "Vector.from_points",
         "Vector.scale",
@@ -38954,7 +38997,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__itruediv__",
         "Vector.__mul__",
-        "Vector.__ne__",
+        "Vector.__neg__",
         "Vector.__setitem__",
         "Vector.__sub__",
         "Vector.__truediv__",
@@ -39013,6 +39056,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__itruediv__",
         "Vector.__mul__",
+        "Vector.__neg__",
         "Vector.__setitem__",
         "Vector.__sub__",
         "Vector.__truediv__",
@@ -39056,6 +39100,7 @@ window.API_INDEX = {
         "Vector.__isub__",
         "Vector.__itruediv__",
         "Vector.__mul__",
+        "Vector.__neg__",
         "Vector.__sub__",
         "Vector.__truediv__",
         "Vector.from_points",
@@ -39096,8 +39141,8 @@ window.API_INDEX = {
         "Vector.__add__",
         "Vector.__iadd__",
         "Vector.__isub__",
-        "Vector.__itruediv__",
         "Vector.__mul__",
+        "Vector.__neg__",
         "Vector.__sub__",
         "Vector.__truediv__",
         "Vector._compute_magnitude",
@@ -39141,6 +39186,7 @@ window.API_INDEX = {
         "Vector.__add__",
         "Vector.__isub__",
         "Vector.__mul__",
+        "Vector.__neg__",
         "Vector.__sub__",
         "Vector.__truediv__",
         "Vector._compute_magnitude",
@@ -39180,7 +39226,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Vector.__sub__",
+        "Vector.__neg__",
         "Vector._compute_magnitude",
         "Vector.compute_magnitude",
         "Vector.from_points",
@@ -54979,11 +55025,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
         "subdivide",
-        "circle",
-        "n",
         "points",
+        "circle",
+        "into",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54997,11 +55043,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
+        "subdivide",
         "length",
+        "arc",
         "ellipse",
         "by",
-        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -55016,8 +55062,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "points",
-        "arc",
         "through",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -55031,12 +55077,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
         "polyline",
         "open",
-        "curve",
         "from",
+        "adaptive",
         "points",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -55051,10 +55097,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "curve",
         "at",
         "parameter",
+        "evaluation",
+        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -55075,8 +55121,8 @@ window.API_INDEX = {
       "tags": [
         "length",
         "along",
-        "curve",
         "frames",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55098,9 +55144,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55121,9 +55167,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
         "cylinder",
         "surface",
+        "evaluate",
         "point",
         "point_at",
         "cylinder_surface",
@@ -55139,11 +55185,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
-        "faces",
-        "vertices",
         "and",
+        "faces",
         "from",
+        "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -56006,7 +56052,8 @@ window.API_INDEX = {
     "__neg__": [
       "Line.__neg__",
       "Polyline.__neg__",
-      "Quaternion.__neg__"
+      "Quaternion.__neg__",
+      "Vector.__neg__"
     ],
     "transform": [
       "Line.transform",

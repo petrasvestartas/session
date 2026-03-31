@@ -13,7 +13,7 @@
     "line": 91,
     "passed": true,
     "test_name": "NearestBruteForce",
-    "time_ms": 0.138
+    "time_ms": 0.141
   },
   {
     "checks": [
@@ -60,7 +60,7 @@
     "line": 57,
     "passed": true,
     "test_name": "RadiusSearch",
-    "time_ms": 0.016
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 35,
     "passed": true,
     "test_name": "NearestK",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -112,6 +112,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Nearest",
-    "time_ms": 0.156
+    "time_ms": 0.136
   }
 ]

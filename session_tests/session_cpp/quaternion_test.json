@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.772,
+    "time_ms": 6.564,
     "line": 11,
     "code": "    Vector axis(0.0, 0.0, 1.0);\n    Quaternion original = Quaternion::from_axis_angle(axis, 1.5708);\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_quaternion.json\");\n    Quaternion loaded = encoders::json_load<Quaternion>(\"./serialization/test_quaternion.json\");",
     "checks": [
@@ -123,7 +123,7 @@
     "group": "Quaternion",
     "test_name": "invert",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 73,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
@@ -207,7 +207,7 @@
     "group": "Quaternion",
     "test_name": "sub",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 106,
     "code": "    double pi = std::acos(-1.0);\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), pi / 4.0);\n    Quaternion r = q - q;",
     "checks": [
