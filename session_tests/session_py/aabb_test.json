@@ -3,7 +3,7 @@
     "group": "Aabb",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.412,
+    "time_ms": 0.162,
     "line": 111,
     "code": "    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u2014 dims 2\u00d74\u00d76\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union(b)",
     "checks": [

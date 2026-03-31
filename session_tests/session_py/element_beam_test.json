@@ -3,7 +3,7 @@
     "group": "BeamElement",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 1.098,
+    "time_ms": 0.752,
     "line": 7,
     "code": "    from session_py import BeamElement\n    from session_py import Mesh\n\n    b = BeamElement(width=0.1, depth=0.2, length=3.0, name=\"beam1\")\n\n    geo = b.geometry\n    name = b.name\n    guid = b.guid\n    bstr = str(b)\n    brepr = repr(b)\n\n    bcopy = b.duplicate()\n    b2 = BeamElement(width=0.1, depth=0.2, length=3.0, name=\"beam1\")\n    b3 = BeamElement(width=0.1, depth=0.2, length=5.0, name=\"beam1\")",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "BeamElement",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.415,
+    "time_ms": 0.312,
     "line": 37,
     "code": "    from session_py import BeamElement\n\n    b = BeamElement()\n    b.width = 0.15\n    b.depth = 0.3\n    b.length = 5.0",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BeamElement",
     "test_name": "Center Line",
     "passed": true,
-    "time_ms": 0.176,
+    "time_ms": 0.131,
     "line": 52,
     "code": "    from session_py import BeamElement\n    from session_py import Line\n\n    b = BeamElement(length=5.0)\n    cl = b.center_line",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "BeamElement",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.264,
+    "time_ms": 0.146,
     "line": 65,
     "code": "    from session_py import BeamElement\n\n    b = BeamElement(length=3.0)\n    b.extend(0.5)",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "BeamElement",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.676,
+    "time_ms": 0.463,
     "line": 75,
     "code": "    from session_py import BeamElement\n\n    b = BeamElement(width=0.1, depth=0.2, length=3.0)\n    aabb = b.aabb",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "BeamElement",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.571,
+    "time_ms": 0.401,
     "line": 88,
     "code": "    from session_py import BeamElement\n\n    b = BeamElement(width=0.1, depth=0.2, length=3.0)\n    pt = b.point",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "BeamElement",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.665,
+    "time_ms": 0.423,
     "line": 100,
     "code": "    from session_py import BeamElement\n    from session_py import Xform\n    from session_py import Mesh\n\n    b = BeamElement(width=0.1, depth=0.2, length=3.0)\n    b.session_transformation = Xform.translation(10.0, 0.0, 0.0)\n    sg = b.session_geometry\n\n    verts = list(sg.vertex.values())\n    xs = [v.x for v in verts]",
     "checks": [
@@ -220,7 +220,7 @@
     "group": "BeamElement",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 20.184,
+    "time_ms": 12.945,
     "line": 117,
     "code": "    from session_py import BeamElement\n    from session_py import Xform\n    from pathlib import Path\n\n    b = BeamElement(width=0.15, depth=0.3, length=5.0, name=\"json_beam\")\n    b.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_beam_element.json\"\n    b.json_dump(fname)\n    loaded = BeamElement.json_load(fname)",
     "checks": [
@@ -256,7 +256,7 @@
     "group": "BeamElement",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 21.399,
+    "time_ms": 10.473,
     "line": 137,
     "code": "    from session_py import BeamElement\n    from session_py import Xform\n    from pathlib import Path\n\n    b = BeamElement(width=0.15, depth=0.3, length=5.0, name=\"proto_beam\")\n    b.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_beam_element.bin\"\n    b.pb_dump(path)\n    loaded = BeamElement.pb_load(path)",
     "checks": [
