@@ -23,7 +23,7 @@
     "line": 37,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.234
+    "time_ms": 5.02
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 139,
     "passed": true,
     "test_name": "Cycle Basis",
-    "time_ms": 0.073
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -65,7 +65,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Has Cycle",
-    "time_ms": 0.019
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -96,7 +96,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Shortest Path",
-    "time_ms": 0.011
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Connected Components",
-    "time_ms": 0.024
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 69,
     "passed": true,
     "test_name": "Dfs",
-    "time_ms": 0.015
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -164,6 +164,6 @@
     "line": 54,
     "passed": true,
     "test_name": "Bfs",
-    "time_ms": 0.014
+    "time_ms": 0.007
   }
 ]

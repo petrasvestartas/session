@@ -315,7 +315,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.582,
+    "time_ms": 6.319,
     "line": 155,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.json_dump(fname);\n    PointCloud loaded = PointCloud::json_load(fname);",
     "checks": [
@@ -371,7 +371,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.232,
+    "time_ms": 6.737,
     "line": 199,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {\n            Point(1.0, 2.0, 3.0),\n            Point(4.0, 5.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
     "checks": [

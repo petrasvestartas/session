@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -77,7 +77,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Is Between",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.007
+    "time_ms": 0.004
   },
   {
     "checks": [
