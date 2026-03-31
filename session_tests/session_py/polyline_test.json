@@ -3,7 +3,7 @@
     "group": "Polyline",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.846,
+    "time_ms": 9.141,
     "line": 7,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    p3 = Point(0.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2, p3])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Index operator\n    pt_idx = pl[1]\n    pl_copy = pl.duplicate()\n    pl_copy[0] = Point(5.0, 6.0, 7.0)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n\n    # No-copy operators\n    plmult = pl.duplicate()\n    plmult *= 2.0\n    pldiv = pl.duplicate()\n    pldiv /= 2.0\n    pladd = pl.duplicate()\n    pladd += Vector(1.0, 1.0, 1.0)\n    plsub = pl.duplicate()\n    plsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = pl * 2.0\n    rdiv = pl / 2.0\n    radd = pl + Vector(1.0, 1.0, 1.0)\n    rdif = pl - Vector(1.0, 1.0, 1.0)\n\n    # Negation (reverse point order)\n    plneg = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    neg = -plneg\n\n    # Polyline with custom color and width\n    plc = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "Polyline",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.152,
+    "time_ms": 1.17,
     "line": 102,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Xform\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    pl.xform = Xform.translation(10.0, 0.0, 0.0)\n    pl_transformed = pl.transformed()\n    pl.transform()",
     "checks": [
@@ -130,7 +130,7 @@
     "group": "Polyline",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.35,
+    "time_ms": 28.933,
     "line": 123,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    ])\n    pl.name = \"test_polyline\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_polyline.json\"\n    pl.json_dump(fname)\n    loaded = Polyline.json_load(fname)",
     "checks": [
@@ -166,7 +166,7 @@
     "group": "Polyline",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.693,
+    "time_ms": 23.284,
     "line": 156,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    ])\n    pl.name = \"test_polyline\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # pb_dump(fname) / pb_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_polyline.bin\"\n    pl.pb_dump(fname)\n    loaded = Polyline.pb_load(fname)",
     "checks": [
@@ -202,7 +202,7 @@
     "group": "Polyline",
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.224,
     "line": 187,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline: 1 unit right, 1 unit up, 1 unit left = 3 units total\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    ln = pl.length()\n    mag_sq = pl.magnitude_squared()",
     "checks": [
@@ -223,7 +223,7 @@
     "group": "Polyline",
     "test_name": "Center",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.245,
     "line": 206,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square polyline\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    ])\n    c = pl.center()",
     "checks": [
@@ -249,7 +249,7 @@
     "group": "Polyline",
     "test_name": "Is Closed",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.216,
     "line": 225,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Open polyline\n    open_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    ])\n    is_open = open_pl.is_closed()\n\n    # Closed polyline (first and last point same)\n    closed_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ])\n    is_closed = closed_pl.is_closed()",
     "checks": [
@@ -268,24 +268,55 @@
   },
   {
     "group": "Polyline",
+    "test_name": "Closed",
+    "passed": true,
+    "time_ms": 0.441,
+    "line": 252,
+    "code": "    from session_py import Polyline\n    from session_py import Point\n\n    open_pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    closed_from_open = open_pl.closed()\n\n    closed_pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0), Point(0.0, 0.0, 0.0)])\n    closed_from_closed = closed_pl.closed()",
+    "checks": [
+      {
+        "line": 263,
+        "code_line": "closed_from_open.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 264,
+        "code_line": "closed_from_open.is_closed()",
+        "passed": true
+      },
+      {
+        "line": 265,
+        "code_line": "closed_from_closed.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "closed_from_closed.is_closed()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Polyline",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.114,
-    "line": 252,
+    "time_ms": 2.519,
+    "line": 269,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n\n    # Test reversed() returns new polyline\n    rev = pl.reversed()\n    orig_first = pl.get_point(0)[0]\n    rev_first = rev.get_point(0)[0]\n\n    # Test reverse() in place\n    pl.reverse()\n    in_place_first = pl.get_point(0)[0]",
     "checks": [
       {
-        "line": 273,
+        "line": 290,
         "code_line": "orig_first == 0.0",
         "passed": true
       },
       {
-        "line": 274,
+        "line": 291,
         "code_line": "rev_first == 3.0",
         "passed": true
       },
       {
-        "line": 275,
+        "line": 292,
         "code_line": "in_place_first == 3.0",
         "passed": true
       }
@@ -296,27 +327,27 @@
     "group": "Polyline",
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.056,
-    "line": 278,
+    "time_ms": 0.298,
+    "line": 295,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    ])\n    test_pt = Point(1.0, 1.0, 0.0)\n    distance, edge_id, closest = pl.closest_distance_and_point(test_pt)",
     "checks": [
       {
-        "line": 292,
+        "line": 309,
         "code_line": "edge_id == 0",
         "passed": true
       },
       {
-        "line": 293,
+        "line": 310,
         "code_line": "TOLERANCE.is_close(closest[0], 1.0)",
         "passed": true
       },
       {
-        "line": 294,
+        "line": 311,
         "code_line": "TOLERANCE.is_close(closest[1], 0.0)",
         "passed": true
       },
       {
-        "line": 295,
+        "line": 312,
         "code_line": "TOLERANCE.is_close(distance, 1.0)",
         "passed": true
       }
@@ -327,17 +358,17 @@
     "group": "Polyline",
     "test_name": "Extend Segment",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 298,
+    "time_ms": 0.273,
+    "line": 315,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.extend_segment(0, 0.5, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
       {
-        "line": 313,
+        "line": 330,
         "code_line": "TOLERANCE.is_close(first, -0.5)",
         "passed": true
       },
       {
-        "line": 314,
+        "line": 331,
         "code_line": "TOLERANCE.is_close(second, 1.5)",
         "passed": true
       }
@@ -348,17 +379,17 @@
     "group": "Polyline",
     "test_name": "Extend Segment Equally",
     "passed": true,
-    "time_ms": 0.031,
-    "line": 317,
+    "time_ms": 0.168,
+    "line": 334,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.extend_segment_equally(0, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
       {
-        "line": 332,
+        "line": 349,
         "code_line": "TOLERANCE.is_close(first, -0.5)",
         "passed": true
       },
       {
-        "line": 333,
+        "line": 350,
         "code_line": "TOLERANCE.is_close(second, 1.5)",
         "passed": true
       }
@@ -369,32 +400,32 @@
     "group": "Polyline",
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.019,
-    "line": 336,
+    "time_ms": 0.115,
+    "line": 353,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    points = pl.get_points()",
     "checks": [
       {
-        "line": 349,
+        "line": 366,
         "code_line": "len(points) == 4",
         "passed": true
       },
       {
-        "line": 350,
+        "line": 367,
         "code_line": "TOLERANCE.is_close(points[0][0], 0.0) and TOLERANCE.is_close(points[0][1], 0.0)",
         "passed": true
       },
       {
-        "line": 351,
+        "line": 368,
         "code_line": "TOLERANCE.is_close(points[1][0], 1.0) and TOLERANCE.is_close(points[1][1], 0.0)",
         "passed": true
       },
       {
-        "line": 352,
+        "line": 369,
         "code_line": "TOLERANCE.is_close(points[2][0], 1.0) and TOLERANCE.is_close(points[2][1], 1.0)",
         "passed": true
       },
       {
-        "line": 353,
+        "line": 370,
         "code_line": "TOLERANCE.is_close(points[3][0], 0.0) and TOLERANCE.is_close(points[3][1], 1.0)",
         "passed": true
       }
@@ -405,32 +436,32 @@
     "group": "Polyline",
     "test_name": "Get Lines",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 356,
+    "time_ms": 0.188,
+    "line": 373,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Line\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    lines = pl.get_lines()\n    lines_prop = pl.lines",
     "checks": [
       {
-        "line": 371,
+        "line": 388,
         "code_line": "len(lines) == 3",
         "passed": true
       },
       {
-        "line": 372,
+        "line": 389,
         "code_line": "len(lines_prop) == 3",
         "passed": true
       },
       {
-        "line": 373,
+        "line": 390,
         "code_line": "TOLERANCE.is_close(lines[0][0], 0.0) and TOLERANCE.is_close(lines[0][3], 1.0)",
         "passed": true
       },
       {
-        "line": 374,
+        "line": 391,
         "code_line": "TOLERANCE.is_close(lines[1][0], 1.0) and TOLERANCE.is_close(lines[1][4], 1.0)",
         "passed": true
       },
       {
-        "line": 375,
+        "line": 392,
         "code_line": "TOLERANCE.is_close(lines[2][0], 1.0) and TOLERANCE.is_close(lines[2][3], 0.0)",
         "passed": true
       }
@@ -441,17 +472,17 @@
     "group": "Polyline",
     "test_name": "Shift",
     "passed": true,
-    "time_ms": 0.033,
-    "line": 378,
+    "time_ms": 0.189,
+    "line": 395,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.shift(1)\n    first_after_shift = pl.get_point(0)[0]\n    pl.shift(-1)\n    first_after_unshift = pl.get_point(0)[0]",
     "checks": [
       {
-        "line": 394,
+        "line": 411,
         "code_line": "TOLERANCE.is_close(first_after_shift, 1.0)",
         "passed": true
       },
       {
-        "line": 395,
+        "line": 412,
         "code_line": "TOLERANCE.is_close(first_after_unshift, 0.0)",
         "passed": true
       }
@@ -462,17 +493,17 @@
     "group": "Polyline",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 398,
+    "time_ms": 0.03,
+    "line": 415,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    mid = Polyline.point_at(start, end, 0.5)\n    quarter = Polyline.point_at(start, end, 0.25)",
     "checks": [
       {
-        "line": 408,
+        "line": 425,
         "code_line": "TOLERANCE.is_close(mid[0], 1.0)",
         "passed": true
       },
       {
-        "line": 409,
+        "line": 426,
         "code_line": "TOLERANCE.is_close(quarter[0], 0.5)",
         "passed": true
       }
@@ -483,17 +514,17 @@
     "group": "Polyline",
     "test_name": "Is Clockwise",
     "passed": true,
-    "time_ms": 0.074,
-    "line": 412,
+    "time_ms": 0.337,
+    "line": 429,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Plane\n\n    # Clockwise square (when viewed from +Z)\n    cw_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n    ])\n    # Counter-clockwise square\n    ccw_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plane = Plane()",
     "checks": [
       {
-        "line": 434,
+        "line": 451,
         "code_line": "cw_pl.is_clockwise(plane) == True",
         "passed": true
       },
       {
-        "line": 435,
+        "line": 452,
         "code_line": "ccw_pl.is_clockwise(plane) == False",
         "passed": true
       }
@@ -504,17 +535,17 @@
     "group": "Polyline",
     "test_name": "Convex Corners",
     "passed": true,
-    "time_ms": 0.134,
-    "line": 438,
+    "time_ms": 0.441,
+    "line": 455,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline with one concave corner\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    corners = pl.get_convex_corners()",
     "checks": [
       {
-        "line": 452,
+        "line": 469,
         "code_line": "len(corners) == 4",
         "passed": true
       },
       {
-        "line": 453,
+        "line": 470,
         "code_line": "isinstance(corners[0], bool)",
         "passed": true
       }
@@ -525,17 +556,17 @@
     "group": "Polyline",
     "test_name": "Tween",
     "passed": true,
-    "time_ms": 0.101,
-    "line": 456,
+    "time_ms": 0.282,
+    "line": 473,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl0 = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    pl1 = Polyline([\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0),\n        Point(2.0, 1.0, 0.0),\n    ])\n    tweened = Polyline.tween_two_polylines(pl0, pl1, 0.5)",
     "checks": [
       {
-        "line": 475,
+        "line": 492,
         "code_line": "TOLERANCE.is_close(tweened.get_point(0)[0], 1.0)",
         "passed": true
       },
       {
-        "line": 476,
+        "line": 493,
         "code_line": "TOLERANCE.is_close(tweened.get_point(1)[0], 2.0)",
         "passed": true
       }
@@ -546,27 +577,27 @@
     "group": "Polyline",
     "test_name": "Average Plane",
     "passed": true,
-    "time_ms": 0.239,
-    "line": 479,
+    "time_ms": 0.717,
+    "line": 496,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    ])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()",
     "checks": [
       {
-        "line": 494,
+        "line": 511,
         "code_line": "TOLERANCE.is_close(origin[0], 1.0) and TOLERANCE.is_close(origin[1], 1.0)",
         "passed": true
       },
       {
-        "line": 495,
+        "line": 512,
         "code_line": "TOLERANCE.is_close(abs(z_axis[2]), 1.0)",
         "passed": true
       },
       {
-        "line": 496,
+        "line": 513,
         "code_line": "fast_plane is not None",
         "passed": true
       },
       {
-        "line": 497,
+        "line": 514,
         "code_line": "TOLERANCE.is_close(abs(avg_normal[2]), 1.0)",
         "passed": true
       }
@@ -577,57 +608,57 @@
     "group": "Polyline",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 500,
+    "time_ms": 0.128,
+    "line": 517,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    a = Point(0.0, 0.0, 0.0)\n    b = Point(4.0, 0.0, 0.0)\n\n    # kind 0: no endpoints \u2014 3 interior points at t=0.25, 0.5, 0.75\n    pts0 = Polyline.interpolate_points(a, b, 3, 0)\n    # kind 1: both endpoints \u2014 5 points\n    pts1 = Polyline.interpolate_points(a, b, 3, 1)\n    # kind 2: start only \u2014 4 points (from + 3 interior)\n    pts2 = Polyline.interpolate_points(a, b, 3, 2)",
     "checks": [
       {
-        "line": 515,
+        "line": 532,
         "code_line": "len(pts0) == 3",
         "passed": true
       },
       {
-        "line": 516,
+        "line": 533,
         "code_line": "TOLERANCE.is_close(pts0[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 517,
+        "line": 534,
         "code_line": "TOLERANCE.is_close(pts0[1][0], 2.0)",
         "passed": true
       },
       {
-        "line": 518,
+        "line": 535,
         "code_line": "TOLERANCE.is_close(pts0[2][0], 3.0)",
         "passed": true
       },
       {
-        "line": 519,
+        "line": 536,
         "code_line": "len(pts1) == 5",
         "passed": true
       },
       {
-        "line": 520,
+        "line": 537,
         "code_line": "TOLERANCE.is_close(pts1[0][0], 0.0)",
         "passed": true
       },
       {
-        "line": 521,
+        "line": 538,
         "code_line": "TOLERANCE.is_close(pts1[4][0], 4.0)",
         "passed": true
       },
       {
-        "line": 522,
+        "line": 539,
         "code_line": "len(pts2) == 4",
         "passed": true
       },
       {
-        "line": 523,
+        "line": 540,
         "code_line": "TOLERANCE.is_close(pts2[0][0], 0.0)",
         "passed": true
       },
       {
-        "line": 524,
+        "line": 541,
         "code_line": "TOLERANCE.is_close(pts2[3][0], 3.0)",
         "passed": true
       }
@@ -638,12 +669,12 @@
     "group": "Polyline",
     "test_name": "Quick Hull",
     "passed": true,
-    "time_ms": 0.205,
-    "line": 527,
+    "time_ms": 0.839,
+    "line": 544,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square with one interior point \u2014 hull should be the 4 corners\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n    ])\n    hull = Polyline.quick_hull(polygon)",
     "checks": [
       {
-        "line": 542,
+        "line": 559,
         "code_line": "hull.point_count() == 4",
         "passed": true
       }
@@ -654,42 +685,42 @@
     "group": "Polyline",
     "test_name": "Bounding Rectangle",
     "passed": true,
-    "time_ms": 0.281,
-    "line": 545,
+    "time_ms": 1.016,
+    "line": 562,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Axis-aligned 4x3 rectangle\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect = Polyline.bounding_rectangle(polygon)\n\n    for p in rect.get_points():",
     "checks": [
       {
-        "line": 559,
+        "line": 576,
         "code_line": "rect is not None",
         "passed": true
       },
       {
-        "line": 560,
+        "line": 577,
         "code_line": "rect.point_count() == 5",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 579,
         "code_line": "abs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 579,
         "code_line": "abs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 579,
         "code_line": "abs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 579,
         "code_line": "abs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 562,
+        "line": 579,
         "code_line": "abs(p[2]) < 1e-6",
         "passed": true
       }
@@ -700,172 +731,172 @@
     "group": "Polyline",
     "test_name": "Grid Of Points In Polygon",
     "passed": true,
-    "time_ms": 0.193,
-    "line": 565,
+    "time_ms": 1.276,
+    "line": 582,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # 4x4 square polygon\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    ])\n    pts = Polyline.grid_of_points_in_polygon(polygon, 0.0, 1.0, 100)\n\n    for p in pts:",
     "checks": [
       {
-        "line": 579,
+        "line": 596,
         "code_line": "len(pts) > 0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       },
       {
-        "line": 581,
+        "line": 598,
         "code_line": "p[0] > 0.0 and p[0] < 4.0",
         "passed": true
       },
       {
-        "line": 582,
+        "line": 599,
         "code_line": "p[1] > 0.0 and p[1] < 4.0",
         "passed": true
       }
@@ -876,32 +907,32 @@
     "group": "Polyline",
     "test_name": "Simplify Points",
     "passed": true,
-    "time_ms": 1.367,
-    "line": 585,
+    "time_ms": 6.268,
+    "line": 602,
     "code": "    import math\n    from session_py import Polyline, Point\n    pts = []\n    for i in range(100):\n        x = float(i)\n        y = math.sin(float(i) * 0.1) * 0.001\n        z = 0.0\n        pts.append(Point(x, y, z))\n    result_tight = Polyline.simplify_points(pts, 0.0001)\n    result_loose = Polyline.simplify_points(pts, 0.01)\n    result_very_loose = Polyline.simplify_points(pts, 1.0)",
     "checks": [
       {
-        "line": 599,
+        "line": 616,
         "code_line": "len(result_tight) <= len(pts)",
         "passed": true
       },
       {
-        "line": 600,
+        "line": 617,
         "code_line": "len(result_loose) <= len(result_tight)",
         "passed": true
       },
       {
-        "line": 601,
+        "line": 618,
         "code_line": "len(result_very_loose) <= len(result_loose)",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 619,
         "code_line": "result_tight[0][0] == pts[0][0]",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 620,
         "code_line": "result_tight[-1][0] == pts[-1][0]",
         "passed": true
       }
@@ -912,22 +943,22 @@
     "group": "Polyline",
     "test_name": "Simplify",
     "passed": true,
-    "time_ms": 0.101,
-    "line": 606,
+    "time_ms": 0.553,
+    "line": 623,
     "code": "    from session_py import Polyline, Point\n    pts = []\n    for i in range(20):\n        x = float(i)\n        y = 0.0\n        z = 0.0\n        pts.append(Point(x, y, z))\n    pl = Polyline(pts)\n    result = pl.simplify(0.001)",
     "checks": [
       {
-        "line": 618,
+        "line": 635,
         "code_line": "len(result) == 2",
         "passed": true
       },
       {
-        "line": 619,
+        "line": 636,
         "code_line": "TOLERANCE.is_close(result.get_point(0)[0], 0.0)",
         "passed": true
       },
       {
-        "line": 620,
+        "line": 637,
         "code_line": "TOLERANCE.is_close(result.get_point(1)[0], 19.0)",
         "passed": true
       }
@@ -938,22 +969,22 @@
     "group": "Polyline",
     "test_name": "Simplify Collinear",
     "passed": true,
-    "time_ms": 0.016,
-    "line": 623,
+    "time_ms": 0.07,
+    "line": 640,
     "code": "    from session_py import Polyline, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    result = Polyline.simplify_points(pts, 0.001)",
     "checks": [
       {
-        "line": 635,
+        "line": 652,
         "code_line": "len(result) == 2",
         "passed": true
       },
       {
-        "line": 636,
+        "line": 653,
         "code_line": "TOLERANCE.is_close(result[0][0], 0.0)",
         "passed": true
       },
       {
-        "line": 637,
+        "line": 654,
         "code_line": "TOLERANCE.is_close(result[-1][0], 4.0)",
         "passed": true
       }
@@ -964,17 +995,17 @@
     "group": "Polyline",
     "test_name": "Simplify Zigzag",
     "passed": true,
-    "time_ms": 0.102,
-    "line": 640,
+    "time_ms": 0.31,
+    "line": 657,
     "code": "    from session_py import Polyline, Point\n    pts = []\n    for i in range(10):\n        x = float(i)\n        y = 1.0 if (i % 2 == 1) else 0.0\n        z = 0.0\n        pts.append(Point(x, y, z))\n    result_tight = Polyline.simplify_points(pts, 0.1)\n    result_loose = Polyline.simplify_points(pts, 2.0)",
     "checks": [
       {
-        "line": 652,
+        "line": 669,
         "code_line": "len(result_tight) == 10",
         "passed": true
       },
       {
-        "line": 653,
+        "line": 670,
         "code_line": "len(result_loose) < len(result_tight)",
         "passed": true
       }
@@ -985,12 +1016,12 @@
     "group": "Polyline",
     "test_name": "Simplify Two Points",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 656,
+    "time_ms": 0.017,
+    "line": 673,
     "code": "    from session_py import Polyline, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n    ]\n    result = Polyline.simplify_points(pts, 0.001)",
     "checks": [
       {
-        "line": 665,
+        "line": 682,
         "code_line": "len(result) == 2",
         "passed": true
       }

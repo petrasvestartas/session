@@ -3,7 +3,7 @@
     "group": "BRep",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.133,
+    "time_ms": 0.395,
     "line": 6,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep()\n\n    sstr = str(b)\n    srepr = repr(b)\n\n    bcopy = b.duplicate()",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "BRep",
     "test_name": "Create Box",
     "passed": true,
-    "time_ms": 5.666,
+    "time_ms": 26.797,
     "line": 29,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BRep",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 6.12,
+    "time_ms": 40.806,
     "line": 44,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import NurbsSurface\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    fc = b.face_count()\n    ec = b.edge_count()\n    vc = b.vertex_count()",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "BRep",
     "test_name": "Add Face",
     "passed": true,
-    "time_ms": 0.276,
+    "time_ms": 1.496,
     "line": 64,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n\n    si = b.add_surface(srf)\n    fi = b.add_face(si, False)\n    li = b.add_loop(fi, 0)\n\n    trim = NurbsCurve.create(False, 1, [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n    ])\n    ci = b.add_curve_2d(trim)\n    b.add_trim(ci, -1, li, False, 0)",
     "checks": [
@@ -172,7 +172,7 @@
     "group": "BRep",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 771.638,
+    "time_ms": 2934.547,
     "line": 95,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    m = b.mesh()",
     "checks": [
@@ -198,7 +198,7 @@
     "group": "BRep",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 5.804,
+    "time_ms": 27.452,
     "line": 108,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    pt = b.point_at(0, 0.5, 0.5)",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "BRep",
     "test_name": "Is Solid",
     "passed": true,
-    "time_ms": 4.979,
+    "time_ms": 24.648,
     "line": 121,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    single = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n    si = single.add_surface(srf)\n    single.add_face(si, False)\n    single.add_vertex(Point(0, 0, 0))",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "BRep",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 6.853,
+    "time_ms": 36.116,
     "line": 144,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import Xform\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.xform = Xform.translation(10.0, 20.0, 30.0)\n    moved = b.transformed()\n\n    pt = moved.point_at(0, 0.0, 0.0)\n    pt_orig = b.point_at(0, 0.0, 0.0)",
     "checks": [
@@ -261,7 +261,7 @@
     "group": "BRep",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 19.491,
+    "time_ms": 174.056,
     "line": 162,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # JSON object\n    json_obj = b.__jsondump__()\n    loaded_json = BRep.__jsonload__(json_obj)\n\n    # String\n    json_string = b.json_dumps()\n    loaded_json_string = BRep.json_loads(json_string)\n\n    # File\n    filename = str(Path(__file__).parent.parent.parent.parent / \"serialization\" / \"test_brep.json\")\n    Path(filename).parent.mkdir(parents=True, exist_ok=True)\n    b.json_dump(filename)\n    loaded_from_file = BRep.json_load(filename)",
     "checks": [
@@ -287,7 +287,7 @@
     "group": "BRep",
     "test_name": "Create Cylinder",
     "passed": true,
-    "time_ms": 745.563,
+    "time_ms": 6591.036,
     "line": 192,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    cyl = BRep.create_cylinder(1.0, 2.0)\n    m = cyl.mesh()",
     "checks": [
@@ -328,7 +328,7 @@
     "group": "BRep",
     "test_name": "Create Sphere",
     "passed": true,
-    "time_ms": 238.133,
+    "time_ms": 1545.33,
     "line": 208,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    sph = BRep.create_sphere(2.0)\n    m = sph.mesh()",
     "checks": [
@@ -369,7 +369,7 @@
     "group": "BRep",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 731.618,
+    "time_ms": 1902.533,
     "line": 224,
     "code": "    from session_py import BRep\n    from session_py import Polyline\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz),\n        Point(hx, -hy, -hz),\n        Point(hx, hy, -hz),\n        Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz),\n        Point(hx, -hy, hz),\n        Point(hx, hy, hz),\n        Point(-hx, hy, hz),\n    ]\n\n    bottom = Polyline([\n        c[0],\n        c[3],\n        c[2],\n        c[1],\n        c[0],\n    ])\n    top = Polyline([\n        c[4],\n        c[5],\n        c[6],\n        c[7],\n        c[4],\n    ])\n    front = Polyline([\n        c[0],\n        c[1],\n        c[5],\n        c[4],\n        c[0],\n    ])\n    right = Polyline([\n        c[1],\n        c[2],\n        c[6],\n        c[5],\n        c[1],\n    ])\n    back = Polyline([\n        c[2],\n        c[3],\n        c[7],\n        c[6],\n        c[2],\n    ])\n    left = Polyline([\n        c[3],\n        c[0],\n        c[4],\n        c[7],\n        c[3],\n    ])\n\n    b = BRep.from_polylines([bottom, top, front, right, back, left])\n    m = b.mesh()",
     "checks": [
@@ -415,7 +415,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves",
     "passed": true,
-    "time_ms": 307.75,
+    "time_ms": 639.472,
     "line": 298,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz),\n        Point(hx, -hy, -hz),\n        Point(hx, hy, -hz),\n        Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz),\n        Point(hx, -hy, hz),\n        Point(hx, hy, hz),\n        Point(-hx, hy, hz),\n    ]\n\n    bottom = NurbsCurve.create(False, 1, [\n        c[0], c[3], c[2], c[1], c[0],\n    ])\n    top = NurbsCurve.create(False, 1, [\n        c[4], c[5], c[6], c[7], c[4],\n    ])\n    front = NurbsCurve.create(False, 1, [\n        c[0], c[1], c[5], c[4], c[0],\n    ])\n    right = NurbsCurve.create(False, 1, [\n        c[1], c[2], c[6], c[5], c[1],\n    ])\n    back = NurbsCurve.create(False, 1, [\n        c[2], c[3], c[7], c[6], c[2],\n    ])\n    left = NurbsCurve.create(False, 1, [\n        c[3], c[0], c[4], c[7], c[3],\n    ])\n\n    b = BRep.from_nurbscurves([bottom, top, front, right, back, left])\n    m = b.mesh()",
     "checks": [
@@ -446,7 +446,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves Holes",
     "passed": true,
-    "time_ms": 292.324,
+    "time_ms": 439.66,
     "line": 345,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Primitives\n\n    outer = NurbsCurve.create(False, 1, [\n        Point(-5, -5, 0),\n        Point(5, -5, 0),\n        Point(5, 5, 0),\n        Point(-5, 5, 0),\n        Point(-5, -5, 0),\n    ])\n    hole = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n\n    b = BRep.from_nurbscurves([outer], [[hole]])\n    m = b.mesh()",
     "checks": [
@@ -492,7 +492,7 @@
     "group": "BRep",
     "test_name": "Create Block With Hole",
     "passed": true,
-    "time_ms": 1514.614,
+    "time_ms": 1728.943,
     "line": 374,
     "code": "    from session_py.brep import BRep\n    from session_py import Mesh\n\n    bh = BRep.create_block_with_hole(8.0, 6.0, 4.0, 1.5)\n    m = bh.mesh()",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "BRep",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 18.953,
+    "time_ms": 19.217,
     "line": 390,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_data = b.pb_dumps()\n    loaded_proto = BRep.pb_loads(proto_data)\n\n    # File\n    filename = str(Path(__file__).parent.parent.parent.parent / \"serialization\" / \"test_brep.bin\")\n    Path(filename).parent.mkdir(parents=True, exist_ok=True)\n    b.pb_dump(filename)\n    loaded = BRep.pb_load(filename)",
     "checks": [

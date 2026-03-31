@@ -27637,8 +27637,8 @@ window.API_INDEX = {
           "file": "polyline.py"
         },
         "cpp": {
-          "sig": "Polyline from_coords(const std::vector<double>& coords)",
-          "code": "Polyline Polyline::from_coords(const std::vector<double>& coords) {\n    Polyline pl;\n    pl._coords = coords;\n    pl.recompute_plane_if_needed();\n    return pl;\n}",
+          "sig": "return from_coords(new_coords)",
+          "code": "return Polyline::from_coords(new_coords);\n}",
           "file": "polyline.cpp"
         },
         "rust": {
@@ -27666,6 +27666,8 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline._recompute_plane",
         "Polyline.add_point",
+        "Polyline.closed",
+        "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
         "Polyline.extend",
         "Polyline.from_sides",
@@ -27673,11 +27675,13 @@ window.API_INDEX = {
         "Polyline.get_points",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.is_closed",
         "Polyline.is_empty",
         "Polyline.json_dumps",
         "Polyline.json_loads",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.line_from_projected_points",
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.new",
@@ -27738,6 +27742,7 @@ window.API_INDEX = {
         "Polyline.average_normal",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
         "Polyline.extend",
@@ -27852,6 +27857,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.extend",
@@ -27926,6 +27932,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
@@ -28398,6 +28405,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
@@ -29309,6 +29317,7 @@ window.API_INDEX = {
         "Polyline.__neg__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
+        "Polyline.closed",
         "Polyline.closest_point_to_line",
         "Polyline.is_closed",
         "Polyline.is_empty",
@@ -29542,7 +29551,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "line_from_projected_points(\n        line_start: Point,\n        line_end: Point,\n        points: List[Point],\n    ) -> Optional[Tuple[Point, Point]]",
-          "code": "def line_from_projected_points(\n        line_start: Point,\n        line_end: Point,\n        points: List[Point],\n    ) -> Optional[Tuple[Point, Point]]:\n\n        \"\"\"Create line from projected points onto a base line.\"\"\"\n        if not points:\n            return None\n\n        t_values = [\n            Polyline.closest_point_to_line(p, line_start, line_end) for p in points\n        ]\n        t_values.sort()\n\n        output_start = Polyline.point_at(line_start, line_end, t_values[0])\n        output_end = Polyline.point_at(line_start, line_end, t_values[-1])\n\n        if abs(t_values[0] - t_values[-1]) > Tolerance.ZERO_TOLERANCE:\n            return output_start, output_end\n        else:\n            return None\n\n    def closest_distance_and_point(self, point: Point) -> Tuple[float, int, Point]:\n        \"\"\"Find closest distance and point from a point to this polyline.\"\"\"\n        edge_id = 0\n        closest_distance = float(\"inf\")\n        best_t = 0.0\n\n        for i in range(self.segment_count()):\n            t = self.closest_point_to_line(point, self.points[i], self.points[i + 1])\n            point_on_segment = Polyline.point_at(\n                self.points[i], self.points[i + 1], t\n            )\n            distance = point.distance(point_on_segment)\n\n            if distance < closest_distance:\n                closest_distance = distance\n                edge_id = i\n                best_t = t\n\n            if closest_distance < Tolerance.ZERO_TOLERANCE:\n                break\n\n        closest_point = Polyline.point_at(\n            self.points[edge_id], self.points[edge_id + 1], best_t\n        )\n        return closest_distance, edge_id, closest_point\n\n    def is_closed(self) -> bool:\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:",
+          "code": "def line_from_projected_points(\n        line_start: Point,\n        line_end: Point,\n        points: List[Point],\n    ) -> Optional[Tuple[Point, Point]]:\n\n        \"\"\"Create line from projected points onto a base line.\"\"\"\n        if not points:\n            return None\n\n        t_values = [\n            Polyline.closest_point_to_line(p, line_start, line_end) for p in points\n        ]\n        t_values.sort()\n\n        output_start = Polyline.point_at(line_start, line_end, t_values[0])\n        output_end = Polyline.point_at(line_start, line_end, t_values[-1])\n\n        if abs(t_values[0] - t_values[-1]) > Tolerance.ZERO_TOLERANCE:\n            return output_start, output_end\n        else:\n            return None\n\n    def closest_distance_and_point(self, point: Point) -> Tuple[float, int, Point]:\n        \"\"\"Find closest distance and point from a point to this polyline.\"\"\"\n        edge_id = 0\n        closest_distance = float(\"inf\")\n        best_t = 0.0\n\n        for i in range(self.segment_count()):\n            t = self.closest_point_to_line(point, self.points[i], self.points[i + 1])\n            point_on_segment = Polyline.point_at(\n                self.points[i], self.points[i + 1], t\n            )\n            distance = point.distance(point_on_segment)\n\n            if distance < closest_distance:\n                closest_distance = distance\n                edge_id = i\n                best_t = t\n\n            if closest_distance < Tolerance.ZERO_TOLERANCE:\n                break\n\n        closest_point = Polyline.point_at(\n            self.points[edge_id], self.points[edge_id + 1], best_t\n        )\n        return closest_distance, edge_id, closest_point\n\n    def is_closed(self) -> bool:\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def closed(self) -> \"Polyline\":\n        if self.is_closed():\n            return Polyline.from_coords(self._coords[:])\n        new_coords = self._coords[:]\n        new_coords.extend([self._coords[0], self._coords[1], self._coords[2]])\n        return Polyline.from_coords(new_coords)\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz",
           "file": "polyline.py"
         },
         "cpp": {
@@ -29558,8 +29567,11 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.closest_point_to_line",
+        "Polyline.extend",
+        "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.is_closed",
@@ -29568,6 +29580,7 @@ window.API_INDEX = {
         "Polyline.line_line_average",
         "Polyline.line_line_overlap_average",
         "Polyline.merge_collinear",
+        "Polyline.new",
         "Polyline.point_at",
         "Polyline.points",
         "Polyline.segment_count"
@@ -29578,7 +29591,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "closest_distance_and_point(point: Point) -> Tuple[float, int, Point]",
-          "code": "def closest_distance_and_point(self, point: Point) -> Tuple[float, int, Point]:\n\n        \"\"\"Find closest distance and point from a point to this polyline.\"\"\"\n        edge_id = 0\n        closest_distance = float(\"inf\")\n        best_t = 0.0\n\n        for i in range(self.segment_count()):\n            t = self.closest_point_to_line(point, self.points[i], self.points[i + 1])\n            point_on_segment = Polyline.point_at(\n                self.points[i], self.points[i + 1], t\n            )\n            distance = point.distance(point_on_segment)\n\n            if distance < closest_distance:\n                closest_distance = distance\n                edge_id = i\n                best_t = t\n\n            if closest_distance < Tolerance.ZERO_TOLERANCE:\n                break\n\n        closest_point = Polyline.point_at(\n            self.points[edge_id], self.points[edge_id + 1], best_t\n        )\n        return closest_distance, edge_id, closest_point\n\n    def is_closed(self) -> bool:\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:\n            self._coords.extend([p[0], p[1], p[2]])\n        if closed and pts:\n            self._coords.extend([pts[0][0], pts[0][1], pts[0][2]])\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n\n    def center(self) -> Point:\n        \"\"\"Calculate center point of polyline.\"\"\"\n        if not self.points:\n            return Point(0.0, 0.0, 0.0)\n\n        n = (\n            len(self.points) - 1\n            if self.is_closed() and len(self.points) > 1\n            else len(self.points)\n        )\n\n        sum_x = sum(self.points[i].x for i in range(n))",
+          "code": "def closest_distance_and_point(self, point: Point) -> Tuple[float, int, Point]:\n\n        \"\"\"Find closest distance and point from a point to this polyline.\"\"\"\n        edge_id = 0\n        closest_distance = float(\"inf\")\n        best_t = 0.0\n\n        for i in range(self.segment_count()):\n            t = self.closest_point_to_line(point, self.points[i], self.points[i + 1])\n            point_on_segment = Polyline.point_at(\n                self.points[i], self.points[i + 1], t\n            )\n            distance = point.distance(point_on_segment)\n\n            if distance < closest_distance:\n                closest_distance = distance\n                edge_id = i\n                best_t = t\n\n            if closest_distance < Tolerance.ZERO_TOLERANCE:\n                break\n\n        closest_point = Polyline.point_at(\n            self.points[edge_id], self.points[edge_id + 1], best_t\n        )\n        return closest_distance, edge_id, closest_point\n\n    def is_closed(self) -> bool:\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def closed(self) -> \"Polyline\":\n        if self.is_closed():\n            return Polyline.from_coords(self._coords[:])\n        new_coords = self._coords[:]\n        new_coords.extend([self._coords[0], self._coords[1], self._coords[2]])\n        return Polyline.from_coords(new_coords)\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:\n            self._coords.extend([p[0], p[1], p[2]])\n        if closed and pts:\n            self._coords.extend([pts[0][0], pts[0][1], pts[0][2]])\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n\n    def center(self) -> Point:\n        \"\"\"Calculate center point of polyline.\"\"\"\n        if not self.points:\n            return Point(0.0, 0.0, 0.0)",
           "file": "polyline.py"
         },
         "cpp": {
@@ -29595,8 +29608,10 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_point_to_line",
         "Polyline.extend",
+        "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.is_closed",
@@ -29604,6 +29619,7 @@ window.API_INDEX = {
         "Polyline.line_from_projected_points",
         "Polyline.line_line_overlap_average",
         "Polyline.merge_collinear",
+        "Polyline.new",
         "Polyline.point_at",
         "Polyline.point_count",
         "Polyline.points",
@@ -29615,7 +29631,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_closed() -> bool",
-          "code": "def is_closed(self) -> bool:\n\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:\n            self._coords.extend([p[0], p[1], p[2]])\n        if closed and pts:\n            self._coords.extend([pts[0][0], pts[0][1], pts[0][2]])\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n\n    def center(self) -> Point:\n        \"\"\"Calculate center point of polyline.\"\"\"\n        if not self.points:\n            return Point(0.0, 0.0, 0.0)\n\n        n = (\n            len(self.points) - 1\n            if self.is_closed() and len(self.points) > 1\n            else len(self.points)\n        )\n\n        sum_x = sum(self.points[i].x for i in range(n))\n        sum_y = sum(self.points[i].y for i in range(n))\n        sum_z = sum(self.points[i].z for i in range(n))\n\n        return Point(sum_x / n, sum_y / n, sum_z / n)\n\n    def point_in_polygon_2d(self, p) -> bool:\n        \"\"\"Winding-number point-in-polygon test. p.x/y tested; polygon vertex z ignored.\"\"\"\n        px, py = p[0], p[1]\n        coords = self.points\n        winding = 0\n        n = len(coords)\n        for i in range(n):\n            j = (i + 1) % n\n            y0, y1 = coords[i][1], coords[j][1]\n            if y0 <= py:\n                if y1 > py:\n                    x0, x1 = coords[i][0], coords[j][0]\n                    if (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0) > 0:\n                        winding += 1\n            else:\n                if y1 <= py:\n                    x0, x1 = coords[i][0], coords[j][0]\n                    if (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0) < 0:\n                        winding -= 1\n        return winding != 0",
+          "code": "def is_closed(self) -> bool:\n\n        \"\"\"Check if polyline is closed (first and last points are the same).\"\"\"\n        if len(self.points) < 2:\n            return False\n        return self.points[0].distance(self.points[-1]) < Tolerance.ZERO_TOLERANCE\n\n    def closed(self) -> \"Polyline\":\n        if self.is_closed():\n            return Polyline.from_coords(self._coords[:])\n        new_coords = self._coords[:]\n        new_coords.extend([self._coords[0], self._coords[1], self._coords[2]])\n        return Polyline.from_coords(new_coords)\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:\n            self._coords.extend([p[0], p[1], p[2]])\n        if closed and pts:\n            self._coords.extend([pts[0][0], pts[0][1], pts[0][2]])\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n\n    def center(self) -> Point:\n        \"\"\"Calculate center point of polyline.\"\"\"\n        if not self.points:\n            return Point(0.0, 0.0, 0.0)\n\n        n = (\n            len(self.points) - 1\n            if self.is_closed() and len(self.points) > 1\n            else len(self.points)\n        )\n\n        sum_x = sum(self.points[i].x for i in range(n))\n        sum_y = sum(self.points[i].y for i in range(n))\n        sum_z = sum(self.points[i].z for i in range(n))\n\n        return Point(sum_x / n, sum_y / n, sum_z / n)\n\n    def point_in_polygon_2d(self, p) -> bool:\n        \"\"\"Winding-number point-in-polygon test. p.x/y tested; polygon vertex z ignored.\"\"\"\n        px, py = p[0], p[1]\n        coords = self.points\n        winding = 0\n        n = len(coords)\n        for i in range(n):\n            j = (i + 1) % n\n            y0, y1 = coords[i][1], coords[j][1]\n            if y0 <= py:\n                if y1 > py:\n                    x0, x1 = coords[i][0], coords[j][0]\n                    if (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0) > 0:\n                        winding += 1",
           "file": "polyline.py"
         },
         "cpp": {
@@ -29633,12 +29649,14 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.extend",
         "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
+        "Polyline.from_coords",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
@@ -29649,11 +29667,69 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.line_from_projected_points",
         "Polyline.merge_collinear",
+        "Polyline.new",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
         "Polyline.proj2d",
         "Polyline.pt_in_poly",
+        "Polyline.scale_line_static",
+        "Polyline.shift",
+        "Polyline.unproj"
+      ]
+    },
+    {
+      "name": "Polyline.closed",
+      "implementations": {
+        "python": {
+          "sig": "closed() -> \"Polyline\"",
+          "code": "def closed(self) -> \"Polyline\":\n\n        if self.is_closed():\n            return Polyline.from_coords(self._coords[:])\n        new_coords = self._coords[:]\n        new_coords.extend([self._coords[0], self._coords[1], self._coords[2]])\n        return Polyline.from_coords(new_coords)\n\n    def merge_collinear(self, tol: float = Tolerance.APPROXIMATION) -> None:\n        \"\"\"Merge consecutive collinear segments in-place; closed polyline wraps around.\"\"\"\n        closed = self.is_closed()\n        pts = self.get_points()\n        if closed and len(pts) > 1:\n            pts.pop()\n        zt2 = Tolerance.ZERO_TOLERANCE ** 2\n        changed = True\n        while changed:\n            changed = False\n            m = len(pts)\n            if m < 3:\n                break\n            out = []\n            for i in range(m):\n                p, nx = (i - 1) % m, (i + 1) % m\n                if not closed and (i == 0 or i == m - 1):\n                    out.append(pts[i])\n                    continue\n                ax, ay, az = pts[i][0]-pts[p][0], pts[i][1]-pts[p][1], pts[i][2]-pts[p][2]\n                bx, by, bz = pts[nx][0]-pts[i][0], pts[nx][1]-pts[i][1], pts[nx][2]-pts[i][2]\n                cx, cy, cz = ay*bz-az*by, az*bx-ax*bz, ax*by-ay*bx\n                a2, b2 = ax*ax+ay*ay+az*az, bx*bx+by*by+bz*bz\n                if a2 < zt2 or b2 < zt2 or cx*cx+cy*cy+cz*cz < tol*tol*a2*b2:\n                    changed = True\n                else:\n                    out.append(pts[i])\n            pts = out\n        self._coords = []\n        for p in pts:\n            self._coords.extend([p[0], p[1], p[2]])\n        if closed and pts:\n            self._coords.extend([pts[0][0], pts[0][1], pts[0][2]])\n        if self.point_count() >= 3:\n            self.plane = Plane.from_points(self.get_points())\n\n    def center(self) -> Point:\n        \"\"\"Calculate center point of polyline.\"\"\"\n        if not self.points:\n            return Point(0.0, 0.0, 0.0)\n\n        n = (\n            len(self.points) - 1\n            if self.is_closed() and len(self.points) > 1\n            else len(self.points)\n        )\n\n        sum_x = sum(self.points[i].x for i in range(n))\n        sum_y = sum(self.points[i].y for i in range(n))\n        sum_z = sum(self.points[i].z for i in range(n))\n\n        return Point(sum_x / n, sum_y / n, sum_z / n)\n\n    def point_in_polygon_2d(self, p) -> bool:\n        \"\"\"Winding-number point-in-polygon test. p.x/y tested; polygon vertex z ignored.\"\"\"\n        px, py = p[0], p[1]\n        coords = self.points\n        winding = 0\n        n = len(coords)\n        for i in range(n):\n            j = (i + 1) % n\n            y0, y1 = coords[i][1], coords[j][1]\n            if y0 <= py:\n                if y1 > py:\n                    x0, x1 = coords[i][0], coords[j][0]\n                    if (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0) > 0:\n                        winding += 1\n            else:\n                if y1 <= py:\n                    x0, x1 = coords[i][0], coords[j][0]\n                    if (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0) < 0:\n                        winding -= 1\n        return winding != 0",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "Polyline closed()",
+          "code": "Polyline Polyline::closed() const {\n    if (is_closed()) return Polyline::from_coords(_coords);\n    std::vector<double> new_coords(_coords);\n    new_coords.push_back(_coords[0]);\n    new_coords.push_back(_coords[1]);\n    new_coords.push_back(_coords[2]);\n    return Polyline::from_coords(new_coords);\n}",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "closed() -> Self",
+          "code": "pub fn closed(&self) -> Self {\n        if self.is_closed() {\n            return Self::from_coords(self.coords.clone());\n        }\n        let mut new_coords = self.coords.clone();\n        new_coords.push(self.coords[0]);\n        new_coords.push(self.coords[1]);\n        new_coords.push(self.coords[2]);\n        Self::from_coords(new_coords)\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline._average_normal",
+        "Polyline.bounding_rectangle",
+        "Polyline.center",
+        "Polyline.closest_distance_and_point",
+        "Polyline.cross2d",
+        "Polyline.extend",
+        "Polyline.extend_line_static",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.from_coords",
+        "Polyline.get_average_plane",
+        "Polyline.get_convex_corners",
+        "Polyline.get_fast_plane",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.interpolate_points",
+        "Polyline.is_clockwise",
+        "Polyline.is_closed",
+        "Polyline.len",
+        "Polyline.line_from_projected_points",
+        "Polyline.merge_collinear",
+        "Polyline.new",
+        "Polyline.point_count",
+        "Polyline.point_in_polygon_2d",
+        "Polyline.points",
+        "Polyline.proj2d",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quick_hull",
         "Polyline.scale_line_static",
         "Polyline.shift",
         "Polyline.unproj"
@@ -29681,6 +29757,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.extend",
         "Polyline.get_average_plane",
@@ -29720,6 +29797,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center_vec",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.extend",
         "Polyline.extend_segment",
@@ -29761,6 +29839,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -29803,6 +29882,7 @@ window.API_INDEX = {
         "Polyline.average_normal",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.extend",
         "Polyline.extend_segment",
@@ -29852,6 +29932,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_line_static",
@@ -29892,6 +29973,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_line_static",
@@ -29929,6 +30011,7 @@ window.API_INDEX = {
       "related": [
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_line_static",
@@ -29974,6 +30057,7 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_line_static",
@@ -30011,6 +30095,7 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_segment",
@@ -30043,6 +30128,7 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -30083,6 +30169,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.add_point",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -30125,6 +30212,7 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
@@ -30205,6 +30293,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.extend_line_static",
         "Polyline.get_average_plane",
@@ -30245,6 +30334,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
@@ -30277,6 +30367,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.format",
         "Polyline.get_convex_corners",
@@ -30308,6 +30399,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.format",
         "Polyline.get_convex_corners",
@@ -30337,6 +30429,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_point",
@@ -30364,6 +30457,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.get_average_plane",
         "Polyline.get_point",
@@ -30399,6 +30493,7 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.closed",
         "Polyline.cross2d",
         "Polyline.get_average_plane",
         "Polyline.get_point",
@@ -30441,6 +30536,7 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.bounding_rectangle",
+        "Polyline.closed",
         "Polyline.duplicate",
         "Polyline.format",
         "Polyline.get_average_plane",
@@ -30470,6 +30566,7 @@ window.API_INDEX = {
         "Polyline.__jsondump__",
         "Polyline._average_normal",
         "Polyline.average_normal",
+        "Polyline.closed",
         "Polyline.format",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
@@ -30498,6 +30595,7 @@ window.API_INDEX = {
         "Polyline.__jsonload__",
         "Polyline.average_normal",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.extend_line_static",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -46811,6 +46909,7 @@ window.API_INDEX = {
         "Polyline.boolean_op",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.closest_point_to_line",
         "Polyline.constructor",
@@ -46994,6 +47093,7 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
@@ -47424,6 +47524,7 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline.add_point",
         "Polyline.center",
+        "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.extend_equally",
         "Polyline.extend_line",
@@ -47448,6 +47549,7 @@ window.API_INDEX = {
         "Polyline.json_load",
         "Polyline.json_loads",
         "Polyline.length",
+        "Polyline.line_from_projected_points",
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.merge_collinear",
@@ -50212,6 +50314,8 @@ window.API_INDEX = {
         "Polyline.bounding_rectangle",
         "Polyline.center",
         "Polyline.center_vec",
+        "Polyline.closed",
+        "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
         "Polyline.from_coords",
         "Polyline.get_average_plane",
@@ -50224,10 +50328,12 @@ window.API_INDEX = {
         "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.interpolate_points",
+        "Polyline.is_closed",
         "Polyline.jsondump",
         "Polyline.jsonload",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.line_from_projected_points",
         "Polyline.line_line_average",
         "Polyline.line_line_overlap_average",
         "Polyline.linecolor",
@@ -52229,7 +52335,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Geometric Properties\")",
-          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        double area = mesh.area();\n\n        MINI_CHECK(TOLERANCE.is_close(area, 46.4528898159021));\n\n        // centroid\n        Point centroid = mesh.centroid();\n        MINI_CHECK(TOLERANCE.is_point_close(centroid, Point(0.0, 0.0, 0.0)));\n\n        // dihedral angle\n        auto [angles, arcs, points] = mesh.dihedral_angles(0.3);\n\n        for (const auto& [edge, angle] : angles) {\n            size_t u = edge.first;\n            size_t v = edge.second;\n            double angle_in_degrees = angle;\n            MINI_CHECK(TOLERANCE.is_close(angle_in_degrees, 116.565051177078));\n        }\n\n        // face area\n        for (size_t f : mesh.faces()) {\n            auto face_area = mesh.face_area(f);\n            MINI_CHECK(face_area.has_value());\n            MINI_CHECK(TOLERANCE.is_close(*face_area, 3.87107415132518));\n        }\n        \n        // face centroid\n        std::vector<Point> centroids;\n        for (size_t f : mesh.faces()) \n            centroids.emplace_back(*mesh.face_centroid(f));\n\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[0],  Point( 0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[1],  Point( 1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[2],  Point( 0.0,                1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[3],  Point( 0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[4],  Point( 0.0,                1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[5],  Point( 0.0,               -1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[6],  Point( 1.420820393249937, -0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[7],  Point( 0.0,               -1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[8],  Point(-1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[9],  Point(-0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[10], Point(-0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[11], Point(-1.420820393249937, -0.878115294937453, 0.0              )));\n\n        // face normal / s\n        std::map<size_t, Vector> face_normals = mesh.face_normals();\n        for (size_t f : mesh.faces()) {\n            auto fn = mesh.face_normal(f);\n            MINI_CHECK(fn.has_value());\n            MINI_CHECK(TOLERANCE.is_vector_close(face_normals.at(f), *fn));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[0],  Vector( 0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[1],  Vector( 0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[2],  Vector( 0.0,                 0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[3],  Vector( 0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[4],  Vector( 0.0,                 0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[5],  Vector( 0.0,                -0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[6],  Vector( 0.8506508083520400, -0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[7],  Vector( 0.0,                -0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[8],  Vector(-0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[9],  Vector(-0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[10], Vector(-0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[11], Vector(-0.8506508083520400, -0.5257311121191336,  0.0               )));\n\n        // vertex angle in face\n        for (const size_t f : mesh.faces())\n            for (const size_t v : *mesh.face_vertices(f)){\n                auto angle = mesh.vertex_angle_in_face(v, f);\n                MINI_CHECK(angle.has_value());\n                MINI_CHECK(TOLERANCE.is_close(*angle, 1.8849555921538759));\n            }\n\n        // vertex normal / s\n        std::map<size_t, Vector> vertex_normals = mesh.vertex_normals();\n        for (const size_t v : mesh.vertices()){\n            auto vn = mesh.vertex_normal(v);\n            MINI_CHECK(vn.has_value());\n            MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals.at(v), *vn));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[0],  Vector( 0.5773502691896258,  0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[1],  Vector( 0.0,                 0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[2],  Vector( 0.0,                -0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[3],  Vector( 0.5773502691896257, -0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[4],  Vector( 0.9341723589627158,  0.0,                 0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[5],  Vector( 0.9341723589627158,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[6],  Vector( 0.5773502691896258,  0.5773502691896257, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[7],  Vector( 0.3568220897730899,  0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[8],  Vector(-0.3568220897730899,  0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[9],  Vector(-0.5773502691896258,  0.5773502691896258,  0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[10], Vector( 0.5773502691896258, -0.5773502691896258, -0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[11], Vector( 0.0,                -0.3568220897730899, -0.9341723589627157)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[12], Vector( 0.0,                 0.3568220897730899, -0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[13], Vector(-0.5773502691896257,  0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[14], Vector(-0.5773502691896258, -0.5773502691896257,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[15], Vector(-0.3568220897730899, -0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[16], Vector( 0.3568220897730899, -0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[17], Vector(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[18], Vector(-0.9341723589627157,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[19], Vector(-0.934172358962715",
+          "code": "MINI_TEST(\"Mesh\", \"Geometric Properties\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        double area = mesh.area();\n\n        MINI_CHECK(TOLERANCE.is_close(area, 46.4528898159021));\n\n        // centroid\n        Point centroid = mesh.centroid();\n        MINI_CHECK(TOLERANCE.is_point_close(centroid, Point(0.0, 0.0, 0.0)));\n\n        // dihedral angle\n        auto [angles, arcs, points] = mesh.dihedral_angles(0.3);\n\n        for (const auto& [edge, angle] : angles) {\n            size_t u = edge.first;\n            size_t v = edge.second;\n            double angle_in_degrees = angle;\n            MINI_CHECK(TOLERANCE.is_close(angle_in_degrees, 116.565051177078));\n        }\n\n        // face area\n        for (size_t f : mesh.faces()) {\n            auto face_area = mesh.face_area(f);\n            MINI_CHECK(face_area.has_value());\n            MINI_CHECK(TOLERANCE.is_close(*face_area, 3.87107415132518));\n        }\n        \n        // face centroid\n        std::vector<Point> centroids;\n        for (size_t f : mesh.faces()) \n            centroids.emplace_back(*mesh.face_centroid(f));\n\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[0],  Point( 0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[1],  Point( 1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[2],  Point( 0.0,                1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[3],  Point( 0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[4],  Point( 0.0,                1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[5],  Point( 0.0,               -1.420820393249937,  0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[6],  Point( 1.420820393249937, -0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[7],  Point( 0.0,               -1.420820393249937, -0.878115294937453)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[8],  Point(-1.420820393249937,  0.878115294937453, 0.0              )));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[9],  Point(-0.878115294937453,  0.0,                1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[10], Point(-0.878115294937453,  0.0,               -1.420820393249937)));\n        MINI_CHECK(TOLERANCE.is_point_close(centroids[11], Point(-1.420820393249937, -0.878115294937453, 0.0              )));\n\n        // face normal / s\n        std::map<size_t, Vector> face_normals = mesh.face_normals();\n        for (size_t f : mesh.faces()) {\n            auto fn = mesh.face_normal(f);\n            MINI_CHECK(fn.has_value());\n            MINI_CHECK(TOLERANCE.is_vector_close(face_normals.at(f), *fn));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[0],  Vector( 0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[1],  Vector( 0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[2],  Vector( 0.0,                 0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[3],  Vector( 0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[4],  Vector( 0.0,                 0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[5],  Vector( 0.0,                -0.8506508083520400,  0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[6],  Vector( 0.8506508083520400, -0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[7],  Vector( 0.0,                -0.8506508083520400, -0.5257311121191336)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[8],  Vector(-0.8506508083520400,  0.5257311121191336,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[9],  Vector(-0.5257311121191336,  0.0,                 0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[10], Vector(-0.5257311121191336,  0.0,                -0.8506508083520400)));\n        MINI_CHECK(TOLERANCE.is_vector_close(face_normals[11], Vector(-0.8506508083520400, -0.5257311121191336,  0.0               )));\n\n        // vertex angle in face\n        for (const size_t f : mesh.faces()) {\n            auto fv = *mesh.face_vertices(f);\n            for (const size_t v : fv) {\n                auto angle = mesh.vertex_angle_in_face(v, f);\n                MINI_CHECK(angle.has_value());\n                MINI_CHECK(TOLERANCE.is_close(*angle, 1.8849555921538759));\n            }\n        }\n\n        // vertex normal / s\n        std::map<size_t, Vector> vertex_normals = mesh.vertex_normals();\n        for (const size_t v : mesh.vertices()){\n            auto vn = mesh.vertex_normal(v);\n            MINI_CHECK(vn.has_value());\n            MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals.at(v), *vn));\n        }\n\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[0],  Vector( 0.5773502691896258,  0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[1],  Vector( 0.0,                 0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[2],  Vector( 0.0,                -0.3568220897730899,  0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[3],  Vector( 0.5773502691896257, -0.5773502691896258,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[4],  Vector( 0.9341723589627158,  0.0,                 0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[5],  Vector( 0.9341723589627158,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[6],  Vector( 0.5773502691896258,  0.5773502691896257, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[7],  Vector( 0.3568220897730899,  0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[8],  Vector(-0.3568220897730899,  0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[9],  Vector(-0.5773502691896258,  0.5773502691896258,  0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[10], Vector( 0.5773502691896258, -0.5773502691896258, -0.5773502691896257)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[11], Vector( 0.0,                -0.3568220897730899, -0.9341723589627157)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[12], Vector( 0.0,                 0.3568220897730899, -0.9341723589627158)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[13], Vector(-0.5773502691896257,  0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[14], Vector(-0.5773502691896258, -0.5773502691896257,  0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[15], Vector(-0.3568220897730899, -0.9341723589627157,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[16], Vector( 0.3568220897730899, -0.9341723589627158,  0.0               )));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[17], Vector(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex_normals[18], Vector(-0.9341723589627157,  0.0,                -0.3568220897730899)));\n        MINI_CHECK(TOLERANCE.is_vector_close(vertex",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -53075,6 +53181,21 @@ window.API_INDEX = {
         "python": {
           "sig": "@MINI_TEST(\"Polyline\", \"Is Closed\")",
           "code": "@MINI_TEST(\"Polyline\", \"Is Closed\")\ndef test_polyline_is_closed():\n    from session_py import Polyline\n    from session_py import Point\n\n    # Open polyline\n    open_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    ])\n    is_open = open_pl.is_closed()\n\n    # Closed polyline (first and last point same)\n    closed_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ])\n    is_closed = closed_pl.is_closed()\n\n    MINI_CHECK(not is_open)\n    MINI_CHECK(is_closed)",
+          "file": "polyline_test.py"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Closed",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Closed\")",
+          "code": "MINI_TEST(\"Polyline\", \"Closed\") {\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline open_pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)});\n    Polyline closed_from_open = open_pl.closed();\n\n    Polyline closed_pl({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0), Point(0.0, 0.0, 0.0)});\n    Polyline closed_from_closed = closed_pl.closed();\n\n    MINI_CHECK(closed_from_open.point_count() == 5);\n    MINI_CHECK(closed_from_open.is_closed());\n    MINI_CHECK(closed_from_closed.point_count() == 5);\n    MINI_CHECK(closed_from_closed.is_closed());\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Closed\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Closed\")\ndef test_polyline_closed():\n    from session_py import Polyline\n    from session_py import Point\n\n    open_pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0)])\n    closed_from_open = open_pl.closed()\n\n    closed_pl = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0), Point(0.0, 1.0, 0.0), Point(0.0, 0.0, 0.0)])\n    closed_from_closed = closed_pl.closed()\n\n    MINI_CHECK(closed_from_open.point_count() == 5)\n    MINI_CHECK(closed_from_open.is_closed())\n    MINI_CHECK(closed_from_closed.point_count() == 5)\n    MINI_CHECK(closed_from_closed.is_closed())",
           "file": "polyline_test.py"
         }
       }
@@ -54915,10 +55036,10 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "subdivide",
-        "points",
-        "into",
         "circle",
+        "into",
         "n",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -54932,11 +55053,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
         "subdivide",
-        "arc",
+        "length",
         "by",
         "ellipse",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -54951,8 +55072,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "arc",
-        "through",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -54967,10 +55088,10 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "from",
-        "polyline",
-        "points",
-        "curve",
         "open",
+        "polyline",
+        "curve",
+        "points",
         "adaptive",
         "to_polyline_adaptive",
         "create",
@@ -54987,9 +55108,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "parameter",
+        "curve",
         "at",
         "evaluation",
-        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -55008,10 +55129,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
-        "length",
         "frames",
         "curve",
+        "along",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55034,8 +55155,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "ellipse",
         "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55056,9 +55177,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "point",
         "evaluate",
+        "point",
+        "cylinder",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -55074,11 +55195,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "faces",
+        "and",
         "from",
         "mesh",
         "vertices",
-        "and",
-        "faces",
         "add_vertex",
         "add_face",
         "vertex"
@@ -57060,6 +57181,9 @@ window.API_INDEX = {
     ],
     "closest_distance_and_point": [
       "Polyline.closest_distance_and_point"
+    ],
+    "closed": [
+      "Polyline.closed"
     ],
     "merge_collinear": [
       "Polyline.merge_collinear"

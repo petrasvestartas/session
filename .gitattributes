@@ -1,3 +1,6 @@
+# Force LF line endings for shell scripts (critical for Linux CI)
+*.sh text eol=lf
+
 # Exclude third-party libraries from GitHub language detection
 session_cpp/src/catch/** linguist-vendored
 session_cpp/src/fmt/** linguist-vendored

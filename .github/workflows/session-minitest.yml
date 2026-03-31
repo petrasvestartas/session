@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: Checkout repo with submodules
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -34,7 +34,7 @@ jobs:
     # ============ CACHING ============
 
     - name: Cache Rust Cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/bin/
@@ -62,12 +62,12 @@ jobs:
       shell: pwsh
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '20'
         cache: 'npm'
@@ -97,7 +97,7 @@ jobs:
         ls -la session_tests/dist
 
     - name: Upload mini-test website as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: session-mini-tests-website-${{ matrix.os }}
         path: session_tests/dist
@@ -110,12 +110,12 @@ jobs:
 
     steps:
     - name: Checkout repo with submodules
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
@@ -142,7 +142,7 @@ jobs:
 
     steps:
     - name: Download Ubuntu artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: session-mini-tests-website-ubuntu-22.04
         path: dist
@@ -162,10 +162,10 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Install Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
