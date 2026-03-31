@@ -3,7 +3,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 10,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    RemeshNurbsSurfaceAdaptive ta(s);",
     "checks": [
@@ -65,7 +65,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 9.399,
+    "time_ms": 9.488,
     "line": 34,
     "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    RemeshNurbsSurfaceAdaptive ta(s);\n    Mesh m = ta.mesh();",
     "checks": [
@@ -86,7 +86,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 22.12,
+    "time_ms": 21.621,
     "line": 43,
     "code": "    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -107,7 +107,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 0.993,
+    "time_ms": 1.048,
     "line": 51,
     "code": "    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -128,7 +128,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.966,
+    "time_ms": 1.035,
     "line": 59,
     "code": "    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -149,7 +149,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 22.109,
+    "time_ms": 22.689,
     "line": 67,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -170,7 +170,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 3.284,
+    "time_ms": 3.488,
     "line": 75,
     "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Singular Triangle",
     "passed": true,
-    "time_ms": 1.226,
+    "time_ms": 1.301,
     "line": 83,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 2, 1, 3, 2, {\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Double-Curved Triangle",
     "passed": true,
-    "time_ms": 1.259,
+    "time_ms": 1.523,
     "line": 98,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 2, 2, 3, 3, {\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [

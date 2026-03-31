@@ -3,7 +3,7 @@
     "group": "Closest",
     "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.088,
+    "time_ms": 0.061,
     "line": 7,
     "code": "    from session_py import Closest\n    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n\n    cp1, t1, d1 = Closest.line_point(l, Point(5.0, 5.0, 0.0))\n\n\n    cp2, t2, d2 = Closest.line_point(l, Point(-5.0, 0.0, 0.0))\n\n    cp3, t3, d3 = Closest.line_point(l, Point(15.0, 0.0, 0.0))",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "Closest",
     "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.175,
+    "time_ms": 0.108,
     "line": 33,
     "code": "    from session_py import Closest\n    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, t1, d1 = Closest.polyline_point(pl, Point(5.0, 5.0, 0.0))\n\n\n    cp2, t2, d2 = Closest.polyline_point(pl, Point(10.0, 5.0, 0.0))",
     "checks": [
@@ -95,7 +95,7 @@
     "group": "Closest",
     "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 1.581,
+    "time_ms": 0.884,
     "line": 55,
     "code": "    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    crv = NurbsCurve.create(False, 3, pts)\n\n    t, dist = Closest.curve_point(crv, Point(2.0, 3.0, 0.0))\n\n    cp = crv.point_at(t)\n\n    t2, dist2 = Closest.curve_point(crv, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Closest",
     "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 8.024,
+    "time_ms": 4.372,
     "line": 79,
     "code": "    from session_py import Closest\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n        Point(2.0, 1.0, 1.0),\n        Point(3.0, 1.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 2.0, 1.0),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 2.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n        Point(1.0, 3.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ]\n    srf = NurbsSurface.create(False, False, 3, 3, 4, 4, pts)\n\n    u, v, dist = Closest.surface_point(srf, Point(1.5, 1.5, 2.0))\n\n    cp = srf.point_at(u, v)\n\n    u2, v2, dist2 = Closest.surface_point(srf, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -147,7 +147,7 @@
     "group": "Closest",
     "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 0.607,
+    "time_ms": 0.489,
     "line": 115,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n\n    cp1, fk1, d1 = Closest.mesh_point(m, Point(0.0, 0.0, 2.0))\n\n\n    cp2, fk2, d2 = Closest.mesh_point(m, Point(1.0, 1.0, 1.0))",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "Closest",
     "test_name": "Mesh Point AABB",
     "passed": true,
-    "time_ms": 0.889,
+    "time_ms": 0.544,
     "line": 132,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n\n\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.027,
     "line": 149,
     "code": "    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point(pc, Point(4.0, 0.0, 0.0))\n\n\n    cp2, i2, d2 = Closest.pointcloud_point(pc, Point(10.0, 10.0, 0.0))",
     "checks": [
