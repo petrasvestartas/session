@@ -4916,7 +4916,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "subdivide(n)",
-          "code": "def subdivide(self, n):\n\n        \"\"\"Subdivide line into n points.\n\n        Parameters\n        ----------\n        n : int\n            Number of points (must be >= 2).\n\n        Returns\n        -------\n        list of Point\n            List of n points along the line, including start and end.\n        \"\"\"\n        if n < 2:\n            raise ValueError(\"n must be at least 2\")\n        points = []\n        for i in range(n):\n            t = i / (n - 1)\n            points.append(self.point_at(t))\n        return points\n\n    def subdivide_by_distance(self, distance):\n        \"\"\"Subdivide line by approximate distance between points.\n\n        Parameters\n        ----------\n        distance : float\n            Target distance between consecutive points.\n\n        Returns\n        -------\n        list of Point\n            List of points along the line, including start and end.\n        \"\"\"\n        if distance <= 0:\n            raise ValueError(\"distance must be positive\")\n        length = self.length()\n        if length < 1e-10:\n            return [self.start(), self.end()]\n        n = max(2, int(length / distance + 0.5) + 1)\n        return self.subdivide(n)\n\n    def start(self):\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters",
+          "code": "def subdivide(self, n):\n\n        \"\"\"Subdivide line into n points.\n\n        Parameters\n        ----------\n        n : int\n            Number of points (must be >= 2).\n\n        Returns\n        -------\n        list of Point\n            List of n points along the line, including start and end.\n        \"\"\"\n        if n < 2:\n            raise ValueError(\"n must be at least 2\")\n        points = []\n        for i in range(n):\n            t = i / (n - 1)\n            points.append(self.point_at(t))\n        return points\n\n    def subdivide_by_distance(self, distance):\n        \"\"\"Subdivide line by approximate distance between points.\n\n        Parameters\n        ----------\n        distance : float\n            Target distance between consecutive points.\n\n        Returns\n        -------\n        list of Point\n            List of points along the line, including start and end.\n        \"\"\"\n        if distance <= 0:\n            raise ValueError(\"distance must be positive\")\n        length = self.length()\n        if length < 1e-10:\n            return [self.start(), self.end()]\n        n = max(2, int(length / distance + 0.5) + 1)\n        return self.subdivide(n)\n\n    def start(self):\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point, limited=True):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters",
           "file": "line.py"
         },
         "cpp": {
@@ -4948,7 +4948,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "subdivide_by_distance(distance)",
-          "code": "def subdivide_by_distance(self, distance):\n\n        \"\"\"Subdivide line by approximate distance between points.\n\n        Parameters\n        ----------\n        distance : float\n            Target distance between consecutive points.\n\n        Returns\n        -------\n        list of Point\n            List of points along the line, including start and end.\n        \"\"\"\n        if distance <= 0:\n            raise ValueError(\"distance must be positive\")\n        length = self.length()\n        if length < 1e-10:\n            return [self.start(), self.end()]\n        n = max(2, int(length / distance + 0.5) + 1)\n        return self.subdivide(n)\n\n    def start(self):\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n\n        Returns\n        -------\n        Point\n            The closest point on the line segment.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return self.start()\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        return self.point_at(t)\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):",
+          "code": "def subdivide_by_distance(self, distance):\n\n        \"\"\"Subdivide line by approximate distance between points.\n\n        Parameters\n        ----------\n        distance : float\n            Target distance between consecutive points.\n\n        Returns\n        -------\n        list of Point\n            List of points along the line, including start and end.\n        \"\"\"\n        if distance <= 0:\n            raise ValueError(\"distance must be positive\")\n        length = self.length()\n        if length < 1e-10:\n            return [self.start(), self.end()]\n        n = max(2, int(length / distance + 0.5) + 1)\n        return self.subdivide(n)\n\n    def start(self):\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point, limited=True):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n        limited : bool, optional\n            If True (default), clamp to segment [0,1]. If False, treat as infinite line.\n\n        Returns\n        -------\n        tuple\n            (float, Point) \u00e2\u20ac\u201d parameter t and closest point.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return (0.0, self.start())\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        if limited:\n            t = max(0.0, min(1.0, t))\n        return (t, self.point_at(t))",
           "file": "line.py"
         },
         "cpp": {
@@ -4966,7 +4966,6 @@ window.API_INDEX = {
         "Line.center",
         "Line.closest_point",
         "Line.end",
-        "Line.get_middle_line",
         "Line.length",
         "Line.point_at",
         "Line.squared_length",
@@ -4981,7 +4980,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "start()",
-          "code": "def start(self):\n\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n\n        Returns\n        -------\n        Point\n            The closest point on the line segment.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return self.start()\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        return self.point_at(t)\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"",
+          "code": "def start(self):\n\n        \"\"\"Get start point.\n\n        Returns\n        -------\n        Point\n            Start point of the line.\n        \"\"\"\n        return Point(self._x0, self._y0, self._z0)\n\n    def end(self):\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point, limited=True):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n        limited : bool, optional\n            If True (default), clamp to segment [0,1]. If False, treat as infinite line.\n\n        Returns\n        -------\n        tuple\n            (float, Point) \u00e2\u20ac\u201d parameter t and closest point.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return (0.0, self.start())\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        if limited:\n            t = max(0.0, min(1.0, t))\n        return (t, self.point_at(t))\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1",
           "file": "line.py"
         },
         "cpp": {
@@ -4997,7 +4996,6 @@ window.API_INDEX = {
       },
       "related": [
         "Line.__add__",
-        "Line.__getitem__",
         "Line.__imul__",
         "Line.__itruediv__",
         "Line.__jsonload__",
@@ -5031,7 +5029,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "end()",
-          "code": "def end(self):\n\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n\n        Returns\n        -------\n        Point\n            The closest point on the line segment.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return self.start()\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        return self.point_at(t)\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value\n        elif index == 1:\n            self._y0 = value\n        elif index == 2:",
+          "code": "def end(self):\n\n        \"\"\"Get end point.\n\n        Returns\n        -------\n        Point\n            End point of the line.\n        \"\"\"\n        return Point(self._x1, self._y1, self._z1)\n\n    def center(self):\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point, limited=True):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n        limited : bool, optional\n            If True (default), clamp to segment [0,1]. If False, treat as infinite line.\n\n        Returns\n        -------\n        tuple\n            (float, Point) \u00e2\u20ac\u201d parameter t and closest point.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return (0.0, self.start())\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        if limited:\n            t = max(0.0, min(1.0, t))\n        return (t, self.point_at(t))\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value",
           "file": "line.py"
         },
         "cpp": {
@@ -5088,7 +5086,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "center()",
-          "code": "def center(self):\n\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n\n        Returns\n        -------\n        Point\n            The closest point on the line segment.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return self.start()\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        return self.point_at(t)\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value\n        elif index == 1:\n            self._y0 = value\n        elif index == 2:\n            self._z0 = value\n        elif index == 3:\n            self._x1 = value\n        elif index == 4:\n            self._y1 = value\n        elif index == 5:\n            self._z1 = value\n        else:\n            raise IndexError(\"Index out of bounds\")",
+          "code": "def center(self):\n\n        \"\"\"Get center point (average of start and end).\n\n        Returns\n        -------\n        Point\n            Center point of the line.\n        \"\"\"\n        return Point(\n            (self._x0 + self._x1) * 0.5,\n            (self._y0 + self._y1) * 0.5,\n            (self._z0 + self._z1) * 0.5,\n        )\n\n    def closest_point(self, point, limited=True):\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n        limited : bool, optional\n            If True (default), clamp to segment [0,1]. If False, treat as infinite line.\n\n        Returns\n        -------\n        tuple\n            (float, Point) \u00e2\u20ac\u201d parameter t and closest point.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return (0.0, self.start())\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        if limited:\n            t = max(0.0, min(1.0, t))\n        return (t, self.point_at(t))\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value\n        elif index == 1:\n            self._y0 = value\n        elif index == 2:\n            self._z0 = value\n        elif index == 3:\n            self._x1 = value\n        elif index == 4:\n            self._y1 = value\n        elif index == 5:\n            self._z1 = value",
           "file": "line.py"
         },
         "cpp": {
@@ -5119,25 +5117,24 @@ window.API_INDEX = {
       "name": "Line.closest_point",
       "implementations": {
         "python": {
-          "sig": "closest_point(point)",
-          "code": "def closest_point(self, point):\n\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n\n        Returns\n        -------\n        Point\n            The closest point on the line segment.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return self.start()\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        return self.point_at(t)\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value\n        elif index == 1:\n            self._y0 = value\n        elif index == 2:\n            self._z0 = value\n        elif index == 3:\n            self._x1 = value\n        elif index == 4:\n            self._y1 = value\n        elif index == 5:\n            self._z1 = value\n        else:\n            raise IndexError(\"Index out of bounds\")\n\n    def __iadd__(self, other):\n        \"\"\"Add vector to line in place.\"\"\"\n        if isinstance(other, Vector):\n            self._x0 += other[0]\n            self._y0 += other[1]\n            self._z0 += other[2]\n            self._x1 += other[0]\n            self._y1 += other[1]\n            self._z1 += other[2]\n        return self\n\n    def __isub__(self, other):\n        \"\"\"Subtract vector from line in place.\"\"\"\n        if isinstance(other, Vector):",
+          "sig": "closest_point(point, limited=True)",
+          "code": "def closest_point(self, point, limited=True):\n\n        \"\"\"Find the closest point on the line to a given point.\n\n        Parameters\n        ----------\n        point : Point\n            The point to find the closest point to.\n        limited : bool, optional\n            If True (default), clamp to segment [0,1]. If False, treat as infinite line.\n\n        Returns\n        -------\n        tuple\n            (float, Point) \u00e2\u20ac\u201d parameter t and closest point.\n        \"\"\"\n        dx = self._x1 - self._x0\n        dy = self._y1 - self._y0\n        dz = self._z1 - self._z0\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq < 1e-20:\n            return (0.0, self.start())\n        t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq\n        if limited:\n            t = max(0.0, min(1.0, t))\n        return (t, self.point_at(t))\n\n    @staticmethod\n    def get_middle_line(line0_start: Point, line0_end: Point, line1_start: Point, line1_end: Point):\n        \"\"\"Calculate middle line between two line segments.\n\n        Returns\n        -------\n        tuple\n            (start_point, end_point) of the middle line.\n        \"\"\"\n        p0 = Point(\n            (line0_start.x + line1_start.x) * 0.5,\n            (line0_start.y + line1_start.y) * 0.5,\n            (line0_start.z + line1_start.z) * 0.5,\n        )\n        p1 = Point(\n            (line0_end.x + line1_end.x) * 0.5,\n            (line0_end.y + line1_end.y) * 0.5,\n            (line0_end.z + line1_end.z) * 0.5,\n        )\n        return p0, p1\n\n    def __getitem__(self, index):\n        \"\"\"Get coordinate by index (0-5).\"\"\"\n        coords = [self._x0, self._y0, self._z0, self._x1, self._y1, self._z1]\n        return coords[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set coordinate by index (0-5).\"\"\"\n        if index == 0:\n            self._x0 = value\n        elif index == 1:\n            self._y0 = value\n        elif index == 2:\n            self._z0 = value\n        elif index == 3:\n            self._x1 = value\n        elif index == 4:\n            self._y1 = value\n        elif index == 5:\n            self._z1 = value\n        else:\n            raise IndexError(\"Index out of bounds\")\n\n    def __iadd__(self, other):\n        \"\"\"Add vector to line in place.\"\"\"\n        if isinstance(other, Vector):\n            self._x0 += other[0]\n            self._y0 += other[1]\n            self._z0 += other[2]\n            self._x1 += other[0]\n            self._y1 += other[1]\n            self._z1 += other[2]\n        return self",
           "file": "line.py"
         },
         "cpp": {
-          "sig": "Point closest_point(const Point& point)",
-          "code": "Point Line::closest_point(const Point& point) const {\n    double dx = _x1 - _x0;\n    double dy = _y1 - _y0;\n    double dz = _z1 - _z0;\n    double len_sq = dx * dx + dy * dy + dz * dz;\n    if (len_sq < 1e-20) {\n        return start();\n    }",
+          "sig": "std::pair<double, Point> closest_point(const Point& point, bool limited)",
+          "code": "std::pair<double, Point> Line::closest_point(const Point& point, bool limited) const {\n    double dx = _x1 - _x0;\n    double dy = _y1 - _y0;\n    double dz = _z1 - _z0;\n    double len_sq = dx * dx + dy * dy + dz * dz;\n    if (len_sq < 1e-20) {\n        return {0.0, start()}",
           "file": "line.cpp"
         },
         "rust": {
-          "sig": "closest_point(point: &Point) -> Point",
-          "code": "pub fn closest_point(&self, point: &Point) -> Point {\n        let dx = self._x1 - self._x0;\n        let dy = self._y1 - self._y0;\n        let dz = self._z1 - self._z0;\n        let len_sq = dx * dx + dy * dy + dz * dz;\n        if len_sq < 1e-20 {\n            return self.start();\n        }\n        let t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq;\n        let t = t.clamp(0.0, 1.0);\n        self.point_at(t)\n    }",
+          "sig": "closest_point(point: &Point, limited: bool) -> (f64, Point)",
+          "code": "pub fn closest_point(&self, point: &Point, limited: bool) -> (f64, Point) {\n        let dx = self._x1 - self._x0;\n        let dy = self._y1 - self._y0;\n        let dz = self._z1 - self._z0;\n        let len_sq = dx * dx + dy * dy + dz * dz;\n        if len_sq < 1e-20 {\n            return (0.0, self.start());\n        }\n        let mut t = ((point[0] - self._x0) * dx + (point[1] - self._y0) * dy + (point[2] - self._z0) * dz) / len_sq;\n        if limited {\n            t = t.clamp(0.0, 1.0);\n        }\n        (t, self.point_at(t))\n    }",
           "file": "line.rs"
         }
       },
       "related": [
         "Line.__getitem__",
         "Line.__iadd__",
-        "Line.__isub__",
         "Line.__setitem__",
         "Line.center",
         "Line.end",
@@ -5178,8 +5175,7 @@ window.API_INDEX = {
         "Line.closest_point",
         "Line.end",
         "Line.new",
-        "Line.start",
-        "Line.subdivide_by_distance"
+        "Line.start"
       ]
     },
     {
@@ -5202,8 +5198,7 @@ window.API_INDEX = {
         "Line.center",
         "Line.closest_point",
         "Line.end",
-        "Line.get_middle_line",
-        "Line.start"
+        "Line.get_middle_line"
       ]
     },
     {
@@ -5272,7 +5267,6 @@ window.API_INDEX = {
         "Line.__setitem__",
         "Line.__sub__",
         "Line.__truediv__",
-        "Line.closest_point",
         "Line.get_middle_line"
       ]
     },
@@ -52070,12 +52064,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Closest Point\")",
-          "code": "MINI_TEST(\"Line\", \"Closest Point\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n    Point p1(5.0, 5.0, 0.0);\n    Point p2(-5.0, 0.0, 0.0);\n    Point p3(15.0, 0.0, 0.0);\n    Point cp1 = l.closest_point(p1);\n    Point cp2 = l.closest_point(p2);\n    Point cp3 = l.closest_point(p3);\n\n    MINI_CHECK(cp1[0] == 5.0 && cp1[1] == 0.0 && cp1[2] == 0.0);\n    MINI_CHECK(cp2[0] == 0.0 && cp2[1] == 0.0 && cp2[2] == 0.0);\n    MINI_CHECK(cp3[0] == 10.0 && cp3[1] == 0.0 && cp3[2] == 0.0);\n}",
+          "code": "MINI_TEST(\"Line\", \"Closest Point\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n    Point p1(5.0, 5.0, 0.0);\n    Point p2(-5.0, 0.0, 0.0);\n    Point p3(15.0, 0.0, 0.0);\n    auto [t1, cp1] = l.closest_point(p1);\n    auto [t2, cp2] = l.closest_point(p2);\n    auto [t3, cp3] = l.closest_point(p3);\n\n    MINI_CHECK(cp1[0] == 5.0 && cp1[1] == 0.0 && cp1[2] == 0.0);\n    MINI_CHECK(cp2[0] == 0.0 && cp2[1] == 0.0 && cp2[2] == 0.0);\n    MINI_CHECK(cp3[0] == 10.0 && cp3[1] == 0.0 && cp3[2] == 0.0);\n    MINI_CHECK(TOLERANCE.is_close(t1, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(t2, 0.0));\n    MINI_CHECK(TOLERANCE.is_close(t3, 1.0));\n}",
           "file": "line_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Line\", \"Closest Point\")",
-          "code": "@MINI_TEST(\"Line\", \"Closest Point\")\ndef test_line_closest_point():\n    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    p1 = Point(5.0, 5.0, 0.0)\n    p2 = Point(-5.0, 0.0, 0.0)\n    p3 = Point(15.0, 0.0, 0.0)\n    cp1 = l.closest_point(p1)\n    cp2 = l.closest_point(p2)\n    cp3 = l.closest_point(p3)\n\n    MINI_CHECK(cp1[0] == 5.0 and cp1[1] == 0.0 and cp1[2] == 0.0)\n    MINI_CHECK(cp2[0] == 0.0 and cp2[1] == 0.0 and cp2[2] == 0.0)\n    MINI_CHECK(cp3[0] == 10.0 and cp3[1] == 0.0 and cp3[2] == 0.0)",
+          "code": "@MINI_TEST(\"Line\", \"Closest Point\")\ndef test_line_closest_point():\n    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    p1 = Point(5.0, 5.0, 0.0)\n    p2 = Point(-5.0, 0.0, 0.0)\n    p3 = Point(15.0, 0.0, 0.0)\n    t1, cp1 = l.closest_point(p1)\n    t2, cp2 = l.closest_point(p2)\n    t3, cp3 = l.closest_point(p3)\n\n    MINI_CHECK(cp1[0] == 5.0 and cp1[1] == 0.0 and cp1[2] == 0.0)\n    MINI_CHECK(cp2[0] == 0.0 and cp2[1] == 0.0 and cp2[2] == 0.0)\n    MINI_CHECK(cp3[0] == 10.0 and cp3[1] == 0.0 and cp3[2] == 0.0)\n    MINI_CHECK(TOLERANCE.is_close(t1, 0.5))\n    MINI_CHECK(TOLERANCE.is_close(t2, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(t3, 1.0))",
           "file": "line_test.py"
         }
       }
@@ -55025,11 +55019,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "subdivide",
-        "circle",
-        "n",
         "into",
+        "points",
+        "n",
+        "circle",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -55043,11 +55037,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "by",
-        "subdivide",
+        "ellipse",
         "length",
         "arc",
-        "ellipse",
+        "by",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -55078,11 +55072,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "from",
-        "points",
         "adaptive",
+        "points",
+        "curve",
         "polyline",
         "open",
-        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -55097,10 +55091,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "parameter",
         "curve",
+        "parameter",
         "at",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -55119,10 +55113,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
-        "frames",
         "curve",
         "length",
+        "along",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55144,9 +55138,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "frames",
         "perpendicular",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55167,10 +55161,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
         "surface",
-        "cylinder",
         "point",
+        "evaluate",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -55185,11 +55179,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
+        "faces",
         "and",
+        "from",
         "vertices",
         "mesh",
-        "faces",
         "add_vertex",
         "add_face",
         "vertex"

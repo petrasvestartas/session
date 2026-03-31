@@ -3,7 +3,7 @@
     "group": "BVH",
     "test_name": "Expand Bits",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.009,
     "line": 11,
     "code": "    uint32_t result = expand_bits(1023);",
     "checks": [
@@ -39,7 +39,7 @@
     "group": "BVH",
     "test_name": "Morton Code Origin",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 22,
     "code": "    uint32_t code = calculate_morton_code(0.0, 0.0, 0.0, 100.0);",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "BVH",
     "test_name": "Morton Code Corners",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 28,
     "code": "    double world_size = 100.0;\n\n    uint32_t code_min = calculate_morton_code(-50.0, -50.0, -50.0, world_size);\n\n\n    uint32_t code_max = calculate_morton_code(50.0, 50.0, 50.0, world_size);",
     "checks": [
@@ -92,7 +92,7 @@
     "group": "BVH",
     "test_name": "Node Creation",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 51,
     "code": "    BVHNode node;",
     "checks": [
@@ -175,7 +175,7 @@
     "group": "BVH",
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.009,
     "line": 79,
     "code": "    std::vector<OBB> boxes;\n    BVH bvh = BVH::from_boxes(boxes, 100.0);",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "BVH",
     "test_name": "Build Single",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 86,
     "code": "    OBB bbox(\n        Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n    std::vector<OBB> boxes = {bbox};\n\n    BVH bvh = BVH::from_boxes(boxes, 100.0);",
     "checks": [
@@ -217,7 +217,7 @@
     "group": "BVH",
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 98,
     "code": "    std::vector<OBB> bboxes = {\n        OBB(\n            Point(-10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(0, 10, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1))\n    };\n\n    BVH bvh = BVH::from_boxes(bboxes, 100.0);",
     "checks": [
@@ -269,7 +269,7 @@
     "group": "BVH",
     "test_name": "Check All Collisions",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.006,
     "line": 132,
     "code": "    std::vector<OBB> bboxes = {\n        OBB(\n            Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(0.5, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1))\n    };\n\n    BVH bvh = BVH::from_boxes(bboxes, 100.0);\n\n    auto [collisions, colliding_indices, checks] = bvh.check_all_collisions(bboxes);",
     "checks": [
@@ -315,7 +315,7 @@
     "group": "BVH",
     "test_name": "Merge Aabb",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 155,
     "code": "    BVH bvh(100.0);\n\n    OBB bbox1(\n        Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n    OBB bbox2(\n        Point(5, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n\n    OBB merged = bvh.merge_aabb(bbox1, bbox2);",
     "checks": [
