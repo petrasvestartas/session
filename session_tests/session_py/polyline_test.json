@@ -3,7 +3,7 @@
     "group": "Polyline",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 1.356,
+    "time_ms": 1.18,
     "line": 7,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor with points\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    p3 = Point(0.0, 1.0, 0.0)\n    pl = Polyline([p0, p1, p2, p3])\n\n    # Basic properties\n    point_count = len(pl)\n    segment_count = pl.segment_count()\n    is_empty = pl.is_empty()\n\n    # Get point\n    pt = pl.get_point(1)\n\n    # Index operator\n    pt_idx = pl[1]\n    pl_copy = pl.duplicate()\n    pl_copy[0] = Point(5.0, 6.0, 7.0)\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n    plother = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n\n    # No-copy operators\n    plmult = pl.duplicate()\n    plmult *= 2.0\n    pldiv = pl.duplicate()\n    pldiv /= 2.0\n    pladd = pl.duplicate()\n    pladd += Vector(1.0, 1.0, 1.0)\n    plsub = pl.duplicate()\n    plsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = pl * 2.0\n    rdiv = pl / 2.0\n    radd = pl + Vector(1.0, 1.0, 1.0)\n    rdif = pl - Vector(1.0, 1.0, 1.0)\n\n    # Negation (reverse point order)\n    plneg = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    neg = -plneg\n\n    # Polyline with custom color and width\n    plc = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plc.linecolor = Color(255, 0, 0, 255, \"red\")\n    plc.width = 2.5",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "Polyline",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.221,
+    "time_ms": 0.23,
     "line": 102,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Xform\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    pl.xform = Xform.translation(10.0, 0.0, 0.0)\n    pl_transformed = pl.transformed()\n    pl.transform()",
     "checks": [
@@ -130,7 +130,7 @@
     "group": "Polyline",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.899,
+    "time_ms": 12.049,
     "line": 123,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    ])\n    pl.name = \"test_polyline\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_polyline.json\"\n    pl.json_dump(fname)\n    loaded = Polyline.json_load(fname)",
     "checks": [
@@ -166,7 +166,7 @@
     "group": "Polyline",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.117,
+    "time_ms": 9.838,
     "line": 156,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from pathlib import Path\n\n    pl = Polyline([\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    ])\n    pl.name = \"test_polyline\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # pb_dump(fname) / pb_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_polyline.bin\"\n    pl.pb_dump(fname)\n    loaded = Polyline.pb_load(fname)",
     "checks": [
@@ -202,7 +202,7 @@
     "group": "Polyline",
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.113,
+    "time_ms": 0.075,
     "line": 187,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline: 1 unit right, 1 unit up, 1 unit left = 3 units total\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    ln = pl.length()\n    mag_sq = pl.magnitude_squared()",
     "checks": [
@@ -223,7 +223,7 @@
     "group": "Polyline",
     "test_name": "Center",
     "passed": true,
-    "time_ms": 0.182,
+    "time_ms": 0.083,
     "line": 206,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square polyline\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    ])\n    c = pl.center()",
     "checks": [
@@ -249,7 +249,7 @@
     "group": "Polyline",
     "test_name": "Is Closed",
     "passed": true,
-    "time_ms": 0.104,
+    "time_ms": 0.06,
     "line": 225,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Open polyline\n    open_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0)\n    ])\n    is_open = open_pl.is_closed()\n\n    # Closed polyline (first and last point same)\n    closed_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0)\n    ])\n    is_closed = closed_pl.is_closed()",
     "checks": [
@@ -270,7 +270,7 @@
     "group": "Polyline",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.256,
+    "time_ms": 0.204,
     "line": 252,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n\n    # Test reversed() returns new polyline\n    rev = pl.reversed()\n    orig_first = pl.get_point(0)[0]\n    rev_first = rev.get_point(0)[0]\n\n    # Test reverse() in place\n    pl.reverse()\n    in_place_first = pl.get_point(0)[0]",
     "checks": [
@@ -296,7 +296,7 @@
     "group": "Polyline",
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.136,
+    "time_ms": 0.105,
     "line": 278,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    ])\n    test_pt = Point(1.0, 1.0, 0.0)\n    distance, edge_id, closest = pl.closest_distance_and_point(test_pt)",
     "checks": [
@@ -327,7 +327,7 @@
     "group": "Polyline",
     "test_name": "Extend Segment",
     "passed": true,
-    "time_ms": 0.112,
+    "time_ms": 0.065,
     "line": 298,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.extend_segment(0, 0.5, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
@@ -348,7 +348,7 @@
     "group": "Polyline",
     "test_name": "Extend Segment Equally",
     "passed": true,
-    "time_ms": 0.086,
+    "time_ms": 0.067,
     "line": 317,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.extend_segment_equally(0, 0.5)\n    first = pl.get_point(0)[0]\n    second = pl.get_point(1)[0]",
     "checks": [
@@ -369,7 +369,7 @@
     "group": "Polyline",
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.054,
+    "time_ms": 0.042,
     "line": 336,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    points = pl.get_points()",
     "checks": [
@@ -405,7 +405,7 @@
     "group": "Polyline",
     "test_name": "Get Lines",
     "passed": true,
-    "time_ms": 0.11,
+    "time_ms": 0.06,
     "line": 356,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Line\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    lines = pl.get_lines()\n    lines_prop = pl.lines",
     "checks": [
@@ -441,7 +441,7 @@
     "group": "Polyline",
     "test_name": "Shift",
     "passed": true,
-    "time_ms": 0.085,
+    "time_ms": 0.078,
     "line": 378,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    pl.shift(1)\n    first_after_shift = pl.get_point(0)[0]\n    pl.shift(-1)\n    first_after_unshift = pl.get_point(0)[0]",
     "checks": [
@@ -462,7 +462,7 @@
     "group": "Polyline",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.01,
     "line": 398,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    mid = Polyline.point_at(start, end, 0.5)\n    quarter = Polyline.point_at(start, end, 0.25)",
     "checks": [
@@ -483,7 +483,7 @@
     "group": "Polyline",
     "test_name": "Is Clockwise",
     "passed": true,
-    "time_ms": 0.152,
+    "time_ms": 0.163,
     "line": 412,
     "code": "    from session_py import Polyline\n    from session_py import Point\n    from session_py import Plane\n\n    # Clockwise square (when viewed from +Z)\n    cw_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n    ])\n    # Counter-clockwise square\n    ccw_pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    plane = Plane()",
     "checks": [
@@ -504,7 +504,7 @@
     "group": "Polyline",
     "test_name": "Convex Corners",
     "passed": true,
-    "time_ms": 0.24,
+    "time_ms": 0.204,
     "line": 438,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # L-shaped polyline with one concave corner\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    corners = pl.get_convex_corners()",
     "checks": [
@@ -525,7 +525,7 @@
     "group": "Polyline",
     "test_name": "Tween",
     "passed": true,
-    "time_ms": 0.145,
+    "time_ms": 0.11,
     "line": 456,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl0 = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ])\n    pl1 = Polyline([\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(3.0, 1.0, 0.0),\n        Point(2.0, 1.0, 0.0),\n    ])\n    tweened = Polyline.tween_two_polylines(pl0, pl1, 0.5)",
     "checks": [
@@ -546,7 +546,7 @@
     "group": "Polyline",
     "test_name": "Average Plane",
     "passed": true,
-    "time_ms": 0.331,
+    "time_ms": 0.237,
     "line": 479,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n    ])\n    origin, x_axis, y_axis, z_axis = pl.get_average_plane()\n    fast_origin, fast_plane = pl.get_fast_plane()\n    avg_normal = pl._average_normal()",
     "checks": [
@@ -577,7 +577,7 @@
     "group": "Polyline",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.036,
     "line": 500,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    a = Point(0.0, 0.0, 0.0)\n    b = Point(4.0, 0.0, 0.0)\n\n    # kind 0: no endpoints \u2014 3 interior points at t=0.25, 0.5, 0.75\n    pts0 = Polyline.interpolate_points(a, b, 3, 0)\n    # kind 1: both endpoints \u2014 5 points\n    pts1 = Polyline.interpolate_points(a, b, 3, 1)\n    # kind 2: start only \u2014 4 points (from + 3 interior)\n    pts2 = Polyline.interpolate_points(a, b, 3, 2)",
     "checks": [
@@ -638,7 +638,7 @@
     "group": "Polyline",
     "test_name": "Quick Hull",
     "passed": true,
-    "time_ms": 0.279,
+    "time_ms": 0.208,
     "line": 527,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Square with one interior point \u2014 hull should be the 4 corners\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n    ])\n    hull = Polyline.quick_hull(polygon)",
     "checks": [
@@ -654,7 +654,7 @@
     "group": "Polyline",
     "test_name": "Bounding Rectangle",
     "passed": true,
-    "time_ms": 0.473,
+    "time_ms": 0.263,
     "line": 545,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Axis-aligned 4x3 rectangle\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect = Polyline.bounding_rectangle(polygon)\n\n    for p in rect.get_points():",
     "checks": [
@@ -700,7 +700,7 @@
     "group": "Polyline",
     "test_name": "Grid Of Points In Polygon",
     "passed": true,
-    "time_ms": 0.313,
+    "time_ms": 0.488,
     "line": 565,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # 4x4 square polygon\n    polygon = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n    ])\n    pts = Polyline.grid_of_points_in_polygon(polygon, 0.0, 1.0, 100)\n\n    for p in pts:",
     "checks": [
@@ -876,7 +876,7 @@
     "group": "Polyline",
     "test_name": "Simplify Points",
     "passed": true,
-    "time_ms": 2.014,
+    "time_ms": 1.485,
     "line": 585,
     "code": "    import math\n    from session_py import Polyline, Point\n    pts = []\n    for i in range(100):\n        x = float(i)\n        y = math.sin(float(i) * 0.1) * 0.001\n        z = 0.0\n        pts.append(Point(x, y, z))\n    result_tight = Polyline.simplify_points(pts, 0.0001)\n    result_loose = Polyline.simplify_points(pts, 0.01)\n    result_very_loose = Polyline.simplify_points(pts, 1.0)",
     "checks": [
@@ -912,7 +912,7 @@
     "group": "Polyline",
     "test_name": "Simplify",
     "passed": true,
-    "time_ms": 0.195,
+    "time_ms": 0.109,
     "line": 606,
     "code": "    from session_py import Polyline, Point\n    pts = []\n    for i in range(20):\n        x = float(i)\n        y = 0.0\n        z = 0.0\n        pts.append(Point(x, y, z))\n    pl = Polyline(pts)\n    result = pl.simplify(0.001)",
     "checks": [
@@ -938,7 +938,7 @@
     "group": "Polyline",
     "test_name": "Simplify Collinear",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.018,
     "line": 623,
     "code": "    from session_py import Polyline, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    result = Polyline.simplify_points(pts, 0.001)",
     "checks": [
@@ -964,7 +964,7 @@
     "group": "Polyline",
     "test_name": "Simplify Zigzag",
     "passed": true,
-    "time_ms": 0.121,
+    "time_ms": 0.119,
     "line": 640,
     "code": "    from session_py import Polyline, Point\n    pts = []\n    for i in range(10):\n        x = float(i)\n        y = 1.0 if (i % 2 == 1) else 0.0\n        z = 0.0\n        pts.append(Point(x, y, z))\n    result_tight = Polyline.simplify_points(pts, 0.1)\n    result_loose = Polyline.simplify_points(pts, 2.0)",
     "checks": [
@@ -985,7 +985,7 @@
     "group": "Polyline",
     "test_name": "Simplify Two Points",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.017,
     "line": 656,
     "code": "    from session_py import Polyline, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n    ]\n    result = Polyline.simplify_points(pts, 0.001)",
     "checks": [
