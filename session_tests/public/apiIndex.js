@@ -51685,31 +51685,16 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Knot.test_Knot Count",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Knot Count\")",
-          "code": "MINI_TEST(\"Knot\", \"Knot Count\") {\n    // uncomment #include \"knot.h\"\n\n    // Calculate knot counts for various order/cv_count combinations\n    int count1 = knot::knot_count(2, 2);\n    int count2 = knot::knot_count(3, 3);\n    int count3 = knot::knot_count(4, 4);\n    int count4 = knot::knot_count(4, 5);\n    int count5 = knot::knot_count(3, 4);\n\n    MINI_CHECK(count1 == 2);\n    MINI_CHECK(count2 == 4);\n    MINI_CHECK(count3 == 6);\n    MINI_CHECK(count4 == 7);\n    MINI_CHECK(count5 == 5);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Knot Count\")",
-          "code": "@MINI_TEST(\"Knot\", \"Knot Count\")\ndef test_knot_count():\n    from session_py import knot\n\n    # Calculate knot counts for various order/cv_count combinations\n    count1 = knot.knot_count(2, 2)\n    count2 = knot.knot_count(3, 3)\n    count3 = knot.knot_count(4, 4)\n    count4 = knot.knot_count(4, 5)\n    count5 = knot.knot_count(3, 4)\n\n    MINI_CHECK(count1 == 2)\n    MINI_CHECK(count2 == 4)\n    MINI_CHECK(count3 == 6)\n    MINI_CHECK(count4 == 7)\n    MINI_CHECK(count5 == 5)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
       "name": "Knot.test_Make Clamped Uniform",
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Make Clamped Uniform\")",
-          "code": "MINI_TEST(\"Knot\", \"Make Clamped Uniform\") {\n    // uncomment #include \"knot.h\"\n\n    // Basic clamped uniform knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2];\n    double k3 = k[3], k4 = k[4], k5 = k[5];\n\n    // With custom delta\n    auto k2_vec = knot::make_clamped_uniform(3, 4, 2.5);\n    size_t k2_len = k2_vec.size();\n    auto [t0, t1] = knot::get_domain(3, 4, k2_vec);\n\n    // Invalid params\n    auto k_invalid1 = knot::make_clamped_uniform(1, 2, 1.0);\n    auto k_invalid2 = knot::make_clamped_uniform(4, 3, 1.0);\n\n    MINI_CHECK(k_len == 6);\n    MINI_CHECK(k0 == 0.0 && k1 == 0.0 && k2 == 0.0);\n    MINI_CHECK(k3 == 1.0 && k4 == 1.0 && k5 == 1.0);\n    MINI_CHECK(k2_len == 5);\n    MINI_CHECK(t0 == 0.0 && t1 == 5.0);\n    MINI_CHECK(k_invalid1.empty());\n    MINI_CHECK(k_invalid2.empty());\n}",
+          "code": "MINI_TEST(\"Knot\", \"Make Clamped Uniform\") {\n    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_clamped_uniform(order, cv_count);\n    MINI_CHECK(TOLERANCE.is_allclose(knots, {0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0}));\n}",
           "file": "knot_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Knot\", \"Make Clamped Uniform\")",
-          "code": "@MINI_TEST(\"Knot\", \"Make Clamped Uniform\")\ndef test_make_clamped_uniform():\n    from session_py import knot\n\n    # Basic clamped uniform knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    k_len = len(k)\n    k0, k1, k2 = k[0], k[1], k[2]\n    k3, k4, k5 = k[3], k[4], k[5]\n\n    # With custom delta\n    k2_vec = knot.make_clamped_uniform(3, 4, 2.5)\n    k2_len = len(k2_vec)\n    t0, t1 = knot.get_domain(3, 4, k2_vec)\n\n    # Invalid params\n    k_invalid1 = knot.make_clamped_uniform(1, 2, 1.0)\n    k_invalid2 = knot.make_clamped_uniform(4, 3, 1.0)\n\n    MINI_CHECK(k is not None)\n    MINI_CHECK(k_len == 6)\n    MINI_CHECK(k0 == 0.0 and k1 == 0.0 and k2 == 0.0)\n    MINI_CHECK(k3 == 1.0 and k4 == 1.0 and k5 == 1.0)\n    MINI_CHECK(k2_len == 5)\n    MINI_CHECK(t0 == 0.0 and t1 == 5.0)\n    MINI_CHECK(k_invalid1 is None)\n    MINI_CHECK(k_invalid2 is None)",
+          "code": "@MINI_TEST(\"Knot\", \"Make Clamped Uniform\")\ndef test_make_clamped_uniform():\n    from session_py import knot\n\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots = knot.make_clamped_uniform(order, cv_count)\n    MINI_CHECK(TOLERANCE.is_allclose(knots, [0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0]))",
           "file": "knot_test.py"
         }
       }
@@ -51719,42 +51704,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Make Periodic Uniform\")",
-          "code": "MINI_TEST(\"Knot\", \"Make Periodic Uniform\") {\n    // uncomment #include \"knot.h\"\n\n    // Create periodic uniform knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    size_t k_len = k.size();\n    double k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3], k4 = k[4];\n\n    MINI_CHECK(k_len == 5);\n    MINI_CHECK(k0 == 0.0 && k1 == 1.0 && k2 == 2.0 && k3 == 3.0 && k4 == 4.0);\n}",
+          "code": "MINI_TEST(\"Knot\", \"Make Periodic Uniform\") {\n    // uncomment #include \"knot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_periodic_uniform(order, cv_count);\n    MINI_CHECK(TOLERANCE.is_allclose(knots, {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0}));\n}",
           "file": "knot_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Knot\", \"Make Periodic Uniform\")",
-          "code": "@MINI_TEST(\"Knot\", \"Make Periodic Uniform\")\ndef test_make_periodic_uniform():\n    from session_py import knot\n    import numpy as np\n\n    # Create periodic uniform knot vector\n    k = knot.make_periodic_uniform(3, 4, 1.0)\n    k_len = len(k)\n    k0, k1, k2, k3, k4 = k[0], k[1], k[2], k[3], k[4]\n\n    MINI_CHECK(k is not None)\n    MINI_CHECK(k_len == 5)\n    MINI_CHECK(k0 == 0.0 and k1 == 1.0 and k2 == 2.0 and k3 == 3.0 and k4 == 4.0)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Clamp",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Clamp\")",
-          "code": "MINI_TEST(\"Knot\", \"Clamp\") {\n    // uncomment #include \"knot.h\"\n\n    // Clamp a periodic knot vector\n    std::vector<double> k = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};\n    bool clamp_result = knot::clamp(4, 4, k, 2);\n    bool first_clamped = k[0] == k[1] && k[1] == k[2];\n    bool last_clamped = k[3] == k[4] && k[4] == k[5];\n\n    MINI_CHECK(clamp_result);\n    MINI_CHECK(first_clamped);\n    MINI_CHECK(last_clamped);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Clamp\")",
-          "code": "@MINI_TEST(\"Knot\", \"Clamp\")\ndef test_clamp():\n    from session_py import knot\n    import numpy as np\n\n    # Clamp a periodic knot vector\n    k = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    clamp_result = knot.clamp(4, 4, k, 2)\n    first_clamped = k[0] == k[1] and k[1] == k[2]\n    last_clamped = k[3] == k[4] and k[4] == k[5]\n\n    MINI_CHECK(clamp_result)\n    MINI_CHECK(first_clamped)\n    MINI_CHECK(last_clamped)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Is Valid",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Is Valid\")",
-          "code": "MINI_TEST(\"Knot\", \"Is Valid\") {\n    // uncomment #include \"knot.h\"\n\n    // Valid clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool valid = knot::is_valid(4, 4, k);\n\n    // Invalid - decreasing values\n    std::vector<double> k_invalid = {0.0, 0.0, 1.0, 0.5, 1.0, 1.0};\n    bool invalid = knot::is_valid(4, 4, k_invalid);\n\n    MINI_CHECK(valid);\n    MINI_CHECK(!invalid);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Is Valid\")",
-          "code": "@MINI_TEST(\"Knot\", \"Is Valid\")\ndef test_is_valid():\n    from session_py import knot\n    import numpy as np\n\n    # Valid clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    valid = knot.is_valid(4, 4, k)\n\n    # Invalid - decreasing values\n    k_invalid = np.array([0.0, 0.0, 1.0, 0.5, 1.0, 1.0])\n    invalid = knot.is_valid(4, 4, k_invalid)\n\n    MINI_CHECK(valid)\n    MINI_CHECK(not invalid)",
+          "code": "@MINI_TEST(\"Knot\", \"Make Periodic Uniform\")\ndef test_make_periodic_uniform():\n    from session_py import knot\n\n    # 0 1 2 3 4 5 6\n    order = 4\n    cv_count = 5\n    knots = knot.make_periodic_uniform(order, cv_count)\n    MINI_CHECK(TOLERANCE.is_allclose(knots, [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]))",
           "file": "knot_test.py"
         }
       }
@@ -51764,57 +51719,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Is Clamped\")",
-          "code": "MINI_TEST(\"Knot\", \"Is Clamped\") {\n    // uncomment #include \"knot.h\"\n\n    // Clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool clamped_both = knot::is_clamped(4, 4, k, 2);\n    bool clamped_start = knot::is_clamped(4, 4, k, 0);\n    bool clamped_end = knot::is_clamped(4, 4, k, 1);\n\n    // Periodic knot vector (not clamped)\n    auto k2 = knot::make_periodic_uniform(4, 5, 1.0);\n    bool not_clamped = knot::is_clamped(4, 5, k2, 2);\n\n    MINI_CHECK(clamped_both);\n    MINI_CHECK(clamped_start);\n    MINI_CHECK(clamped_end);\n    MINI_CHECK(!not_clamped);\n}",
+          "code": "MINI_TEST(\"Knot\", \"Is Clamped\") {\n    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_periodic = knot::make_periodic_uniform(order, cv_count);\n    std::vector<double> knots_clamped = knot::make_clamped_uniform(order, cv_count);\n    bool is_not_clamped = knot::is_clamped(order, cv_count, knots_periodic);\n    bool is_clamped = knot::is_clamped(order, cv_count, knots_clamped);\n\n    MINI_CHECK(!is_not_clamped && is_clamped);\n}",
           "file": "knot_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Knot\", \"Is Clamped\")",
-          "code": "@MINI_TEST(\"Knot\", \"Is Clamped\")\ndef test_is_clamped():\n    from session_py import knot\n\n    # Clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    clamped_both = knot.is_clamped(4, 4, k, 2)\n    clamped_start = knot.is_clamped(4, 4, k, 0)\n    clamped_end = knot.is_clamped(4, 4, k, 1)\n\n    # Periodic knot vector (not clamped)\n    k2 = knot.make_periodic_uniform(4, 5, 1.0)\n    not_clamped = knot.is_clamped(4, 5, k2, 2)\n\n    MINI_CHECK(clamped_both)\n    MINI_CHECK(clamped_start)\n    MINI_CHECK(clamped_end)\n    MINI_CHECK(not not_clamped)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Is Periodic",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Is Periodic\")",
-          "code": "MINI_TEST(\"Knot\", \"Is Periodic\") {\n    // uncomment #include \"knot.h\"\n\n    // Periodic knot vector\n    auto k = knot::make_periodic_uniform(3, 4, 1.0);\n    bool periodic = knot::is_periodic(3, 4, k);\n\n    // Clamped knot vector (not periodic)\n    auto k2 = knot::make_clamped_uniform(4, 4, 1.0);\n    bool not_periodic = knot::is_periodic(4, 4, k2);\n\n    MINI_CHECK(periodic);\n    MINI_CHECK(!not_periodic);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Is Periodic\")",
-          "code": "@MINI_TEST(\"Knot\", \"Is Periodic\")\ndef test_is_periodic():\n    from session_py import knot\n\n    # Periodic knot vector\n    k = knot.make_periodic_uniform(3, 4, 1.0)\n    periodic = knot.is_periodic(3, 4, k)\n\n    # Clamped knot vector (not periodic)\n    k2 = knot.make_clamped_uniform(4, 4, 1.0)\n    not_periodic = knot.is_periodic(4, 4, k2)\n\n    MINI_CHECK(periodic)\n    MINI_CHECK(not not_periodic)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Get Domain",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Get Domain\")",
-          "code": "MINI_TEST(\"Knot\", \"Get Domain\") {\n    // uncomment #include \"knot.h\"\n\n    // Get domain of clamped knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n\n    MINI_CHECK(t0 == 0.0);\n    MINI_CHECK(t1 == 1.0);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Get Domain\")",
-          "code": "@MINI_TEST(\"Knot\", \"Get Domain\")\ndef test_get_domain():\n    from session_py import knot\n\n    # Get domain of clamped knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    t0, t1 = knot.get_domain(4, 4, k)\n\n    MINI_CHECK(t0 == 0.0)\n    MINI_CHECK(t1 == 1.0)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Set Domain",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Set Domain\")",
-          "code": "MINI_TEST(\"Knot\", \"Set Domain\") {\n    // uncomment #include \"knot.h\"\n\n    // Create knot vector and set domain\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    bool set_result = knot::set_domain(4, 4, k, 5.0, 10.0);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n    bool t0_close = std::fabs(t0 - 5.0) < 1e-10;\n    bool t1_close = std::fabs(t1 - 10.0) < 1e-10;\n\n    MINI_CHECK(set_result);\n    MINI_CHECK(t0_close);\n    MINI_CHECK(t1_close);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Set Domain\")",
-          "code": "@MINI_TEST(\"Knot\", \"Set Domain\")\ndef test_set_domain():\n    from session_py import knot\n\n    # Create knot vector and set domain\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    set_result = knot.set_domain(4, 4, k, 5.0, 10.0)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_close = abs(t0 - 5.0) < 1e-10\n    t1_close = abs(t1 - 10.0) < 1e-10\n\n    MINI_CHECK(set_result)\n    MINI_CHECK(t0_close)\n    MINI_CHECK(t1_close)",
+          "code": "@MINI_TEST(\"Knot\", \"Is Clamped\")\ndef test_is_clamped():\n    from session_py import knot\n\n    # 0 0 0 1 2 2 2\n    # 0 1 2 3 4 5 6\n    order = 4\n    cv_count = 5\n    knots_periodic = knot.make_periodic_uniform(order, cv_count)\n    knots_clamped = knot.make_clamped_uniform(order, cv_count)\n    is_not_clamped = knot.is_clamped(order, cv_count, knots_periodic)\n    is_clamped = knot.is_clamped(order, cv_count, knots_clamped)\n    MINI_CHECK(not is_not_clamped and is_clamped)",
           "file": "knot_test.py"
         }
       }
@@ -51824,42 +51734,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Reverse\")",
-          "code": "MINI_TEST(\"Knot\", \"Reverse\") {\n    // uncomment #include \"knot.h\"\n\n    // Reverse knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    auto [t0_orig, t1_orig] = knot::get_domain(4, 4, k);\n    bool reverse_result = knot::reverse(4, 4, k);\n    auto [t0, t1] = knot::get_domain(4, 4, k);\n    bool t0_preserved = std::fabs(t0 - t0_orig) < 1e-10;\n    bool t1_preserved = std::fabs(t1 - t1_orig) < 1e-10;\n\n    MINI_CHECK(reverse_result);\n    MINI_CHECK(t0_preserved);\n    MINI_CHECK(t1_preserved);\n}",
+          "code": "MINI_TEST(\"Knot\", \"Reverse\") {\n    // uncomment #include \"knot.h\"\n\n    // Reverses NURBS curve direction: flip control points + reverse knots\n    // Steps: 1) reverse array  2) remap knot[i] = t0 + t1 - knot[i] to preserve domain\n\n    // Symmetric knot vector -> reverse gives back the same (palindrome)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_sym = knot::make_clamped_uniform(order, cv_count);\n    knot::reverse(order, cv_count, knots_sym);\n    MINI_CHECK(TOLERANCE.is_allclose(knots_sym, {0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0}));\n\n    // Asymmetric knot vector -> extra knot at 0.5 shifts to 1.5 after reverse\n    // 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    std::vector<double> knots_asym = {0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0};\n    knot::reverse(4, 6, knots_asym);\n    MINI_CHECK(TOLERANCE.is_allclose(knots_asym, {0.0, 0.0, 0.0, 1.0, 1.5, 2.0, 2.0, 2.0}));\n}",
           "file": "knot_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Knot\", \"Reverse\")",
-          "code": "@MINI_TEST(\"Knot\", \"Reverse\")\ndef test_reverse():\n    from session_py import knot\n\n    # Reverse knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    t0_orig, t1_orig = knot.get_domain(4, 4, k)\n    reverse_result = knot.reverse(4, 4, k)\n    t0, t1 = knot.get_domain(4, 4, k)\n    t0_preserved = abs(t0 - t0_orig) < 1e-10\n    t1_preserved = abs(t1 - t1_orig) < 1e-10\n\n    MINI_CHECK(reverse_result)\n    MINI_CHECK(t0_preserved)\n    MINI_CHECK(t1_preserved)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Multiplicity",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Multiplicity\")",
-          "code": "MINI_TEST(\"Knot\", \"Multiplicity\") {\n    // uncomment #include \"knot.h\"\n\n    // Check multiplicity at clamped ends\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int mult_first = knot::multiplicity(4, 4, k, 0);\n    int mult_last = knot::multiplicity(4, 4, k, 5);\n\n    MINI_CHECK(mult_first == 3);\n    MINI_CHECK(mult_last == 3);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Multiplicity\")",
-          "code": "@MINI_TEST(\"Knot\", \"Multiplicity\")\ndef test_multiplicity():\n    from session_py import knot\n\n    # Check multiplicity at clamped ends\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    mult_first = knot.multiplicity(4, 4, k, 0)\n    mult_last = knot.multiplicity(4, 4, k, 5)\n\n    MINI_CHECK(mult_first == 3)\n    MINI_CHECK(mult_last == 3)",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Span Count",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Span Count\")",
-          "code": "MINI_TEST(\"Knot\", \"Span Count\") {\n    // uncomment #include \"knot.h\"\n\n    // Single Bezier span\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span1 = knot::span_count(4, 4, k);\n\n    // Multiple spans\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2 = knot::span_count(3, 5, k2);\n\n    MINI_CHECK(span1 == 1);\n    MINI_CHECK(span2 == 3);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Span Count\")",
-          "code": "@MINI_TEST(\"Knot\", \"Span Count\")\ndef test_span_count():\n    from session_py import knot\n\n    # Single Bezier span\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    span1 = knot.span_count(4, 4, k)\n\n    # Multiple spans\n    k2 = knot.make_clamped_uniform(3, 5, 1.0)\n    span2 = knot.span_count(3, 5, k2)\n\n    MINI_CHECK(span1 == 1)\n    MINI_CHECK(span2 == 3)",
+          "code": "@MINI_TEST(\"Knot\", \"Reverse\")\ndef test_reverse():\n    from session_py import knot\n\n    # Symmetric knot vector -> reverse gives back the same (palindrome)\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots_sym = knot.make_clamped_uniform(order, cv_count)\n    knot.reverse(order, cv_count, knots_sym)\n    MINI_CHECK(TOLERANCE.is_allclose(knots_sym, [0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0]))\n\n    # Asymmetric knot vector -> extra knot at 0.5 shifts to 1.5 after reverse\n    # 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    knots_asym = [0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0]\n    knot.reverse(4, 6, knots_asym)\n    MINI_CHECK(TOLERANCE.is_allclose(knots_asym, [0.0, 0.0, 0.0, 1.0, 1.5, 2.0, 2.0, 2.0]))",
           "file": "knot_test.py"
         }
       }
@@ -51869,53 +51749,28 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Find Span\")",
-          "code": "MINI_TEST(\"Knot\", \"Find Span\") {\n    // uncomment #include \"knot.h\"\n\n    // Find span in single-span knot vector\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span_0 = knot::find_span(4, 4, k, 0.0);\n    int span_mid = knot::find_span(4, 4, k, 0.5);\n    int span_1 = knot::find_span(4, 4, k, 1.0);\n\n    // Find span in multi-span knot vector\n    auto k2 = knot::make_clamped_uniform(3, 5, 1.0);\n    int span2_0 = knot::find_span(3, 5, k2, 0.0);\n    int span2_mid = knot::find_span(3, 5, k2, 1.5);\n    int span2_end = knot::find_span(3, 5, k2, 2.5);\n\n    MINI_CHECK(span_0 == 0 && span_mid == 0 && span_1 == 0);\n    MINI_CHECK(span2_0 == 0 && span2_mid == 1 && span2_end == 2);\n}",
+          "code": "MINI_TEST(\"Knot\", \"Find Span\") {\n    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_clamped = knot::make_clamped_uniform(order, cv_count);\n    //   - 0.5 falls in span [0, 1] -> index 0\n    //   - 1.5 falls in span [1, 2] -> index 1\n    int spancount0 = knot::find_span(order, cv_count, knots_clamped, 0.5);\n    int spancount1 = knot::find_span(order, cv_count, knots_clamped, 1.5);\n    MINI_CHECK(spancount0 == 0 && spancount1 == 1);\n}",
           "file": "knot_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Knot\", \"Find Span\")",
-          "code": "@MINI_TEST(\"Knot\", \"Find Span\")\ndef test_find_span():\n    from session_py import knot\n\n    # Find span in single-span knot vector\n    k = knot.make_clamped_uniform(4, 4, 1.0)\n    span_0 = knot.find_span(4, 4, k, 0.0)\n    span_mid = knot.find_span(4, 4, k, 0.5)\n    span_1 = knot.find_span(4, 4, k, 1.0)\n\n    # Find span in multi-span knot vector\n    k2 = knot.make_clamped_uniform(3, 5, 1.0)\n    span2_0 = knot.find_span(3, 5, k2, 0.0)\n    span2_mid = knot.find_span(3, 5, k2, 1.5)\n    span2_end = knot.find_span(3, 5, k2, 2.5)\n\n    MINI_CHECK(span_0 == 0 and span_mid == 0 and span_1 == 0)\n    MINI_CHECK(span2_0 == 0 and span2_mid == 1 and span2_end == 2)",
+          "code": "@MINI_TEST(\"Knot\", \"Find Span\")\ndef test_find_span():\n    from session_py import knot\n\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots_clamped = knot.make_clamped_uniform(order, cv_count)\n    #   - 0.5 falls in span [0, 1] -> index 0\n    #   - 1.5 falls in span [1, 2] -> index 1\n    spancount0 = knot.find_span(order, cv_count, knots_clamped, 0.5)\n    spancount1 = knot.find_span(order, cv_count, knots_clamped, 1.5)\n    MINI_CHECK(spancount0 == 0 and spancount1 == 1)",
           "file": "knot_test.py"
         }
       }
     },
     {
-      "name": "Knot.test_Greville Abcissae",
+      "name": "Knot.test_Solve Tridiagonal",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Greville Abcissae\")",
-          "code": "MINI_TEST(\"Knot\", \"Greville Abcissae\") {\n    // uncomment #include \"knot.h\"\n\n    // Get Greville abcissae (control point parameter values)\n    auto k = knot::make_clamped_uniform(3, 4, 1.0);\n    auto g = knot::get_greville_abcissae(3, 4, k);\n    size_t g_len = g.size();\n\n    MINI_CHECK(g_len == 4);\n}",
+          "sig": "MINI_TEST(\"Knot\", \"Solve Tridiagonal\")",
+          "code": "MINI_TEST(\"Knot\", \"Solve Tridiagonal\") {\n    // uncomment #include \"knot.h\"\n\n    // Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    //   | 2 1 | |x0|   |3|\n    //   | 1 2 | |x1| = |3|\n    //   -> solution: x0 = 1, x1 = 1\n    std::vector<double> lo={0,1}, di={2,2}, up={1,0}, rh={3,3}, sol;\n    knot::solve_tridiagonal(1, 2, lo, di, up, rh, sol);\n    MINI_CHECK(TOLERANCE.is_allclose(sol, {1.0, 1.0}));\n}",
           "file": "knot_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Greville Abcissae\")",
-          "code": "@MINI_TEST(\"Knot\", \"Greville Abcissae\")\ndef test_greville_abcissae():\n    from session_py import knot\n\n    # Get Greville abcissae (control point parameter values)\n    k = knot.make_clamped_uniform(3, 4, 1.0)\n    g = knot.get_greville_abcissae(3, 4, k)\n    g_len = len(g)\n\n    MINI_CHECK(g_len == 4)",
+          "sig": "@MINI_TEST(\"Knot\", \"Solve Tridiagonal\")",
+          "code": "@MINI_TEST(\"Knot\", \"Solve Tridiagonal\")\ndef test_solve_tridiagonal():\n    from session_py import knot\n\n    # Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    #   | 2 1 | |x0|   |3|\n    #   | 1 2 | |x1| = |3|\n    #   -> solution: x0 = 1, x1 = 1\n    lo = [0, 1]\n    di = [2, 2]\n    up = [1, 0]\n    rh = [3, 3]\n    sol = knot.solve_tridiagonal(1, 2, lo, di, up, rh)\n    MINI_CHECK(TOLERANCE.is_allclose(sol, [1.0, 1.0]))",
           "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Domain Tolerance",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Domain Tolerance\")",
-          "code": "MINI_TEST(\"Knot\", \"Domain Tolerance\") {\n    // uncomment #include \"knot.h\"\n\n    // Calculate domain tolerance\n    double tol_same = knot::domain_tolerance(1.0, 1.0);\n    double tol_diff = knot::domain_tolerance(0.0, 1.0);\n\n    MINI_CHECK(tol_same == 0.0);\n    MINI_CHECK(tol_diff > 0.0);\n}",
-          "file": "knot_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Knot\", \"Domain Tolerance\")",
-          "code": "@MINI_TEST(\"Knot\", \"Domain Tolerance\")\ndef test_domain_tolerance():\n    from session_py import knot\n\n    # Calculate domain tolerance\n    tol_same = knot.domain_tolerance(1.0, 1.0)\n    tol_diff = knot.domain_tolerance(0.0, 1.0)\n\n    MINI_CHECK(tol_same == 0.0)\n    MINI_CHECK(tol_diff > 0.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "knot_test.py"
-        }
-      }
-    },
-    {
-      "name": "Knot.test_Eval Basis",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Eval Basis\")",
-          "code": "MINI_TEST(\"Knot\", \"Eval Basis\") {\n    // Basis functions for degree-3 single-span at t=0.5\n    auto k = knot::make_clamped_uniform(4, 4, 1.0);\n    int span = knot::find_span(4, 4, k, 0.5);\n    auto b = knot::eval_basis(4, k, span, 0.5);\n    double sum = b[0] + b[1] + b[2] + b[3];\n    bool all_nonneg = b[0] >= 0.0 && b[1] >= 0.0 && b[2] >= 0.0 && b[3] >= 0.0;\n    bool sum_one = std::fabs(sum - 1.0) < 1e-10;\n\n    // At endpoint t=0.0, first basis = 1\n    int span0 = knot::find_span(4, 4, k, 0.0);\n    auto b0 = knot::eval_basis(4, k, span0, 0.0);\n    bool endpoint_b0 = std::fabs(b0[0] - 1.0) < 1e-10;\n\n    MINI_CHECK(all_nonneg);\n    MINI_CHECK(sum_one);\n    MINI_CHECK(endpoint_b0);\n}",
-          "file": "knot_test.cpp"
         }
       }
     },
@@ -51924,18 +51779,88 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Knot\", \"Compute Parameters\")",
-          "code": "MINI_TEST(\"Knot\", \"Compute Parameters\") {\n    // Uniform: equal spacing regardless of distances\n    double pts1[9] = {0,0,0, 3,0,0, 4,0,0};\n    auto p_uniform = knot::compute_parameters(pts1, 3, 3, CurveKnotStyle::Uniform);\n    bool uniform_equal = std::fabs(p_uniform[1] - 1.0) < 1e-10 && std::fabs(p_uniform[2] - 2.0) < 1e-10;\n\n    // Chord: spacing = chord distances\n    double pts2[9] = {0,0,0, 3,0,0, 4,0,0};\n    auto p_chord = knot::compute_parameters(pts2, 3, 3, CurveKnotStyle::Chord);\n    bool chord_dist = std::fabs(p_chord[1] - 3.0) < 1e-10 && std::fabs(p_chord[2] - 4.0) < 1e-10;\n\n    // Both start at 0\n    bool starts_zero = p_uniform[0] == 0.0 && p_chord[0] == 0.0;\n\n    MINI_CHECK(uniform_equal);\n    MINI_CHECK(chord_dist);\n    MINI_CHECK(starts_zero);\n}",
+          "code": "MINI_TEST(\"Knot\", \"Compute Parameters\") {\n    // uncomment #include \"knot.h\"\n\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0};\n    // Chord-length parameterization: since all gaps are 1.0, params = {0, 1, 2, 3}\n    std::vector<double> t = knot::compute_parameters(pts, 4, 3, CurveKnotStyle::Chord);\n    MINI_CHECK(TOLERANCE.is_allclose(t, {0.0, 1.0, 2.0, 3.0}));\n}",
           "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Compute Parameters\")",
+          "code": "@MINI_TEST(\"Knot\", \"Compute Parameters\")\ndef test_compute_parameters():\n    from session_py import knot\n    import numpy as np\n\n    pts = np.array([[0,0,0], [1,0,0], [2,0,0], [3,0,0]], dtype=float)\n    # Chord-length parameterization: since all gaps are 1.0, params = {0, 1, 2, 3}\n    t = knot.compute_parameters(pts, knot.CurveKnotStyle.Chord)\n    MINI_CHECK(TOLERANCE.is_allclose(t, [0.0, 1.0, 2.0, 3.0]))",
+          "file": "knot_test.py"
         }
       }
     },
     {
-      "name": "Knot.test_Build Interp Knots",
+      "name": "Knot.test_Build Interpolation Knots",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"Knot\", \"Build Interp Knots\")",
-          "code": "MINI_TEST(\"Knot\", \"Build Interp Knots\") {\n    // 4 points, degree 3 \u00e2\u2020\u2019 cv_count = 6, knot_count = 8\n    double pts[12] = {0,0,0, 1,0,0, 2,0,0, 3,0,0};\n    auto params = knot::compute_parameters(pts, 4, 3, CurveKnotStyle::Chord);\n    auto knots = knot::build_interp_knots(params, 3);\n    size_t expected_size = knot::knot_count(4, 6);\n    bool correct_size = knots.size() == expected_size;\n    bool clamped_start = knots[0] == 0.0 && knots[1] == 0.0 && knots[2] == 0.0;\n    bool clamped_end = std::fabs(knots.back() - params[3]) < 1e-10;\n\n    MINI_CHECK(correct_size);\n    MINI_CHECK(clamped_start);\n    MINI_CHECK(clamped_end);\n}",
+          "sig": "MINI_TEST(\"Knot\", \"Build Interpolation Knots\")",
+          "code": "MINI_TEST(\"Knot\", \"Build Interpolation Knots\") {\n    // uncomment #include \"knot.h\"\n\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0};\n    int degree = 3;\n    // cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    // kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    //   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    //   <-clamp->    interior    <-clamp->\n    std::vector<double> knots = knot::build_interp_knots(params, degree);\n    MINI_CHECK(TOLERANCE.is_allclose(knots, {0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 3.0, 3.0}));\n}",
           "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Build Interpolation Knots\")",
+          "code": "@MINI_TEST(\"Knot\", \"Build Interpolation Knots\")\ndef test_build_interp_knots():\n    from session_py import knot\n\n    params = [0.0, 1.0, 2.0, 3.0]\n    degree = 3\n    # cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    # kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    #   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    #   <-clamp->    interior    <-clamp->\n    knots = knot.build_interp_knots(params, degree)\n    MINI_CHECK(TOLERANCE.is_allclose(knots, [0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 3.0, 3.0]))",
+          "file": "knot_test.py"
+        }
+      }
+    },
+    {
+      "name": "Knot.test_Evaluation Basis",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Knot\", \"Evaluation Basis\")",
+          "code": "MINI_TEST(\"Knot\", \"Evaluation Basis\") {\n    // uncomment #include \"knot.h\"\n\n    // Cox-de Boor recursive evaluation of B-spline basis functions\n    // At parameter t, exactly 'order' basis functions are non-zero\n    // Partition of unity: they always sum to 1.0\n    // Used to evaluate NURBS curves/surfaces: C(t) = sum(N_i(t) * P_i)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_clamped_uniform(order, cv_count);\n    int span = knot::find_span(order, cv_count, knots, 0.5);\n    std::vector<double> basis = knot::eval_basis(order, knots, span, 0.5);\n    MINI_CHECK(TOLERANCE.is_allclose(basis, {0.125, 0.59375, 0.25, 0.03125}));\n}",
+          "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Evaluation Basis\")",
+          "code": "@MINI_TEST(\"Knot\", \"Evaluation Basis\")\ndef test_eval_basis():\n    from session_py import knot\n\n    # Cox-de Boor recursive evaluation of B-spline basis functions\n    # At parameter t, exactly 'order' basis functions are non-zero\n    # Partition of unity: they always sum to 1.0\n    # Used to evaluate NURBS curves/surfaces: C(t) = sum(N_i(t) * P_i)\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots = knot.make_clamped_uniform(order, cv_count)\n    span = knot.find_span(order, cv_count, knots, 0.5)\n    basis = knot.eval_basis(order, knots, span, 0.5)\n    MINI_CHECK(TOLERANCE.is_allclose(basis, [0.125, 0.59375, 0.25, 0.03125]))",
+          "file": "knot_test.py"
+        }
+      }
+    },
+    {
+      "name": "Knot.test_Build Fitted Knots Adaptive",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Knot\", \"Build Fitted Knots Adaptive\")",
+          "code": "MINI_TEST(\"Knot\", \"Build Fitted Knots Adaptive\") {\n    // uncomment #include \"knot.h\"\n\n    // Builds knot vectors for least-squares fitting\n    // Concentrates knots where curvature is high (sharp turns)\n    // For collinear points (zero curvature), interior knots are evenly distributed\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0, 4,0,0};\n    std::vector<double> params = knot::compute_parameters(pts, 5, 3, CurveKnotStyle::Chord);\n    std::vector<double> knots = knot::build_fitted_knots_adaptive(params, pts, 5, 3, 5, 3);\n    MINI_CHECK(TOLERANCE.is_allclose(knots, {0.0, 0.0, 0.0, 2.0, 4.0, 4.0, 4.0}));\n}",
+          "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Build Fitted Knots Adaptive\")",
+          "code": "@MINI_TEST(\"Knot\", \"Build Fitted Knots Adaptive\")\ndef test_build_fitted_knots_adaptive():\n    from session_py import knot\n\n    # Builds knot vectors for least-squares fitting\n    # Concentrates knots where curvature is high (sharp turns)\n    # For collinear points (zero curvature), interior knots are evenly distributed\n    pts = [0,0,0, 1,0,0, 2,0,0, 3,0,0, 4,0,0]\n    params = [0.0, 1.0, 2.0, 3.0, 4.0]\n    knots = knot.build_fitted_knots_adaptive(params, pts, 5, 3, 5, 3)\n    MINI_CHECK(TOLERANCE.is_allclose(knots, [0.0, 0.0, 0.0, 2.0, 4.0, 4.0, 4.0]))",
+          "file": "knot_test.py"
+        }
+      }
+    },
+    {
+      "name": "Knot.test_Build Fitted Knots Periodic Adaptive",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Knot\", \"Build Fitted Knots Periodic Adaptive\")",
+          "code": "MINI_TEST(\"Knot\", \"Build Fitted Knots Periodic Adaptive\") {\n    // uncomment #include \"knot.h\"\n\n    // Periodic version for closed curves -- knots wrap around\n    // For a regular square (equal turns, equal chords), knots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> knots = knot::build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3);\n    MINI_CHECK(TOLERANCE.is_allclose(knots, {-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0}));\n}",
+          "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Build Fitted Knots Periodic Adaptive\")",
+          "code": "@MINI_TEST(\"Knot\", \"Build Fitted Knots Periodic Adaptive\")\ndef test_build_fitted_knots_periodic_adaptive():\n    from session_py import knot\n\n    # Periodic version for closed curves -- knots wrap around\n    # For a regular square (equal turns, equal chords), knots are uniformly spaced\n    pts = [0,0,0, 1,0,0, 1,1,0, 0,1,0]\n    params = [0.0, 1.0, 2.0, 3.0, 4.0]\n    knots = knot.build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3)\n    MINI_CHECK(TOLERANCE.is_allclose(knots, [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]))",
+          "file": "knot_test.py"
+        }
+      }
+    },
+    {
+      "name": "Knot.test_Solve Banded SPD",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Knot\", \"Solve Banded SPD\")",
+          "code": "MINI_TEST(\"Knot\", \"Solve Banded SPD\") {\n    // uncomment #include \"knot.h\"\n\n    // Cholesky solver for banded symmetric positive-definite systems\n    //   | 4 2 0 |       |8 |       |1|\n    //   | 2 5 1 | * x = |13| -> x = |2|\n    //   | 0 1 3 |       |5 |       |1|\n    std::vector<double> band = {4, 0, 5, 2, 3, 1};\n    std::vector<double> rhs = {8, 13, 5};\n    knot::solve_banded_spd(1, 3, 1, band, rhs);\n    MINI_CHECK(TOLERANCE.is_allclose(rhs, {1.0, 2.0, 1.0}));\n}",
+          "file": "knot_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Knot\", \"Solve Banded SPD\")",
+          "code": "@MINI_TEST(\"Knot\", \"Solve Banded SPD\")\ndef test_solve_banded_spd():\n    from session_py import knot\n\n    # Cholesky solver for banded symmetric positive-definite systems\n    #   | 4 2 0 |       |8 |       |1|\n    #   | 2 5 1 | * x = |13| -> x = |2|\n    #   | 0 1 3 |       |5 |       |1|\n    band = [4, 0, 5, 2, 3, 1]\n    rhs = [8, 13, 5]\n    knot.solve_banded_spd(1, 3, 1, band, rhs)\n    MINI_CHECK(TOLERANCE.is_allclose(rhs, [1.0, 2.0, 1.0]))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "knot_test.py"
         }
       }
     },
@@ -55019,11 +54944,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "n",
+        "subdivide",
         "into",
         "points",
-        "n",
         "circle",
-        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -55037,11 +54962,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
         "length",
         "arc",
-        "by",
         "subdivide",
+        "by",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -55055,8 +54980,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "through",
+        "arc",
         "points",
         "nurbscurve",
         "primitives",
@@ -55071,12 +54996,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "adaptive",
-        "points",
-        "curve",
         "polyline",
+        "curve",
+        "points",
+        "from",
         "open",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -55091,10 +55016,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
-        "parameter",
-        "at",
         "evaluation",
+        "curve",
+        "at",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -55113,8 +55038,8 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
         "length",
+        "curve",
         "along",
         "frames",
         "divide_by_count",
@@ -55138,9 +55063,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
-        "frames",
         "perpendicular",
+        "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -55161,10 +55086,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "point",
-        "evaluate",
         "cylinder",
+        "point",
+        "surface",
+        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -55179,11 +55104,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
+        "mesh",
         "and",
+        "faces",
         "from",
         "vertices",
-        "mesh",
         "add_vertex",
         "add_face",
         "vertex"

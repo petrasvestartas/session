@@ -63,7 +63,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.125
+    "time_ms": 0.104
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 338,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.126
+    "time_ms": 0.113
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 354,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.031
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 366,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.054
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 377,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.045
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.039
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.043
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 420,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.326
+    "time_ms": 9.369
   },
   {
     "checks": [
@@ -266,6 +266,6 @@
     "line": 439,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.498
+    "time_ms": 8.367
   }
 ]

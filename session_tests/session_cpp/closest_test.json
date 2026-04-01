@@ -3,7 +3,7 @@
     "group": "Closest",
     "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.021,
     "line": 19,
     "code": "    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    auto [cp1, t1, d1] = Closest::line_point(l, Point(5.0, 5.0, 0.0));\n\n\n    auto [cp2, t2, d2] = Closest::line_point(l, Point(-5.0, 0.0, 0.0));\n\n    auto [cp3, t3, d3] = Closest::line_point(l, Point(15.0, 0.0, 0.0));",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "Closest",
     "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.042,
     "line": 40,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    });\n\n    auto [cp1, t1, d1] = Closest::polyline_point(pl, Point(5.0, 5.0, 0.0));\n\n\n    auto [cp2, t2, d2] = Closest::polyline_point(pl, Point(10.0, 5.0, 0.0));",
     "checks": [
@@ -95,7 +95,7 @@
     "group": "Closest",
     "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.311,
     "line": 57,
     "code": "    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    NurbsCurve crv = NurbsCurve::create(false, 3, pts);\n\n    auto [t, dist] = Closest::curve_point(crv, Point(2.0, 3.0, 0.0));\n\n    Point cp = crv.point_at(t);\n\n    auto [t2, dist2] = Closest::curve_point(crv, Point(0.0, 0.0, 0.0));",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Closest",
     "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 0.176,
+    "time_ms": 0.881,
     "line": 76,
     "code": "    std::vector<Point> pts = {\n        // i=0\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        // i=1\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n        Point(2.0, 1.0, 1.0),\n        Point(3.0, 1.0, 0.0),\n        // i=2\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 2.0, 1.0),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 2.0, 0.0),\n        // i=3\n        Point(0.0, 3.0, 0.0),\n        Point(1.0, 3.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    };\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    auto [u, v, dist] = Closest::surface_point(srf, Point(1.5, 1.5, 2.0));\n\n    Point cp = srf.point_at(u, v);\n\n    auto [u2, v2, dist2] = Closest::surface_point(srf, Point(0.0, 0.0, 0.0));",
     "checks": [
@@ -147,7 +147,7 @@
     "group": "Closest",
     "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 1.203,
+    "time_ms": 16.043,
     "line": 111,
     "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point(m, Point(0.0, 0.0, 2.0));\n\n\n    auto [cp2, fk2, d2] = Closest::mesh_point(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "Closest",
     "test_name": "Mesh Point AABB",
     "passed": true,
-    "time_ms": 1.111,
+    "time_ms": 8.386,
     "line": 123,
     "code": "    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.011,
     "line": 135,
     "code": "    PointCloud pc({\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    }, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point(pc, Point(4.0, 0.0, 0.0));\n\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point(pc, Point(10.0, 10.0, 0.0));",
     "checks": [

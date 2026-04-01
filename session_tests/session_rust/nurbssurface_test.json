@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 1.099
+    "time_ms": 0.716
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.248
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.02
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.019
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Knot Access",
-    "time_ms": 0.039
+    "time_ms": 0.048
   },
   {
     "checks": [
@@ -588,7 +588,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.018
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.498
+    "time_ms": 0.217
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.036
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 0.498
+    "time_ms": 0.309
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.122
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 88.865
+    "time_ms": 43.032
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.022
+    "time_ms": 12.492
   },
   {
     "checks": [
@@ -1365,6 +1365,6 @@
     "line": 914,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 10.406
+    "time_ms": 8.383
   }
 ]

@@ -3,7 +3,7 @@
     "group": "SessionConfig",
     "test_name": "Default Values",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.012,
     "line": 7,
     "code": "",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.02,
     "line": 13,
     "code": "    SESSION_CONFIG.explode_mesh_faces = True\n    SESSION_CONFIG.scale_factor = 0.001\n    SESSION_CONFIG.reset()",
     "checks": [
