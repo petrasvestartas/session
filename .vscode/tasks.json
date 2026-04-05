@@ -37,6 +37,12 @@
       "type": "shell",
       "command": "bash/lint.sh",
       "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "claude",
+      "type": "shell",
+      "command": "claude --dangerously-skip-permissions",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     }
   ],
   "inputs": [

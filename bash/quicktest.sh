@@ -18,11 +18,13 @@ RUN_PYTHON=true
 RUN_CPP=true
 RUN_RUST=true
 
+DEV_MODE=false
 for arg in "$@"; do
     case $arg in
         --py|--python) RUN_CPP=false; RUN_RUST=false ;;
         --cpp|--c++) RUN_PYTHON=false; RUN_RUST=false ;;
         --rust|--rs) RUN_PYTHON=false; RUN_CPP=false ;;
+        --dev) DEV_MODE=true ;;
         -*) ;;
         *) CLASS_FILTER="$arg" ;;
     esac
@@ -56,7 +58,9 @@ if [[ "$RUN_CPP" == "true" ]]; then
 fi
 
 if [[ "$RUN_RUST" == "true" ]]; then
-    "${SCRIPT_DIR}/test_rust.sh" --no-viewer
+    DEV_ARG=""
+    [[ "$DEV_MODE" == "true" ]] && DEV_ARG="--dev"
+    "${SCRIPT_DIR}/test_rust.sh" $DEV_ARG --no-viewer
 fi
 
 # Consolidate

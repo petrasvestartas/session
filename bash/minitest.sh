@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Minitest - Run tests for Python, C++, and Rust implementations
 # Usage:
-#   ./minitest.sh              # Run all languages
+#   ./minitest.sh              # Run all languages (fast+dev defaults)
 #   ./minitest.sh --py         # Python only
 #   ./minitest.sh --cpp        # C++ only
 #   ./minitest.sh --rust       # Rust only
-#   ./minitest.sh --fast       # Skip dependency installs
+#   ./minitest.sh --full       # Force reinstall + release build
+#   ./minitest.sh --release    # Rust release build (optimized)
 #   ./minitest.sh --no-web     # Skip Vue server
 #   ./minitest.sh --kill       # Stop dev server only
 
@@ -20,9 +21,10 @@ REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
 RUN_PYTHON=true
 RUN_CPP=true
 RUN_RUST=true
-FAST_MODE=false
+FAST_MODE=true
 START_WEB=true
 KILL_SERVER=false
+DEV_MODE=false
 
 # Parse arguments
 for arg in "$@"; do
@@ -41,6 +43,16 @@ for arg in "$@"; do
             ;;
         --fast|-f)
             FAST_MODE=true
+            ;;
+        --full)
+            FAST_MODE=false
+            DEV_MODE=false
+            ;;
+        --release)
+            DEV_MODE=false
+            ;;
+        --dev)
+            DEV_MODE=true
             ;;
         --no-web)
             START_WEB=false
@@ -61,6 +73,10 @@ fi
 # Build flags for sub-scripts
 FAST_ARG=""
 [[ "$FAST_MODE" == "true" ]] && FAST_ARG="--fast"
+FULL_ARG=""
+[[ "$FAST_MODE" == "false" ]] && FULL_ARG="--full"
+DEV_ARG=""
+[[ "$DEV_MODE" == "true" ]] && DEV_ARG="--dev"
 
 # Regenerate Python protos — skip if all _pb2.py are up-to-date
 regenerate_python_protos() {
@@ -126,7 +142,7 @@ if [[ $LANG_COUNT -ge 2 ]]; then
     LANG_NAMES=()
 
     if [[ "$RUN_PYTHON" == "true" ]]; then
-        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG --no-viewer >"${TMPDIR_LANG}/py.log" 2>&1 &
+        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG $FULL_ARG --no-viewer >"${TMPDIR_LANG}/py.log" 2>&1 &
         LANG_PIDS+=($!)
         LANG_NAMES+=("Python")
     fi
@@ -136,7 +152,7 @@ if [[ $LANG_COUNT -ge 2 ]]; then
         LANG_NAMES+=("C++")
     fi
     if [[ "$RUN_RUST" == "true" ]]; then
-        "${SCRIPT_DIR}/test_rust.sh" --no-viewer >"${TMPDIR_LANG}/rust.log" 2>&1 &
+        "${SCRIPT_DIR}/test_rust.sh" $DEV_ARG --no-viewer >"${TMPDIR_LANG}/rust.log" 2>&1 &
         LANG_PIDS+=($!)
         LANG_NAMES+=("Rust")
     fi
@@ -168,7 +184,7 @@ if [[ $LANG_COUNT -ge 2 ]]; then
 else
     if [[ "$RUN_PYTHON" == "true" ]]; then
         log "=== Python Tests ==="
-        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG --no-viewer
+        "${SCRIPT_DIR}/test_py.sh" $FAST_ARG $FULL_ARG --no-viewer
     fi
     if [[ "$RUN_CPP" == "true" ]]; then
         log "=== C++ Tests ==="
@@ -176,7 +192,7 @@ else
     fi
     if [[ "$RUN_RUST" == "true" ]]; then
         log "=== Rust Tests ==="
-        "${SCRIPT_DIR}/test_rust.sh" --no-viewer
+        "${SCRIPT_DIR}/test_rust.sh" $DEV_ARG --no-viewer
     fi
 fi
 
@@ -185,23 +201,26 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
-# Regenerate browser API index — skip if no source files changed
+# Regenerate browser API index — skip if source hash unchanged
 API_INDEX="${REPO_ROOT}/session_tests/public/apiIndex.js"
+API_HASH_FILE="${REPO_ROOT}/.api_index_hash"
 REGEN_API=false
 if [[ ! -f "$API_INDEX" ]]; then
     REGEN_API=true
 else
-    for ext in py cpp h rs; do
-        if [[ -n $(find "${REPO_ROOT}/session_py" "${REPO_ROOT}/session_cpp" "${REPO_ROOT}/session_rust" -name "*.${ext}" -newer "$API_INDEX" 2>/dev/null | head -1) ]]; then
-            REGEN_API=true
-            break
-        fi
-    done
+    API_HASH=$(find "${REPO_ROOT}/session_py/src" "${REPO_ROOT}/session_cpp/src" "${REPO_ROOT}/session_rust/src" -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
+    if [[ ! -f "$API_HASH_FILE" ]] || [[ "$(cat "$API_HASH_FILE")" != "$API_HASH" ]]; then
+        REGEN_API=true
+    fi
 fi
 if [[ "$REGEN_API" == "true" ]]; then
     log "=== Regenerating Browser API Index ==="
     cd "$REPO_ROOT"
-    python -m session_mcp.generate_browser_index || log "Warning: Failed to generate browser index"
+    if python -m session_mcp.generate_browser_index; then
+        echo "$API_HASH" > "$API_HASH_FILE"
+    else
+        log "Warning: Failed to generate browser index"
+    fi
 else
     log "API index up-to-date, skipping"
 fi

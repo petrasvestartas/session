@@ -18,7 +18,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.022
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Jsondump",
-    "time_ms": 0.738
+    "time_ms": 0.76
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 38,
     "passed": true,
     "test_name": "Jsonload",
-    "time_ms": 0.325
+    "time_ms": 0.332
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 57,
     "passed": true,
     "test_name": "File Io",
-    "time_ms": 19.689
+    "time_ms": 6.887
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 80,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.042
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.047
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.012
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -200,7 +200,7 @@
     "line": 122,
     "passed": true,
     "test_name": "File Io Comprehensive",
-    "time_ms": 17.37
+    "time_ms": 9.728
   },
   {
     "checks": [
@@ -585,12 +585,12 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        use std::f64::consts::PI;\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone());\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone());\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone());\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n\n\n        let expected_box1: [[f64; 3]; 8] = [\n            [1.36603, -0.366025, 0.0], [0.366025, 1.36603, 0.0],\n            [-1.36603, 0.366025, 0.0], [-0.366025, -1.36603, 0.0],\n            [1.36603, -0.366025, 2.0], [0.366025, 1.36603, 2.0],\n            [-1.36603, 0.366025, 2.0], [-0.366025, -1.36603, 2.0],\n        ];\n        let expected_box2: [[f64; 3]; 8] = [\n            [0.366025, 2.09808, 0.0], [-1.36603, 3.09808, 0.0],\n            [-2.36603, 1.36603, 0.0], [-0.633975, 0.366025, 0.0],\n            [0.366025, 2.09808, 2.0], [-1.36603, 3.09808, 2.0],\n            [-2.36603, 1.36603, 2.0], [-0.633975, 0.366025, 2.0],\n        ];\n        let expected_box3: [[f64; 3]; 8] = [\n            [-1.36603, 3.09808, 0.0], [-3.09808, 4.09808, 0.0],\n            [-4.09808, 2.36603, 0.0], [-2.36603, 1.36603, 0.0],\n            [-1.36603, 3.09808, 2.0], [-3.09808, 4.09808, 2.0],\n            [-4.09808, 2.36603, 2.0], [-2.36603, 1.36603, 2.0],\n        ];\n\n        let m1 = &transformed.meshes[0];\n        let mut vkeys1: Vec<usize> = m1.vertex.keys().copied().collect();\n        vkeys1.sort();\n        for i in 0..8 {\n            let v = &m1.vertex[&vkeys1[i]];\n        }\n\n        let m2 = &transformed.meshes[1];\n        let mut vkeys2: Vec<usize> = m2.vertex.keys().copied().collect();\n        vkeys2.sort();\n        for i in 0..8 {\n            let v = &m2.vertex[&vkeys2[i]];\n        }\n\n        let m3 = &transformed.meshes[2];\n        let mut vkeys3: Vec<usize> = m3.vertex.keys().copied().collect();\n        vkeys3.sort();\n        for i in 0..8 {\n            let v = &m3.vertex[&vkeys3[i]];\n        }\n\n        for mesh in &[m1, m2, m3] {\n        }",
+    "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        use std::f64::consts::PI;\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone());\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone());\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone());\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5, false) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0, false);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n\n\n        let expected_box1: [[f64; 3]; 8] = [\n            [1.36603, -0.366025, 0.0], [0.366025, 1.36603, 0.0],\n            [-1.36603, 0.366025, 0.0], [-0.366025, -1.36603, 0.0],\n            [1.36603, -0.366025, 2.0], [0.366025, 1.36603, 2.0],\n            [-1.36603, 0.366025, 2.0], [-0.366025, -1.36603, 2.0],\n        ];\n        let expected_box2: [[f64; 3]; 8] = [\n            [0.366025, 2.09808, 0.0], [-1.36603, 3.09808, 0.0],\n            [-2.36603, 1.36603, 0.0], [-0.633975, 0.366025, 0.0],\n            [0.366025, 2.09808, 2.0], [-1.36603, 3.09808, 2.0],\n            [-2.36603, 1.36603, 2.0], [-0.633975, 0.366025, 2.0],\n        ];\n        let expected_box3: [[f64; 3]; 8] = [\n            [-1.36603, 3.09808, 0.0], [-3.09808, 4.09808, 0.0],\n            [-4.09808, 2.36603, 0.0], [-2.36603, 1.36603, 0.0],\n            [-1.36603, 3.09808, 2.0], [-3.09808, 4.09808, 2.0],\n            [-4.09808, 2.36603, 2.0], [-2.36603, 1.36603, 2.0],\n        ];\n\n        let m1 = &transformed.meshes[0];\n        let mut vkeys1: Vec<usize> = m1.vertex.keys().copied().collect();\n        vkeys1.sort();\n        for i in 0..8 {\n            let v = &m1.vertex[&vkeys1[i]];\n        }\n\n        let m2 = &transformed.meshes[1];\n        let mut vkeys2: Vec<usize> = m2.vertex.keys().copied().collect();\n        vkeys2.sort();\n        for i in 0..8 {\n            let v = &m2.vertex[&vkeys2[i]];\n        }\n\n        let m3 = &transformed.meshes[2];\n        let mut vkeys3: Vec<usize> = m3.vertex.keys().copied().collect();\n        vkeys3.sort();\n        for i in 0..8 {\n            let v = &m3.vertex[&vkeys3[i]];\n        }\n\n        for mesh in &[m1, m2, m3] {\n        }",
     "failures": [],
     "group": "Session",
     "line": 145,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.57
+    "time_ms": 0.209
   }
 ]

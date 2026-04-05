@@ -5,10 +5,10 @@
     "passed": true,
     "time_ms": 0.001,
     "line": 8,
-    "code": "        bool result = TOLERANCE.is_zero(1e-10);",
+    "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_zero(1e-10);",
     "checks": [
       {
-        "line": 11,
+        "line": 12,
         "code_line": "result",
         "passed": true
       }
@@ -19,12 +19,12 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 14,
-    "code": "        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
+    "time_ms": 0.004,
+    "line": 15,
+    "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
       {
-        "line": 17,
+        "line": 19,
         "code_line": "result",
         "passed": true
       }
@@ -35,12 +35,12 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 20,
-    "code": "        bool result = TOLERANCE.is_positive(1.0);",
+    "time_ms": 0.0,
+    "line": 22,
+    "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
       {
-        "line": 23,
+        "line": 26,
         "code_line": "result",
         "passed": true
       }
@@ -51,12 +51,12 @@
     "group": "Tolerance",
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 26,
-    "code": "        bool result = TOLERANCE.is_negative(-1.0);",
+    "time_ms": 0.003,
+    "line": 29,
+    "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
       {
-        "line": 29,
+        "line": 33,
         "code_line": "result",
         "passed": true
       }
@@ -67,12 +67,12 @@
     "group": "Tolerance",
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 32,
-    "code": "        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
+    "time_ms": 0.0,
+    "line": 36,
+    "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
       {
-        "line": 35,
+        "line": 40,
         "code_line": "result",
         "passed": true
       }
@@ -83,12 +83,12 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 38,
-    "code": "        std::string result = TOLERANCE.format_number(3.14159, 2);",
+    "time_ms": 0.005,
+    "line": 43,
+    "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
       {
-        "line": 41,
+        "line": 47,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -99,13 +99,65 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 44,
-    "code": "        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
+    "time_ms": 0.006,
+    "line": 50,
+    "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
       {
-        "line": 47,
+        "line": 54,
         "code_line": "result == \"1.000,2.000,3.000\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "To Radians",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 57,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 59,
+        "code_line": "std::abs(Tolerance::to_radians(180.0) - Tolerance::PI) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 60,
+        "code_line": "std::abs(Tolerance::to_radians(90.0) - Tolerance::PI / 2.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "std::abs(Tolerance::to_radians(0.0)) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "To Degrees",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 64,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "std::abs(Tolerance::to_degrees(Tolerance::PI) - 180.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "std::abs(Tolerance::to_degrees(Tolerance::PI / 2.0) - 90.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "std::abs(Tolerance::to_degrees(0.0)) < 1e-9",
         "passed": true
       }
     ],
@@ -116,46 +168,46 @@
     "test_name": "Runtime Modification",
     "passed": true,
     "time_ms": 0.001,
-    "line": 50,
-    "code": "        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
+    "line": 71,
+    "code": "        // uncomment #include \"tolerance.h\"\n        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
       {
-        "line": 55,
+        "line": 77,
         "code_line": "original_absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 56,
+        "line": 78,
         "code_line": "original_relative == 1e-6",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 83,
         "code_line": "TOLERANCE.absolute() == 1e-12",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 84,
         "code_line": "TOLERANCE.relative() == 1e-12",
         "passed": true
       },
       {
-        "line": 66,
+        "line": 88,
         "code_line": "!close_with_tight",
         "passed": true
       },
       {
-        "line": 70,
+        "line": 92,
         "code_line": "TOLERANCE.absolute() == 1e-9",
         "passed": true
       },
       {
-        "line": 71,
+        "line": 93,
         "code_line": "TOLERANCE.relative() == 1e-6",
         "passed": true
       },
       {
-        "line": 75,
+        "line": 97,
         "code_line": "close_with_default",
         "passed": true
       }

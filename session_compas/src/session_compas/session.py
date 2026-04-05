@@ -9,6 +9,7 @@ _MODULE_MAP = {
     "PointCloud":   "session_compas.compas_pointcloud",
     "NurbsCurve":   "session_compas.compas_nurbscurve",
     "NurbsSurface": "session_compas.compas_nurbssurface",
+    "Plane":        "session_compas.compas_plane",
 }
 
 
@@ -21,16 +22,19 @@ def to_compas(obj):
     return module.to_compas(obj)
 
 
-def view(filepath):
+def view(filepath_or_session):
     from compas_viewer import Viewer
+    from compas.colors import Color as CColor
     from session_py.session import Session as PySession
     from session_py.session_config import SESSION_CONFIG
     from session_py.xform import Xform
 
-    if str(filepath).endswith(".pb"):
-        data = PySession.pb_load(filepath)
+    if isinstance(filepath_or_session, PySession):
+        data = filepath_or_session
+    elif str(filepath_or_session).endswith(".pb"):
+        data = PySession.pb_load(filepath_or_session)
     else:
-        with open(filepath, "r") as f:
+        with open(filepath_or_session, "r") as f:
             raw = json.load(f)
         data = PySession.__jsonload__(raw)
 
@@ -38,6 +42,23 @@ def view(filepath):
     xf = Xform.scale_xyz(sf, sf, sf) if sf != 1.0 else None
 
     viewer = Viewer()
+
+    # Build viewer groups from session layers
+    layer_groups = {}
+    for guid, layer_name in data.layers.items():
+        if layer_name not in layer_groups:
+            layer_groups[layer_name] = viewer.scene.add_group(layer_name)
+
+    def _get_parent(obj):
+        """Return the viewer group for this object, or None."""
+        guid = getattr(obj, "guid", None)
+        if guid is None:
+            return None
+        layer_name = data.layers.get(guid)
+        if layer_name is None:
+            return None
+        return layer_groups.get(layer_name)
+
     collections = [
         data.objects.points, data.objects.lines,
         data.objects.polylines, data.objects.meshes,
@@ -54,5 +75,18 @@ def view(filepath):
             module = _get_module(type_name)
             compas_obj = module.to_compas(obj)
             name = getattr(obj, "name", None) or type_name
-            viewer.scene.add(compas_obj, name=name)
+            parent = _get_parent(obj)
+            viewer.scene.add(compas_obj, name=name, parent=parent)
+    for plane_obj in data.objects.planes:
+        if xf is not None:
+            plane_obj.xform = xf
+            plane_obj.transform()
+        module = _get_module("Plane")
+        rect, normal = module.to_compas(plane_obj)
+        name = getattr(plane_obj, "name", None) or "Plane"
+        c = plane_obj.linecolor
+        kw = {"linecolor": CColor(c[0]/255, c[1]/255, c[2]/255)}
+        parent = _get_parent(plane_obj)
+        viewer.scene.add(rect, name=name, parent=parent, **kw)
+        viewer.scene.add(normal, name=name + "_normal", parent=parent, **kw)
     viewer.show()

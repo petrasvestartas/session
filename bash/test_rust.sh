@@ -12,12 +12,15 @@ source "${SCRIPT_DIR}/lib/common.sh"
 REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
 RUST_DIR="${REPO_ROOT}/session_rust"
 UPDATE_VIEWER=true
+DEV_MODE=false
 
 # Parse args
 for arg in "$@"; do
     case $arg in
         --fast|-f) ;; # ignored for Rust, kept for consistency
         --no-viewer) UPDATE_VIEWER=false ;;
+        --dev) DEV_MODE=true ;;
+        --release) DEV_MODE=false ;;
     esac
 done
 
@@ -70,11 +73,16 @@ else
     log_lang "rust" "Warning: protoc not found, build may fail"
 fi
 
-log_lang "rust" "Building and running minitest..."
 cd "$RUST_DIR"
-
 JOBS=$(get_jobs)
-cargo run --release --bin minitest -j "$JOBS"
+
+if [[ "$DEV_MODE" == "true" ]]; then
+    log_lang "rust" "Building and running minitest (dev mode)..."
+    cargo run --bin minitest -j "$JOBS"
+else
+    log_lang "rust" "Building and running minitest (release)..."
+    cargo run --release --bin minitest -j "$JOBS"
+fi
 
 if [[ $? -ne 0 ]]; then
     log_lang "rust" "Minitest failed"

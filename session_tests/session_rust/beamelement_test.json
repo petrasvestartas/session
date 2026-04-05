@@ -63,7 +63,7 @@
     "line": 462,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.164
+    "time_ms": 0.548
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 491,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.08
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 507,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.019
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.052
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 530,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.051
+    "time_ms": 0.544
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 543,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.018
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 556,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.022
+    "time_ms": 0.217
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 573,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.848
+    "time_ms": 6.953
   },
   {
     "checks": [
@@ -266,6 +266,115 @@
     "line": 592,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.468
+    "time_ms": 6.837
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
+        "line": 874,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(ax.end()[2], 5.0)",
+        "line": 875,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 5.0, \"my_beam\");\n        let ax = b.axis().unwrap();",
+    "failures": [],
+    "group": "BeamElement",
+    "line": 870,
+    "passed": true,
+    "test_name": "Axis",
+    "time_ms": 0.02
+  },
+  {
+    "checks": [
+      {
+        "code_line": "evs.len() == 12",
+        "line": 865,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let evs = b.edge_vectors();",
+    "failures": [],
+    "group": "BeamElement",
+    "line": 861,
+    "passed": true,
+    "test_name": "Edge Vectors",
+    "time_ms": 0.025
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pls.len() == 6",
+        "line": 854,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pls[0].z_axis()[2], -1.0)",
+        "line": 855,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pls[1].z_axis()[2], 1.0)",
+        "line": 856,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let pls = b.planes();",
+    "failures": [],
+    "group": "BeamElement",
+    "line": 850,
+    "passed": true,
+    "test_name": "Planes",
+    "time_ms": 0.163
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pls.len() == 6",
+        "line": 844,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 845,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let pls = b.polylines();",
+    "failures": [],
+    "group": "BeamElement",
+    "line": 840,
+    "passed": true,
+    "test_name": "Polylines",
+    "time_ms": 0.038
   }
 ]

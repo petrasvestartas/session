@@ -63,7 +63,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.104
+    "time_ms": 0.062
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 338,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.113
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 354,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.023
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 366,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.039
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 377,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.033
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.028
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.032
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 420,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.369
+    "time_ms": 5.66
   },
   {
     "checks": [
@@ -266,6 +266,115 @@
     "line": 439,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.367
+    "time_ms": 4.631
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
+        "line": 918,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(ax.end()[2], 5.0)",
+        "line": 919,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut c = Element::column(0.4, 0.4, 5.0, \"my_column\");\n        let ax = c.axis().unwrap();",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 914,
+    "passed": true,
+    "test_name": "Axis",
+    "time_ms": 0.019
+  },
+  {
+    "checks": [
+      {
+        "code_line": "evs.len() == 12",
+        "line": 909,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        let evs = c.edge_vectors();",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 905,
+    "passed": true,
+    "test_name": "Edge Vectors",
+    "time_ms": 0.025
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pls.len() == 6",
+        "line": 898,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pls[0].z_axis()[2], -1.0)",
+        "line": 899,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pls[1].z_axis()[2], 1.0)",
+        "line": 900,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        let pls = c.planes();",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 894,
+    "passed": true,
+    "test_name": "Planes",
+    "time_ms": 0.033
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pls.len() == 6",
+        "line": 888,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      },
+      {
+        "code_line": "pl.point_count() == 5",
+        "line": 889,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        let pls = c.polylines();",
+    "failures": [],
+    "group": "ColumnElement",
+    "line": 884,
+    "passed": true,
+    "test_name": "Polylines",
+    "time_ms": 0.048
   }
 ]

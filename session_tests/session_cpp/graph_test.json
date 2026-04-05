@@ -3,17 +3,17 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.071,
+    "time_ms": 6.505,
     "line": 10,
-    "code": "    Vertex original(\"v0\", \"./serialization/test_attribute\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"./serialization/test_vertex.json\");\n\n\n    std::filesystem::remove(\"./serialization/test_vertex.json\");",
+    "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n    Vertex original(\"v0\", \"./serialization/test_attribute\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"./serialization/test_vertex.json\");\n\n\n    std::filesystem::remove(\"./serialization/test_vertex.json\");",
     "checks": [
       {
-        "line": 17,
+        "line": 19,
         "code_line": "loaded.name == original.name",
         "passed": true
       },
       {
-        "line": 18,
+        "line": 20,
         "code_line": "loaded.attribute == original.attribute",
         "passed": true
       }

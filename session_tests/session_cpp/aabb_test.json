@@ -3,92 +3,92 @@
     "group": "Aabb",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.025,
-    "line": 79,
-    "code": "    // AABB(0,0,0, 1,2,3) — dims 2×4×6\n    AABB a(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n\n\n\n\n    AABB b(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    a.union_with(b);",
+    "time_ms": 0.002,
+    "line": 93,
+    "code": "    // uncomment #include \"aabb.h\"\n    // uncomment #include \"point.h\"\n    // AABB(0,0,0, 1,2,3) — dims 2×4×6\n    AABB a(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n\n\n\n\n    AABB b(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    a.union_with(b);",
     "checks": [
       {
-        "line": 83,
+        "line": 99,
         "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 100,
         "code_line": "a.center() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 101,
         "code_line": "TOLERANCE.is_close(a.diagonal(), 2.0 * std::sqrt(14.0))",
         "passed": true
       },
       {
-        "line": 86,
+        "line": 102,
         "code_line": "a.is_valid()",
         "passed": true
       },
       {
-        "line": 87,
+        "line": 103,
         "code_line": "TOLERANCE.is_close(a.volume(), 48.0)",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 105,
         "code_line": "a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 90,
+        "line": 106,
         "code_line": "a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 91,
+        "line": 107,
         "code_line": "a.contains(Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 108,
         "code_line": "!a.contains(Point(10.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 94,
+        "line": 110,
         "code_line": "a.corner(false, false, false) == Point(-1.0, -2.0, -3.0)",
         "passed": true
       },
       {
-        "line": 95,
+        "line": 111,
         "code_line": "a.corner(true, true, true) == Point(1.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 96,
+        "line": 112,
         "code_line": "a.get_corners().size() == 8",
         "passed": true
       },
       {
-        "line": 97,
+        "line": 113,
         "code_line": "a.get_edges().size() == 12",
         "passed": true
       },
       {
-        "line": 99,
+        "line": 115,
         "code_line": "a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 100,
+        "line": 116,
         "code_line": "a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 104,
+        "line": 120,
         "code_line": "a.min_point() == Point(-1.0, -2.0, -3.0)",
         "passed": true
       },
       {
-        "line": 105,
+        "line": 121,
         "code_line": "a.max_point() == Point(6.0, 2.0, 3.0)",
         "passed": true
       }

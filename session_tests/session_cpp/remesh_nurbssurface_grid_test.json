@@ -3,22 +3,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Sphere",
     "passed": true,
-    "time_ms": 2.664,
+    "time_ms": 0.828,
     "line": 9,
-    "code": "    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 13,
+        "line": 17,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 14,
+        "line": 18,
         "code_line": "m.number_of_vertices() == 191",
         "passed": true
       },
       {
-        "line": 15,
+        "line": 19,
         "code_line": "m.number_of_faces() == 378",
         "passed": true
       }
@@ -29,22 +29,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 8.939,
-    "line": 18,
-    "code": "    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "time_ms": 2.825,
+    "line": 22,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 22,
+        "line": 30,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 23,
+        "line": 31,
         "code_line": "m.number_of_vertices() == 693",
         "passed": true
       },
       {
-        "line": 24,
+        "line": 32,
         "code_line": "m.number_of_faces() == 1386",
         "passed": true
       }
@@ -55,22 +55,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 0.473,
-    "line": 27,
-    "code": "    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "time_ms": 0.175,
+    "line": 35,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 31,
+        "line": 43,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 32,
+        "line": 44,
         "code_line": "m.number_of_vertices() == 42",
         "passed": true
       },
       {
-        "line": 33,
+        "line": 45,
         "code_line": "m.number_of_faces() == 42",
         "passed": true
       }
@@ -81,22 +81,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.345,
-    "line": 36,
-    "code": "    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "time_ms": 0.124,
+    "line": 48,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 40,
+        "line": 56,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 41,
+        "line": 57,
         "code_line": "m.number_of_vertices() == 22",
         "passed": true
       },
       {
-        "line": 42,
+        "line": 58,
         "code_line": "m.number_of_faces() == 21",
         "passed": true
       }
@@ -107,22 +107,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 13.881,
-    "line": 45,
-    "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "time_ms": 5.533,
+    "line": 61,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 49,
+        "line": 69,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 50,
+        "line": 70,
         "code_line": "m.number_of_vertices() == 961",
         "passed": true
       },
       {
-        "line": 51,
+        "line": 71,
         "code_line": "m.number_of_faces() == 1800",
         "passed": true
       }
@@ -133,27 +133,27 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Grid Target",
     "passed": true,
-    "time_ms": 23.028,
-    "line": 54,
-    "code": "    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m_lo = RemeshNurbsSurfaceGrid::from_u_v(s, 8, 8);\n    Mesh m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);",
+    "time_ms": 8.736,
+    "line": 74,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m_lo = RemeshNurbsSurfaceGrid::from_u_v(s, 8, 8);\n    Mesh m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);",
     "checks": [
       {
-        "line": 59,
+        "line": 83,
         "code_line": "m_lo.is_valid()",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 84,
         "code_line": "m_lo.number_of_vertices() == 64",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 85,
         "code_line": "m_hi.is_valid()",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 86,
         "code_line": "m_hi.number_of_vertices() > m_lo.number_of_vertices()",
         "passed": true
       }
@@ -164,22 +164,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Quad",
     "passed": true,
-    "time_ms": 0.086,
-    "line": 65,
-    "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0, 0, 0),\n        Point(0, 4, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
+    "time_ms": 0.028,
+    "line": 89,
+    "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"point.h\"\n    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0, 0, 0),\n        Point(0, 4, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 74,
+        "line": 102,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 75,
+        "line": 103,
         "code_line": "m.number_of_vertices() == 4",
         "passed": true
       },
       {
-        "line": 76,
+        "line": 104,
         "code_line": "m.number_of_faces() == 2",
         "passed": true
       }
@@ -190,22 +190,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Triangle",
     "passed": true,
-    "time_ms": 0.061,
-    "line": 79,
+    "time_ms": 0.022,
+    "line": 107,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0, 0, 0),\n        Point(2, 4, 0),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 88,
+        "line": 116,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 117,
         "code_line": "m.number_of_vertices() == 3",
         "passed": true
       },
       {
-        "line": 90,
+        "line": 118,
         "code_line": "m.number_of_faces() == 1",
         "passed": true
       }
@@ -216,22 +216,22 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Double-Curved Triangle",
     "passed": true,
-    "time_ms": 0.572,
-    "line": 93,
+    "time_ms": 0.218,
+    "line": 121,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 2, 2, 3, 3, {\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
       {
-        "line": 107,
+        "line": 135,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 136,
         "code_line": "m.number_of_vertices() == 64",
         "passed": true
       },
       {
-        "line": 109,
+        "line": 137,
         "code_line": "m.number_of_faces() == 98",
         "passed": true
       }

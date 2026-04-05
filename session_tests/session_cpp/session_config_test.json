@@ -5,15 +5,15 @@
     "passed": true,
     "time_ms": 0.001,
     "line": 8,
-    "code": "",
+    "code": "        // uncomment #include \"session_config.h\"",
     "checks": [
       {
-        "line": 9,
+        "line": 10,
         "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 10,
+        "line": 11,
         "code_line": "std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10",
         "passed": true
       }
@@ -24,37 +24,37 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 13,
-    "code": "        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.scale_factor = 0.001;\n        SESSION_CONFIG.reset();",
+    "time_ms": 0.0,
+    "line": 14,
+    "code": "        // uncomment #include \"session_config.h\"\n        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.scale_factor = 0.001;\n        SESSION_CONFIG.reset();",
     "checks": [
       {
-        "line": 14,
+        "line": 16,
         "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 16,
+        "line": 18,
         "code_line": "SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 17,
+        "line": 19,
         "code_line": "std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10",
         "passed": true
       },
       {
-        "line": 19,
+        "line": 21,
         "code_line": "std::abs(SESSION_CONFIG.scale_factor - 0.001) < 1e-10",
         "passed": true
       },
       {
-        "line": 21,
+        "line": 23,
         "code_line": "!SESSION_CONFIG.explode_mesh_faces",
         "passed": true
       },
       {
-        "line": 22,
+        "line": 24,
         "code_line": "std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10",
         "passed": true
       }

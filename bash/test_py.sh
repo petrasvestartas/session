@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Run Python minitest only - does NOT touch other languages' JSON
 # Usage:
-#   ./test_py.sh              # Run all Python tests
+#   ./test_py.sh              # Run all Python tests (fast by default)
 #   ./test_py.sh point        # Run only Point tests
 #   ./test_py.sh --fast       # Skip pip install if already installed
+#   ./test_py.sh --full       # Force pip reinstall
 #   ./test_py.sh --no-viewer  # Don't update testData.js
 
 set -e
@@ -12,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"
 
 REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
-FAST_MODE=false
+FAST_MODE=true
 UPDATE_VIEWER=true
 CLASS_FILTER=""
 
@@ -20,6 +21,7 @@ CLASS_FILTER=""
 for arg in "$@"; do
     case $arg in
         --fast|-f) FAST_MODE=true ;;
+        --full) FAST_MODE=false ;;
         --no-viewer) UPDATE_VIEWER=false ;;
         -*) ;; # ignore unknown flags
         *) CLASS_FILTER="$arg" ;;
@@ -46,11 +48,14 @@ ensure_python_env() {
         exit 1
     fi
 
-    # Fast mode: skip install if already working
+    # Fast mode: skip install if source unchanged and module importable
     if [[ "$FAST_MODE" == "true" ]]; then
-        if "$PYTHON" -c "import session_py" 2>/dev/null; then
-            log_lang "py" "Fast mode: session_py already installed"
-            return 0
+        local hash_file="${REPO_ROOT}/.py_install_hash"
+        local src_hash=$(find "${REPO_ROOT}/session_py/src" -name '*.py' 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
+        if [[ -f "$hash_file" && "$(cat "$hash_file")" == "$src_hash" ]]; then
+            if "$PYTHON" -c "import session_py" 2>/dev/null; then
+                return 0
+            fi
         fi
     fi
 
@@ -61,62 +66,58 @@ ensure_python_env() {
     else
         "$PYTHON" -m pip install -e "$py_path" pytest
     fi
+
+    # Cache source hash after successful install
+    local src_hash=$(find "${REPO_ROOT}/session_py/src" -name '*.py' 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
+    echo "$src_hash" > "${REPO_ROOT}/.py_install_hash"
 }
 
 ensure_python_env
 
-# Run a single class test and prefix output with class name
-run_py_test() {
-    local class_name="$1"
-    local output exit_code
-    output=$("$PYTHON" -m "session_py.${class_name}_test" 2>&1)
-    exit_code=$?
-    printf "%s\n" "$output" | sed "s/\[py-minitest\]/[py-${class_name}]/g"
-    return $exit_code
-}
-
-# Run tests
+# Run tests — single process batch (avoids 43 interpreter startups)
 if [[ -n "$CLASS_FILTER" ]]; then
     log_lang "py" "Running ${CLASS_FILTER} tests..."
-    run_py_test "$CLASS_FILTER"
+    output=$("$PYTHON" -m "session_py.${CLASS_FILTER}_test" 2>&1)
+    exit_code=$?
+    printf "%s\n" "$output" | sed "s/\[py-minitest\]/[py-${CLASS_FILTER}]/g"
+    [[ $exit_code -ne 0 ]] && exit $exit_code
 else
-    MAX_JOBS="${MINITEST_PY_JOBS:-$(get_jobs)}"
-    PIDS=()
-    CLASSES=()
-    FAILED=()
+    CLASSES_STR="${CLASS_NAMES[*]}"
+    "$PYTHON" -c "
+import sys, importlib, io
+from contextlib import redirect_stdout, redirect_stderr
+import session_py.mini_test as mt
 
-    for class_name in "${CLASS_NAMES[@]}"; do
-        # Throttle: wait until a slot opens
-        while [[ ${#PIDS[@]} -ge $MAX_JOBS ]]; do
-            NEW_PIDS=()
-            NEW_CLASSES=()
-            for i in "${!PIDS[@]}"; do
-                if kill -0 "${PIDS[$i]}" 2>/dev/null; then
-                    NEW_PIDS+=("${PIDS[$i]}")
-                    NEW_CLASSES+=("${CLASSES[$i]}")
-                else
-                    wait "${PIDS[$i]}" 2>/dev/null || FAILED+=("${CLASSES[$i]}")
-                fi
-            done
-            PIDS=("${NEW_PIDS[@]}")
-            CLASSES=("${NEW_CLASSES[@]}")
-            [[ ${#PIDS[@]} -ge $MAX_JOBS ]] && sleep 0.1
-        done
-
-        run_py_test "$class_name" &
-        PIDS+=($!)
-        CLASSES+=("$class_name")
-    done
-
-    # Wait for remaining
-    for i in "${!PIDS[@]}"; do
-        wait "${PIDS[$i]}" 2>/dev/null || FAILED+=("${CLASSES[$i]}")
-    done
-
-    if [[ ${#FAILED[@]} -gt 0 ]]; then
-        log_lang "py" "FAILED: ${FAILED[*]}"
-        exit 1
-    fi
+classes = '''${CLASSES_STR}'''.split()
+failed = []
+for cls in classes:
+    mt._REGISTERED_TESTS.clear()
+    mod_name = f'session_py.{cls}_test'
+    try:
+        if mod_name in sys.modules:
+            del sys.modules[mod_name]
+        buf = io.StringIO()
+        ebuf = io.StringIO()
+        with redirect_stdout(buf), redirect_stderr(ebuf):
+            try:
+                importlib.import_module(mod_name)
+                mt.run_all(language='python')
+            except SystemExit as e:
+                if e.code:
+                    failed.append(cls)
+        out = buf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
+        err = ebuf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
+        if out.strip():
+            print(out, end='')
+        if err.strip():
+            print(err, end='', file=sys.stderr)
+    except Exception as e:
+        failed.append(cls)
+        print(f'[py-{cls}] FAILED: {e}', file=sys.stderr)
+if failed:
+    print(f'[py] FAILED: {\" \".join(failed)}', file=sys.stderr)
+    sys.exit(1)
+"
 fi
 
 log_lang "py" "Tests complete (${#CLASS_NAMES[@]} modules)"

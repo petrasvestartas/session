@@ -53,7 +53,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.054
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -74,7 +74,7 @@
     "line": 52,
     "passed": true,
     "test_name": "Session Transformation",
-    "time_ms": 0.026
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -95,7 +95,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Add Feature",
-    "time_ms": 0.01
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.019
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -142,7 +142,7 @@
     "line": 126,
     "passed": true,
     "test_name": "OBB",
-    "time_ms": 0.016
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -168,7 +168,7 @@
     "line": 149,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.018
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -230,7 +230,7 @@
     "line": 208,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.014
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -271,7 +271,7 @@
     "line": 232,
     "passed": true,
     "test_name": "Brep Aabb",
-    "time_ms": 1.702
+    "time_ms": 1.76
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 251,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.447
+    "time_ms": 6.666
   },
   {
     "checks": [
@@ -328,6 +328,37 @@
     "line": 282,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.774
+    "time_ms": 8.683
+  },
+  {
+    "checks": [
+      {
+        "code_line": "e.polylines().is_empty()",
+        "line": 828,
+        "passed": true
+      },
+      {
+        "code_line": "e.planes().is_empty()",
+        "line": 829,
+        "passed": true
+      },
+      {
+        "code_line": "e.edge_vectors().is_empty()",
+        "line": 830,
+        "passed": true
+      },
+      {
+        "code_line": "e.axis().is_none()",
+        "line": 831,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        use crate::element::Element;\n        use crate::Point;\n\n        let m = Mesh::from_vertices_and_faces(\n            vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(1.0,1.0,0.0), Point::new(0.0,1.0,0.0)],\n            vec![vec![0,1,2,3]],\n        );\n        let mut e = Element::from_mesh(m, \"test_element\");\n",
+    "failures": [],
+    "group": "Element",
+    "line": 817,
+    "passed": true,
+    "test_name": "Polylines",
+    "time_ms": 0.011
   }
 ]

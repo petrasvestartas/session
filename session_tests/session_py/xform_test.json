@@ -3,13 +3,18 @@
     "group": "Xform",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.349,
+    "time_ms": 0.142,
     "line": 8,
-    "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Equality operators\n    x_eq = (x == xother)\n    x_ne = (x != xfrom)\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scale_xyz(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    result = combined.transformed_point(p)\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    result2 = t2.transformed_point(p)\n\n    # (1,0,0) * scale(2,1,1) = (2,0,0), then translate(10,0,0) = (12,0,0)",
+    "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scale_xyz(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    p.xform = combined\n    result = p.transformed()\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    p = Point(1.0, 0.0, 0.0)\n    p.xform = t2\n    result2 = p.transformed()",
     "checks": [
       {
+        "line": 56,
+        "code_line": "x.name == \"my_xform\"",
+        "passed": true
+      },
+      {
         "line": 57,
-        "code_line": "x.name == \"my_xform\" and x.guid != \"\"",
+        "code_line": "x.guid != \"\"",
         "passed": true
       },
       {
@@ -29,12 +34,12 @@
       },
       {
         "line": 61,
-        "code_line": "\"1.000000\" in xstr",
+        "code_line": "xstr == \"[1.000000, 0.000000, 0.000000, 0.000000]\\n[0.000000, 1.000000, 0.000000, 0.000000]\\n[0.000000, 0.000000, 1.000000, 0.000000]\\n[0.000000, 0.000000, 0.000000, 1.000000]\"",
         "passed": true
       },
       {
         "line": 62,
-        "code_line": "\"Xform(\" in xrepr and \"my_xform\" in xrepr)",
+        "code_line": "xrepr == f\"Xform(my_xform, {x.guid[:8]})\"",
         "passed": true
       },
       {
@@ -44,37 +49,22 @@
       },
       {
         "line": 64,
-        "code_line": "x_eq == True and x_ne == True",
+        "code_line": "xother == x",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "xfrom != x",
         "passed": true
       },
       {
         "line": 66,
-        "code_line": "TOLERANCE.is_close(result[0], 12.0)",
+        "code_line": "result[0] == 12.0 and result[1] == 0.0 and result[2] == 0.0",
         "passed": true
       },
       {
         "line": 67,
-        "code_line": "TOLERANCE.is_close(result[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 68,
-        "code_line": "TOLERANCE.is_close(result[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 69,
-        "code_line": "TOLERANCE.is_close(result2[0], 12.0)",
-        "passed": true
-      },
-      {
-        "line": 70,
-        "code_line": "TOLERANCE.is_close(result2[1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 71,
-        "code_line": "TOLERANCE.is_close(result2[2], 0.0)",
+        "code_line": "result2[0] == 12.0 and result2[1] == 0.0 and result2[2] == 0.0",
         "passed": true
       }
     ],
@@ -84,23 +74,48 @@
     "group": "Xform",
     "test_name": "Translation",
     "passed": true,
-    "time_ms": 0.066,
-    "line": 74,
-    "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Translation matrix\n    t = Xform.translation(1.0, 2.0, 3.0)\n\n    # Apply to point\n    p = Point(4.0, 5.0, 6.0)\n    tp = t.transformed_point(p)",
+    "time_ms": 0.185,
+    "line": 70,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    xf = Xform.translation(1.5, 1.0, 0.5)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
+        "line": 79,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(0.5, 0, -0.5))",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(2.5, 0, -0.5))",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(2.5, 2, -0.5))",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(0.5, 2, -0.5))",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(0.5, 0, 1.5))",
+        "passed": true
+      },
+      {
+        "line": 84,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(2.5, 0, 1.5))",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(2.5, 2, 1.5))",
+        "passed": true
+      },
+      {
         "line": 86,
-        "code_line": "TOLERANCE.is_close(tp[0], 5.0)",
-        "passed": true
-      },
-      {
-        "line": 87,
-        "code_line": "TOLERANCE.is_close(tp[1], 7.0)",
-        "passed": true
-      },
-      {
-        "line": 88,
-        "code_line": "TOLERANCE.is_close(tp[2], 9.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(0.5, 2, 1.5))",
         "passed": true
       }
     ],
@@ -108,25 +123,50 @@
   },
   {
     "group": "Xform",
-    "test_name": "Scaling",
+    "test_name": "Rotation X",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 91,
-    "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Scaling matrix\n    s = Xform.scale_xyz(2.0, 3.0, 4.0)\n\n    # Apply to point\n    p = Point(1.0, 1.0, 1.0)\n    sp = s.transformed_point(p)",
+    "time_ms": 0.162,
+    "line": 89,
+    "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_x(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
+        "line": 100,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1, 0, -s))",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1, 0, -s))",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(1, s, 0))",
+        "passed": true
+      },
+      {
         "line": 103,
-        "code_line": "TOLERANCE.is_close(sp[0], 2.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-1, s, 0))",
         "passed": true
       },
       {
         "line": 104,
-        "code_line": "TOLERANCE.is_close(sp[1], 3.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1, -s, 0))",
         "passed": true
       },
       {
         "line": 105,
-        "code_line": "TOLERANCE.is_close(sp[2], 4.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1, -s, 0))",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1, 0, s))",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-1, 0, s))",
         "passed": true
       }
     ],
@@ -134,70 +174,101 @@
   },
   {
     "group": "Xform",
-    "test_name": "Rotation",
+    "test_name": "Rotation Y",
     "passed": true,
-    "time_ms": 0.121,
-    "line": 108,
-    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # Rotation around X axis by 90 degrees\n    rx = Xform.rotation_x(PI / 2.0)\n    # Apply to point (0,1,0) -> (0,0,1)\n    px = Point(0.0, 1.0, 0.0)\n    rpx = rx.transformed_point(px)\n\n    # Rotation around Y axis by 90 degrees\n    ry = Xform.rotation_y(PI / 2.0)\n    # Apply to point (0,0,1) -> (1,0,0)\n    py = Point(0.0, 0.0, 1.0)\n    rpy = ry.transformed_point(py)\n\n    # Rotation around Z axis by 90 degrees\n    rz = Xform.rotation_z(PI / 2.0)\n    # Apply to point (1,0,0) -> (0,1,0)\n    pz = Point(1.0, 0.0, 0.0)\n    rpz = rz.transformed_point(pz)\n\n    # Rotation around arbitrary axis (1,1,1) by 120 degrees\n    # This cycles x->y->z->x\n    axis = Vector(1.0, 1.0, 1.0)\n    r = Xform.rotation(axis, 2.0 * PI / 3.0)\n    # Apply to point (1,0,0) -> (0,1,0)\n    p = Point(1.0, 0.0, 0.0)\n    rp = r.transformed_point(p)",
+    "time_ms": 0.143,
+    "line": 110,
+    "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_y(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
-        "line": 140,
-        "code_line": "TOLERANCE.is_close(rpx[0], 0.0)",
+        "line": 121,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-s, -1, 0))",
         "passed": true
       },
       {
-        "line": 141,
-        "code_line": "TOLERANCE.is_close(rpx[1], 0.0)",
+        "line": 122,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(0, -1, -s))",
         "passed": true
       },
+      {
+        "line": 123,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(0, 1, -s))",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-s, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(0, -1, s))",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(s, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(s, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(0, 1, s))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Rotation Z",
+    "passed": true,
+    "time_ms": 0.138,
+    "line": 131,
+    "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_z(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
       {
         "line": 142,
-        "code_line": "TOLERANCE.is_close(rpx[2], 1.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(0, -s, -1))",
         "passed": true
       },
       {
         "line": 143,
-        "code_line": "TOLERANCE.is_close(rpy[0], 1.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(s, 0, -1))",
         "passed": true
       },
       {
         "line": 144,
-        "code_line": "TOLERANCE.is_close(rpy[1], 0.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(0, s, -1))",
         "passed": true
       },
       {
         "line": 145,
-        "code_line": "TOLERANCE.is_close(rpy[2], 0.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-s, 0, -1))",
         "passed": true
       },
       {
         "line": 146,
-        "code_line": "TOLERANCE.is_close(rpz[0], 0.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(0, -s, 1))",
         "passed": true
       },
       {
         "line": 147,
-        "code_line": "TOLERANCE.is_close(rpz[1], 1.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(s, 0, 1))",
         "passed": true
       },
       {
         "line": 148,
-        "code_line": "TOLERANCE.is_close(rpz[2], 0.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(0, s, 1))",
         "passed": true
       },
       {
         "line": 149,
-        "code_line": "TOLERANCE.is_close(rp[0], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 150,
-        "code_line": "TOLERANCE.is_close(rp[1], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 151,
-        "code_line": "TOLERANCE.is_close(rp[2], 0.0)",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-s, 0, 1))",
         "passed": true
       }
     ],
@@ -205,15 +276,50 @@
   },
   {
     "group": "Xform",
-    "test_name": "Inverse",
+    "test_name": "Rotation Axis",
     "passed": true,
-    "time_ms": 0.079,
-    "line": 154,
-    "code": "    from session_py import Xform\n\n    # Create composite transformation\n    t = Xform.translation(1.0, 2.0, 3.0)\n    s = Xform.scale_xyz(2.0, 2.0, 2.0)\n    composite = t * s\n\n    # Compute inverse\n    inv = composite.inverse()\n\n    # Multiply should give identity\n    result = composite * inv",
+    "time_ms": 0.143,
+    "line": 152,
+    "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    axis = Vector(1.0, 1.0, 1.0)\n    xf = Xform.rotation(axis, 2.0 * PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)\n    t = 1.0 / 3.0\n    k = 2.0 / math.sqrt(3.0)",
     "checks": [
+      {
+        "line": 166,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1, -1, -1))",
+        "passed": true
+      },
+      {
+        "line": 167,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(-t, -t+k, -t-k))",
+        "passed": true
+      },
+      {
+        "line": 168,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(t-k, t+k, t))",
+        "passed": true
+      },
       {
         "line": 169,
-        "code_line": "result.is_identity()",
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-t-k, -t, -t+k))",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-t+k, -t-k, -t))",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(t+k, t, t-k))",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1, 1, 1))",
+        "passed": true
+      },
+      {
+        "line": 173,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(t, t-k, t+k))",
         "passed": true
       }
     ],
@@ -221,130 +327,50 @@
   },
   {
     "group": "Xform",
-    "test_name": "Transform Geometry",
+    "test_name": "Rotation Around Line",
     "passed": true,
-    "time_ms": 1.035,
-    "line": 172,
-    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Polyline\n\n    # Simple translation by (10, 20, 30)\n    t = Xform.translation(10.0, 20.0, 30.0)\n\n    # Transform Point: (1,2,3) -> (11,22,33)\n    pt = Point(1.0, 2.0, 3.0)\n    pt.xform = t.duplicate()\n    pt_transformed = pt.transformed()\n\n    # Transform Vector: translation should NOT affect vectors\n    v = Vector(1.0, 0.0, 0.0)\n    v_transformed = t.transformed_vector(v)\n\n    # Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    ln = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    ln.xform = t.duplicate()\n    ln_transformed = ln.transformed()\n\n    # Transform Plane: origin (0,0,0) -> (10,20,30)\n    pl = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    pl.xform = t.duplicate()\n    pl_transformed = pl.transformed()\n\n    # Transform Polyline: 3 points translated\n    poly = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)])\n    poly.xform = t.duplicate()\n    poly_transformed = poly.transformed()\n    pts = poly_transformed.get_points()",
+    "time_ms": 0.18,
+    "line": 176,
+    "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Line\n\n    s = math.sqrt(2.0)\n    line = Line(-1.0, -1.0, -1.0, -1.0, -1.0, 1.0)\n    xf = Xform.rotation_around_line(line, PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
-        "line": 209,
-        "code_line": "TOLERANCE.is_close(pt_transformed[0], 11.0)",
+        "line": 189,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1, -1, -1))",
         "passed": true
       },
       {
-        "line": 210,
-        "code_line": "TOLERANCE.is_close(pt_transformed[1], 22.0)",
+        "line": 190,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(s-1, s-1, -1))",
         "passed": true
       },
       {
-        "line": 211,
-        "code_line": "TOLERANCE.is_close(pt_transformed[2], 33.0)",
+        "line": 191,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(-1, 2*s-1, -1))",
         "passed": true
       },
       {
-        "line": 212,
-        "code_line": "TOLERANCE.is_close(v_transformed[0], 1.0)",
+        "line": 192,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-s-1, s-1, -1))",
         "passed": true
       },
       {
-        "line": 213,
-        "code_line": "TOLERANCE.is_close(v_transformed[1], 0.0)",
+        "line": 193,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1, -1, 1))",
         "passed": true
       },
       {
-        "line": 214,
-        "code_line": "TOLERANCE.is_close(v_transformed[2], 0.0)",
+        "line": 194,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(s-1, s-1, 1))",
         "passed": true
       },
       {
-        "line": 215,
-        "code_line": "TOLERANCE.is_close(ln_transformed[0], 10.0)",
+        "line": 195,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(-1, 2*s-1, 1))",
         "passed": true
       },
       {
-        "line": 216,
-        "code_line": "TOLERANCE.is_close(ln_transformed[1], 20.0)",
-        "passed": true
-      },
-      {
-        "line": 217,
-        "code_line": "TOLERANCE.is_close(ln_transformed[2], 30.0)",
-        "passed": true
-      },
-      {
-        "line": 218,
-        "code_line": "TOLERANCE.is_close(ln_transformed[3], 11.0)",
-        "passed": true
-      },
-      {
-        "line": 219,
-        "code_line": "TOLERANCE.is_close(ln_transformed[4], 20.0)",
-        "passed": true
-      },
-      {
-        "line": 220,
-        "code_line": "TOLERANCE.is_close(ln_transformed[5], 30.0)",
-        "passed": true
-      },
-      {
-        "line": 221,
-        "code_line": "TOLERANCE.is_close(pl_transformed.origin[0], 10.0)",
-        "passed": true
-      },
-      {
-        "line": 222,
-        "code_line": "TOLERANCE.is_close(pl_transformed.origin[1], 20.0)",
-        "passed": true
-      },
-      {
-        "line": 223,
-        "code_line": "TOLERANCE.is_close(pl_transformed.origin[2], 30.0)",
-        "passed": true
-      },
-      {
-        "line": 224,
-        "code_line": "TOLERANCE.is_close(pts[0][0], 10.0)",
-        "passed": true
-      },
-      {
-        "line": 225,
-        "code_line": "TOLERANCE.is_close(pts[0][1], 20.0)",
-        "passed": true
-      },
-      {
-        "line": 226,
-        "code_line": "TOLERANCE.is_close(pts[0][2], 30.0)",
-        "passed": true
-      },
-      {
-        "line": 227,
-        "code_line": "TOLERANCE.is_close(pts[1][0], 11.0)",
-        "passed": true
-      },
-      {
-        "line": 228,
-        "code_line": "TOLERANCE.is_close(pts[1][1], 20.0)",
-        "passed": true
-      },
-      {
-        "line": 229,
-        "code_line": "TOLERANCE.is_close(pts[1][2], 30.0)",
-        "passed": true
-      },
-      {
-        "line": 230,
-        "code_line": "TOLERANCE.is_close(pts[2][0], 11.0)",
-        "passed": true
-      },
-      {
-        "line": 231,
-        "code_line": "TOLERANCE.is_close(pts[2][1], 21.0)",
-        "passed": true
-      },
-      {
-        "line": 232,
-        "code_line": "TOLERANCE.is_close(pts[2][2], 30.0)",
+        "line": 196,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-s-1, s-1, 1))",
         "passed": true
       }
     ],
@@ -354,23 +380,48 @@
     "group": "Xform",
     "test_name": "Change Basis",
     "passed": true,
-    "time_ms": 0.182,
-    "line": 235,
-    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # System 0: standard XY plane at origin\n    origin_0 = Point(0.0, 0.0, 0.0)\n    x_axis_0 = Vector(1.0, 0.0, 0.0)\n    y_axis_0 = Vector(0.0, 1.0, 0.0)\n    z_axis_0 = Vector(0.0, 0.0, 1.0)\n\n    # System 1: translated and rotated 90 degrees around Z\n    origin_1 = Point(10.0, 20.0, 0.0)\n    x_axis_1 = Vector(0.0, 1.0, 0.0)\n    y_axis_1 = Vector(-1.0, 0.0, 0.0)\n    z_axis_1 = Vector(0.0, 0.0, 1.0)\n\n    # Transform maps points FROM system 1 TO system 0\n    xform = Xform.change_basis(\n        origin_1, x_axis_1, y_axis_1, z_axis_1,\n        origin_0, x_axis_0, y_axis_0, z_axis_0)\n\n    # Point at origin_1 should map to origin_0\n    p = Point(10.0, 20.0, 0.0)\n    tp = xform.transformed_point(p)",
+    "time_ms": 0.16,
+    "line": 199,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    o0 = Point(0, 0, 0)\n    x0 = Vector(1, 0, 0)\n    y0 = Vector(0, 1, 0)\n    z0 = Vector(0, 0, 1)\n    o1 = Point(0.5, -1.0, 0.5)\n    x1 = Vector(1.2, 0.0, 0.0)\n    y1 = Vector(0.3, -1.0, -0.15)\n    z1 = Vector(0.0, 0.0, 1.1)\n    xf = Xform.change_basis(o0, x0, y0, z0, o1, x1, y1, z1)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
-        "line": 262,
-        "code_line": "TOLERANCE.is_close(tp[0], 0.0)",
+        "line": 217,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1, 0, -0.45))",
         "passed": true
       },
       {
-        "line": 263,
-        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "line": 218,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1.4, 0, -0.45))",
         "passed": true
       },
       {
-        "line": 264,
-        "code_line": "TOLERANCE.is_close(tp[2], 0.0)",
+        "line": 219,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(2, -2, -0.75))",
+        "passed": true
+      },
+      {
+        "line": 220,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-0.4, -2, -0.75))",
+        "passed": true
+      },
+      {
+        "line": 221,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1, 0, 1.75))",
+        "passed": true
+      },
+      {
+        "line": 222,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1.4, 0, 1.75))",
+        "passed": true
+      },
+      {
+        "line": 223,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(2, -2, 1.45))",
+        "passed": true
+      },
+      {
+        "line": 224,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-0.4, -2, 1.45))",
         "passed": true
       }
     ],
@@ -380,23 +431,48 @@
     "group": "Xform",
     "test_name": "Plane To Plane",
     "passed": true,
-    "time_ms": 0.299,
-    "line": 267,
-    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n\n    # Source plane at origin, XY plane\n    plane_from = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n\n    # Target plane translated and rotated\n    plane_to = Plane(Point(10.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0))\n\n    xform = Xform.plane_to_plane(plane_from, plane_to)\n\n    # Origin of source should map to origin of target\n    p = Point(0.0, 0.0, 0.0)\n    tp = xform.transformed_point(p)",
+    "time_ms": 0.182,
+    "line": 227,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n\n    pf = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    pt = Plane(Point(2, 0, 0), Vector(0, 1, 0), Vector(-1, 0, 0))\n    xf = Xform.plane_to_plane(pf, pt)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
-        "line": 286,
-        "code_line": "TOLERANCE.is_close(tp[0], 10.0)",
+        "line": 240,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(1, 1, -1))",
         "passed": true
       },
       {
-        "line": 287,
-        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "line": 241,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1, -1, -1))",
         "passed": true
       },
       {
-        "line": 288,
-        "code_line": "TOLERANCE.is_close(tp[2], 0.0)",
+        "line": 242,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(3, -1, -1))",
+        "passed": true
+      },
+      {
+        "line": 243,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(3, 1, -1))",
+        "passed": true
+      },
+      {
+        "line": 244,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(1, 1, 1))",
+        "passed": true
+      },
+      {
+        "line": 245,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 246,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(3, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 247,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(3, 1, 1))",
         "passed": true
       }
     ],
@@ -404,25 +480,530 @@
   },
   {
     "group": "Xform",
-    "test_name": "Look At Rh",
+    "test_name": "Scale XYZ",
     "passed": true,
-    "time_ms": 0.052,
-    "line": 291,
-    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n\n    # Camera at (0,0,10) looking at origin\n    eye = Point(0.0, 0.0, 10.0)\n    target = Point(0.0, 0.0, 0.0)\n    up = Vector(0.0, 1.0, 0.0)\n\n    xform = Xform.look_at_rh(eye, target, up)\n\n    # The target point should be on the negative Z axis in view space\n    tp = xform.transformed_point(target)",
+    "time_ms": 0.199,
+    "line": 250,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    xf = Xform.scale_xyz(1.5, 1.2, 1.8)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
       {
-        "line": 307,
-        "code_line": "TOLERANCE.is_close(tp[0], 0.0)",
+        "line": 259,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1.5, -1.2, -1.8))",
         "passed": true
       },
       {
-        "line": 308,
-        "code_line": "TOLERANCE.is_close(tp[1], 0.0)",
+        "line": 260,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1.5, -1.2, -1.8))",
         "passed": true
       },
       {
-        "line": 309,
-        "code_line": "TOLERANCE.is_close(tp[2], -10.0)",
+        "line": 261,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(1.5, 1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 262,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-1.5, 1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 263,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1.5, -1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 264,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1.5, -1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 265,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1.5, 1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-1.5, 1.2, 1.8))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Scale Uniform",
+    "passed": true,
+    "time_ms": 0.164,
+    "line": 269,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    c = Point(0, 0, 0)\n    xf = Xform.scale_uniform(c, 2.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
+      {
+        "line": 279,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-2, -2, -2))",
+        "passed": true
+      },
+      {
+        "line": 280,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(2, -2, -2))",
+        "passed": true
+      },
+      {
+        "line": 281,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(2, 2, -2))",
+        "passed": true
+      },
+      {
+        "line": 282,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-2, 2, -2))",
+        "passed": true
+      },
+      {
+        "line": 283,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-2, -2, 2))",
+        "passed": true
+      },
+      {
+        "line": 284,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(2, -2, 2))",
+        "passed": true
+      },
+      {
+        "line": 285,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(2, 2, 2))",
+        "passed": true
+      },
+      {
+        "line": 286,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-2, 2, 2))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Scale Non Uniform",
+    "passed": true,
+    "time_ms": 0.149,
+    "line": 289,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    c = Point(0, 0, 0)\n    xf = Xform.scale_non_uniform(c, 1.5, 1.2, 1.8)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
+      {
+        "line": 299,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1.5, -1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 300,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1.5, -1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 301,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(1.5, 1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 302,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-1.5, 1.2, -1.8))",
+        "passed": true
+      },
+      {
+        "line": 303,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1.5, -1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 304,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1.5, -1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 305,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1.5, 1.2, 1.8))",
+        "passed": true
+      },
+      {
+        "line": 306,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-1.5, 1.2, 1.8))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Look At Right Handed",
+    "passed": true,
+    "time_ms": 0.148,
+    "line": 309,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    eye = Point(0, 3, 0)\n    target = Point(0, 0, 0)\n    xf = Xform.look_at_right_handed(eye, target, Vector(0, 0, 1))\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
+      {
+        "line": 321,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(1, -1, -4))",
+        "passed": true
+      },
+      {
+        "line": 322,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(-1, -1, -4))",
+        "passed": true
+      },
+      {
+        "line": 323,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(-1, -1, -2))",
+        "passed": true
+      },
+      {
+        "line": 324,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(1, -1, -2))",
+        "passed": true
+      },
+      {
+        "line": 325,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(1, 1, -4))",
+        "passed": true
+      },
+      {
+        "line": 326,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(-1, 1, -4))",
+        "passed": true
+      },
+      {
+        "line": 327,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(-1, 1, -2))",
+        "passed": true
+      },
+      {
+        "line": 328,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(1, 1, -2))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Look To Right Handed",
+    "passed": true,
+    "time_ms": 0.151,
+    "line": 331,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    eye = Point(0, 3, 0)\n    direction = Vector(0, -1, 0)\n    xf = Xform.look_to_right_handed(eye, direction, Vector(0, 0, 1))\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
+      {
+        "line": 343,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(1, -1, -4))",
+        "passed": true
+      },
+      {
+        "line": 344,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(-1, -1, -4))",
+        "passed": true
+      },
+      {
+        "line": 345,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(-1, -1, -2))",
+        "passed": true
+      },
+      {
+        "line": 346,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(1, -1, -2))",
+        "passed": true
+      },
+      {
+        "line": 347,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(1, 1, -4))",
+        "passed": true
+      },
+      {
+        "line": 348,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(-1, 1, -4))",
+        "passed": true
+      },
+      {
+        "line": 349,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(-1, 1, -2))",
+        "passed": true
+      },
+      {
+        "line": 350,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(1, 1, -2))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Perspective",
+    "passed": true,
+    "time_ms": 0.141,
+    "line": 353,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    view = Xform.translation(0, 0, -2)\n    proj = Xform.perspective(PI / 2.0, 1.0, 1.0, 3.0)\n    xf = proj * view\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)\n    t = 1.0 / 3.0",
+    "checks": [
+      {
+        "line": 365,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-t, -t, 1))",
+        "passed": true
+      },
+      {
+        "line": 366,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(t, -t, 1))",
+        "passed": true
+      },
+      {
+        "line": 367,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(t, t, 1))",
+        "passed": true
+      },
+      {
+        "line": 368,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-t, t, 1))",
+        "passed": true
+      },
+      {
+        "line": 369,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 370,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 371,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 372,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-1, 1, 0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Orthographic",
+    "passed": true,
+    "time_ms": 0.145,
+    "line": 375,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    view = Xform.translation(0, 0, -2)\n    proj = Xform.orthographic(-1.0, 1.0, -1.0, 1.0, 1.0, 3.0)\n    xf = proj * view\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
+    "checks": [
+      {
+        "line": 386,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(0), Point(-1, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 387,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(1), Point(1, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 388,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(2), Point(1, 1, 1))",
+        "passed": true
+      },
+      {
+        "line": 389,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(3), Point(-1, 1, 1))",
+        "passed": true
+      },
+      {
+        "line": 390,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(4), Point(-1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 391,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(5), Point(1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 392,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(6), Point(1, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 393,
+        "code_line": "TOLERANCE.is_point_close(result.vertex_point(7), Point(-1, 1, 0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Project To Plane",
+    "passed": true,
+    "time_ms": 0.139,
+    "line": 396,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Polyline\n\n    plane = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    move = Xform.translation(0, 0, 1)\n    proj = Xform.project_to_plane(plane)\n    xf = proj * move\n    def tp(x, y, z):\n        p = Point(x, y, z)\n        p.xform = xf\n        return p.transformed()\n    outline = Polyline([\n        tp(-1, -1, -1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, -1),\n        tp(-1, -1, -1)\n    ])\n    pts = outline.get_points()",
+    "checks": [
+      {
+        "line": 421,
+        "code_line": "TOLERANCE.is_point_close(pts[0], Point(-1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 422,
+        "code_line": "TOLERANCE.is_point_close(pts[1], Point(1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 423,
+        "code_line": "TOLERANCE.is_point_close(pts[2], Point(1, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 424,
+        "code_line": "TOLERANCE.is_point_close(pts[3], Point(-1, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 425,
+        "code_line": "TOLERANCE.is_point_close(pts[4], Point(-1, -1, 0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Project To Plane By Axis",
+    "passed": true,
+    "time_ms": 0.125,
+    "line": 428,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Polyline\n\n    plane = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    direction = Vector(1, 0, 1)\n    move = Xform.translation(0, 0, 1)\n    proj = Xform.project_to_plane_by_axis(plane, direction)\n    xf = proj * move\n    def tp(x, y, z):\n        p = Point(x, y, z)\n        p.xform = xf\n        return p.transformed()\n    outline = Polyline([\n        tp(-1, -1, 1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, 1),\n        tp(-1, -1, 1)\n    ])\n    pts = outline.get_points()",
+    "checks": [
+      {
+        "line": 454,
+        "code_line": "TOLERANCE.is_point_close(pts[0], Point(-3, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 455,
+        "code_line": "TOLERANCE.is_point_close(pts[1], Point(1, -1, 0))",
+        "passed": true
+      },
+      {
+        "line": 456,
+        "code_line": "TOLERANCE.is_point_close(pts[2], Point(1, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 457,
+        "code_line": "TOLERANCE.is_point_close(pts[3], Point(-3, 1, 0))",
+        "passed": true
+      },
+      {
+        "line": 458,
+        "code_line": "TOLERANCE.is_point_close(pts[4], Point(-3, -1, 0))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Inverse",
+    "passed": true,
+    "time_ms": 0.257,
+    "line": 461,
+    "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    t = Xform.translation(1.0, 0.5, 0.5)\n    s = Xform.scale_xyz(1.5, 1.2, 1.3)\n    composite = t * s\n    inv = composite.inverse()\n    mesh = Mesh.create_box(2, 2, 2)\n    forward = mesh.transformed(composite)\n    roundtrip = forward.transformed(inv)",
+    "checks": [
+      {
+        "line": 474,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(0), Point(-1, -1, -1))",
+        "passed": true
+      },
+      {
+        "line": 475,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(1), Point(1, -1, -1))",
+        "passed": true
+      },
+      {
+        "line": 476,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(2), Point(1, 1, -1))",
+        "passed": true
+      },
+      {
+        "line": 477,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(3), Point(-1, 1, -1))",
+        "passed": true
+      },
+      {
+        "line": 478,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(4), Point(-1, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 479,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(5), Point(1, -1, 1))",
+        "passed": true
+      },
+      {
+        "line": 480,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(6), Point(1, 1, 1))",
+        "passed": true
+      },
+      {
+        "line": 481,
+        "code_line": "TOLERANCE.is_point_close(roundtrip.vertex_point(7), Point(-1, 1, 1))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Xform",
+    "test_name": "Transform Geometry",
+    "passed": true,
+    "time_ms": 0.212,
+    "line": 484,
+    "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Polyline\n\n    # Simple translation by (10, 20, 30)\n    t = Xform.translation(10.0, 20.0, 30.0)\n\n    # Transform Point: (1,2,3) -> (11,22,33)\n    pt = Point(1.0, 2.0, 3.0)\n    pt.xform = t\n    pt_transformed = pt.transformed()\n\n    # Transform Vector: translation should NOT affect vectors\n    v = Vector(1.0, 0.0, 0.0)\n    v.xform = t\n    v_transformed = v.transformed()\n\n    # Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    ln = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    ln.xform = t\n    ln_transformed = ln.transformed()\n\n    # Transform Plane: origin (0,0,0) -> (10,20,30)\n    pl = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    pl.xform = t\n    pl_transformed = pl.transformed()\n\n    # Transform Polyline: 3 points translated\n    poly = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)])\n    poly.xform = t\n    poly_transformed = poly.transformed()\n    pts = poly_transformed.get_points()",
+    "checks": [
+      {
+        "line": 522,
+        "code_line": "TOLERANCE.is_point_close(pt_transformed, Point(11.0, 22.0, 33.0))",
+        "passed": true
+      },
+      {
+        "line": 523,
+        "code_line": "v_transformed[0] == 1.0 and v_transformed[1] == 0.0 and v_transformed[2] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 524,
+        "code_line": "ln_transformed[0] == 10.0 and ln_transformed[1] == 20.0 and ln_transformed[2] == 30.0",
+        "passed": true
+      },
+      {
+        "line": 525,
+        "code_line": "ln_transformed[3] == 11.0 and ln_transformed[4] == 20.0 and ln_transformed[5] == 30.0",
+        "passed": true
+      },
+      {
+        "line": 526,
+        "code_line": "TOLERANCE.is_point_close(pl_transformed.origin, Point(10.0, 20.0, 30.0))",
+        "passed": true
+      },
+      {
+        "line": 527,
+        "code_line": "TOLERANCE.is_point_close(pts[0], Point(10.0, 20.0, 30.0))",
+        "passed": true
+      },
+      {
+        "line": 528,
+        "code_line": "TOLERANCE.is_point_close(pts[1], Point(11.0, 20.0, 30.0))",
+        "passed": true
+      },
+      {
+        "line": 529,
+        "code_line": "TOLERANCE.is_point_close(pts[2], Point(11.0, 21.0, 30.0))",
         "passed": true
       }
     ],
@@ -432,28 +1013,58 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 19.637,
-    "line": 312,
-    "code": "    from session_py import Xform\n    from pathlib import Path\n\n    # Create a non-identity xform\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.json\"\n    xform.json_dump(fname)\n    loaded = Xform.json_load(fname)",
+    "time_ms": 7.769,
+    "line": 532,
+    "code": "    from session_py import Xform\n    from pathlib import Path\n\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.json\"\n    xform.json_dump(fname)\n    loaded = Xform.json_load(fname)",
     "checks": [
       {
-        "line": 333,
+        "line": 544,
         "code_line": "loaded.name == \"test_xform\"",
         "passed": true
       },
       {
-        "line": 334,
-        "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0)",
+        "line": 545,
+        "code_line": "loaded.guid == xform.guid",
         "passed": true
       },
       {
-        "line": 335,
-        "code_line": "TOLERANCE.is_close(loaded.m[13], 2.0)",
+        "line": 546,
+        "code_line": "TOLERANCE.is_close(loaded.m[0], 1.0) and TOLERANCE.is_close(loaded.m[1], 0.0)",
         "passed": true
       },
       {
-        "line": 336,
-        "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0)",
+        "line": 547,
+        "code_line": "TOLERANCE.is_close(loaded.m[2], 0.0) and TOLERANCE.is_close(loaded.m[3], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 548,
+        "code_line": "TOLERANCE.is_close(loaded.m[4], 0.0) and TOLERANCE.is_close(loaded.m[5], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 549,
+        "code_line": "TOLERANCE.is_close(loaded.m[6], 0.0) and TOLERANCE.is_close(loaded.m[7], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 550,
+        "code_line": "TOLERANCE.is_close(loaded.m[8], 0.0) and TOLERANCE.is_close(loaded.m[9], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 551,
+        "code_line": "TOLERANCE.is_close(loaded.m[10], 1.0) and TOLERANCE.is_close(loaded.m[11], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 552,
+        "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0) and TOLERANCE.is_close(loaded.m[13], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 553,
+        "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0) and TOLERANCE.is_close(loaded.m[15], 1.0)",
         "passed": true
       }
     ],
@@ -463,28 +1074,58 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 19.876,
-    "line": 339,
-    "code": "    from session_py import Xform\n    from pathlib import Path\n\n    # Create a non-identity xform\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform_proto\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # pb_dump(fname) / pb_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.bin\"\n    xform.pb_dump(fname)\n    loaded = Xform.pb_load(fname)",
+    "time_ms": 5.847,
+    "line": 556,
+    "code": "    from session_py import Xform\n    from pathlib import Path\n\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform_proto\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.bin\"\n    xform.pb_dump(fname)\n    loaded = Xform.pb_load(fname)",
     "checks": [
       {
-        "line": 358,
+        "line": 568,
         "code_line": "loaded.name == \"test_xform_proto\"",
         "passed": true
       },
       {
-        "line": 359,
-        "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0)",
+        "line": 569,
+        "code_line": "loaded.guid == xform.guid",
         "passed": true
       },
       {
-        "line": 360,
-        "code_line": "TOLERANCE.is_close(loaded.m[13], 2.0)",
+        "line": 570,
+        "code_line": "TOLERANCE.is_close(loaded.m[0], 1.0) and TOLERANCE.is_close(loaded.m[1], 0.0)",
         "passed": true
       },
       {
-        "line": 361,
-        "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0)",
+        "line": 571,
+        "code_line": "TOLERANCE.is_close(loaded.m[2], 0.0) and TOLERANCE.is_close(loaded.m[3], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 572,
+        "code_line": "TOLERANCE.is_close(loaded.m[4], 0.0) and TOLERANCE.is_close(loaded.m[5], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 573,
+        "code_line": "TOLERANCE.is_close(loaded.m[6], 0.0) and TOLERANCE.is_close(loaded.m[7], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 574,
+        "code_line": "TOLERANCE.is_close(loaded.m[8], 0.0) and TOLERANCE.is_close(loaded.m[9], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 575,
+        "code_line": "TOLERANCE.is_close(loaded.m[10], 1.0) and TOLERANCE.is_close(loaded.m[11], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 576,
+        "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0) and TOLERANCE.is_close(loaded.m[13], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 577,
+        "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0) and TOLERANCE.is_close(loaded.m[15], 1.0)",
         "passed": true
       }
     ],

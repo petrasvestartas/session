@@ -3,57 +3,57 @@
   "terminals": [
     {
       "splitTerminals": [
-        { "name": "bash", "profile": "Git Bash", "commands": ["cd C:/rust/session/bash"] }
+        { "name": "bash", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session/bash"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "session", "profile": "Git Bash", "commands": ["cd C:/rust/session"] }
+        { "name": "session", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "session_cpp", "profile": "Git Bash", "commands": ["cd C:/rust/session/session_cpp"] }
+        { "name": "session_cpp", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session/session_cpp"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "session_proto", "profile": "Git Bash", "commands": ["cd C:/rust/session/session_proto"] }
+        { "name": "session_proto", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session/session_proto"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "session_py", "profile": "Git Bash", "commands": ["cd C:/rust/session/session_py"] }
+        { "name": "session_py", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session/session_py"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "session_rust", "profile": "Git Bash", "commands": ["cd C:/rust/session/session_rust"] }
+        { "name": "session_rust", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session/session_rust"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "claude mcp", "profile": "Git Bash", "commands": ["cd C:/rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude mcp", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "claude class structure", "profile": "Git Bash", "commands": ["cd C:/rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude class structure", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "claude bash", "profile": "Git Bash", "commands": ["cd C:/rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude bash", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "claude test validity", "profile": "Git Bash", "commands": ["cd C:/rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude test validity", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     },
     {
       "splitTerminals": [
-        { "name": "claude vue template", "profile": "Git Bash", "commands": ["cd C:/rust/session && claude --dangerously-skip-permissions"] }
+        { "name": "claude vue template", "profile": "Git Bash", "commands": ["cd C:/brg/code_rust/session && claude --dangerously-skip-permissions"] }
       ]
     }
   ]

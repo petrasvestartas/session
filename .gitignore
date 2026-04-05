@@ -102,3 +102,7 @@ opennurbs-8.x
 
 temp
 
+# Build cache hashes
+.py_install_hash
+.api_index_hash
+

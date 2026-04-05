@@ -3,27 +3,27 @@
     "group": "Intersection",
     "test_name": "Line Line",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.011,
     "line": 10,
-    "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);",
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);",
     "checks": [
       {
-        "line": 17,
+        "line": 20,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 18,
+        "line": 21,
         "code_line": "TOLERANCE.is_close(output[0], 0.5)",
         "passed": true
       },
       {
-        "line": 19,
+        "line": 22,
         "code_line": "TOLERANCE.is_close(output[1], 0.0)",
         "passed": true
       },
       {
-        "line": 20,
+        "line": 23,
         "code_line": "TOLERANCE.is_close(output[2], 0.0)",
         "passed": true
       }
@@ -34,12 +34,12 @@
     "group": "Intersection",
     "test_name": "Line Line Parallel",
     "passed": true,
-    "time_ms": 0.119,
-    "line": 23,
-    "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.0, 1.0, 0.0, 1.0, 1.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);",
+    "time_ms": 0.004,
+    "line": 26,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.0, 1.0, 0.0, 1.0, 1.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_line(line0, line1, output, Tolerance::APPROXIMATION);",
     "checks": [
       {
-        "line": 30,
+        "line": 36,
         "code_line": "!result",
         "passed": true
       }
@@ -50,22 +50,22 @@
     "group": "Intersection",
     "test_name": "Line Line Parameters",
     "passed": true,
-    "time_ms": 0.02,
-    "line": 33,
-    "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);",
+    "time_ms": 0.003,
+    "line": 39,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.5, -1.0, 0.0, 0.5, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);",
     "checks": [
       {
-        "line": 40,
+        "line": 48,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 41,
+        "line": 49,
         "code_line": "TOLERANCE.is_close(t0, 0.5)",
         "passed": true
       },
       {
-        "line": 42,
+        "line": 50,
         "code_line": "TOLERANCE.is_close(t1, 0.5)",
         "passed": true
       }
@@ -76,22 +76,22 @@
     "group": "Intersection",
     "test_name": "Line Line Parameters Endpoints",
     "passed": true,
-    "time_ms": 0.014,
-    "line": 45,
-    "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);",
+    "time_ms": 0.003,
+    "line": 53,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, Tolerance::APPROXIMATION);",
     "checks": [
       {
-        "line": 52,
+        "line": 62,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 53,
+        "line": 63,
         "code_line": "TOLERANCE.is_close(t0, 0.0)",
         "passed": true
       },
       {
-        "line": 54,
+        "line": 64,
         "code_line": "TOLERANCE.is_close(t1, 0.0)",
         "passed": true
       }
@@ -102,17 +102,17 @@
     "group": "Intersection",
     "test_name": "Line Line Parameters Infinite",
     "passed": true,
-    "time_ms": 0.019,
-    "line": 57,
-    "code": "    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(2.0, -1.0, 0.0, 2.0, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, static_cast<double>(Tolerance::APPROXIMATION), false);",
+    "time_ms": 0.003,
+    "line": 67,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    Line line0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line line1(2.0, -1.0, 0.0, 2.0, 1.0, 0.0);\n\n    double t0, t1;\n    bool result = Intersection::line_line_parameters(line0, line1, t0, t1, static_cast<double>(Tolerance::APPROXIMATION), false);",
     "checks": [
       {
-        "line": 64,
+        "line": 76,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 65,
+        "line": 77,
         "code_line": "TOLERANCE.is_close(t0, 2.0)",
         "passed": true
       }
@@ -123,27 +123,27 @@
     "group": "Intersection",
     "test_name": "Plane Plane",
     "passed": true,
-    "time_ms": 0.044,
-    "line": 68,
-    "code": "    Point p0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Plane plane0 = Plane::from_point_normal(p0, n0);\n\n    Point p1(0.0, 0.0, 0.0);\n    Vector n1(0.0, 1.0, 0.0);\n    Plane plane1 = Plane::from_point_normal(p1, n1);\n\n    Line output;\n    bool result = Intersection::plane_plane(plane0, plane1, output);\n\n\n    Vector line_dir = output.to_vector();",
+    "time_ms": 0.012,
+    "line": 80,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point p0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Plane plane0 = Plane::from_point_normal(p0, n0);\n\n    Point p1(0.0, 0.0, 0.0);\n    Vector n1(0.0, 1.0, 0.0);\n    Plane plane1 = Plane::from_point_normal(p1, n1);\n\n    Line output;\n    bool result = Intersection::plane_plane(plane0, plane1, output);\n\n\n    Vector line_dir = output.to_vector();",
     "checks": [
       {
-        "line": 80,
+        "line": 97,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 83,
+        "line": 100,
         "code_line": "std::fabs(std::fabs(line_dir[0]) - 1.0) < 1e-4",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 101,
         "code_line": "std::fabs(line_dir[1]) < 1e-4",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 102,
         "code_line": "std::fabs(line_dir[2]) < 1e-4",
         "passed": true
       }
@@ -154,42 +154,42 @@
     "group": "Intersection",
     "test_name": "Plane Plane Complex",
     "passed": true,
-    "time_ms": 0.032,
-    "line": 88,
-    "code": "    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point plane_origin_1(247.17924, 499.115486, 59.619568);\n    Vector plane_xaxis_1(0.552465, 0.816035, 0.16991);\n    Vector plane_yaxis_1(0.172987, 0.087156, -0.98106);\n    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);\n\n    Line intersection_line;\n    bool result = Intersection::plane_plane(pl0, pl1, intersection_line);\n\n\n    Point start = intersection_line.start();\n    Point end = intersection_line.end();\n",
+    "time_ms": 0.004,
+    "line": 105,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point plane_origin_1(247.17924, 499.115486, 59.619568);\n    Vector plane_xaxis_1(0.552465, 0.816035, 0.16991);\n    Vector plane_yaxis_1(0.172987, 0.087156, -0.98106);\n    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);\n\n    Line intersection_line;\n    bool result = Intersection::plane_plane(pl0, pl1, intersection_line);\n\n\n    Point start = intersection_line.start();\n    Point end = intersection_line.end();\n",
     "checks": [
       {
-        "line": 102,
+        "line": 124,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 107,
+        "line": 129,
         "code_line": "std::fabs(start[0] - 252.4632) < 0.01",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 130,
         "code_line": "std::fabs(start[1] - 495.32248) < 0.01",
         "passed": true
       },
       {
-        "line": 109,
+        "line": 131,
         "code_line": "std::fabs(start[2] - (-10.002656)) < 0.01",
         "passed": true
       },
       {
-        "line": 111,
+        "line": 133,
         "code_line": "std::fabs(end[0] - 253.01033) < 0.01",
         "passed": true
       },
       {
-        "line": 112,
+        "line": 134,
         "code_line": "std::fabs(end[1] - 496.1218) < 0.01",
         "passed": true
       },
       {
-        "line": 113,
+        "line": 135,
         "code_line": "std::fabs(end[2] - (-9.888727)) < 0.01",
         "passed": true
       }
@@ -200,27 +200,27 @@
     "group": "Intersection",
     "test_name": "Line Plane",
     "passed": true,
-    "time_ms": 0.029,
-    "line": 116,
-    "code": "    Point p(0.0, 0.0, 1.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(p, n);\n\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 2.0);\n\n    Point output;\n    bool result = Intersection::line_plane(line, plane, output, true);",
+    "time_ms": 0.002,
+    "line": 138,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point p(0.0, 0.0, 1.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(p, n);\n\n    Line line(0.0, 0.0, 0.0, 0.0, 0.0, 2.0);\n\n    Point output;\n    bool result = Intersection::line_plane(line, plane, output, true);",
     "checks": [
       {
-        "line": 126,
+        "line": 153,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 127,
+        "line": 154,
         "code_line": "TOLERANCE.is_close(output[0], 0.0)",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 155,
         "code_line": "TOLERANCE.is_close(output[1], 0.0)",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 156,
         "code_line": "TOLERANCE.is_close(output[2], 1.0)",
         "passed": true
       }
@@ -231,12 +231,12 @@
     "group": "Intersection",
     "test_name": "Line Plane Parallel",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 132,
-    "code": "    Point p(0.0, 0.0, 1.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(p, n);\n\n    Line line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_plane(line, plane, output, true);",
+    "time_ms": 0.002,
+    "line": 159,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point p(0.0, 0.0, 1.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(p, n);\n\n    Line line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n\n    Point output;\n    bool result = Intersection::line_plane(line, plane, output, true);",
     "checks": [
       {
-        "line": 142,
+        "line": 174,
         "code_line": "!result",
         "passed": true
       }
@@ -247,27 +247,27 @@
     "group": "Intersection",
     "test_name": "Line Plane Real World",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 145,
-    "code": "    Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);\n\n    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point lp;\n    bool result = Intersection::line_plane(l0, pl0, lp);",
+    "time_ms": 0.002,
+    "line": 177,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Line l0(500.000, -573.576, -819.152, 500.000, 573.576, 819.152);\n\n    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point lp;\n    bool result = Intersection::line_plane(l0, pl0, lp);",
     "checks": [
       {
-        "line": 156,
+        "line": 193,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 157,
+        "line": 194,
         "code_line": "std::fabs(lp[0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 158,
+        "line": 195,
         "code_line": "std::fabs(lp[1] - 77.7531) < 0.01",
         "passed": true
       },
       {
-        "line": 159,
+        "line": 196,
         "code_line": "std::fabs(lp[2] - 111.043) < 0.01",
         "passed": true
       }
@@ -278,27 +278,27 @@
     "group": "Intersection",
     "test_name": "Plane Plane Plane",
     "passed": true,
-    "time_ms": 0.021,
-    "line": 162,
-    "code": "    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point plane_origin_1(247.17924, 499.115486, 59.619568);\n    Vector plane_xaxis_1(0.552465, 0.816035, 0.16991);\n    Vector plane_yaxis_1(0.172987, 0.087156, -0.98106);\n    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);\n\n    Point plane_origin_2(221.399816, 605.893667, -54.000116);\n    Vector plane_xaxis_2(0.903451, -0.360516, -0.231957);\n    Vector plane_yaxis_2(0.172742, -0.189057, 0.966653);\n    Plane pl2(plane_origin_2, plane_xaxis_2, plane_yaxis_2);\n\n    Point output;\n    bool result = Intersection::plane_plane_plane(pl0, pl1, pl2, output);",
+    "time_ms": 0.002,
+    "line": 199,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point plane_origin_0(213.787107, 513.797811, -24.743845);\n    Vector plane_xaxis_0(0.907673, -0.258819, 0.330366);\n    Vector plane_yaxis_0(0.272094, 0.96225, 0.006285);\n    Plane pl0(plane_origin_0, plane_xaxis_0, plane_yaxis_0);\n\n    Point plane_origin_1(247.17924, 499.115486, 59.619568);\n    Vector plane_xaxis_1(0.552465, 0.816035, 0.16991);\n    Vector plane_yaxis_1(0.172987, 0.087156, -0.98106);\n    Plane pl1(plane_origin_1, plane_xaxis_1, plane_yaxis_1);\n\n    Point plane_origin_2(221.399816, 605.893667, -54.000116);\n    Vector plane_xaxis_2(0.903451, -0.360516, -0.231957);\n    Vector plane_yaxis_2(0.172742, -0.189057, 0.966653);\n    Plane pl2(plane_origin_2, plane_xaxis_2, plane_yaxis_2);\n\n    Point output;\n    bool result = Intersection::plane_plane_plane(pl0, pl1, pl2, output);",
     "checks": [
       {
-        "line": 181,
+        "line": 222,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 182,
+        "line": 223,
         "code_line": "std::fabs(output[0] - 300.5) < 0.1",
         "passed": true
       },
       {
-        "line": 183,
+        "line": 224,
         "code_line": "std::fabs(output[1] - 565.5) < 0.1",
         "passed": true
       },
       {
-        "line": 184,
+        "line": 225,
         "code_line": "std::fabs(output[2] - 0.0) < 0.1",
         "passed": true
       }
@@ -309,12 +309,12 @@
     "group": "Intersection",
     "test_name": "Plane Plane Plane Parallel",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 187,
-    "code": "    Point p0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Plane plane0 = Plane::from_point_normal(p0, n0);\n\n    Point p1(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Plane plane1 = Plane::from_point_normal(p1, n1);\n\n    Point p2(0.0, 0.0, 0.0);\n    Vector n2(1.0, 0.0, 0.0);\n    Plane plane2 = Plane::from_point_normal(p2, n2);\n\n    Point output;\n    bool result = Intersection::plane_plane_plane(plane0, plane1, plane2, output);",
+    "time_ms": 0.002,
+    "line": 228,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point p0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Plane plane0 = Plane::from_point_normal(p0, n0);\n\n    Point p1(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Plane plane1 = Plane::from_point_normal(p1, n1);\n\n    Point p2(0.0, 0.0, 0.0);\n    Vector n2(1.0, 0.0, 0.0);\n    Plane plane2 = Plane::from_point_normal(p2, n2);\n\n    Point output;\n    bool result = Intersection::plane_plane_plane(plane0, plane1, plane2, output);",
     "checks": [
       {
-        "line": 203,
+        "line": 248,
         "code_line": "!result",
         "passed": true
       }
@@ -325,22 +325,22 @@
     "group": "Intersection",
     "test_name": "Ray Box",
     "passed": true,
-    "time_ms": 0.036,
-    "line": 206,
-    "code": "    Point center(0.0, 0.0, 0.0);\n    Vector x_axis(1.0, 0.0, 0.0);\n    Vector y_axis(0.0, 1.0, 0.0);\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector half_size(1.0, 1.0, 1.0);\n    OBB box(center, x_axis, y_axis, z_axis, half_size);\n\n    Point origin(-5.0, 0.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    double tmin, tmax;\n    bool result = Intersection::ray_box(origin, direction, box, 0.0, 100.0, tmin, tmax);",
+    "time_ms": 0.009,
+    "line": 251,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point center(0.0, 0.0, 0.0);\n    Vector x_axis(1.0, 0.0, 0.0);\n    Vector y_axis(0.0, 1.0, 0.0);\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector half_size(1.0, 1.0, 1.0);\n    OBB box(center, x_axis, y_axis, z_axis, half_size);\n\n    Point origin(-5.0, 0.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    double tmin, tmax;\n    bool result = Intersection::ray_box(origin, direction, box, 0.0, 100.0, tmin, tmax);",
     "checks": [
       {
-        "line": 220,
+        "line": 269,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 221,
+        "line": 270,
         "code_line": "std::fabs(tmin - 4.0) < 1e-4",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 271,
         "code_line": "std::fabs(tmax - 6.0) < 1e-4",
         "passed": true
       }
@@ -351,12 +351,12 @@
     "group": "Intersection",
     "test_name": "Ray Box Miss",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 225,
-    "code": "    Point center(0.0, 0.0, 0.0);\n    Vector x_axis(1.0, 0.0, 0.0);\n    Vector y_axis(0.0, 1.0, 0.0);\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector half_size(1.0, 1.0, 1.0);\n    OBB box(center, x_axis, y_axis, z_axis, half_size);\n\n    Point origin(-5.0, 5.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    double tmin, tmax;\n    bool result = Intersection::ray_box(origin, direction, box, 0.0, 100.0, tmin, tmax);",
+    "time_ms": 0.003,
+    "line": 274,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point center(0.0, 0.0, 0.0);\n    Vector x_axis(1.0, 0.0, 0.0);\n    Vector y_axis(0.0, 1.0, 0.0);\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector half_size(1.0, 1.0, 1.0);\n    OBB box(center, x_axis, y_axis, z_axis, half_size);\n\n    Point origin(-5.0, 5.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    double tmin, tmax;\n    bool result = Intersection::ray_box(origin, direction, box, 0.0, 100.0, tmin, tmax);",
     "checks": [
       {
-        "line": 239,
+        "line": 292,
         "code_line": "!result",
         "passed": true
       }
@@ -367,22 +367,22 @@
     "group": "Intersection",
     "test_name": "Ray Sphere",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 242,
-    "code": "    Point origin(-5.0, 0.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
+    "time_ms": 0.001,
+    "line": 295,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(-5.0, 0.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
     "checks": [
       {
-        "line": 251,
+        "line": 307,
         "code_line": "hits == 2",
         "passed": true
       },
       {
-        "line": 252,
+        "line": 308,
         "code_line": "std::fabs(t0 - 3.0) < 1e-4",
         "passed": true
       },
       {
-        "line": 253,
+        "line": 309,
         "code_line": "std::fabs(t1 - 7.0) < 1e-4",
         "passed": true
       }
@@ -393,17 +393,17 @@
     "group": "Intersection",
     "test_name": "Ray Sphere Tangent",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 256,
-    "code": "    Point origin(-5.0, 2.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
+    "time_ms": 0.0,
+    "line": 312,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(-5.0, 2.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
     "checks": [
       {
-        "line": 265,
+        "line": 324,
         "code_line": "hits == 1",
         "passed": true
       },
       {
-        "line": 266,
+        "line": 325,
         "code_line": "std::fabs(t0 - 5.0) < 1e-4",
         "passed": true
       }
@@ -414,12 +414,12 @@
     "group": "Intersection",
     "test_name": "Ray Sphere Miss",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 269,
-    "code": "    Point origin(-5.0, 5.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
+    "time_ms": 0.001,
+    "line": 328,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(-5.0, 5.0, 0.0);\n    Vector direction(1.0, 0.0, 0.0);\n    Point center(0.0, 0.0, 0.0);\n    double radius = 2.0;\n\n    double t0, t1;\n    int hits = Intersection::ray_sphere(origin, direction, center, radius, t0, t1);",
     "checks": [
       {
-        "line": 278,
+        "line": 340,
         "code_line": "hits == 0",
         "passed": true
       }
@@ -430,22 +430,22 @@
     "group": "Intersection",
     "test_name": "Ray Triangle",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 281,
-    "code": "    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
+    "time_ms": 0.001,
+    "line": 343,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
     "checks": [
       {
-        "line": 293,
+        "line": 358,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 294,
+        "line": 359,
         "code_line": "!parallel",
         "passed": true
       },
       {
-        "line": 295,
+        "line": 360,
         "code_line": "std::fabs(t - 1.0) < 1e-4",
         "passed": true
       }
@@ -456,12 +456,12 @@
     "group": "Intersection",
     "test_name": "Ray Triangle Miss",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 298,
-    "code": "    Point origin(2.0, 2.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
+    "time_ms": 0.001,
+    "line": 363,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(2.0, 2.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
     "checks": [
       {
-        "line": 310,
+        "line": 378,
         "code_line": "!result",
         "passed": true
       }
@@ -472,17 +472,17 @@
     "group": "Intersection",
     "test_name": "Ray Triangle Parallel",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 313,
-    "code": "    Point origin(0.5, 0.5, -1.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
+    "time_ms": 0.001,
+    "line": 381,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(1.0, 0.0, 0.0);\n\n    Point v0(0.0, 0.0, 0.0);\n    Point v1(1.0, 0.0, 0.0);\n    Point v2(0.0, 1.0, 0.0);\n\n    double t, u, v;\n    bool parallel;\n    bool result = Intersection::ray_triangle(origin, direction, v0, v1, v2, 1e-6, t, u, v, parallel);",
     "checks": [
       {
-        "line": 325,
+        "line": 396,
         "code_line": "!result",
         "passed": true
       },
       {
-        "line": 326,
+        "line": 397,
         "code_line": "parallel",
         "passed": true
       }
@@ -493,22 +493,22 @@
     "group": "Intersection",
     "test_name": "Ray Mesh",
     "passed": true,
-    "time_ms": 0.217,
-    "line": 329,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
+    "time_ms": 0.067,
+    "line": 400,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
     "checks": [
       {
-        "line": 353,
+        "line": 428,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 354,
+        "line": 429,
         "code_line": "hits.size() >= 1",
         "passed": true
       },
       {
-        "line": 355,
+        "line": 430,
         "code_line": "std::fabs(hits[0].t - 1.0) < 1e-3",
         "passed": true
       }
@@ -519,77 +519,9 @@
     "group": "Intersection",
     "test_name": "Ray Mesh First",
     "passed": true,
-    "time_ms": 0.147,
-    "line": 358,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, false);",
-    "checks": [
-      {
-        "line": 382,
-        "code_line": "result",
-        "passed": true
-      },
-      {
-        "line": 383,
-        "code_line": "hits.size() == 1",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "Intersection",
-    "test_name": "Ray Mesh Miss",
-    "passed": true,
-    "time_ms": 0.102,
-    "line": 386,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
-    "checks": [
-      {
-        "line": 404,
-        "code_line": "!result",
-        "passed": true
-      },
-      {
-        "line": 405,
-        "code_line": "hits.size() == 0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "Intersection",
-    "test_name": "Ray Mesh Bvh",
-    "passed": true,
-    "time_ms": 2.281,
-    "line": 408,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
-    "checks": [
-      {
-        "line": 432,
-        "code_line": "result",
-        "passed": true
-      },
-      {
-        "line": 433,
-        "code_line": "hits.size() >= 1",
-        "passed": true
-      },
-      {
-        "line": 434,
-        "code_line": "std::fabs(hits[0].t - 1.0) < 1e-3",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "Intersection",
-    "test_name": "Ray Mesh Bvh First",
-    "passed": true,
-    "time_ms": 17.898,
-    "line": 437,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, false);",
+    "time_ms": 0.035,
+    "line": 433,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, false);",
     "checks": [
       {
         "line": 461,
@@ -606,19 +538,87 @@
   },
   {
     "group": "Intersection",
-    "test_name": "Ray Mesh Bvh Miss",
+    "test_name": "Ray Mesh Miss",
     "passed": true,
-    "time_ms": 9.923,
+    "time_ms": 0.02,
     "line": 465,
-    "code": "    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh(origin, direction, mesh, hits, true);",
     "checks": [
       {
-        "line": 483,
+        "line": 487,
         "code_line": "!result",
         "passed": true
       },
       {
-        "line": 484,
+        "line": 488,
+        "code_line": "hits.size() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh",
+    "passed": true,
+    "time_ms": 0.469,
+    "line": 491,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
+    "checks": [
+      {
+        "line": 519,
+        "code_line": "result",
+        "passed": true
+      },
+      {
+        "line": 520,
+        "code_line": "hits.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 521,
+        "code_line": "std::fabs(hits[0].t - 1.0) < 1e-3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh First",
+    "passed": true,
+    "time_ms": 0.362,
+    "line": 524,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n        {\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(0.5, 0.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, false);",
+    "checks": [
+      {
+        "line": 552,
+        "code_line": "result",
+        "passed": true
+      },
+      {
+        "line": 553,
+        "code_line": "hits.size() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh Miss",
+    "passed": true,
+    "time_ms": 0.206,
+    "line": 556,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons = {\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        },\n    };\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.0, 5.0, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits;\n    bool result = Intersection::ray_mesh_bvh(origin, direction, mesh, hits, true);",
+    "checks": [
+      {
+        "line": 578,
+        "code_line": "!result",
+        "passed": true
+      },
+      {
+        "line": 579,
         "code_line": "hits.size() == 0",
         "passed": true
       }
@@ -629,27 +629,27 @@
     "group": "Intersection",
     "test_name": "Ray Mesh Bvh Vs Naive",
     "passed": true,
-    "time_ms": 64.597,
-    "line": 487,
-    "code": "    std::vector<std::vector<Point>> polygons;\n    for (int i = 0; i < 10; ++i) {\n        for (int j = 0; j < 10; ++j) {\n            double x = static_cast<double>(i);\n            double y = static_cast<double>(j);\n            polygons.push_back({\n                Point(x, y, 0.0),\n                Point(x + 1.0, y, 0.0),\n                Point(x + 1.0, y + 1.0, 0.0),\n                Point(x, y + 1.0, 0.0)\n            });\n        }\n    }\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.5, 5.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits_naive;\n    bool result_naive = Intersection::ray_mesh(origin, direction, mesh, hits_naive, true);\n\n    std::vector<Intersection::RayHit> hits_bvh;\n    bool result_bvh = Intersection::ray_mesh_bvh(origin, direction, mesh, hits_bvh, true);\n\n",
+    "time_ms": 2.329,
+    "line": 582,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<std::vector<Point>> polygons;\n    for (int i = 0; i < 10; ++i) {\n        for (int j = 0; j < 10; ++j) {\n            double x = static_cast<double>(i);\n            double y = static_cast<double>(j);\n            polygons.push_back({\n                Point(x, y, 0.0),\n                Point(x + 1.0, y, 0.0),\n                Point(x + 1.0, y + 1.0, 0.0),\n                Point(x, y + 1.0, 0.0)\n            });\n        }\n    }\n\n    Mesh mesh = Mesh::from_polylines(polygons);\n\n    Point origin(5.5, 5.5, -1.0);\n    Vector direction(0.0, 0.0, 1.0);\n\n    std::vector<Intersection::RayHit> hits_naive;\n    bool result_naive = Intersection::ray_mesh(origin, direction, mesh, hits_naive, true);\n\n    std::vector<Intersection::RayHit> hits_bvh;\n    bool result_bvh = Intersection::ray_mesh_bvh(origin, direction, mesh, hits_bvh, true);\n\n",
     "checks": [
       {
-        "line": 513,
+        "line": 612,
         "code_line": "result_naive == result_bvh",
         "passed": true
       },
       {
-        "line": 514,
+        "line": 613,
         "code_line": "hits_naive.size() == hits_bvh.size()",
         "passed": true
       },
       {
-        "line": 517,
+        "line": 616,
         "code_line": "std::fabs(hits_naive[0].t - hits_bvh[0].t) < 1e-4",
         "passed": true
       },
       {
-        "line": 518,
+        "line": 617,
         "code_line": "hits_naive[0].face_index == hits_bvh[0].face_index",
         "passed": true
       }
@@ -660,47 +660,47 @@
     "group": "Intersection",
     "test_name": "Ray Box Real World",
     "passed": true,
-    "time_ms": 0.08,
-    "line": 522,
-    "code": "    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point min(214.0, 192.0, 484.0);\n    Point max(694.0, 567.0, 796.0);\n    std::vector<Point> points {min, max};\n    OBB box = OBB::from_points(points);\n\n    std::vector<Point> intersection_points;\n    bool result = Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points);\n\n",
+    "time_ms": 0.006,
+    "line": 621,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point min(214.0, 192.0, 484.0);\n    Point max(694.0, 567.0, 796.0);\n    std::vector<Point> points {min, max};\n    OBB box = OBB::from_points(points);\n\n    std::vector<Point> intersection_points;\n    bool result = Intersection::ray_box(l0, box, 0.0, 1000.0, intersection_points);\n\n",
     "checks": [
       {
-        "line": 532,
+        "line": 635,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 533,
+        "line": 636,
         "code_line": "intersection_points.size() == 2",
         "passed": true
       },
       {
-        "line": 535,
+        "line": 638,
         "code_line": "std::fabs(intersection_points[0][0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 536,
+        "line": 639,
         "code_line": "std::fabs(intersection_points[0][1] - 338.9) < 0.1",
         "passed": true
       },
       {
-        "line": 537,
+        "line": 640,
         "code_line": "std::fabs(intersection_points[0][2] - 484.0) < 0.1",
         "passed": true
       },
       {
-        "line": 539,
+        "line": 642,
         "code_line": "std::fabs(intersection_points[1][0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 540,
+        "line": 643,
         "code_line": "std::fabs(intersection_points[1][1] - 557.365) < 0.1",
         "passed": true
       },
       {
-        "line": 541,
+        "line": 644,
         "code_line": "std::fabs(intersection_points[1][2] - 796.0) < 0.1",
         "passed": true
       }
@@ -711,47 +711,47 @@
     "group": "Intersection",
     "test_name": "Ray Sphere Real World",
     "passed": true,
-    "time_ms": 0.01,
-    "line": 544,
-    "code": "    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point sphere_center(457.0, 192.0, 207.0);\n    double radius = 265.0;\n\n    std::vector<Point> sphere_points;\n    bool result = Intersection::ray_sphere(l0, sphere_center, radius, sphere_points);\n\n",
+    "time_ms": 0.002,
+    "line": 647,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point sphere_center(457.0, 192.0, 207.0);\n    double radius = 265.0;\n\n    std::vector<Point> sphere_points;\n    bool result = Intersection::ray_sphere(l0, sphere_center, radius, sphere_points);\n\n",
     "checks": [
       {
-        "line": 552,
+        "line": 658,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 553,
+        "line": 659,
         "code_line": "sphere_points.size() == 2",
         "passed": true
       },
       {
-        "line": 555,
+        "line": 661,
         "code_line": "std::fabs(sphere_points[0][0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 556,
+        "line": 662,
         "code_line": "std::fabs(sphere_points[0][1] - 12.08) < 0.1",
         "passed": true
       },
       {
-        "line": 557,
+        "line": 663,
         "code_line": "std::fabs(sphere_points[0][2] - 17.25) < 0.1",
         "passed": true
       },
       {
-        "line": 559,
+        "line": 665,
         "code_line": "std::fabs(sphere_points[1][0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 560,
+        "line": 666,
         "code_line": "std::fabs(sphere_points[1][1] - 308.77) < 0.1",
         "passed": true
       },
       {
-        "line": 561,
+        "line": 667,
         "code_line": "std::fabs(sphere_points[1][2] - 440.97) < 0.1",
         "passed": true
       }
@@ -762,27 +762,27 @@
     "group": "Intersection",
     "test_name": "Ray Triangle Real World",
     "passed": true,
-    "time_ms": 0.025,
-    "line": 564,
-    "code": "    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point p1(214.0, 567.0, 484.0);\n    Point p2(214.0, 192.0, 796.0);\n    Point p3(694.0, 192.0, 484.0);\n\n    Point triangle_hit;\n    bool result = Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit);",
+    "time_ms": 0.001,
+    "line": 670,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line l0(500.0, -573.576, -819.152, 500.0, 573.576, 819.152);\n    Point p1(214.0, 567.0, 484.0);\n    Point p2(214.0, 192.0, 796.0);\n    Point p3(694.0, 192.0, 484.0);\n\n    Point triangle_hit;\n    bool result = Intersection::ray_triangle(l0, p1, p2, p3, Tolerance::APPROXIMATION, triangle_hit);",
     "checks": [
       {
-        "line": 573,
+        "line": 682,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 574,
+        "line": 683,
         "code_line": "std::fabs(triangle_hit[0] - 500.0) < 0.1",
         "passed": true
       },
       {
-        "line": 575,
+        "line": 684,
         "code_line": "std::fabs(triangle_hit[1] - 340.616) < 0.01",
         "passed": true
       },
       {
-        "line": 576,
+        "line": 685,
         "code_line": "std::fabs(triangle_hit[2] - 486.451) < 0.01",
         "passed": true
       }
@@ -793,127 +793,127 @@
     "group": "Intersection",
     "test_name": "Surface Plane",
     "passed": true,
-    "time_ms": 1.062,
-    "line": 579,
-    "code": "    // Bilinear surface: z = x (0 to 10), cut at z=5\n    std::vector<Point> pts = {\n        Point(0, 0, 0),\n        Point(0, 10, 0),\n        Point(10, 0, 10),\n        Point(10, 10, 10),\n    };\n    auto srf = NurbsSurface::create(false, false, 1, 1, 2, 2, pts);\n\n    Point pp(0, 0, 5);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);\n\n\n    // Evaluate curve — all points should lie on x≈5, z≈5\n    auto [t0, t1] = curves[0].domain();\n    for (int i = 0; i <= 10; i++) {\n        double t = t0 + (t1 - t0) * i / 10.0;\n        Point p = curves[0].point_at(t);",
+    "time_ms": 0.261,
+    "line": 688,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // Bilinear surface: z = x (0 to 10), cut at z=5\n    std::vector<Point> pts = {\n        Point(0, 0, 0),\n        Point(0, 10, 0),\n        Point(10, 0, 10),\n        Point(10, 10, 10),\n    };\n    auto srf = NurbsSurface::create(false, false, 1, 1, 2, 2, pts);\n\n    Point pp(0, 0, 5);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);\n\n\n    // Evaluate curve — all points should lie on x≈5, z≈5\n    auto [t0, t1] = curves[0].domain();\n    for (int i = 0; i <= 10; i++) {\n        double t = t0 + (t1 - t0) * i / 10.0;\n        Point p = curves[0].point_at(t);",
     "checks": [
       {
-        "line": 594,
+        "line": 708,
         "code_line": "curves.size() == 1",
         "passed": true
       },
       {
-        "line": 595,
+        "line": 709,
         "code_line": "curves[0].is_valid()",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 602,
+        "line": 716,
         "code_line": "std::fabs(p[0] - 5.0) < 0.5",
         "passed": true
       },
       {
-        "line": 603,
+        "line": 717,
         "code_line": "std::fabs(p[2] - 5.0) < 0.5",
         "passed": true
       }
@@ -924,77 +924,77 @@
     "group": "Intersection",
     "test_name": "Surface Plane Curved",
     "passed": true,
-    "time_ms": 3.059,
-    "line": 607,
-    "code": "    // Degree 3 surface with bump, cut at z=3\n    std::vector<Point> pts;\n    for (int i = 0; i < 4; i++) {\n        for (int j = 0; j < 4; j++) {\n            double x = i * 10.0;\n            double y = j * 10.0;\n            double z = ((i == 1 || i == 2) && (j == 1 || j == 2)) ? 10.0 : 0.0;\n            pts.push_back(Point(x, y, z));\n        }\n    }\n    auto srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    Point pp(0, 0, 3);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);\n\n\n    // Evaluate — points should be near z=3\n    auto [t0, t1] = curves[0].domain();\n    for (int i = 0; i <= 10; i++) {\n        double t = t0 + (t1 - t0) * i / 10.0;\n        Point p = curves[0].point_at(t);",
+    "time_ms": 0.813,
+    "line": 721,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // Degree 3 surface with bump, cut at z=3\n    std::vector<Point> pts;\n    for (int i = 0; i < 4; i++) {\n        for (int j = 0; j < 4; j++) {\n            double x = i * 10.0;\n            double y = j * 10.0;\n            double z = ((i == 1 || i == 2) && (j == 1 || j == 2)) ? 10.0 : 0.0;\n            pts.push_back(Point(x, y, z));\n        }\n    }\n    auto srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    Point pp(0, 0, 3);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);\n\n\n    // Evaluate — points should be near z=3\n    auto [t0, t1] = curves[0].domain();\n    for (int i = 0; i <= 10; i++) {\n        double t = t0 + (t1 - t0) * i / 10.0;\n        Point p = curves[0].point_at(t);",
     "checks": [
       {
-        "line": 625,
+        "line": 744,
         "code_line": "curves.size() >= 1",
         "passed": true
       },
       {
-        "line": 626,
+        "line": 745,
         "code_line": "curves[0].is_valid()",
         "passed": true
       },
       {
-        "line": 627,
+        "line": 746,
         "code_line": "curves[0].degree() == 3",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       },
       {
-        "line": 634,
+        "line": 753,
         "code_line": "std::fabs(p[2] - 3.0) < 1.0",
         "passed": true
       }
@@ -1005,12 +1005,12 @@
     "group": "Intersection",
     "test_name": "Surface Plane Miss",
     "passed": true,
-    "time_ms": 0.17,
-    "line": 638,
-    "code": "    // Flat surface at z=0, plane at z=5 -> no intersection\n    std::vector<Point> pts = {\n        Point(0, 0, 0),\n        Point(0, 10, 0),\n        Point(10, 0, 0),\n        Point(10, 10, 0),\n    };\n    auto srf = NurbsSurface::create(false, false, 1, 1, 2, 2, pts);\n\n    Point pp(0, 0, 5);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);",
+    "time_ms": 0.021,
+    "line": 757,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // Flat surface at z=0, plane at z=5 -> no intersection\n    std::vector<Point> pts = {\n        Point(0, 0, 0),\n        Point(0, 10, 0),\n        Point(10, 0, 0),\n        Point(10, 10, 0),\n    };\n    auto srf = NurbsSurface::create(false, false, 1, 1, 2, 2, pts);\n\n    Point pp(0, 0, 5);\n    Vector pn(0, 0, 1);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    auto curves = Intersection::surface_plane(srf, plane);",
     "checks": [
       {
-        "line": 653,
+        "line": 777,
         "code_line": "curves.size() == 0",
         "passed": true
       }
@@ -1021,22 +1021,22 @@
     "group": "Intersection",
     "test_name": "Remap",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 656,
-    "code": "",
+    "time_ms": 0.0,
+    "line": 780,
+    "code": "    // uncomment #include \"intersection.h\"",
     "checks": [
       {
-        "line": 657,
+        "line": 782,
         "code_line": "std::fabs(Intersection::remap(5.0, 0.0, 10.0, 0.0, 1.0) - 0.5) < 1e-9",
         "passed": true
       },
       {
-        "line": 658,
+        "line": 783,
         "code_line": "std::fabs(Intersection::remap(0.0, 0.0, 10.0, 0.0, 1.0) - 0.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 659,
+        "line": 784,
         "code_line": "std::fabs(Intersection::remap(10.0, 0.0, 10.0, 0.0, 1.0) - 1.0) < 1e-9",
         "passed": true
       }
@@ -1047,37 +1047,37 @@
     "group": "Intersection",
     "test_name": "Closest Point On Segment",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 662,
-    "code": "    Line seg(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n    Point pt(2.0, 3.0, 0.0);\n    Point cp;\n    double t;\n    bool result = Intersection::closest_point_on_segment(pt, seg, cp, t);\n\n\n    Point pt2(-2.0, 1.0, 0.0);\n    Point cp2;\n    double t2;\n    Intersection::closest_point_on_segment(pt2, seg, cp2, t2);",
+    "time_ms": 0.001,
+    "line": 787,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line seg(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n    Point pt(2.0, 3.0, 0.0);\n    Point cp;\n    double t;\n    bool result = Intersection::closest_point_on_segment(pt, seg, cp, t);\n\n\n    Point pt2(-2.0, 1.0, 0.0);\n    Point cp2;\n    double t2;\n    Intersection::closest_point_on_segment(pt2, seg, cp2, t2);",
     "checks": [
       {
-        "line": 669,
+        "line": 797,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 670,
+        "line": 798,
         "code_line": "std::fabs(cp[0] - 2.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 671,
+        "line": 799,
         "code_line": "std::fabs(cp[1] - 0.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 672,
+        "line": 800,
         "code_line": "std::fabs(t - 0.5) < 1e-9",
         "passed": true
       },
       {
-        "line": 678,
+        "line": 806,
         "code_line": "std::fabs(cp2[0] - 0.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 679,
+        "line": 807,
         "code_line": "std::fabs(t2 - 0.0) < 1e-9",
         "passed": true
       }
@@ -1088,32 +1088,32 @@
     "group": "Intersection",
     "test_name": "Plane Plane Plane Check Parallel",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 682,
-    "code": "    Point o0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Point o1(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Point o2(0.0, 0.0, 2.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Plane p0 = Plane::from_point_normal(o0, n0);\n    Plane p1 = Plane::from_point_normal(o1, n1);\n    Plane p2 = Plane::from_point_normal(o2, n2);\n    Point out;\n\n\n    Point px_o(1.0, 0.0, 0.0);\n    Vector px_n(1.0, 0.0, 0.0);\n    Point py_o(0.0, 2.0, 0.0);\n    Vector py_n(0.0, 1.0, 0.0);\n    Point pz_o(0.0, 0.0, 3.0);\n    Vector pz_n(0.0, 0.0, 1.0);\n    Plane px = Plane::from_point_normal(px_o, px_n);\n    Plane py = Plane::from_point_normal(py_o, py_n);\n    Plane pz = Plane::from_point_normal(pz_o, pz_n);\n    Point pt;\n    bool ok = Intersection::plane_plane_plane_check(px, py, pz, 0.1, pt);",
+    "time_ms": 0.008,
+    "line": 810,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point o0(0.0, 0.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Point o1(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Point o2(0.0, 0.0, 2.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Plane p0 = Plane::from_point_normal(o0, n0);\n    Plane p1 = Plane::from_point_normal(o1, n1);\n    Plane p2 = Plane::from_point_normal(o2, n2);\n    Point out;\n\n\n    Point px_o(1.0, 0.0, 0.0);\n    Vector px_n(1.0, 0.0, 0.0);\n    Point py_o(0.0, 2.0, 0.0);\n    Vector py_n(0.0, 1.0, 0.0);\n    Point pz_o(0.0, 0.0, 3.0);\n    Vector pz_n(0.0, 0.0, 1.0);\n    Plane px = Plane::from_point_normal(px_o, px_n);\n    Plane py = Plane::from_point_normal(py_o, py_n);\n    Plane pz = Plane::from_point_normal(pz_o, pz_n);\n    Point pt;\n    bool ok = Intersection::plane_plane_plane_check(px, py, pz, 0.1, pt);",
     "checks": [
       {
-        "line": 694,
+        "line": 826,
         "code_line": "!Intersection::plane_plane_plane_check(p0, p1, p2, 0.1, out)",
         "passed": true
       },
       {
-        "line": 707,
+        "line": 839,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 708,
+        "line": 840,
         "code_line": "std::fabs(pt[0] - 1.0) < 1e-6",
         "passed": true
       },
       {
-        "line": 709,
+        "line": 841,
         "code_line": "std::fabs(pt[1] - 2.0) < 1e-6",
         "passed": true
       },
       {
-        "line": 710,
+        "line": 842,
         "code_line": "std::fabs(pt[2] - 3.0) < 1e-6",
         "passed": true
       }
@@ -1124,52 +1124,52 @@
     "group": "Intersection",
     "test_name": "Plane 4 Planes Closed",
     "passed": true,
-    "time_ms": 0.032,
-    "line": 713,
-    "code": "    Point mp(0.0, 0.0, 0.0);\n    Vector mn(0.0, 0.0, 1.0);\n    Plane main_plane = Plane::from_point_normal(mp, mn);\n    Point o0(-1.0, 0.0, 0.0); Vector n0(1.0, 0.0, 0.0);\n    Point o1(0.0, -1.0, 0.0); Vector n1(0.0, 1.0, 0.0);\n    Point o2(1.0,  0.0, 0.0); Vector n2(1.0, 0.0, 0.0);\n    Point o3(0.0,  1.0, 0.0); Vector n3(0.0, 1.0, 0.0);\n    std::array<Plane, 4> planes = {\n        Plane::from_point_normal(o0, n0),\n        Plane::from_point_normal(o1, n1),\n        Plane::from_point_normal(o2, n2),\n        Plane::from_point_normal(o3, n3),\n    };\n    Polyline result;\n    bool ok = Intersection::plane_4planes(main_plane, planes, result);\n\n    for (size_t i = 0; i < result.point_count(); i++) {\n        Point p = result.get_point(i);\n    }\n    Point first = result.get_point(0);\n    Point last = result.get_point(4);",
+    "time_ms": 0.013,
+    "line": 845,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"vector.h\"\n    Point mp(0.0, 0.0, 0.0);\n    Vector mn(0.0, 0.0, 1.0);\n    Plane main_plane = Plane::from_point_normal(mp, mn);\n    Point o0(-1.0, 0.0, 0.0); Vector n0(1.0, 0.0, 0.0);\n    Point o1(0.0, -1.0, 0.0); Vector n1(0.0, 1.0, 0.0);\n    Point o2(1.0,  0.0, 0.0); Vector n2(1.0, 0.0, 0.0);\n    Point o3(0.0,  1.0, 0.0); Vector n3(0.0, 1.0, 0.0);\n    std::array<Plane, 4> planes = {\n        Plane::from_point_normal(o0, n0),\n        Plane::from_point_normal(o1, n1),\n        Plane::from_point_normal(o2, n2),\n        Plane::from_point_normal(o3, n3),\n    };\n    Polyline result;\n    bool ok = Intersection::plane_4planes(main_plane, planes, result);\n\n    for (size_t i = 0; i < result.point_count(); i++) {\n        Point p = result.get_point(i);\n    }\n    Point first = result.get_point(0);\n    Point last = result.get_point(4);",
     "checks": [
       {
-        "line": 730,
+        "line": 867,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 731,
+        "line": 868,
         "code_line": "result.point_count() == 5",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 871,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 871,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 871,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 871,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 734,
+        "line": 871,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 738,
+        "line": 875,
         "code_line": "std::fabs(first[0] - last[0]) < 1e-6",
         "passed": true
       },
       {
-        "line": 739,
+        "line": 876,
         "code_line": "std::fabs(first[1] - last[1]) < 1e-6",
         "passed": true
       }
@@ -1180,17 +1180,17 @@
     "group": "Intersection",
     "test_name": "Plane 4 Planes Open",
     "passed": true,
-    "time_ms": 0.121,
-    "line": 742,
-    "code": "    Point mp(0.0, 0.0, 0.0);\n    Vector mn(0.0, 0.0, 1.0);\n    Plane main_plane = Plane::from_point_normal(mp, mn);\n    Point o0(-1.0, 0.0, 0.0); Vector n0(1.0, 0.0, 0.0);\n    Point o1(0.0, -1.0, 0.0); Vector n1(0.0, 1.0, 0.0);\n    Point o2(1.0,  0.0, 0.0); Vector n2(1.0, 0.0, 0.0);\n    Point o3(0.0,  1.0, 0.0); Vector n3(0.0, 1.0, 0.0);\n    std::array<Plane, 4> planes = {\n        Plane::from_point_normal(o0, n0),\n        Plane::from_point_normal(o1, n1),\n        Plane::from_point_normal(o2, n2),\n        Plane::from_point_normal(o3, n3),\n    };\n    Polyline result;\n    bool ok = Intersection::plane_4planes_open(main_plane, planes, result);",
+    "time_ms": 0.007,
+    "line": 879,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"vector.h\"\n    Point mp(0.0, 0.0, 0.0);\n    Vector mn(0.0, 0.0, 1.0);\n    Plane main_plane = Plane::from_point_normal(mp, mn);\n    Point o0(-1.0, 0.0, 0.0); Vector n0(1.0, 0.0, 0.0);\n    Point o1(0.0, -1.0, 0.0); Vector n1(0.0, 1.0, 0.0);\n    Point o2(1.0,  0.0, 0.0); Vector n2(1.0, 0.0, 0.0);\n    Point o3(0.0,  1.0, 0.0); Vector n3(0.0, 1.0, 0.0);\n    std::array<Plane, 4> planes = {\n        Plane::from_point_normal(o0, n0),\n        Plane::from_point_normal(o1, n1),\n        Plane::from_point_normal(o2, n2),\n        Plane::from_point_normal(o3, n3),\n    };\n    Polyline result;\n    bool ok = Intersection::plane_4planes_open(main_plane, planes, result);",
     "checks": [
       {
-        "line": 759,
+        "line": 901,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 760,
+        "line": 902,
         "code_line": "result.point_count() == 4",
         "passed": true
       }
@@ -1201,42 +1201,42 @@
     "group": "Intersection",
     "test_name": "Plane 4 Lines",
     "passed": true,
-    "time_ms": 0.026,
-    "line": 763,
-    "code": "    Point pp(0.0, 0.0, 0.0);\n    Vector pn(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    Line l0(-1.0, -1.0, -1.0, -1.0,  1.0, 1.0);\n    Line l1( 1.0, -1.0, -1.0,  1.0,  1.0, 1.0);\n    Line l2(-1.0, -1.0, -1.0,  1.0, -1.0, 1.0);\n    Line l3(-1.0,  1.0, -1.0,  1.0,  1.0, 1.0);\n    Polyline result;\n    bool ok = Intersection::plane_4lines(plane, l0, l1, l2, l3, result);\n\n    for (size_t i = 0; i < result.point_count(); i++) {\n        Point p = result.get_point(i);",
+    "time_ms": 0.006,
+    "line": 905,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"vector.h\"\n    Point pp(0.0, 0.0, 0.0);\n    Vector pn(0.0, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    Line l0(-1.0, -1.0, -1.0, -1.0,  1.0, 1.0);\n    Line l1( 1.0, -1.0, -1.0,  1.0,  1.0, 1.0);\n    Line l2(-1.0, -1.0, -1.0,  1.0, -1.0, 1.0);\n    Line l3(-1.0,  1.0, -1.0,  1.0,  1.0, 1.0);\n    Polyline result;\n    bool ok = Intersection::plane_4lines(plane, l0, l1, l2, l3, result);\n\n    for (size_t i = 0; i < result.point_count(); i++) {\n        Point p = result.get_point(i);",
     "checks": [
       {
-        "line": 774,
+        "line": 922,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 775,
+        "line": 923,
         "code_line": "result.point_count() == 5",
         "passed": true
       },
       {
-        "line": 778,
+        "line": 926,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 778,
+        "line": 926,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 778,
+        "line": 926,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 778,
+        "line": 926,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       },
       {
-        "line": 778,
+        "line": 926,
         "code_line": "std::fabs(p[2]) < 1e-6",
         "passed": true
       }
@@ -1247,17 +1247,17 @@
     "group": "Intersection",
     "test_name": "Scale Vector To Distance Of 2 Planes",
     "passed": true,
-    "time_ms": 0.011,
-    "line": 782,
-    "code": "    Point p0o(0.0, 0.0, 0.0);\n    Vector p0n(0.0, 0.0, 1.0);\n    Point p1o(0.0, 0.0, 3.0);\n    Vector p1n(0.0, 0.0, 1.0);\n    Plane pl0 = Plane::from_point_normal(p0o, p0n);\n    Plane pl1 = Plane::from_point_normal(p1o, p1n);\n    Vector direction(0.0, 0.0, 1.0);\n    Vector result;\n    bool ok = Intersection::scale_vector_to_distance_of_2planes(direction, pl0, pl1, result);",
+    "time_ms": 0.002,
+    "line": 930,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point p0o(0.0, 0.0, 0.0);\n    Vector p0n(0.0, 0.0, 1.0);\n    Point p1o(0.0, 0.0, 3.0);\n    Vector p1n(0.0, 0.0, 1.0);\n    Plane pl0 = Plane::from_point_normal(p0o, p0n);\n    Plane pl1 = Plane::from_point_normal(p1o, p1n);\n    Vector direction(0.0, 0.0, 1.0);\n    Vector result;\n    bool ok = Intersection::scale_vector_to_distance_of_2planes(direction, pl0, pl1, result);",
     "checks": [
       {
-        "line": 793,
+        "line": 945,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 794,
+        "line": 946,
         "code_line": "std::fabs(result[2] - 3.0) < 1e-6",
         "passed": true
       }
@@ -1268,27 +1268,27 @@
     "group": "Intersection",
     "test_name": "Polyline Plane",
     "passed": true,
-    "time_ms": 0.028,
-    "line": 797,
-    "code": "    std::vector<Point> pts = {\n        Point(-1.0, -1.0, 0.0),\n        Point( 1.0, -1.0, 0.0),\n        Point( 1.0,  1.0, 0.0),\n        Point(-1.0,  1.0, 0.0),\n        Point(-1.0, -1.0, 0.0),\n    };\n    Polyline poly(pts);\n    Point pp(0.0, 0.0, 0.0);\n    Vector pn(1.0, 0.0, 0.0);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    std::vector<Point> points;\n    std::vector<int> edge_ids;\n    bool result = Intersection::polyline_plane(poly, plane, points, edge_ids);\n\n    for (const auto& p : points) {",
+    "time_ms": 0.006,
+    "line": 949,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<Point> pts = {\n        Point(-1.0, -1.0, 0.0),\n        Point( 1.0, -1.0, 0.0),\n        Point( 1.0,  1.0, 0.0),\n        Point(-1.0,  1.0, 0.0),\n        Point(-1.0, -1.0, 0.0),\n    };\n    Polyline poly(pts);\n    Point pp(0.0, 0.0, 0.0);\n    Vector pn(1.0, 0.0, 0.0);\n    Plane plane = Plane::from_point_normal(pp, pn);\n    std::vector<Point> points;\n    std::vector<int> edge_ids;\n    bool result = Intersection::polyline_plane(poly, plane, points, edge_ids);\n\n    for (const auto& p : points) {",
     "checks": [
       {
-        "line": 813,
+        "line": 970,
         "code_line": "result",
         "passed": true
       },
       {
-        "line": 814,
+        "line": 971,
         "code_line": "points.size() == 2",
         "passed": true
       },
       {
-        "line": 816,
+        "line": 973,
         "code_line": "std::fabs(p[0]) < 1e-9",
         "passed": true
       },
       {
-        "line": 816,
+        "line": 973,
         "code_line": "std::fabs(p[0]) < 1e-9",
         "passed": true
       }
@@ -1299,32 +1299,32 @@
     "group": "Intersection",
     "test_name": "Line Line 3D",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 820,
-    "code": "    Line cutter(0.0, 1.0, 0.0, 2.0, 1.0, 0.0);\n    Line seg(1.0, 0.0, 0.0, 1.0, 2.0, 0.0);\n    Point result;\n    bool ok = Intersection::line_line_3d(cutter, seg, result);\n\n\n    Line par0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line par1(0.0, 1.0, 0.0, 1.0, 1.0, 0.0);\n    Point out2;",
+    "time_ms": 0.001,
+    "line": 977,
+    "code": "    // uncomment #include \"intersection.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line cutter(0.0, 1.0, 0.0, 2.0, 1.0, 0.0);\n    Line seg(1.0, 0.0, 0.0, 1.0, 2.0, 0.0);\n    Point result;\n    bool ok = Intersection::line_line_3d(cutter, seg, result);\n\n\n    Line par0(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    Line par1(0.0, 1.0, 0.0, 1.0, 1.0, 0.0);\n    Point out2;",
     "checks": [
       {
-        "line": 826,
+        "line": 986,
         "code_line": "ok",
         "passed": true
       },
       {
-        "line": 827,
+        "line": 987,
         "code_line": "std::fabs(result[0] - 1.0) < 1e-6",
         "passed": true
       },
       {
-        "line": 828,
+        "line": 988,
         "code_line": "std::fabs(result[1] - 1.0) < 1e-6",
         "passed": true
       },
       {
-        "line": 829,
+        "line": 989,
         "code_line": "std::fabs(result[2] - 0.0) < 1e-6",
         "passed": true
       },
       {
-        "line": 834,
+        "line": 994,
         "code_line": "!Intersection::line_line_3d(par0, par1, out2)",
         "passed": true
       }
