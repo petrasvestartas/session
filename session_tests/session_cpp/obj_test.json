@@ -3,7 +3,7 @@
     "group": "OBJ",
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 47.107,
+    "time_ms": 33.125,
     "line": 11,
     "code": "    // uncomment #include \"obj.h\"\n    // uncomment #include \"mesh.h\"\n    std::ifstream test_file(\"session_data/bunny.obj\");\n    if (!test_file.good()) {\n        // Data file not found, skip test\n        return;\n    }\n    test_file.close();\n\n    Mesh mesh = obj::read_obj(\"session_data/bunny.obj\");\n\n\n    auto [vertices, faces] = mesh.to_vertices_and_faces();\n\n    bool has_non_zero = false;\n    for (const auto& v : vertices) {\n        if (v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0) {\n            has_non_zero = true;\n            break;\n        }\n    }\n\n    for (const auto& face : faces) {",
     "checks": [
@@ -24879,7 +24879,7 @@
     "group": "OBJ",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 17.238,
+    "time_ms": 13.903,
     "line": 44,
     "code": "    // uncomment #include \"obj.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::filesystem::create_directories(\"./serialization\");\n    Mesh original_mesh;\n    auto v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0));\n    auto v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0));\n    auto v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0));\n    auto v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0));\n\n    original_mesh.add_face({v0, v1, v2});\n    original_mesh.add_face({v0, v1, v3});\n\n\n    std::string temp_file = \"./serialization/test_temp_roundtrip.obj\";\n    obj::write_obj(original_mesh, temp_file);\n\n    std::ifstream check(temp_file);\n    check.close();\n\n    Mesh loaded_mesh = obj::read_obj(temp_file);\n\n\n    std::remove(temp_file.c_str());",
     "checks": [

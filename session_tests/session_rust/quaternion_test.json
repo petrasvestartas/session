@@ -23,7 +23,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.006
+    "time_ms": 10.316
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 302,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.255
+    "time_ms": 8.326
   },
   {
     "checks": [
@@ -96,7 +96,7 @@
     "line": 245,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.01
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 198,
     "passed": true,
     "test_name": "Normalized",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 188,
     "passed": true,
     "test_name": "Magnitude Squared",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -248,7 +248,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Get Rotation",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 151,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 134,
     "passed": true,
     "test_name": "From Rotation",
-    "time_ms": 0.011
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -321,7 +321,7 @@
     "line": 122,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -357,7 +357,7 @@
     "line": 101,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.012
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -526,6 +526,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.03
+    "time_ms": 0.015
   }
 ]

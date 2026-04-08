@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.018,
     "line": 13,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_scalar_and_vector(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_scalar_and_vector(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();",
     "checks": [
@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 70,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::identity();",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Scalar And Vector",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 81,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0));",
     "checks": [
@@ -151,7 +151,7 @@
     "group": "Quaternion",
     "test_name": "From Axis Angle",
     "passed": true,
-    "time_ms": 0.238,
+    "time_ms": 0.001,
     "line": 93,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);",
     "checks": [
@@ -229,7 +229,7 @@
     "group": "Quaternion",
     "test_name": "From Rotation",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 134,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"plane.h\"\n\n    Plane plane_a = Plane::xy_plane();\n    Plane plane_b(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0));\n    Quaternion q = Quaternion::from_rotation(plane_a, plane_b);\n    Vector rotated_x = q.rotate_vector(plane_a.x_axis());",
     "checks": [
@@ -312,7 +312,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 173,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);",
     "checks": [
@@ -328,7 +328,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude Squared",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 182,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);",
     "checks": [
@@ -386,7 +386,7 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 213,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
@@ -480,7 +480,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.974,
+    "time_ms": 7.502,
     "line": 264,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string filename = \"serialization/test_quaternion.json\";\n    q.json_dump(filename);\n    Quaternion loaded = Quaternion::json_load(filename);",
     "checks": [
@@ -506,7 +506,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.239,
+    "time_ms": 6.46,
     "line": 286,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    std::string filename = \"serialization/test_quaternion.bin\";\n    q.pb_dump(filename);\n    Quaternion loaded = Quaternion::pb_load(filename);",
     "checks": [

@@ -3,7 +3,7 @@
     "group": "OBJ",
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 38.087,
+    "time_ms": 28.459,
     "line": 8,
     "code": "    bunny_path = Path(__file__).resolve().parents[3] / \"session_data\" / \"bunny.obj\"\n    if not bunny_path.exists():\n        return\n    from session_py import Mesh\n    from session_py.obj import read_obj\n    mesh = read_obj(str(bunny_path))\n\n    vertices, faces = mesh.to_vertices_and_faces()\n    has_non_zero = any(v[0] != 0.0 or v[1] != 0.0 or v[2] != 0.0 for v in vertices)",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "OBJ",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 14.501,
+    "time_ms": 11.961,
     "line": 27,
     "code": "    from session_py import Mesh, Point\n    from session_py.obj import read_obj, write_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0, 0, 0))\n    v1 = original_mesh.add_vertex(Point(1, 0, 0))\n    v2 = original_mesh.add_vertex(Point(0, 1, 0))\n    v3 = original_mesh.add_vertex(Point(0, 0, 1))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_obj(original_mesh, temp_file)\n    loaded_mesh = read_obj(temp_file)\n    os.remove(temp_file)",
     "checks": [

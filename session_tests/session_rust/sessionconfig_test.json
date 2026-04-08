@@ -18,7 +18,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Default Values",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -59,6 +59,6 @@
     "line": 14,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.002
+    "time_ms": 0.001
   }
 ]

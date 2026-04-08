@@ -58262,11 +58262,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
         "subdivide",
         "points",
-        "into",
         "n",
+        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -58282,9 +58282,9 @@ window.API_INDEX = {
       "tags": [
         "subdivide",
         "ellipse",
+        "arc",
         "length",
         "by",
-        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -58298,9 +58298,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
-        "through",
         "arc",
+        "through",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -58315,11 +58315,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "adaptive",
+        "curve",
+        "open",
         "points",
         "polyline",
         "from",
-        "open",
-        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -58334,8 +58334,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
         "evaluation",
+        "at",
         "curve",
         "parameter",
         "set_domain",
@@ -58381,9 +58381,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -58404,10 +58404,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
-        "cylinder",
         "surface",
         "point",
+        "evaluate",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -58422,11 +58422,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
-        "and",
         "mesh",
+        "and",
         "vertices",
         "from",
+        "faces",
         "add_vertex",
         "add_face",
         "vertex"
@@ -58494,6 +58494,12 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "CurveKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "CurveKnotStyle geometry class"
+    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -58502,11 +58508,11 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
-    "CurveKnotStyle": {
+    "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "CurveKnotStyle geometry class"
+      "summary": "LoftWallFace geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -58525,40 +58531,11 @@ window.API_INDEX = {
       ],
       "summary": "A NURBS surface with control points, weights, knots, and degrees"
     },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
     "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftAdjPair geometry class"
-    },
-    "NurbsCurve": {
-      "composition": [
-        "Color",
-        "CurveKnotStyle",
-        "Point",
-        "Tolerance"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A NURBS curve with control points, weights, knots, and degree"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "VertexData geometry class"
     },
     "Primitives": {
       "composition": [
@@ -58576,6 +58553,14 @@ window.API_INDEX = {
       ],
       "summary": "Factory for creating geometric primitives (circle, ellipse, arc, etc.)"
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "VertexData geometry class"
+    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -58588,6 +58573,21 @@ window.API_INDEX = {
       ],
       "summary": "A collection of 3D points with optional colors"
     },
+    "NurbsCurve": {
+      "composition": [
+        "Color",
+        "CurveKnotStyle",
+        "Point",
+        "Tolerance"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A NURBS curve with control points, weights, knots, and degree"
+    },
     "Quaternion": {
       "composition": [
         "Vector"
@@ -58597,6 +58597,22 @@ window.API_INDEX = {
         "Plane"
       ],
       "summary": "A quaternion for representing rotations"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance values for geometric comparisons"
     },
     "ColorMode": {
       "composition": [],
@@ -58618,28 +58634,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "RemeshCDT geometry class"
     },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance values for geometric comparisons"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
     "Polyline": {
       "composition": [
         "Line",
@@ -58656,6 +58650,12 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A polyline defined by a sequence of points"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [
@@ -58704,12 +58704,6 @@ window.API_INDEX = {
       ],
       "summary": "Session management for geometry objects"
     },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
     "Vector": {
       "composition": [
         "Point"
@@ -58731,26 +58725,11 @@ window.API_INDEX = {
       ],
       "summary": "A vertex in a mesh with position and connectivity"
     },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with nodes and edges"
-    },
-    "Plane": {
+    "RayHit": {
       "composition": [],
-      "factories": [
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A plane defined by origin, x-axis, and y-axis"
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Xform": {
       "composition": [
@@ -58763,6 +58742,22 @@ window.API_INDEX = {
         "Plane"
       ],
       "summary": "A 4x4 transformation matrix for translation, rotation, and scaling"
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with nodes and edges"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "An RGBA color with preset colors and interpolation"
     },
     "Point": {
       "composition": [],
@@ -58777,19 +58772,16 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with x, y, z coordinates"
     },
-    "Color": {
+    "Plane": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An RGBA color with preset colors and interpolation"
-    },
-    "Tree": {
-      "composition": [
-        "TreeNode"
+      "factories": [
+        "Quaternion"
       ],
-      "factories": [],
-      "uses": [],
-      "summary": "A tree data structure with hierarchical paths"
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A plane defined by origin, x-axis, and y-axis"
     },
     "Line": {
       "composition": [
@@ -58803,6 +58795,14 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A line defined by start and end points"
+    },
+    "Tree": {
+      "composition": [
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A tree data structure with hierarchical paths"
     },
     "Mesh": {
       "composition": [
